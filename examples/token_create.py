@@ -8,6 +8,7 @@ from hiero_sdk_python import (
     PrivateKey,
     TokenCreateTransaction,
     Network,
+    TokenType
 )
 
 load_dotenv()
@@ -32,6 +33,7 @@ def create_token():
         .set_decimals(2)
         .set_initial_supply(10)
         .set_treasury_account_id(operator_id)
+        .set_token_type(TokenType.FUNGIBLE_COMMON)
         .set_admin_key(admin_key)
         .set_supply_key(supply_key)
         .set_freeze_key(freeze_key)

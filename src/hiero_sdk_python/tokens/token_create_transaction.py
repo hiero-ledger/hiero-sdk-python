@@ -1,6 +1,7 @@
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_create_pb2, basic_types_pb2
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.token_type import TokenType
 from cryptography.hazmat.primitives import serialization
 
 class TokenCreateTransaction(Transaction):
@@ -14,7 +15,7 @@ class TokenCreateTransaction(Transaction):
     to build and execute a token creation transaction.
     """
 
-    def __init__(self, token_name=None, token_symbol=None, decimals=None, initial_supply=None, 
+    def __init__(self, token_name=None, token_symbol=None, decimals=None, initial_supply=None, token_type=None,
                  treasury_account_id=None, admin_key=None, supply_key=None, freeze_key=None):
         """
         Initializes a new TokenCreateTransaction instance with optional keyword arguments.
@@ -24,6 +25,7 @@ class TokenCreateTransaction(Transaction):
             token_symbol (str, optional): The symbol of the token.
             decimals (int, optional): The number of decimals for the token.
             initial_supply (int, optional): The initial supply of the token.
+            token_type (int or TokenType, optional): The type of the token, defaulting to fungible.
             treasury_account_id (AccountId, optional): The treasury account ID.
             admin_key (PrivateKey, optional): The admin key for the token.
             supply_key (PrivateKey, optional): The supply key for the token.
@@ -35,6 +37,7 @@ class TokenCreateTransaction(Transaction):
         self.token_symbol = token_symbol
         self.decimals = decimals
         self.initial_supply = initial_supply
+        self.token_type = token_type
         self.treasury_account_id = treasury_account_id
         self.admin_key = admin_key
         self.supply_key = supply_key
@@ -62,6 +65,11 @@ class TokenCreateTransaction(Transaction):
         self.initial_supply = initial_supply
         return self
 
+    def set_token_type(self, token_type):
+        self._require_not_frozen()
+        self.token_type = token_type
+        return self
+
     def set_treasury_account_id(self, account_id):
         self._require_not_frozen()
         self.treasury_account_id = account_id
@@ -81,6 +89,7 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self.freeze_key = freeze_key
         return self
+    
     
     
     def build_transaction_body(self):
@@ -117,18 +126,26 @@ class TokenCreateTransaction(Transaction):
             freeze_public_key_bytes = self.freeze_key.public_key().to_bytes_raw()
             freeze_key_proto = basic_types_pb2.Key(ed25519=freeze_public_key_bytes)
 
+        if self.token_type is None:
+            token_type_value = 0  # default FUNGIBLE_COMMON
+        elif isinstance(self.token_type, TokenType):
+            token_type_value = self.token_type.value
+        else:
+            token_type_value = self.token_type 
+
         token_create_body = token_create_pb2.TokenCreateTransactionBody(
             name=self.token_name,
             symbol=self.token_symbol,
             decimals=self.decimals,
             initialSupply=self.initial_supply,
+            tokenType=token_type_value,
             treasury=self.treasury_account_id.to_proto(),
             adminKey=admin_key_proto,
             supplyKey=supply_key_proto,
             freezeKey=freeze_key_proto
 
         )
-
+        
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenCreation.CopyFrom(token_create_body)
 
