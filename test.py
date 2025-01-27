@@ -248,10 +248,11 @@ def main():
     recipient_id, recipient_private_key = create_new_account(client)
     query_balance(client, recipient_id)
 
-    token_id = create_token(client, operator_id, admin_key)
-    associate_token(client, recipient_id, recipient_private_key, token_id)
-    transfer_token(client, recipient_id, token_id)
-    delete_token(client, token_id, admin_key)
+    token_id_1 = create_token(client, operator_id, admin_key)
+    token_id_2 = create_token(client, operator_id, admin_key)
+    associate_token(client, recipient_id, recipient_private_key, [token_id_1, token_id_2])
+    transfer_token(client, recipient_id, token_id_1)
+    delete_token(client, token_id_1, admin_key)
 
     topic_id = create_topic(client)
     submit_message(client, topic_id)
