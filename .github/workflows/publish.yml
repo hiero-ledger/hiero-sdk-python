@@ -10,15 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
-      
-      - name: Install PDM
-        run: pip install pdm
-      
+          python-version: '3.9'
+
+      - name: Install PDM & pdm-backend
+        run: pip install pdm==2.5.2 pdm-backend==0.1.4
+
+      - name: Install or Update Dependencies
+        run: pdm install --prod
+
       - name: Generate Proto Files
         run: bash ./generate_proto.sh
         
