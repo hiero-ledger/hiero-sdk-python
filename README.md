@@ -1,4 +1,4 @@
-# Hedera (Mini) SDK in Python
+# Hiero SDK in Python
 
 This is a Python SDK for interacting with the Hedera Hashgraph platform. It allows developers to:
 
