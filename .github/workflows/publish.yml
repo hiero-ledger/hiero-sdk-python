@@ -16,10 +16,13 @@ jobs:
         with:
           python-version: "3.9"
 
-      - name: Install build & pdm-backend & grpcio-tools
-        run: pip install --upgrade pip build pdm-backend grpcio-tools
+      - name: Upgrade pip
+        run: pip install --upgrade pip
 
-      - name: Generate Protobuf
+      - name: Install build, pdm-backend, and grpcio-tools
+        run: pip install build pdm-backend grpcio-tools
+
+      - name: Generate Protobuf (if needed)
         run: bash ./generate_proto.sh
 
       - name: Build wheel and sdist

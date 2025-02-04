@@ -1,4 +1,4 @@
-name: Hedera Solo Integration Tests
+name: Hiero Solo Integration Tests
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       - name: Generate Proto Files
         run: bash ./generate_proto.sh
 
-      - name: Prepare Hedera Solo
+      - name: Prepare Hiero Solo
         id: solo
         uses: OpenElements/hedera-solo-action@v0.4
 
