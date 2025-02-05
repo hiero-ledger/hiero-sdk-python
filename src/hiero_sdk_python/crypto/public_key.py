@@ -6,7 +6,7 @@ class PublicKey:
     Represents a public key that can be either Ed25519 or ECDSA (secp256k1).
     """
 
-    def __init__(self, public_key: ec.EllipticCurvePublicKey | ed25519.Ed25519PublicKey):
+    def __init__(self, public_key):
         """
         Initializes a PublicKey from a cryptography PublicKey object.
         """

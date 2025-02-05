@@ -49,4 +49,4 @@ jobs:
           PUBLIC_KEY: ${{ steps.solo.outputs.publicKey }}
           NETWORK: solo
         run: |
-          python test.py
+          python test.py; uv run pytest

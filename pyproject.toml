@@ -37,6 +37,9 @@ lint = [
     "ruff>=0.8.3",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
 [tool.pdm]
 version = {source = "scm"}
 

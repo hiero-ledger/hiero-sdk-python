@@ -9,7 +9,7 @@ class PrivateKey:
     Represents a private key that can be either Ed25519 or ECDSA (secp256k1).
     """
 
-    def __init__(self, private_key: ec.EllipticCurvePrivateKey | ed25519.Ed25519PrivateKey):
+    def __init__(self, private_key):
         """
         Initializes a PrivateKey from a cryptography PrivateKey object.
         """
