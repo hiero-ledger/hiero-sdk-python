@@ -1,6 +1,5 @@
-from dataclasses import dataclass
 import re
-
+from dataclasses import dataclass
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
 
