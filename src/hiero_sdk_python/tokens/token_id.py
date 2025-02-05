@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from hedera_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.hapi.services import basic_types_pb2
 
 @dataclass(frozen=True, eq=True, init=True, repr=True)
 class TokenId:
@@ -49,8 +49,6 @@ class TokenId:
         token_id_proto.tokenNum = self.num
         return token_id_proto
 
-    # NOTE: Does this implementation need to implement #.#.#-asdf/####???
-    #  ignoring for now
     @classmethod
     def from_string(cls, token_id_str:str = ""):
         """
