@@ -2,7 +2,7 @@
 
 This is a Python SDK for interacting with the Hedera Hashgraph platform. It allows developers to:
 
-- Manage Token Transactions like Create, Mint Fungible, Mint Non-Fungible, Associate, Dissociate, Transfer & Delete
+- Manage Token Transactions like Create, Mint Fungible, Mint Non-Fungible, Associate, Dissociate, Transfer, Freeze & Delete
 - Manage Consensus Transactions like Topic Create, Update, Delete
 - Submit Topic Messages
 - Query Account Balance, Transaction Receipts, Topic Infos and Messages
@@ -25,6 +25,7 @@ This is a Python SDK for interacting with the Hedera Hashgraph platform. It allo
   - [Dissociating a Token](#dissociating-a-token)
   - [Transferring Tokens](#transferring-tokens)
   - [Deleting a Token](#deleting-a-token)
+  - [Freezing a Token](#freezing-a-token)
   - [Transferring HBAR](#transferring-hbar)
   - [Creating a Topic](#creating-a-topic)
   - [Submitting a Topic Message](#submitting-a-topic-message)
@@ -115,9 +116,11 @@ OPERATOR_ID=0.0.1234xx
 OPERATOR_KEY=302e020100300506032b657004220420...
 ADMIN_KEY=302a300506032b65700321009308ecfdf...
 SUPPLY_KEY =302a300506032b6570032100c5e4af5..."
+FREEZE_KEY=302a300306072b65700321009308ecfdf...
 RECIPIENT_ID=0.0.789xx
 TOKEN_ID=0.0.100xx
 TOPIC_ID=0.0.200xx
+FREEZE_ACCOUNT_ID=0.0.100
 NETWORK=testnet
 ```
 
@@ -148,6 +151,7 @@ Token association successful.
 Token dissociation successful.
 Token minting successful.
 Token transfer successful.
+Token freeze successful.
 Token deletion successful.
 Topic creation successful.
 Topic Message submitted.
@@ -403,6 +407,32 @@ transaction.execute(client)
     transaction.sign(operator_key)
     transaction.execute(client)
 ```
+
+### Freezing a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenFreezeTransaction(
+    token_id=token_id
+    account_id=account_id
+).freeze_with(client)
+
+transaction.sign(freeze_key)  # Freeze key must have been set during token creation.
+transaction.execute(client)
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenFreezeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .freeze_with(client)
+    )
+
+    transaction.sign(freeze_key) # Freeze key must also have been set in Token Create
+    transaction.execute(client)
+```
+
 
 ### Transferring HBAR
 

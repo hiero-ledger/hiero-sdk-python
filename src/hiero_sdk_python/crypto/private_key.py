@@ -3,13 +3,11 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from hiero_sdk_python.crypto.public_key import PublicKey
 
-
 class PrivateKey:
     """
     Represents a private key that can be either Ed25519 or ECDSA (secp256k1).
     """
-
-    def __init__(self, private_key):
+    def __init__(self, private_key: ec.EllipticCurvePrivateKey | ed25519.Ed25519PrivateKey):        
         """
         Initializes a PrivateKey from a cryptography PrivateKey object.
         """
