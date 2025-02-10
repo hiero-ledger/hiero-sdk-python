@@ -18,7 +18,7 @@ class Network:
         'mainnet': 'https://mainnet-public.mirrornode.hedera.com',
         'testnet': 'https://testnet.mirrornode.hedera.com',
         'previewnet': 'https://previewnet.mirrornode.hedera.com',
-        'solo': 'http://localhost:8080'  
+        'solo': 'http://localhost:8080'
     }
 
     DEFAULT_NODES = {
@@ -97,6 +97,7 @@ class Network:
         url = f"{base_url}/api/v1/network/nodes?limit=100&order=desc"
 
         try:
+            import requests
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
