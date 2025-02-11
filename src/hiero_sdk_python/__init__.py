@@ -18,6 +18,7 @@ from .tokens.token_delete_transaction import TokenDeleteTransaction
 from .tokens.token_mint_transaction import TokenMintTransaction
 from .tokens.token_freeze_transaction import TokenFreezeTransaction
 from .tokens.token_id import TokenId
+from .tokens.nft_id import NftId
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -67,6 +68,7 @@ __all__ = [
     "TokenMintTransaction",
     "TokenFreezeTransaction",
     "TokenId",
+    "NftId",
 
     # Transaction
     "TransferTransaction",
