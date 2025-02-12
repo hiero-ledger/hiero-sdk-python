@@ -30,6 +30,8 @@ jobs:
       - name: Prepare Hiero Solo
         id: solo
         uses: OpenElements/hedera-solo-action@v0.4
+        with:
+          installMirrorNode: true
 
       - name: Set environment variables
         run: |
