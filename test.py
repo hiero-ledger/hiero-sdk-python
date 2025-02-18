@@ -13,6 +13,7 @@ from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
+from hedera_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
@@ -187,6 +188,24 @@ def freeze_token(client, token_id, account_id, freeze_key):
         print("Token freeze successful.")
     except Exception as e:
         print(f"Token freeze failed: {str(e)}")
+        sys.exit(1)
+
+def unfreeze_token(client, token_id, account_id, freeze_key):
+    """Unfreeze the specified token with the given account."""
+    transaction =  TokenUnfreezeTransaction(account_id=account_id, token_ids=token_id)
+
+    transaction.freeze_with(client)
+    transaction.sign(client.operator_private_key)
+    transaction.sign(freeze_key)
+
+    try:
+        receipt = transaction.execute(client)
+        if receipt.status != ResponseCode.SUCCESS:
+            status_message = ResponseCode.get_name(receipt.status)
+            raise Exception(f"Token unfreeze failed with status: {status_message}")
+        print("Token unfreeze successful.")
+    except Exception as e:
+        print(f"Token unfreeze failed: {str(e)}")
         sys.exit(1)
 
 def mint_fungible_token(client, token_id, supply_key, amount=2000):
