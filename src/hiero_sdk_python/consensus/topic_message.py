@@ -1,12 +1,8 @@
 from datetime import datetime
 from typing import Optional, List, Union, Dict
-from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 
-def _to_datetime(ts_proto) -> datetime:
-    """
-    Convert a protobuf Timestamp to a Python datetime (UTC).
-    """
-    return datetime.utcfromtimestamp(ts_proto.seconds + ts_proto.nanos / 1e9)
+from hiero_sdk_python import Timestamp
+from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 
 
 class TopicMessageChunk:
@@ -16,7 +12,7 @@ class TopicMessageChunk:
     """
 
     def __init__(self, response: mirror_proto.ConsensusTopicResponse):
-        self.consensus_timestamp = _to_datetime(response.consensusTimestamp)
+        self.consensus_timestamp = Timestamp.from_protobuf(response.consensusTimestamp).to_date()
         self.content_size = len(response.message)
         self.running_hash = response.runningHash
         self.sequence_number = response.sequenceNumber
@@ -118,7 +114,7 @@ class TopicMessage:
             offset = end
 
         last_r = sorted_responses[-1]
-        consensus_timestamp = _to_datetime(last_r.consensusTimestamp)
+        consensus_timestamp = Timestamp.from_protobuf(last_r.consensusTimestamp).to_date()
         running_hash = last_r.runningHash
         sequence_number = last_r.sequenceNumber
 
