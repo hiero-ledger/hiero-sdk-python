@@ -321,7 +321,6 @@ wheels = [
 
 [[package]]
 name = "hiero-sdk-python"
-version = "0.1.4.dev0+d20250206"
 source = { editable = "." }
 dependencies = [
     { name = "cryptography" },

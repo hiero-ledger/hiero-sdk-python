@@ -2,7 +2,7 @@
 
 This is a Python SDK for interacting with the Hedera Hashgraph platform. It allows developers to:
 
-- Manage Token Transactions like Create, Mint Fungible, Mint Non-Fungible, Associate, Dissociate, Transfer, Freeze & Delete
+- Manage Token Transactions like Create, Mint Fungible, Mint Non-Fungible, Associate, Dissociate, Transfer, Freeze, Unfreeze & Delete
 - Manage Consensus Transactions like Topic Create, Update, Delete
 - Submit Topic Messages
 - Query Account Balance, Transaction Receipts, Topic Infos and Messages
@@ -26,6 +26,7 @@ This is a Python SDK for interacting with the Hedera Hashgraph platform. It allo
   - [Transferring Tokens](#transferring-tokens)
   - [Deleting a Token](#deleting-a-token)
   - [Freezing a Token](#freezing-a-token)
+  - [Unfreezing a Token](#unfreezing-a-token)
   - [Transferring HBAR](#transferring-hbar)
   - [Creating a Topic](#creating-a-topic)
   - [Submitting a Topic Message](#submitting-a-topic-message)
@@ -152,6 +153,7 @@ Token dissociation successful.
 Token minting successful.
 Token transfer successful.
 Token freeze successful.
+Token unfreeze successful. 
 Token deletion successful.
 Topic creation successful.
 Topic Message submitted.
@@ -432,7 +434,27 @@ transaction.execute(client)
     transaction.sign(freeze_key) # Freeze key must also have been set in Token Create
     transaction.execute(client)
 ```
+### Unfreezing a Token
 
+#### Pythonic Syntax:
+```
+transaction = TokenUnfreezeTransaction(
+    token_id=token_id
+).freeze_with(client)
+transaction.sign(freeze_key)
+transaction.execute(client)
+```
+#### Method Chaining:
+```
+transaction = (
+        TokenUnfreezeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .freeze_with(client)
+    )
+    transaction.sign(freeze_key)
+    transaction.execute(client)
+```
 
 ### Transferring HBAR
 
