@@ -26,7 +26,7 @@ def unfreeze_token(): # Single Token
     transaction = (
         TokenUnfreezeTransaction()
         .set_token_id(token_id)
-        .set_account_id(recipient_id)
+        .set_account_id(account_id)
         .freeze_with(client)
         .sign(freeze_key)
     )
@@ -42,47 +42,6 @@ def unfreeze_token(): # Single Token
         print(f"Token unfreeze failed: {str(e)}")
         sys.exit(1)
 
-def unfreeze_tokens(): # Mulitple tokens
-    network = Network(network='testnet')
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-    freeze_key = PrivateKey.from_string(os.getenv('FREEZE_KEY'))
-    token_id = TokenId.from_string(os.getenv('TOKEN_ID'))
-    account_id = AccountId.from_string(os.getenv('FREEZE_ACCOUNT_ID'))
-    token_ids = TokenId.from_string(os.getenv(['TOKEN_ID_1', 'TOKEN_ID_2']))
-
-    client.set_operator(operator_id, operator_key)
-
-    transaction = (
-        TokenUnfreezeTransaction()
-        .set_token_id(token_id)
-        .set_account(account_id)
-        .freeze_with(client)
-        .sign(freeze_key)
-    )
-
-    for token_id in token_ids:
-        transaction.add_token_id(token_id)
-
-    transaction = (
-        transaction
-        .freeze_with(client)
-        .sign(recipient_key)
-    )
-
-    try: 
-        receipt = transaction.execute(client)
-        if receipt is not None and receipt.status == "SUCCESS":
-            print("Token unfreeze successful")
-        else:
-            print("Token unfreeze failed")
-            sys.exit(1)
-    except Exception as e:
-        print(f"Token unfreeze failed: {str(e)}")
-        sys.exit(1)
 
 if __name__ == "__main__":
     unfreeze_token() # For single token unfreeze
-    # unfreeze_tokens() # For multiple token unfreeze

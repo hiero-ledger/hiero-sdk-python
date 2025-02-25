@@ -361,6 +361,7 @@ def main():
     associate_token(client, recipient_id, recipient_private_key, [token_id_1, token_id_2])
     transfer_token(client, operator_id, operator_key, recipient_id, token_id_1)
     freeze_token(client, token_id_1, recipient_id, freeze_key)
+    unfreeze_token(client, token_id, account_id, freeze_key)
     dissociate_token(client, recipient_id, recipient_private_key, [token_id_2])
     delete_token(client, token_id_1, admin_key) 
 

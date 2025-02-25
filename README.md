@@ -440,6 +440,7 @@ transaction.execute(client)
 ```
 transaction = TokenUnfreezeTransaction(
     token_id=token_id
+    account_id=account_id
 ).freeze_with(client)
 transaction.sign(freeze_key)
 transaction.execute(client)

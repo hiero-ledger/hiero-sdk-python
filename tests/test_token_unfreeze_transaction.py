@@ -39,7 +39,7 @@ def test_build_transaction_body(mock_account_ids):
     proto_account = freeze_id.to_proto()
     assert transaction_body.tokenUnfreeze.account == proto_account
 
-def test_missing_token_ids(mock_account_ids):
+def test_missing_token_id(mock_account_ids):
     """Test that building a transaction without setting 
     TokenID raises a ValueError."""
 
@@ -61,7 +61,7 @@ def test_missing_account_id(mock_account_ids):
         unfreeze_tx.build_transaction_body()
 
 def test_sign_transaction(mock_account_ids):
-    """Test signing the token unfreeze transaction with a private key."""
+    """Test signing the token unfreeze transaction with a freeze key."""
 
     account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
 
@@ -94,11 +94,11 @@ def test_to_proto(mock_account_ids):
     unfreeze_tx.transaction_id = generate_transaction_id(account_id)
     unfreeze_tx.node_account_id = node_account_id
 
-    private_key = MagicMock()
-    private_key.sign.return_value = b'signature'
-    private_key.public_key().to_bytes_raw.return_value = b'mock_pubkey'
+    freeze_key = MagicMock()
+    freeze_key.sign.return_value = b'signature'
+    freeze_key.public_key().to_bytes_raw.return_value = b'mock_pubkey'
 
-    unfreeze_tx.sign(private_key)
+    unfreeze_tx.sign(freeze_key)
     proto = unfreeze_tx.to_proto()
 
     assert proto.signedTransactionBytes
