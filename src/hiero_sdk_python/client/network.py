@@ -18,7 +18,7 @@ class Network:
         'mainnet': 'https://mainnet-public.mirrornode.hedera.com',
         'testnet': 'https://testnet.mirrornode.hedera.com',
         'previewnet': 'https://previewnet.mirrornode.hedera.com',
-        'solo': 'http://localhost:8080'  
+        'solo': 'http://localhost:8080'
     }
 
     DEFAULT_NODES = {

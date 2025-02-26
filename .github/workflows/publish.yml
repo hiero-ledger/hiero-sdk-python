@@ -8,13 +8,16 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/hiero-sdk-python
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
 
       - name: Upgrade pip
         run: pip install --upgrade pip
@@ -30,6 +33,3 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}

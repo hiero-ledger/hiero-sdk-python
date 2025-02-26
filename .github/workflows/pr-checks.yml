@@ -1,0 +1,17 @@
+name: "PR Title Check"
+
+on:
+  pull_request:
+
+permissions:
+  statuses: write
+  contents: read
+
+jobs:
+  title-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Title
+        uses: step-security/conventional-pr-title-action@19fb561b33015fd2184055a05ce5a3bcf2ba3f54
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -10,7 +10,6 @@ from hiero_sdk_python.hapi.services import (
 
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
-    mirror_network_service_pb2_grpc as mirror_network_grpc
 )
 
 from .network import Network
@@ -46,7 +45,7 @@ class Client:
         if not node_account_ids:
             raise ValueError("No nodes available in the network configuration.")
 
-        initial_node_id = node_account_ids[0] 
+        initial_node_id = node_account_ids[0]
         self._switch_node(initial_node_id)
 
         self._init_mirror_stub()
@@ -61,16 +60,26 @@ class Client:
         self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
 
     def set_operator(self, account_id, private_key):
+        """
+        Sets the operator credentials (account ID and private key).
+        """
         self.operator_account_id = account_id
         self.operator_private_key = private_key
 
     @property
     def operator(self):
+        """
+        Returns an Operator namedtuple if both account ID and private key are set,
+        otherwise None.
+        """
         if self.operator_account_id and self.operator_private_key:
             return Operator(account_id=self.operator_account_id, private_key=self.operator_private_key)
         return None
 
     def generate_transaction_id(self):
+        """
+        Generates a new transaction ID, requiring that the operator_account_id is set.
+        """
         if self.operator_account_id is None:
             raise ValueError("Operator account ID must be set to generate transaction ID.")
         return TransactionId.generate(self.operator_account_id)
@@ -85,6 +94,9 @@ class Client:
             raise ValueError("No nodes available in the network configuration.")
 
     def get_transaction_receipt(self, transaction_id, max_attempts=10, sleep_seconds=2):
+        """
+        Repeatedly queries for a transaction receipt until SUCCESS or certain retryable statuses.
+        """
         for attempt in range(max_attempts):
             receipt_query = TransactionGetReceiptQuery()
             receipt_query.set_transaction_id(transaction_id)
@@ -93,7 +105,13 @@ class Client:
 
             if status == ResponseCode.SUCCESS:
                 return receipt
-            elif status in (ResponseCode.UNKNOWN, ResponseCode.BUSY, ResponseCode.RECEIPT_NOT_FOUND, ResponseCode.RECORD_NOT_FOUND, ResponseCode.PLATFORM_NOT_ACTIVE):
+            elif status in (
+                ResponseCode.UNKNOWN,
+                ResponseCode.BUSY,
+                ResponseCode.RECEIPT_NOT_FOUND,
+                ResponseCode.RECORD_NOT_FOUND,
+                ResponseCode.PLATFORM_NOT_ACTIVE
+            ):
                 time.sleep(sleep_seconds)
                 continue
             else:
@@ -137,3 +155,30 @@ class Client:
         self.crypto_stub = crypto_service_pb2_grpc.CryptoServiceStub(self.channel)
         self.topic_stub = consensus_service_pb2_grpc.ConsensusServiceStub(self.channel)
         self.node_account_id = node_account_id
+
+    def close(self):
+        """
+        Closes any open gRPC channels and frees resources.
+        Call this when you are done using the Client to ensure a clean shutdown.
+        """
+        if self.channel is not None:
+            self.channel.close()
+            self.channel = None
+
+        if self.mirror_channel is not None:
+            self.mirror_channel.close()
+            self.mirror_channel = None
+
+        self.token_stub = None
+        self.crypto_stub = None
+        self.topic_stub = None
+        self.mirror_stub = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Automatically close channels when exiting 'with' block.
+        """
+        self.close()

@@ -11,7 +11,7 @@ authors = [
 ]
 license = {  file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.9.2"
+requires-python = ">=3.10"
 dependencies = [
     "protobuf==5.28.1",
     "grpcio-tools==1.68.1",
@@ -37,8 +37,13 @@ lint = [
     "ruff>=0.8.3",
 ]
 
-[tool.pytest.ini_options]
-pythonpath = ["src"]
+[build-system]
+requires = ["pdm-backend", "setuptools", "setuptools_scm"]
+build-backend = "pdm.backend"
+
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
+local_scheme = "dirty-tag"
 
 [tool.pdm]
 version = {source = "scm"}
@@ -47,9 +52,11 @@ version = {source = "scm"}
 package-dir = "src"
 excludes = ["**/.pytest_cache"]
 
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
 [tool.ruff]
 line-length = 120
 
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+[tool.ruff.lint]
+select = ["E", "W", "F", "C", "I", "D"]

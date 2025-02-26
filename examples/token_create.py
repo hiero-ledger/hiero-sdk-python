@@ -21,7 +21,8 @@ def create_token():
     admin_key = PrivateKey.from_string(os.getenv('ADMIN_KEY'))
     supply_key = PrivateKey.from_string(os.getenv('ADMIN_KEY')) #Optional
 
-    
+    freeze_key = PrivateKey.from_string(os.getenv('FREEZE_KEY')) #Optional
+
     client.set_operator(operator_id, operator_key)
 
     transaction = (
@@ -33,9 +34,11 @@ def create_token():
         .set_treasury_account_id(operator_id)
         .set_admin_key(admin_key)
         .set_supply_key(supply_key)
+        .set_freeze_key(freeze_key)
         .freeze_with(client)
         .sign(operator_key)
         .sign(admin_key)
+
     )
 
     try:

@@ -1,14 +1,22 @@
-from datetime import datetime
-from typing import Optional, Callable, Union
+import time
 import threading
-from hiero_sdk_python.consensus.topic_message import TopicMessage
+from datetime import datetime
+from typing import Optional, Callable, Union, Dict, List
+
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 from hiero_sdk_python.consensus.topic_id import TopicId
+from hiero_sdk_python.consensus.topic_message import TopicMessage
+from hiero_sdk_python.utils.subscription_handle import SubscriptionHandle
+from hiero_sdk_python import Client
+
 
 class TopicMessageQuery:
     """
     A query to subscribe to messages from a specific HCS topic, via a mirror node.
+
+    If `chunking_enabled=True`, multi-chunk messages are automatically reassembled
+    before invoking `on_message`.
     """
 
     def __init__(
@@ -19,21 +27,27 @@ class TopicMessageQuery:
         limit: Optional[int] = None,
         chunking_enabled: bool = False,
     ):
-        """
-        Initializes a new TopicMessageQuery instance.
-
-        Args:
-            topic_id (str or TopicId, optional): The ID of the topic to subscribe to.
-            start_time (datetime, optional): Start time for the subscription.
-            end_time (datetime, optional): End time for the subscription.
-            limit (int, optional): Maximum number of messages to retrieve.
-            chunking_enabled (bool, optional): Whether to enable chunking.
-        """
         self._topic_id = self._parse_topic_id(topic_id) if topic_id else None
         self._start_time = self._parse_timestamp(start_time) if start_time else None
         self._end_time = self._parse_timestamp(end_time) if end_time else None
         self._limit = limit
         self._chunking_enabled = chunking_enabled
+        self._completion_handler: Optional[Callable[[], None]] = None
+
+        self._max_attempts = 10
+        self._max_backoff = 8.0
+
+    def set_max_attempts(self, attempts: int):
+        self._max_attempts = attempts
+        return self
+
+    def set_max_backoff(self, backoff: float):
+        self._max_backoff = backoff
+        return self
+
+    def set_completion_handler(self, handler: Callable[[], None]):
+        self._completion_handler = handler
+        return self
 
     def _parse_topic_id(self, topic_id: Union[str, TopicId]):
         if isinstance(topic_id, str):
@@ -74,10 +88,11 @@ class TopicMessageQuery:
 
     def subscribe(
         self,
-        client,
+        client: Client,
         on_message: Callable[[TopicMessage], None],
         on_error: Optional[Callable[[Exception], None]] = None,
-    ):
+    ) -> SubscriptionHandle:
+
         if not self._topic_id:
             raise ValueError("Topic ID must be set before subscribing.")
         if not client.mirror_stub:
@@ -91,15 +106,61 @@ class TopicMessageQuery:
         if self._limit is not None:
             request.limit = self._limit
 
+        subscription_handle = SubscriptionHandle()
+
+        pending_chunks: Dict[str, List[mirror_proto.ConsensusTopicResponse]] = {}
+
         def run_stream():
-            try:
-                message_stream = client.mirror_stub.subscribeTopic(request)
-                for response in message_stream:
-                    msg_obj = TopicMessage.from_proto(response)
-                    on_message(msg_obj)
-            except Exception as e:
-                if on_error:
-                    on_error(e)
+            attempt = 0
+            while attempt < self._max_attempts and not subscription_handle.is_cancelled():
+                try:
+                    message_stream = client.mirror_stub.subscribeTopic(request)
+
+                    for response in message_stream:
+                        if subscription_handle.is_cancelled():
+                            return
+
+                        if (not self._chunking_enabled
+                                or not response.HasField("chunkInfo")
+                                or response.chunkInfo.total <= 1):
+                            msg_obj = TopicMessage.of_single(response)
+                            on_message(msg_obj)
+                            continue
+
+                        initial_tx_id = response.chunkInfo.initialTransactionID
+                        tx_id_str = (f"{initial_tx_id.shardNum}."
+                                     f"{initial_tx_id.realmNum}."
+                                     f"{initial_tx_id.accountNum}-"
+                                     f"{initial_tx_id.transactionValidStart.seconds}."
+                                     f"{initial_tx_id.transactionValidStart.nanos}")
+                        if tx_id_str not in pending_chunks:
+                            pending_chunks[tx_id_str] = []
+                        pending_chunks[tx_id_str].append(response)
+
+                        if len(pending_chunks[tx_id_str]) == response.chunkInfo.total:
+                            chunk_list = pending_chunks.pop(tx_id_str)
+                            msg_obj = TopicMessage.of_many(chunk_list)
+                            on_message(msg_obj)
+
+                    if self._completion_handler:
+                        self._completion_handler()
+                    return
+
+                except Exception as e:
+                    if subscription_handle.is_cancelled():
+                        return
+
+                    attempt += 1
+                    if attempt >= self._max_attempts:
+                        if on_error:
+                            on_error(e)
+                        return
+
+                    delay = min(0.5 * (2 ** (attempt - 1)), self._max_backoff)
+                    time.sleep(delay)
 
         thread = threading.Thread(target=run_stream, daemon=True)
+        subscription_handle.set_thread(thread)
         thread.start()
+
+        return subscription_handle

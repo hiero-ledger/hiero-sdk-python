@@ -1,12 +1,14 @@
 from cryptography.hazmat.primitives.asymmetric import ed25519, ec
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+from typing import Union
 
 class PublicKey:
     """
     Represents a public key that can be either Ed25519 or ECDSA (secp256k1).
     """
 
-    def __init__(self, public_key):
+    def __init__(self, public_key: Union[ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey]):
         """
         Initializes a PublicKey from a cryptography PublicKey object.
         """
@@ -16,8 +18,9 @@ class PublicKey:
     def from_bytes(cls, key_bytes: bytes):
         """
         Load a public key from bytes.
-        For Ed25519, expects 32 bytes. Raw bytes for ECDSA are not supported for now.
-        If the key is DER-encoded, tries to parse and detect Ed25519 vs ECDSA.
+        For Ed25519, expects 32 bytes (raw).
+        For ECDSA, can interpret 33 or 65 bytes (compressed or uncompressed).
+        If not recognized, tries DER for either Ed25519 or ECDSA.
 
         Args:
             key_bytes (bytes): Public key bytes.
@@ -30,28 +33,31 @@ class PublicKey:
         """
 
         if len(key_bytes) == 32:
-            ed_public = ed25519.Ed25519PublicKey.from_public_bytes(key_bytes)
-            return cls(ed_public)
-        # TODO: Consider adding support for creating ECDSA public key instance from raw encoded point
-        # Java SDK example: https://github.com/hiero-ledger/hiero-sdk-java/blob/main/sdk-java/src/main/java/org/hiero/sdk/java/PublicKeyECDSA.java#L46
-        #
-        # Potential approach for Python:
-        # ec_public = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256K1(), key_bytes)
+            try:
+                ed_pub = ed25519.Ed25519PublicKey.from_public_bytes(key_bytes)
+                return cls(ed_pub)
+            except Exception:
+                raise ValueError("Invalid 32-byte public key (not Ed25519).")
+
+        if len(key_bytes) in (33, 65):
+            try:
+                ec_pub = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256K1(), key_bytes)
+                return cls(ec_pub)
+            except Exception:
+                raise ValueError("Failed to parse ECDSA public key from raw bytes.")
 
         try:
-            public_key = serialization.load_der_public_key(key_bytes)
+            maybe_pub = serialization.load_der_public_key(key_bytes, backend=default_backend())
+            if isinstance(maybe_pub, ed25519.Ed25519PublicKey):
+                return cls(maybe_pub)
+            if isinstance(maybe_pub, ec.EllipticCurvePublicKey):
+                curve = maybe_pub.curve
+                if not isinstance(curve, ec.SECP256K1):
+                    raise ValueError("Only secp256k1 ECDSA is supported.")
+                return cls(maybe_pub)
+            raise ValueError("Unsupported public key type (not Ed25519 or ECDSA).")
         except Exception as e:
             raise ValueError(f"Failed to load public key (DER): {e}")
-
-        if isinstance(public_key, ed25519.Ed25519PublicKey):
-            return cls(public_key)
-
-        if isinstance(public_key, ec.EllipticCurvePublicKey):
-            if not isinstance(public_key.curve, ec.SECP256K1):
-                raise ValueError("Only secp256k1 ECDSA is supported.")
-            return cls(public_key)
-
-        raise ValueError("Unsupported public key type.")
 
     @classmethod
     def from_string(cls, key_str):
@@ -59,13 +65,10 @@ class PublicKey:
         Load a public key from a hex-encoded string.
         For Ed25519, expects 32 bytes. Raw bytes string for ECDSA is not supported for now.
         If the key is DER-encoded, tries to parse and detect Ed25519 vs ECDSA.
-
         Args:
             key_str (str): The hex-encoded public key string.
-
         Returns:
             PublicKey: A new instance of PublicKey.
-
         Raises:
             ValueError: If the key is invalid or unsupported.
         """
@@ -94,56 +97,41 @@ class PublicKey:
         """
         Returns the public key in raw form:
          - For Ed25519, it's 32 bytes.
-         - For ECDSA (secp256k1), it's the uncompressed or compressed form, 
-           depending on how cryptography outputs RAW. Usually 33 bytes compressed.
+         - For ECDSA (secp256k1), typically 33 bytes (compressed),
+           depending on how cryptography outputs raw.
 
         Returns:
             bytes: The raw public key bytes.
         """
-        return self._public_key.public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw
-        )
+        if self.is_ed25519():
+            return self._public_key.public_bytes(
+                encoding=serialization.Encoding.Raw,
+                format=serialization.PublicFormat.Raw
+            )
+        else:
+            return self._public_key.public_bytes(
+                encoding=serialization.Encoding.X962,
+                format=serialization.PublicFormat.CompressedPoint
+            )
+
+    def to_string(self) -> str:
+        """
+        Returns the private key as a hex string (raw).
+        Matches old usage that calls to_string().
+        """
+        return self.to_string_raw()
 
     def to_string_raw(self) -> str:
         """
         Returns the raw public key as a hex-encoded string.
-
-        Returns:
-            str: The hex-encoded raw public key.
         """
         return self.to_bytes_raw().hex()
-    
-    def to_string(self) -> str:
-        """
-        Returns the private key as a hex string (raw).
-        """
-        return self.to_string_raw()
-
-
-    def is_ed25519(self) -> bool:
-        """
-        Checks if this public key is Ed25519.
-
-        Returns:
-            bool: True if Ed25519, False otherwise.
-        """
-        return isinstance(self._public_key, ed25519.Ed25519PublicKey)
-
-    def is_ecdsa(self) -> bool:
-        """
-        Checks if this public key is ECDSA (secp256k1).
-
-        Returns:
-            bool: True if ECDSA, False otherwise.
-        """
-        return isinstance(self._public_key, ec.EllipticCurvePublicKey)
 
     def to_proto(self):
         """
         Returns the protobuf representation of the public key.
-        For Ed25519, uses the 'ed25519' field in Key.
-        For ECDSA, uses the 'ECDSASecp256k1' field (may differ by your actual Hedera environment).
+        For Ed25519, uses the 'ed25519' field.
+        For ECDSA, uses 'ECDSASecp256k1'.
 
         Returns:
             Key: The protobuf Key message.
@@ -155,6 +143,18 @@ class PublicKey:
             return basic_types_pb2.Key(ed25519=pub_bytes)
         else:
             return basic_types_pb2.Key(ECDSASecp256k1=pub_bytes)
+
+    def is_ed25519(self) -> bool:
+        """
+        Checks if this public key is Ed25519.
+        """
+        return isinstance(self._public_key, ed25519.Ed25519PublicKey)
+
+    def is_ecdsa(self) -> bool:
+        """
+        Checks if this public key is ECDSA (secp256k1).
+        """
+        return isinstance(self._public_key, ec.EllipticCurvePublicKey)
 
     def __repr__(self):
         if self.is_ed25519():
