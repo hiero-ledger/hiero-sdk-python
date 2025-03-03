@@ -42,3 +42,6 @@ class TokenId:
         if len(parts) != 3:
             raise ValueError("Invalid TokenId format. Expected 'shard.realm.num'")
         return cls(shard=int(parts[0]), realm=int(parts[1]), num=int(parts[2]))
+
+    def __eq__(self, other):
+        return self.shard == other.shard and self.realm == other.realm and self.num == other.num
