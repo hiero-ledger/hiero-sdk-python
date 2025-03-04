@@ -18,8 +18,6 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
 
       - name: Upgrade pip
         run: pip install --upgrade pip
