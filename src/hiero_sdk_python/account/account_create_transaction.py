@@ -1,5 +1,6 @@
 from typing import Union
 
+from hiero_sdk_python.hapi.services.duration_pb2 import Duration
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2
 from hiero_sdk_python.response_code import ResponseCode
@@ -137,7 +138,7 @@ class AccountCreateTransaction(Transaction):
             key=self.key.to_proto(),
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
-            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period),
+            autoRenewPeriod=Duration(seconds=self.auto_renew_period),
             memo=self.account_memo
         )
 

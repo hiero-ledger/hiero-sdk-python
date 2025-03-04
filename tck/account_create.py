@@ -1,8 +1,17 @@
 import utils
-
 from jsonrpcserver import method, Success
+
+from hiero_sdk_python import PrivateKey, PublicKey
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from key_identifier import KeyIdentifier
+
+def identify_key(key: str) -> (PrivateKey | PublicKey, bool) :
+    try:
+        return PrivateKey.from_string(key), False
+    except ValueError:
+        try:
+            return PublicKey.from_string(key), True
+        except Exception as e:
+            raise e
 
 @method
 def createAccount(key: str = None, initialBalance: str = None, receiverSignatureRequired: bool = None, autoRenewPeriod: str = None,
@@ -24,23 +33,31 @@ def createAccount(key: str = None, initialBalance: str = None, receiverSignature
     :return accountId: string, The ID of the created account.
     :return status:	string, The status of the submitted AccountCreateTransaction (from a TransactionReceipt).
     """
-    key_and_public = KeyIdentifier.identify(key)
 
-    if key_and_public[1] is False:
-        public_key = key_and_public[0].public_key()
+    key_and_public = identify_key(key=key)
+    pk: PrivateKey
+    pub: PublicKey
+
+    if key_and_public[1]:
+        pub = key_and_public[0]
     else:
-        public_key = key_and_public[0]
+        pk = key_and_public[0]
+        pub = pk.public_key()
+
 
     # TODO: add all of the other transaction parameters
     transaction = (
         AccountCreateTransaction()
-        .set_key(public_key)
+        .set_key(pub)
         # .set_initial_balance(int(initialBalance))
-        .set_receiver_signature_required(receiverSignatureRequired)
+        # .set_receiver_signature_required(receiverSignatureRequired)
         # .set_auto_renew_period(0, int(autoRenewPeriod))
-        .set_account_memo(memo)
-        .freeze_with(utils.__client)
+        # .set_account_memo(memo)
+        # .freeze_with(utils.__client)
     )
+
+    # transaction = AccountCreateTransaction().set_key(pub)
+
 
     transaction.sign(utils.__operatorPrivateKey)
     receipt = transaction.execute(utils.__client)

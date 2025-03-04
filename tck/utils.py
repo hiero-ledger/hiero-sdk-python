@@ -1,7 +1,9 @@
+import logging
+
 from hiero_sdk_python import Network
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
-from jsonrpcserver import Success, method, InvalidParams
+from jsonrpcserver import Success, method, InvalidParams, JsonRpcError
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
 __operatorAccountId: AccountId
@@ -33,27 +35,46 @@ def reset():
     })
 
 @method
-def generateKey(type: str=None, fromKey: str=None, threshold: int=None, keys: list=None):
-    if type == "ed25519PublicKey":
+def generateKey(type: str, fromKey: str=None, threshold: int=None, keys: list=None):
+    pk = None
+
+    if type == "ed25519PrivateKey":
+        return Success({
+            "key": PrivateKey.generate_ed25519().to_string_raw(),
+        })
+
+    elif type == "ed25519PublicKey":
         if fromKey is None:
-            return Success({"key": PrivateKey.generate_ed25519().public_key().to_string_raw()})
+            pk = PrivateKey.generate()
         else:
-            new_account_private_key = PrivateKey.from_string(fromKey)
-            new_account_public_key = new_account_private_key.public_key()
-            return Success({"key": new_account_public_key.to_string_raw()})
+            pk = PrivateKey.from_string(fromKey)
+        return Success({
+            "key": pk.public_key().to_string_raw(),
+        })
+
+    elif type == "ecdsaSecp256k1PrivateKey":
+        return Success({
+            "key": PrivateKey.generate_ecdsa().to_string_raw(),
+        })
 
     elif type == "ecdsaSecp256k1PublicKey":
         if fromKey is None:
-            return Success({"key": PrivateKey.generate_ecdsa().public_key().to_string_raw()})
+            pk = PrivateKey.generate_ecdsa()
         else:
-            new_account_private_key = PrivateKey.from_string(fromKey)
-            new_account_public_key = new_account_private_key.public_key()
-            return Success({"key": new_account_public_key.to_string_raw()})
+            pk = PrivateKey.from_string(fromKey)
+        return Success({
+            "key": pk.public_key().to_string_raw(),
+        })
 
-    elif type == "ed25519PrivateKey":
-        new_account_private_key = PrivateKey.generate()
-        return Success({"key": new_account_private_key.to_string_raw()})
+    elif type == "thresholdKey":
+        return JsonRpcError(code=-32001, message="Not implemented")
+
+    elif type == "keyList":
+        return JsonRpcError(code=-32001, message="Not implemented")
+
+    elif type == "evmAddress":
+        return JsonRpcError(code=-32001, message="Not implemented")
+
 
     else:
-        return InvalidParams("Unknown type")
-
+        return JsonRpcError(code=-32001, message="Unknown key type")
