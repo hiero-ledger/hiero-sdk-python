@@ -1,4 +1,4 @@
-# Testing Compatibility Toolkit (TCK) Guide
+# Testing Compatibility Kit (TCK) Guide
 
 This document describes how to run Hiero TCK tests for the Python SDK.
 ## Setup
