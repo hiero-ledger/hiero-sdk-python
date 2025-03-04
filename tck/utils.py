@@ -16,7 +16,7 @@ def setup(operatorAccountId: str=None, operatorPrivateKey: str=None, nodeIp: str
     __client.set_operator(__operatorAccountId, __operatorPrivateKey)
 
     return Success({
-        "message":"Successfully setup custom client.",
+        "message":"Successfully setup testnet client.",
         "status":"SUCCESS"
     })
 
