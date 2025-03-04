@@ -123,7 +123,7 @@ This is done by running 'Hedera Solo'. Read more about it here:
 - [Github Marketplace](https://github.com/marketplace/actions/hedera-solo)
 - [Blog Post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
 
-To run Hiero's Testing Compatibility Toolkit (TCK), refer [here](tck/README.md)
+To run Hiero's Testing Compatibility Kit (TCK), refer [here](tck/README.md)
 
 #### Output:
 ```
