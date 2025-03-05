@@ -23,7 +23,11 @@ def create_valid_token_info():
         memo="Test memo",
         maxSupply=10000000,
         pause_key=None,  # Optional field
-        ledger_id=b"Hedera"
+        ledger_id=b"Hedera",
+        kycKey=public_key,
+        freezeKey=public_key,
+        supplyKey=public_key,
+        fee_schedule_key=public_key
     )
 
 # 1. Test valid initialization
@@ -173,7 +177,6 @@ def test_fuzz_integers_wrong_type():
 
     for field in integer_fields:
         for invalid_value in invalid_types:
-            print(f"\n{field}: {invalid_value} ", end="")
             kwargs = {
                 "tokenId": TokenId(0, 0, 123),
                 "name": "TestToken",
@@ -246,11 +249,16 @@ def test_fuzz_random_types():
         "maxSupply": int,
         "pause_key": PublicKey,
         "pause_status": TokenPauseStatus,
-        "ledger_id": bytes
+        "ledger_id": bytes,
+        "kycKey": PublicKey,
+        "freezeKey": PublicKey,
+        "supplyKey": PublicKey,
+        "fee_schedule_key": PublicKey,
     }
+
     invalid_values = [123, "string", 3.14, True, ["list"], b"bytes", TokenId(0, 0, 1), AccountId(0, 0, 2)]
 
-    for _ in range(50):  # 50 random iterations
+    for _ in range(100):  # 50 random iterations
         field_to_test = random.choice(list(field_types.keys()))
         expected_type = field_types[field_to_test]
         invalid_value = random.choice([v for v in invalid_values if not isinstance(v, expected_type)])
@@ -259,3 +267,43 @@ def test_fuzz_random_types():
         kwargs[field_to_test] = invalid_value
         with pytest.raises(TypeError, match=f"{field_to_test} must be {expected_type.__name__}"):
             TokenInfo(**kwargs)
+
+def test_from_proto():
+    from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
+    from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenID as proto_TokenId, AccountID as proto_AccountId, Key as proto_Key
+
+    # Assuming proto_TokenInfo is populated
+    token_info = proto_TokenInfo(
+        tokenId=proto_TokenId(shardNum=0, realmNum=1, tokenNum=123),
+        name="TestToken",
+        symbol="TTK",
+        decimals=2,
+        totalSupply=1000000,
+        treasury=proto_AccountId(shardNum=0, realmNum=0, accountNum=456),
+        adminKey=proto_Key(ed25519=PrivateKey.generate_ed25519().public_key().to_bytes_raw()),
+        deleted=False,
+        memo="Test token",
+        maxSupply=10000000,
+        ledger_id=b"test_ledger"
+    )
+    token = TokenInfo.from_proto(token_info)
+
+    print(token_info.tokenId.tokenNum)
+
+    assert token.tokenId.shard == token_info.tokenId.shardNum
+    assert token.tokenId.realm == token_info.tokenId.realmNum
+    assert token.tokenId.num == token_info.tokenId.tokenNum
+    assert token.name == token_info.name
+    assert token.symbol == token_info.symbol
+    assert token.decimals == token_info.decimals
+    assert token.totalSupply == token_info.totalSupply
+    assert token.treasury.shard == token_info.treasury.shardNum
+    assert token.treasury.realm == token_info.treasury.realmNum
+    assert token.treasury.num == token_info.treasury.accountNum
+    assert token.adminKey == PublicKey.from_proto(token_info.adminKey)
+    assert token.defaultFreezeStatus == token_info.defaultFreezeStatus
+    assert token.defaultKycStatus == token_info.defaultKycStatus
+    assert token.isDeleted == token_info.deleted
+    assert token.memo == token_info.memo
+    assert token.maxSupply == token_info.maxSupply
+    assert token.ledger_id == token_info.ledger_id
