@@ -1,5 +1,5 @@
 import utils
-from jsonrpcserver import method, Success
+from jsonrpcserver import method, Success, JsonRpcError
 
 from hiero_sdk_python import PrivateKey, PublicKey
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -44,23 +44,18 @@ def createAccount(key: str = None, initialBalance: str = None, receiverSignature
         pk = key_and_public[0]
         pub = pk.public_key()
 
-
     # TODO: add all of the other transaction parameters
     transaction = (
         AccountCreateTransaction()
         .set_key(pub)
-        # .set_initial_balance(int(initialBalance))
-        # .set_receiver_signature_required(receiverSignatureRequired)
-        # .set_auto_renew_period(0, int(autoRenewPeriod))
-        # .set_account_memo(memo)
-        # .freeze_with(utils.__client)
     )
-
-    # transaction = AccountCreateTransaction().set_key(pub)
-
-
     transaction.sign(utils.__operatorPrivateKey)
-    receipt = transaction.execute(utils.__client)
+
+    try:
+        receipt = transaction.execute(utils.__client)
+    except Exception as e:
+        print(e)
+        return JsonRpcError(code= -32001, message=str(e))
 
     return Success({
         "accountId": str(receipt.accountId),

@@ -3,18 +3,34 @@ import logging
 from hiero_sdk_python import Network
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
-from jsonrpcserver import Success, method, InvalidParams, JsonRpcError
+from jsonrpcserver import Success, method, JsonRpcError
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
+# testnet variables
 __operatorAccountId: AccountId
 __operatorPrivateKey: PrivateKey
-__client: Client = Client(Network(network='testnet'))
+__client = Client(network="testnet")
+
+# custom network variables
+__usingPrivateNetwork: bool = False
+__nodeIp: str
+__nodeAccountId: AccountId
+__mirrorNetworkIp: str
 
 @method
 def setup(operatorAccountId: str=None, operatorPrivateKey: str=None, nodeIp: str=None, nodeAccountId: str=None, mirrorNetworkIp: str=None):
-    global __client, __operatorAccountId, __operatorPrivateKey
+    global __client, __operatorAccountId, __operatorPrivateKey, __nodeIp, __nodeAccountId, __mirrorNetworkIp, __usingPrivateNetwork
     __operatorAccountId = AccountId.from_string(operatorAccountId)
     __operatorPrivateKey = PrivateKey.from_string(operatorPrivateKey)
+
+    __nodeIp = nodeIp
+    __nodeAccountId = nodeAccountId
+    __mirrorNetworkIp = mirrorNetworkIp
+
+    if __nodeIp is not None:
+        __usingPrivateNetwork = True
+        __client = Client(network=Network(network="custom", nodes=[(__nodeIp,__nodeAccountId)], mirror_address=__mirrorNetworkIp))
+
     __client.set_operator(__operatorAccountId, __operatorPrivateKey)
 
     return Success({
@@ -74,7 +90,6 @@ def generateKey(type: str, fromKey: str=None, threshold: int=None, keys: list=No
 
     elif type == "evmAddress":
         return JsonRpcError(code=-32001, message="Not implemented")
-
 
     else:
         return JsonRpcError(code=-32001, message="Unknown key type")
