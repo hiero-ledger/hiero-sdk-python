@@ -133,7 +133,7 @@ class PrivateKey:
     def to_bytes_der(self) -> bytes:
         return self._private_key.private_bytes(
             encoding=serialization.Encoding.DER,
-            format=serialization.PrivateFormat.PKCS8,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
             encryption_algorithm=serialization.NoEncryption()
         )
 
