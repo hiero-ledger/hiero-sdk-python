@@ -190,9 +190,9 @@ def freeze_token(client, token_id, account_id, freeze_key):
         print(f"Token freeze failed: {str(e)}")
         sys.exit(1)
 
-def unfreeze_token(client, token_id_1, account_id, freeze_key):
+def unfreeze_token(client, token_id_1, recipient_id, freeze_key):
     """Unfreeze the specified token with the given account."""
-    transaction =  TokenUnfreezeTransaction(account_id=receipt_id, token_id=token_id_1)
+    transaction =  TokenUnfreezeTransaction(recipient_id=receipt_id, token_id=token_id_1)
 
     transaction.freeze_with(client)
     transaction.sign(client.operator_private_key)
@@ -361,7 +361,7 @@ def main():
     associate_token(client, recipient_id, recipient_private_key, [token_id_1, token_id_2])
     transfer_token(client, operator_id, operator_key, recipient_id, token_id_1)
     freeze_token(client, token_id_1, recipient_id, freeze_key)
-    unfreeze_token(client, token_id_1, account_id, freeze_key) 
+    unfreeze_token(client, token_id_1, recipient_id, freeze_key) 
     dissociate_token(client, recipient_id, recipient_private_key, [token_id_2])
     delete_token(client, token_id_1, admin_key) 
 
