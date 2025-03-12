@@ -1,14 +1,15 @@
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import consensus_create_topic_pb2, duration_pb2
 
 class TopicCreateTransaction(Transaction):
-    def __init__(self, memo=None, admin_key=None, submit_key=None, auto_renew_period=None, auto_renew_account=None):
+    def __init__(self, memo=None, admin_key=None, submit_key=None, auto_renew_period: Duration=None, auto_renew_account=None):
         super().__init__()
         self.memo = memo or ""
         self.admin_key = admin_key
         self.submit_key = submit_key
-        self.auto_renew_period = auto_renew_period or 7890000 
+        self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
         self.auto_renew_account = auto_renew_account
         self.transaction_fee = 10_000_000
 
@@ -27,9 +28,14 @@ class TopicCreateTransaction(Transaction):
         self.submit_key = key
         return self
 
-    def set_auto_renew_period(self, seconds):
+    def set_auto_renew_period(self, seconds: Duration | int):
         self._require_not_frozen()
-        self.auto_renew_period = seconds
+        if isinstance(seconds, int):
+            self.auto_renew_period = Duration(seconds)
+        elif isinstance(seconds, Duration):
+            self.auto_renew_period = seconds
+        else:
+            raise TypeError("Duration of invalid type")
         return self
 
     def set_auto_renew_account(self, account_id):
@@ -51,7 +57,7 @@ class TopicCreateTransaction(Transaction):
         transaction_body.consensusCreateTopic.CopyFrom(consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
             adminKey=self.admin_key.to_proto() if self.admin_key is not None else None,
             submitKey=self.submit_key.to_proto() if self.submit_key is not None else None,
-            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period),
+            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
             autoRenewAccount=self.auto_renew_account.to_proto() if self.auto_renew_account is not None else None,
             memo=self.memo
         ))
