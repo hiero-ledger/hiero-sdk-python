@@ -20,7 +20,6 @@ def query_topic_messages():
     query = TopicMessageQuery(
         topic_id=os.getenv('TOPIC_ID'),
         start_time=datetime.now(timezone.utc),
-
         limit=0,
         chunking_enabled=True
     )
