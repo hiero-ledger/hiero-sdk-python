@@ -29,18 +29,30 @@ class TokenCreateValidator:
         """
         Ensure valid values for the token characteristics.
         """
+        TokenCreateValidator._validate_required_fields(token_params)
+        TokenCreateValidator._validate_name_and_symbol(token_params)
+        TokenCreateValidator._validate_initial_supply(token_params)
+        TokenCreateValidator._validate_decimals_and_token_type(token_params)
+
+    @staticmethod
+    def _validate_required_fields(token_params):
+        """
+        Ensure all required fields are present and not empty.
+        """
         required_fields = {
             "Token name": token_params.token_name,
             "Token symbol": token_params.token_symbol,
             "Treasury account ID": token_params.treasury_account_id,
         }
-
-        # Ensure all required fields
         for field, value in required_fields.items():
             if not value:
                 raise ValueError(f"{field} is required")
 
-        # Ensure the token name and symbol are of valid byte length
+    @staticmethod
+    def _validate_name_and_symbol(token_params):
+        """
+        Ensure the token name & symbol are valid in length and do not contain a NUL character.
+        """
         if len(token_params.token_name.encode()) > 100:
             raise ValueError("Token name must be between 1 and 100 bytes")
         if len(token_params.token_symbol.encode()) > 100:
@@ -53,7 +65,11 @@ class TokenCreateValidator:
                     f"{attr.replace('_', ' ').capitalize()} must not contain the Unicode NUL character"
                 )
 
-        # Ensure initial supply is within max supply
+    @staticmethod
+    def _validate_initial_supply(token_params):
+        """
+        Ensure initial supply is a non-negative integer and does not exceed max supply.
+        """
         MAX_SUPPLY = 9_223_372_036_854_775_807  # 2^63 - 1
 
         if (
@@ -64,7 +80,11 @@ class TokenCreateValidator:
         if token_params.initial_supply > MAX_SUPPLY:
             raise ValueError(f"Initial supply cannot exceed {MAX_SUPPLY}")
 
-        # Ensure decimals are non-negative integers
+    @staticmethod
+    def _validate_decimals_and_token_type(token_params):
+        """
+        Ensure decimals and token_type align with either fungible or non-fungible constraints.
+        """
         if not isinstance(token_params.decimals, int) or token_params.decimals < 0:
             raise ValueError("Decimals must be a non-negative integer")
 
@@ -91,7 +111,6 @@ class TokenCreateValidator:
             raise ValueError(
                 "Token frozen. Please complete a Token Unfreeze Transaction."
             )
-
 
 @dataclass
 class TokenParams:

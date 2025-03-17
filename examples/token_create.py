@@ -43,9 +43,9 @@ def create_token():
     operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
 
     # Optional Token Keys
-    admin_key = PrivateKey.from_string(os.getenv('ADMIN_KEY', required=False))
-    supply_key = PrivateKey.from_string(os.getenv('SUPPLY_KEY', required=False))
-    freeze_key = PrivateKey.from_string(os.getenv('FREEZE_KEY', required=False))
+    admin_key = PrivateKey.from_string(os.getenv('ADMIN_KEY'))# Optional
+    supply_key = PrivateKey.from_string(os.getenv('SUPPLY_KEY')) # Optional
+    freeze_key = PrivateKey.from_string(os.getenv('FREEZE_KEY')) # Optional
 
     # Set the operator for the client
     client.set_operator(operator_id, operator_key)
