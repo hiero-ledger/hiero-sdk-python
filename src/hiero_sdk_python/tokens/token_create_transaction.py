@@ -316,7 +316,7 @@ class TokenCreateTransaction(Transaction):
         transaction_body.tokenCreation.CopyFrom(token_create_body)
 
         return transaction_body
-
+    
     def _execute_transaction(self, client, transaction_proto):
         """
         Executes the token creation transaction using the provided client.
@@ -338,26 +338,26 @@ class TokenCreateTransaction(Transaction):
             error_message = ResponseCode.get_name(error_code)
             raise Exception(f"Error during transaction submission: {error_code} ({error_message})")
 
-        return self._get_receipt(client, response.transactionID)
+        receipt = self.get_receipt(client)
 
-    def _get_receipt(self, client, transaction_id):
-        """
-        Retrieves the transaction receipt.
 
-        Args:
-            client (Client): The client instance.
-            transaction_id (TransactionID): The ID of the transaction.
 
-        Returns:
-            TransactionReceipt: The transaction receipt.
 
-        Raises:
-            Exception: If the receipt retrieval fails.
-        """
-        receipt = client.getTransactionReceipt(transaction_id)
 
-        if receipt.status != 0:  # 0 means success
-            raise Exception(receipt.status)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         return receipt
 
