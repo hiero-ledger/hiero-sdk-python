@@ -192,7 +192,7 @@ def freeze_token(client, token_id, account_id, freeze_key):
 
 def unfreeze_token(client, token_id_1, recipient_id, freeze_key):
     """Unfreeze the specified token with the given account."""
-    transaction =  TokenUnfreezeTransaction(recipient_id=recipient_id, token_id=token_id_1)
+    transaction =  TokenUnfreezeTransaction(account_id=recipient_id, token_id=token_id_1)
 
     transaction.freeze_with(client)
     transaction.sign(client.operator_private_key)
