@@ -1,7 +1,7 @@
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import consensus_create_topic_pb2, duration_pb2
+from hiero_sdk_python.hapi.services import consensus_create_topic_pb2
 
 class TopicCreateTransaction(Transaction):
     def __init__(self, memo=None, admin_key=None, submit_key=None, auto_renew_period: Duration=None, auto_renew_account=None):
@@ -57,7 +57,7 @@ class TopicCreateTransaction(Transaction):
         transaction_body.consensusCreateTopic.CopyFrom(consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
             adminKey=self.admin_key.to_proto() if self.admin_key is not None else None,
             submitKey=self.submit_key.to_proto() if self.submit_key is not None else None,
-            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
+            autoRenewPeriod=self.auto_renew_period.to_proto() if self.auto_renew_period is not None else None,
             autoRenewAccount=self.auto_renew_account.to_proto() if self.auto_renew_account is not None else None,
             memo=self.memo
         ))

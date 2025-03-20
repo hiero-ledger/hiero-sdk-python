@@ -49,7 +49,7 @@ class TopicInfo:
                 if topic_info_proto.HasField("submitKey") else None
             ),
             auto_renew_period=(
-                Duration.from_proto(proto=topic_info_proto.autoRenewPeriod) # Warning: Not sure why my ide says this method doesnt exist, it does, the topic_info_proto.autoRenewPeriod is the same type as required by the from_proto method as well...
+                Duration.from_proto(proto=topic_info_proto.autoRenewPeriod)
                 if topic_info_proto.HasField("autoRenewPeriod") else None
             ),
             auto_renew_account=(
