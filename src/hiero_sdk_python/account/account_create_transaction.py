@@ -1,5 +1,6 @@
 from typing import Union
 
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2
 from hiero_sdk_python.response_code import ResponseCode
@@ -17,7 +18,7 @@ class AccountCreateTransaction(Transaction):
         key: PublicKey = None,
         initial_balance: Union[Hbar, int] = 0,
         receiver_signature_required: bool = False,
-        auto_renew_period: int = 7890000,  # 90 days in seconds
+        auto_renew_period: Duration = Duration(7890000),  # 90 days in seconds
         memo: str = ""
     ):
         """
@@ -84,7 +85,7 @@ class AccountCreateTransaction(Transaction):
         self.receiver_signature_required = required
         return self
 
-    def set_auto_renew_period(self, seconds: int):
+    def set_auto_renew_period(self, seconds: int | Duration):
         """
         Sets the auto-renew period in seconds.
 
@@ -95,8 +96,13 @@ class AccountCreateTransaction(Transaction):
             AccountCreateTransaction: The current transaction instance for method chaining.
         """
         self._require_not_frozen()
-        self.auto_renew_period = seconds
-        return self
+        if isinstance(seconds, int):
+            self.auto_renew_period = Duration(seconds)
+        elif isinstance(seconds, Duration):
+            self.auto_renew_period = seconds
+        else:
+            raise TypeError("Duration of invalid type")
+
 
     def set_account_memo(self, memo: str):
         """
@@ -137,7 +143,7 @@ class AccountCreateTransaction(Transaction):
             key=self.key.to_proto(),
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
-            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period),
+            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
             memo=self.account_memo
         )
 

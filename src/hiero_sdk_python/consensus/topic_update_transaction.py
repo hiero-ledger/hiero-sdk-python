@@ -1,3 +1,4 @@
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import consensus_update_topic_pb2, duration_pb2
@@ -10,7 +11,7 @@ class TopicUpdateTransaction(Transaction):
         memo=None,
         admin_key=None,
         submit_key=None,
-        auto_renew_period=7890000,
+        auto_renew_period: Duration = Duration(7890000),
         auto_renew_account=None,
         expiration_time=None,
     ):
@@ -19,7 +20,7 @@ class TopicUpdateTransaction(Transaction):
         self.memo = memo or ""
         self.admin_key = admin_key
         self.submit_key = submit_key
-        self.auto_renew_period = auto_renew_period
+        self.auto_renew_period:Duration = auto_renew_period
         self.auto_renew_account = auto_renew_account
         self.expiration_time = expiration_time
         self.transaction_fee = 10_000_000
@@ -80,7 +81,7 @@ class TopicUpdateTransaction(Transaction):
         self.submit_key = key
         return self
 
-    def set_auto_renew_period(self, seconds):
+    def set_auto_renew_period(self, seconds: Duration | int):
         """
         Sets the auto-renew period for the topic.
 
@@ -91,7 +92,12 @@ class TopicUpdateTransaction(Transaction):
             TopicUpdateTransaction: Returns the instance for method chaining.
         """
         self._require_not_frozen()
-        self.auto_renew_period = seconds
+        if isinstance(seconds, int):
+            self.auto_renew_period = Duration(seconds)
+        elif isinstance(seconds, Duration):
+            self.auto_renew_period = seconds
+        else:
+            raise TypeError("Duration of invalid type")
         return self
 
     def set_auto_renew_account(self, account_id):
@@ -140,7 +146,7 @@ class TopicUpdateTransaction(Transaction):
             topicID=self.topic_id.to_proto(),
             adminKey=self.admin_key.to_proto() if self.admin_key else None,
             submitKey=self.submit_key.to_proto() if self.submit_key else None,
-            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period) if self.auto_renew_period else None,
+            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds) if self.auto_renew_period else None,
             autoRenewAccount=self.auto_renew_account.to_proto() if self.auto_renew_account else None,
             expirationTime=self.expiration_time.to_proto() if self.expiration_time else None,
             memo=_wrappers_pb2.StringValue(value=self.memo) if self.memo else None

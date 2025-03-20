@@ -1,7 +1,7 @@
 from datetime import datetime
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key, AccountID
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
-from hiero_sdk_python.hapi.services.duration_pb2 import Duration
+from hiero_sdk_python import Duration
 from hiero_sdk_python.utils.key_format import format_key
 
 class TopicInfo:
@@ -23,7 +23,7 @@ class TopicInfo:
         self.expiration_time = expiration_time
         self.admin_key = admin_key
         self.submit_key = submit_key
-        self.auto_renew_period = auto_renew_period
+        self.auto_renew_period: Duration = auto_renew_period
         self.auto_renew_account = auto_renew_account
         self.ledger_id = ledger_id
 
@@ -49,7 +49,7 @@ class TopicInfo:
                 if topic_info_proto.HasField("submitKey") else None
             ),
             auto_renew_period=(
-                topic_info_proto.autoRenewPeriod 
+                Duration.from_proto(proto=topic_info_proto.autoRenewPeriod)
                 if topic_info_proto.HasField("autoRenewPeriod") else None
             ),
             auto_renew_account=(
@@ -84,7 +84,7 @@ class TopicInfo:
             f"  expiration_time={exp_dt},\n"
             f"  admin_key={format_key(self.admin_key)},\n"
             f"  submit_key={format_key(self.submit_key)},\n"
-            f"  auto_renew_period={self.auto_renew_period},\n"
+            f"  auto_renew_period={self.auto_renew_period.seconds},\n"
             f"  auto_renew_account={self.auto_renew_account},\n"
             f"  ledger_id={self.ledger_id}\n"
             ")"
