@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from datetime import datetime
+from datetime import datetime, timezone
 from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
@@ -37,7 +37,7 @@ def test_topic_message_query_subscription(mock_client, mock_topic_id, mock_subsc
     """
     Test subscribing to topic messages using TopicMessageQuery.
     """
-    query = TopicMessageQuery().set_topic_id(mock_topic_id).set_start_time(datetime.utcnow())
+    query = TopicMessageQuery().set_topic_id(mock_topic_id).set_start_time(datetime.now(timezone.utc))
 
     with patch("hiero_sdk_python.query.topic_message_query.TopicMessageQuery.subscribe") as mock_subscribe:
         def side_effect(client, on_message, on_error):

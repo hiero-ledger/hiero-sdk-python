@@ -460,7 +460,7 @@ print(topic_info)
 ```
 query = TopicMessageQuery(
     topic_id=topic_id,
-    start_time=datetime.utcnow(),
+    start_time=datetime.now(timezone.utc),
     chunking_enabled=True,
     limit=0
 )
@@ -473,7 +473,7 @@ query.subscribe(client)
 query = (
     TopicMessageQuery()
     .set_topic_id(topic_id) 
-    .set_start_time(datetime.utcnow()) 
+    .set_start_time(datetime.now(timezone.utc)) 
     .set_chunking_enabled(True) 
     .set_limit(0) 
     )
