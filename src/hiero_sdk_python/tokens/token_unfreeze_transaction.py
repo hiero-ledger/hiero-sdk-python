@@ -31,24 +31,6 @@ class TokenUnfreezeTransaction(Transaction):
         self.__require_not_frozen()
         self.account_id = account_id
         return self
-
-    def freeze(self):
-        """
-        Freezes the transaction, preventing further modifications.
-        """
-        if self._is_frozen:
-            raise ValueError("Transaction is already frozen.")
-        self._is_frozen = True
-        return self
-    
-    def unfreeze(self):
-        """
-        Unfreezes the transaction, allowing modifications again.
-        """
-        if not self._is_frozen:
-            raise ValueError("Transaction is not frozen.")
-        self._is_frozen = False
-        return self
     
     def __require_not_frozen(self): 
         if self._is_frozen:
@@ -102,20 +84,3 @@ class TokenUnfreezeTransaction(Transaction):
         receipt = self.get_receipt(client)
         return receipt
     
-    def get_receipt(self, client, timeout=60):
-        """
-        Retrieves the receipt for the transaction.
-        Args:
-            client (Client): The client instance.
-            timeout (int): Maximum time in seconds to wait for the receipt.
-        Returns:
-            TransactionReceipt: The transaction receipt from the network.
-        Raises:
-            Exception: If the transaction ID is not set or if receipt retrieval fails.
-        """
-
-        if self.transaction_id is None:
-            raise Exception("Transaction ID is not set.")
-        receipt = client.get_transaction_receipt(self.transaction_id, timeout)
-
-        return receipt

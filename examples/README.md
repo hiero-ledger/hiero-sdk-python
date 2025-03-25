@@ -22,6 +22,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Transferring Tokens](#transferring-tokens)
   - [Deleting a Token](#deleting-a-token)
   - [Freezing a Token](#freezing-a-token)
+  - [Unfreezing a Token](#unfreezing-a-token)
 - [HBAR Transactions](#hbar-transactions)
   - [Transferring HBAR](#transferring-hbar)
 - [Topic Transactions](#topic-transactions)
@@ -295,6 +296,28 @@ transaction.execute(client)
     )
 
     transaction.sign(freeze_key) # Freeze key must also have been set in Token Create
+    transaction.execute(client)
+```
+### Unfreezing a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenUnfreezeTransaction(
+    token_id=token_id
+    account_id=account_id
+).freeze_with(client)
+transaction.sign(freeze_key)
+transaction.execute(client)
+```
+#### Method Chaining:
+```
+transaction = (
+        TokenUnfreezeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .freeze_with(client)
+    )
+    transaction.sign(freeze_key)
     transaction.execute(client)
 ```
 
