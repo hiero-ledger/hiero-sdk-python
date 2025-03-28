@@ -15,6 +15,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_create_pb2, basic_types_pb2
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
@@ -25,7 +26,7 @@ class TokenCreateValidator:
     """Token, key and freeze checks for creating a token as per the proto"""
 
     @staticmethod
-    def validate_token_params(token_params):
+    def _validate_token_params(token_params):
         """
         Ensure valid values for the token characteristics.
         """
@@ -33,6 +34,7 @@ class TokenCreateValidator:
         TokenCreateValidator._validate_name_and_symbol(token_params)
         TokenCreateValidator._validate_initial_supply(token_params)
         TokenCreateValidator._validate_decimals_and_token_type(token_params)
+        TokenCreateValidator._validate_supply_max_and_type(token_params)
 
     @staticmethod
     def _validate_required_fields(token_params):
@@ -70,15 +72,18 @@ class TokenCreateValidator:
         """
         Ensure initial supply is a non-negative integer and does not exceed max supply.
         """
-        MAX_SUPPLY = 9_223_372_036_854_775_807  # 2^63 - 1
+        MAXIMUM_SUPPLY = 9_223_372_036_854_775_807  # 2^63 - 1
 
         if (
             not isinstance(token_params.initial_supply, int)
             or token_params.initial_supply < 0
         ):
             raise ValueError("Initial supply must be a non-negative integer")
-        if token_params.initial_supply > MAX_SUPPLY:
-            raise ValueError(f"Initial supply cannot exceed {MAX_SUPPLY}")
+        if token_params.initial_supply > MAXIMUM_SUPPLY:
+            raise ValueError(f"Initial supply cannot exceed {MAXIMUM_SUPPLY}")
+        if token_params.max_supply > MAXIMUM_SUPPLY:
+            raise ValueError(f"Max supply cannot exceed {MAXIMUM_SUPPLY}")
+
 
     @staticmethod
     def _validate_decimals_and_token_type(token_params):
@@ -101,7 +106,7 @@ class TokenCreateValidator:
                 raise ValueError("A Non-fungible Unique Token requires an initial supply of zero")
 
     @staticmethod
-    def validate_token_freeze_status(keys, token_params):
+    def _validate_token_freeze_status(keys, token_params):
         """Ensure account is not frozen for this token."""
         if token_params.freeze_default:
             if not keys.freeze_key:
@@ -111,6 +116,27 @@ class TokenCreateValidator:
             raise ValueError(
                 "Token frozen. Please complete a Token Unfreeze Transaction."
             )
+
+    @staticmethod
+    def _validate_supply_max_and_type(token_params):
+        """Ensure max supply and supply type constraints."""
+        # An infinite token must have max supply = 0.
+        # A finite token must have max supply > 0.
+        if token_params.max_supply != 0: # Setting a max supply is only approprite for a finite token.
+            if token_params.supply_type != SupplyType.FINITE: 
+                raise ValueError("Setting a max supply field requires setting a finite supply type")
+
+        # Finite tokens have the option to set a max supply >0.
+        # A finite token must have max supply > 0.
+        if token_params.supply_type == SupplyType.FINITE:
+            if token_params.max_supply <= 0:
+                raise ValueError("A finite supply token requires max_supply greater than zero 0")
+
+            # Ensure max supply is greater than initial supply
+            if token_params.initial_supply > token_params.max_supply:
+                raise ValueError(
+                    "Initial supply cannot exceed the defined max supply for a finite token"
+                )
 
 @dataclass
 class TokenParams:
@@ -124,6 +150,8 @@ class TokenParams:
         decimals (optional): The number of decimals for the token. This must be zero for NFTs.
         initial_supply (optional): The initial supply of the token.
         token_type (optional): The type of the token, defaulting to fungible.
+        max_supply (optional): The maximum number of fungible tokens or NFT serial numbers that can be in circulation.
+        supply_type (optional): The token supply status as finite or infinite.
         freeze_default (optional): An initial Freeze status for accounts associated to this token.
     """
 
@@ -133,6 +161,8 @@ class TokenParams:
     decimals: int = 0  # Default to zero decimals
     initial_supply: int = 0  # Default to zero initial supply
     token_type: TokenType = TokenType.FUNGIBLE_COMMON  # Default to Fungible Common
+    max_supply: int = 0 # Since defaulting to infinite
+    supply_type: SupplyType = SupplyType.INFINITE # Default to infinite
     freeze_default: bool = False
 
 
@@ -192,6 +222,8 @@ class TokenCreateTransaction(Transaction):
                 decimals=0,
                 initial_supply=0,
                 token_type=TokenType.FUNGIBLE_COMMON,
+                max_supply=0,
+                supply_type=SupplyType.INFINITE,
                 freeze_default=False
             )
 
@@ -200,7 +232,6 @@ class TokenCreateTransaction(Transaction):
         self._keys = keys if keys else TokenKeys()
 
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
-        self._is_frozen = False
 
     def set_token_params(self, token_params):
         """
@@ -231,6 +262,11 @@ class TokenCreateTransaction(Transaction):
         self._token_params.token_symbol = symbol
         return self
 
+    def set_treasury_account_id(self, account_id):
+        self._require_not_frozen()
+        self._token_params.treasury_account_id = account_id
+        return self
+    
     def set_decimals(self, decimals):
         self._require_not_frozen()
         self._token_params.decimals = decimals
@@ -245,11 +281,21 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._token_params.token_type = token_type
         return self
-
-    def set_treasury_account_id(self, account_id):
+    
+    def set_max_supply(self, max_supply):
         self._require_not_frozen()
-        self._token_params.treasury_account_id = account_id
+        self._token_params.max_supply = max_supply
         return self
+
+    def set_supply_type(self, supply_type):
+        self._require_not_frozen()
+        self._token_params.supply_type = supply_type
+        return self
+    
+    def set_freeze_default(self, freeze_default):
+        self._require_not_frozen()
+        self._token_params.freeze_default = freeze_default
+        return self    
 
     def set_admin_key(self, key):
         self._require_not_frozen()
@@ -266,17 +312,6 @@ class TokenCreateTransaction(Transaction):
         self._keys.freeze_key = key
         return self
 
-    def freeze(self):
-        """Marks the transaction as frozen to prevent further modifications."""
-        self._is_frozen = True
-
-    def _require_not_frozen(self):
-        """
-        Helper method ensuring no changes are made after freeze() has been called.
-        """
-        if self._is_frozen:
-            raise ValueError("Transaction is frozen and cannot be modified.")
-
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for token creation.
@@ -289,10 +324,10 @@ class TokenCreateTransaction(Transaction):
         """
 
         # Validate all token params
-        TokenCreateValidator.validate_token_params(self._token_params)
+        TokenCreateValidator._validate_token_params(self._token_params)
 
         # Validate freeze status
-        TokenCreateValidator.validate_token_freeze_status(self._keys, self._token_params)
+        TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
 
         admin_key_proto = None
         if self._keys.admin_key:
@@ -318,6 +353,14 @@ class TokenCreateTransaction(Transaction):
         else:
             token_type_value = self._token_params.token_type
 
+        # Ensure supply type is correctly set with default to infinite
+        if self._token_params.supply_type is None:
+            supply_type_value = 0  # default INFINITE
+        elif isinstance(self._token_params.supply_type, SupplyType):
+            supply_type_value = self._token_params.supply_type.value
+        else:
+            supply_type_value = self._token_params.supply_type
+
         # Construct the TokenCreateTransactionBody
         token_create_body = token_create_pb2.TokenCreateTransactionBody(
             name=self._token_params.token_name,
@@ -325,6 +368,9 @@ class TokenCreateTransaction(Transaction):
             decimals=self._token_params.decimals,
             initialSupply=self._token_params.initial_supply,
             tokenType=token_type_value,
+            supplyType=supply_type_value,
+            maxSupply=self._token_params.max_supply,
+            freezeDefault=self._token_params.freeze_default,
             treasury=self._token_params.treasury_account_id.to_proto(),
             adminKey=admin_key_proto,
             supplyKey=supply_key_proto,
@@ -358,25 +404,5 @@ class TokenCreateTransaction(Transaction):
             raise Exception(f"Error during transaction submission: {error_code} ({error_message})")
 
         receipt = self.get_receipt(client)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         return receipt
 

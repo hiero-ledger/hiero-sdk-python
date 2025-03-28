@@ -25,7 +25,8 @@ from hiero_sdk_python import (
     PrivateKey,
     TokenCreateTransaction,
     Network,
-    TokenType
+    TokenType,
+    SupplyType
     )
 
 # Load environment variables from .env file
@@ -60,6 +61,8 @@ def create_token():
         .set_initial_supply(10) # 0 for NON_FUNGIBLE_UNIQUE
         .set_treasury_account_id(operator_id) # Also known as treasury account
         .set_token_type(TokenType.FUNGIBLE_COMMON) # or TokenType.NON_FUNGIBLE_UNIQUE
+        .set_token_type(SupplyType.FINITE) # or SupplyType.INFINITE
+        .set_max_supply(100)
         .set_admin_key(admin_key) # Optional
         .set_supply_key(supply_key) # Optional
         .set_freeze_key(freeze_key) # Optional
