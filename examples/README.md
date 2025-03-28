@@ -83,39 +83,47 @@ balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .exe
 #### Pythonic Syntax:
 ```
 transaction = TokenCreateTransaction(
-    token_name="ExampleToken",
-    token_symbol="EXT",
-    decimals=2,
-    initial_supply=1000,
-    treasury_account_id=operator_id,
-    admin_key=admin_key
-    supply_key=supply_key
+    token_params=TokenParams(
+        token_name="ExampleToken",
+        token_symbol="EXT",
+        decimals=2, # 0 for NON_FUNGIBLE_UNIQUE
+        initial_supply=1000,  # 0 for NON_FUNGIBLE_UNIQUE
+        token_type=TokenType.FUNGIBLE_COMMON,  # or TokenType.NON_FUNGIBLE_UNIQUE
+        freeze_default=False,
+        treasury_account_id=operator_id
+    ),
+    keys=TokenKeys(
+        admin_key=admin_key,       # added but optional. Necessary for Token Delete or Update.
+        supply_key=supply_key,     # added but optional. Necessary for Token Mint or Burn.
+        freeze_key=freeze_key      # added but optional. Necessary to freeze and unfreeze a token.
+    )
 ).freeze_with(client)
-
-transaction.sign(admin_key)
-transaction.sign(operator_key)
+transaction.sign(operator_key) # Required signing by the treasury account
+transaction.sign(admin_key) # Required since admin key exists
 transaction.execute(client)
-
 ```
+
 #### Method Chaining:
 ```
 transaction = (
-        TokenCreateTransaction()
-        .set_token_name("ExampleToken")
-        .set_token_symbol("EXT")
-        .set_decimals(2)
-        .set_initial_supply(1000)
-        .set_treasury_account_id(operator_id)
-        .set_admin_key(admin_key) # Optional to create a token. Necessary for Token Delete or Update.
-        .set_supply_key(supply_key) # Optional to change token supply. Necessary for Token Mint or Burn.
-        .freeze_with(client)
-    )
+    TokenCreateTransaction()  # no params => uses default placeholders which are next overwritten.
+    .set_token_name("ExampleToken")
+    .set_token_symbol("EXT")
+    .set_decimals(2) # 0 for NON_FUNGIBLE_UNIQUE
+    .set_initial_supply(1000) # 0 for NON_FUNGIBLE_UNIQUE
+    .set_token_type(TokenType.FUNGIBLE_COMMON) # or TokenType.NON_FUNGIBLE_UNIQUE
+    .set_freeze_default(False)
+    .set_treasury_account_id(operator_id)
+    .set_admin_key(admin_key)       # added but optional. Necessary for Token Delete or Update.
+    .set_supply_key(supply_key)     # added but optional. Necessary for Token Mint or Burn.
+    .set_freeze_key(freeze_key)     # added but optional. Necessary to freeze and unfreeze a token.
+    .freeze_with(client)
+)
 
-    transaction.sign(admin_key) # If admin key exists.
-    transaction.sign(operator_key)
-    transaction.execute(client)
+transaction.sign(operator_key) # Required signing by the treasury account
+transaction.sign(admin_key)    # Required since admin key exists
+transaction.execute(client)
 ```
-
 
 ### Minting a Fungible Token
 
