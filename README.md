@@ -2,7 +2,7 @@
 
 This is a Python SDK for interacting with the Hedera Hashgraph platform. It allows developers to:
 
-- Manage Token Transactions like Create, Mint Fungible, Mint Non-Fungible, Associate, Dissociate, Transfer, Freeze & Delete
+- Manage Token Transactions like Create, Mint Fungible, Mint Non-Fungible, Associate, Dissociate, Transfer, Freeze, Unfreeze & Delete
 - Manage Consensus Transactions like Topic Create, Update, Delete
 - Submit Topic Messages
 - Query Account Balance, Transaction Receipts, Topic Infos and Messages
@@ -134,6 +134,7 @@ Token dissociation successful.
 Token minting successful.
 Token transfer successful.
 Token freeze successful.
+Token Unfreeze successful.
 Token deletion successful.
 Topic creation successful.
 Topic Message submitted.
