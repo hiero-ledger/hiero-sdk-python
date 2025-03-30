@@ -303,6 +303,7 @@ def freeze_token(client, token_id, account_id, freeze_key):
         print("Token freeze successful.")
     except Exception as e:
         print(f"Token freeze failed: {str(e)}")
+        print(traceback.format_exc())
         sys.exit(1)
 
 def unfreeze_token(client, token_id_1, recipient_id, freeze_key):
@@ -509,6 +510,10 @@ def main():
     # Test freezing fungible and nft tokens. In this case from the recipient that just received token 1.
     freeze_token(client, token_id_1, recipient_id, freeze_key)
     freeze_token(client, token_id_nft_1, recipient_id, freeze_key)
+
+    # Test unfreezing fungible and nft tokens. In this case from the recipient that just received token 1.
+    unfreeze_token(client, token_id_1, recipient_id, freeze_key)
+    unfreeze_token(client, token_id_nft_1, recipient_id, freeze_key)
 
     # Test dissociating a fungible and nft token. In this case the tokens that were not transferred or frozen.
     dissociate_token(client, recipient_id, recipient_private_key, [token_id_2])
