@@ -157,7 +157,7 @@ class PublicKey:
         if self.is_ed25519():
             return basic_types_pb2.Key(ed25519=pub_bytes)
         else:
-            return basic_types_pb2.Key(ECDSASecp256k1=pub_bytes)
+            return basic_types_pb2.Key(ECDSA_secp256k1=pub_bytes)
 
     def is_ed25519(self) -> bool:
         """

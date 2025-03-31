@@ -37,6 +37,9 @@ from .hbar import Hbar
 # Timestamp
 from .timestamp import Timestamp
 
+# Duration
+from .Duration import Duration
+
 # Consensus
 from .consensus.topic_create_transaction import TopicCreateTransaction
 from .consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
