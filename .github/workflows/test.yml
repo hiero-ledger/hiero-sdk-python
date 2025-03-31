@@ -29,7 +29,7 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@35efe2334bffb73298716402a5c688321ec29260 # v0.6
+        uses: AlexanderShenshin/hiero-solo-action@v0.0.5-dev # Tagged version from fork, reflects upstream PR: https://github.com/hiero-ledger/hiero-solo-action/pull/37
         with:
           installMirrorNode: true
 
