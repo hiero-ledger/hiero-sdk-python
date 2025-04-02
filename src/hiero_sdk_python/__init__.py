@@ -10,6 +10,9 @@ from .account.account_create_transaction import AccountCreateTransaction
 from .crypto.private_key import PrivateKey
 from .crypto.public_key import PublicKey
 
+# Duration
+from .duration import Duration
+
 # Tokens
 from .tokens.token_create_transaction import TokenCreateTransaction
 from .tokens.token_associate_transaction import TokenAssociateTransaction
@@ -37,9 +40,6 @@ from .hbar import Hbar
 
 # Timestamp
 from .timestamp import Timestamp
-
-# Duration
-from .Duration import Duration
 
 # Consensus
 from .consensus.topic_create_transaction import TopicCreateTransaction
@@ -102,5 +102,6 @@ __all__ = [
 
     "Hbar",
     "ResponseCode",
-    "Timestamp"
+    "Timestamp",
+    "Duration"
 ]
