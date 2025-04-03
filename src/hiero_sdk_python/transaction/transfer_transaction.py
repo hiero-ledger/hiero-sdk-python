@@ -3,7 +3,8 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import crypto_transfer_pb2, basic_types_pb2
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
 
 class TransferTransaction(Transaction):
     """
@@ -97,23 +98,8 @@ class TransferTransaction(Transaction):
 
         return transaction_body
 
-    def _execute_transaction(self, client, transaction_proto):
-        """
-        Executes the transfer transaction using the provided client.
-
-        Args:
-            client (Client): The client instance.
-            transaction_proto (Transaction): The transaction protobuf message.
-
-        Returns:
-            TransactionReceipt: The receipt from the network.
-        """
-        response = client.crypto_stub.cryptoTransfer(transaction_proto)
-
-        if response.nodeTransactionPrecheckCode != ResponseCode.OK:
-            error_code = response.nodeTransactionPrecheckCode
-            error_message = ResponseCode.get_name(error_code)
-            raise Exception(f"Error during transaction submission: {error_code} ({error_message})")
-
-        receipt = self.get_receipt(client)
-        return receipt
+    def get_method(self, channel: _Channel) -> _Method:
+        return _Method(
+            transaction_func=channel.crypto.cryptoTransfer,
+            query_func=None
+        )
