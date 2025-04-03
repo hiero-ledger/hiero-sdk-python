@@ -1,6 +1,7 @@
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_delete_pb2
-from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
 
 class TokenDeleteTransaction(Transaction):
     """
@@ -59,26 +60,8 @@ class TokenDeleteTransaction(Transaction):
 
         return transaction_body
 
-    def _execute_transaction(self, client, transaction_proto):
-        """
-        Executes the token deletion transaction using the provided client.
-
-        Args:
-            client (Client): The client instance to use for execution.
-            transaction_proto (Transaction): The protobuf Transaction message.
-
-        Returns:
-            TransactionReceipt: The receipt from the network after transaction execution.
-
-        Raises:
-            Exception: If the transaction submission fails or receives an error response.
-        """
-        response = client.token_stub.deleteToken(transaction_proto)
-
-        if response.nodeTransactionPrecheckCode != ResponseCode.OK:
-            error_code = response.nodeTransactionPrecheckCode
-            error_message = ResponseCode.get_name(error_code)
-            raise Exception(f"Error during transaction submission: {error_code} ({error_message})")
-
-        receipt = self.get_receipt(client)
-        return receipt
+    def get_method(self, channel: _Channel) -> _Method:
+        return _Method(
+            transaction_func=channel.token.deleteToken,
+            query_func=None
+        )
