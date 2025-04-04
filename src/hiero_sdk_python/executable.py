@@ -60,93 +60,14 @@ class _ExecutionState(IntEnum):
 class Executable(ABC):
     """
     Abstract base class for all executable operations (transactions and queries).
-
-    This class defines the interface that all executable operations must implement.
-    """
-
-    @property
-    @abstractmethod
-    def max_backoff(self):
-        """Maximum backoff time in seconds for retries."""
-        raise NotImplementedError("Subclasses must implement max_backoff()")
-
-    @property
-    @abstractmethod
-    def min_backoff(self):
-        """Minimum backoff time in seconds for retries."""
-        raise NotImplementedError("Subclasses must implement min_backoff()")
-
-    @property
-    @abstractmethod
-    def grpc_deadline(self):
-        """Timeout for gRPC calls in seconds."""
-        raise NotImplementedError("Subclasses must implement grpc_deadline()")
-
-    @property
-    @abstractmethod
-    def max_retry(self):
-        """Maximum number of retry attempts."""
-        raise NotImplementedError("Subclasses must implement max_retry()")
-
-    @abstractmethod
-    def should_retry(self, response) -> _ExecutionState:
-        """
-        Determine whether the operation should be retried based on the response.
-
-        Args:
-            response: The response from the network
-
-        Returns:
-            _ExecutionState: The execution state indicating what to do next
-        """
-        raise NotImplementedError("Subclasses must implement should_retry()")
-
-    @abstractmethod
-    def make_request(self):
-        """
-        Build the request object to send to the network.
-
-        Returns:
-            The request protobuf object
-        """
-        raise NotImplementedError("Subclasses must implement make_request()")
-
-    @abstractmethod
-    def get_method(self, channel: _Channel) -> _Method:
-        """
-        Get the appropriate gRPC method to call for this operation.
-
-        Args:
-            channel (_Channel): The channel containing service stubs
-
-        Returns:
-            _Method: The method wrapper containing the appropriate callable
-        """
-        raise NotImplementedError("Subclasses must implement get_method()")
-
-    @abstractmethod
-    def map_response(self, response, node_id, proto_request):
-        """
-        Map the network response to the appropriate response object.
-
-        Args:
-            response: The response from the network
-            node_id: The ID of the node that processed the request
-            proto_request: The protobuf request that was sent
-
-        Returns:
-            The appropriate response object for the operation
-        """
-        raise NotImplementedError("Subclasses must implement map_response()")
-
-
-class _ExecutableBase(Executable):
-    """
-    Base implementation of the Executable interface.
-
-    This class provides default implementations for most of the Executable methods,
-    particularly the retry and backoff configuration. Transaction class
-    extend this class to inherit common behavior.
+    
+    This class defines the core interface for operations that can be executed on the
+    Hedera network. It provides implementations for configuration properties with
+    validation (max_backoff, min_backoff, grpc_deadline, max_retry) and includes
+    the execution flow with retry logic.
+    
+    Subclasses like Transaction will extend this and implement the abstract methods
+    to define specific behavior for different types of operations.
     """
 
     def __init__(self):
@@ -255,72 +176,122 @@ class _ExecutableBase(Executable):
         self._max_retry = max_retry
         return self
 
+    @abstractmethod
+    def should_retry(self, response) -> _ExecutionState:
+        """
+        Determine whether the operation should be retried based on the response.
 
-def _execute(client: "Client", executable: Executable):
-    """
-    Execute a transaction with retry logic.
+        Args:
+            response: The response from the network
 
-    Args:
-        client (Client): The client instance to use for execution
-        executable (Executable): The transaction to execute
+        Returns:
+            _ExecutionState: The execution state indicating what to do next
+        """
+        raise NotImplementedError("should_retry must be implemented by subclasses")
 
-    Returns:
-        TransactionResponse or appropriate response based on transaction type
+    @abstractmethod
+    def make_request(self):
+        """
+        Build the request object to send to the network.
 
-    Raises:
-        Exception: If execution fails with a non-retryable error
-    """
-    # Determine maximum number of attempts from client or executable
-    if client.max_attempts is not None:
-        max_attempts = client.max_attempts
-    else:
-        max_attempts = executable.max_retry
+        Returns:
+            The request protobuf object
+        """
+        raise NotImplementedError("make_request must be implemented by subclasses")
 
-    current_backoff = executable.min_backoff
+    @abstractmethod
+    def get_method(self, channel: _Channel) -> _Method:
+        """
+        Get the appropriate gRPC method to call for this operation.
 
-    for attempt in range(max_attempts):
-        # Exponential backoff for retries
-        if attempt > 0 and current_backoff < executable.max_backoff:
-            current_backoff *= current_backoff
+        Args:
+            channel (_Channel): The channel containing service stubs
 
-        # Create a channel wrapper from the client's channel
-        channel = _Channel(client.channel)
-        
-        # Get the appropriate gRPC method to call
-        method = executable.get_method(channel)
+        Returns:
+            _Method: The method wrapper containing the appropriate callable
+        """
+        raise NotImplementedError("get_method must be implemented by subclasses")
 
-        # Build the request using the executable's make_request method
-        proto_request = executable.make_request()
+    @abstractmethod
+    def map_response(self, response, node_id, proto_request):
+        """
+        Map the network response to the appropriate response object.
 
-        # Call the appropriate method
-        # Note: Queries do not use these methods currently, only transactions are supported
-        if method.transaction is not None:
-            response = method.transaction(proto_request)
-        elif method.query is not None:
-            response = method.query(proto_request)
-        
-        # Determine if we should retry based on the response
-        execution_state = executable.should_retry(response)
-        
-        # Handle the execution state
-        match execution_state:
-            case _ExecutionState.RETRY:
-                # If we should retry, wait for the backoff period and try again
-                _delay_for_attempt(attempt, current_backoff)
-                continue
-            case _ExecutionState.EXPIRED:
-                # TODO: handle errors
-                return TransactionResponse()
-            case _ExecutionState.ERROR:
-                # TODO: handle errors
-                return TransactionResponse()
-            case _ExecutionState.FINISHED:
-                # If the transaction completed successfully, map the response and return it
-                # TODO: node_id should be passed here instead of empty AccountId()
-                return executable.map_response(response, AccountId(), proto_request)
+        Args:
+            response: The response from the network
+            node_id: The ID of the node that processed the request
+            proto_request: The protobuf request that was sent
 
-    # If we've exhausted all retry attempts, return an empty response
-    return TransactionResponse()
+        Returns:
+            The appropriate response object for the operation
+        """
+        raise NotImplementedError("map_response must be implemented by subclasses")
+
+    def _execute(self, client: "Client"):
+        """
+        Execute a transaction with retry logic.
+
+        Args:
+            client (Client): The client instance to use for execution
+            executable (Executable): The transaction to execute
+
+        Returns:
+            TransactionResponse or appropriate response based on transaction type
+
+        Raises:
+            Exception: If execution fails with a non-retryable error
+        """
+        # Determine maximum number of attempts from client or executable
+        if client.max_attempts is not None:
+            max_attempts = client.max_attempts
+        else:
+            max_attempts = self.max_retry
+
+        current_backoff = self.min_backoff
+
+        for attempt in range(max_attempts):
+            # Exponential backoff for retries
+            if attempt > 0 and current_backoff < self.max_backoff:
+                current_backoff *= current_backoff
+
+            # Create a channel wrapper from the client's channel
+            channel = _Channel(client.channel)
+            
+            # Get the appropriate gRPC method to call
+            method = self.get_method(channel)
+
+            # Build the request using the executable's make_request method
+            proto_request = self.make_request()
+
+            # Call the appropriate method
+            # Note: Queries do not use these methods currently, only transactions are supported
+            if method.transaction is not None:
+                response = method.transaction(proto_request)
+            elif method.query is not None:
+                response = method.query(proto_request)
+            
+            # Determine if we should retry based on the response
+            execution_state = self.should_retry(response)
+            
+            # Handle the execution state
+            match execution_state:
+                case _ExecutionState.RETRY:
+                    # If we should retry, wait for the backoff period and try again
+                    _delay_for_attempt(attempt, current_backoff)
+                    continue
+                case _ExecutionState.EXPIRED:
+                    # TODO: handle errors
+                    return TransactionResponse()
+                case _ExecutionState.ERROR:
+                    # TODO: handle errors
+                    return TransactionResponse()
+                case _ExecutionState.FINISHED:
+                    # If the transaction completed successfully, map the response and return it
+                    # TODO: node_id should be passed here instead of empty AccountId()
+                    return self.map_response(response, AccountId(), proto_request)
+
+        # If we've exhausted all retry attempts, return an empty response
+        return TransactionResponse()
 
 
 def _delay_for_attempt(attempt: int, current_backoff: int):
