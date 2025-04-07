@@ -246,7 +246,6 @@ class _Executable(ABC):
 
         Args:
             client (Client): The client instance to use for execution
-            executable (Executable): The transaction to execute
 
         Returns:
             TransactionResponse or appropriate response based on transaction type
@@ -255,12 +254,9 @@ class _Executable(ABC):
             Exception: If execution fails with a non-retryable error
         """
         # Determine maximum number of attempts from client or executable
-        if client.max_attempts is not None:
-            max_attempts = client.max_attempts
-        else:
-            max_attempts = self.max_retry
-
+        max_attempts = client.max_attempts if client.max_attempts is not None else self.max_retry
         current_backoff = self.min_backoff
+        err_persistant = None
 
         for attempt in range(max_attempts):
             # Exponential backoff for retries
@@ -279,10 +275,8 @@ class _Executable(ABC):
             # Call the appropriate method
             # NOTE: Queries do not use these methods currently, only transactions are supported
             try:
-                if method.transaction is not None:
-                    response = method.transaction(proto_request)
-                elif method.query is not None:
-                    response = method.query(proto_request)
+                # Execute the transaction method with the protobuf request
+                response = _execute_method(method, proto_request)
                 
                 # Map the response to an error
                 status_error = self.map_status_error(response)
@@ -329,3 +323,23 @@ def _executable_default_retry(error):
         return True
     
     return False
+
+def _execute_method(method, proto_request):
+    """
+    Executes either a transaction or query method with the given protobuf request.
+
+    Args:
+        method (_Method): The method wrapper containing either a transaction or query function
+        proto_request: The protobuf request object to pass to the method
+
+    Returns:
+        The response from executing the method
+
+    Raises:
+        Exception: If neither a transaction nor query method is available to execute
+    """
+    if method.transaction is not None:
+        return method.transaction(proto_request)
+    elif method.query is not None:
+        return method.query(proto_request)
+    raise Exception("No method to execute")
