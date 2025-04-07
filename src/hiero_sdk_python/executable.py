@@ -1,11 +1,11 @@
 import time
 import typing
+import grpc
 from abc import ABC, abstractmethod
 from enum import IntEnum
 
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.transaction.transaction_response import TransactionResponse
+from hiero_sdk_python.exceptions import MaxAttemptsError
 
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
@@ -190,6 +190,19 @@ class _Executable(ABC):
         raise NotImplementedError("should_retry must be implemented by subclasses")
 
     @abstractmethod
+    def map_status_error(self, response):
+        """
+        Maps a response status code to an appropriate error object.
+    
+        Args:
+            response: The response from the network
+        
+        Returns:
+            Exception: An error object representing the error status
+        """
+        raise NotImplementedError("map_status_error must be implemented by subclasses")
+
+    @abstractmethod
     def make_request(self):
         """
         Build the request object to send to the network.
@@ -264,34 +277,41 @@ class _Executable(ABC):
             proto_request = self.make_request()
 
             # Call the appropriate method
-            # Note: Queries do not use these methods currently, only transactions are supported
-            if method.transaction is not None:
-                response = method.transaction(proto_request)
-            elif method.query is not None:
-                response = method.query(proto_request)
-            
-            # Determine if we should retry based on the response
-            execution_state = self.should_retry(response)
-            
-            # Handle the execution state
-            match execution_state:
-                case _ExecutionState.RETRY:
-                    # If we should retry, wait for the backoff period and try again
-                    _delay_for_attempt(attempt, current_backoff)
+            # NOTE: Queries do not use these methods currently, only transactions are supported
+            try:
+                if method.transaction is not None:
+                    response = method.transaction(proto_request)
+                elif method.query is not None:
+                    response = method.query(proto_request)
+                
+                # Map the response to an error
+                status_error = self.map_status_error(response)
+                
+                # Determine if we should retry based on the response
+                execution_state = self.should_retry(response)
+                
+                # Handle the execution state
+                match execution_state:
+                    case _ExecutionState.RETRY:
+                        # If we should retry, wait for the backoff period and try again
+                        err_persistant = status_error
+                        _delay_for_attempt(attempt, current_backoff)
+                        continue
+                    case _ExecutionState.EXPIRED:
+                        raise status_error
+                    case _ExecutionState.ERROR:
+                        raise status_error
+                    case _ExecutionState.FINISHED:
+                        # If the transaction completed successfully, map the response and return it
+                        return self.map_response(response, client.node_account_id, proto_request)
+            except grpc.RpcError as e:
+                err_message = f"Status: {e.code()}, Details: {e.details()}"
+                if _executable_default_retry(e):
+                    err_persistant = err_message
                     continue
-                case _ExecutionState.EXPIRED:
-                    # TODO: handle errors
-                    return TransactionResponse()
-                case _ExecutionState.ERROR:
-                    # TODO: handle errors
-                    return TransactionResponse()
-                case _ExecutionState.FINISHED:
-                    # If the transaction completed successfully, map the response and return it
-                    # TODO: node_id should be passed here instead of empty AccountId()
-                    return self.map_response(response, AccountId(), proto_request)
-
-        # If we've exhausted all retry attempts, return an empty response
-        return TransactionResponse()
+                raise Exception(err_message)
+        
+        raise MaxAttemptsError("Exceeded maximum attempts for request", client.node_account_id, err_persistant)
 
 
 def _delay_for_attempt(attempt: int, current_backoff: int):
@@ -303,3 +323,9 @@ def _delay_for_attempt(attempt: int, current_backoff: int):
         current_backoff (int): The current backoff period in seconds
     """
     time.sleep(current_backoff)
+
+def _executable_default_retry(error):
+    if error.code() == grpc.StatusCode.UNAVAILABLE or error.code() == grpc.StatusCode.RESOURCE_EXHAUSTED:
+        return True
+    
+    return False

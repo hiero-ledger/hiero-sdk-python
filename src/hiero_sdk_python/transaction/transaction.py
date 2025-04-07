@@ -1,5 +1,6 @@
 import hashlib
 
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_body_pb2, transaction_contents_pb2, transaction_pb2)
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
@@ -117,6 +118,21 @@ class Transaction(_Executable):
             return _ExecutionState.FINISHED
 
         return _ExecutionState.ERROR
+
+    def map_status_error(self, response):
+        """
+        Maps a transaction response to a corresponding PrecheckError exception.
+
+        Args:
+            response (TransactionResponseProto): The transaction response from the network
+
+        Returns:
+            PrecheckError: An exception containing the error code and transaction ID
+        """
+        error_code = response.nodeTransactionPrecheckCode
+        tx_id = self.transaction_id
+        
+        return PrecheckError(error_code, tx_id)
 
     def sign(self, private_key):
         """
