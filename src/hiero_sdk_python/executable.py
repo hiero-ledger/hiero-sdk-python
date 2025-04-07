@@ -57,7 +57,7 @@ class _ExecutionState(IntEnum):
     EXPIRED = 3  # The transaction expired before being processed
 
 
-class Executable(ABC):
+class _Executable(ABC):
     """
     Abstract base class for all executable operations (transactions and queries).
     
