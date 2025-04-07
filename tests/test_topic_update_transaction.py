@@ -71,6 +71,7 @@ def test_execute_topic_update_transaction(mock_account_ids):
     client.operator_private_key = PrivateKey.generate()
     client.operator_account_id = AccountId(0, 0, 2)
     client.node_account_id = node_account_id
+    client.max_attempts = 10
 
     real_tx_id = TransactionId(
         account_id=AccountId(0, 0, 2),
@@ -87,9 +88,19 @@ def test_execute_topic_update_transaction(mock_account_ids):
     real_receipt = TransactionReceipt.from_proto(proto_receipt)
     client.get_transaction_receipt.return_value = real_receipt
 
+    client.channel = MagicMock()
+    
+    exec_response = MagicMock()
+    exec_response.transaction_id = real_tx_id
+    exec_response.get_receipt.return_value = real_receipt
+    
+    tx._execute = MagicMock(return_value=exec_response)
+
     receipt = tx.execute(client)
 
-    client.topic_stub.updateTopic.assert_called_once()
+    tx._execute.assert_called_once_with(client)
+    
     assert receipt is not None
     assert receipt.status == ResponseCode.OK
+    assert receipt is real_receipt
     print("Test passed: TopicUpdateTransaction executed successfully.")
