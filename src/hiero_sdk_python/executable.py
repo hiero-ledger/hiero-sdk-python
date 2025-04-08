@@ -10,11 +10,10 @@ from hiero_sdk_python.exceptions import MaxAttemptsError
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
 
-# Default values for retry and backoff configuration in seconds
-DEFAULT_MAX_BACKOFF: int = 8
-DEFAULT_MIN_BACKOFF: int = 1
-DEFAULT_GRPC_DEADLINE: int = 10
-DEFAULT_MAX_RETRY: int = 10
+# Default values for retry and backoff configuration in miliseconds
+DEFAULT_MAX_BACKOFF: int = 8000
+DEFAULT_MIN_BACKOFF: int = 250
+DEFAULT_GRPC_DEADLINE: int = 10000
 
 
 class _Method:
@@ -63,7 +62,7 @@ class _Executable(ABC):
     
     This class defines the core interface for operations that can be executed on the
     Hedera network. It provides implementations for configuration properties with
-    validation (max_backoff, min_backoff, grpc_deadline, max_retry) and includes
+    validation (max_backoff, min_backoff, grpc_deadline) and includes
     the execution flow with retry logic.
     
     Subclasses like Transaction will extend this and implement the abstract methods
@@ -74,7 +73,6 @@ class _Executable(ABC):
         self._max_backoff = None
         self._min_backoff = None
         self._grpc_deadline = None
-        self._max_retry = None
 
     @property
     def max_backoff(self):
@@ -89,7 +87,7 @@ class _Executable(ABC):
         Set the maximum backoff time.
 
         Args:
-            max_backoff (int): Maximum backoff time in seconds
+            max_backoff (int): Maximum backoff time in milliseconds
 
         Raises:
             ValueError: If max_backoff is negative or less than min_backoff
@@ -116,7 +114,7 @@ class _Executable(ABC):
         Set the minimum backoff time.
 
         Args:
-            min_backoff (int): Minimum backoff time in seconds
+            min_backoff (int): Minimum backoff time in milliseconds
 
         Raises:
             ValueError: If min_backoff is negative or greater than max_backoff
@@ -141,7 +139,7 @@ class _Executable(ABC):
         Set the gRPC deadline time.
 
         Args:
-            grpc_deadline (int): Deadline time in seconds
+            grpc_deadline (int): Deadline time in milliseconds
 
         Raises:
             ValueError: If grpc_deadline is negative
@@ -151,29 +149,6 @@ class _Executable(ABC):
         elif grpc_deadline < 0:
             raise ValueError("grpc_deadline must be greater than 0")
         self._grpc_deadline = grpc_deadline
-        return self
-
-    @property
-    def max_retry(self):
-        """Get the maximum number of retry attempts."""
-        return self._max_retry
-
-    @max_retry.setter
-    def max_retry(self, max_retry):
-        """
-        Set the maximum number of retry attempts.
-
-        Args:
-            max_retry (int): Maximum number of retry attempts
-
-        Raises:
-            ValueError: If max_retry is negative
-        """
-        if max_retry is None:
-            self._max_retry = DEFAULT_MAX_RETRY
-        elif max_retry < 0:
-            raise ValueError("max_retry must be greater than 0")
-        self._max_retry = max_retry
         return self
 
     @abstractmethod
@@ -254,14 +229,14 @@ class _Executable(ABC):
             Exception: If execution fails with a non-retryable error
         """
         # Determine maximum number of attempts from client or executable
-        max_attempts = client.max_attempts if client.max_attempts is not None else self.max_retry
+        max_attempts = client.max_attempts
         current_backoff = self.min_backoff
         err_persistant = None
 
         for attempt in range(max_attempts):
             # Exponential backoff for retries
             if attempt > 0 and current_backoff < self.max_backoff:
-                current_backoff *= current_backoff
+                current_backoff *= 2
 
             # Create a channel wrapper from the client's channel
             channel = _Channel(client.channel)
@@ -302,6 +277,10 @@ class _Executable(ABC):
                 err_message = f"Status: {e.code()}, Details: {e.details()}"
                 if _executable_default_retry(e):
                     err_persistant = err_message
+                    # Switch to a different node for the next attempt
+                    node_index = attempt % len(client.node_account_ids)
+                    current_node_account_id = client.node_account_ids[node_index]
+                    client._switch_node(current_node_account_id)
                     continue
                 raise Exception(err_message)
         
@@ -314,9 +293,9 @@ def _delay_for_attempt(attempt: int, current_backoff: int):
 
     Args:
         attempt (int): The current attempt number (0-based)
-        current_backoff (int): The current backoff period in seconds
+        current_backoff (int): The current backoff period in milliseconds
     """
-    time.sleep(current_backoff)
+    time.sleep(current_backoff * 0.001)
 
 def _executable_default_retry(error):
     if error.code() == grpc.StatusCode.UNAVAILABLE or error.code() == grpc.StatusCode.RESOURCE_EXHAUSTED:
