@@ -86,9 +86,11 @@ transaction = TokenCreateTransaction(
     token_params=TokenParams(
         token_name="ExampleToken",
         token_symbol="EXT",
-        decimals=2, # 0 for NON_FUNGIBLE_UNIQUE
-        initial_supply=1000,  # 0 for NON_FUNGIBLE_UNIQUE
+        decimals=2,                            # 0 for NON_FUNGIBLE_UNIQUE
+        initial_supply=1000,                   # 0 for NON_FUNGIBLE_UNIQUE
         token_type=TokenType.FUNGIBLE_COMMON,  # or TokenType.NON_FUNGIBLE_UNIQUE
+        max_supply=1000                        # Must be 0 for INFINITE
+        supply_type=SupplyType.FINITE,         # or SupplyType.INFINITE
         freeze_default=False,
         treasury_account_id=operator_id
     ),
@@ -109,9 +111,11 @@ transaction = (
     TokenCreateTransaction()  # no params => uses default placeholders which are next overwritten.
     .set_token_name("ExampleToken")
     .set_token_symbol("EXT")
-    .set_decimals(2) # 0 for NON_FUNGIBLE_UNIQUE
-    .set_initial_supply(1000) # 0 for NON_FUNGIBLE_UNIQUE
-    .set_token_type(TokenType.FUNGIBLE_COMMON) # or TokenType.NON_FUNGIBLE_UNIQUE
+    .set_decimals(2)                            # 0 for NON_FUNGIBLE_UNIQUE
+    .set_initial_supply(1000)                   # 0 for NON_FUNGIBLE_UNIQUE
+    .set_token_type(TokenType.FUNGIBLE_COMMON)  # or TokenType.NON_FUNGIBLE_UNIQUE
+    .set_max_supply(1000)                       # Must be 0 for INFINITE
+    .set_supply_type(SupplyType.FINITE)         # or SupplyType.INFINITE
     .set_freeze_default(False)
     .set_treasury_account_id(operator_id)
     .set_admin_key(admin_key)       # added but optional. Necessary for Token Delete or Update.
@@ -375,7 +379,7 @@ transaction.execute(client)
     transaction.execute(client)
 ```
 #### Method Chaining:
-```
+``` 
 transaction = (
     TopicCreateTransaction()
     .set_memo("My Super Topic Memo")

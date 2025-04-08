@@ -36,6 +36,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 
 # Token-related imports
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
@@ -127,6 +128,8 @@ def create_fungible_token(client, operator_id, admin_key, supply_key, freeze_key
         initial_supply=1000,
         treasury_account_id=operator_id,
         token_type=TokenType.FUNGIBLE_COMMON,
+        supply_type=SupplyType.FINITE,
+        max_supply=10000  
     )
 
     # Creating TokenKeys
@@ -172,6 +175,8 @@ def create_nft_token(client, operator_id, admin_key, supply_key, freeze_key):
         initial_supply=0,
         treasury_account_id=operator_id,
         token_type=TokenType.NON_FUNGIBLE_UNIQUE,
+        supply_type=SupplyType.FINITE,
+        max_supply=10_000  
     )
 
     # Creating TokenKeys
