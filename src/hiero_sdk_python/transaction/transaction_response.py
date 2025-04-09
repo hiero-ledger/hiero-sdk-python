@@ -1,11 +1,5 @@
-from typing import TYPE_CHECKING
-
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-
-if TYPE_CHECKING:
-    from hiero_sdk_python.client.client import Client
-
 
 class TransactionResponse:
     """
@@ -22,7 +16,7 @@ class TransactionResponse:
         self.validate_status = False
         self.transaction = None
 
-    def get_receipt(self, client: "Client"):
+    def get_receipt(self, client):
         """
         Retrieves the receipt for this transaction from the Hedera network.
 
@@ -33,5 +27,9 @@ class TransactionResponse:
             TransactionReceipt: The receipt from the network, containing the status
                                and any entities created by the transaction
         """
-        receipt = client.get_transaction_receipt(self.transaction_id)
+        # TODO: Decide how to avoid circular imports
+        from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
+        
+        receipt = TransactionGetReceiptQuery().set_transaction_id(self.transaction_id).execute(client)
+    
         return receipt
