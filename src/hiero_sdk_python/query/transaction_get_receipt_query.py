@@ -1,8 +1,11 @@
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import transaction_get_receipt_pb2, query_pb2, query_header_pb2
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.executable import _Method, _ExecutionState
+from hiero_sdk_python.channels import _Channel
 import traceback
 
 class TransactionGetReceiptQuery(Query):
@@ -11,6 +14,10 @@ class TransactionGetReceiptQuery(Query):
 
     This class constructs and executes a query to obtain the receipt of a transaction,
     which includes the transaction's status and other pertinent information.
+    
+    This is one of the few queries that does not require a payment transaction.
+    It can be used to check if a transaction has reached consensus and its outcome.
+    
     """
 
     def __init__(self, transaction_id=None):
@@ -27,6 +34,9 @@ class TransactionGetReceiptQuery(Query):
     def _require_not_frozen(self):
         """
         Ensures the query is not frozen before making changes.
+        
+        Raises:
+            ValueError: If the query is frozen and cannot be modified.
         """
         if self._frozen:
             raise ValueError("This query is frozen and cannot be modified.")
@@ -40,6 +50,9 @@ class TransactionGetReceiptQuery(Query):
 
         Returns:
             TransactionGetReceiptQuery: The current instance for method chaining.
+            
+        Raises:
+            ValueError: If the query is frozen and cannot be modified.
         """
         self._require_not_frozen()
         self.transaction_id = transaction_id
@@ -48,6 +61,8 @@ class TransactionGetReceiptQuery(Query):
     def freeze(self):
         """
         Marks the query as frozen, preventing further modification.
+        
+        Once frozen, properties like transaction_id cannot be changed.
 
         Returns:
             TransactionGetReceiptQuery: The current instance for method chaining.
@@ -59,19 +74,26 @@ class TransactionGetReceiptQuery(Query):
         """
         Override the default in the base Query class:
         This particular query does NOT require a payment.
+        
+        Returns:
+            bool: Always False, as this query doesn't require payment.
         """
         return False
 
-    def _make_request(self):
+    def make_request(self):
         """
         Constructs the protobuf request for the transaction receipt query.
+        
+        Builds a TransactionGetReceiptQuery protobuf message with the
+        appropriate header and transaction ID.
 
         Returns:
             Query: The protobuf Query object containing the transaction receipt query.
 
         Raises:
             ValueError: If the transaction ID is not set.
-            Exception: If an error occurs during request construction.
+            AttributeError: If the Query protobuf structure is invalid.
+            Exception: If any other error occurs during request construction.
         """
         try:
             if not self.transaction_id:
@@ -95,34 +117,127 @@ class TransactionGetReceiptQuery(Query):
             traceback.print_exc()
             raise
 
-    def _get_status_from_response(self, response):
+    def get_method(self, channel: _Channel) -> _Method:
         """
-        Extracts the status code from the response header.
+        Returns the appropriate gRPC method for the transaction receipt query.
+        
+        Implements the abstract method from Query to provide the specific
+        gRPC method for getting transaction receipts.
 
         Args:
-            response (Response): The response received from the network.
+            channel (_Channel): The channel containing service stubs
 
         Returns:
-            int: The status code indicating the result of the query.
+            _Method: The method wrapper containing the query function
         """
-        header = response.transactionGetReceipt.header
-        return header.nodeTransactionPrecheckCode
+        return _Method(
+            transaction_func=None,
+            query_func=channel.crypto.getTransactionReceipts
+        )
 
-    def _map_response(self, response):
+    def should_retry(self, response):
         """
-        Maps the response to a TransactionReceipt object.
+        Determines whether the query should be retried based on the response.
+        
+        Implements the abstract method from Query to decide whether to retry
+        the query based on the response status code. First checks the header status,
+        then the receipt status.
 
         Args:
-            response (Response): The response received from the network.
+            response: The response from the network
 
         Returns:
-            TransactionReceipt: The transaction receipt extracted from the response.
+            _ExecutionState: The execution state indicating what to do next
+        """
+        status = response.transactionGetReceipt.header.nodeTransactionPrecheckCode
+        
+        retryable_statuses = {
+            ResponseCode.UNKNOWN,
+            ResponseCode.BUSY,
+            ResponseCode.RECEIPT_NOT_FOUND,
+            ResponseCode.RECORD_NOT_FOUND,
+            ResponseCode.PLATFORM_NOT_ACTIVE
+        }
+        
+        if status == ResponseCode.OK:
+            pass
+        elif status in retryable_statuses or status == ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED:
+            return _ExecutionState.RETRY
+        else:
+            return _ExecutionState.ERROR
+    
+        status = response.transactionGetReceipt.receipt.status
+        
+        if status in retryable_statuses or status == ResponseCode.OK:
+            return _ExecutionState.RETRY
+        else:
+            return _ExecutionState.FINISHED
+        
+    def map_status_error(self, response):
+        """
+        Maps a response status code to an appropriate error object.
+        
+        Implements the abstract method from Executable to create error objects
+        from response status codes. Checks both the header status and receipt status.
+
+        Args:
+            response: The response from the network
+
+        Returns:
+            PrecheckError: An error object representing the error status
+        """
+        status = response.transactionGetReceipt.header.nodeTransactionPrecheckCode
+        retryable_statuses = {
+            ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
+            ResponseCode.BUSY,
+            ResponseCode.UNKNOWN,
+            ResponseCode.OK
+        }
+        
+        if status in retryable_statuses:
+            pass
+        else:
+            return PrecheckError(status)
+        
+        status = response.transactionGetReceipt.receipt.status
+        
+        return PrecheckError(status)
+        
+    def execute(self, client):
+        """
+        Executes the transaction receipt query.
+        
+        Sends the query to the Hedera network and processes the response
+        to return a TransactionReceipt object.
+
+        Args:
+            client (Client): The client instance to use for execution
+
+        Returns:
+            TransactionReceipt: The transaction receipt from the network
 
         Raises:
-            Exception: If the transaction receipt is not found in the response.
+            PrecheckError: If the query fails with a non-retryable error
         """
-        if response.transactionGetReceipt and response.transactionGetReceipt.receipt:
-            receipt_proto = response.transactionGetReceipt.receipt
-            return TransactionReceipt.from_proto(receipt_proto)
-        else:
-            raise Exception("Transaction receipt not found in the response.")
+        try:
+            response = self.inner_execute(client)
+        except PrecheckError as e:
+            if response.transactionGetReceipt is not None:
+                return TransactionReceipt.from_proto(response.transactionGetReceipt.receipt)
+            raise e
+        return TransactionReceipt.from_proto(response.transactionGetReceipt.receipt)
+
+    def get_query_response(self, response):
+        """
+        Extracts the transaction receipt response from the full response.
+        
+        Implements the abstract method from Query to extract the
+        specific transaction receipt response object.
+        
+        Args:
+            response: The full response from the network
+            
+        Returns:
+            The transaction get receipt response object
+        """
+        return response.transactionGetReceipt
