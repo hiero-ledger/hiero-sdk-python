@@ -2,7 +2,11 @@ from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_balance import AccountBalance
-
+from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.response_code import ResponseCode
+import traceback
 
 class CryptoGetAccountBalanceQuery(Query):
     """
@@ -35,7 +39,7 @@ class CryptoGetAccountBalanceQuery(Query):
         self.account_id = account_id
         return self
 
-    def _make_request(self):
+    def make_request(self):
         """
         Constructs the protobuf request for the account balance query.
 
@@ -44,7 +48,8 @@ class CryptoGetAccountBalanceQuery(Query):
 
         Raises:
             ValueError: If the account ID is not set.
-            Exception: If an error occurs during request construction.
+            AttributeError: If the Query protobuf structure is invalid.
+            Exception: If any other error occurs during request construction.
         """
         try:
             if not self.account_id:
@@ -63,38 +68,82 @@ class CryptoGetAccountBalanceQuery(Query):
             return query
         except Exception as e:
             print(f"Exception in _make_request: {e}")
-            import traceback
             traceback.print_exc()
             raise
 
-    def _get_status_from_response(self, response):
+    def get_method(self, channel: _Channel) -> _Method:
         """
-        Extracts the status code from the response header.
+        Returns the appropriate gRPC method for the account balance query.
+        
+        Implements the abstract method from Query to provide the specific
+        gRPC method for getting account balances.
 
         Args:
-            response (Response): The response received from the network.
+            channel (_Channel): The channel containing service stubs
 
         Returns:
-            int: The status code indicating the result of the query.
+            _Method: The method wrapper containing the query function
+        """
+        return _Method(
+            transaction_func=None,
+            query_func=channel.crypto.cryptoGetBalance
+        )
+
+    def map_status_error(self, response):
+        """
+        Maps a response status code to an appropriate error object.
+        
+        Implements the abstract method from Executable to create error objects
+        from response status codes.
+
+        Args:
+            response: The response from the network
+
+        Returns:
+            PrecheckError: An error object representing the error status, or None if status is OK
         """
         header = response.cryptogetAccountBalance.header
-        return header.nodeTransactionPrecheckCode
+        status = header.nodeTransactionPrecheckCode
+        
+        if status == ResponseCode.OK:
+            return None
+        
+        return PrecheckError(status)
 
-    def _map_response(self, response):
+    def execute(self, client):
         """
-        Maps the response to an AccountBalance object.
+        Executes the account balance query.
+        
+        Sends the query to the Hedera network and processes the response
+        to return an AccountBalance object.
 
         Args:
-            response (Response): The response received from the network.
+            client (Client): The client instance to use for execution
 
         Returns:
-            AccountBalance: The account balance extracted from the response.
+            AccountBalance: The account balance from the network
 
         Raises:
-            Exception: If the account balance is not found in the response.
+            PrecheckError: If the query fails with a non-retryable error
         """
-        if response.cryptogetAccountBalance:
-            balance_proto = response.cryptogetAccountBalance
-            return AccountBalance.from_proto(balance_proto)
-        else:
-            raise Exception("Account balance not found in the response.")
+        try:
+            response = self.inner_execute(client)
+        except PrecheckError as e:
+            raise e
+
+        return AccountBalance.from_proto(response.cryptogetAccountBalance)
+
+    def get_query_response(self, response):
+        """
+        Extracts the account balance response from the full response.
+        
+        Implements the abstract method from Query to extract the
+        specific account balance response object.
+        
+        Args:
+            response: The full response from the network
+            
+        Returns:
+            The crypto get account balance response object
+        """
+        return response.cryptogetAccountBalance
