@@ -242,7 +242,7 @@ class Transaction(_Executable):
         response.transaction = self
         response.transaction_id = self.transaction_id
 
-        return response.get_receipt(client)
+        return response
 
     def is_signed_by(self, public_key):
         """
