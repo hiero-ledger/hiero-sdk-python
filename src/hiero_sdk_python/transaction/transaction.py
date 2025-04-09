@@ -30,7 +30,6 @@ class Transaction(_Executable):
         super().__init__()
 
         self.transaction_id = None
-        self.node_account_id = None
         self.transaction_fee = None
         self.transaction_valid_duration = 120 
         self.generate_record = False
