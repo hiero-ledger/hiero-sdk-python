@@ -196,22 +196,6 @@ class Query(_Executable):
         """
         return response
 
-    def inner_execute(self, client):
-        """
-        Executes this query using the provided client.
-        
-        Performs setup and then calls the base _execute method to handle
-        the actual execution with retry logic.
-        
-        Args:
-            client: The client instance to use for execution
-            
-        Returns:
-            The response from the network
-        """
-        self._before_execute(client)
-        return self._execute(client)
-
     def should_retry(self, response):
         """
         Determines whether the query should be retried based on the response.

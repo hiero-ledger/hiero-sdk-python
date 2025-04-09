@@ -220,7 +220,8 @@ class TransactionGetReceiptQuery(Query):
             PrecheckError: If the query fails with a non-retryable error
         """
         try:
-            response = self.inner_execute(client)
+            self._before_execute(client)
+            response = self._execute(client)
         except PrecheckError as e:
             raise e
 
