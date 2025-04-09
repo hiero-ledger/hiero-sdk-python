@@ -93,55 +93,6 @@ class Client:
         else:
             raise ValueError("No nodes available in the network configuration.")
 
-    def get_transaction_receipt(self, transaction_id, max_attempts=10, sleep_seconds=2):
-        """
-        Repeatedly queries for a transaction receipt until SUCCESS or certain retryable statuses.
-        """
-        for attempt in range(max_attempts):
-            receipt_query = TransactionGetReceiptQuery()
-            receipt_query.set_transaction_id(transaction_id)
-            receipt = receipt_query.execute(self)
-            status = receipt.status
-
-            if status == ResponseCode.SUCCESS:
-                return receipt
-            elif status in (
-                ResponseCode.UNKNOWN,
-                ResponseCode.BUSY,
-                ResponseCode.RECEIPT_NOT_FOUND,
-                ResponseCode.RECORD_NOT_FOUND,
-                ResponseCode.PLATFORM_NOT_ACTIVE
-            ):
-                time.sleep(sleep_seconds)
-                continue
-            else:
-                status_message = ResponseCode.get_name(status)
-                raise Exception(f"Error retrieving transaction receipt: {status_message}")
-        raise Exception("Exceeded maximum attempts to fetch transaction receipt.")
-
-    def send_query(self, query, node_account_id, timeout=60):
-        """
-        Sends a query to the specified node and returns the response.
-        """
-        self._switch_node(node_account_id)
-
-        try:
-            request = query._make_request()
-
-            if hasattr(request, 'cryptogetAccountBalance'):
-                response = self.crypto_stub.cryptoGetBalance(request, timeout=timeout)
-            elif hasattr(request, 'transactionGetReceipt'):
-                response = self.crypto_stub.getTransactionReceipts(request, timeout=timeout)
-            elif hasattr(request, 'consensusGetTopicInfo'):
-                response = self.topic_stub.getTopicInfo(request, timeout=timeout)
-            else:
-                raise Exception("Unsupported query type.")
-            return response
-
-        except grpc.RpcError as e:
-            print(f"gRPC error during query execution: {e}")
-            return None
-
     def _switch_node(self, node_account_id):
         """
         Switches to the specified node in the network and updates the gRPC stubs.
