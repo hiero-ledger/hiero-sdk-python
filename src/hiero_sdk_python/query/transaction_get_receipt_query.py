@@ -222,9 +222,8 @@ class TransactionGetReceiptQuery(Query):
         try:
             response = self.inner_execute(client)
         except PrecheckError as e:
-            if response.transactionGetReceipt is not None:
-                return TransactionReceipt.from_proto(response.transactionGetReceipt.receipt)
             raise e
+
         return TransactionReceipt.from_proto(response.transactionGetReceipt.receipt)
 
     def get_query_response(self, response):
