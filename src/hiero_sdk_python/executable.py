@@ -73,6 +73,7 @@ class _Executable(ABC):
         self._max_backoff = None
         self._min_backoff = None
         self._grpc_deadline = None
+        self.node_account_id = None
 
     @property
     def max_backoff(self):
@@ -241,6 +242,9 @@ class _Executable(ABC):
             # Create a channel wrapper from the client's channel
             channel = _Channel(client.channel)
             
+            # Set the node account id to the client's node account id
+            self.node_account_id = client.node_account_id
+
             # Get the appropriate gRPC method to call
             method = self.get_method(channel)
 
