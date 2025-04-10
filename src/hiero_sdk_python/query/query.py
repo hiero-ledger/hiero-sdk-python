@@ -20,8 +20,8 @@ class Query(_Executable):
     
     Required implementations for subclasses:
     1. get_query_response(response) - Extract the specific response from the query
-    2. make_request() - Build the query-specific protobuf request
-    3. get_method(channel) - Return the appropriate gRPC method to call
+    2. _make_request() - Build the query-specific protobuf request
+    3. _get_method(channel) - Return the appropriate gRPC method to call
     """
 
     def __init__(self):
@@ -150,7 +150,7 @@ class Query(_Executable):
 
         return tx.to_proto()
     
-    def get_method(self, channel):
+    def _get_method(self, channel):
         """
         Returns the appropriate gRPC method for the query.
         
@@ -166,9 +166,9 @@ class Query(_Executable):
         Raises:
             NotImplementedError: Always, since subclasses must implement this method
         """
-        raise NotImplementedError("get_method must be implemented by subclasses.")
+        raise NotImplementedError("_get_method must be implemented by subclasses.")
 
-    def make_request(self):
+    def _make_request(self):
         """
         Builds the final query request to be sent to the network.
         
@@ -180,9 +180,9 @@ class Query(_Executable):
         Raises:
             NotImplementedError: Always, since subclasses must implement this method
         """
-        raise NotImplementedError("make_request must be implemented by subclasses.")
+        raise NotImplementedError("_make_request must be implemented by subclasses.")
 
-    def map_response(self, response, node_id, proto_request):
+    def _map_response(self, response, node_id, proto_request):
         """
         Maps the network response to the appropriate response object.
         
@@ -196,7 +196,7 @@ class Query(_Executable):
         """
         return response
 
-    def should_retry(self, response):
+    def _should_retry(self, response):
         """
         Determines whether the query should be retried based on the response.
         
@@ -225,7 +225,7 @@ class Query(_Executable):
         else:
             return _ExecutionState.ERROR
 
-    def map_status_error(self, response):
+    def _map_status_error(self, response):
         """
         Maps a response status code to an appropriate error object.
         
