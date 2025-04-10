@@ -23,7 +23,7 @@ class _Method:
     This class serves as a container for both transaction and query functions,
     allowing the execution system to handle both types uniformly.
     Each transaction or query type will provide its specific implementation
-    via the get_method() function.
+    via the _get_method() function.
     """
 
     def __init__(
@@ -65,95 +65,18 @@ class _Executable(ABC):
     validation (max_backoff, min_backoff, grpc_deadline) and includes
     the execution flow with retry logic.
     
-    Subclasses like Transaction will extend this and implement the abstract methods
+    Subclasses like Transaction and Query will extend this and implement the abstract methods
     to define specific behavior for different types of operations.
     """
 
     def __init__(self):
-        self._max_backoff = None
-        self._min_backoff = None
-        self._grpc_deadline = None
+        self._max_backoff = DEFAULT_MAX_BACKOFF
+        self._min_backoff = DEFAULT_MIN_BACKOFF
+        self._grpc_deadline = DEFAULT_GRPC_DEADLINE
         self.node_account_id = None
 
-    @property
-    def max_backoff(self):
-        """Get the maximum backoff time, defaulting to DEFAULT_MAX_BACKOFF if not set."""
-        if self._max_backoff is None:
-            return DEFAULT_MAX_BACKOFF
-        return self._max_backoff
-
-    @max_backoff.setter
-    def max_backoff(self, max_backoff):
-        """
-        Set the maximum backoff time.
-
-        Args:
-            max_backoff (int): Maximum backoff time in milliseconds
-
-        Raises:
-            ValueError: If max_backoff is negative or less than min_backoff
-        """
-        if max_backoff is None:
-            self._max_backoff = DEFAULT_MAX_BACKOFF
-        elif max_backoff < 0:
-            raise ValueError("max_backoff must be greater than 0")
-        elif max_backoff < self._min_backoff:
-            raise ValueError("max_backoff must be greater than min_backoff")
-        self._max_backoff = max_backoff
-        return self
-
-    @property
-    def min_backoff(self):
-        """Get the minimum backoff time, defaulting to DEFAULT_MIN_BACKOFF if not set."""
-        if self._min_backoff is None:
-            return DEFAULT_MIN_BACKOFF
-        return self._min_backoff
-
-    @min_backoff.setter
-    def min_backoff(self, min_backoff):
-        """
-        Set the minimum backoff time.
-
-        Args:
-            min_backoff (int): Minimum backoff time in milliseconds
-
-        Raises:
-            ValueError: If min_backoff is negative or greater than max_backoff
-        """
-        if min_backoff is None:
-            self._min_backoff = DEFAULT_MIN_BACKOFF
-        elif min_backoff < 0:
-            raise ValueError("min_backoff must be greater than 0")
-        elif min_backoff > self._max_backoff:
-            raise ValueError("min_backoff must be less than max_backoff")
-        self._min_backoff = min_backoff
-        return self
-
-    @property
-    def grpc_deadline(self):
-        """Get the gRPC deadline time."""
-        return self._grpc_deadline
-
-    @grpc_deadline.setter
-    def grpc_deadline(self, grpc_deadline):
-        """
-        Set the gRPC deadline time.
-
-        Args:
-            grpc_deadline (int): Deadline time in milliseconds
-
-        Raises:
-            ValueError: If grpc_deadline is negative
-        """
-        if grpc_deadline is None:
-            self._grpc_deadline = DEFAULT_GRPC_DEADLINE
-        elif grpc_deadline < 0:
-            raise ValueError("grpc_deadline must be greater than 0")
-        self._grpc_deadline = grpc_deadline
-        return self
-
     @abstractmethod
-    def should_retry(self, response) -> _ExecutionState:
+    def _should_retry(self, response) -> _ExecutionState:
         """
         Determine whether the operation should be retried based on the response.
 
@@ -163,10 +86,10 @@ class _Executable(ABC):
         Returns:
             _ExecutionState: The execution state indicating what to do next
         """
-        raise NotImplementedError("should_retry must be implemented by subclasses")
+        raise NotImplementedError("_should_retry must be implemented by subclasses")
 
     @abstractmethod
-    def map_status_error(self, response):
+    def _map_status_error(self, response):
         """
         Maps a response status code to an appropriate error object.
     
@@ -176,20 +99,20 @@ class _Executable(ABC):
         Returns:
             Exception: An error object representing the error status
         """
-        raise NotImplementedError("map_status_error must be implemented by subclasses")
+        raise NotImplementedError("_map_status_error must be implemented by subclasses")
 
     @abstractmethod
-    def make_request(self):
+    def _make_request(self):
         """
         Build the request object to send to the network.
 
         Returns:
             The request protobuf object
         """
-        raise NotImplementedError("make_request must be implemented by subclasses")
+        raise NotImplementedError("_make_request must be implemented by subclasses")
 
     @abstractmethod
-    def get_method(self, channel: _Channel) -> _Method:
+    def _get_method(self, channel: _Channel) -> _Method:
         """
         Get the appropriate gRPC method to call for this operation.
 
@@ -199,10 +122,10 @@ class _Executable(ABC):
         Returns:
             _Method: The method wrapper containing the appropriate callable
         """
-        raise NotImplementedError("get_method must be implemented by subclasses")
+        raise NotImplementedError("_get_method must be implemented by subclasses")
 
     @abstractmethod
-    def map_response(self, response, node_id, proto_request):
+    def _map_response(self, response, node_id, proto_request):
         """
         Map the network response to the appropriate response object.
 
@@ -214,29 +137,31 @@ class _Executable(ABC):
         Returns:
             The appropriate response object for the operation
         """
-        raise NotImplementedError("map_response must be implemented by subclasses")
+        raise NotImplementedError("_map_response must be implemented by subclasses")
 
     def _execute(self, client: "Client"):
         """
-        Execute a transaction with retry logic.
+        Execute a transaction or query with retry logic.
 
         Args:
             client (Client): The client instance to use for execution
 
         Returns:
-            TransactionResponse or appropriate response based on transaction type
+            The response from executing the operation:
+                - TransactionResponse: For transaction operations
+                - Response: For query operations
 
         Raises:
             Exception: If execution fails with a non-retryable error
         """
         # Determine maximum number of attempts from client or executable
         max_attempts = client.max_attempts
-        current_backoff = self.min_backoff
+        current_backoff = self._min_backoff
         err_persistant = None
 
         for attempt in range(max_attempts):
             # Exponential backoff for retries
-            if attempt > 0 and current_backoff < self.max_backoff:
+            if attempt > 0 and current_backoff < self._max_backoff:
                 current_backoff *= 2
 
             # Create a channel wrapper from the client's channel
@@ -246,29 +171,27 @@ class _Executable(ABC):
             self.node_account_id = client.node_account_id
 
             # Get the appropriate gRPC method to call
-            method = self.get_method(channel)
+            method = self._get_method(channel)
 
-            # Build the request using the executable's make_request method
-            proto_request = self.make_request()
+            # Build the request using the executable's _make_request method
+            proto_request = self._make_request()
 
-            # Call the appropriate method
-            # NOTE: Queries do not use these methods currently, only transactions are supported
             try:
                 # Execute the transaction method with the protobuf request
                 response = _execute_method(method, proto_request)
                 
                 # Map the response to an error
-                status_error = self.map_status_error(response)
+                status_error = self._map_status_error(response)
                 
                 # Determine if we should retry based on the response
-                execution_state = self.should_retry(response)
+                execution_state = self._should_retry(response)
                 
                 # Handle the execution state
                 match execution_state:
                     case _ExecutionState.RETRY:
                         # If we should retry, wait for the backoff period and try again
                         err_persistant = status_error
-                        _delay_for_attempt(attempt, current_backoff)
+                        _delay_for_attempt(current_backoff)
                         continue
                     case _ExecutionState.EXPIRED:
                         raise status_error
@@ -276,7 +199,7 @@ class _Executable(ABC):
                         raise status_error
                     case _ExecutionState.FINISHED:
                         # If the transaction completed successfully, map the response and return it
-                        return self.map_response(response, client.node_account_id, proto_request)
+                        return self._map_response(response, client.node_account_id, proto_request)
             except grpc.RpcError as e:
                 # Save the error
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
@@ -290,7 +213,7 @@ class _Executable(ABC):
         raise MaxAttemptsError("Exceeded maximum attempts for request", client.node_account_id, err_persistant)
 
 
-def _delay_for_attempt(attempt: int, current_backoff: int):
+def _delay_for_attempt(current_backoff: int):
     """
     Delay for the specified backoff period before retrying.
 
