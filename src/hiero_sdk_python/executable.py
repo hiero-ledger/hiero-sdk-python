@@ -278,16 +278,14 @@ class _Executable(ABC):
                         # If the transaction completed successfully, map the response and return it
                         return self.map_response(response, client.node_account_id, proto_request)
             except grpc.RpcError as e:
-                err_message = f"Status: {e.code()}, Details: {e.details()}"
-                if _executable_default_retry(e):
-                    err_persistant = err_message
-                    # Switch to a different node for the next attempt
-                    node_account_ids = client.get_node_account_ids()
-                    node_index = (attempt + 1) % len(node_account_ids)
-                    current_node_account_id = node_account_ids[node_index]
-                    client._switch_node(current_node_account_id)
-                    continue
-                raise Exception(err_message)
+                # Save the error
+                err_persistant = f"Status: {e.code()}, Details: {e.details()}"
+                # Switch to a different node for the next attempt
+                node_account_ids = client.get_node_account_ids()
+                node_index = (attempt + 1) % len(node_account_ids)
+                current_node_account_id = node_account_ids[node_index]
+                client._switch_node(current_node_account_id)
+                continue
         
         raise MaxAttemptsError("Exceeded maximum attempts for request", client.node_account_id, err_persistant)
 
@@ -301,12 +299,6 @@ def _delay_for_attempt(attempt: int, current_backoff: int):
         current_backoff (int): The current backoff period in milliseconds
     """
     time.sleep(current_backoff * 0.001)
-
-def _executable_default_retry(error):
-    if error.code() == grpc.StatusCode.UNAVAILABLE or error.code() == grpc.StatusCode.RESOURCE_EXHAUSTED:
-        return True
-    
-    return False
 
 def _execute_method(method, proto_request):
     """
