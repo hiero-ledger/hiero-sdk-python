@@ -67,7 +67,7 @@ class TopicInfoQuery(Query):
         self._frozen = True
         return self
 
-    def make_request(self):
+    def _make_request(self):
         """
         Constructs the protobuf request for the query.
         
@@ -101,7 +101,7 @@ class TopicInfoQuery(Query):
             traceback.print_exc()
             raise
 
-    def get_method(self, channel: _Channel) -> _Method:
+    def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the topic info query.
         
@@ -119,7 +119,7 @@ class TopicInfoQuery(Query):
             query_func=channel.topic.getTopicInfo
         )
 
-    def should_retry(self, response):
+    def _should_retry(self, response):
         """
         Determines whether the query should be retried based on the response.
         

@@ -63,7 +63,7 @@ class TopicMessageSubmitTransaction(Transaction):
         )
         return transaction_body
 
-    def get_method(self, channel: _Channel) -> _Method:
+    def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
             transaction_func=channel.topic.submitMessage,
             query_func=None

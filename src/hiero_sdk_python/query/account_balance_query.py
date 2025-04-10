@@ -39,7 +39,7 @@ class CryptoGetAccountBalanceQuery(Query):
         self.account_id = account_id
         return self
 
-    def make_request(self):
+    def _make_request(self):
         """
         Constructs the protobuf request for the account balance query.
 
@@ -71,7 +71,7 @@ class CryptoGetAccountBalanceQuery(Query):
             traceback.print_exc()
             raise
 
-    def get_method(self, channel: _Channel) -> _Method:
+    def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the account balance query.
         
@@ -89,7 +89,7 @@ class CryptoGetAccountBalanceQuery(Query):
             query_func=channel.crypto.cryptoGetBalance
         )
 
-    def map_status_error(self, response):
+    def _map_status_error(self, response):
         """
         Maps a response status code to an appropriate error object.
         
