@@ -80,7 +80,7 @@ class TransactionGetReceiptQuery(Query):
         """
         return False
 
-    def make_request(self):
+    def _make_request(self):
         """
         Constructs the protobuf request for the transaction receipt query.
         
@@ -117,7 +117,7 @@ class TransactionGetReceiptQuery(Query):
             traceback.print_exc()
             raise
 
-    def get_method(self, channel: _Channel) -> _Method:
+    def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the transaction receipt query.
         
@@ -135,7 +135,7 @@ class TransactionGetReceiptQuery(Query):
             query_func=channel.crypto.getTransactionReceipts
         )
 
-    def should_retry(self, response):
+    def _should_retry(self, response):
         """
         Determines whether the query should be retried based on the response.
         
@@ -173,7 +173,7 @@ class TransactionGetReceiptQuery(Query):
         else:
             return _ExecutionState.FINISHED
         
-    def map_status_error(self, response):
+    def _map_status_error(self, response):
         """
         Maps a response status code to an appropriate error object.
         
