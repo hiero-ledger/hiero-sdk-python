@@ -93,10 +93,7 @@ def create_new_account(client, initial_balance=100000000):
     transaction.sign(client.operator_private_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
-        
+        receipt = transaction.execute(client)
         new_account_id = receipt.accountId
         if new_account_id is not None:
             print(f"Account creation successful. New Account ID: {new_account_id}")
@@ -151,9 +148,7 @@ def create_fungible_token(client, operator_id, admin_key, supply_key, freeze_key
     transaction.sign(admin_key) # Required to sign with admin key since it exists
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
     except Exception as e:
         print(f"Fungible Token creation failed: {str(e)}")
         print(traceback.format_exc())
@@ -201,9 +196,7 @@ def create_nft_token(client, operator_id, admin_key, supply_key, freeze_key):
 
         
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
     except Exception as e:
         print(f"Non-Fungible Token creation failed: {str(e)}")
         print(traceback.format_exc())
@@ -228,9 +221,7 @@ def associate_token(client, recipient_id, recipient_private_key, token_ids):
     transaction.sign(recipient_private_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode.get_name(receipt.status)
             raise Exception(f"Token association failed with status: {status_message}")
@@ -250,9 +241,7 @@ def dissociate_token(client, recipient_id, recipient_private_key, token_id):
     transaction.sign(recipient_private_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode.get_name(receipt.status)
             raise Exception(f"Token dissociation failed with status: {status_message}")
@@ -273,9 +262,7 @@ def transfer_token(client, source_id, source_private_key, recipient_id, token_id
     transaction.sign(source_private_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode.get_name(receipt.status)
             raise Exception(f"Token transfer failed with status: {status_message}")
@@ -294,9 +281,7 @@ def delete_token(client, token_id, admin_key):
     transaction.sign(admin_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode.get_name(receipt.status)
             raise Exception(f"Token deletion failed with status: {status_message}")
@@ -314,9 +299,7 @@ def freeze_token(client, token_id, account_id, freeze_key):
     transaction.sign(freeze_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode.get_name(receipt.status)
             raise Exception(f"Token freeze failed with status: {status_message}")
@@ -334,9 +317,7 @@ def mint_fungible_token(client, token_id, supply_key, amount=2000):
     transaction.sign(supply_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode.get_name(receipt.status)
             raise Exception(f"Token minting failed with status: {status_message}")
@@ -354,9 +335,7 @@ def mint_nft_token(client, token_id, supply_key, metadata=[b"Token A"]):
     transaction.sign(supply_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode.get_name(receipt.status)
             raise Exception(f"Token minting failed with status: {status_message}")
@@ -377,9 +356,7 @@ def create_topic(client):
     transaction.sign(key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
     except Exception as e:
         print(f"Topic creation failed: {str(e)}")
         print(traceback.format_exc())
@@ -405,9 +382,7 @@ def submit_message(client, topic_id):
     transaction.sign(client.operator_private_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
     except Exception as e:
         print(f"Message submission failed: {str(e)}")
         print(traceback.format_exc())
@@ -431,9 +406,7 @@ def update_topic(client, topic_id):
     transaction.sign(key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
     except Exception as e:
         print(f"Topic update failed: {str(e)}")
         print(traceback.format_exc())
@@ -453,9 +426,7 @@ def delete_topic(client, topic_id):
     transaction.sign(client.operator_private_key)
 
     try:
-        response = transaction.execute(client)
-        
-        receipt = response.get_receipt(client)
+        receipt = transaction.execute(client)
     except Exception as e:
         print(f"Topic deletion failed: {str(e)}")
         print(traceback.format_exc())
