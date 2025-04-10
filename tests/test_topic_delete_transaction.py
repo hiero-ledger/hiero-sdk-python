@@ -1,23 +1,29 @@
+"""Tests for the TopicDeleteTransaction functionality."""
+
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import patch
+
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.consensus.topic_id import TopicId
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    response_header_pb2, 
+    response_pb2,
+    transaction_get_receipt_pb2,
+    transaction_receipt_pb2,
+    transaction_response_pb2
+)
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.hapi.services import transaction_receipt_pb2
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.hapi.services import timestamp_pb2 as hapi_timestamp_pb2
+
+from tests.mock_test import mock_hedera_servers
 
 @pytest.mark.usefixtures("mock_account_ids")
-def test_build_topic_delete_transaction_body(mock_account_ids):
-    """
-    Test building a TopicDeleteTransaction body with a valid topic ID.
-    """
+def test_build_topic_delete_transaction_body(mock_account_ids, topic_id):
+    """Test building a TopicDeleteTransaction body with a valid topic ID."""
     _, _, node_account_id, _, _ = mock_account_ids
-    topic_id = TopicId(0,0,1234)
     tx = TopicDeleteTransaction(topic_id=topic_id)
 
     tx.operator_account_id = AccountId(0, 0, 2)
@@ -26,10 +32,9 @@ def test_build_topic_delete_transaction_body(mock_account_ids):
     transaction_body = tx.build_transaction_body()
     assert transaction_body.consensusDeleteTopic.topicID.topicNum == 1234
 
+
 def test_missing_topic_id_in_delete(mock_account_ids):
-    """
-    Test that building fails if no topic ID is provided.
-    """
+    """Test that building fails if no topic ID is provided."""
     _, _, node_account_id, _, _ = mock_account_ids
     tx = TopicDeleteTransaction(topic_id=None)
     tx.operator_account_id = AccountId(0, 0, 2)
@@ -38,16 +43,13 @@ def test_missing_topic_id_in_delete(mock_account_ids):
     with pytest.raises(ValueError, match="Missing required fields"):
         tx.build_transaction_body()
 
-def test_sign_topic_delete_transaction(mock_account_ids):
-    """
-    Test signing the TopicDeleteTransaction with a private key.
-    """
+
+def test_sign_topic_delete_transaction(mock_account_ids, topic_id, private_key):
+    """Test signing the TopicDeleteTransaction with a private key."""
     _, _, node_account_id, _, _ = mock_account_ids
-    tx = TopicDeleteTransaction(topic_id=TopicId(0,0,9876))
+    tx = TopicDeleteTransaction(topic_id=topic_id)
     tx.operator_account_id = AccountId(0, 0, 2)
     tx.node_account_id = node_account_id
-
-    private_key = PrivateKey.generate()
 
     body_bytes = tx.build_transaction_body().SerializeToString()
     tx.transaction_body_bytes = body_bytes
@@ -55,49 +57,115 @@ def test_sign_topic_delete_transaction(mock_account_ids):
     tx.sign(private_key)
     assert len(tx.signature_map.sigPair) == 1
 
-def test_execute_topic_delete_transaction(mock_account_ids):
-    """
-    Test executing the TopicDeleteTransaction with a mock Client.
-    """
-    _, _, node_account_id, _, _ = mock_account_ids
-    topic_id = TopicId(0,0,9876)
-    tx = TopicDeleteTransaction(topic_id=topic_id)
-    tx.operator_account_id = AccountId(0, 0, 2)
 
-    client = MagicMock(spec=Client)
-    client.operator_private_key = PrivateKey.generate()
-    client.operator_account_id = AccountId(0, 0, 2)
-    client.node_account_id = node_account_id
-    client.max_attempts = 10
-
-    real_tx_id = TransactionId(
-        account_id=AccountId(0, 0, 2),
-        valid_start=hapi_timestamp_pb2.Timestamp(seconds=20000, nanos=3333)
+def test_execute_topic_delete_transaction(topic_id):
+    """Test executing the TopicDeleteTransaction successfully with mock server."""
+    # Create success response for the transaction submission
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
     )
-    client.generate_transaction_id.return_value = real_tx_id
-
-    client.topic_stub = MagicMock()
-    mock_response = MagicMock()
-    mock_response.nodeTransactionPrecheckCode = ResponseCode.OK
-    client.topic_stub.deleteTopic.return_value = mock_response
-
-    proto_receipt = transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.OK)
-    real_receipt = TransactionReceipt.from_proto(proto_receipt)
-    client.get_transaction_receipt.return_value = real_receipt
-
-    client.channel = MagicMock()
     
-    exec_response = MagicMock()
-    exec_response.transaction_id = real_tx_id
-    exec_response.get_receipt.return_value = real_receipt
+    # Create receipt response with SUCCESS status
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
     
-    tx._execute = MagicMock(return_value=exec_response)
-
-    receipt = tx.execute(client)
-
-    tx._execute.assert_called_once_with(client)
+    response_sequences = [
+        [tx_response, receipt_response],
+    ]
     
-    assert receipt is not None
-    assert receipt.status == ResponseCode.OK
-    assert receipt is real_receipt
-    print("Test passed: TopicDeleteTransaction executed successfully.")
+    with mock_hedera_servers(response_sequences) as client:
+        tx = (
+            TopicDeleteTransaction()
+            .set_topic_id(topic_id)
+        )
+        
+        try:
+            transaction = tx.execute(client)
+            receipt = transaction.get_receipt(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+        
+        # Verify the receipt contains the expected values
+        assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_topic_delete_transaction_retry_on_busy(topic_id):
+    """Test that TopicDeleteTransaction retries on BUSY response."""
+    # First response is BUSY, second is OK
+    busy_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.BUSY
+    )
+    
+    ok_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+    
+    response_sequences = [
+        [busy_response, ok_response, receipt_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
+        client.max_attempts = 3
+        
+        tx = (
+            TopicDeleteTransaction()
+            .set_topic_id(topic_id)
+        )
+        
+        try:
+            transaction = tx.execute(client)
+            receipt = transaction.get_receipt(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+        
+        # Verify transaction succeeded after retry
+        assert receipt.status == ResponseCode.SUCCESS
+        
+        # Verify we slept once for the retry
+        assert mock_sleep.call_count == 1, "Should have retried once"
+        
+        # Verify we didn't switch nodes (BUSY is retriable without node switch)
+        assert client.node_account_id == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
+
+
+def test_topic_delete_transaction_fails_on_nonretriable_error(topic_id):
+    """Test that TopicDeleteTransaction fails on non-retriable error."""
+    # Create a response with a non-retriable error
+    error_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.UNAUTHORIZED
+    )
+    
+    response_sequences = [
+        [error_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+        tx = (
+            TopicDeleteTransaction()
+            .set_topic_id(topic_id)
+        )
+        
+        with pytest.raises(PrecheckError) as exc_info:
+            tx.execute(client)
+        
+        # Verify the error contains the expected status
+        assert str(ResponseCode.UNAUTHORIZED) in str(exc_info.value)
