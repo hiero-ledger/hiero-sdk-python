@@ -19,7 +19,7 @@ class Transaction(_Executable):
 
     Required implementations for subclasses:
     1. build_transaction_body() - Build the transaction-specific protobuf body
-    2. get_method(channel) - Return the appropriate gRPC method to call
+    2. _get_method(channel) - Return the appropriate gRPC method to call
     """
 
     def __init__(self):
@@ -39,9 +39,9 @@ class Transaction(_Executable):
         self._default_transaction_fee = 2_000_000
         self.operator_account_id = None  
 
-    def make_request(self):
+    def _make_request(self):
         """
-        Implements the Executable.make_request method to build the transaction request.
+        Implements the Executable._make_request method to build the transaction request.
 
         This method simply converts the transaction to its protobuf representation
         using the to_proto method.
@@ -51,9 +51,9 @@ class Transaction(_Executable):
         """
         return self.to_proto()
 
-    def map_response(self, response, node_id, proto_request):
+    def _map_response(self, response, node_id, proto_request):
         """
-        Implements the Executable.map_response method to create a TransactionResponse.
+        Implements the Executable._map_response method to create a TransactionResponse.
 
         This method creates a TransactionResponse object with information about the
         executed transaction, including the transaction ID, node ID, and transaction hash.
@@ -82,9 +82,9 @@ class Transaction(_Executable):
 
         return transaction_response
 
-    def should_retry(self, response):
+    def _should_retry(self, response):
         """
-        Implements the Executable.should_retry method to determine if a transaction should be retried.
+        Implements the Executable._should_retry method to determine if a transaction should be retried.
 
         This method examines the response status code to determine if the transaction
         should be retried, is finished, expired, or has an error.
@@ -118,7 +118,7 @@ class Transaction(_Executable):
 
         return _ExecutionState.ERROR
 
-    def map_status_error(self, response):
+    def _map_status_error(self, response):
         """
         Maps a transaction response to a corresponding PrecheckError exception.
 
@@ -221,7 +221,7 @@ class Transaction(_Executable):
             client (Client): The client instance to use for execution.
 
         Returns:
-            TransactionReceipt or appropriate response based on transaction type.
+            TransactionReceipt: The receipt of the transaction.
 
         Raises:
             Exception: If execution fails.
@@ -242,7 +242,7 @@ class Transaction(_Executable):
         response.transaction = self
         response.transaction_id = self.transaction_id
 
-        return response
+        return response.get_receipt(client)
 
     def is_signed_by(self, public_key):
         """
