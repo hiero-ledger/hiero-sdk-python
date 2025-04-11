@@ -68,7 +68,7 @@ from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalance
 # Response handling
 from hiero_sdk_python.response_code import ResponseCode
 
-load_dotenv()
+load_dotenv(override=True)
 
 def load_operator_credentials():
     """Load operator credentials from environment variables."""

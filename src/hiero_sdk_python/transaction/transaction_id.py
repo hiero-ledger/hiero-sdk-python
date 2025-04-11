@@ -15,7 +15,7 @@ class TransactionId:
         valid_start (Timestamp): The valid start time of the transaction.
     """
 
-    def __init__(self, account_id: AccountId, valid_start: timestamp_pb2.Timestamp):
+    def __init__(self, account_id: AccountId = None, valid_start: timestamp_pb2.Timestamp = None):
         """
         Initializes a TransactionId with the given account ID and valid start timestamp.
 
@@ -85,8 +85,10 @@ class TransactionId:
             TransactionID: The protobuf TransactionID object.
         """
         transaction_id_proto = basic_types_pb2.TransactionID()
-        transaction_id_proto.accountID.CopyFrom(self.account_id.to_proto())
-        transaction_id_proto.transactionValidStart.CopyFrom(self.valid_start)
+        if self.account_id is not None:
+            transaction_id_proto.accountID.CopyFrom(self.account_id.to_proto())
+        if self.valid_start is not None:
+            transaction_id_proto.transactionValidStart.CopyFrom(self.valid_start)
         return transaction_id_proto
 
     @classmethod
