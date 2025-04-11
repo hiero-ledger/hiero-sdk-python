@@ -1,4 +1,4 @@
-from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import transaction_get_receipt_pb2, query_pb2, query_header_pb2
 from hiero_sdk_python.response_code import ResponseCode
@@ -194,14 +194,12 @@ class TransactionGetReceiptQuery(Query):
             ResponseCode.OK
         }
         
-        if status in retryable_statuses:
-            pass
-        else:
+        if status not in retryable_statuses:
             return PrecheckError(status)
         
         status = response.transactionGetReceipt.receipt.status
         
-        return PrecheckError(status)
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt.from_proto(response.transactionGetReceipt.receipt))
         
     def execute(self, client):
         """
@@ -219,11 +217,8 @@ class TransactionGetReceiptQuery(Query):
         Raises:
             PrecheckError: If the query fails with a non-retryable error
         """
-        try:
-            self._before_execute(client)
-            response = self._execute(client)
-        except PrecheckError as e:
-            raise e
+        self._before_execute(client)
+        response = self._execute(client)
 
         return TransactionReceipt.from_proto(response.transactionGetReceipt.receipt)
 
