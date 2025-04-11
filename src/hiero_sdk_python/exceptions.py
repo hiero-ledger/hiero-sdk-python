@@ -59,3 +59,33 @@ class MaxAttemptsError(Exception):
     
     def __repr__(self):
         return f"MaxAttemptsError(message='{self.message}', node_id='{self.node_id}')"
+    
+class ReceiptStatusError(Exception):
+    """
+    Exception raised when a transaction receipt contains an error status.
+    
+    Attributes:
+        status (ResponseCode): The error status code from the receipt
+        transaction_id (TransactionId): The ID of the transaction that failed
+        transaction_receipt (TransactionReceipt): The receipt containing the error status
+        message (str): The error message describing the failure
+    """
+    
+    def __init__(self, status, transaction_id, transaction_receipt, message=None):
+        self.status = status
+        self.transaction_id = transaction_id
+        self.transaction_receipt = transaction_receipt
+        
+        # Build a default message if none provided
+        if message is None:
+            status_name = ResponseCode.get_name(status)
+            message = f"Receipt for transaction {transaction_id} contained error status: {status_name} ({status})"
+            
+        self.message = message
+        super().__init__(self.message)
+    
+    def __str__(self):
+        return self.message
+    
+    def __repr__(self):
+        return f"ReceiptStatusError(status={self.status}, transaction_id={self.transaction_id})"
