@@ -120,15 +120,13 @@ def test_account_create_transaction():
             .set_initial_balance(100000000)  # 1 HBAR
         )
         
-        # Execute the transaction
-        response = transaction.execute(client)
-        receipt = response.get_receipt(client)
+        # Execute the transaction and get receipt
+        receipt = transaction.execute(client)
         
         # Verify the results
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
         assert receipt.accountId.num == 1234, "Should have created account with ID 1234"
-        
-        
+
 @pytest.fixture
 def mock_account_ids():
     """Fixture to provide mock account IDs for testing."""

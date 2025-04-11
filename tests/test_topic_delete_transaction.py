@@ -5,11 +5,8 @@ from unittest.mock import patch
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
-from hiero_sdk_python.consensus.topic_id import TopicId
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hapi.services import (
-    basic_types_pb2,
     response_header_pb2, 
     response_pb2,
     transaction_get_receipt_pb2,
@@ -88,8 +85,7 @@ def test_execute_topic_delete_transaction(topic_id):
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
         
@@ -132,8 +128,7 @@ def test_topic_delete_transaction_retry_on_busy(topic_id):
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
         

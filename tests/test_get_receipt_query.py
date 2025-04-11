@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -14,7 +14,6 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 from tests.mock_test import mock_hedera_servers
 
@@ -169,3 +168,32 @@ def test_receipt_query_fails_on_nonretriable_error(transaction_id):
         
         # Verify the error contains the expected status
         assert str(ResponseCode.INVALID_TRANSACTION_ID) in str(exc_info.value)
+
+def test_receipt_query_receipt_status_error(transaction_id):
+    """Test that receipt query fails on receipt status error."""
+    # Create a response with a receipt status error
+    error_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.BUSY
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.BUSY
+            )
+        )
+    )
+    
+    response_sequences = [[error_response]]
+    
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+        client.max_attempts = 1
+        query = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+        )
+        
+        # Create the query and verify it fails with the expected error
+        with pytest.raises(MaxAttemptsError) as exc_info:
+            query.execute(client)
+        
+        assert str(f"Receipt for transaction {transaction_id} contained error status: BUSY ({ResponseCode.BUSY})") in str(exc_info.value)
