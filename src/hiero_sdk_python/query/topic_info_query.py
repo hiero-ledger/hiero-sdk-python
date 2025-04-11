@@ -154,6 +154,8 @@ class TopicInfoQuery(Query):
         Sends the query to the Hedera network and processes the response
         to return a TopicInfo object.
 
+        This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
+
         Args:
             client (Client): The client instance to use for execution
 
@@ -162,12 +164,11 @@ class TopicInfoQuery(Query):
 
         Raises:
             PrecheckError: If the query fails with a non-retryable error
+            MaxAttemptsError: If the query fails after the maximum number of attempts
+            ReceiptStatusError: If the query fails with a receipt status error
         """
-        try:
-            self._before_execute(client)
-            response = self._execute(client)
-        except PrecheckError as e:
-            raise e
+        self._before_execute(client)
+        response = self._execute(client)
         
         return TopicInfo.from_proto(response.consensusGetTopicInfo.topicInfo)
 

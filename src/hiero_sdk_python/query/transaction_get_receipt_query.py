@@ -185,6 +185,7 @@ class TransactionGetReceiptQuery(Query):
 
         Returns:
             PrecheckError: An error object representing the error status
+            ReceiptStatusError: An error object representing the receipt status
         """
         status = response.transactionGetReceipt.header.nodeTransactionPrecheckCode
         retryable_statuses = {
@@ -207,6 +208,8 @@ class TransactionGetReceiptQuery(Query):
         
         Sends the query to the Hedera network and processes the response
         to return a TransactionReceipt object.
+        
+        This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
 
         Args:
             client (Client): The client instance to use for execution
@@ -216,6 +219,8 @@ class TransactionGetReceiptQuery(Query):
 
         Raises:
             PrecheckError: If the query fails with a non-retryable error
+            MaxAttemptsError: If the query fails after the maximum number of attempts
+            ReceiptStatusError: If the transaction receipt contains an error status
         """
         self._before_execute(client)
         response = self._execute(client)
