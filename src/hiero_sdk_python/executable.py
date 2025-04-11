@@ -152,7 +152,9 @@ class _Executable(ABC):
                 - Response: For query operations
 
         Raises:
-            Exception: If execution fails with a non-retryable error
+            PrecheckError: If the operation fails with a non-retryable error
+            MaxAttemptsError: If the operation fails after the maximum number of attempts
+            ReceiptStatusError: If the operation fails with a receipt status error
         """
         # Determine maximum number of attempts from client or executable
         max_attempts = client.max_attempts
