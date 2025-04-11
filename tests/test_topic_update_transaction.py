@@ -4,7 +4,6 @@ import pytest
 from unittest.mock import patch
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
@@ -91,8 +90,7 @@ def test_execute_topic_update_transaction(topic_id):
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
         
@@ -162,8 +160,7 @@ def test_topic_update_transaction_with_all_fields(topic_id, private_key):
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
         

@@ -111,8 +111,7 @@ def test_execute_topic_create_transaction():
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
         
@@ -164,8 +163,7 @@ def test_topic_create_transaction_retry_on_busy():
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
         # Verify transaction succeeded after retry

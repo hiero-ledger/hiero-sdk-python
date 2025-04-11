@@ -4,7 +4,6 @@ import pytest
 from unittest.mock import patch
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hapi.services import (
@@ -55,8 +54,7 @@ def test_execute_topic_message_submit_transaction(topic_id, message):
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
         
@@ -101,11 +99,10 @@ def test_topic_message_submit_transaction_retry_on_busy(topic_id, message):
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
-
+        
         # Verify transaction succeeded after retry
         assert receipt.status == ResponseCode.SUCCESS
         assert receipt.to_proto().topicSequenceNumber == 10
@@ -175,8 +172,7 @@ def test_topic_message_submit_transaction_with_large_message(topic_id):
         )
         
         try:
-            transaction = tx.execute(client)
-            receipt = transaction.get_receipt(client)
+            receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
         

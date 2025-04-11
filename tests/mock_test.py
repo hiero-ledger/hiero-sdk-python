@@ -29,7 +29,6 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
 
-
 # ----- Test Utilities -----
 
 def find_free_port():
@@ -211,8 +210,7 @@ def test_retry_success_before_max_attempts():
         )
         
         try:
-            response = transaction.execute(client)
-            receipt = response.get_receipt(client)
+            receipt = transaction.execute(client)
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         
@@ -249,13 +247,24 @@ def test_node_switching_after_single_grpc_error():
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
     error = RealRpcError(grpc.StatusCode.UNAVAILABLE, "Test error")
     
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+    
     # First server gives error, second server gives OK
     response_sequences = [
         [error],
-        [ok_response],
+        [ok_response, receipt_response],
         [error],
     ]
-    
+
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
         transaction = (
             AccountCreateTransaction()
@@ -277,10 +286,21 @@ def test_node_switching_after_multiple_grpc_errors():
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
     error_response = RealRpcError(grpc.StatusCode.UNAVAILABLE, "Test error")
     
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+    
     response_sequences = [
         [error_response, error_response],
         [error_response, error_response],
-        [ok_response, ok_response],
+        [ok_response, receipt_response],
     ]
     
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
@@ -291,12 +311,13 @@ def test_node_switching_after_multiple_grpc_errors():
         )
         
         try:
-            response = transaction.execute(client)
+            receipt = transaction.execute(client)
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         
         # Verify we're now on the third node (index 2)
         assert client.node_account_id == AccountId(0, 0, 5), "Client should have switched to the third node"
+        assert receipt.status == ResponseCode.SUCCESS
 
 
 def test_transaction_with_expired_error_not_retried():
@@ -304,9 +325,19 @@ def test_transaction_with_expired_error_not_retried():
     error_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
     
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
     response_sequences = [
         [error_response],
-        [ok_response],
+        [ok_response, receipt_response],
     ]
     
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
@@ -327,9 +358,19 @@ def test_transaction_with_fatal_error_not_retried():
     error_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.INVALID_TRANSACTION_BODY)
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
     
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
     response_sequences = [
         [error_response],
-        [ok_response],
+        [ok_response, receipt_response],
     ]
     
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
@@ -349,9 +390,20 @@ def test_exponential_backoff_retry():
     """Test that the retry mechanism uses exponential backoff."""
     busy_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.BUSY)
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
-
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+    
     # Create several BUSY responses to force multiple retries
-    response_sequences = [[busy_response, busy_response, busy_response, ok_response]]
+    response_sequences = [[busy_response, busy_response, busy_response, ok_response, receipt_response]]
     
     # Use a mock for time.sleep to capture the delay values
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
@@ -384,8 +436,17 @@ def test_retriable_error_does_not_switch_node():
     busy_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.BUSY)
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
     
-    response_sequences = [[busy_response, ok_response]]
-    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+    response_sequences = [[busy_response, ok_response, receipt_response]]
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
         transaction = (
             AccountCreateTransaction()
