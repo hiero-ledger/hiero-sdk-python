@@ -2,10 +2,8 @@ from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_balance import AccountBalance
-from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.response_code import ResponseCode
 import traceback
 
 class CryptoGetAccountBalanceQuery(Query):
@@ -89,30 +87,11 @@ class CryptoGetAccountBalanceQuery(Query):
             query_func=channel.crypto.cryptoGetBalance
         )
 
-    def _map_status_error(self, response):
-        """
-        Maps a response status code to an appropriate error object.
-        
-        Implements the abstract method from Executable to create error objects
-        from response status codes.
-
-        Args:
-            response: The response from the network
-
-        Returns:
-            PrecheckError: An error object representing the error status, or None if status is OK
-        """
-        header = response.cryptogetAccountBalance.header
-        status = header.nodeTransactionPrecheckCode
-        
-        if status == ResponseCode.OK:
-            return None
-        
-        return PrecheckError(status)
-
     def execute(self, client):
         """
         Executes the account balance query.
+        
+        This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
         
         Sends the query to the Hedera network and processes the response
         to return an AccountBalance object.
@@ -125,12 +104,11 @@ class CryptoGetAccountBalanceQuery(Query):
 
         Raises:
             PrecheckError: If the query fails with a non-retryable error
+            MaxAttemptsError: If the query fails after the maximum number of attempts
+            ReceiptStatusError: If the query fails with a receipt status error
         """
-        try:
-            self._before_execute(client)
-            response = self._execute(client)
-        except PrecheckError as e:
-            raise e
+        self._before_execute(client)
+        response = self._execute(client)
 
         return AccountBalance.from_proto(response.cryptogetAccountBalance)
 
