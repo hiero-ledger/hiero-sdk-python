@@ -217,6 +217,8 @@ class Transaction(_Executable):
         """
         Executes the transaction on the Hedera network using the provided client.
 
+        This function delegates the core logic to `_execute()` and `get_receipt()`, and may propagate exceptions raised by it.
+
         Args:
             client (Client): The client instance to use for execution.
 
@@ -224,7 +226,9 @@ class Transaction(_Executable):
             TransactionReceipt: The receipt of the transaction.
 
         Raises:
-            Exception: If execution fails.
+            PrecheckError: If the transaction/query fails with a non-retryable error
+            MaxAttemptsError: If the transaction/query fails after the maximum number of attempts
+            ReceiptStatusError: If the query fails with a receipt status error
         """
         if self.transaction_body_bytes is None:
             self.freeze_with(client)
