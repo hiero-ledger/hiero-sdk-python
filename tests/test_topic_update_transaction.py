@@ -17,7 +17,7 @@ from hiero_sdk_python.response_code import ResponseCode
 
 from tests.mock_server import mock_hedera_servers
 
-@pytest.mark.usefixtures("mock_account_ids")
+# This test uses fixtures (mock_account_ids, topic_id) as parameters
 def test_build_topic_update_transaction_body(mock_account_ids, topic_id):
     """Test building a TopicUpdateTransaction body with valid topic ID and memo."""
     _, _, node_account_id, _, _ = mock_account_ids
@@ -31,6 +31,7 @@ def test_build_topic_update_transaction_body(mock_account_ids, topic_id):
     assert transaction_body.consensusUpdateTopic.memo.value == "Updated Memo"
 
 
+# This test uses fixture mock_account_ids as parameter
 def test_missing_topic_id_in_update(mock_account_ids):
     """Test that building fails if no topic ID is provided."""
     _, _, node_account_id, _, _ = mock_account_ids
@@ -43,6 +44,7 @@ def test_missing_topic_id_in_update(mock_account_ids):
         tx.build_transaction_body()
 
 
+# This test uses fixtures (mock_account_ids, topic_id, private_key) as parameters
 def test_sign_topic_update_transaction(mock_account_ids, topic_id, private_key):
     """Test signing the TopicUpdateTransaction with a private key."""
     _, _, node_account_id, _, _ = mock_account_ids
@@ -57,6 +59,7 @@ def test_sign_topic_update_transaction(mock_account_ids, topic_id, private_key):
     assert len(tx.signature_map.sigPair) == 1
 
 
+# This test uses fixture topic_id as parameter
 def test_execute_topic_update_transaction(topic_id):
     """Test executing the TopicUpdateTransaction successfully with mock server."""
     # Create success response for the transaction submission
@@ -96,7 +99,8 @@ def test_execute_topic_update_transaction(topic_id):
         assert receipt.status == ResponseCode.SUCCESS
 
 
-def test_topic_update_transaction_with_all_fields(topic_id, private_key):
+# This test uses fixture topic_id as parameter
+def test_topic_update_transaction_with_all_fields(topic_id):
     """Test updating a topic with all available fields."""
     tx_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK

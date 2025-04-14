@@ -32,7 +32,7 @@ def mock_subscription_response():
     )
     return response
 
-
+# This test uses fixtures (mock_client, mock_topic_id, mock_subscription_response) as parameters
 def test_topic_message_query_subscription(mock_client, mock_topic_id, mock_subscription_response):
     """
     Test subscribing to topic messages using TopicMessageQuery.

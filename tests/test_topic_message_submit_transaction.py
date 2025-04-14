@@ -19,7 +19,7 @@ def message():
     """Fixture to provide a test message."""
     return "Hello from topic submit!"
 
-
+# This test uses fixtures (topic_id, message) as parameters
 def test_execute_topic_message_submit_transaction(topic_id, message):
     """Test executing the TopicMessageSubmitTransaction successfully with mock server."""
     # Create success response for the transaction submission
@@ -59,6 +59,7 @@ def test_execute_topic_message_submit_transaction(topic_id, message):
         assert receipt.status == ResponseCode.SUCCESS
 
 
+# This test uses fixture topic_id as parameter
 def test_topic_message_submit_transaction_with_large_message(topic_id):
     """Test sending a large message (close to the maximum allowed size)."""
     # Create a large message (just under the typical 4KB limit)

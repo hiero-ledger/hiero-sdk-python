@@ -54,6 +54,7 @@ def generate_transaction_id(account_id_proto):
 
 ########### Basic Tests for Building Transactions ###########
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body_without_key(mock_account_ids):
     """Test building a token creation transaction body without an admin, supply or freeze key."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -78,7 +79,7 @@ def test_build_transaction_body_without_key(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("supplyKey")
     assert not transaction_body.tokenCreation.HasField("freezeKey")
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body(mock_account_ids):
     """Test building a token creation transaction body with valid values and admin, supply and freeze keys."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -234,6 +235,7 @@ def test_token_creation_validation(
 
 ########### Tests for Signing and Protobuf Conversion ###########
 
+# This test uses fixture mock_account_ids as parameter
 def test_sign_transaction(mock_account_ids):
     """Test signing the token creation transaction that has multiple keys."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -287,6 +289,7 @@ def test_sign_transaction(mock_account_ids):
     for sig_pair in token_tx.signature_map.sigPair:
         assert sig_pair.pubKeyPrefix not in (b"supply_public_key", b"freeze_public_key")
 
+# This test uses fixture mock_account_ids as parameter
 def test_to_proto_without_keys(mock_account_ids):
     """Test protobuf conversion when keys are not set."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -330,7 +333,7 @@ def test_to_proto_without_keys(mock_account_ids):
 
     assert not transaction_body.tokenCreation.HasField("adminKey")
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_to_proto_with_keys(mock_account_ids):
     """Test converting the token creation transaction to protobuf format after signing."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -393,6 +396,7 @@ def test_to_proto_with_keys(mock_account_ids):
     assert tx_body.tokenCreation.supplyKey.ed25519 == b"supply_public_key"
     assert tx_body.tokenCreation.freezeKey.ed25519 == b"freeze_public_key"
 
+# This test uses fixture mock_account_ids as parameter
 def test_freeze_status_without_freeze_key(mock_account_ids):
     """
     Ensure a token is permanently frozen if freeze_default is True but no freeze key is provided.
@@ -414,6 +418,7 @@ def test_freeze_status_without_freeze_key(mock_account_ids):
     with pytest.raises(ValueError, match="Token is permanently frozen"):
         TokenCreateTransaction(params, keys=TokenKeys()).build_transaction_body()
 
+# This test uses fixture mock_account_ids as parameter
 def test_transaction_execution_failure(mock_account_ids):
     """
     Ensure an exception is raised when transaction execution fails
@@ -465,6 +470,7 @@ def test_transaction_execution_failure(mock_account_ids):
         # Verify _execute was called with client
         mock_execute.assert_called_once_with(token_tx.client)
 
+# This test uses fixture mock_account_ids as parameter
 def test_overwrite_defaults(mock_account_ids):
     """
     Demonstrates that defaults in TokenCreateTransaction can be overwritten
@@ -531,6 +537,7 @@ def test_overwrite_defaults(mock_account_ids):
     # Confirm no adminKey was set
     assert not tx_body.tokenCreation.HasField("adminKey")
 
+# This test uses fixture mock_account_ids as parameter
 def test_transaction_freeze_prevents_modification(mock_account_ids):
     """
     Test that after freeze() is called, attempts to modify TokenCreateTransaction
@@ -578,7 +585,7 @@ def test_transaction_freeze_prevents_modification(mock_account_ids):
     assert transaction._token_params.treasury_account_id == treasury_account
     assert transaction._token_params.token_type == TokenType.FUNGIBLE_COMMON
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body_non_fungible(mock_account_ids):
     """
     Test building a token creation transaction body for a Non-Fungible Unique token
@@ -612,6 +619,7 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("supplyKey")
     assert not transaction_body.tokenCreation.HasField("freezeKey")
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_and_sign_nft_transaction_to_proto(mock_account_ids):
     """
     Test building, signing, and protobuf serialization of 

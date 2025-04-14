@@ -15,7 +15,7 @@ from hiero_sdk_python.response_code import ResponseCode
 
 from tests.mock_server import mock_hedera_servers
 
-@pytest.mark.usefixtures("mock_account_ids")
+# This test uses fixtures (mock_account_ids, topic_id) as parameters
 def test_build_topic_delete_transaction_body(mock_account_ids, topic_id):
     """Test building a TopicDeleteTransaction body with a valid topic ID."""
     _, _, node_account_id, _, _ = mock_account_ids
@@ -27,7 +27,7 @@ def test_build_topic_delete_transaction_body(mock_account_ids, topic_id):
     transaction_body = tx.build_transaction_body()
     assert transaction_body.consensusDeleteTopic.topicID.topicNum == 1234
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_missing_topic_id_in_delete(mock_account_ids):
     """Test that building fails if no topic ID is provided."""
     _, _, node_account_id, _, _ = mock_account_ids
@@ -38,7 +38,7 @@ def test_missing_topic_id_in_delete(mock_account_ids):
     with pytest.raises(ValueError, match="Missing required fields"):
         tx.build_transaction_body()
 
-
+# This test uses fixtures (mock_account_ids, topic_id, private_key) as parameters
 def test_sign_topic_delete_transaction(mock_account_ids, topic_id, private_key):
     """Test signing the TopicDeleteTransaction with a private key."""
     _, _, node_account_id, _, _ = mock_account_ids
@@ -52,7 +52,7 @@ def test_sign_topic_delete_transaction(mock_account_ids, topic_id, private_key):
     tx.sign(private_key)
     assert len(tx.signature_map.sigPair) == 1
 
-
+# This test uses fixture topic_id as parameter
 def test_execute_topic_delete_transaction(topic_id):
     """Test executing the TopicDeleteTransaction successfully with mock server."""
     # Create success response for the transaction submission

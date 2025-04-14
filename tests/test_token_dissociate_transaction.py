@@ -19,6 +19,7 @@ def generate_transaction_id(account_id_proto):
     )
     return tx_id
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body(mock_account_ids):
     """Test building the token dissociate transaction body with valid account ID and token ID."""
     account_id, _, node_account_id, token_id_1, _ = mock_account_ids
@@ -38,6 +39,7 @@ def test_build_transaction_body(mock_account_ids):
     assert len(transaction_body.tokenDissociate.tokens) == 1
     assert transaction_body.tokenDissociate.tokens[0].tokenNum == token_id_1.num
 
+# This test uses fixture mock_account_ids as parameter
 def test_transaction_body_with_multiple_tokens(mock_account_ids):
     """Test building the transaction body for dissociating multiple tokens."""
     account_id, operator_id, node_account_id, token_id_1, token_id_2 = mock_account_ids

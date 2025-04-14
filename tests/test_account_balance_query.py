@@ -11,7 +11,7 @@ from hiero_sdk_python.response_code import ResponseCode
 
 from tests.mock_server import mock_hedera_servers
 
-@pytest.mark.usefixtures("mock_account_ids")
+# This test uses fixture mock_account_ids as parameter
 def test_build_account_balance_query(mock_account_ids):
     """Test building a CryptoGetAccountBalanceQuery with a valid account ID."""
     account_id_sender, *_ = mock_account_ids
@@ -19,7 +19,6 @@ def test_build_account_balance_query(mock_account_ids):
     assert query.account_id == account_id_sender
 
 
-@pytest.mark.usefixtures("mock_account_ids")
 def test_execute_account_balance_query():
     """Test executing the CryptoGetAccountBalanceQuery with a mocked client."""
     balance_response = response_pb2.Response(

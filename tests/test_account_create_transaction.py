@@ -28,6 +28,7 @@ def generate_transaction_id(account_id_proto):
     )
     return tx_id
 
+# This test uses fixture mock_account_ids as parameter
 def test_account_create_transaction_build(mock_account_ids):
     """Test building an account create transaction body with valid parameters."""
     operator_id, node_account_id = mock_account_ids
@@ -52,6 +53,7 @@ def test_account_create_transaction_build(mock_account_ids):
     assert transaction_body.cryptoCreateAccount.initialBalance == 100000000
     assert transaction_body.cryptoCreateAccount.memo == "Test account"
 
+# This test uses fixture mock_account_ids as parameter
 def test_account_create_transaction_sign(mock_account_ids):
     """Test signing the account create transaction."""
     operator_id, node_account_id = mock_account_ids

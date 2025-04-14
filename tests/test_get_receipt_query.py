@@ -17,6 +17,7 @@ from hiero_sdk_python.response_code import ResponseCode
 
 from tests.mock_server import mock_hedera_servers
 
+# This test uses fixture transaction_id as parameter
 def test_transaction_get_receipt_query(transaction_id):
     """Test basic functionality of TransactionGetReceiptQuery with a mocked client."""
     response = response_pb2.Response(
@@ -45,7 +46,7 @@ def test_transaction_get_receipt_query(transaction_id):
 
         assert result.status == ResponseCode.SUCCESS
 
-
+# This test uses fixture transaction_id as parameter
 def test_receipt_query_retry_on_receipt_not_found(transaction_id):
     """Test that receipt query retries when the receipt status is RECEIPT_NOT_FOUND."""
     # First response has RECEIPT_NOT_FOUND, second has SUCCESS
@@ -98,7 +99,7 @@ def test_receipt_query_retry_on_receipt_not_found(transaction_id):
         # Verify we didn't switch nodes (RECEIPT_NOT_FOUND is retriable without node switch)
         assert client.node_account_id == AccountId(0, 0, 3)
 
-
+# This test uses fixture transaction_id as parameter
 def test_receipt_query_receipt_status_error(transaction_id):
     """Test that receipt query fails on receipt status error."""
     # Create a response with a receipt status error

@@ -22,6 +22,7 @@ def generate_transaction_id(account_id_proto):
     )
     return tx_id
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_nft_transaction_body_single_bytes_metadata(mock_account_ids):
     """Test that a single bytes object is converted to a single-element metadata list."""
     payer_account, _, node_account_id, token_id, _ = mock_account_ids
@@ -40,6 +41,7 @@ def test_build_nft_transaction_body_single_bytes_metadata(mock_account_ids):
     assert transaction_body.tokenMint.metadata[0] == single_metadata
     assert transaction_body.tokenMint.amount == 0
 
+# This test uses fixtures (mock_account_ids, amount) as parameters
 def test_build_transaction_body_fungible(mock_account_ids, amount):
     """Test building a token mint transaction body for fungible tokens."""
     payer_account, _, node_account_id, token_id, _ = mock_account_ids
@@ -58,6 +60,7 @@ def test_build_transaction_body_fungible(mock_account_ids, amount):
     assert transaction_body.tokenMint.amount == amount
     assert len(transaction_body.tokenMint.metadata) == 0  # No metadata for fungible tokens
 
+# This test uses fixtures (mock_account_ids, metadata) as parameters
 def test_build_transaction_body_nft(mock_account_ids, metadata):
     """Test building a token mint transaction body for NFTs."""
     payer_account, _, node_account_id, token_id, _ = mock_account_ids
@@ -76,6 +79,7 @@ def test_build_transaction_body_nft(mock_account_ids, metadata):
     assert transaction_body.tokenMint.amount == 0  
     assert transaction_body.tokenMint.metadata == metadata
 
+# This test uses fixtures (mock_account_ids, amount) as parameters
 @pytest.mark.parametrize("amount", [0, -1, -1000])
 def test_build_fungible_transaction_body_invalid_amount(mock_account_ids, amount):
     _, _, _, token_id, _ = mock_account_ids
@@ -86,6 +90,7 @@ def test_build_fungible_transaction_body_invalid_amount(mock_account_ids, amount
     with pytest.raises(ValueError, match="Amount to mint must be positive."):
         mint_tx.build_transaction_body()
 
+# This test uses fixture amount as parameter
 def test_build_fungible_transaction_body_missing_token_id(amount):
     """Test that missing token_id raises a ValueError for fungible token mint."""
     mint_tx = TokenMintTransaction()  
@@ -93,6 +98,7 @@ def test_build_fungible_transaction_body_missing_token_id(amount):
     with pytest.raises(ValueError, match="Token ID is required for minting."):
         mint_tx.build_transaction_body()
 
+# This test uses fixture metadata as parameter
 def test_build_nft_transaction_body_missing_token_id(metadata):
     """Test that missing token_id raises a ValueError for nft mint."""
     mint_tx = TokenMintTransaction()  
@@ -100,6 +106,7 @@ def test_build_nft_transaction_body_missing_token_id(metadata):
     with pytest.raises(ValueError, match="Token ID is required for minting."):
         mint_tx.build_transaction_body()  
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_nft_transaction_body_invalid_metadata_type(mock_account_ids):
     """Test that invalid metadata type raises a ValueError."""
     _, _, _, token_id, _ = mock_account_ids
@@ -111,6 +118,7 @@ def test_build_nft_transaction_body_invalid_metadata_type(mock_account_ids):
     with pytest.raises(ValueError, match="Metadata must be a list of byte arrays for NFTs."):
         mint_tx.build_transaction_body()
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_nft_transaction_body_empty_metadata(mock_account_ids):
     """Test that empty metadata list with no fungible mint amount raises a ValueError."""
     _, _, _, token_id, _ = mock_account_ids
@@ -122,6 +130,7 @@ def test_build_nft_transaction_body_empty_metadata(mock_account_ids):
     with pytest.raises(ValueError, match="Metadata list cannot be empty for NFTs."):
         mint_tx.build_transaction_body()
 
+# This test uses fixtures (mock_account_ids, amount, metadata) as parameters
 def test_build_transaction_body_both_amount_and_metadata(mock_account_ids, amount, metadata):
     """Test that setting both amount and metadata raises a ValueError."""
     payer_account, _, node_account_id, token_id, _ = mock_account_ids
@@ -136,6 +145,7 @@ def test_build_transaction_body_both_amount_and_metadata(mock_account_ids, amoun
     with pytest.raises(ValueError, match="Specify either amount for fungible tokens or metadata for NFTs, not both."):
         mint_tx.build_transaction_body()
 
+# This test uses fixtures (mock_account_ids, amount) as parameters
 def test_sign_transaction_fungible(mock_account_ids, amount):
     """Test signing the fungible token mint transaction with a supply key."""
     operator_id, _, node_account_id, token_id, _= mock_account_ids
@@ -158,6 +168,7 @@ def test_sign_transaction_fungible(mock_account_ids, amount):
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
 
+# This test uses fixtures (mock_account_ids, metadata) as parameters
 def test_sign_transaction_nft(mock_account_ids, metadata):
     """Test signing the NFT mint transaction with a supply key."""
     operator_id, _, node_account_id, token_id, _ = mock_account_ids
@@ -181,6 +192,7 @@ def test_sign_transaction_nft(mock_account_ids, metadata):
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
 
+# This test uses fixtures (mock_account_ids, amount) as parameters
 def test_to_proto_fungible(mock_account_ids, amount):
     """Test converting the fungible token mint transaction to protobuf format after signing."""
     operator_id, _, node_account_id, token_id, _= mock_account_ids
@@ -201,6 +213,7 @@ def test_to_proto_fungible(mock_account_ids, amount):
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
 
+# This test uses fixtures (mock_account_ids, metadata) as parameters
 def test_to_proto_nft(mock_account_ids, metadata):
     """Test converting the nft token mint transaction to protobuf format after signing."""
     operator_id, _, node_account_id, token_id, _= mock_account_ids
