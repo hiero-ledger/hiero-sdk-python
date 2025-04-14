@@ -4,8 +4,6 @@ from unittest.mock import patch
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from hiero_sdk_python.hapi.services import (
@@ -16,6 +14,7 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
 )
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from tests.mock_server import RealRpcError, mock_hedera_servers
 
@@ -304,3 +303,81 @@ def test_retriable_error_does_not_switch_node():
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         
         assert client.node_account_id == AccountId(0, 0, 3), "Client should not switch node on retriable errors"
+
+def test_topic_create_transaction_retry_on_busy():
+    """Test that TopicCreateTransaction retries on BUSY response."""
+    # First response is BUSY, second is OK
+    busy_response = TransactionResponseProto(
+        nodeTransactionPrecheckCode=ResponseCode.BUSY
+    )
+    
+    ok_response = TransactionResponseProto(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS,
+                topicID=basic_types_pb2.TopicID(
+                    shardNum=0,
+                    realmNum=0,
+                    topicNum=456
+                )
+            )
+        )
+    )
+    
+    response_sequences = [
+        [busy_response, ok_response, receipt_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
+        client.max_attempts = 3
+        
+        tx = (
+            TopicCreateTransaction()
+            .set_memo("Test with retry")
+            .set_admin_key(PrivateKey.generate().public_key())
+        )
+        
+        try:
+            receipt = tx.execute(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+        # Verify transaction succeeded after retry
+        assert receipt.status == ResponseCode.SUCCESS
+        assert receipt.topicId.num == 456
+        
+        # Verify we slept once for the retry
+        assert mock_sleep.call_count == 1, "Should have retried once"
+        
+        # Verify we didn't switch nodes (BUSY is retriable without node switch)
+        assert client.node_account_id == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
+
+def test_topic_create_transaction_fails_on_nonretriable_error():
+    """Test that TopicCreateTransaction fails on non-retriable error."""
+    # Create a response with a non-retriable error
+    error_response = TransactionResponseProto(
+        nodeTransactionPrecheckCode=ResponseCode.INVALID_TRANSACTION_BODY
+    )
+    
+    response_sequences = [
+        [error_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+        tx = (
+            TopicCreateTransaction()
+            .set_memo("Test with error")
+            .set_admin_key(PrivateKey.generate().public_key())
+        )
+        
+        with pytest.raises(PrecheckError) as exc_info:
+            tx.execute(client)
+        
+        # Verify the error contains the expected status
+        assert str(ResponseCode.INVALID_TRANSACTION_BODY) in str(exc_info.value)

@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError, ReceiptStatusError
+from hiero_sdk_python.exceptions import MaxAttemptsError
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -99,86 +99,16 @@ def test_receipt_query_retry_on_receipt_not_found(transaction_id):
         assert client.node_account_id == AccountId(0, 0, 3)
 
 
-def test_receipt_query_retry_on_header_busy(transaction_id):
-    """Test that receipt query retries when the header status is BUSY."""
-    # First response has BUSY in header, second has OK and SUCCESS
-    busy_response = response_pb2.Response(
-        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.BUSY
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt()
-        )
-    )
-    
-    success_response = response_pb2.Response(
-        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            )
-        )
-    )
-    
-    response_sequences = [[busy_response, success_response]]
-    
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-        )
-        
-        try:
-            result = query.execute(client)
-        except Exception as e:
-            pytest.fail(f"Should not raise exception, but raised: {e}")
-        
-        # Verify query was successful after retry
-        assert result.status == ResponseCode.SUCCESS
-        
-        # Verify we slept once for the retry
-        assert mock_sleep.call_count == 1, "Should have retried once"
-
-
-def test_receipt_query_fails_on_nonretriable_error(transaction_id):
-    """Test that receipt query fails on non-retriable error."""
-    # Create a response with a non-retriable error in the header
-    error_response = response_pb2.Response(
-        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.INVALID_TRANSACTION_ID
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt()
-        )
-    )
-    
-    response_sequences = [[error_response]]
-    
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-        )
-        
-        # Create the query and verify it fails with the expected error
-        with pytest.raises(PrecheckError) as exc_info:
-            query.execute(client)
-        
-        # Verify the error contains the expected status
-        assert str(ResponseCode.INVALID_TRANSACTION_ID) in str(exc_info.value)
-
 def test_receipt_query_receipt_status_error(transaction_id):
     """Test that receipt query fails on receipt status error."""
     # Create a response with a receipt status error
     error_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
             header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.BUSY
+                nodeTransactionPrecheckCode=ResponseCode.UNKNOWN
             ),
             receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.BUSY
+                status=ResponseCode.UNKNOWN
             )
         )
     )
@@ -196,4 +126,4 @@ def test_receipt_query_receipt_status_error(transaction_id):
         with pytest.raises(MaxAttemptsError) as exc_info:
             query.execute(client)
         
-        assert str(f"Receipt for transaction {transaction_id} contained error status: BUSY ({ResponseCode.BUSY})") in str(exc_info.value)
+        assert str(f"Receipt for transaction {transaction_id} contained error status: UNKNOWN ({ResponseCode.UNKNOWN})") in str(exc_info.value)

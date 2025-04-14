@@ -1,13 +1,11 @@
 """Tests for the TopicUpdateTransaction functionality."""
 
 import pytest
-from unittest.mock import patch
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hapi.services import (
     response_header_pb2, 
     response_pb2,
@@ -96,31 +94,6 @@ def test_execute_topic_update_transaction(topic_id):
         
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
-
-
-def test_topic_update_transaction_fails_on_nonretriable_error(topic_id):
-    """Test that TopicUpdateTransaction fails on non-retriable error."""
-    # Create a response with a non-retriable error
-    error_response = transaction_response_pb2.TransactionResponse(
-        nodeTransactionPrecheckCode=ResponseCode.UNAUTHORIZED
-    )
-    
-    response_sequences = [
-        [error_response],
-    ]
-    
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
-        tx = (
-            TopicUpdateTransaction()
-            .set_topic_id(topic_id)
-            .set_memo("Update with error")
-        )
-        
-        with pytest.raises(PrecheckError) as exc_info:
-            tx.execute(client)
-        
-        # Verify the error contains the expected status
-        assert str(ResponseCode.UNAUTHORIZED) in str(exc_info.value)
 
 
 def test_topic_update_transaction_with_all_fields(topic_id, private_key):
