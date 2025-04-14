@@ -172,7 +172,7 @@ class TopicInfoQuery(Query):
         
         return TopicInfo.from_proto(response.consensusGetTopicInfo.topicInfo)
 
-    def get_query_response(self, response):
+    def _get_query_response(self, response):
         """
         Extracts the topic info response from the full response.
         

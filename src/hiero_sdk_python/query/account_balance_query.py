@@ -112,7 +112,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
         return AccountBalance.from_proto(response.cryptogetAccountBalance)
 
-    def get_query_response(self, response):
+    def _get_query_response(self, response):
         """
         Extracts the account balance response from the full response.
         

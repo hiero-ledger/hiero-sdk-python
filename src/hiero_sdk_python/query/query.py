@@ -19,7 +19,7 @@ class Query(_Executable):
     query-specific methods.
     
     Required implementations for subclasses:
-    1. get_query_response(response) - Extract the specific response from the query
+    1. _get_query_response(response) - Extract the specific response from the query
     2. _make_request() - Build the query-specific protobuf request
     3. _get_method(channel) - Return the appropriate gRPC method to call
     """
@@ -41,7 +41,7 @@ class Query(_Executable):
         self._user_query_payment = None
         self._default_query_payment = Hbar(1)
         
-    def get_query_response(self, response):
+    def _get_query_response(self, response):
         """
         Extracts the query-specific response object from the full response.
         
@@ -57,7 +57,7 @@ class Query(_Executable):
         Raises:
             NotImplementedError: Always, since subclasses must implement this method
         """
-        raise NotImplementedError("get_query_response must be implemented by subclasses.")
+        raise NotImplementedError("_get_query_response must be implemented by subclasses.")
 
     def set_query_payment(self, amount: Hbar):
         """
@@ -209,7 +209,7 @@ class Query(_Executable):
         Returns:
             _ExecutionState: The execution state indicating what to do next
         """
-        query_response = self.get_query_response(response)
+        query_response = self._get_query_response(response)
         status = query_response.header.nodeTransactionPrecheckCode
         
         retryable_statuses = {
@@ -235,5 +235,5 @@ class Query(_Executable):
         Returns:
             PrecheckError: An error object representing the error status
         """
-        query_response = self.get_query_response(response)
+        query_response = self._get_query_response(response)
         return PrecheckError(query_response.header.nodeTransactionPrecheckCode)

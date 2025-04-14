@@ -227,7 +227,7 @@ class TransactionGetReceiptQuery(Query):
 
         return TransactionReceipt.from_proto(response.transactionGetReceipt.receipt)
 
-    def get_query_response(self, response):
+    def _get_query_response(self, response):
         """
         Extracts the transaction receipt response from the full response.
         
