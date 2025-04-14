@@ -11,7 +11,7 @@ from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
 
-from tests.mock_test import mock_hedera_servers
+from tests.mock_server import mock_hedera_servers
 
 @pytest.mark.usefixtures("mock_account_ids")
 def test_build_account_balance_query(mock_account_ids):

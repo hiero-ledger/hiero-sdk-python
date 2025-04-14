@@ -17,7 +17,7 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 
-from tests.mock_test import mock_hedera_servers
+from tests.mock_server import mock_hedera_servers
 
 @pytest.mark.usefixtures("mock_account_ids")
 def test_build_topic_update_transaction_body(mock_account_ids, topic_id):

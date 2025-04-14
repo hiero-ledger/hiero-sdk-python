@@ -17,7 +17,7 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 
-from tests.mock_test import mock_hedera_servers
+from tests.mock_server import mock_hedera_servers
 
 def create_topic_info_response(status_code=ResponseCode.OK, with_info=True):
     """Helper function to create a topic info response with the given status."""
