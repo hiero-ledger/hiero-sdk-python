@@ -3,6 +3,9 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from typing import Union
 
+import hiero_sdk_python.hapi.services.basic_types_pb2
+
+
 class PublicKey:
     """
     Represents a public key that can be either Ed25519 or ECDSA (secp256k1).
@@ -127,6 +130,18 @@ class PublicKey:
         """
         return self.to_bytes_raw().hex()
 
+    @classmethod
+    def from_proto(cls, proto_obj: hiero_sdk_python.hapi.services.basic_types_pb2.Key):
+        """
+        :param proto_obj: Protobuf key object
+        :return: PublicKey instance or throws value error if unsupported type
+        """
+        if proto_obj.ed25519:
+            return PublicKey.from_bytes(proto_obj.ed25519)
+        if proto_obj.ECDSA_secp256k1:
+            return PublicKey.from_bytes(proto_obj.ECDSA_secp256k1)
+        raise ValueError("Unsupported Public Key Type")
+
     def to_proto(self):
         """
         Returns the protobuf representation of the public key.
@@ -160,3 +175,9 @@ class PublicKey:
         if self.is_ed25519():
             return f"<PublicKey (Ed25519) hex={self.to_string_raw()}>"
         return f"<PublicKey (ECDSA) hex={self.to_string_raw()}>"
+
+    def __eq__(self, other):
+        if isinstance(other, PublicKey):
+            return self._public_key == other._public_key
+        else:
+            return False
