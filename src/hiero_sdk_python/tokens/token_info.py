@@ -1,44 +1,13 @@
-from dataclasses import dataclass, fields, field
-from typing import get_origin, get_args, Union
-
-from hiero_sdk_python import TokenId, AccountId, PublicKey
+from hiero_sdk_python import TokenId, AccountId, PublicKey, Duration
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
-from hiero_sdk_python.hapi.services.duration_pb2 import Duration
 from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
 from hiero_sdk_python.tokens.token_type import TokenType
 
-
-def validate_optional_type(value, expected_type):
-    if value is None:
-        return True
-    # For Union[SomeType], check if value matches the unwrapped type
-    if get_origin(expected_type) is not None and get_origin(expected_type) is Union:
-        # Get the actual type inside Union
-        inner_type = get_args(expected_type)[0]
-        return type(value) is inner_type
-
-    # For non-Union types, do standard type checking
-    return type(value) is expected_type
-
-
 class TokenInfo:
-    # tokenId: TokenId
-    # name: str
-    # symbol: str
-    # decimals: int  # uint32
-    # totalSupply: int  # uint64
-    # treasury: AccountId
-    # # custom_fees: List[CustomFee]
-    # isDeleted: bool
-    # memo: str
-    # # tokenType: TokenType
-    # # supplyType: TokenSupplyType = TokenSupplyType.NONE
-    # maxSupply: int  # int64
-    # ledger_id: bytes
-
     def __init__(self, tokenId: TokenId, name: str, symbol: str, decimals: int, totalSupply: int, treasury: AccountId, isDeleted: bool, memo: str, tokenType: TokenType, maxSupply: int, ledger_id: bytes):
         self.tokenId = tokenId
         self.name = name
@@ -65,6 +34,7 @@ class TokenInfo:
         self.expiry = None
         self.pause_key = None
         self.pause_status = TokenPauseStatus.PAUSE_NOT_APPLICABLE
+        self.supplyType = SupplyType.FINITE
 
     def set_admin_key(self, adminKey: PublicKey):
         self.adminKey = adminKey
@@ -91,7 +61,7 @@ class TokenInfo:
         self.defaultKycStatus = kycStatus
 
     def set_auto_renew_account(self, autoRenewAccount: AccountId):
-        self.autoRenenewAccount = autoRenewAccount
+        self.autoRenewAccount = autoRenewAccount
 
     def set_auto_renew_period(self, autoRenewPeriod: Duration):
         self.autoRenewPeriod = autoRenewPeriod
@@ -105,62 +75,101 @@ class TokenInfo:
     def set_pause_status(self, pauseStatus: TokenPauseStatus):
         self.pause_status = pauseStatus
 
+    def set_supply_type(self, supplyType: SupplyType | int):
+        self.supplyType = supplyType
 
     @classmethod
-    def from_proto(cls, proto_obj: proto_TokenInfo) -> proto_TokenInfo:
+    def from_proto(cls, proto_obj: proto_TokenInfo):
         tokenInfoObject = TokenInfo(
-           tokenId=TokenId.from_proto(proto_obj.tokenId),
-           name=proto_obj.name,
-           symbol=proto_obj.symbol,
-           decimals=proto_obj.decimals,
-           totalSupply=proto_obj.totalSupply,
-           treasury=AccountId.from_proto(proto_obj.treasury),
-           isDeleted=proto_obj.deleted,
-           memo=proto_obj.memo,
-           tokenType=proto_obj.tokenType,
-           maxSupply=proto_obj.maxSupply,
-           ledger_id=proto_obj.ledger_id,
+            tokenId=TokenId.from_proto(proto_obj.tokenId),
+            name=proto_obj.name,
+            symbol=proto_obj.symbol,
+            decimals=proto_obj.decimals,
+            totalSupply=proto_obj.totalSupply,
+            treasury=AccountId.from_proto(proto_obj.treasury),
+            isDeleted=proto_obj.deleted,
+            memo=proto_obj.memo,
+            tokenType=proto_obj.tokenType,
+            maxSupply=proto_obj.maxSupply,
+            ledger_id=proto_obj.ledger_id
         )
-        tokenInfoObject.set_admin_key(PublicKey.from_proto(proto_obj.adminKey))
-        tokenInfoObject.set_kycKey(PublicKey.from_proto(proto_obj.kycKey))
-        tokenInfoObject.set_freezeKey(PublicKey.from_proto(proto_obj.freezeKey))
-        tokenInfoObject.set_wipeKey(PublicKey.from_proto(proto_obj.wipeKey))
-        tokenInfoObject.set_supplyKey(PublicKey.from_proto(proto_obj.supplyKey))
-        tokenInfoObject.set_fee_schedule_key(PublicKey.from_proto(proto_obj.fee_schedule_key))
-        tokenInfoObject.set_default_freeze_status(TokenFreezeStatus.from_proto(proto_obj.defaultFreezeStatus))
-        tokenInfoObject.set_default_kyc_status(TokenKycStatus.from_proto(proto_obj.defaultKycStatus))
-        tokenInfoObject.set_auto_renew_account(AccountId.from_proto(proto_obj.autoRenewAccount))
-        # TODO: Duration from_proto
-        tokenInfoObject.set_auto_renew_period(Duration(proto_obj.autoRenewPeriod.seconds))
-        tokenInfoObject.set_expiry(Timestamp.from_protobuf(proto_obj.expiry))
-        tokenInfoObject.set_pause_key(PublicKey.from_proto(proto_obj.pause_key))
-        tokenInfoObject.set_pause_status(TokenPauseStatus.from_proto(proto_obj.pause_status))
+        if proto_obj.adminKey.ECDSA_secp256k1 or proto_obj.adminKey.ed25519:
+            tokenInfoObject.set_admin_key(PublicKey.from_proto(proto_obj.adminKey))
+        if proto_obj.kycKey.ECDSA_secp256k1 or proto_obj.kycKey.ed25519:
+            tokenInfoObject.set_kycKey(PublicKey.from_proto(proto_obj.kycKey))
+        if proto_obj.freezeKey.ECDSA_secp256k1 or proto_obj.freezeKey.ed25519:
+            tokenInfoObject.set_freezeKey(PublicKey.from_proto(proto_obj.freezeKey))
+        if proto_obj.wipeKey.ECDSA_secp256k1 or proto_obj.wipeKey.ed25519:
+            tokenInfoObject.set_wipeKey(PublicKey.from_proto(proto_obj.wipeKey))
+        if proto_obj.supplyKey.ECDSA_secp256k1 or proto_obj.supplyKey.ed25519:
+            tokenInfoObject.set_supplyKey(PublicKey.from_proto(proto_obj.supplyKey))
+        if proto_obj.fee_schedule_key.ECDSA_secp256k1 or proto_obj.fee_schedule_key.ed25519:
+            tokenInfoObject.set_fee_schedule_key(PublicKey.from_proto(proto_obj.fee_schedule_key))
+        if proto_obj.defaultFreezeStatus:
+            tokenInfoObject.set_default_freeze_status(TokenFreezeStatus.from_proto(proto_obj.defaultFreezeStatus))
+        if proto_obj.defaultKycStatus:
+            tokenInfoObject.set_default_kyc_status(TokenKycStatus.from_proto(proto_obj.defaultKycStatus))
+        if proto_obj.autoRenewAccount:
+            tokenInfoObject.set_auto_renew_account(AccountId.from_proto(proto_obj.autoRenewAccount))
+        if proto_obj.autoRenewPeriod:
+            tokenInfoObject.set_auto_renew_period(Duration.from_proto(proto_obj.autoRenewPeriod))
+        if proto_obj.expiry:
+            tokenInfoObject.set_expiry(Timestamp.from_protobuf(proto_obj.expiry))
+        if proto_obj.pause_key.ECDSA_secp256k1 or proto_obj.pause_key.ed25519:
+            tokenInfoObject.set_pause_key(PublicKey.from_proto(proto_obj.pause_key))
+        if proto_obj.pause_status:
+            tokenInfoObject.set_pause_status(TokenPauseStatus.from_proto(proto_obj.pause_status))
+        if proto_obj.supplyType:
+            tokenInfoObject.set_supply_type(SupplyType(proto_obj.supplyType))
+
 
         return tokenInfoObject
 
-    # TODO: Also uses protobuf class in java, the protobuf I have does not use this
     def to_proto(self) -> proto_TokenInfo:
-        return proto_TokenInfo(
-                tokenId = self.tokenId.to_proto(),
-                name = self.name,
-                symbol = self.symbol,
-                decimals = self.decimals,
-                totalSupply = self.totalSupply,
-                treasury = self.treasury.to_proto(),
-                adminKey = self.adminKey.to_proto(),
-                # TODO: missing stuff here
-                # defaultFreezeStatus = self.defaultFreezeStatus.to_proto(),
-                deleted=self.isDeleted,
-                autoRenewAccount = self.autoRenewAccount.to_proto(),
-                autoRenewPeriod = Duration(seconds = self.autoRenewPeriod),
-                expiry = self.expiry.to_proto(),
-                memo = self.memo,
-                tokenType = self.tokenType,
-                # TODO: missing stuff
-                maxSupply = self.maxSupply,
-                # TODO: missing stuff
-                ledger_id = self.ledger_id
-            )
+        proto = proto_TokenInfo(
+            tokenId=self.tokenId.to_proto(),
+            name=self.name,
+            symbol=self.symbol,
+            decimals=self.decimals,
+            totalSupply=self.totalSupply,
+            treasury=self.treasury.to_proto(),
+            deleted=self.isDeleted,
+            memo=self.memo,
+            tokenType=self.tokenType.value,
+            supplyType=self.supplyType.value,
+            maxSupply=self.maxSupply,
+            expiry = self.expiry.to_protobuf(),
+            ledger_id=self.ledger_id
+        )
+        if self.adminKey:
+            proto.adminKey.CopyFrom(self.adminKey.to_proto())
+        if self.kycKey:
+            proto.kycKey.CopyFrom(self.kycKey.to_proto())
+        if self.freezeKey:
+            proto.freezeKey.CopyFrom(self.freezeKey.to_proto())
+        if self.wipeKey:
+            proto.wipeKey.CopyFrom(self.wipeKey.to_proto())
+        if self.supplyKey:
+            proto.supplyKey.CopyFrom(self.supplyKey.to_proto())
+        if self.fee_schedule_key:
+            proto.fee_schedule_key.CopyFrom(self.fee_schedule_key.to_proto())
+        if self.defaultFreezeStatus:
+            proto.defaultFreezeStatus = self.defaultFreezeStatus.value
+        if self.defaultKycStatus:
+            proto.defaultKycStatus = self.defaultKycStatus.value
+        if self.autoRenewAccount:
+            proto.autoRenewAccount.CopyFrom(self.autoRenewAccount.to_proto())
+        if self.autoRenewPeriod:
+            proto.autoRenewPeriod.CopyFrom(self.autoRenewPeriod.to_proto())
+        if self.expiry:
+            proto.expiry.CopyFrom(self.expiry.to_protobuf())
+        if self.pause_key:
+            proto.pause_key.CopyFrom(self.pause_key.to_proto())
+        if self.pause_status:
+            proto.pause_status = self.pause_status.value
+
+        return proto
+
 
     # TODO: Java uses fromProtobuf(response.parsefrom(bytes)) may not be possible or necessary here
     @classmethod
@@ -169,4 +178,7 @@ class TokenInfo:
 
 
     def __str__(self):
-        return f"{self.name}({self.tokenId}, {self.name}, {self.symbol}, {self.decimals}, {self.totalSupply}, {self.treasury}, {self.adminKey}, {self.isDeleted}, {self.autoRenewAccount}, {self.autoRenewPeriod}, {self.expiry}, {self.tokenType}, {self.memo}, {self.maxSupply}, {self.ledger_id})"
+        return (f"TokenInfo(tokenId={self.tokenId}, name={self.name}, symbol={self.symbol}, "
+                f"decimals={self.decimals}, totalSupply={self.totalSupply}, treasury={self.treasury}, "
+                f"isDeleted={self.isDeleted}, memo={self.memo}, tokenType={self.tokenType}, "
+                f"maxSupply={self.maxSupply}, ledger_id={self.ledger_id})")

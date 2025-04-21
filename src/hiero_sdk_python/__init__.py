@@ -10,6 +10,9 @@ from .account.account_create_transaction import AccountCreateTransaction
 from .crypto.private_key import PrivateKey
 from .crypto.public_key import PublicKey
 
+# Duration
+from .duration import Duration
+
 # Tokens
 from .tokens.token_create_transaction import TokenCreateTransaction
 from .tokens.token_associate_transaction import TokenAssociateTransaction
@@ -20,9 +23,9 @@ from .tokens.token_freeze_transaction import TokenFreezeTransaction
 from .tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
 from .tokens.token_id import TokenId
 from .tokens.nft_id import NftId
-from .tokens.token_info import TokenInfo
 from .tokens.token_pause_status import TokenPauseStatus
 from .tokens.token_freeze_status import TokenFreezeStatus
+from .tokens.token_info import TokenInfo
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -37,9 +40,6 @@ from .hbar import Hbar
 
 # Timestamp
 from .timestamp import Timestamp
-
-# Duration
-from .Duration import Duration
 
 # Consensus
 from .consensus.topic_create_transaction import TopicCreateTransaction
@@ -102,5 +102,6 @@ __all__ = [
 
     "Hbar",
     "ResponseCode",
-    "Timestamp"
+    "Timestamp",
+    "Duration"
 ]
