@@ -79,7 +79,7 @@ class TokenInfo:
         self.supplyType = supplyType
 
     @classmethod
-    def from_proto(cls, proto_obj: proto_TokenInfo):
+    def from_proto(cls, proto_obj: proto_TokenInfo) -> "TokenInfo":
         tokenInfoObject = TokenInfo(
             tokenId=TokenId.from_proto(proto_obj.tokenId),
             name=proto_obj.name,
@@ -89,7 +89,7 @@ class TokenInfo:
             treasury=AccountId.from_proto(proto_obj.treasury),
             isDeleted=proto_obj.deleted,
             memo=proto_obj.memo,
-            tokenType=proto_obj.tokenType,
+            tokenType=TokenType(proto_obj.tokenType),
             maxSupply=proto_obj.maxSupply,
             ledger_id=proto_obj.ledger_id
         )
@@ -119,7 +119,7 @@ class TokenInfo:
             tokenInfoObject.set_pause_key(PublicKey.from_proto(proto_obj.pause_key))
         if proto_obj.pause_status:
             tokenInfoObject.set_pause_status(TokenPauseStatus.from_proto(proto_obj.pause_status))
-        if proto_obj.supplyType:
+        if proto_obj.supplyType is not None:
             tokenInfoObject.set_supply_type(SupplyType(proto_obj.supplyType))
 
 

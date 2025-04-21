@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
-@dataclass(frozen=True, eq=True, init=True, repr=True)
+@dataclass(frozen=True, init=True, repr=True)
 class TokenId:
     shard: int
     realm: int

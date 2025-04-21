@@ -15,7 +15,7 @@ class Duration:
         return proto_Duration(seconds=self.seconds)
 
     @classmethod
-    def from_proto(cls, proto: proto_Duration):
+    def from_proto(cls, proto: proto_Duration) -> "Duration":
         if isinstance(proto, Duration):
             raise ValueError("Invalid duration proto")
         return cls(seconds=proto.seconds)
