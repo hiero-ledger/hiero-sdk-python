@@ -19,6 +19,7 @@ def generate_transaction_id(account_id_proto):
     )
     return tx_id
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body(mock_account_ids):
     """Test building the token associate transaction body with valid account ID and token IDs."""
     account_id, _, node_account_id, token_id_1, token_id_2 = mock_account_ids
@@ -47,6 +48,7 @@ def test_missing_fields():
     with pytest.raises(ValueError, match="Account ID and token IDs must be set."):
         associate_tx.build_transaction_body()
 
+# This test uses fixture mock_account_ids as parameter
 def test_sign_transaction(mock_account_ids):
     """Test signing the token associate transaction with a private key."""
     account_id, _, node_account_id, token_id_1, _ = mock_account_ids
@@ -68,7 +70,7 @@ def test_sign_transaction(mock_account_ids):
     assert sig_pair.pubKeyPrefix == b'public_key'  
     assert sig_pair.ed25519 == b'signature'
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_to_proto(mock_account_ids):
     """Test converting the token associate transaction to protobuf format after signing."""
     account_id, _, node_account_id, token_id_1, _ = mock_account_ids

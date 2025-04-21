@@ -19,6 +19,7 @@ def generate_transaction_id(account_id_proto):
     )
     return tx_id
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body(mock_account_ids):
     """Test building a token delete transaction body with a valid value."""
     account_id, _, node_account_id, token_id, _= mock_account_ids
@@ -40,6 +41,7 @@ def test_missing_token_id():
     with pytest.raises(ValueError, match="Missing required TokenID."):
         delete_tx.build_transaction_body()
 
+# This test uses fixture mock_account_ids as parameter
 def test_sign_transaction(mock_account_ids):
     """Test signing the token delete transaction with a private key."""
     operator_id, _, node_account_id, token_id, _= mock_account_ids
@@ -59,7 +61,7 @@ def test_sign_transaction(mock_account_ids):
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_to_proto(mock_account_ids):
     """Test converting the token delete transaction to protobuf format after signing."""
     operator_id, _, node_account_id, token_id, _= mock_account_ids

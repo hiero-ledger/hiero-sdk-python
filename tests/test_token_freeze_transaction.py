@@ -19,6 +19,7 @@ def generate_transaction_id(account_id_proto):
     )
     return tx_id
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body(mock_account_ids):
     """Test building a token freeze transaction body with a valid value."""
     account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
@@ -38,6 +39,7 @@ def test_build_transaction_body(mock_account_ids):
     proto_account = freeze_id.to_proto()
     assert transaction_body.tokenFreeze.account == proto_account
 
+# This test uses fixture mock_account_ids as parameter
 def test_missing_token_id(mock_account_ids):
     """Test that building a transaction without setting TokenID raises a ValueError."""
     account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
@@ -47,6 +49,7 @@ def test_missing_token_id(mock_account_ids):
     with pytest.raises(ValueError, match="Missing required TokenID."):
         freeze_tx.build_transaction_body()
 
+# This test uses fixture mock_account_ids as parameter
 def test_missing_account_id(mock_account_ids):
     """Test that building a transaction without setting AccountID raises a ValueError."""
     account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
@@ -56,6 +59,7 @@ def test_missing_account_id(mock_account_ids):
     with pytest.raises(ValueError, match="Missing required AccountID."):
         freeze_tx.build_transaction_body()
 
+# This test uses fixtures (mock_account_ids) as parameters
 def test_sign_transaction(mock_account_ids):
     """Test signing the token freeze transaction with a freeze key."""
     account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
@@ -76,6 +80,7 @@ def test_sign_transaction(mock_account_ids):
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
 
+# This test uses fixtures (mock_account_ids) as parameters
 def test_to_proto(mock_account_ids):
     """Test converting the token freeze transaction to protobuf format after signing."""
     account_id, freeze_id, node_account_id, token_id, _= mock_account_ids

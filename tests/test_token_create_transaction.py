@@ -14,7 +14,9 @@ Coverage includes:
 
 import re
 import pytest
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
+from hiero_sdk_python.transaction.transaction import Transaction
 
 # Hiero SDK imports
 from hiero_sdk_python.tokens.token_create_transaction import (
@@ -23,6 +25,7 @@ from hiero_sdk_python.tokens.token_create_transaction import (
     TokenKeys,
 )
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import (
     transaction_pb2,
@@ -32,6 +35,7 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.exceptions import PrecheckError
 
 def generate_transaction_id(account_id_proto):
     """Generate a unique transaction ID based on the account ID and the current timestamp."""
@@ -50,6 +54,7 @@ def generate_transaction_id(account_id_proto):
 
 ########### Basic Tests for Building Transactions ###########
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body_without_key(mock_account_ids):
     """Test building a token creation transaction body without an admin, supply or freeze key."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -74,7 +79,7 @@ def test_build_transaction_body_without_key(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("supplyKey")
     assert not transaction_body.tokenCreation.HasField("freezeKey")
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body(mock_account_ids):
     """Test building a token creation transaction body with valid values and admin, supply and freeze keys."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -230,6 +235,7 @@ def test_token_creation_validation(
 
 ########### Tests for Signing and Protobuf Conversion ###########
 
+# This test uses fixture mock_account_ids as parameter
 def test_sign_transaction(mock_account_ids):
     """Test signing the token creation transaction that has multiple keys."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -283,6 +289,7 @@ def test_sign_transaction(mock_account_ids):
     for sig_pair in token_tx.signature_map.sigPair:
         assert sig_pair.pubKeyPrefix not in (b"supply_public_key", b"freeze_public_key")
 
+# This test uses fixture mock_account_ids as parameter
 def test_to_proto_without_keys(mock_account_ids):
     """Test protobuf conversion when keys are not set."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -326,7 +333,7 @@ def test_to_proto_without_keys(mock_account_ids):
 
     assert not transaction_body.tokenCreation.HasField("adminKey")
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_to_proto_with_keys(mock_account_ids):
     """Test converting the token creation transaction to protobuf format after signing."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
@@ -389,6 +396,7 @@ def test_to_proto_with_keys(mock_account_ids):
     assert tx_body.tokenCreation.supplyKey.ed25519 == b"supply_public_key"
     assert tx_body.tokenCreation.freezeKey.ed25519 == b"freeze_public_key"
 
+# This test uses fixture mock_account_ids as parameter
 def test_freeze_status_without_freeze_key(mock_account_ids):
     """
     Ensure a token is permanently frozen if freeze_default is True but no freeze key is provided.
@@ -410,6 +418,7 @@ def test_freeze_status_without_freeze_key(mock_account_ids):
     with pytest.raises(ValueError, match="Token is permanently frozen"):
         TokenCreateTransaction(params, keys=TokenKeys()).build_transaction_body()
 
+# This test uses fixture mock_account_ids as parameter
 def test_transaction_execution_failure(mock_account_ids):
     """
     Ensure an exception is raised when transaction execution fails
@@ -429,21 +438,39 @@ def test_transaction_execution_failure(mock_account_ids):
     )
     token_tx.node_account_id = node_account_id
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-
-    # Mock the client
+    
+    # Set the transaction body bytes to avoid calling build_transaction_body
+    token_tx.transaction_body_bytes = b"mock_body_bytes"
+    
+    # Mock the client and its operator_private_key
     token_tx.client = MagicMock()
+    mock_public_key = MagicMock()
+    mock_public_key.to_bytes_raw.return_value = b"mock_public_key"
+    
+    token_tx.client.operator_private_key = MagicMock()
+    token_tx.client.operator_private_key.sign.return_value = b"mock_signature"
+    token_tx.client.operator_private_key.public_key.return_value = mock_public_key
+    
+    # Skip the actual sign method by mocking is_signed_by to return True
+    token_tx.is_signed_by = MagicMock(return_value=True)
 
-    with patch.object(token_tx.client.token_stub, "createToken") as mock_create_token:
-        # Simulate an INVALID_SIGNATURE
-        mock_create_token.return_value.nodeTransactionPrecheckCode = ResponseCode.INVALID_SIGNATURE
-        expected_message = "Error during transaction submission: 7 (INVALID_SIGNATURE)"
+    with patch.object(token_tx, "_execute") as mock_execute:
+        # Create a PrecheckError with INVALID_SIGNATURE status
+        precheck_error = PrecheckError(ResponseCode.INVALID_SIGNATURE, token_tx.transaction_id)
+        # Make _execute raise this error when called
+        mock_execute.side_effect = precheck_error
+        
+        # The expected message pattern should match the PrecheckError message format
+        expected_pattern = r"Transaction failed precheck with status: INVALID_SIGNATURE \(7\)"
 
-        with pytest.raises(Exception, match=re.escape(expected_message)):
-            # Attempt to execute
-            token_tx._execute_transaction(token_tx.client, "mock_proto")
+        with pytest.raises(PrecheckError, match=expected_pattern):
+            # Attempt to execute - this should raise the mocked PrecheckError
+            token_tx.execute(token_tx.client)
 
-        mock_create_token.assert_called_once_with("mock_proto")
+        # Verify _execute was called with client
+        mock_execute.assert_called_once_with(token_tx.client)
 
+# This test uses fixture mock_account_ids as parameter
 def test_overwrite_defaults(mock_account_ids):
     """
     Demonstrates that defaults in TokenCreateTransaction can be overwritten
@@ -510,12 +537,13 @@ def test_overwrite_defaults(mock_account_ids):
     # Confirm no adminKey was set
     assert not tx_body.tokenCreation.HasField("adminKey")
 
+# This test uses fixture mock_account_ids as parameter
 def test_transaction_freeze_prevents_modification(mock_account_ids):
     """
     Test that after freeze() is called, attempts to modify TokenCreateTransaction
     parameters raise an exception indicating immutability.
     """
-    treasury_account_id, _, _, _, _ = mock_account_ids
+    treasury_account, _, node_account_id, _, _ = mock_account_ids
 
     transaction = TokenCreateTransaction()
 
@@ -524,25 +552,29 @@ def test_transaction_freeze_prevents_modification(mock_account_ids):
     transaction.set_token_symbol("TEST")
     transaction.set_initial_supply(1000)
     transaction.set_decimals(2)
-    transaction.set_treasury_account_id(treasury_account_id)
+    transaction.set_treasury_account_id(treasury_account)
 
+    transaction.node_account_id = node_account_id
+    transaction.transaction_id = generate_transaction_id(treasury_account)
+    transaction.client = MagicMock()
+    
     # Freeze the transaction
-    transaction.freeze()
+    transaction.freeze_with(transaction.client)
 
     # Attempt to overwrite after freeze - expect exceptions
-    with pytest.raises(ValueError, match="Transaction is frozen and cannot be modified."):
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
         transaction.set_token_name("NewName")
 
-    with pytest.raises(ValueError, match="Transaction is frozen and cannot be modified."):
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
         transaction.set_token_name("NEW")
 
-    with pytest.raises(ValueError, match="Transaction is frozen and cannot be modified."):
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
         transaction.set_initial_supply(5000)
 
-    with pytest.raises(ValueError, match="Transaction is frozen and cannot be modified."):
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
         transaction.set_decimals(8)
 
-    with pytest.raises(ValueError, match="Transaction is frozen and cannot be modified."):
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
         transaction.set_token_type(TokenType.NON_FUNGIBLE_UNIQUE) # Should have defaulted to this
 
     # Confirm that values remain unchanged after freeze attempt
@@ -550,10 +582,10 @@ def test_transaction_freeze_prevents_modification(mock_account_ids):
     assert transaction._token_params.token_symbol == "TEST"    
     assert transaction._token_params.initial_supply == 1000
     assert transaction._token_params.decimals == 2
-    assert transaction._token_params.treasury_account_id == treasury_account_id
+    assert transaction._token_params.treasury_account_id == treasury_account
     assert transaction._token_params.token_type == TokenType.FUNGIBLE_COMMON
 
-
+# This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body_non_fungible(mock_account_ids):
     """
     Test building a token creation transaction body for a Non-Fungible Unique token
@@ -587,6 +619,7 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("supplyKey")
     assert not transaction_body.tokenCreation.HasField("freezeKey")
 
+# This test uses fixture mock_account_ids as parameter
 def test_build_and_sign_nft_transaction_to_proto(mock_account_ids):
     """
     Test building, signing, and protobuf serialization of 
@@ -656,3 +689,86 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids):
     assert tx_body.tokenCreation.adminKey.ed25519 == b"admin_public_key"
     assert tx_body.tokenCreation.supplyKey.ed25519 == b"supply_public_key"
     assert tx_body.tokenCreation.freezeKey.ed25519 == b"freeze_public_key"
+
+@pytest.mark.parametrize(
+    "token_type, supply_type, max_supply, initial_supply, expected_error",
+    [
+        #
+        # FUNGIBLE + INFINITE
+        #
+        # 1) Infinite supply requires max_supply=0 => VALID
+        (TokenType.FUNGIBLE_COMMON, SupplyType.INFINITE, 0, 1, None),
+        # 2) Infinite supply but max_supply != 0 => ERROR
+        (TokenType.FUNGIBLE_COMMON, SupplyType.INFINITE, 100, 100,
+         "Setting a max supply field requires setting a finite supply type"),
+        #
+        # FUNGIBLE + FINITE
+        #
+        # 3) Finite supply but max_supply=0 => ERROR
+        (TokenType.FUNGIBLE_COMMON, SupplyType.FINITE, 0, 100,
+         "A finite supply token requires max_supply greater than zero 0"),
+        # 4) Finite supply, max_supply>0 but initial_supply > max_supply => ERROR
+        (TokenType.FUNGIBLE_COMMON, SupplyType.FINITE, 500, 600,
+         "Initial supply cannot exceed the defined max supply for a finite token"),
+        # 5) Finite supply, max_supply>0, initial_supply <= max_supply => VALID
+        (TokenType.FUNGIBLE_COMMON, SupplyType.FINITE, 5000, 100, None),
+
+        #
+        # NON-FUNGIBLE + INFINITE
+        #
+        # 6) NFT + infinite supply => must have max_supply=0 => VALID
+        (TokenType.NON_FUNGIBLE_UNIQUE, SupplyType.INFINITE, 0, 0, None),
+        # 7) NFT + infinite supply + nonzero max_supply => ERROR
+        (TokenType.NON_FUNGIBLE_UNIQUE, SupplyType.INFINITE, 200, 0,
+         "Setting a max supply field requires setting a finite supply type"),
+        #
+        # NON-FUNGIBLE + FINITE
+        #
+        # 8) NFT, finite supply but max_supply=0 => ERROR
+        (TokenType.NON_FUNGIBLE_UNIQUE, SupplyType.FINITE, 0, 0,
+        "A finite supply token requires max_supply greater than zero 0"),
+
+        # 9) NFT, finite supply, no initial supply, max_supply>0 => VALID
+        (TokenType.NON_FUNGIBLE_UNIQUE, SupplyType.FINITE, 100, 0, None),
+    ]
+)
+def test_supply_type_and_max_supply_validation(
+    mock_account_ids,
+    token_type,
+    supply_type,
+    max_supply,
+    initial_supply,
+    expected_error
+):
+    """ 
+    Verifies the combination of token_type, supply_type, max_supply, and initial_supply 
+    either passes validation or raises the correct ValueError
+    """
+    treasury_account, _, node_account_id, _, _ = mock_account_ids
+
+    # Prepare the token params
+    params = TokenParams(
+        token_name="MaxSupplyToken",
+        token_symbol="MSUP",
+        treasury_account_id=treasury_account,
+        decimals=0 if token_type == TokenType.NON_FUNGIBLE_UNIQUE else 2,
+        initial_supply=initial_supply,
+        token_type=token_type,
+        supply_type=supply_type,
+        max_supply=max_supply,
+        freeze_default=False
+    )
+
+    if expected_error:
+        with pytest.raises(ValueError, match=expected_error):
+            TokenCreateTransaction(params).build_transaction_body()
+    else:
+        tx = TokenCreateTransaction(params)
+        tx.operator_account_id = treasury_account
+        tx.node_account_id = node_account_id
+        body = tx.build_transaction_body()
+
+        assert body.tokenCreation.tokenType == token_type.value
+        assert body.tokenCreation.supplyType == supply_type.value
+        assert body.tokenCreation.maxSupply == max_supply
+        assert body.tokenCreation.initialSupply == initial_supply

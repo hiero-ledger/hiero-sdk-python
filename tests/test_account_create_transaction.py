@@ -1,18 +1,21 @@
+import time
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import patch
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_receipt_pb2, timestamp_pb2
-from cryptography.hazmat.primitives import serialization
+from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.hapi.services import basic_types_pb2, response_pb2
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
+from hiero_sdk_python.hapi.services import transaction_get_receipt_pb2, response_header_pb2
+
+from tests.mock_server import mock_hedera_servers
 
 def generate_transaction_id(account_id_proto):
     """Generate a unique transaction ID based on the account ID and the current timestamp."""
-    import time
     current_time = time.time()
     timestamp_seconds = int(current_time)
     timestamp_nanos = int((current_time - timestamp_seconds) * 1e9)
@@ -25,6 +28,7 @@ def generate_transaction_id(account_id_proto):
     )
     return tx_id
 
+# This test uses fixture mock_account_ids as parameter
 def test_account_create_transaction_build(mock_account_ids):
     """Test building an account create transaction body with valid parameters."""
     operator_id, node_account_id = mock_account_ids
@@ -49,6 +53,7 @@ def test_account_create_transaction_build(mock_account_ids):
     assert transaction_body.cryptoCreateAccount.initialBalance == 100000000
     assert transaction_body.cryptoCreateAccount.memo == "Test account"
 
+# This test uses fixture mock_account_ids as parameter
 def test_account_create_transaction_sign(mock_account_ids):
     """Test signing the account create transaction."""
     operator_id, node_account_id = mock_account_ids
@@ -68,55 +73,61 @@ def test_account_create_transaction_sign(mock_account_ids):
     account_tx.freeze_with(None)  
     account_tx.sign(operator_private_key)
 
-    assert len(account_tx.signature_map.sigPair) == 1
+    # Verify signature was added
+    assert len(account_tx.signature_map.sigPair) == 1, \
+        "Transaction should have exactly one signature"
 
-def test_account_create_transaction_execute(mock_account_ids):
-    """Test executing the account create transaction."""
-    operator_id, node_account_id = mock_account_ids
-
-    new_private_key = PrivateKey.generate()
-    new_public_key = new_private_key.public_key()
-    operator_private_key = PrivateKey.generate()
-
-    account_tx = (
-        AccountCreateTransaction()
-        .set_key(new_public_key)
-        .set_initial_balance(100000000)
-        .set_account_memo("Test account")
-    )
-    account_tx.transaction_id = generate_transaction_id(operator_id)
-    account_tx.node_account_id = node_account_id
-    account_tx.freeze_with(None)  
-    account_tx.sign(operator_private_key)
-
-    mock_client = MagicMock(spec=Client)
-    mock_client.operator_account_id = operator_id
-    mock_client.operator_private_key = operator_private_key
-
-    mock_crypto_stub = MagicMock()
-    mock_client.crypto_stub = mock_crypto_stub
-
-    mock_response = MagicMock()
-    mock_response.nodeTransactionPrecheckCode = ResponseCode.OK
-    mock_crypto_stub.createAccount.return_value = mock_response
-
-    mock_receipt_proto = transaction_receipt_pb2.TransactionReceipt(
+def test_account_create_transaction():
+    """Integration test for AccountCreateTransaction with retry and response handling."""
+    # Create test transaction responses
+    busy_response = TransactionResponseProto()
+    busy_response.nodeTransactionPrecheckCode = ResponseCode.BUSY
+    
+    ok_response = TransactionResponseProto()
+    ok_response.nodeTransactionPrecheckCode = ResponseCode.OK
+    
+    # Create a mock receipt for a successful account creation
+    mock_receipt_proto = TransactionReceiptProto(
         status=ResponseCode.SUCCESS,
         accountID=basic_types_pb2.AccountID(
             shardNum=0,
             realmNum=0,
-            accountNum=1002
+            accountNum=1234
         )
     )
-    mock_receipt = TransactionReceipt(mock_receipt_proto)
-    account_tx.get_receipt = MagicMock(return_value=mock_receipt)
-
-    receipt = account_tx.execute(mock_client)
-
-    assert receipt.status == ResponseCode.SUCCESS
-    assert receipt.accountId.num == 1002
-    print(f"Account creation successful. New Account ID: {receipt.accountId}")
-
+    
+    # Create a response for the receipt query
+    receipt_query_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=mock_receipt_proto
+        )
+    )
+    
+    response_sequences = [
+        [ok_response, receipt_query_response],
+    ]
+    
+    # Use the context manager to set up and tear down the mock environment
+    with mock_hedera_servers(response_sequences) as client, \
+         patch('time.sleep'):
+        
+        # Create the transaction
+        new_key = PrivateKey.generate()
+        transaction = (
+            AccountCreateTransaction()
+            .set_key(new_key.public_key())
+            .set_initial_balance(100000000)  # 1 HBAR
+        )
+        
+        # Execute the transaction and get receipt
+        receipt = transaction.execute(client)
+        
+        # Verify the results
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+        assert receipt.accountId.num == 1234, "Should have created account with ID 1234"
 
 @pytest.fixture
 def mock_account_ids():

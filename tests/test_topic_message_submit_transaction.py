@@ -1,60 +1,101 @@
+"""Tests for the TopicMessageSubmitTransaction functionality."""
+
 import pytest
-from unittest.mock import MagicMock
-from hiero_sdk_python.consensus.topic_id import TopicId
+
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
-from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import (
+    response_header_pb2, 
     response_pb2,
+    transaction_get_receipt_pb2,
     transaction_receipt_pb2,
-    timestamp_pb2 as hapi_timestamp_pb2
+    transaction_response_pb2
 )
+from hiero_sdk_python.response_code import ResponseCode
 
-def test_execute_topic_submit_message():
-    """
-    Test executing the TopicMessageSubmitTransaction with a mock Client.
-    When calling tx.execute(client), freeze_with() checks client.node_account_id if tx.node_account_id is None.
-    """
-    topic_id = TopicId(0, 0, 1234)
-    message = "Hello from topic submit!"
-    tx = TopicMessageSubmitTransaction(topic_id, message)
+from tests.mock_server import mock_hedera_servers
 
-    tx.operator_account_id = AccountId(0, 0, 2)
+@pytest.fixture
+def message():
+    """Fixture to provide a test message."""
+    return "Hello from topic submit!"
 
-    client = MagicMock(spec=Client)
-    client.operator_private_key = PrivateKey.generate()
-    client.operator_account_id = AccountId(0, 0, 2)
-    client.node_account_id = AccountId(0, 0, 3) 
-
-    real_tx_id = TransactionId(
-        account_id=AccountId(0, 0, 2),
-        valid_start=hapi_timestamp_pb2.Timestamp(seconds=12345, nanos=6789)
+# This test uses fixtures (topic_id, message) as parameters
+def test_execute_topic_message_submit_transaction(topic_id, message):
+    """Test executing the TopicMessageSubmitTransaction successfully with mock server."""
+    # Create success response for the transaction submission
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
     )
-    client.generate_transaction_id.return_value = real_tx_id
-
-    client.topic_stub = MagicMock()
-
-    mock_response = MagicMock()
-    mock_response.nodeTransactionPrecheckCode = ResponseCode.OK
-    client.topic_stub.submitMessage.return_value = mock_response
-
-    real_receipt_proto = transaction_receipt_pb2.TransactionReceipt(
-        status=ResponseCode.OK
+    
+    # Create receipt response with SUCCESS status
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
     )
-    real_receipt = TransactionReceipt.from_proto(real_receipt_proto)
+    
+    response_sequences = [
+        [tx_response, receipt_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+        )
+        
+        try:
+            receipt = tx.execute(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+        
+        # Verify the receipt contains the expected values
+        assert receipt.status == ResponseCode.SUCCESS
 
-    client.get_transaction_receipt.return_value = real_receipt
 
-    try:
-        receipt = tx.execute(client)  
-    except Exception as e:
-        pytest.fail(f"TopicMessageSubmitTransaction execution failed with: {e}")
-
-    client.topic_stub.submitMessage.assert_called_once()
-    assert receipt is not None
-    assert receipt.status == ResponseCode.OK  
-    print("Test passed: TopicMessageSubmitTransaction executed successfully.")
+# This test uses fixture topic_id as parameter
+def test_topic_message_submit_transaction_with_large_message(topic_id):
+    """Test sending a large message (close to the maximum allowed size)."""
+    # Create a large message (just under the typical 4KB limit)
+    large_message = "A" * 4000
+    
+    # Create success responses
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+    
+    response_sequences = [
+        [tx_response, receipt_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(large_message)
+        )
+        
+        try:
+            receipt = tx.execute(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+        
+        # Verify the receipt contains the expected values
+        assert receipt.status == ResponseCode.SUCCESS

@@ -1,6 +1,7 @@
-from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import consensus_delete_topic_pb2, duration_pb2
+from hiero_sdk_python.hapi.services import consensus_delete_topic_pb2
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
 
 class TopicDeleteTransaction(Transaction):
     def __init__(self, topic_id=None):
@@ -42,26 +43,8 @@ class TopicDeleteTransaction(Transaction):
 
         return transaction_body
 
-    def _execute_transaction(self, client, transaction_proto):
-        """
-        Executes the topic delete transaction using the provided client.
-
-        Args:
-            client (Client): The client instance to use for execution.
-            transaction_proto (Transaction): The protobuf Transaction message.
-
-        Returns:
-            TransactionReceipt: The receipt from the network after transaction execution.
-
-        Raises:
-            Exception: If the transaction submission fails or receives an error response.
-        """
-        response = client.topic_stub.deleteTopic(transaction_proto)
-
-        if response.nodeTransactionPrecheckCode != ResponseCode.OK:
-            error_code = response.nodeTransactionPrecheckCode
-            error_message = ResponseCode.get_name(error_code)
-            raise Exception(f"Error during transaction submission: {error_code} ({error_message})")
-
-        receipt = self.get_receipt(client)
-        return receipt
+    def _get_method(self, channel: _Channel) -> _Method:
+        return _Method(
+            transaction_func=channel.topic.deleteTopic,
+            query_func=None
+        )

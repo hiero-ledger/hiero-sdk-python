@@ -1,10 +1,9 @@
 import pytest
-from unittest.mock import MagicMock
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from cryptography.hazmat.primitives import serialization
-from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 @pytest.fixture
 def mock_account_ids():
@@ -25,3 +24,18 @@ def amount():
 def metadata():
     """Fixture to provide mock metadata for NFTs."""
     return [b'a']
+
+@pytest.fixture
+def transaction_id():
+    """Fixture that generates a transaction ID for testing."""
+    return TransactionId.generate(AccountId(0, 0, 1234))
+
+@pytest.fixture
+def private_key():
+    """Fixture to generate a private key for testing."""
+    return PrivateKey.generate()
+
+@pytest.fixture
+def topic_id():
+    """Fixture to create a topic ID for testing."""
+    return TopicId(0, 0, 1234)

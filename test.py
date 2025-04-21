@@ -36,6 +36,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 
 # Token-related imports
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
@@ -51,6 +52,8 @@ from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransact
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 # Topic related imports
+from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import (
     TopicMessageSubmitTransaction
@@ -65,7 +68,7 @@ from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalance
 # Response handling
 from hiero_sdk_python.response_code import ResponseCode
 
-load_dotenv()
+load_dotenv(override=True)
 
 def load_operator_credentials():
     """Load operator credentials from environment variables."""
@@ -125,6 +128,8 @@ def create_fungible_token(client, operator_id, admin_key, supply_key, freeze_key
         initial_supply=1000,
         treasury_account_id=operator_id,
         token_type=TokenType.FUNGIBLE_COMMON,
+        supply_type=SupplyType.FINITE,
+        max_supply=10000  
     )
 
     # Creating TokenKeys
@@ -170,6 +175,8 @@ def create_nft_token(client, operator_id, admin_key, supply_key, freeze_key):
         initial_supply=0,
         treasury_account_id=operator_id,
         token_type=TokenType.NON_FUNGIBLE_UNIQUE,
+        supply_type=SupplyType.FINITE,
+        max_supply=10_000  
     )
 
     # Creating TokenKeys
@@ -302,6 +309,24 @@ def freeze_token(client, token_id, account_id, freeze_key):
     except Exception as e:
         print(f"Token freeze failed: {str(e)}")
         print(traceback.format_exc())
+        sys.exit(1)
+
+def unfreeze_token(client, token_id_1, recipient_id, freeze_key):
+    """Unfreeze the specified token with the given account."""
+    transaction =  TokenUnfreezeTransaction(account_id=recipient_id, token_id=token_id_1)
+
+    transaction.freeze_with(client)
+    transaction.sign(client.operator_private_key)
+    transaction.sign(freeze_key)
+
+    try:
+        receipt = transaction.execute(client)
+        if receipt.status != ResponseCode.SUCCESS:
+            status_message = ResponseCode.get_name(receipt.status)
+            raise Exception(f"Token unfreeze failed with status: {status_message}")
+        print("Token unfreeze successful.")
+    except Exception as e:
+        print(f"Token unfreeze failed: {str(e)}")
         sys.exit(1)
 
 def mint_fungible_token(client, token_id, supply_key, amount=2000):
@@ -490,6 +515,10 @@ def main():
     # Test freezing fungible and nft tokens. In this case from the recipient that just received token 1.
     freeze_token(client, token_id_1, recipient_id, freeze_key)
     freeze_token(client, token_id_nft_1, recipient_id, freeze_key)
+
+    # Test unfreezing fungible and nft tokens. In this case from the recipient that just received token 1.
+    unfreeze_token(client, token_id_1, recipient_id, freeze_key)
+    unfreeze_token(client, token_id_nft_1, recipient_id, freeze_key)
 
     # Test dissociating a fungible and nft token. In this case the tokens that were not transferred or frozen.
     dissociate_token(client, recipient_id, recipient_private_key, [token_id_2])

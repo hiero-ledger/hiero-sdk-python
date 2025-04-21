@@ -1,5 +1,5 @@
 """
-This is a simple example of how to create a token using setting methods.
+This is a simple example of how to create a finite fungible token using setting methods.
 
 It:
 1. Loads environment variables.
@@ -25,14 +25,15 @@ from hiero_sdk_python import (
     PrivateKey,
     TokenCreateTransaction,
     Network,
-    TokenType
+    TokenType,
+    SupplyType
     )
 
 # Load environment variables from .env file
 load_dotenv()
 
-def create_token():
-    """Function to create a fungible token on the Hedera network."""
+def create_token_fungible_finite():
+    """Function to create a finite fungible token."""
 
     # Network Setup
     network = Network(network='testnet')
@@ -54,20 +55,26 @@ def create_token():
     # In this example, we set up a default empty token create transaction, then set the values
     transaction = (
         TokenCreateTransaction()
-        .set_token_name("MyToken")
-        .set_token_symbol("MTK")
-        .set_decimals(2) # 0 for NON_FUNGIBLE_UNIQUE
-        .set_initial_supply(10) # 0 for NON_FUNGIBLE_UNIQUE
+        .set_token_name("FiniteFungibleToken")
+        .set_token_symbol("FFT")
+        .set_decimals(2)
+        .set_initial_supply(10)  # TokenType.FUNGIBLE_COMMON must have >0 initial supply. Cannot exceed max supply
         .set_treasury_account_id(operator_id) # Also known as treasury account
-        .set_token_type(TokenType.FUNGIBLE_COMMON) # or TokenType.NON_FUNGIBLE_UNIQUE
+        .set_token_type(TokenType.FUNGIBLE_COMMON)
+        .set_supply_type(SupplyType.FINITE)
+        .set_max_supply(100)
         .set_admin_key(admin_key) # Optional
         .set_supply_key(supply_key) # Optional
         .set_freeze_key(freeze_key) # Optional
         .freeze_with(client) # Freeze the transaction. Returns self so we can sign.
-        .sign(operator_key) # Required signature of treasury account
-        .sign(admin_key) if admin_key else None  # Only sign if admin_key is present. No need to sign with the supply or freeze keys to create the token.
-
     )
+
+    # Required signature by treasury (operator)
+    transaction.sign(operator_key)
+
+    # Sign with adminKey if provided
+    if admin_key:
+        transaction.sign(admin_key)
 
     try:
 
@@ -75,9 +82,9 @@ def create_token():
         receipt = transaction.execute(client)
 
         if receipt and receipt.tokenId:
-            print(f"Token created with ID: {receipt.tokenId}")
+            print(f"Finite fungible token created with ID: {receipt.tokenId}")
         else:
-            print("Token creation failed: Token ID not returned in receipt.")
+            print("Finite fungible token creation failed: Token ID not returned in receipt.")
             sys.exit(1)
 
     except Exception as e:
@@ -85,4 +92,4 @@ def create_token():
         sys.exit(1)
 
 if __name__ == "__main__":
-    create_token()
+    create_token_fungible_finite()
