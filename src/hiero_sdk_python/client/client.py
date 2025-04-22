@@ -1,3 +1,4 @@
+from hiero_sdk_python.logger.logger import Logger, LogLevel
 import grpc
 from collections import namedtuple
 
@@ -38,6 +39,8 @@ class Client:
         self._switch_node(initial_node_id)
 
         self._init_mirror_stub()
+        
+        self.logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
     def _init_mirror_stub(self):
         """
