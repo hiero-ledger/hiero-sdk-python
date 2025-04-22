@@ -12,6 +12,7 @@ from hiero_sdk_python.hapi.services import (
     network_service_pb2_grpc,
     file_service_pb2_grpc,
 )
+from hiero_sdk_python.logger.log_level import LogLevel
 
 class MockServer:
     """Mock gRPC server that returns predetermined responses."""
@@ -140,7 +141,7 @@ def mock_hedera_servers(response_sequences):
         # Create network and client
         network = Network(nodes=nodes)
         client = Client(network)
-        
+        client.logger.set_level(LogLevel.DISABLED)
         # Set the operator
         key = PrivateKey.generate()
         client.set_operator(AccountId(0, 0, 1800), key)

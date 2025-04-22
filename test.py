@@ -35,6 +35,7 @@ from hiero_sdk_python.account.account_create_transaction import AccountCreateTra
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
 # Token-related imports
+from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import (
@@ -485,6 +486,7 @@ def main():
     network = Network(network=network_type)
     client = Client(network)
     client.set_operator(operator_id, operator_key)
+    client.logger.set_level(LogLevel.ERROR)
 
     # Test creating a new account
     recipient_id, recipient_private_key = create_new_account(client)
