@@ -230,7 +230,7 @@ class _Executable(ABC):
                 logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", current_node_account_id)
                 continue
             
-        logger.error("Exceeded maximum attempts for request", "last exception being", err_persistant)
+        logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
         
         raise MaxAttemptsError("Exceeded maximum attempts for request", client.node_account_id, err_persistant)
 
