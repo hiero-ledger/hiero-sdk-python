@@ -169,13 +169,13 @@ class _Executable(ABC):
         
         tx_id = self.transaction_id if hasattr(self, "transaction_id") else None
         
+        logger = client.logger
+        
         for attempt in range(max_attempts):
             # Exponential backoff for retries
             if attempt > 0 and current_backoff < self._max_backoff:
                 current_backoff *= 2
-                
-            logger = client.logger
-
+            
             # Create a channel wrapper from the client's channel
             channel = _Channel(client.channel)
             
@@ -217,17 +217,17 @@ class _Executable(ABC):
                         raise status_error
                     case _ExecutionState.FINISHED:
                         # If the transaction completed successfully, map the response and return it
-                        logger.trace(f"{self.__class__.__name__} finished")
+                        logger.trace(f"{self.__class__.__name__} finished execution")
                         return self._map_response(response, client.node_account_id, proto_request)
             except grpc.RpcError as e:
                 # Save the error
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
                 # Switch to a different node for the next attempt
-                logger.info(f"Switching to a different node for the next attempt: {err_persistant}")
                 node_account_ids = client.get_node_account_ids()
                 node_index = (attempt + 1) % len(node_account_ids)
                 current_node_account_id = node_account_ids[node_index]
                 client._switch_node(current_node_account_id)
+                logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", current_node_account_id)
                 continue
             
         logger.error("Exceeded maximum attempts for request", "last exception being", err_persistant)

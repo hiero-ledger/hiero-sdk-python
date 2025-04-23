@@ -38,7 +38,7 @@ class LogLevel(IntEnum):
             LogLevel: The LogLevel enum value
         """
         if level_str is None:
-            return cls.INFO
+            return cls.ERROR
 
         try:
             return cls[level_str.upper()]
@@ -53,7 +53,7 @@ class LogLevel(IntEnum):
         Returns:
             LogLevel: The LogLevel enum value
         """
-        level_str = os.getenv('HEDERA_SDK_PYTHON_LOG_LEVEL')
+        level_str = os.getenv('LOG_LEVEL')
         return cls.from_string(level_str)
 
     
