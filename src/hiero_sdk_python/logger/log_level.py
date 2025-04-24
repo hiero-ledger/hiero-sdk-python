@@ -55,6 +55,3 @@ class LogLevel(IntEnum):
         """
         level_str = os.getenv('LOG_LEVEL')
         return cls.from_string(level_str)
-
-    
-        
