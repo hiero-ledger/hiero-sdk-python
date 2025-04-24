@@ -65,7 +65,7 @@ def show_logging_workflow():
         print(f"Account creation failed: {str(e)}")
     
     # Logger can be disabled
-    client.logger.set_level(LogLevel.DISABLED)
+    client.logger.set_silent(True)
     
     # Create account transaction used with disabled logger
     transaction = (
