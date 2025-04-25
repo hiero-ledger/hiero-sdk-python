@@ -204,9 +204,7 @@ class Transaction(_Executable):
             self.transaction_id = client.generate_transaction_id()
 
         if self.node_account_id is None:
-            if not hasattr(client, 'node_account_id') or client.node_account_id is None:
-                raise ValueError("Node account ID is not set in client.")
-            self.node_account_id = client.node_account_id
+            self.node_account_id = client.network.current_node._account_id
 
         # print(f"Transaction's node account ID set to: {self.node_account_id}")
         self.transaction_body_bytes = self.build_transaction_body().SerializeToString()

@@ -175,12 +175,13 @@ class _Executable(ABC):
             # Exponential backoff for retries
             if attempt > 0 and current_backoff < self._max_backoff:
                 current_backoff *= 2
-            
-            # Create a channel wrapper from the client's channel
-            channel = _Channel(client.channel)
-            
+                        
             # Set the node account id to the client's node account id
-            self.node_account_id = client.node_account_id
+            node = client.network.current_node
+            self.node_account_id = node._account_id
+  
+            # Create a channel wrapper from the client's channel
+            channel = node._get_channel()
             
             logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self.node_account_id, "attempt", attempt + 1, "maxAttempts", max_attempts)
 
@@ -218,21 +219,17 @@ class _Executable(ABC):
                     case _ExecutionState.FINISHED:
                         # If the transaction completed successfully, map the response and return it
                         logger.trace(f"{self.__class__.__name__} finished execution")
-                        return self._map_response(response, client.node_account_id, proto_request)
+                        return self._map_response(response, self.node_account_id, proto_request)
             except grpc.RpcError as e:
                 # Save the error
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
-                # Switch to a different node for the next attempt
-                node_account_ids = client.get_node_account_ids()
-                node_index = (attempt + 1) % len(node_account_ids)
-                current_node_account_id = node_account_ids[node_index]
-                client._switch_node(current_node_account_id)
-                logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", current_node_account_id)
+                node = client.network._select_node()
+                logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id)
                 continue
             
         logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
         
-        raise MaxAttemptsError("Exceeded maximum attempts for request", client.node_account_id, err_persistant)
+        raise MaxAttemptsError("Exceeded maximum attempts for request", self.node_account_id, err_persistant)
 
 
 def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logger, error):
