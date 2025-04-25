@@ -128,11 +128,19 @@ class Endpoint:
         Returns:
             str: The string representation in the format 'domain:port' or 'ip:port'.
         """
-        if self._domain_name:
-            # If domain name is populated, use domain_name + port
-            return f"{self._domain_name}:{self._port}"
-        else:
-            # Format IP address as dotted decimal notation
-            if self._address:
-                return f"{self._address[0] & 0xFF}.{self._address[1] & 0xFF}.{self._address[2] & 0xFF}.{self._address[3] & 0xFF}:{self._port}"
-            return ""
+        
+        return f"{self._address.decode('utf-8')}:{self._port}"
+
+    @classmethod
+    def from_dict(cls, json_data):
+        """
+        Create an Endpoint from a JSON object.
+        
+        Args:
+            json_data: The JSON object.
+        """
+        return cls(
+            address=bytes(json_data.get('ip_address_v4', ''), 'utf-8'),
+            port=json_data.get('port'),
+            domain_name=json_data.get('domain_name')
+        )
