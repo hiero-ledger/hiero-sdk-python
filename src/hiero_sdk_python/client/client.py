@@ -67,12 +67,21 @@ class Client:
             raise ValueError("Operator account ID must be set to generate transaction ID.")
         return TransactionId.generate(self.operator_account_id)
 
+    def get_node_account_ids(self):
+        """
+        Returns a list of node AccountIds that the client can use to send queries and transactions.
+        """
+        if self.network and self.network.nodes:
+            return [node._account_id for node in self.network.nodes]
+        else:
+            raise ValueError("No nodes available in the network configuration.")
+
     def close(self):
         """
         Closes any open gRPC channels and frees resources.
         Call this when you are done using the Client to ensure a clean shutdown.
         """
-
+        
         if self.mirror_channel is not None:
             self.mirror_channel.close()
             self.mirror_channel = None
