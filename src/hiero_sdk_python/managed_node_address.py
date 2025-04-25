@@ -55,46 +55,6 @@ class _ManagedNodeAddress:
         """
         return self._port == 50212 or self._port == 443
     
-    def _to_insecure(self):
-        """
-        Convert a secure address to an insecure one by changing the port.
-        
-        Returns:
-            ManagedNodeAddress: This instance with the port changed if necessary.
-        """
-        if self._port == 50212:
-            self._port = 50211
-        
-        return self
-    
-    def _to_secure(self):
-        """
-        Convert an insecure address to a secure one by changing the port.
-        
-        Returns:
-            ManagedNodeAddress: This instance with the port changed if necessary.
-        """
-        if self._port == 50211:
-            self._port = 50212
-        
-        return self
-    
-    def _equals(self, other):
-        """
-        Compare this address with another ManagedNodeAddress.
-        
-        Args:
-            other (ManagedNodeAddress): The address to compare with.
-            
-        Returns:
-            bool: True if the addresses are equal, False otherwise.
-        """
-        if self._address is not None and self._address == other._address:
-            if self._port == other._port:
-                return True
-        
-        return False
-    
     def __str__(self):
         """
         Get a string representation of the ManagedNodeAddress.

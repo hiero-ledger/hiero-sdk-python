@@ -98,11 +98,10 @@ class NodeAddress:
         """
         addresses_str = ""
         for address in self._addresses:
-            addresses_str += address.__str__()
-        
+            addresses_str += str(address)
         cert_hash_str = self._cert_hash.hex()
         node_id_str = str(self._node_id)
-        account_id_str = self._account_id.__str__()
+        account_id_str = str(self._account_id)
         
         return (
             f"NodeAccountId: {account_id_str} {addresses_str}\n"
