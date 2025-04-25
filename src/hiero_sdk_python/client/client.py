@@ -24,20 +24,11 @@ class Client:
             network = Network()
         self.network = network
         
-        self.channel = None
-
         self.mirror_channel = None
         self.mirror_stub = None
 
         self.max_attempts = 10
-
-        node_account_ids = self.get_node_account_ids()
-        if not node_account_ids:
-            raise ValueError("No nodes available in the network configuration.")
-
-        initial_node_id = node_account_ids[0]
-        self._switch_node(initial_node_id)
-
+        
         self._init_mirror_stub()
         
         self.logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
@@ -76,34 +67,11 @@ class Client:
             raise ValueError("Operator account ID must be set to generate transaction ID.")
         return TransactionId.generate(self.operator_account_id)
 
-    def get_node_account_ids(self):
-        """
-        Returns a list of node AccountIds that the client can use to send queries and transactions.
-        """
-        if self.network and self.network.nodes:
-            return [account_id for (address, account_id) in self.network.nodes]
-        else:
-            raise ValueError("No nodes available in the network configuration.")
-
-    def _switch_node(self, node_account_id):
-        """
-        Switches to the specified node in the network and updates the gRPC stubs.
-        """
-        node_address = self.network.get_node_address(node_account_id)
-        if node_address is None:
-            raise ValueError(f"No node address found for account ID {node_account_id}")
-
-        self.channel = grpc.insecure_channel(node_address)
-        self.node_account_id = node_account_id
-
     def close(self):
         """
         Closes any open gRPC channels and frees resources.
         Call this when you are done using the Client to ensure a clean shutdown.
         """
-        if self.channel is not None:
-            self.channel.close()
-            self.channel = None
 
         if self.mirror_channel is not None:
             self.mirror_channel.close()
