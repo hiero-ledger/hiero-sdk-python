@@ -109,3 +109,30 @@ class NodeAddress:
             f"NodeId: {node_id_str}\n"
             f"PubKey: {self._public_key or ''}"
         )
+
+    @classmethod
+    def _from_dict(cls, node) -> 'NodeAddress':
+        """
+        Create a NodeAddress from a dictionary.
+        """
+        
+        service_endpoints = node.get('service_endpoints', [])
+        public_key = node.get('public_key')
+        account_id = AccountId.from_string(node.get('node_account_id'))
+        node_id = node.get('node_id')
+        # Get the hash from the node, remove the 0x prefix and convert to bytes
+        cert_hash = bytes.fromhex(node.get('node_cert_hash').removeprefix('0x'))
+        description = node.get('description')
+        
+        endpoints = []
+        for endpoint in service_endpoints:
+            endpoints.append(Endpoint.from_dict(endpoint))
+        
+        return cls(
+            public_key=public_key,
+            account_id=account_id,
+            node_id=node_id,
+            cert_hash=cert_hash,
+            description=description,
+            addresses=endpoints
+        )
