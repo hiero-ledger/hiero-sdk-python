@@ -29,7 +29,7 @@ class TransactionResponse:
         """
         # TODO: Decide how to avoid circular imports
         from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
-        
+        # TODO: Implement set_node_account_ids() to get failure reason for preHandle failures
         receipt = TransactionGetReceiptQuery().set_transaction_id(self.transaction_id).execute(client)
     
         return receipt

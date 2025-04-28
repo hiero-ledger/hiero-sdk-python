@@ -81,7 +81,8 @@ class Network:
             if not self.nodes:
                 raise ValueError(f"No default nodes for network='{self.network}'")
         
-        self._select_node()
+        self._node_index = random.randint(0, len(self.nodes) - 1)
+        self.current_node = self.nodes[self._node_index]
 
     def _fetch_nodes_from_mirror_node(self):
         """
@@ -122,7 +123,8 @@ class Network:
         """
         if not self.nodes:
             raise ValueError("No nodes available to select.")
-        self.current_node = random.choice(self.nodes)
+        self._node_index = (self._node_index + 1) % len(self.nodes)
+        self.current_node = self.nodes[self._node_index]
         return self.current_node
 
     def get_mirror_address(self) -> str:
