@@ -76,9 +76,13 @@ class Network:
 
         if nodes is not None:
             self.nodes = nodes
+        elif self.network in ('solo', 'localhost', 'local'):
+            self.nodes = self._fetch_nodes_from_default_nodes()
         else:
             self.nodes = self._fetch_nodes_from_mirror_node()
-            if not self.nodes:
+            if not self.nodes and self.network in self.DEFAULT_NODES:
+                self.nodes = self._fetch_nodes_from_default_nodes()
+            elif not self.nodes:
                 raise ValueError(f"No default nodes for network='{self.network}'")
         
         self._node_index = secrets.randbelow(len(self.nodes))
@@ -115,6 +119,15 @@ class Network:
         except requests.RequestException as e:
             print(f"Error fetching nodes from mirror node API: {e}")
             return []
+        
+    def _fetch_nodes_from_default_nodes(self):
+        """
+        Fetches the list of nodes from the default nodes for the network.
+        """
+        nodes = []
+        for node in self.DEFAULT_NODES[self.network]:
+            nodes.append(_Node(node[1], node[0], None))
+        return nodes
 
     def _select_node(self) -> _Node:
         """
