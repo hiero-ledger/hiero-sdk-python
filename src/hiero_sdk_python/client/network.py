@@ -1,4 +1,4 @@
-import random
+import secrets
 import requests
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
@@ -81,7 +81,7 @@ class Network:
             if not self.nodes:
                 raise ValueError(f"No default nodes for network='{self.network}'")
         
-        self._node_index = random.randint(0, len(self.nodes) - 1)
+        self._node_index = secrets.randbelow(len(self.nodes))
         self.current_node = self.nodes[self._node_index]
 
     def _fetch_nodes_from_mirror_node(self):
