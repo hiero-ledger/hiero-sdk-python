@@ -101,7 +101,7 @@ def test_node_switching_after_single_grpc_error():
         )
     )
     
-    # First server gives error, second server gives OK
+    # First node gives error, second node gives OK, third node gives error
     response_sequences = [
         [error],
         [ok_response, receipt_response],
@@ -119,9 +119,8 @@ def test_node_switching_after_single_grpc_error():
             transaction.execute(client)
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
-        
-        # Verify we're now on the second node (index 1)
-        assert client.node_account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
+        # Verify we're now on the second node
+        assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
 
 
 def test_node_switching_after_multiple_grpc_errors():
@@ -158,8 +157,8 @@ def test_node_switching_after_multiple_grpc_errors():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         
-        # Verify we're now on the third node (index 2)
-        assert client.node_account_id == AccountId(0, 0, 5), "Client should have switched to the third node"
+        # Verify we're now on the third node
+        assert client.network.current_node._account_id == AccountId(0, 0, 5), "Client should have switched to the third node"
         assert receipt.status == ResponseCode.SUCCESS
 
 
@@ -179,8 +178,7 @@ def test_transaction_with_expired_error_not_retried():
         )
     )
     response_sequences = [
-        [error_response],
-        [ok_response, receipt_response],
+        [error_response]
     ]
     
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
@@ -212,8 +210,7 @@ def test_transaction_with_fatal_error_not_retried():
         )
     )
     response_sequences = [
-        [error_response],
-        [ok_response, receipt_response],
+        [error_response]
     ]
     
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
@@ -302,7 +299,7 @@ def test_retriable_error_does_not_switch_node():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         
-        assert client.node_account_id == AccountId(0, 0, 3), "Client should not switch node on retriable errors"
+        assert client.network.current_node._account_id == AccountId(0, 0, 3), "Client should not switch node on retriable errors"
 
 def test_topic_create_transaction_retry_on_busy():
     """Test that TopicCreateTransaction retries on BUSY response."""
@@ -356,7 +353,7 @@ def test_topic_create_transaction_retry_on_busy():
         assert mock_sleep.call_count == 1, "Should have retried once"
         
         # Verify we didn't switch nodes (BUSY is retriable without node switch)
-        assert client.node_account_id == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
+        assert client.network.current_node._account_id == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
 
 def test_topic_create_transaction_fails_on_nonretriable_error():
     """Test that TopicCreateTransaction fails on non-retriable error."""

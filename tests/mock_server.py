@@ -2,6 +2,7 @@ import grpc
 from concurrent import futures
 from contextlib import contextmanager
 from hiero_sdk_python import Network, Client, AccountId, PrivateKey
+from hiero_sdk_python.client.network import _Node
 import socket
 from contextlib import closing
 from hiero_sdk_python.hapi.services import (
@@ -136,7 +137,9 @@ def mock_hedera_servers(response_sequences):
     
     try:
         # Configure the network with mock servers
-        nodes = [(server.address, AccountId(0, 0, 3 + i)) for i, server in enumerate(servers)]
+        nodes = []
+        for i, server in enumerate(servers):
+            nodes.append(_Node(AccountId(0, 0, 3 + i), server.address, None))
         
         # Create network and client
         network = Network(nodes=nodes)

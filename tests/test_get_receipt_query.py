@@ -97,7 +97,7 @@ def test_receipt_query_retry_on_receipt_not_found(transaction_id):
         assert mock_sleep.call_count == 1, "Should have retried once"
         
         # Verify we didn't switch nodes (RECEIPT_NOT_FOUND is retriable without node switch)
-        assert client.node_account_id == AccountId(0, 0, 3)
+        assert client.network.current_node._account_id == AccountId(0, 0, 3)
 
 # This test uses fixture transaction_id as parameter
 def test_receipt_query_receipt_status_error(transaction_id):

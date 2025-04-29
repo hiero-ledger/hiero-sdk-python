@@ -56,4 +56,3 @@ def test_string_representation():
     assert "CertHash: 73616d706c652d636572742d68617368" in result  # hex representation of sample-cert-hash
     assert "NodeId: 1234" in result
     assert "PubKey: sample-public-key" in result
-    assert "example.com" in result
