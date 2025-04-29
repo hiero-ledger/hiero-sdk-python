@@ -88,7 +88,7 @@ class Network:
         """
         Fetches the list of nodes from the Hedera Mirror Node REST API.
         Returns:
-            list: A list of tuples [(node_address, AccountId), ...].
+            list: A list of _Node objects.
         """
         base_url = self.MIRROR_NODE_URLS.get(self.network)
         if not base_url:
@@ -118,8 +118,16 @@ class Network:
 
     def _select_node(self) -> _Node:
         """
-        Select a random node from self.nodes and store it if you want to track a 'current' node.
-        This is optional. The client can still pick or switch nodes as needed.
+        Select the next node in the collection of available nodes using round-robin selection.
+        
+        This method increments the internal node index, wrapping around when reaching the end
+        of the node list, and updates the current_node reference.
+        
+        Raises:
+            ValueError: If no nodes are available for selection.
+        
+        Returns:
+            _Node: The selected node instance.
         """
         if not self.nodes:
             raise ValueError("No nodes available to select.")
