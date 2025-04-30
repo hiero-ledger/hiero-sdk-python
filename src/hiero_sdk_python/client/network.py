@@ -77,6 +77,8 @@ class Network:
             self.nodes = self._fetch_nodes_from_mirror_node()
             if not self.nodes:
                 if self.network in self.DEFAULT_NODES:
+                    print(f"Using default nodes for network='{self.network}'")
+                    print(f"Default nodes: {self.DEFAULT_NODES[self.network]}")
                     self.nodes = self.DEFAULT_NODES[self.network]
                 else:
                     raise ValueError(f"No default nodes for network='{self.network}'")
@@ -112,6 +114,8 @@ class Network:
                             account_id_str = node['node_account_id']
                             account_id = AccountId.from_string(account_id_str)
                             nodes.append((address, account_id))
+            for node in nodes:
+                print(f"Node address: {str(node[0])}, Account ID: {str(node[1])}")
             return nodes
         except requests.RequestException as e:
             print(f"Error fetching nodes from mirror node API: {e}")

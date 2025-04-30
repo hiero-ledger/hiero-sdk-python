@@ -486,8 +486,14 @@ def main():
     network = Network(network=network_type)
     client = Client(network)
     client.set_operator(operator_id, operator_key)
-    client.logger.set_level(LogLevel.ERROR)
-
+    client.logger.set_level(LogLevel.TRACE)
+    client.logger.trace(f"Printing network nodes")
+    for node in client.network.nodes:
+        client.logger.trace(f"Node address: {str(node[0])}, Account ID: {node[1]}")
+    
+    client.logger.trace(f"Network type: {client.network.network}")
+    client.logger.trace(f"Network current node: {str(client.network.nodes[0][0])}, Account ID: {client.network.nodes[0][1]}")
+    client.logger.trace(f"Network mirror address: {client.network.mirror_address}")
     # Test creating a new account
     recipient_id, recipient_private_key = create_new_account(client)
 
