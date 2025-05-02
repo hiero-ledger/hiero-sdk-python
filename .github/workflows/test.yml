@@ -43,7 +43,7 @@ jobs:
       - name: Install your package
         run: pip install -e .
 
-      - name: Run tests
+      - name: Run integration tests
         env:
           OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
           OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
@@ -51,4 +51,8 @@ jobs:
           PUBLIC_KEY: ${{ steps.solo.outputs.publicKey }}
           NETWORK: solo
         run: |
-          python test.py; uv run pytest
+          uv run pytest -m integration
+
+      - name: Run unit tests
+        run: |
+          uv run pytest -m unit
