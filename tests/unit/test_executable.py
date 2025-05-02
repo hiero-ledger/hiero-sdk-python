@@ -16,7 +16,9 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.mock_server import RealRpcError, mock_hedera_servers
+from tests.unit.mock_server import RealRpcError, mock_hedera_servers
+
+pytestmark = pytest.mark.unit
 
 def test_retry_success_before_max_attempts():
     """Test that execution succeeds on the last attempt before max_attempts."""

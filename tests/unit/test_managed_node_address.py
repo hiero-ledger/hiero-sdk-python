@@ -1,6 +1,7 @@
 import pytest
 from src.hiero_sdk_python.managed_node_address import _ManagedNodeAddress
 
+pytestmark = pytest.mark.unit
 
 def test_init():
     """Test initialization of _ManagedNodeAddress."""
@@ -8,13 +9,11 @@ def test_init():
     assert address._address == "127.0.0.1"
     assert address._port == 50211
 
-
 def test_from_string_valid():
     """Test creating _ManagedNodeAddress from a valid string."""
     address = _ManagedNodeAddress._from_string("127.0.0.1:50211")
     assert address._address == "127.0.0.1"
     assert address._port == 50211
-
 
 def test_from_string_ip_address():
     """Test creating _ManagedNodeAddress from an IP address string."""
@@ -42,24 +41,20 @@ def test_from_string_invalid_format():
     with pytest.raises(ValueError):
         _ManagedNodeAddress._from_string("invalid_format")
 
-
 def test_from_string_invalid_string_with_spaces():
     """Test creating _ManagedNodeAddress from an invalid string with spaces."""
     with pytest.raises(ValueError):
         _ManagedNodeAddress._from_string("this is a random string with spaces:443")
-
 
 def test_from_string_invalid_port():
     """Test creating _ManagedNodeAddress with invalid port."""
     with pytest.raises(ValueError):
         _ManagedNodeAddress._from_string("127.0.0.1:invalid")
 
-
 def test_from_string_invalid_url_port():
     """Test creating _ManagedNodeAddress with invalid URL port."""
     with pytest.raises(ValueError):
         _ManagedNodeAddress._from_string("hcs.mainnet.mirrornode.hedera.com:notarealport")
-
 
 def test_is_transport_security():
     """Test _is_transport_security method."""

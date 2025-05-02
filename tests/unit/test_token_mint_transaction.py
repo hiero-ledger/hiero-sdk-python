@@ -7,6 +7,8 @@ from cryptography.hazmat.primitives import serialization
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import token_mint_pb2
 
+pytestmark = pytest.mark.unit
+
 def generate_transaction_id(account_id_proto):
     """Generate a unique transaction ID based on the account ID and the current timestamp."""
     import time

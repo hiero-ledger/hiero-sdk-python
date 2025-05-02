@@ -12,7 +12,9 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 
-from tests.mock_server import mock_hedera_servers
+from tests.unit.mock_server import mock_hedera_servers
+
+pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def message():

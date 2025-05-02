@@ -8,6 +8,8 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import timestamp_pb2 as hapi_timestamp_pb2
 
+pytestmark = pytest.mark.unit
+
 @pytest.fixture
 def mock_client():
     """Fixture to provide a mock Client instance."""

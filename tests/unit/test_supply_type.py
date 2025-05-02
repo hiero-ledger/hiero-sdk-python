@@ -1,6 +1,8 @@
 import pytest
 from hiero_sdk_python.tokens.supply_type import SupplyType
 
+pytestmark = pytest.mark.unit
+
 def test_members():
     assert SupplyType.INFINITE.value == 0
     assert SupplyType.FINITE.value == 1

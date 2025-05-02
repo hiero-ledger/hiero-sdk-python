@@ -1,6 +1,8 @@
 import pytest
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
+pytestmark = pytest.mark.unit
+
 # This test uses fixture mock_account_ids as parameter
 def test_add_token_transfer(mock_account_ids):
     """Test adding token transfers and ensure amounts are correctly added."""

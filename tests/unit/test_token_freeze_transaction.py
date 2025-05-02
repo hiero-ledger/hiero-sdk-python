@@ -4,6 +4,8 @@ from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransact
 from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
+pytestmark = pytest.mark.unit
+
 def generate_transaction_id(account_id_proto):
     """Generate a unique transaction ID based on the account ID and the current timestamp."""
     import time

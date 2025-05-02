@@ -3,6 +3,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.address_book.node_address import NodeAddress
 
+pytestmark = pytest.mark.unit
 
 def test_init():
     """Test initialization of _NodeAddress."""
@@ -28,7 +29,6 @@ def test_init():
     assert node_address._cert_hash == cert_hash
     assert node_address._addresses == addresses
     assert node_address._description == "Sample Node"
-
 
 def test_string_representation():
     """Test string representation of _NodeAddress."""

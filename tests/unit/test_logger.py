@@ -1,7 +1,9 @@
 import os
+import pytest
 from src.hiero_sdk_python.logger.logger import Logger
 from src.hiero_sdk_python.logger.log_level import LogLevel
 
+pytestmark = pytest.mark.unit
 
 def test_set_level():
     """Test that changing log level affects what will be logged."""

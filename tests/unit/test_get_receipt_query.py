@@ -15,7 +15,9 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
 
-from tests.mock_server import mock_hedera_servers
+from tests.unit.mock_server import mock_hedera_servers
+
+pytestmark = pytest.mark.unit
 
 # This test uses fixture transaction_id as parameter
 def test_transaction_get_receipt_query(transaction_id):

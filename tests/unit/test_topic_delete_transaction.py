@@ -13,7 +13,9 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 
-from tests.mock_server import mock_hedera_servers
+from tests.unit.mock_server import mock_hedera_servers
+
+pytestmark = pytest.mark.unit
 
 # This test uses fixtures (mock_account_ids, topic_id) as parameters
 def test_build_topic_delete_transaction_body(mock_account_ids, topic_id):

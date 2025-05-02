@@ -12,7 +12,9 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services import transaction_get_receipt_pb2, response_header_pb2
 
-from tests.mock_server import mock_hedera_servers
+from tests.unit.mock_server import mock_hedera_servers
+
+pytestmark = pytest.mark.unit
 
 def generate_transaction_id(account_id_proto):
     """Generate a unique transaction ID based on the account ID and the current timestamp."""
