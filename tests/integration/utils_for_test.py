@@ -1,0 +1,106 @@
+import os
+from dotenv import load_dotenv
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
+from hiero_sdk_python.logger.log_level import LogLevel
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
+from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
+from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
+
+load_dotenv(override=True)
+
+class IntegrationTestEnv:
+    def __init__(self):
+        network = Network(os.getenv('NETWORK'))
+        self.client = Client(network)
+        operator_id = os.getenv('OPERATOR_ID')
+        operator_key = os.getenv('OPERATOR_KEY')
+        if operator_id and operator_key:
+            self.operator_id = AccountId.from_string(operator_id)
+            self.operator_key = PrivateKey.from_string(operator_key)
+            self.client.set_operator(self.operator_id, self.operator_key)
+        
+        self.client.logger.set_level(LogLevel.ERROR)
+        self.public_operator_key = self.operator_key.public_key()
+        
+    def close(self, token_id = None):
+        try:
+            if token_id:
+                transaction = TokenDeleteTransaction(token_id=token_id)
+                transaction.freeze_with(self.client)
+                transaction.sign(self.operator_key)
+                transaction.execute(self.client)
+                
+                assert self.client.operator is not None, "Operator not found in client"
+            
+                dissociate_transaction = TokenDissociateTransaction(
+                    account_id=self.client.operator.account_id,
+                    token_ids=[token_id],
+                )
+                dissociate_transaction.freeze_with(self.client)
+                dissociate_transaction.sign(self.operator_key)
+                receipt = dissociate_transaction.execute(self.client)
+                
+                assert receipt.status == ResponseCode.SUCCESS, f"Token dissociation failed with status: {ResponseCode.get_name(receipt.status)}"
+        finally:
+            self.client.close()
+    
+
+def create_fungible_token(env):
+    token_params = TokenParams(
+            token_name="PTokenTest34",
+            token_symbol="PTT34",
+            decimals=2,
+            initial_supply=1000,
+            treasury_account_id=env.operator_id,
+            token_type=TokenType.FUNGIBLE_COMMON,
+            supply_type=SupplyType.FINITE,
+            max_supply=10000
+        )
+    
+    token_keys = TokenKeys(
+            admin_key=env.operator_key,
+            supply_key=env.operator_key,
+            freeze_key=env.operator_key
+        )
+        
+    token_transaction = TokenCreateTransaction(token_params, token_keys)
+    token_transaction.freeze_with(env.client)
+    token_transaction.sign(env.operator_key)
+    token_receipt = token_transaction.execute(env.client)
+    
+    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
+    
+    return token_receipt.tokenId
+
+def create_nft_token(env):
+    token_params = TokenParams(
+        token_name="PythonNFTToken",
+        token_symbol="PNFT",
+        decimals=0,
+        initial_supply=0,
+        treasury_account_id=env.operator_id,
+        token_type=TokenType.NON_FUNGIBLE_UNIQUE,
+        supply_type=SupplyType.FINITE,
+        max_supply=10000  
+    )
+    
+    token_keys = TokenKeys(
+        admin_key=env.operator_key,
+        supply_key=env.operator_key,
+        freeze_key=env.operator_key
+    )
+
+    transaction = TokenCreateTransaction(token_params, token_keys)
+    transaction.freeze_with(env.client)
+    transaction.sign(env.operator_key)
+    token_receipt = transaction.execute(env.client)
+    
+    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
+    
+    return token_receipt.tokenId
