@@ -26,8 +26,6 @@ def test_integration_account_create_transaction_can_execute():
         receipt = transaction.execute(env.client)
         
         assert receipt.accountId is not None, "AccountID not found in receipt. Account may not have been created."
-    except Exception as e:
-        pytest.fail(f"Account creation failed: {str(e)}")
     finally:
         env.close()
     

@@ -54,7 +54,5 @@ def test_integration_token_dissociate_transaction_can_execute():
         receipt = dissociate_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token dissociation failed with status: {ResponseCode.get_name(receipt.status)}"
-    except Exception as e:
-        pytest.fail(f"Token dissociation test failed: {str(e)}")
     finally:
         env.client.close() 

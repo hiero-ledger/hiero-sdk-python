@@ -56,7 +56,5 @@ def test_integration_token_freeze_transaction_can_execute():
         receipt = freeze_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token freeze failed with status: {ResponseCode.get_name(receipt.status)}"
-    except Exception as e:
-        pytest.fail(f"Token freeze test failed: {str(e)}")
     finally:
         env.close(token_id)

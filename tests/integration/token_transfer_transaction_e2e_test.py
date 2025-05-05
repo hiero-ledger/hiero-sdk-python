@@ -61,7 +61,5 @@ def test_integration_token_transfer_transaction_can_execute():
         balance = query_transaction.execute(env.client)
         
         assert balance is not None
-    except Exception as e:
-        pytest.fail(f"Token transfer test failed: {str(e)}")
     finally:
         env.close(token_id)

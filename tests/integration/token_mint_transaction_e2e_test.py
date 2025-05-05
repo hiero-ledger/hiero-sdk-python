@@ -45,8 +45,6 @@ def test_integration_token_mint_nft_transaction_can_execute():
         receipt = mint_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"NFT token minting failed with status: {ResponseCode.get_name(receipt.status)}"
-    except Exception as e:
-        pytest.fail(f"NFT token minting test failed: {str(e)}")
     finally:
         env.close(token_id) 
 
@@ -84,7 +82,5 @@ def test_integration_token_mint_fungible_transaction_can_execute():
         receipt = mint_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode.get_name(receipt.status)}"
-    except Exception as e:
-        pytest.fail(f"Token minting test failed: {str(e)}")
     finally:
         env.close(token_id) 

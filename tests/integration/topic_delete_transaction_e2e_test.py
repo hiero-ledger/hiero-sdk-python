@@ -37,7 +37,5 @@ def test_integration_topic_delete_transaction_can_execute():
         
         with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_TOPIC_ID"):
             TopicInfoQuery(topic_id=topic_id).execute(env.client)
-    except Exception as e:
-        pytest.fail(f"Topic deletion test failed: {str(e)}")
     finally:
         env.close() 

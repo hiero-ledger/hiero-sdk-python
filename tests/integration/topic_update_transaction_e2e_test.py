@@ -50,7 +50,5 @@ def test_integration_topic_update_transaction_can_execute():
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode.get_name(receipt.status)}"
-    except Exception as e:
-        pytest.fail(f"Topic update test failed: {str(e)}")
     finally:
         env.close() 

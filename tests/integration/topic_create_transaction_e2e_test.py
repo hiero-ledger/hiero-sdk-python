@@ -46,7 +46,5 @@ def test_integration_topic_create_transaction_can_execute():
         receipt = delete_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode.get_name(receipt.status)}"
-    except Exception as e:
-        pytest.fail(f"Topic creation test failed: {str(e)}")
     finally:
         env.close() 

@@ -10,7 +10,5 @@ def test_integration_account_balance_query_can_execute():
     
     try:
         CryptoGetAccountBalanceQuery(account_id=env.operator_id).execute(env.client)
-    except Exception as e:
-        pytest.fail(f"Account balance query failed: {str(e)}")
     finally:
         env.close()

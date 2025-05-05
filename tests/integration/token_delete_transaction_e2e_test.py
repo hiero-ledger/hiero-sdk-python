@@ -10,9 +10,6 @@ def test_integration_token_delete_transaction_can_execute():
     try:
         token_id = create_fungible_token(env)
         
-        if token_id is None:
-            raise Exception("TokenID not found in receipt. Token may not have been created.")
-    except Exception as e:
-        pytest.fail(f"Token deletion test failed: {str(e)}")
+        assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
     finally:
         env.close(token_id) 

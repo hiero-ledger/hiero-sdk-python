@@ -36,7 +36,5 @@ def test_integration_topic_info_query_can_execute():
         delete_receipt = delete_transaction.execute(env.client)
         
         assert delete_receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode.get_name(delete_receipt.status)}"
-    except Exception as e:
-        pytest.fail(f"Topic info query test failed: {str(e)}")
     finally:
         env.close() 
