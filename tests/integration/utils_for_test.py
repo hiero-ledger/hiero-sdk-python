@@ -33,7 +33,6 @@ class IntegrationTestEnv:
             if token_id:
                 transaction = TokenDeleteTransaction(token_id=token_id)
                 transaction.freeze_with(self.client)
-                transaction.sign(self.operator_key)
                 transaction.execute(self.client)
                 
                 assert self.client.operator is not None, "Operator not found in client"
@@ -43,7 +42,6 @@ class IntegrationTestEnv:
                     token_ids=[token_id],
                 )
                 dissociate_transaction.freeze_with(self.client)
-                dissociate_transaction.sign(self.operator_key)
                 receipt = dissociate_transaction.execute(self.client)
                 
                 assert receipt.status == ResponseCode.SUCCESS, f"Token dissociation failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -71,7 +69,6 @@ def create_fungible_token(env):
         
     token_transaction = TokenCreateTransaction(token_params, token_keys)
     token_transaction.freeze_with(env.client)
-    token_transaction.sign(env.operator_key)
     token_receipt = token_transaction.execute(env.client)
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
@@ -98,7 +95,6 @@ def create_nft_token(env):
 
     transaction = TokenCreateTransaction(token_params, token_keys)
     transaction.freeze_with(env.client)
-    transaction.sign(env.operator_key)
     token_receipt = transaction.execute(env.client)
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"

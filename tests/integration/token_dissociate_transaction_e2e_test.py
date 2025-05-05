@@ -26,9 +26,8 @@ def test_integration_token_dissociate_transaction_can_execute():
             initial_balance=initial_balance,
             memo="Recipient Account"
         )
+        
         account_transaction.freeze_with(env.client)
-        account_transaction.sign(env.operator_key)
-    
         account_receipt = account_transaction.execute(env.client)
         new_account_id = account_receipt.accountId
         

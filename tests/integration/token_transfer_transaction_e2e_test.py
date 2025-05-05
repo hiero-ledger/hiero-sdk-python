@@ -27,7 +27,6 @@ def test_integration_token_transfer_transaction_can_execute():
         )
         
         account_transaction.freeze_with(env.client)
-        account_transaction.sign(env.client.operator_private_key)
         receipt = account_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -44,7 +43,6 @@ def test_integration_token_transfer_transaction_can_execute():
         )
         
         associate_transaction.freeze_with(env.client)
-        associate_transaction.sign(env.client.operator_private_key)
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
@@ -55,7 +53,6 @@ def test_integration_token_transfer_transaction_can_execute():
         transfer_transaction.add_token_transfer(token_id, account_id, 1)
         
         transfer_transaction.freeze_with(env.client)
-        transfer_transaction.sign(env.client.operator_private_key)
         receipt = transfer_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"

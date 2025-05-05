@@ -18,7 +18,6 @@ def test_integration_topic_message_submit_transaction_can_execute():
         )
         
         create_transaction.freeze_with(env.client)
-        create_transaction.sign(env.operator_key)
         create_receipt = create_transaction.execute(env.client)
         topic_id = create_receipt.topicId
         
@@ -28,14 +27,12 @@ def test_integration_topic_message_submit_transaction_can_execute():
         )
         
         message_transaction.freeze_with(env.client)
-        message_transaction.sign(env.operator_key)
         message_receipt = message_transaction.execute(env.client)
         
         assert message_receipt.status == ResponseCode.SUCCESS, f"Message submission failed with status: {ResponseCode.get_name(message_receipt.status)}"
         
         delete_transaction = TopicDeleteTransaction(topic_id=topic_id)
         delete_transaction.freeze_with(env.client)
-        delete_transaction.sign(env.operator_key)
         delete_receipt = delete_transaction.execute(env.client)
         
         assert delete_receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode.get_name(delete_receipt.status)}"

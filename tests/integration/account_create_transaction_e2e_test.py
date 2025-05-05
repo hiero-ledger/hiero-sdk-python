@@ -23,7 +23,6 @@ def test_integration_account_create_transaction_can_execute():
         )
         
         transaction.freeze_with(env.client)
-        transaction.sign(env.operator_key)
         receipt = transaction.execute(env.client)
         
         assert receipt.accountId is not None, "AccountID not found in receipt. Account may not have been created."

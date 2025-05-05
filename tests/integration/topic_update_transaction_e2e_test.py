@@ -19,7 +19,6 @@ def test_integration_topic_update_transaction_can_execute():
         )
         
         create_transaction.freeze_with(env.client)
-        create_transaction.sign(env.operator_key)
         create_receipt = create_transaction.execute(env.client)
         assert create_receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode.get_name(create_receipt.status)}"
         
@@ -37,7 +36,6 @@ def test_integration_topic_update_transaction_can_execute():
         )
         
         update_transaction.freeze_with(env.client)
-        update_transaction.sign(env.operator_key)
         update_receipt = update_transaction.execute(env.client)
         
         assert update_receipt.status == ResponseCode.SUCCESS, f"Topic update failed with status: {ResponseCode.get_name(update_receipt.status)}"
@@ -50,7 +48,6 @@ def test_integration_topic_update_transaction_can_execute():
         
         transaction = TopicDeleteTransaction(topic_id=topic_id)
         transaction.freeze_with(env.client)
-        transaction.sign(env.operator_key)
         receipt = transaction.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode.get_name(receipt.status)}"
     except Exception as e:

@@ -27,7 +27,6 @@ def test_integration_token_unfreeze_transaction_can_execute():
             memo="Recipient Account"
         )
         account_transaction.freeze_with(env.client)
-        account_transaction.sign(env.client.operator_private_key)
         receipt = account_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -46,9 +45,7 @@ def test_integration_token_unfreeze_transaction_can_execute():
         )
         
         associate_transaction.freeze_with(env.client)
-        associate_transaction.sign(env.operator_key)
         associate_transaction.sign(new_account_private_key)
-        
         receipt = associate_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -58,7 +55,6 @@ def test_integration_token_unfreeze_transaction_can_execute():
             account_id=account_id
         )
         freeze_transaction.freeze_with(env.client)
-        freeze_transaction.sign(env.client.operator_private_key)
         receipt = freeze_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token freeze failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -69,8 +65,6 @@ def test_integration_token_unfreeze_transaction_can_execute():
         )
         
         unfreeze_transaction.freeze_with(env.client)
-        unfreeze_transaction.sign(env.client.operator_private_key)
-        
         receipt = unfreeze_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token unfreeze failed with status: {ResponseCode.get_name(receipt.status)}"

@@ -25,7 +25,6 @@ def test_integration_token_mint_nft_transaction_can_execute():
         )
         
         transaction.freeze_with(env.client)
-        transaction.sign(env.operator_key)
         receipt = transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -43,7 +42,6 @@ def test_integration_token_mint_nft_transaction_can_execute():
         )
         
         mint_transaction.freeze_with(env.client)
-        mint_transaction.sign(env.operator_key)
         receipt = mint_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"NFT token minting failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -70,7 +68,6 @@ def test_integration_token_mint_fungible_transaction_can_execute():
         )
         
         transaction.freeze_with(env.client)
-        transaction.sign(env.operator_key)
         receipt = transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -84,7 +81,6 @@ def test_integration_token_mint_fungible_transaction_can_execute():
         )
         
         mint_transaction.freeze_with(env.client)
-        mint_transaction.sign(env.operator_key)
         receipt = mint_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode.get_name(receipt.status)}"
