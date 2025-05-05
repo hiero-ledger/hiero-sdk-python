@@ -16,8 +16,8 @@ def unfreeze_token(): # Single Token
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-    freeze_key = PrivateKey.from_string(os.getenv('FREEZE_KEY'))
+    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+    freeze_key = PrivateKey.from_string_ed25519(os.getenv('FREEZE_KEY'))
     token_id = TokenId.from_string(os.getenv('TOKEN_ID'))
     account_id = AccountId.from_string(os.getenv('FREEZE_ACCOUNT_ID'))
 

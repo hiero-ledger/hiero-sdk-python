@@ -27,8 +27,8 @@ def fungible_token_mint():
     client = Client(network)
 
     payer_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    payer_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-    supply_key = PrivateKey.from_string(os.getenv('SUPPLY_KEY'))
+    payer_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+    supply_key = PrivateKey.from_string_ed25519(os.getenv('SUPPLY_KEY'))
     token_id = TokenId.from_string(os.getenv('TOKEN_ID'))
 
     client.set_operator(payer_id, payer_key)

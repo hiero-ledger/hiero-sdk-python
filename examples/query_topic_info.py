@@ -14,7 +14,7 @@ load_dotenv()
 
 def query_topic_info():
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
     topic_id = TopicId.from_string(os.getenv('TOPIC_ID'))
 
     network = Network(network='testnet')

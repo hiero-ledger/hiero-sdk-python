@@ -18,8 +18,8 @@ def delete_token():
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-    admin_key = PrivateKey.from_string(os.getenv('ADMIN_KEY'))
+    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+    admin_key = PrivateKey.from_string_ed25519(os.getenv('ADMIN_KEY'))
     token_id = TokenId.from_string(os.getenv('TOKEN_ID'))
 
     client.set_operator(operator_id, operator_key)

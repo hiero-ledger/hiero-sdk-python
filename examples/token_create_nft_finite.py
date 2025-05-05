@@ -41,12 +41,12 @@ def create_token_nft():
 
     # Operator credentials (must be present)
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
 
     # Optional Token Keys
-    admin_key = PrivateKey.from_string(os.getenv('ADMIN_KEY'))# Optional
-    supply_key = PrivateKey.from_string(os.getenv('SUPPLY_KEY')) # Optional
-    freeze_key = PrivateKey.from_string(os.getenv('FREEZE_KEY')) # Optional
+    admin_key = PrivateKey.from_string_ed25519(os.getenv('ADMIN_KEY'))# Optional
+    supply_key = PrivateKey.from_string_ed25519(os.getenv('SUPPLY_KEY'))# Optional
+    freeze_key = PrivateKey.from_string_ed25519(os.getenv('FREEZE_KEY'))# Optional
 
     # Set the operator for the client
     client.set_operator(operator_id, operator_key)

@@ -18,7 +18,7 @@ def dissociate_token(): #Single token
     client = Client(network)
 
     recipient_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    recipient_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    recipient_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
     token_id = TokenId.from_string('TOKEN_ID')
 
     client.set_operator(recipient_id, recipient_key)
@@ -43,7 +43,7 @@ def dissociate_tokens():  # Multiple tokens
     client = Client(network)
 
     recipient_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    recipient_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    recipient_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
     token_ids = [TokenId.from_string('TOKEN_ID_1'), TokenId.from_string('TOKEN_ID_2')]  
 
     client.set_operator(recipient_id, recipient_key)

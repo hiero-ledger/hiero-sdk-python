@@ -18,7 +18,7 @@ def associate_token():
     client = Client(network)
 
     recipient_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    recipient_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    recipient_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
     token_id = TokenId.from_string('TOKEN_ID')  # Update as needed
 
     client.set_operator(recipient_id, recipient_key)
