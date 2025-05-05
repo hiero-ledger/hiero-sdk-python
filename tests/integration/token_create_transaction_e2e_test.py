@@ -12,7 +12,7 @@ def test_integration_fungible_token_create_transaction_can_execute():
         
         assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
     finally:
-        env.close(token_id)
+        env.close()
 
 
 @pytest.mark.integration
@@ -24,4 +24,4 @@ def test_integration_nft_token_create_transaction_can_execute():
         
         assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
     finally:
-        env.close(token_id)
+        env.close()

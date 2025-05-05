@@ -62,4 +62,4 @@ def test_integration_token_transfer_transaction_can_execute():
         
         assert balance is not None
     finally:
-        env.close(token_id)
+        env.close()

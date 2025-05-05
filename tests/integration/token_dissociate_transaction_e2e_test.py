@@ -55,4 +55,4 @@ def test_integration_token_dissociate_transaction_can_execute():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token dissociation failed with status: {ResponseCode.get_name(receipt.status)}"
     finally:
-        env.client.close() 
+        env.close()

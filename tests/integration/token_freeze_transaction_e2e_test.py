@@ -57,4 +57,4 @@ def test_integration_token_freeze_transaction_can_execute():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token freeze failed with status: {ResponseCode.get_name(receipt.status)}"
     finally:
-        env.close(token_id)
+        env.close()

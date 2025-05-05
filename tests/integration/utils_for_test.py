@@ -9,8 +9,6 @@ from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
-from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
-from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
 
 load_dotenv(override=True)
 
@@ -28,25 +26,8 @@ class IntegrationTestEnv:
         self.client.logger.set_level(LogLevel.ERROR)
         self.public_operator_key = self.operator_key.public_key()
         
-    def close(self, token_id = None):
-        try:
-            if token_id:
-                transaction = TokenDeleteTransaction(token_id=token_id)
-                transaction.freeze_with(self.client)
-                transaction.execute(self.client)
-                
-                assert self.client.operator is not None, "Operator not found in client"
-            
-                dissociate_transaction = TokenDissociateTransaction(
-                    account_id=self.client.operator.account_id,
-                    token_ids=[token_id],
-                )
-                dissociate_transaction.freeze_with(self.client)
-                receipt = dissociate_transaction.execute(self.client)
-                
-                assert receipt.status == ResponseCode.SUCCESS, f"Token dissociation failed with status: {ResponseCode.get_name(receipt.status)}"
-        finally:
-            self.client.close()
+    def close(self):
+        self.client.close()
     
 
 def create_fungible_token(env):

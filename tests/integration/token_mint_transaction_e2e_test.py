@@ -46,7 +46,7 @@ def test_integration_token_mint_nft_transaction_can_execute():
         
         assert receipt.status == ResponseCode.SUCCESS, f"NFT token minting failed with status: {ResponseCode.get_name(receipt.status)}"
     finally:
-        env.close(token_id) 
+        env.close() 
 
 
 @pytest.mark.integration
@@ -83,4 +83,4 @@ def test_integration_token_mint_fungible_transaction_can_execute():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode.get_name(receipt.status)}"
     finally:
-        env.close(token_id) 
+        env.close() 
