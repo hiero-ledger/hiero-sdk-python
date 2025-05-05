@@ -2,7 +2,7 @@ from typing import Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
-from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2
 from hiero_sdk_python.hbar import Hbar

@@ -1,4 +1,4 @@
-from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.duration import Duration
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import consensus_update_topic_pb2, duration_pb2
 from google.protobuf import wrappers_pb2 as _wrappers_pb2

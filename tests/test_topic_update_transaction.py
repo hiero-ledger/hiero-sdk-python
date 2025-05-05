@@ -5,7 +5,7 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.duration import Duration
 from hiero_sdk_python.hapi.services import (
     response_header_pb2, 
     response_pb2,
