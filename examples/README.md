@@ -20,6 +20,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Associating a Token](#associating-a-token)
   - [Dissociating a Token](#dissociating-a-token)
   - [Transferring Tokens](#transferring-tokens)
+  - [Wiping a Token](#wiping-a-token)
   - [Deleting a Token](#deleting-a-token)
   - [Freezing a Token](#freezing-a-token)
   - [Unfreezing a Token](#unfreezing-a-token)
@@ -256,6 +257,32 @@ transaction.execute(client)
         .add_token_transfer(token_id, recipient_id, amount)
         .freeze_with(client)
         .sign(operator_key)
+    )
+
+    transaction.execute(client)
+```
+
+### Wiping a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenWipeTransaction(
+    token_id=token_id,
+    account_id=account_id,
+    amount=amount
+).freeze_with(client)
+
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenWipeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .set_amount(amount)
+        .freeze_with(client)
     )
 
     transaction.execute(client)
