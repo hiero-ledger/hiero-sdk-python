@@ -103,9 +103,8 @@ def associate_token(client, account_id, token_id, account_private_key):
         .set_account_id(account_id)
         .add_token_id(token_id)
         .freeze_with(client)
+        .sign(account_private_key) # Has to be signed by new account's key
     )
-    # Has to be signed by new account's key
-    associate_transaction.sign(account_private_key)
     
     receipt = associate_transaction.execute(client)
     
@@ -155,7 +154,7 @@ def wipe_tokens(client, token_id, account_id, amount):
     
     print(f"Successfully wiped {amount} tokens from account {account_id}")
 
-def token_wipe_transaction():
+def token_wipe():
     """
     Demonstrates the token wipe functionality by:
     1. Creating a new account
@@ -174,4 +173,4 @@ def token_wipe_transaction():
     wipe_tokens(client, token_id, account_id, amount)
 
 if __name__ == "__main__":
-    token_wipe_transaction()
+    token_wipe()

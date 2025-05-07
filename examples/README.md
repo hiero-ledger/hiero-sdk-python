@@ -20,7 +20,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Associating a Token](#associating-a-token)
   - [Dissociating a Token](#dissociating-a-token)
   - [Transferring Tokens](#transferring-tokens)
-  - [Wiping a Token](#wiping-a-token)
+  - [Wiping Tokens](#wiping-tokens)
   - [Deleting a Token](#deleting-a-token)
   - [Freezing a Token](#freezing-a-token)
   - [Unfreezing a Token](#unfreezing-a-token)
@@ -262,7 +262,7 @@ transaction.execute(client)
     transaction.execute(client)
 ```
 
-### Wiping a Token
+### Wiping tokens
 
 #### Pythonic Syntax:
 ```
