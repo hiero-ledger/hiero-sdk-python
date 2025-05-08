@@ -320,6 +320,19 @@ class Transaction(_Executable):
         if self.transaction_body_bytes is not None:
             raise Exception("Transaction is immutable; it has been frozen.")
 
+    def _require_frozen(self):
+        """
+        Ensures the transaction is frozen before allowing operations that require a frozen transaction.
+
+        This method checks if the transaction has been frozen by verifying that transaction_body_bytes
+        has been set.
+
+        Raises:
+            Exception: If the transaction has not been frozen yet.
+        """
+        if self.transaction_body_bytes is None:
+            raise Exception("Transaction is not frozen")
+
     def set_transaction_memo(self, memo):
         """
         Sets the memo field for the transaction.
