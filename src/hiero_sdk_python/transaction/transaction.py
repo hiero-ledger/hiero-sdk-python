@@ -146,8 +146,8 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction body has not been built.
         """
-        if self.transaction_body_bytes is None:
-            self.transaction_body_bytes = self.build_transaction_body().SerializeToString()
+        # We require the transaction to be frozen before signing
+        self._require_frozen()
 
         signature = private_key.sign(self.transaction_body_bytes)
 
@@ -172,8 +172,8 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction body has not been built.
         """
-        if self.transaction_body_bytes is None:
-            raise Exception("Transaction must be signed before calling to_proto()")
+        # We require the transaction to be frozen before converting to protobuf
+        self._require_frozen()
 
         signed_transaction = transaction_contents_pb2.SignedTransaction(
             bodyBytes=self.transaction_body_bytes,
