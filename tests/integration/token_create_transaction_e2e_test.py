@@ -1,6 +1,6 @@
 import pytest
 
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
+from tests.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 
 @pytest.mark.integration

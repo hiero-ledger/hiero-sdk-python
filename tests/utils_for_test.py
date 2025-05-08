@@ -9,7 +9,7 @@ from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
-
+from hiero_sdk_python.node import _Node
 load_dotenv(override=True)
 
 class IntegrationTestEnv:

@@ -2,7 +2,7 @@ import pytest
 from hiero_sdk_python import AccountCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.utils_for_test import IntegrationTestEnv
 
 
 @pytest.mark.integration
