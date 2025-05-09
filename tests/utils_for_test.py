@@ -9,7 +9,7 @@ from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
-
+from hiero_sdk_python.node import _Node
 load_dotenv(override=True)
 
 class IntegrationTestEnv:
@@ -45,7 +45,8 @@ def create_fungible_token(env):
     token_keys = TokenKeys(
             admin_key=env.operator_key,
             supply_key=env.operator_key,
-            freeze_key=env.operator_key
+            freeze_key=env.operator_key,
+            wipe_key=env.operator_key
         )
         
     token_transaction = TokenCreateTransaction(token_params, token_keys)
@@ -81,3 +82,16 @@ def create_nft_token(env):
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
     
     return token_receipt.tokenId
+
+def create_mock_client():
+    """Create a mock client with hardcoded nodes for testing purposes."""
+    nodes = [_Node(AccountId(0, 0, 3), "node1.example.com:50211", None)]
+    network = Network(nodes=nodes)
+    client = Client(network)
+    client.logger.set_level(LogLevel.DISABLED)
+
+    operator_key = PrivateKey.generate()
+    operator_id = AccountId(0, 0, 1984)
+    client.set_operator(operator_id, operator_key)
+
+    return client

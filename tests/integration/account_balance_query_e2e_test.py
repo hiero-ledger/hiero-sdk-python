@@ -1,7 +1,7 @@
 import pytest
 
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.utils_for_test import IntegrationTestEnv
 
 
 @pytest.mark.integration

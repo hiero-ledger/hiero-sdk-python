@@ -4,7 +4,7 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.utils_for_test import IntegrationTestEnv
 
 
 @pytest.mark.integration
