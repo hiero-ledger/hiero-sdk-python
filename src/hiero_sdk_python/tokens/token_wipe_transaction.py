@@ -14,7 +14,7 @@ class TokenWipeTransaction(Transaction):
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token wipe transaction.
     """
-    def __init__(self, token_id = None, account_id = None, amount = None, serial = []):
+    def __init__(self, token_id=None, account_id=None, amount=None, serial=[]):
         """
         Initializes a new TokenWipeTransaction instance with optional token_id and account_id.
 
