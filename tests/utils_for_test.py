@@ -82,3 +82,16 @@ def create_nft_token(env):
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
     
     return token_receipt.tokenId
+
+def create_mock_client():
+    """Create a mock client with hardcoded nodes for testing purposes."""
+    nodes = [_Node(AccountId(0, 0, 3), "node1.example.com:50211", None)]
+    network = Network(nodes=nodes)
+    client = Client(network)
+    client.logger.set_level(LogLevel.DISABLED)
+
+    operator_key = PrivateKey.generate()
+    operator_id = AccountId(0, 0, 1984)
+    client.set_operator(operator_id, operator_key)
+
+    return client
