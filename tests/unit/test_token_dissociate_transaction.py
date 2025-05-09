@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
 from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from tests.utils_for_test import create_mock_client
 
 pytestmark = pytest.mark.unit
 
@@ -74,16 +75,19 @@ def test_missing_fields():
 
 def test_sign_transaction(mock_account_ids):
     """Test signing the token dissociate transaction with a private key."""
-    account_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    account_id, _, _, token_id_1, _ = mock_account_ids
+    mock_client = create_mock_client()
+    
     dissociate_tx = TokenDissociateTransaction()
     dissociate_tx.set_account_id(account_id)
     dissociate_tx.add_token_id(token_id_1)
     dissociate_tx.transaction_id = generate_transaction_id(account_id)
-    dissociate_tx.node_account_id = node_account_id
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    dissociate_tx.freeze_with(mock_client)
 
     dissociate_tx.sign(private_key)
 
@@ -95,16 +99,19 @@ def test_sign_transaction(mock_account_ids):
 
 def test_to_proto(mock_account_ids):
     """Test converting the token dissociate transaction to protobuf format after signing."""
-    account_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    account_id, _, _, token_id_1, _ = mock_account_ids
+    mock_client = create_mock_client()
+    
     dissociate_tx = TokenDissociateTransaction()
     dissociate_tx.set_account_id(account_id)
     dissociate_tx.add_token_id(token_id_1)
-    dissociate_tx.transaction_id = generate_transaction_id(account_id)
-    dissociate_tx.node_account_id = node_account_id
-
+    dissociate_tx.transaction_id = generate_transaction_id(account_id)  
+    
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    dissociate_tx.freeze_with(mock_client)
 
     dissociate_tx.sign(private_key)
     proto = dissociate_tx.to_proto()

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
 from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from tests.utils_for_test import create_mock_client
 
 pytestmark = pytest.mark.unit
 
@@ -64,16 +65,19 @@ def test_missing_account_id(mock_account_ids):
 # This test uses fixtures (mock_account_ids) as parameters
 def test_sign_transaction(mock_account_ids):
     """Test signing the token freeze transaction with a freeze key."""
-    account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
+    account_id, freeze_id, _, token_id, _= mock_account_ids
+    mock_client = create_mock_client()
+    
     freeze_tx = TokenFreezeTransaction()
     freeze_tx.set_token_id(token_id)
     freeze_tx.set_account_id(freeze_id)
     freeze_tx.transaction_id = generate_transaction_id(account_id)
-    freeze_tx.node_account_id = node_account_id
 
     freeze_key = MagicMock()
     freeze_key.sign.return_value = b'signature'
     freeze_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    freeze_tx.freeze_with(mock_client)
 
     freeze_tx.sign(freeze_key)
 
@@ -85,16 +89,19 @@ def test_sign_transaction(mock_account_ids):
 # This test uses fixtures (mock_account_ids) as parameters
 def test_to_proto(mock_account_ids):
     """Test converting the token freeze transaction to protobuf format after signing."""
-    account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
+    account_id, freeze_id, _, token_id, _= mock_account_ids
+    mock_client = create_mock_client()
+
     freeze_tx = TokenFreezeTransaction()
     freeze_tx.set_token_id(token_id)
     freeze_tx.set_account_id(freeze_id)
     freeze_tx.transaction_id = generate_transaction_id(account_id)
-    freeze_tx.node_account_id = node_account_id
 
     freeze_key = MagicMock()
     freeze_key.sign.return_value = b'signature'
     freeze_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    freeze_tx.freeze_with(mock_client)
 
     freeze_tx.sign(freeze_key)
     proto = freeze_tx.to_proto()

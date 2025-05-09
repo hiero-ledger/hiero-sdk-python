@@ -6,6 +6,7 @@ from hiero_sdk_python.transaction.transaction_id import TransactionId
 from cryptography.hazmat.primitives import serialization
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import token_mint_pb2
+from tests.utils_for_test import create_mock_client
 
 pytestmark = pytest.mark.unit
 
@@ -150,18 +151,20 @@ def test_build_transaction_body_both_amount_and_metadata(mock_account_ids, amoun
 # This test uses fixtures (mock_account_ids, amount) as parameters
 def test_sign_transaction_fungible(mock_account_ids, amount):
     """Test signing the fungible token mint transaction with a supply key."""
-    operator_id, _, node_account_id, token_id, _= mock_account_ids
+    operator_id, _, _, token_id, _= mock_account_ids
+    mock_client = create_mock_client()
     
     mint_tx = TokenMintTransaction()
     mint_tx.set_token_id(token_id)
     mint_tx.set_amount(amount)        
     mint_tx.transaction_id = generate_transaction_id(operator_id)
-    mint_tx.node_account_id = node_account_id
 
     #Mock a supply key
     supply_key = MagicMock()
     supply_key.sign.return_value = b'signature'
     supply_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    mint_tx.freeze_with(mock_client)
 
     mint_tx.sign(supply_key)
 
@@ -173,16 +176,16 @@ def test_sign_transaction_fungible(mock_account_ids, amount):
 # This test uses fixtures (mock_account_ids, metadata) as parameters
 def test_sign_transaction_nft(mock_account_ids, metadata):
     """Test signing the NFT mint transaction with a supply key."""
-    operator_id, _, node_account_id, token_id, _ = mock_account_ids
+    operator_id, _, _, token_id, _ = mock_account_ids
+    mock_client = create_mock_client()
 
     mint_tx = TokenMintTransaction()
     mint_tx.set_token_id(token_id)
     mint_tx.set_metadata(metadata)
 
     mint_tx.transaction_id = generate_transaction_id(operator_id)
-    mint_tx.node_account_id = node_account_id
 
-    mint_tx.build_transaction_body()
+    mint_tx.freeze_with(mock_client)
 
     supply_key = MagicMock()
     supply_key.sign.return_value = b'signature'
@@ -197,17 +200,19 @@ def test_sign_transaction_nft(mock_account_ids, metadata):
 # This test uses fixtures (mock_account_ids, amount) as parameters
 def test_to_proto_fungible(mock_account_ids, amount):
     """Test converting the fungible token mint transaction to protobuf format after signing."""
-    operator_id, _, node_account_id, token_id, _= mock_account_ids
+    operator_id, _, _, token_id, _= mock_account_ids
+    mock_client = create_mock_client()
 
     mint_tx = TokenMintTransaction()
     mint_tx.set_token_id(token_id)
     mint_tx.set_amount(amount)        
     mint_tx.transaction_id = generate_transaction_id(operator_id)
-    mint_tx.node_account_id = node_account_id
 
     supply_key = MagicMock()
     supply_key.sign.return_value = b'signature'
     supply_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    mint_tx.freeze_with(mock_client)
 
     mint_tx.sign(supply_key)
     proto = mint_tx.to_proto()
@@ -218,15 +223,15 @@ def test_to_proto_fungible(mock_account_ids, amount):
 # This test uses fixtures (mock_account_ids, metadata) as parameters
 def test_to_proto_nft(mock_account_ids, metadata):
     """Test converting the nft token mint transaction to protobuf format after signing."""
-    operator_id, _, node_account_id, token_id, _= mock_account_ids
+    operator_id, _, _, token_id, _= mock_account_ids
+    mock_client = create_mock_client()
 
     mint_tx = TokenMintTransaction()
     mint_tx.set_token_id(token_id)
     mint_tx.set_metadata(metadata)
     mint_tx.transaction_id = generate_transaction_id(operator_id)
-    mint_tx.node_account_id = node_account_id
-
-    mint_tx.build_transaction_body()
+    
+    mint_tx.freeze_with(mock_client)
 
     supply_key = MagicMock()
     supply_key.sign.return_value = b'signature'

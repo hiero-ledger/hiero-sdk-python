@@ -8,6 +8,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, timestamp_pb2, transaction_get_receipt_pb2
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from tests.utils_for_test import create_mock_client
 
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -86,7 +87,9 @@ def test_build_transaction_body_with_serial_numbers(mock_account_ids):
 # This test uses fixture mock_account_ids as parameter
 def test_to_proto(mock_account_ids):
     """Test converting the token wipe transaction to protobuf format after signing."""
-    account_id, wipe_account_id, node_account_id, token_id, _ = mock_account_ids
+    account_id, wipe_account_id, _, token_id, _ = mock_account_ids
+    mock_client = create_mock_client()
+    
     amount = 1000
 
     wipe_tx = (
@@ -97,11 +100,12 @@ def test_to_proto(mock_account_ids):
     )
     
     wipe_tx.transaction_id = generate_transaction_id(account_id)
-    wipe_tx.node_account_id = node_account_id
 
     wipe_key = MagicMock()
     wipe_key.sign.return_value = b'signature'
     wipe_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    wipe_tx.freeze_with(mock_client)
 
     wipe_tx.sign(wipe_key)
     proto = wipe_tx.to_proto()

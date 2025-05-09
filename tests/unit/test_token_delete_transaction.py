@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from tests.utils_for_test import create_mock_client
 
 pytestmark = pytest.mark.unit
 
@@ -46,15 +47,17 @@ def test_missing_token_id():
 # This test uses fixture mock_account_ids as parameter
 def test_sign_transaction(mock_account_ids):
     """Test signing the token delete transaction with a private key."""
-    operator_id, _, node_account_id, token_id, _= mock_account_ids
+    operator_id, _, _, token_id, _= mock_account_ids
+    mock_client = create_mock_client()
     delete_tx = TokenDeleteTransaction()
     delete_tx.set_token_id(token_id)
     delete_tx.transaction_id = generate_transaction_id(operator_id)
-    delete_tx.node_account_id = node_account_id
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    delete_tx.freeze_with(mock_client)
 
     delete_tx.sign(private_key)
 
@@ -66,15 +69,18 @@ def test_sign_transaction(mock_account_ids):
 # This test uses fixture mock_account_ids as parameter
 def test_to_proto(mock_account_ids):
     """Test converting the token delete transaction to protobuf format after signing."""
-    operator_id, _, node_account_id, token_id, _= mock_account_ids
+    operator_id, _, _, token_id, _= mock_account_ids
+    mock_client = create_mock_client()
+    
     delete_tx = TokenDeleteTransaction()
     delete_tx.set_token_id(token_id)
     delete_tx.transaction_id = generate_transaction_id(operator_id)
-    delete_tx.node_account_id = node_account_id
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    delete_tx.freeze_with(mock_client)
 
     delete_tx.sign(private_key)
     proto = delete_tx.to_proto()
