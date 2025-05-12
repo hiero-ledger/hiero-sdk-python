@@ -1,5 +1,9 @@
 import pytest
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.logger.log_level import LogLevel
+from hiero_sdk_python.node import _Node
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -39,3 +43,17 @@ def private_key():
 def topic_id():
     """Fixture to create a topic ID for testing."""
     return TopicId(0, 0, 1234)
+
+@pytest.fixture
+def mock_client():
+    """Fixture to provide a mock client with hardcoded nodes for testing purposes."""
+    nodes = [_Node(AccountId(0, 0, 3), "node1.example.com:50211", None)]
+    network = Network(nodes=nodes)
+    client = Client(network)
+    client.logger.set_level(LogLevel.DISABLED)
+
+    operator_key = PrivateKey.generate()
+    operator_id = AccountId(0, 0, 1984)
+    client.set_operator(operator_id, operator_key)
+
+    return client
