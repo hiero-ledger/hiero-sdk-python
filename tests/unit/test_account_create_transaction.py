@@ -131,6 +131,25 @@ def test_account_create_transaction():
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
         assert receipt.accountId.num == 1234, "Should have created account with ID 1234"
 
+def test_sign_account_create_without_freezing_raises_error(mock_account_ids):
+    """Test that signing a transaction without freezing it first raises an error."""
+    operator_id, node_account_id = mock_account_ids
+    
+    new_private_key = PrivateKey.generate()
+    new_public_key = new_private_key.public_key()
+    
+    account_tx = (
+        AccountCreateTransaction()
+        .set_key(new_public_key)
+        .set_initial_balance(100000000)
+        .set_account_memo("Test account")
+    )
+    account_tx.transaction_id = generate_transaction_id(operator_id)
+    account_tx.node_account_id = node_account_id
+
+    with pytest.raises(Exception, match="Transaction is not frozen"):
+        account_tx.sign(new_private_key)
+
 @pytest.fixture
 def mock_account_ids():
     """Fixture to provide mock account IDs for testing."""
