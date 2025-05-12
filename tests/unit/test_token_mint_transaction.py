@@ -166,8 +166,11 @@ def test_sign_transaction_fungible(mock_account_ids, amount, mock_client):
 
     mint_tx.sign(supply_key)
 
-    assert len(mint_tx.signature_map.sigPair) == 1
-    sig_pair = mint_tx.signature_map.sigPair[0]
+    node_id = mock_client.network.current_node._account_id
+    body_bytes = mint_tx.transaction_body_bytes[node_id]
+
+    assert len(mint_tx.signature_map[body_bytes].sigPair) == 1
+    sig_pair = mint_tx.signature_map[body_bytes].sigPair[0]
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
 
@@ -189,8 +192,11 @@ def test_sign_transaction_nft(mock_account_ids, metadata, mock_client):
     supply_key.public_key().to_bytes_raw.return_value = b'public_key'
     mint_tx.sign(supply_key)
 
-    assert len(mint_tx.signature_map.sigPair) == 1
-    sig_pair = mint_tx.signature_map.sigPair[0]
+    node_id = mock_client.network.current_node._account_id
+    body_bytes = mint_tx.transaction_body_bytes[node_id]
+
+    assert len(mint_tx.signature_map[body_bytes].sigPair) == 1
+    sig_pair = mint_tx.signature_map[body_bytes].sigPair[0]
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
 

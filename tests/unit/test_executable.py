@@ -111,6 +111,10 @@ def test_node_switching_after_single_grpc_error():
     ]
 
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+        # We set the current node to the first one - that will give an error
+        client.network._node_index = 0
+        client.network.current_node = client.network.nodes[0]
+        
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -148,6 +152,10 @@ def test_node_switching_after_multiple_grpc_errors():
     ]
     
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+        # We set the current node to the first one, the next will be the second and the thrid will be success
+        client.network._node_index = 0
+        client.network.current_node = client.network.nodes[0]
+        
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -380,3 +388,51 @@ def test_topic_create_transaction_fails_on_nonretriable_error():
         
         # Verify the error contains the expected status
         assert str(ResponseCode.INVALID_TRANSACTION_BODY) in str(exc_info.value)
+        
+def test_transaction_node_switching_body_bytes():
+    """Test that execution switches nodes after receiving a non-retriable error."""
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
+    error = RealRpcError(grpc.StatusCode.UNAVAILABLE, "Test error")
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+    # First node gives error, second node gives OK, third node gives error
+    response_sequences = [
+        [error],
+        [ok_response, receipt_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+        # We set the current node to 0
+        client.network._node_index = 0
+        client.network.current_node = client.network.nodes[0]
+        
+        transaction = (
+            AccountCreateTransaction()
+            .set_key(PrivateKey.generate().public_key())
+            .set_initial_balance(100_000_000)
+            .freeze_with(client)
+            .sign(client.operator_private_key)
+        )
+        
+        for node in client.network.nodes:
+            assert transaction.transaction_body_bytes.get(node._account_id) is not None, "Transaction body bytes should be set for all nodes"
+            sig_map = transaction.signature_map.get(transaction.transaction_body_bytes[node._account_id])
+            assert sig_map is not None, "Signature map should be set for all nodes"
+            assert len(sig_map.sigPair) == 1, "Signature map should have one signature"
+            assert sig_map.sigPair[0].pubKeyPrefix == client.operator_private_key.public_key().to_bytes_raw(), "Signature should be for the operator"
+
+        try:
+            transaction.execute(client)
+        except (Exception, grpc.RpcError) as e:
+            pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
+        # Verify we're now on the second node
+        assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"

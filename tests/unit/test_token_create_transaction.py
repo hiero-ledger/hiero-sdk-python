@@ -276,20 +276,23 @@ def test_sign_transaction(mock_account_ids, mock_client):
     # Sign with both sign keys
     token_tx.sign(private_key) # Necessary
     token_tx.sign(private_key_admin) # Since admin key exists
+    
+    node_id = mock_client.network.current_node._account_id
+    body_bytes = token_tx.transaction_body_bytes[node_id]
 
     # Expect 2 sigPairs
-    assert len(token_tx.signature_map.sigPair) == 2
+    assert len(token_tx.signature_map[body_bytes].sigPair) == 2
 
-    sig_pair = token_tx.signature_map.sigPair[0]
+    sig_pair = token_tx.signature_map[body_bytes].sigPair[0]
     assert sig_pair.pubKeyPrefix == b"public_key"
     assert sig_pair.ed25519 == b"signature"
 
-    sig_pair_admin = token_tx.signature_map.sigPair[1]
+    sig_pair_admin = token_tx.signature_map[body_bytes].sigPair[1]
     assert sig_pair_admin.pubKeyPrefix == b"admin_public_key"
     assert sig_pair_admin.ed25519 == b"admin_signature"
 
     # Confirm that neither sigPair belongs to supply_key or freeze_key:
-    for sig_pair in token_tx.signature_map.sigPair:
+    for sig_pair in token_tx.signature_map[body_bytes].sigPair:
         assert sig_pair.pubKeyPrefix not in (b"supply_public_key", b"freeze_public_key")
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter
@@ -543,8 +546,8 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
     # Confirm no adminKey was set
     assert not tx_body.tokenCreation.HasField("adminKey")
 
-# This test uses fixture mock_account_ids as parameter
-def test_transaction_freeze_prevents_modification(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_transaction_freeze_prevents_modification(mock_account_ids, mock_client):
     """
     Test that after freeze() is called, attempts to modify TokenCreateTransaction
     parameters raise an exception indicating immutability.
@@ -562,10 +565,9 @@ def test_transaction_freeze_prevents_modification(mock_account_ids):
 
     transaction.node_account_id = node_account_id
     transaction.transaction_id = generate_transaction_id(treasury_account)
-    transaction.client = MagicMock()
     
     # Freeze the transaction
-    transaction.freeze_with(transaction.client)
+    transaction.freeze_with(mock_client)
 
     # Attempt to overwrite after freeze - expect exceptions
     with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):

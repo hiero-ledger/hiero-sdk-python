@@ -89,8 +89,11 @@ def test_sign_transaction(mock_account_ids, mock_client):
 
     dissociate_tx.sign(private_key)
 
-    assert len(dissociate_tx.signature_map.sigPair) == 1
-    sig_pair = dissociate_tx.signature_map.sigPair[0]
+    node_id = mock_client.network.current_node._account_id
+    body_bytes = dissociate_tx.transaction_body_bytes[node_id]
+
+    assert len(dissociate_tx.signature_map[body_bytes].sigPair) == 1
+    sig_pair = dissociate_tx.signature_map[body_bytes].sigPair[0]
 
     assert sig_pair.pubKeyPrefix == b'public_key'  
     assert sig_pair.ed25519 == b'signature'

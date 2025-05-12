@@ -55,8 +55,8 @@ def test_account_create_transaction_build(mock_account_ids):
     assert transaction_body.cryptoCreateAccount.initialBalance == 100000000
     assert transaction_body.cryptoCreateAccount.memo == "Test account"
 
-# This test uses fixture mock_account_ids as parameter
-def test_account_create_transaction_sign(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_account_create_transaction_sign(mock_account_ids, mock_client):
     """Test signing the account create transaction."""
     operator_id, node_account_id = mock_account_ids
 
@@ -72,12 +72,23 @@ def test_account_create_transaction_sign(mock_account_ids):
     )
     account_tx.transaction_id = generate_transaction_id(operator_id)
     account_tx.node_account_id = node_account_id
-    account_tx.freeze_with(None)  
-    account_tx.sign(operator_private_key)
+    account_tx.freeze_with(mock_client)
 
-    # Verify signature was added
-    assert len(account_tx.signature_map.sigPair) == 1, \
+    # Add first signiture
+    account_tx.sign(mock_client.operator_private_key)
+    body_bytes = account_tx.transaction_body_bytes[node_account_id]
+    
+    assert body_bytes in account_tx.signature_map, "Body bytes should be a key in the signature map dictionary"
+    assert len(account_tx.signature_map[body_bytes].sigPair) == 1, \
         "Transaction should have exactly one signature"
+    
+    # Add second signiture
+    account_tx.sign(operator_private_key)
+    body_bytes = account_tx.transaction_body_bytes[node_account_id]
+    
+    assert body_bytes in account_tx.signature_map, "Body bytes should be a key in the signature map dictionary"
+    assert len(account_tx.signature_map[body_bytes].sigPair) == 2, \
+        "Transaction should have exactly two signatures"
 
 def test_account_create_transaction():
     """Integration test for AccountCreateTransaction with retry and response handling."""
