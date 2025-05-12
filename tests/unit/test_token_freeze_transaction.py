@@ -61,19 +61,21 @@ def test_missing_account_id(mock_account_ids):
     with pytest.raises(ValueError, match="Missing required AccountID."):
         freeze_tx.build_transaction_body()
 
-# This test uses fixtures (mock_account_ids) as parameters
-def test_sign_transaction(mock_account_ids):
+# This test uses fixtures (mock_account_id, mock_client) as parameters
+def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token freeze transaction with a freeze key."""
-    account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
+    account_id, freeze_id, _, token_id, _= mock_account_ids
+    
     freeze_tx = TokenFreezeTransaction()
     freeze_tx.set_token_id(token_id)
     freeze_tx.set_account_id(freeze_id)
     freeze_tx.transaction_id = generate_transaction_id(account_id)
-    freeze_tx.node_account_id = node_account_id
 
     freeze_key = MagicMock()
     freeze_key.sign.return_value = b'signature'
     freeze_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    freeze_tx.freeze_with(mock_client)
 
     freeze_tx.sign(freeze_key)
 
@@ -83,18 +85,20 @@ def test_sign_transaction(mock_account_ids):
     assert sig_pair.ed25519 == b'signature'
 
 # This test uses fixtures (mock_account_ids) as parameters
-def test_to_proto(mock_account_ids):
+def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token freeze transaction to protobuf format after signing."""
-    account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
+    account_id, freeze_id, _, token_id, _= mock_account_ids
+
     freeze_tx = TokenFreezeTransaction()
     freeze_tx.set_token_id(token_id)
     freeze_tx.set_account_id(freeze_id)
     freeze_tx.transaction_id = generate_transaction_id(account_id)
-    freeze_tx.node_account_id = node_account_id
 
     freeze_key = MagicMock()
     freeze_key.sign.return_value = b'signature'
     freeze_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    freeze_tx.freeze_with(mock_client)
 
     freeze_tx.sign(freeze_key)
     proto = freeze_tx.to_proto()

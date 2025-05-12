@@ -237,10 +237,10 @@ def test_token_creation_validation(
 
 ########### Tests for Signing and Protobuf Conversion ###########
 
-# This test uses fixture mock_account_ids as parameter
-def test_sign_transaction(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token creation transaction that has multiple keys."""
-    treasury_account, _, node_account_id, _, _ = mock_account_ids
+    treasury_account, _, _, _, _ = mock_account_ids
 
     # Mock keys
     private_key = MagicMock()
@@ -270,7 +270,8 @@ def test_sign_transaction(mock_account_ids):
     token_tx.set_freeze_key(private_key_freeze)
 
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    token_tx.node_account_id = node_account_id
+    
+    token_tx.freeze_with(mock_client)
 
     # Sign with both sign keys
     token_tx.sign(private_key) # Necessary
@@ -291,10 +292,10 @@ def test_sign_transaction(mock_account_ids):
     for sig_pair in token_tx.signature_map.sigPair:
         assert sig_pair.pubKeyPrefix not in (b"supply_public_key", b"freeze_public_key")
 
-# This test uses fixture mock_account_ids as parameter
-def test_to_proto_without_keys(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_to_proto_without_keys(mock_account_ids, mock_client):
     """Test protobuf conversion when keys are not set."""
-    treasury_account, _, node_account_id, _, _ = mock_account_ids
+    treasury_account, _, _, _, _ = mock_account_ids
 
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
@@ -303,12 +304,13 @@ def test_to_proto_without_keys(mock_account_ids):
     token_tx.set_initial_supply(1000)
     token_tx.set_treasury_account_id(treasury_account)
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    token_tx.node_account_id = node_account_id
 
     # Mock treasury/operator key
     private_key = MagicMock()
     private_key.sign.return_value = b"signature"
     private_key.public_key().to_bytes_raw.return_value = b"public_key"
+
+    token_tx.freeze_with(mock_client)
 
     # Sign with treasury key
     token_tx.sign(private_key)
@@ -335,10 +337,10 @@ def test_to_proto_without_keys(mock_account_ids):
 
     assert not transaction_body.tokenCreation.HasField("adminKey")
 
-# This test uses fixture mock_account_ids as parameter
-def test_to_proto_with_keys(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_to_proto_with_keys(mock_account_ids, mock_client):
     """Test converting the token creation transaction to protobuf format after signing."""
-    treasury_account, _, node_account_id, _, _ = mock_account_ids
+    treasury_account, _, _, _, _ = mock_account_ids
 
     # Mock keys
     private_key = MagicMock()
@@ -369,10 +371,11 @@ def test_to_proto_with_keys(mock_account_ids):
     token_tx.set_freeze_key(private_key_freeze)
 
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    token_tx.node_account_id = node_account_id
+
+    token_tx.freeze_with(mock_client)
 
     # Sign with required sign keys
-    token_tx.sign(private_key) 
+    token_tx.sign(private_key)
     token_tx.sign(private_key_admin)
 
     # Convert to protobuf
@@ -472,13 +475,13 @@ def test_transaction_execution_failure(mock_account_ids):
         # Verify _execute was called with client
         mock_execute.assert_called_once_with(token_tx.client)
 
-# This test uses fixture mock_account_ids as parameter
-def test_overwrite_defaults(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_overwrite_defaults(mock_account_ids, mock_client):
     """
     Demonstrates that defaults in TokenCreateTransaction can be overwritten
     by calling set_* methods, and the final protobuf reflects the updated values.
     """
-    treasury_account, _, node_account_id, _, _ = mock_account_ids
+    treasury_account, _, _, _, _ = mock_account_ids
 
     # Create a new TokenCreateTransaction with all default params
     token_tx = TokenCreateTransaction()
@@ -500,7 +503,8 @@ def test_overwrite_defaults(mock_account_ids):
 
     # Set transaction/node IDs so can sign
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    token_tx.node_account_id = node_account_id
+
+    token_tx.freeze_with(mock_client)
 
     # Mock a private key and sign the transaction
     private_key = MagicMock()
@@ -621,13 +625,13 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("supplyKey")
     assert not transaction_body.tokenCreation.HasField("freezeKey")
 
-# This test uses fixture mock_account_ids as parameter
-def test_build_and_sign_nft_transaction_to_proto(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     """
     Test building, signing, and protobuf serialization of 
     a valid Non-Fungible Unique token creation transaction.
     """
-    treasury_account, _, node_account_id, _, _ = mock_account_ids
+    treasury_account, _, _, _, _ = mock_account_ids
 
     # Mock keys
     private_key_private = MagicMock()
@@ -659,7 +663,8 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids):
     token_tx.set_freeze_key(private_key_freeze)
 
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    token_tx.node_account_id = node_account_id
+
+    token_tx.freeze_with(mock_client)
 
     # Sign the transaction
     token_tx.sign(private_key_private)

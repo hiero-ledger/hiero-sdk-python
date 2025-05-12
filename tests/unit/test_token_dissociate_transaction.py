@@ -72,18 +72,20 @@ def test_missing_fields():
     with pytest.raises(ValueError, match="Account ID and token IDs must be set."):
         dissociate_tx.build_transaction_body()
 
-def test_sign_transaction(mock_account_ids):
+def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token dissociate transaction with a private key."""
-    account_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    account_id, _, _, token_id_1, _ = mock_account_ids
+    
     dissociate_tx = TokenDissociateTransaction()
     dissociate_tx.set_account_id(account_id)
     dissociate_tx.add_token_id(token_id_1)
     dissociate_tx.transaction_id = generate_transaction_id(account_id)
-    dissociate_tx.node_account_id = node_account_id
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    dissociate_tx.freeze_with(mock_client)
 
     dissociate_tx.sign(private_key)
 
@@ -93,18 +95,20 @@ def test_sign_transaction(mock_account_ids):
     assert sig_pair.pubKeyPrefix == b'public_key'  
     assert sig_pair.ed25519 == b'signature'
 
-def test_to_proto(mock_account_ids):
+def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token dissociate transaction to protobuf format after signing."""
-    account_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    account_id, _, _, token_id_1, _ = mock_account_ids
+    
     dissociate_tx = TokenDissociateTransaction()
     dissociate_tx.set_account_id(account_id)
     dissociate_tx.add_token_id(token_id_1)
-    dissociate_tx.transaction_id = generate_transaction_id(account_id)
-    dissociate_tx.node_account_id = node_account_id
-
+    dissociate_tx.transaction_id = generate_transaction_id(account_id)  
+    
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    dissociate_tx.freeze_with(mock_client)
 
     dissociate_tx.sign(private_key)
     proto = dissociate_tx.to_proto()

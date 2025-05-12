@@ -43,18 +43,20 @@ def test_missing_token_id():
     with pytest.raises(ValueError, match="Missing required TokenID."):
         delete_tx.build_transaction_body()
 
-# This test uses fixture mock_account_ids as parameter
-def test_sign_transaction(mock_account_ids):
+# This test uses fixtures (mock_account_ids, mock_client) as parameters
+def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token delete transaction with a private key."""
-    operator_id, _, node_account_id, token_id, _= mock_account_ids
+    operator_id, _, _, token_id, _= mock_account_ids
+    
     delete_tx = TokenDeleteTransaction()
     delete_tx.set_token_id(token_id)
     delete_tx.transaction_id = generate_transaction_id(operator_id)
-    delete_tx.node_account_id = node_account_id
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    delete_tx.freeze_with(mock_client)
 
     delete_tx.sign(private_key)
 
@@ -63,18 +65,20 @@ def test_sign_transaction(mock_account_ids):
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
 
-# This test uses fixture mock_account_ids as parameter
-def test_to_proto(mock_account_ids):
+# This test uses fixtures (mock_account_ids, mock_client) as parameters
+def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token delete transaction to protobuf format after signing."""
-    operator_id, _, node_account_id, token_id, _= mock_account_ids
+    operator_id, _, _, token_id, _= mock_account_ids
+    
     delete_tx = TokenDeleteTransaction()
     delete_tx.set_token_id(token_id)
     delete_tx.transaction_id = generate_transaction_id(operator_id)
-    delete_tx.node_account_id = node_account_id
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    delete_tx.freeze_with(mock_client)
 
     delete_tx.sign(private_key)
     proto = delete_tx.to_proto()

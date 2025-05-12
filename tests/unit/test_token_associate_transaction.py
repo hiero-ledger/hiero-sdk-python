@@ -50,20 +50,24 @@ def test_missing_fields():
     with pytest.raises(ValueError, match="Account ID and token IDs must be set."):
         associate_tx.build_transaction_body()
 
-# This test uses fixture mock_account_ids as parameter
-def test_sign_transaction(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token associate transaction with a private key."""
-    account_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    account_id, _, _, token_id_1, _ = mock_account_ids
+    
     associate_tx = TokenAssociateTransaction()
     associate_tx.set_account_id(account_id)
     associate_tx.add_token_id(token_id_1)
     associate_tx.transaction_id = generate_transaction_id(account_id)
-    associate_tx.node_account_id = node_account_id
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
-
+    
+    # Freeze the transaction
+    associate_tx.freeze_with(mock_client)
+    
+    # Sign the transaction
     associate_tx.sign(private_key)
 
     assert len(associate_tx.signature_map.sigPair) == 1
@@ -72,19 +76,21 @@ def test_sign_transaction(mock_account_ids):
     assert sig_pair.pubKeyPrefix == b'public_key'  
     assert sig_pair.ed25519 == b'signature'
 
-# This test uses fixture mock_account_ids as parameter
-def test_to_proto(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token associate transaction to protobuf format after signing."""
-    account_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    account_id, _, _, token_id_1, _ = mock_account_ids
+    
     associate_tx = TokenAssociateTransaction()
     associate_tx.set_account_id(account_id)
     associate_tx.add_token_id(token_id_1)
     associate_tx.transaction_id = generate_transaction_id(account_id)
-    associate_tx.node_account_id = node_account_id
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
     private_key.public_key().to_bytes_raw.return_value = b'public_key'
+
+    associate_tx.freeze_with(mock_client)
 
     associate_tx.sign(private_key)
     proto = associate_tx.to_proto()

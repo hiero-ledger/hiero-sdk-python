@@ -62,20 +62,20 @@ def test_missing_account_id(mock_account_ids):
     with pytest.raises(ValueError, match="Missing required AccountID."):
         unfreeze_tx.build_transaction_body()
 
-def test_sign_transaction(mock_account_ids):
+def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token unfreeze transaction with a freeze key."""
-
-    account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
+    account_id, freeze_id, _, token_id, _= mock_account_ids
 
     unfreeze_tx = TokenUnfreezeTransaction()
     unfreeze_tx.set_token_id(token_id)
     unfreeze_tx.set_account_id(freeze_id)
     unfreeze_tx.transaction_id = generate_transaction_id(account_id)
-    unfreeze_tx.node_account_id = node_account_id
 
     freeze_key = MagicMock()
     freeze_key.sign.return_value = b'signature'
     freeze_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    unfreeze_tx.freeze_with(mock_client)
 
     unfreeze_tx.sign(freeze_key)
 
@@ -85,20 +85,20 @@ def test_sign_transaction(mock_account_ids):
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
 
-def test_to_proto(mock_account_ids):
+def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token unfreeze transaction to protobuf format after signing."""
-
-    account_id, freeze_id, node_account_id, token_id, _= mock_account_ids
+    account_id, freeze_id, _, token_id, _= mock_account_ids
 
     unfreeze_tx = TokenUnfreezeTransaction()
     unfreeze_tx.set_token_id(token_id)
     unfreeze_tx.set_account_id(freeze_id)
     unfreeze_tx.transaction_id = generate_transaction_id(account_id)
-    unfreeze_tx.node_account_id = node_account_id
 
     freeze_key = MagicMock()
     freeze_key.sign.return_value = b'signature'
     freeze_key.public_key().to_bytes_raw.return_value = b'mock_pubkey'
+    
+    unfreeze_tx.freeze_with(mock_client)
 
     unfreeze_tx.sign(freeze_key)
     proto = unfreeze_tx.to_proto()

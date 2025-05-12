@@ -83,10 +83,11 @@ def test_build_transaction_body_with_serial_numbers(mock_account_ids):
 
     assert transaction_body.tokenWipe.serialNumbers == serial_numbers
 
-# This test uses fixture mock_account_ids as parameter
-def test_to_proto(mock_account_ids):
+# This test uses fixture (mock_account_ids, mock_client) as parameter
+def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token wipe transaction to protobuf format after signing."""
-    account_id, wipe_account_id, node_account_id, token_id, _ = mock_account_ids
+    account_id, wipe_account_id, _, token_id, _ = mock_account_ids
+    
     amount = 1000
 
     wipe_tx = (
@@ -97,11 +98,12 @@ def test_to_proto(mock_account_ids):
     )
     
     wipe_tx.transaction_id = generate_transaction_id(account_id)
-    wipe_tx.node_account_id = node_account_id
 
     wipe_key = MagicMock()
     wipe_key.sign.return_value = b'signature'
     wipe_key.public_key().to_bytes_raw.return_value = b'public_key'
+    
+    wipe_tx.freeze_with(mock_client)
 
     wipe_tx.sign(wipe_key)
     proto = wipe_tx.to_proto()
