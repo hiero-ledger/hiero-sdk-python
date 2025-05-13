@@ -49,10 +49,10 @@ def test_sign_topic_delete_transaction(mock_account_ids, topic_id, private_key):
     tx.node_account_id = node_account_id
 
     body_bytes = tx.build_transaction_body().SerializeToString()
-    tx.transaction_body_bytes.setdefault(node_account_id, body_bytes)
+    tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
 
     tx.sign(private_key)
-    assert len(tx.signature_map[body_bytes].sigPair) == 1
+    assert len(tx._signature_map[body_bytes].sigPair) == 1
 
 # This test uses fixture topic_id as parameter
 def test_execute_topic_delete_transaction(topic_id):

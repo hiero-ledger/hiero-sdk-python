@@ -71,10 +71,10 @@ def test_sign_topic_create_transaction(mock_account_ids, private_key):
     tx.node_account_id = node_account_id
 
     body_bytes = tx.build_transaction_body().SerializeToString()
-    tx.transaction_body_bytes.setdefault(node_account_id, body_bytes)
+    tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
 
     tx.sign(private_key)
-    assert len(tx.signature_map[body_bytes].sigPair) == 1
+    assert len(tx._signature_map[body_bytes].sigPair) == 1
 
 def test_execute_topic_create_transaction():
     """Test executing the TopicCreateTransaction successfully with mock server."""

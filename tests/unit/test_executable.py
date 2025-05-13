@@ -424,8 +424,8 @@ def test_transaction_node_switching_body_bytes():
         )
         
         for node in client.network.nodes:
-            assert transaction.transaction_body_bytes.get(node._account_id) is not None, "Transaction body bytes should be set for all nodes"
-            sig_map = transaction.signature_map.get(transaction.transaction_body_bytes[node._account_id])
+            assert transaction._transaction_body_bytes.get(node._account_id) is not None, "Transaction body bytes should be set for all nodes"
+            sig_map = transaction._signature_map.get(transaction._transaction_body_bytes[node._account_id])
             assert sig_map is not None, "Signature map should be set for all nodes"
             assert len(sig_map.sigPair) == 1, "Signature map should have one signature"
             assert sig_map.sigPair[0].pubKeyPrefix == client.operator_private_key.public_key().to_bytes_raw(), "Signature should be for the operator"

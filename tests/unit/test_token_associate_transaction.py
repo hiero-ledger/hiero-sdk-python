@@ -71,11 +71,11 @@ def test_sign_transaction(mock_account_ids, mock_client):
     associate_tx.sign(private_key)
     
     node_id = mock_client.network.current_node._account_id
-    body_bytes = associate_tx.transaction_body_bytes[node_id]
+    body_bytes = associate_tx._transaction_body_bytes[node_id]
 
-    assert body_bytes in associate_tx.signature_map, "Body bytes should be a key in the signature map dictionary"
-    assert len(associate_tx.signature_map[body_bytes].sigPair) == 1
-    sig_pair = associate_tx.signature_map[body_bytes].sigPair[0]
+    assert body_bytes in associate_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
+    assert len(associate_tx._signature_map[body_bytes].sigPair) == 1
+    sig_pair = associate_tx._signature_map[body_bytes].sigPair[0]
 
     assert sig_pair.pubKeyPrefix == b'public_key'  
     assert sig_pair.ed25519 == b'signature'

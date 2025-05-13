@@ -76,18 +76,18 @@ def test_account_create_transaction_sign(mock_account_ids, mock_client):
 
     # Add first signiture
     account_tx.sign(mock_client.operator_private_key)
-    body_bytes = account_tx.transaction_body_bytes[node_account_id]
+    body_bytes = account_tx._transaction_body_bytes[node_account_id]
     
-    assert body_bytes in account_tx.signature_map, "Body bytes should be a key in the signature map dictionary"
-    assert len(account_tx.signature_map[body_bytes].sigPair) == 1, \
+    assert body_bytes in account_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
+    assert len(account_tx._signature_map[body_bytes].sigPair) == 1, \
         "Transaction should have exactly one signature"
     
     # Add second signiture
     account_tx.sign(operator_private_key)
-    body_bytes = account_tx.transaction_body_bytes[node_account_id]
+    body_bytes = account_tx._transaction_body_bytes[node_account_id]
     
-    assert body_bytes in account_tx.signature_map, "Body bytes should be a key in the signature map dictionary"
-    assert len(account_tx.signature_map[body_bytes].sigPair) == 2, \
+    assert body_bytes in account_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
+    assert len(account_tx._signature_map[body_bytes].sigPair) == 2, \
         "Transaction should have exactly two signatures"
 
 def test_account_create_transaction():

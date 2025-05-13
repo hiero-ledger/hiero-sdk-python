@@ -278,21 +278,21 @@ def test_sign_transaction(mock_account_ids, mock_client):
     token_tx.sign(private_key_admin) # Since admin key exists
     
     node_id = mock_client.network.current_node._account_id
-    body_bytes = token_tx.transaction_body_bytes[node_id]
+    body_bytes = token_tx._transaction_body_bytes[node_id]
 
     # Expect 2 sigPairs
-    assert len(token_tx.signature_map[body_bytes].sigPair) == 2
+    assert len(token_tx._signature_map[body_bytes].sigPair) == 2
 
-    sig_pair = token_tx.signature_map[body_bytes].sigPair[0]
+    sig_pair = token_tx._signature_map[body_bytes].sigPair[0]
     assert sig_pair.pubKeyPrefix == b"public_key"
     assert sig_pair.ed25519 == b"signature"
 
-    sig_pair_admin = token_tx.signature_map[body_bytes].sigPair[1]
+    sig_pair_admin = token_tx._signature_map[body_bytes].sigPair[1]
     assert sig_pair_admin.pubKeyPrefix == b"admin_public_key"
     assert sig_pair_admin.ed25519 == b"admin_signature"
 
     # Confirm that neither sigPair belongs to supply_key or freeze_key:
-    for sig_pair in token_tx.signature_map[body_bytes].sigPair:
+    for sig_pair in token_tx._signature_map[body_bytes].sigPair:
         assert sig_pair.pubKeyPrefix not in (b"supply_public_key", b"freeze_public_key")
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter
@@ -448,7 +448,7 @@ def test_transaction_execution_failure(mock_account_ids):
     token_tx.transaction_id = generate_transaction_id(treasury_account)
     
     # Set the transaction body bytes to avoid calling build_transaction_body
-    token_tx.transaction_body_bytes = b"mock_body_bytes"
+    token_tx._transaction_body_bytes = b"mock_body_bytes"
     
     # Mock the client and its operator_private_key
     token_tx.client = MagicMock()
