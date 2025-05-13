@@ -34,8 +34,8 @@ class Transaction(_Executable):
         self.transaction_valid_duration = 120 
         self.generate_record = False
         self.memo = ""
-        self.transaction_body_bytes: dict[AccountId, bytes] = {}
-        self.signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
+        self._transaction_body_bytes: dict[AccountId, bytes] = {}
+        self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee = 2_000_000
         self.operator_account_id = None  
 
@@ -149,7 +149,7 @@ class Transaction(_Executable):
         # We require the transaction to be frozen before signing
         self._require_frozen()
         
-        for body_bytes in self.transaction_body_bytes.values():
+        for body_bytes in self._transaction_body_bytes.values():
             signature = private_key.sign(body_bytes)
 
             public_key_bytes = private_key.public_key().to_bytes_raw()
@@ -159,7 +159,7 @@ class Transaction(_Executable):
                 ed25519=signature
             )
 
-            self.signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap()).sigPair.append(sig_pair)
+            self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap()).sigPair.append(sig_pair)
 
         return self
 
@@ -176,11 +176,11 @@ class Transaction(_Executable):
         # We require the transaction to be frozen before converting to protobuf
         self._require_frozen()
 
-        body_bytes = self.transaction_body_bytes.get(self.node_account_id)
+        body_bytes = self._transaction_body_bytes.get(self.node_account_id)
         if body_bytes is None:
             raise ValueError(f"No transaction body found for node {self.node_account_id}")
 
-        sig_map = self.signature_map.get(body_bytes)
+        sig_map = self._signature_map.get(body_bytes)
         if sig_map is None:
             raise ValueError("No signature map found for the current transaction body")
 
@@ -206,7 +206,7 @@ class Transaction(_Executable):
         Raises:
             Exception: If required IDs are not set.
         """
-        if self.transaction_body_bytes:
+        if self._transaction_body_bytes:
             return self
         
         if self.transaction_id is None:
@@ -214,7 +214,7 @@ class Transaction(_Executable):
         
         for node in client.network.nodes:
             self.node_account_id = node._account_id
-            self.transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+            self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
         
         # Set the node account id to the current node in the network
         self.node_account_id = client.network.current_node._account_id
@@ -238,7 +238,7 @@ class Transaction(_Executable):
             MaxAttemptsError: If the transaction/query fails after the maximum number of attempts
             ReceiptStatusError: If the query fails with a receipt status error
         """
-        if not self.transaction_body_bytes:
+        if not self._transaction_body_bytes:
             self.freeze_with(client)
 
         if self.operator_account_id is None:
@@ -268,7 +268,7 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
         
-        sig_map = self.signature_map.get(self.transaction_body_bytes.get(self.node_account_id))
+        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self.node_account_id))
         
         if sig_map is None:
             return False
@@ -332,7 +332,7 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction has already been frozen.
         """
-        if self.transaction_body_bytes:
+        if self._transaction_body_bytes:
             raise Exception("Transaction is immutable; it has been frozen.")
 
     def _require_frozen(self):
@@ -345,7 +345,7 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction has not been frozen yet.
         """
-        if not self.transaction_body_bytes:
+        if not self._transaction_body_bytes:
             raise Exception("Transaction is not frozen")
 
     def set_transaction_memo(self, memo):
