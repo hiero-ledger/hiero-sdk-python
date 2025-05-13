@@ -26,7 +26,7 @@ def build_query_payment_transaction(
     tx.transaction_id = TransactionId.generate(payer_account_id)
 
     body_bytes = tx.build_transaction_body().SerializeToString()
-    tx.transaction_body_bytes = body_bytes
+    tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
 
     tx.sign(payer_private_key)
     return tx.to_proto()
