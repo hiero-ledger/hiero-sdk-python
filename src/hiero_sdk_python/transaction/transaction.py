@@ -34,7 +34,14 @@ class Transaction(_Executable):
         self.transaction_valid_duration = 120 
         self.generate_record = False
         self.memo = ""
+        # Maps each node's AccountId to its corresponding transaction body bytes
+        # This allows us to maintain separate transaction bodies for each node
+        # which is necessary when submitting the same transaction to multiple nodes
         self._transaction_body_bytes: dict[AccountId, bytes] = {}
+        
+        # Maps transaction body bytes to their associated signatures
+        # This allows us to maintain the signatures for each unique transaction
+        # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee = 2_000_000
         self.operator_account_id = None  
@@ -149,6 +156,9 @@ class Transaction(_Executable):
         # We require the transaction to be frozen before signing
         self._require_frozen()
         
+        # We iterate through every transaction body bytes to sign each one
+        # This is necessary because the transaction may be sent to multiple nodes,
+        # and each node requires its own signature for verification
         for body_bytes in self._transaction_body_bytes.values():
             signature = private_key.sign(body_bytes)
 
@@ -212,6 +222,9 @@ class Transaction(_Executable):
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
         
+        # We iterate through every node in the client's network
+        # For each node, set the node_account_id and build the transaction body
+        # This allows the transaction to be submitted to any node in the network
         for node in client.network.nodes:
             self.node_account_id = node._account_id
             self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
