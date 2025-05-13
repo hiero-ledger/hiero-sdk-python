@@ -345,7 +345,7 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction has not been frozen yet.
         """
-        if self.transaction_body_bytes is None:
+        if not self.transaction_body_bytes:
             raise Exception("Transaction is not frozen")
 
     def set_transaction_memo(self, memo):
