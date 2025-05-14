@@ -111,10 +111,6 @@ def test_node_switching_after_single_grpc_error():
     ]
 
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
-        # We set the current node to the first one - that will give an error
-        client.network._node_index = 0
-        client.network.current_node = client.network.nodes[0]
-        
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -152,10 +148,6 @@ def test_node_switching_after_multiple_grpc_errors():
     ]
     
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
-        # We set the current node to the first one, the next will be the second and the thrid will be success
-        client.network._node_index = 0
-        client.network.current_node = client.network.nodes[0]
-        
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
