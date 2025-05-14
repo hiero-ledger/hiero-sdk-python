@@ -7,6 +7,7 @@ from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
 from hiero_sdk_python.tokens.token_type import TokenType
 
+# pylint: disable=too-many-arguments
 class TokenInfo:
     def __init__(self, tokenId: TokenId, name: str, symbol: str, decimals: int, totalSupply: int, treasury: AccountId, isDeleted: bool, memo: str, tokenType: TokenType, maxSupply: int, ledger_id: bytes):
         self.tokenId = tokenId
