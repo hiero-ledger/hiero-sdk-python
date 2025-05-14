@@ -20,6 +20,7 @@ class TransferTransaction(Transaction):
         Args:
             hbar_transfers (dict[AccountId, int], optional): Initial HBAR transfers.
             token_transfers (dict[TokenId, dict[AccountId, int]], optional): Initial token transfers.
+            nft_transfers (dict[TokenId, list[tuple[AccountId, AccountId, int, bool]]], optional): Initial NFT transfers.
         """
         super().__init__()
         self.hbar_transfers = defaultdict(int)
