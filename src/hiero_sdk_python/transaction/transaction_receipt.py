@@ -64,6 +64,16 @@ class TransactionReceipt:
         else:
             return None
 
+    @property
+    def serial_numbers(self):
+        """
+        Retrieves the serial numbers associated with the transaction receipt, if available.
+        
+        Returns:
+            list of int: The serial numbers if present; otherwise, an empty list.
+        """
+        return self._receipt_proto.serialNumbers
+
     def to_proto(self):
         """
         Returns the underlying protobuf transaction receipt.
