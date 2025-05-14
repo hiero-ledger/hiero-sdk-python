@@ -29,18 +29,25 @@ class TransferTransaction(Transaction):
         self._default_transaction_fee = 100_000_000
 
         if hbar_transfers:
-            for account_id, amount in hbar_transfers.items():
-                self.add_hbar_transfer(account_id, amount)
-
+            self._init_hbar_transfers(hbar_transfers)
         if token_transfers:
-            for token_id, account_transfers in token_transfers.items():
-                for account_id, amount in account_transfers.items():
-                    self.add_token_transfer(token_id, account_id, amount)
-
+            self._init_token_transfers(token_transfers)
         if nft_transfers:
-            for token_id, transfers in nft_transfers.items():
-                for sender_id, receiver_id, serial_number, is_approved in transfers:
-                    self.add_nft_transfer(NftId(token_id, serial_number), sender_id, receiver_id, is_approved)
+            self._init_nft_transfers(nft_transfers)
+
+    def _init_hbar_transfers(self, hbar_transfers):
+        for account_id, amount in hbar_transfers.items():
+            self.add_hbar_transfer(account_id, amount)
+
+    def _init_token_transfers(self, token_transfers):
+        for token_id, account_transfers in token_transfers.items():
+            for account_id, amount in account_transfers.items():
+                self.add_token_transfer(token_id, account_id, amount)
+
+    def _init_nft_transfers(self, nft_transfers):
+        for token_id, transfers in nft_transfers.items():
+            for sender_id, receiver_id, serial_number, is_approved in transfers:
+                self.add_nft_transfer(NftId(token_id, serial_number), sender_id, receiver_id, is_approved)
 
     def add_hbar_transfer(self, account_id: AccountId, amount: int) -> "TransferTransaction":
         """
