@@ -20,6 +20,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Associating a Token](#associating-a-token)
   - [Dissociating a Token](#dissociating-a-token)
   - [Transferring Tokens](#transferring-tokens)
+  - [Transferring NFTs](#transferring-nfts)
   - [Wiping Tokens](#wiping-tokens)
   - [Deleting a Token](#deleting-a-token)
   - [Freezing a Token](#freezing-a-token)
@@ -255,6 +256,38 @@ transaction.execute(client)
         TransferTransaction()
         .add_token_transfer(token_id, operator_id, -amount)
         .add_token_transfer(token_id, recipient_id, amount)
+        .freeze_with(client)
+        .sign(operator_key)
+    )
+
+    transaction.execute(client)
+```
+
+### Transferring NFTs
+
+#### Pythonic Syntax:
+```
+transaction = TransferTransaction(
+    nft_transfers={
+        token_id: [
+            (
+                operator_id,
+                recipient_id,
+                serial_number
+            )
+        ]
+    }
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TransferTransaction()
+        .add_nft_transfer(nft_id, operator_id, recipient_id)
         .freeze_with(client)
         .sign(operator_key)
     )
