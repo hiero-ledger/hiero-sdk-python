@@ -26,6 +26,9 @@ from .tokens.token_info import TokenInfo
 from .tokens.token_pause_status import TokenPauseStatus
 from .tokens.token_freeze_status import TokenFreezeStatus
 from .tokens.nft_id import NftId
+from .tokens.token_pause_status import TokenPauseStatus
+from .tokens.token_freeze_status import TokenFreezeStatus
+from .tokens.token_info import TokenInfo
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -78,6 +81,7 @@ __all__ = [
     "TokenId",
     "TokenInfo",
     "NftId",
+    "TokenInfo",
 
     # Transaction
     "TransferTransaction",
