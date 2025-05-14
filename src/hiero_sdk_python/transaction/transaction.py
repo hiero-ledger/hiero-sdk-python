@@ -36,7 +36,9 @@ class Transaction(_Executable):
         self.memo = ""
         # Maps each node's AccountId to its corresponding transaction body bytes
         # This allows us to maintain separate transaction bodies for each node
-        # which is necessary when submitting the same transaction to multiple nodes
+        # which is necessary in case node is unhealthy and we have to switch it with other node.
+        # Each transaction body has the AccountId of the node it's being submitted to.
+        # If these do not match `INVALID_NODE_ACCOUNT` error will occur.
         self._transaction_body_bytes: dict[AccountId, bytes] = {}
         
         # Maps transaction body bytes to their associated signatures
@@ -156,9 +158,7 @@ class Transaction(_Executable):
         # We require the transaction to be frozen before signing
         self._require_frozen()
         
-        # We iterate through every transaction body bytes to sign each one
-        # This is necessary because the transaction may be sent to multiple nodes,
-        # and each node requires its own signature for verification
+        # We sign the bodies for each node in case we need to switch nodes during execution.
         for body_bytes in self._transaction_body_bytes.values():
             signature = private_key.sign(body_bytes)
 
@@ -169,8 +169,12 @@ class Transaction(_Executable):
                 ed25519=signature
             )
 
-            self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap()).sigPair.append(sig_pair)
+            # We initialize the signature map for this body_bytes if it doesn't exist yet
+            self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap())
 
+            # Append the signature pair to the signature map for this transaction body
+            self._signature_map[body_bytes].sigPair.append(sig_pair)
+        
         return self
 
     def to_proto(self):
