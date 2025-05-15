@@ -1,0 +1,71 @@
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.tokens.nft_id import NftId
+from hiero_sdk_python.hapi.services import timestamp_pb2, token_get_nft_info_pb2
+
+class TokenNftInfo:
+    """
+    Represents information about a Non-Fungible Token (NFT) on the Hedera network.
+    
+    This class encapsulates details about an NFT including its unique identifier,
+    owner account, creation time, associated metadata, and any account with spending privileges.
+    """
+    
+    def __init__(self, nft_id=None, account_id=None, creation_time=None, metadata=None, spender_id=None):
+        """
+        Initialize a TokenNftInfo instance.
+        
+        Args:
+            nft_id (NftId, optional): The unique identifier of the NFT.
+            account_id (AccountId, optional): The account ID of the NFT owner.
+            creation_time (int, optional): The timestamp when the NFT was created (in seconds).
+            metadata (bytes, optional): The metadata associated with the NFT.
+            spender_id (AccountId, optional): The account ID with spending privileges for this NFT.
+        """
+        self.nft_id : NftId = nft_id
+        self.account_id : AccountId = account_id
+        self.creation_time : int = creation_time
+        self.metadata : bytes = metadata
+        self.spender_id : AccountId = spender_id
+
+    @classmethod
+    def from_proto(cls, proto: token_get_nft_info_pb2.TokenNftInfo):
+        """
+        Create a TokenNftInfo instance from a protobuf message.
+        
+        Args:
+            proto (token_get_nft_info_pb2.TokenNftInfo): The protobuf message containing NFT information.
+            
+        Returns:
+            TokenNftInfo: A new instance populated with data from the protobuf message.
+        """
+        return cls(
+            nft_id=NftId.from_proto(proto.nftID),
+            account_id=AccountId.from_proto(proto.accountID),
+            creation_time=proto.creationTime.seconds,
+            metadata=proto.metadata,
+            spender_id=AccountId.from_proto(proto.spender_id)
+        )
+    
+    def to_proto(self):
+        """
+        Convert this TokenNftInfo instance to a protobuf message.
+        
+        Returns:
+            token_get_nft_info_pb2.TokenNftInfo: The protobuf representation of this NFT information.
+        """
+        return token_get_nft_info_pb2.TokenNftInfo(
+            nftID=self.nft_id.to_proto(),
+            accountID=self.account_id.to_proto(),
+            creationTime=timestamp_pb2.Timestamp(seconds=self.creation_time),
+            metadata=self.metadata,
+            spender_id=self.spender_id.to_proto()
+        )
+    
+    def __str__(self):
+        """
+        Get a string representation of this TokenNftInfo instance.
+        
+        Returns:
+            str: A string representation including all fields of this NFT information.
+        """
+        return f"TokenNftInfo(nft_id={self.nft_id}, account_id={self.account_id}, creation_time={self.creation_time}, metadata={self.metadata}, spender_id={self.spender_id})"
