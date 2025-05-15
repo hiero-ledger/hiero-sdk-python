@@ -6,6 +6,7 @@ from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.node import _Node
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
@@ -43,6 +44,13 @@ def private_key():
 def topic_id():
     """Fixture to create a topic ID for testing."""
     return TopicId(0, 0, 1234)
+
+@pytest.fixture
+def nft_id():
+    """Fixture to provide a mock NftId instance."""
+    token_id = TokenId(shard=0, realm=0, num=1)
+    serial_number = 8
+    return NftId(tokenId=token_id, serialNumber=serial_number)
 
 @pytest.fixture
 def mock_client():
