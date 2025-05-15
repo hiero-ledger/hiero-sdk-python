@@ -5,7 +5,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.tokens.token_nft_transfer import _TokenNftTransfer
+from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.nft_id import NftId
 
 class TransferTransaction(Transaction):
@@ -25,7 +25,7 @@ class TransferTransaction(Transaction):
         super().__init__()
         self.hbar_transfers = defaultdict(int)
         self.token_transfers = defaultdict(lambda: defaultdict(int))
-        self.nft_transfers = defaultdict(list[_TokenNftTransfer])
+        self.nft_transfers = defaultdict(list[TokenNftTransfer])
         self._default_transaction_fee = 100_000_000
 
         if hbar_transfers:
@@ -89,7 +89,7 @@ class TransferTransaction(Transaction):
         if not isinstance(receiver_id, AccountId):
             raise TypeError("receiver_id must be an AccountId instance.")
 
-        self.nft_transfers[nft_id.tokenId].append(_TokenNftTransfer(sender_id, receiver_id, nft_id.serialNumber, is_approved))
+        self.nft_transfers[nft_id.tokenId].append(TokenNftTransfer(sender_id, receiver_id, nft_id.serialNumber, is_approved))
         return self
 
     def build_transaction_body(self):
