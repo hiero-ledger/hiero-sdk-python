@@ -171,13 +171,6 @@ class TokenInfo:
 
         return proto
 
-
-    # TODO: Java uses fromProtobuf(response.parsefrom(bytes)) may not be possible or necessary here
-    @classmethod
-    def from_bytes(cls, token_info: bytes):
-        pass
-
-
     def __str__(self):
         return (f"TokenInfo(tokenId={self.tokenId}, name={self.name}, symbol={self.symbol}, "
                 f"decimals={self.decimals}, totalSupply={self.totalSupply}, treasury={self.treasury}, "
