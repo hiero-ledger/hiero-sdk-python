@@ -17,7 +17,7 @@ def transfer_hbar():
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
     recipient_id = AccountId.from_string(os.getenv('RECIPIENT_ID'))
     client.set_operator(operator_id, operator_key)
 
