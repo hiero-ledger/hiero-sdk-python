@@ -126,7 +126,7 @@ class TokenInfo:
 
         return tokenInfoObject
 
-    def to_proto(self) -> proto_TokenInfo:
+    def _to_proto(self) -> proto_TokenInfo:
         proto = proto_TokenInfo(
             tokenId=self.tokenId.to_proto(),
             name=self.name,
