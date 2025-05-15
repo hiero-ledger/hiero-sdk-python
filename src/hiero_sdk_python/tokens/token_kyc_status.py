@@ -1,6 +1,9 @@
 from enum import Enum
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKycStatus as proto_TokenKycStatus
 
+"""
+KYC (Know Your Customer) Status indicates whether or not a person or entity has completed a verification of identity.
+"""
 class TokenKycStatus(Enum):
     KYC_NOT_APPLICABLE = 0
     GRANTED = 1

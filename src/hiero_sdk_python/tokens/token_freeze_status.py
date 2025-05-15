@@ -1,6 +1,9 @@
 from enum import Enum
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenFreezeStatus as proto_TokenFreezeStatus
 
+"""
+TokenFreezeStatus shows whether or not an account can use a token in transactions.
+"""
 class TokenFreezeStatus(Enum):
     FREEZE_NOT_APPLICABLE = 0
     FROZEN = 1

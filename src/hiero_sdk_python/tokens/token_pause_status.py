@@ -1,6 +1,9 @@
 from enum import Enum
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenPauseStatus as proto_TokenPauseStatus
 
+"""
+A Token's paused status shows whether or not a Token can be used or not in a transaction.
+"""
 class TokenPauseStatus(Enum):
     PAUSE_NOT_APPLICABLE = 0
     PAUSED = 1

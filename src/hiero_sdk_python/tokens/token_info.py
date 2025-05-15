@@ -80,7 +80,7 @@ class TokenInfo:
         self.supplyType = supplyType
 
     @classmethod
-    def from_proto(cls, proto_obj: proto_TokenInfo) -> "TokenInfo":
+    def _from_proto(cls, proto_obj: proto_TokenInfo) -> "TokenInfo":
         tokenInfoObject = TokenInfo(
             tokenId=TokenId.from_proto(proto_obj.tokenId),
             name=proto_obj.name,
