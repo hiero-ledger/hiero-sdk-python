@@ -123,8 +123,5 @@ __all__ = [
     "Hbar",
     
     # Timestamp
-    "Timestamp",
-
-    # Duration
-    "Duration"
+    "Timestamp"
 ]
