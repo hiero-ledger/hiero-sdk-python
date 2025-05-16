@@ -33,7 +33,7 @@ def setup_client():
 
 def create_nft(client, operator_id, operator_key):
     """Create a non-fungible token"""
-    transaction = (
+    receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
         .set_token_symbol("EXNFT")
@@ -46,10 +46,8 @@ def create_nft(client, operator_id, operator_key):
         .set_admin_key(operator_key)
         .set_supply_key(operator_key)
         .set_freeze_key(operator_key)
-        .freeze_with(client)
+        .execute(client)
     )
-    
-    receipt = transaction.execute(client)
     
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
@@ -62,16 +60,14 @@ def create_nft(client, operator_id, operator_key):
     
     return nft_token_id
 
-def mint_nft(client, nft_token_id, operator_key):
+def mint_nft(client, nft_token_id):
     """Mint a non-fungible token"""
-    transaction = (
+    receipt = (
         TokenMintTransaction()
         .set_token_id(nft_token_id)
         .set_metadata(b"My NFT Metadata 1")
-        .freeze_with(client)
+        .execute(client)
     )
-
-    receipt = transaction.execute(client)
     
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}")
@@ -90,7 +86,7 @@ def query_nft_info():
     """
     client, operator_id, operator_key = setup_client()
     token_id = create_nft(client, operator_id, operator_key)
-    nft_id = mint_nft(client, token_id, operator_key)
+    nft_id = mint_nft(client, token_id)
         
     info = TokenNftInfoQuery(nft_id=nft_id).execute(client)
     print(f"NFT info: {info}")
