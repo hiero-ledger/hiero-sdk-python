@@ -22,6 +22,7 @@ from .tokens.token_wipe_transaction import TokenWipeTransaction
 from .tokens.token_id import TokenId
 from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
+from .tokens.token_nft_info import TokenNftInfo
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -53,6 +54,7 @@ from .query.topic_info_query import TopicInfoQuery
 from .query.topic_message_query import TopicMessageQuery
 from .query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
+from .query.token_nft_info_query import TokenNftInfoQuery
 
 # Address book
 from .address_book.endpoint import Endpoint
@@ -88,6 +90,7 @@ __all__ = [
     "TokenId",
     "NftId",
     "TokenNftTransfer",
+    "TokenNftInfo",
 
     # Transaction
     "TransferTransaction",
@@ -110,6 +113,7 @@ __all__ = [
     "TopicMessageQuery",
     "TransactionGetReceiptQuery",
     "CryptoGetAccountBalanceQuery",
+    "TokenNftInfoQuery",
     
     # Address book
     "Endpoint",
