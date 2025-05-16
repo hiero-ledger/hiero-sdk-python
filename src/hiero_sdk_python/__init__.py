@@ -15,6 +15,7 @@ from .tokens.token_create_transaction import TokenCreateTransaction
 from .tokens.token_associate_transaction import TokenAssociateTransaction
 from .tokens.token_dissociate_transaction import TokenDissociateTransaction
 from .tokens.token_delete_transaction import TokenDeleteTransaction
+from .tokens.token_info import TokenInfo
 from .tokens.token_mint_transaction import TokenMintTransaction
 from .tokens.token_freeze_transaction import TokenFreezeTransaction
 from .tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
@@ -87,6 +88,7 @@ __all__ = [
     "TokenWipeTransaction",
     "TokenId",
     "NftId",
+    "TokenInfo",
     "TokenNftTransfer",
 
     # Transaction
@@ -121,7 +123,7 @@ __all__ = [
 
     # HBAR
     "Hbar",
-    
-    # Timestamp
-    "Timestamp"
+    "ResponseCode",
+    "Timestamp",
+    "Duration"
 ]
