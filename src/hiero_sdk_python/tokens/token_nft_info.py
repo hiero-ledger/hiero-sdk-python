@@ -28,7 +28,7 @@ class TokenNftInfo:
         self.spender_id : AccountId = spender_id
 
     @classmethod
-    def from_proto(cls, proto: token_get_nft_info_pb2.TokenNftInfo):
+    def _from_proto(cls, proto: token_get_nft_info_pb2.TokenNftInfo):
         """
         Create a TokenNftInfo instance from a protobuf message.
         
@@ -46,7 +46,7 @@ class TokenNftInfo:
             spender_id=AccountId.from_proto(proto.spender_id)
         )
     
-    def to_proto(self):
+    def _to_proto(self):
         """
         Convert this TokenNftInfo instance to a protobuf message.
         

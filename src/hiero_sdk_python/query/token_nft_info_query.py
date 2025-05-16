@@ -109,7 +109,7 @@ class TokenNftInfoQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
 
-        return TokenNftInfo.from_proto(response.tokenGetNftInfo.nft)
+        return TokenNftInfo._from_proto(response.tokenGetNftInfo.nft)
 
     def _get_query_response(self, response):
         """

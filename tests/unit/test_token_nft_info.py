@@ -67,7 +67,7 @@ def test_from_proto():
     )
     
     # Create TokenNftInfo from proto
-    token_nft_info = TokenNftInfo.from_proto(proto)
+    token_nft_info = TokenNftInfo._from_proto(proto)
     
     # Verify fields
     assert token_nft_info.nft_id.tokenId.shard == 0
@@ -103,7 +103,7 @@ def test_to_proto(mock_account_ids, nft_id):
     )
     
     # Convert to protobuf
-    proto = token_nft_info.to_proto()
+    proto = token_nft_info._to_proto()
     
     # Verify protobuf fields
     assert proto.nftID.token_ID.shardNum == nft_id.tokenId.shard
