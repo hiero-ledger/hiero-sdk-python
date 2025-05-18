@@ -75,7 +75,7 @@ def load_operator_credentials():
     """Load operator credentials from environment variables."""
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string_der(os.getenv('OPERATOR_KEY'))
     except Exception as e:
         print(f"Error parsing operator credentials: {e}")
         print(traceback.format_exc())
@@ -84,7 +84,8 @@ def load_operator_credentials():
 
 def create_new_account(client, initial_balance=100000000):
     """Tests account creation"""
-    new_account_private_key = PrivateKey.generate()
+    new_account_private_key = PrivateKey.generate("ed25519")
+
     new_account_public_key = new_account_private_key.public_key()
 
     transaction = AccountCreateTransaction(
