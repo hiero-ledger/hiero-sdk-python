@@ -1,5 +1,4 @@
-# pylint: disable=C901
-# pylint: disable=too-many-arguments
+# pylint: skip-file
 
 from hiero_sdk_python import TokenId, AccountId, PublicKey, Duration
 from hiero_sdk_python.timestamp import Timestamp
