@@ -1,3 +1,6 @@
+# pylint: disable=C901
+# pylint: disable=too-many-arguments
+
 from hiero_sdk_python import TokenId, AccountId, PublicKey, Duration
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.supply_type import SupplyType
@@ -8,7 +11,6 @@ from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto
 from hiero_sdk_python.tokens.token_type import TokenType
 
 class TokenInfo:
-    # pylint: disable=too-many-arguments
     def __init__(self, tokenId: TokenId, name: str, symbol: str, decimals: int, totalSupply: int, treasury: AccountId, isDeleted: bool, memo: str, tokenType: TokenType, maxSupply: int, ledger_id: bytes):
         self.tokenId = tokenId
         self.name = name
@@ -80,7 +82,6 @@ class TokenInfo:
         self.supplyType = supplyType
 
     @classmethod
-    # pylint: disable=C901
     def _from_proto(cls, proto_obj: proto_TokenInfo) -> "TokenInfo":
         tokenInfoObject = TokenInfo(
             tokenId=TokenId.from_proto(proto_obj.tokenId),
