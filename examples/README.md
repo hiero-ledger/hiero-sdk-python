@@ -25,6 +25,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Deleting a Token](#deleting-a-token)
   - [Freezing a Token](#freezing-a-token)
   - [Unfreezing a Token](#unfreezing-a-token)
+  - [Rejecting a Token](#rejecting-a-token)
+  - [Rejecting a Non-Fungible Token](#rejecting-a-non-fungible-token)
   - [Querying NFT Info](#querying-nft-info)
 - [HBAR Transactions](#hbar-transactions)
   - [Transferring HBAR](#transferring-hbar)
@@ -391,6 +393,58 @@ transaction = (
         .freeze_with(client)
     )
     transaction.sign(freeze_key)
+    transaction.execute(client)
+```
+
+### Rejecting a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenRejectTransaction(
+    owner_id=owner_id,
+    token_ids=[token_id]
+).freeze_with(client)
+
+transaction.sign(owner_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenRejectTransaction()
+        .set_owner_id(owner_id)
+        .set_token_ids([token_id])
+        .freeze_with(client)
+        .sign(owner_key)
+    )
+
+    transaction.execute(client)
+```
+
+### Rejecting a Non-Fungible Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenRejectTransaction(
+    owner_id=owner_id,
+    nft_ids=[nft_id1]
+).freeze_with(client)
+
+transaction.sign(owner_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenRejectTransaction()
+        .set_owner_id(owner_id)
+        .set_nft_ids([nft_id1])
+        .freeze_with(client)
+        .sign(owner_key)
+    )
+
     transaction.execute(client)
 ```
 
