@@ -30,7 +30,7 @@ class IntegrationTestEnv:
         self.client.close()
     
 
-def create_fungible_token(env):
+def create_fungible_token(env, opts=[]):
     token_params = TokenParams(
             token_name="PTokenTest34",
             token_symbol="PTT34",
@@ -50,14 +50,18 @@ def create_fungible_token(env):
         )
         
     token_transaction = TokenCreateTransaction(token_params, token_keys)
-    token_transaction.freeze_with(env.client)
+    
+    # Apply optional functions to the token creation transaction
+    for opt in opts:
+        opt(token_transaction)
+    
     token_receipt = token_transaction.execute(env.client)
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
     
     return token_receipt.tokenId
 
-def create_nft_token(env):
+def create_nft_token(env, opts=[]):
     token_params = TokenParams(
         token_name="PythonNFTToken",
         token_symbol="PNFT",
@@ -76,7 +80,11 @@ def create_nft_token(env):
     )
 
     transaction = TokenCreateTransaction(token_params, token_keys)
-    transaction.freeze_with(env.client)
+
+    # Apply optional functions to the token creation transaction
+    for opt in opts:
+        opt(transaction)
+
     token_receipt = transaction.execute(env.client)
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
