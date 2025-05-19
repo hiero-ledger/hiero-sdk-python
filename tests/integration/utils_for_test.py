@@ -31,6 +31,15 @@ class IntegrationTestEnv:
     
 
 def create_fungible_token(env, opts=[]):
+    """
+    Create a fungible token with the given options.
+
+    Args:
+        env: The environment object containing the client and operator account.
+        opts: List of optional functions that can modify the token creation transaction before execution.
+             Example opt function:
+             lambda tx: tx.set_treasury_account_id(custom_treasury_id).freeze_with(client)
+    """
     token_params = TokenParams(
             token_name="PTokenTest34",
             token_symbol="PTT34",
@@ -62,6 +71,15 @@ def create_fungible_token(env, opts=[]):
     return token_receipt.tokenId
 
 def create_nft_token(env, opts=[]):
+    """
+    Create a non-fungible token (NFT) with the given options.
+
+    Args:
+        env: The environment object containing the client and operator account.
+        opts: List of optional functions that can modify the token creation transaction before execution.
+             Example opt function:
+             lambda tx: tx.set_treasury_account_id(custom_treasury_id).freeze_with(client)
+    """
     token_params = TokenParams(
         token_name="PythonNFTToken",
         token_symbol="PNFT",
