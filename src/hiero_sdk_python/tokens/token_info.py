@@ -1,7 +1,10 @@
 # pylint: disable=C901
 # pylint: disable=too-many-arguments
 
-from hiero_sdk_python import TokenId, AccountId, PublicKey, Duration
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
