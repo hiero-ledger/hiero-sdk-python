@@ -1,5 +1,6 @@
 import pytest
 
+from hiero_sdk_python.hapi.services.token_reject_pb2 import TokenReference, TokenRejectTransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
@@ -7,6 +8,7 @@ from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransact
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, timestamp_pb2, transaction_get_receipt_pb2
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.account.account_id import AccountId
 
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -181,3 +183,39 @@ def test_reject_transaction_can_execute(mock_account_ids):
         receipt = transaction.execute(client)
         
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+def test_reject_transaction_from_proto(mock_account_ids, mock_client):
+    """Test that a reject transaction can be created from a protobuf object."""
+    _, owner_account_id, _, token_id, _ = mock_account_ids
+    token_ids = [token_id]
+    nft_ids = [NftId(tokenId=token_id, serialNumber=1)]
+
+    reject_tx = TokenRejectTransaction(owner_id=owner_account_id, token_ids=token_ids, nft_ids=nft_ids)    
+    reject_tx.freeze_with(mock_client)
+    reject_tx.sign(mock_client.operator_private_key)
+
+    # Create protobuf object with both fungible token and NFT rejections
+    proto = TokenRejectTransactionBody(
+        owner=owner_account_id.to_proto(),
+        rejections=[
+            TokenReference(fungible_token=token_id.to_proto(), nft=None),
+            TokenReference(fungible_token=None, nft=nft_ids[0].to_proto())
+        ]
+    )
+    
+    # Deserialize the protobuf object
+    from_proto = TokenRejectTransaction()._from_proto(proto)
+    
+    # Verify deserialized transaction matches original data
+    assert from_proto.owner_id == owner_account_id
+    assert from_proto.token_ids == token_ids
+    assert from_proto.nft_ids == nft_ids
+    
+    # Deserialize empty protobuf
+    from_proto = TokenRejectTransaction()._from_proto(TokenRejectTransactionBody())
+    
+    # Verify empty protobuf deserializes to empty/default values
+    assert from_proto.owner_id == AccountId()
+    assert from_proto.token_ids == []
+    assert from_proto.nft_ids == []
+    
