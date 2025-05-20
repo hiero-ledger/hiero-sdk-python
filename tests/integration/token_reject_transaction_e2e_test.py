@@ -92,71 +92,56 @@ def test_integration_token_reject_transaction_can_execute_for_nft():
     env = IntegrationTestEnv()
     
     try:
-        # Create NFT collections with treasury
         nft_id_1 = create_nft_token(env)
         nft_id_2 = create_nft_token(env)
         
-        # Mint NFTs for the first token
-        mint_transaction_1 = TokenMintTransaction(
-            token_id=nft_id_1,
-            metadata=[b"metadata1", b"metadata2"]
-        )
-        receipt = mint_transaction_1.execute(env.client)
+        receipt = (TokenMintTransaction()
+            .set_token_id(nft_id_1)
+            .set_metadata([b"metadata1", b"metadata2"])
+            .execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
         serials_1 = receipt.serial_numbers
         
-        # Mint NFTs for the second token
-        mint_transaction_2 = TokenMintTransaction(
-            token_id=nft_id_2,
-            metadata=[b"metadata1", b"metadata2"]
-        )
-        receipt = mint_transaction_2.execute(env.client)
+        receipt = (TokenMintTransaction()
+            .set_token_id(nft_id_2)
+            .set_metadata([b"metadata1", b"metadata2"])
+            .execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
         serials_2 = receipt.serial_numbers
-
+        
         new_account_private_key = PrivateKey.generate()
         new_account_public_key = new_account_private_key.public_key()
         
-        account_transaction = AccountCreateTransaction(
-            key=new_account_public_key,
-            initial_balance=Hbar(1),
-            memo="Receiver Account"
-        )
-        receipt = account_transaction.execute(env.client)
+        receipt = (AccountCreateTransaction()
+            .set_key(new_account_public_key).set_initial_balance(Hbar(1))
+            .set_account_memo("Receiver Account").execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
         account_id = receipt.accountId
         assert account_id is not None
         
         # Associate the tokens to the new account
-        token_associate_transaction = TokenAssociateTransaction(
-            account_id=account_id,
-            token_ids=[nft_id_1, nft_id_2]
-        )
-        receipt = token_associate_transaction.freeze_with(env.client).sign(new_account_private_key).execute(env.client)
+        receipt = (TokenAssociateTransaction().set_account_id(account_id)
+            .add_token_id(nft_id_1).add_token_id(nft_id_2)
+            .freeze_with(env.client).sign(new_account_private_key).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
         
-        transfer_transaction = TransferTransaction()
-        transfer_transaction.add_nft_transfer(NftId(nft_id_1, serials_1[0]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id_1, serials_1[1]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id_2, serials_2[0]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id_2, serials_2[1]), env.client.operator_account_id, account_id)
-        
-        receipt = transfer_transaction.execute(env.client)
+        receipt = (TransferTransaction()
+            .add_nft_transfer(NftId(nft_id_1, serials_1[0]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id_1, serials_1[1]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id_2, serials_2[0]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id_2, serials_2[1]), env.client.operator_account_id, account_id)
+            .execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"NFT transfer failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Reject the tokens
-        token_reject_transaction = TokenRejectTransaction(
-            owner_id=account_id,
-            nft_ids=[NftId(nft_id_1, serials_1[1]), NftId(nft_id_2, serials_2[1])]
-        )
-        receipt = token_reject_transaction.freeze_with(env.client).sign(new_account_private_key).execute(env.client)
+        receipt = (TokenRejectTransaction()
+            .set_owner_id(account_id)
+            .set_nft_ids([NftId(nft_id_1, serials_1[1]), NftId(nft_id_2, serials_2[1])])
+            .freeze_with(env.client).sign(new_account_private_key).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Token rejection failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Verify the balance is decremented by 1 for each token
         balance = CryptoGetAccountBalanceQuery(account_id).execute(env.client)
-        assert balance.token_balances is not None
-        assert balance.token_balances.get(nft_id_1) == 1, f"Expected 1 NFT for token {nft_id_1}, got {balance.token_balances.get(nft_id_1)}"
-        assert balance.token_balances.get(nft_id_2) == 1, f"Expected 1 NFT for token {nft_id_2}, got {balance.token_balances.get(nft_id_2)}"
+        assert balance.token_balances and balance.token_balances.get(nft_id_1) == 1, f"Expected 1 NFT for token {nft_id_1}, got {balance.token_balances.get(nft_id_1)}"
+        assert balance.token_balances and balance.token_balances.get(nft_id_2) == 1, f"Expected 1 NFT for token {nft_id_2}, got {balance.token_balances.get(nft_id_2)}"
         
         # Verify the NFTs are transferred back to the treasury
         nft_info_1 = TokenNftInfoQuery(NftId(nft_id_1, serials_1[1])).execute(env.client)
@@ -178,68 +163,41 @@ def test_integration_token_reject_transaction_can_execute_for_ft_and_nft_paralle
         token_id_1 = create_fungible_token(env)
         token_id_2 = create_fungible_token(env)
         
-        mint = TokenMintTransaction(
-            token_id=nft_id_1,
-            metadata=[b"metadata1", b"metadata2"]
-        )
-        receipt = mint.execute(env.client)
+        receipt = TokenMintTransaction().set_token_id(nft_id_1).set_metadata([b"metadata1", b"metadata2"]).execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode.get_name(receipt.status)}"
         serials_1 = receipt.serial_numbers
         
-        mint = TokenMintTransaction(
-            token_id=nft_id_2,
-            metadata=[b"metadata1", b"metadata2"]
-        )
-        receipt = mint.execute(env.client)
+        receipt = TokenMintTransaction().set_token_id(nft_id_2).set_metadata([b"metadata1", b"metadata2"]).execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode.get_name(receipt.status)}"
         serials_2 = receipt.serial_numbers
         
         new_account_private_key = PrivateKey.generate()
         new_account_public_key = new_account_private_key.public_key()
         
-        account_transaction = AccountCreateTransaction(
-            key=new_account_public_key,
-            initial_balance=Hbar(1),
-            memo="Receiver Account"
-        )
-        receipt = account_transaction.execute(env.client)
-        
+        receipt = AccountCreateTransaction().set_key(new_account_public_key).set_initial_balance(Hbar(1)).set_account_memo("Receiver Account").execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
         account_id = receipt.accountId
         assert account_id is not None
         
-        token_associate_transaction = TokenAssociateTransaction(
-            account_id=account_id,
-            token_ids=[token_id_1, token_id_2, nft_id_1, nft_id_2]
-        )
-        receipt = token_associate_transaction.freeze_with(env.client).sign(new_account_private_key).execute(env.client)
+        receipt = (TokenAssociateTransaction().set_account_id(account_id).add_token_id(token_id_1).add_token_id(token_id_2).add_token_id(nft_id_1).add_token_id(nft_id_2)
+            .freeze_with(env.client).sign(new_account_private_key).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
 
-        token_transfer_transaction = TransferTransaction()
-        token_transfer_transaction.add_token_transfer(token_id_1, account_id, 10)
-        token_transfer_transaction.add_token_transfer(token_id_1, env.client.operator_account_id, -10)
-        token_transfer_transaction.add_token_transfer(token_id_2, account_id, 10)
-        token_transfer_transaction.add_token_transfer(token_id_2, env.client.operator_account_id, -10)
-        
-        receipt = token_transfer_transaction.execute(env.client)
+        receipt = (TransferTransaction()
+            .add_token_transfer(token_id_1, account_id, 10).add_token_transfer(token_id_1, env.client.operator_account_id, -10)
+            .add_token_transfer(token_id_2, account_id, 10).add_token_transfer(token_id_2, env.client.operator_account_id, -10)
+            .execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
         
-        token_transfer_transaction = TransferTransaction()
-        token_transfer_transaction.add_nft_transfer(NftId(nft_id_1, serials_1[0]), env.client.operator_account_id, account_id)
-        token_transfer_transaction.add_nft_transfer(NftId(nft_id_1, serials_1[1]), env.client.operator_account_id, account_id)
-        token_transfer_transaction.add_nft_transfer(NftId(nft_id_2, serials_2[0]), env.client.operator_account_id, account_id)
-        token_transfer_transaction.add_nft_transfer(NftId(nft_id_2, serials_2[1]), env.client.operator_account_id, account_id)
-        
-        receipt = token_transfer_transaction.execute(env.client)
+        receipt = (TransferTransaction().add_nft_transfer(NftId(nft_id_1, serials_1[0]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id_1, serials_1[1]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id_2, serials_2[0]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id_2, serials_2[1]), env.client.operator_account_id, account_id).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
         
-        reject_transaction = TokenRejectTransaction(
-            owner_id=account_id,
-            token_ids=[token_id_1, token_id_2],
-            nft_ids=[NftId(nft_id_1, serials_1[1]), NftId(nft_id_2, serials_2[1])]
-        )
-        # Set transaction fee to be higher than 2 Hbars
-        reject_transaction.transaction_fee = Hbar(3).to_tinybars()
+        reject_transaction = (TokenRejectTransaction().set_owner_id(account_id)
+            .set_token_ids([token_id_1, token_id_2])
+            .set_nft_ids([NftId(nft_id_1, serials_1[1]), NftId(nft_id_2, serials_2[1])]))
+        reject_transaction.transaction_fee = Hbar(3).to_tinybars()  # Set transaction fee to be higher than 2 Hbars
         receipt = reject_transaction.freeze_with(env.client).sign(new_account_private_key).execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token rejection failed with status: {ResponseCode.get_name(receipt.status)}"
         
@@ -330,11 +288,8 @@ def test_integration_token_reject_transaction_fails_with_reference_size_exceeded
         token_id = create_fungible_token(env)
         
         # Mint 10 NFTs
-        mint = TokenMintTransaction(
-            token_id=nft_id,
-            metadata=[b"1", b"2", b"3", b"4", b"5", b"6", b"7", b"8", b"9", b"10"]
-        )
-        receipt = mint.execute(env.client)
+        receipt = (TokenMintTransaction().set_token_id(nft_id)
+            .set_metadata([b"1", b"2", b"3", b"4", b"5", b"6", b"7", b"8", b"9", b"10"]).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
         serials = receipt.serial_numbers
         
@@ -360,33 +315,23 @@ def test_integration_token_reject_transaction_fails_with_reference_size_exceeded
         assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Transfer the tokens to the new account
-        transfer_transaction = TransferTransaction()
-        transfer_transaction.add_token_transfer(token_id, env.client.operator_account_id, -10)
-        transfer_transaction.add_token_transfer(token_id, account_id, 10)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[0]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[1]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[2]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[3]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[4]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[5]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[6]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[7]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[8]), env.client.operator_account_id, account_id)
-        transfer_transaction.add_nft_transfer(NftId(nft_id, serials[9]), env.client.operator_account_id, account_id)
+        receipt = (TransferTransaction().add_token_transfer(token_id, env.client.operator_account_id, -10).add_token_transfer(token_id, account_id, 10)
+            .add_nft_transfer(NftId(nft_id, serials[0]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id, serials[1]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id, serials[2]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id, serials[3]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id, serials[4]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id, serials[5]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id, serials[6]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id, serials[7]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id, serials[8]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id, serials[9]), env.client.operator_account_id, account_id)
+            .execute(env.client))
         
-        receipt = transfer_transaction.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"NFT transfer failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Reject the tokens with 11 token references - should fail with TOKEN_REFERENCE_LIST_SIZE_LIMIT_EXCEEDED
-        token_reject_transaction = TokenRejectTransaction(
-            owner_id=account_id,
-            token_ids=[token_id],
-            nft_ids=[NftId(nft_id, serials[0]), NftId(nft_id, serials[1]), NftId(nft_id, serials[2]), NftId(nft_id, serials[3]), NftId(nft_id, serials[4]), 
-                     NftId(nft_id, serials[5]), NftId(nft_id, serials[6]), NftId(nft_id, serials[7]), NftId(nft_id, serials[8]), NftId(nft_id, serials[9])]
-        )
-        # Set transaction fee to be higher than 2 Hbars
-        token_reject_transaction.transaction_fee = Hbar(3).to_tinybars()
-        receipt =token_reject_transaction.freeze_with(env.client).sign(new_account_private_key).execute(env.client)
+        token_reject_transaction = (TokenRejectTransaction().set_owner_id(account_id).set_token_ids([token_id])
+            .set_nft_ids([NftId(nft_id, serials[0]), NftId(nft_id, serials[1]), NftId(nft_id, serials[2]), NftId(nft_id, serials[3]), NftId(nft_id, serials[4]), 
+                     NftId(nft_id, serials[5]), NftId(nft_id, serials[6]), NftId(nft_id, serials[7]), NftId(nft_id, serials[8]), NftId(nft_id, serials[9])]))
+        
+        token_reject_transaction.transaction_fee = Hbar(3).to_tinybars()    # Set transaction fee to be higher than 2 Hbars
+        receipt = token_reject_transaction.freeze_with(env.client).sign(new_account_private_key).execute(env.client)
         assert receipt.status == ResponseCode.TOKEN_REFERENCE_LIST_SIZE_LIMIT_EXCEEDED, f"Token rejection should have failed with TOKEN_REFERENCE_LIST_SIZE_LIMIT_EXCEEDED status but got: {ResponseCode.get_name(receipt.status)}"
     finally:
         env.close()
@@ -936,13 +881,9 @@ def test_token_reject_transaction_receiver_sig_required_nft():
         treasury_private_key = PrivateKey.generate()
         treasury_public_key = treasury_private_key.public_key()
         
-        transaction = AccountCreateTransaction(
-            key=treasury_public_key,
-            initial_balance=Hbar(0),
-            receiver_signature_required=True,
-            memo="Treasury Account"
-        )
-        receipt = transaction.freeze_with(env.client).sign(treasury_private_key).execute(env.client)
+        receipt = (AccountCreateTransaction().set_key(treasury_public_key).set_initial_balance(Hbar(0))
+            .set_receiver_signature_required(True).set_account_memo("Treasury Account")
+            .freeze_with(env.client).sign(treasury_private_key).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Treasury account creation failed with status: {ResponseCode.get_name(receipt.status)}"
         treasury_id = receipt.accountId
         
@@ -953,24 +894,14 @@ def test_token_reject_transaction_receiver_sig_required_nft():
             lambda tx: tx.sign(treasury_private_key)
         ])
         
-        transaction = TokenMintTransaction(
-            token_id=nft_token_id,
-            metadata=[b"test metadata 1", b"test metadata 2"]
-        )
-        receipt = transaction.execute(env.client)
+        receipt = (TokenMintTransaction().set_token_id(nft_token_id).set_metadata([b"test metadata 1", b"test metadata 2"]).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
-        
         serials = receipt.serial_numbers
         
         receiver_private_key = PrivateKey.generate()
         receiver_public_key = receiver_private_key.public_key()
         
-        transaction = AccountCreateTransaction(
-            key=receiver_public_key,
-            initial_balance=Hbar(1),
-            memo="Receiver Account"
-        )
-        receipt = transaction.execute(env.client)
+        receipt = (AccountCreateTransaction().set_key(receiver_public_key).set_initial_balance(Hbar(1)).set_account_memo("Receiver Account").execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Receiver account creation failed with status: {ResponseCode.get_name(receipt.status)}"
         receiver_id = receipt.accountId
         
@@ -990,11 +921,8 @@ def test_token_reject_transaction_receiver_sig_required_nft():
         
         # Reject one of the NFTs
         nft_id = NftId(nft_token_id, serials[1])
-        nft_reject_transaction = TokenRejectTransaction(
-            owner_id=receiver_id,
-            nft_ids=[nft_id]
-        )
-        receipt = nft_reject_transaction.freeze_with(env.client).sign(receiver_private_key).execute(env.client)
+        receipt = (TokenRejectTransaction().set_owner_id(receiver_id).set_nft_ids([nft_id])
+            .freeze_with(env.client).sign(receiver_private_key).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"NFT rejection failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Verify the balance is decremented by 1
