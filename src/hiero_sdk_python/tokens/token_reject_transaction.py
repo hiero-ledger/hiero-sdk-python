@@ -11,6 +11,8 @@ class TokenRejectTransaction(Transaction):
     Represents a token reject transaction on the Hedera network.
     
     This transaction rejects a token transfer.
+    Allows users to reject and return unwanted airdrops
+    to the treasury account without incurring custom fees.
     
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token reject transaction.
