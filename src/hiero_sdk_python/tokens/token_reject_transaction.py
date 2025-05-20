@@ -17,19 +17,19 @@ class TokenRejectTransaction(Transaction):
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token reject transaction.
     """
-    def __init__(self, owner_id=None, token_ids=[], nft_ids=[]):
+    def __init__(self, owner_id=None, token_ids=None, nft_ids=None):
         """
         Initializes a new TokenRejectTransaction instance with optional owner_id, token_ids, and nft_ids.
 
         Args:
             owner_id (AccountId, optional): The ID of the account to reject the token transfer.
-            token_ids (list[TokenId], optional): The IDs of the tokens to reject.
-            nft_ids (list[int], optional): The serial numbers of NFTs to reject.
+            token_ids (list[TokenId], optional): The IDs of the fungible tokens to reject.
+            nft_ids (list[NftId], optional): The IDs of the non-fungible tokens (NFTs) to reject.
         """
         super().__init__()
         self.owner_id : AccountId = owner_id
-        self.token_ids : list[TokenId] = token_ids
-        self.nft_ids : list[NftId] = nft_ids
+        self.token_ids : list[TokenId] = token_ids if token_ids else []
+        self.nft_ids : list[NftId] = nft_ids if nft_ids else []
         
     def set_owner_id(self, owner_id):
         self._require_not_frozen()
@@ -68,6 +68,18 @@ class TokenRejectTransaction(Transaction):
         return transaction_body
     
     def _get_method(self, channel: _Channel) -> _Method:
+        """
+        Gets the method to execute the token reject transaction.
+
+        This internal method returns a _Method object containing the appropriate gRPC
+        function to call when executing this transaction on the Hedera network.
+
+        Args:
+            channel (_Channel): The channel containing service stubs
+        
+        Returns:
+            _Method: An object containing the transaction function to reject tokens.
+        """
         return _Method(
             transaction_func=channel.token.rejectToken,
             query_func=None
