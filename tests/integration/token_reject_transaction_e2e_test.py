@@ -186,12 +186,11 @@ def test_integration_token_reject_transaction_can_execute_for_ft_and_nft_paralle
         receipt = (TransferTransaction()
             .add_token_transfer(token_id_1, account_id, 10).add_token_transfer(token_id_1, env.client.operator_account_id, -10)
             .add_token_transfer(token_id_2, account_id, 10).add_token_transfer(token_id_2, env.client.operator_account_id, -10)
+            .add_nft_transfer(NftId(nft_id_1, serials_1[0]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id_1, serials_1[1]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id_2, serials_2[0]), env.client.operator_account_id, account_id)
+            .add_nft_transfer(NftId(nft_id_2, serials_2[1]), env.client.operator_account_id, account_id)
             .execute(env.client))
-        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
-        
-        receipt = (TransferTransaction().add_nft_transfer(NftId(nft_id_1, serials_1[0]), env.client.operator_account_id, account_id)
-            .add_nft_transfer(NftId(nft_id_1, serials_1[1]), env.client.operator_account_id, account_id).add_nft_transfer(NftId(nft_id_2, serials_2[0]), env.client.operator_account_id, account_id)
-            .add_nft_transfer(NftId(nft_id_2, serials_2[1]), env.client.operator_account_id, account_id).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
         
         reject_transaction = (TokenRejectTransaction().set_owner_id(account_id)
