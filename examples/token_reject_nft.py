@@ -9,7 +9,6 @@ from hiero_sdk_python import (
     Network,
     TransferTransaction,
 )
-from hiero_sdk_python.account.account_balance import AccountBalance
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
 from hiero_sdk_python.hbar import Hbar
@@ -26,11 +25,9 @@ load_dotenv()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    # Initialize network and client
     network = Network(network='testnet')
     client = Client(network)
 
-    # Set up operator account
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
     operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
     client.set_operator(operator_id, operator_key)
@@ -47,7 +44,7 @@ def create_test_account(client):
     receipt = (
         AccountCreateTransaction()
         .set_key(new_account_public_key)
-        .set_initial_balance(Hbar(2))
+        .set_initial_balance(Hbar(1))
         .execute(client)
     )
     
@@ -62,7 +59,7 @@ def create_test_account(client):
     
     return account_id, new_account_private_key
 
-def create_nft(client, account_id, new_account_private_key):
+def create_nft(client, treasury_id, treasury_private_key):
     """Create a non-fungible token"""
     receipt = (
         TokenCreateTransaction()
@@ -70,15 +67,15 @@ def create_nft(client, account_id, new_account_private_key):
         .set_token_symbol("EXNFT")
         .set_decimals(0)
         .set_initial_supply(0)
-        .set_treasury_account_id(account_id)
+        .set_treasury_account_id(treasury_id)
         .set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
         .set_supply_type(SupplyType.FINITE)
         .set_max_supply(100)
-        .set_admin_key(client.operator_private_key)
-        .set_supply_key(client.operator_private_key)
-        .set_freeze_key(client.operator_private_key)
+        .set_admin_key(treasury_private_key)
+        .set_supply_key(treasury_private_key)
+        .set_freeze_key(treasury_private_key)
         .freeze_with(client)
-        .sign(new_account_private_key)
+        .sign(treasury_private_key) # Has to be signed here by treasury's key as we set the treasury_account_id to be the treasury_id
         .execute(client)
     )
     
@@ -93,12 +90,14 @@ def create_nft(client, account_id, new_account_private_key):
     
     return nft_token_id
 
-def mint_nfts(client, nft_token_id, metadata_list):
+def mint_nfts(client, nft_token_id, metadata_list, treasury_private_key):
     """Mint a non-fungible token"""
     receipt = (
         TokenMintTransaction()
         .set_token_id(nft_token_id)
         .set_metadata(metadata_list)
+        .freeze_with(client)
+        .sign(treasury_private_key) # Has to be signed here by treasury's key because they own the supply key
         .execute(client)
     )
     
@@ -110,16 +109,15 @@ def mint_nfts(client, nft_token_id, metadata_list):
     
     return [NftId(nft_token_id, serial_number) for serial_number in receipt.serial_numbers]
 
-def associate_tokens(client, account_id, nft_token_id, token_id, account_private_key):
-    """Associate tokens with an account"""
-    # Associate the token_ids with the new account
+def associate_token(client, receiver_id, nft_token_id, receiver_private_key):
+    """Associate token with an account"""
+    # Associate the token_id with the new account
     receipt = (
         TokenAssociateTransaction()
-        .set_account_id(account_id)
+        .set_account_id(receiver_id)
         .add_token_id(nft_token_id)
-        .add_token_id(token_id)
         .freeze_with(client)
-        .sign(account_private_key) # Has to be signed by new account's key
+        .sign(receiver_private_key) # Has to be signed here by receiver's key
         .execute(client)
     )
     
@@ -127,47 +125,17 @@ def associate_tokens(client, account_id, nft_token_id, token_id, account_private
         print(f"Token association failed with status: {ResponseCode.get_name(receipt.status)}")
         sys.exit(1)
     
-    print(f"Tokens successfully associated with account: {account_id}")
+    print(f"Token successfully associated with account: {receiver_id}")
 
-def create_fungible_token(client, account_id, new_account_private_key):
-    """Create a fungible token"""
-    receipt = (
-        TokenCreateTransaction()
-        .set_token_name("MyExampleFT")
-        .set_token_symbol("EXFT")
-        .set_decimals(2)
-        .set_initial_supply(100)
-        .set_treasury_account_id(account_id)
-        .set_token_type(TokenType.FUNGIBLE_COMMON)
-        .set_supply_type(SupplyType.FINITE)
-        .set_max_supply(1000)
-        .set_admin_key(client.operator_private_key)
-        .set_supply_key(client.operator_private_key)
-        .freeze_with(client)
-        .sign(new_account_private_key)
-        .execute(client)
-    )
-    
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Fungible token creation failed with status: {ResponseCode.get_name(receipt.status)}")
-        sys.exit(1)
-    
-    token_id = receipt.tokenId
-    print(f"Fungible token created with ID: {token_id}")
-    
-    return token_id
-
-def transfer_tokens(client, account_id, new_account_private_key, receiver_id, token_id, nft_ids):
-    """Transfer tokens to the new account"""
-    # Transfer tokens to the new account
+def transfer_nfts(client, treasury_id, treasury_private_key, receiver_id, nft_ids):
+    """Transfer NFTs to the receiver account so we can later reject them"""
+    # Transfer NFTs to the receiver account
     receipt = (
         TransferTransaction()
-        .add_nft_transfer(nft_ids[0], account_id, receiver_id)
-        .add_nft_transfer(nft_ids[1], account_id, receiver_id)
-        .add_token_transfer(token_id, account_id, -10)
-        .add_token_transfer(token_id, receiver_id, 10)
+        .add_nft_transfer(nft_ids[0], treasury_id, receiver_id)
+        .add_nft_transfer(nft_ids[1], treasury_id, receiver_id)
         .freeze_with(client)
-        .sign(new_account_private_key)
+        .sign(treasury_private_key)
         .execute(client)
     )
     
@@ -176,76 +144,57 @@ def transfer_tokens(client, account_id, new_account_private_key, receiver_id, to
         print(f"Transfer failed with status: {ResponseCode.get_name(receipt.status)}")
         sys.exit(1)
     
-    print(f"Successfully transferred tokens to account {account_id}")
+    print(f"Successfully transferred NFTs to receiver account {receiver_id}")
     
-def get_token_balances(client, account_id, receiver_id, token_id, nft_token_id):
-    """Get token balances for both accounts"""
+def get_nft_balances(client, treasury_id, receiver_id, nft_token_id):
+    """Get NFT balances for both accounts"""
     token_balance = (
         CryptoGetAccountBalanceQuery()
-        .set_account_id(account_id)
+        .set_account_id(treasury_id)
         .execute(client)
     )
-    print(f"Token balance of account {account_id}: {token_balance.token_balances[token_id]}")
-    print(f"NFT balance of account {account_id}: {token_balance.token_balances[nft_token_id]}")
+    print(f"NFT balance of treasury {treasury_id}: {token_balance.token_balances[nft_token_id]}")
     
     receiver_token_balance = (
         CryptoGetAccountBalanceQuery()
         .set_account_id(receiver_id)
         .execute(client)
     )
-    print(f"Token balance of receiver {receiver_id}: {receiver_token_balance.token_balances[token_id]}")
     print(f"NFT balance of receiver {receiver_id}: {receiver_token_balance.token_balances[nft_token_id]}")
 
-def token_reject():
+def token_reject_nft():
     """
-    Demonstrates the token reject functionality by:
-    1. Creating a new account
-    2. Creating a non-fungible token
-    3. Minting two NFTs
-    4. Creating a fungible token
-    5. Associating the NFTs and fungible token with the new account
-    6. Transferring the tokens to the new account
-    7. Rejecting the fungible token
-    8. Rejecting the NFTs
+    Demonstrates the NFT token reject functionality by:
+    1. Creating a new treasury account
+    2. Creating a new receiver account
+    3. Creating a non-fungible token
+    4. Minting two NFTs
+    5. Associating the NFT with the receiver account
+    6. Transferring the NFTs to the receiver account
+    7. Rejecting the NFTs from the receiver account
     """
     client = setup_client()
-    # Create test accounts
-    account_id, new_account_private_key = create_test_account(client)
+    # Create treasury/sender account that will create and send tokens
+    treasury_id, treasury_private_key = create_test_account(client)
+    # Create receiver account that will receive and later reject tokens
     receiver_id, receiver_private_key = create_test_account(client)
     
-    # Create NFTs
-    nft_token_id = create_nft(client, account_id, new_account_private_key)
-    nft_ids = mint_nfts(client, nft_token_id, [b"ExampleMetadata 1", b"ExampleMetadata 2"])
+    # Create a new NFT collection with the treasury account as owner
+    nft_token_id = create_nft(client, treasury_id, treasury_private_key)
+    # Mint 2 NFTs in the collection with example metadata and get their unique IDs that we will send and reject
+    nft_ids = mint_nfts(client, nft_token_id, [b"ExampleMetadata 1", b"ExampleMetadata 2"], treasury_private_key)
     
-    # Create fungible token
-    token_id = create_fungible_token(client, account_id, new_account_private_key)
+    # Associate the NFT token with the receiver account so they can receive the NFTs
+    associate_token(client, receiver_id, nft_token_id, receiver_private_key)
     
-    # Associate tokens with the receiver account
-    associate_tokens(client, receiver_id, nft_token_id, token_id, receiver_private_key)
-    
-    # Transfer tokens to the receiver account
-    transfer_tokens(client, account_id, new_account_private_key, receiver_id, token_id, nft_ids)
+    # Transfer NFTs to the receiver account
+    transfer_nfts(client, treasury_id, treasury_private_key, receiver_id, nft_ids)
 
-    # Get token balances
-    get_token_balances(client, account_id, receiver_id, token_id, nft_token_id)
+    # Get and print NFT balances before rejection to show the initial state
+    print("\nNFT balances before rejection:")
+    get_nft_balances(client, treasury_id, receiver_id, nft_token_id)
     
-    # Reject the fungible tokens
-    receipt = (
-        TokenRejectTransaction()
-        .set_owner_id(receiver_id)
-        .set_token_ids([token_id])
-        .freeze_with(client)
-        .sign(receiver_private_key)
-        .execute(client)
-    )
-    
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token rejection failed with status: {ResponseCode.get_name(receipt.status)}")
-        sys.exit(1)
-        
-    print(f"Successfully rejected token {token_id} from account {receiver_id}")
-    
-    # Reject the NFTs
+    # Receiver rejects the NFTs that were previously transferred to them
     receipt = (
         TokenRejectTransaction()
         .set_owner_id(receiver_id)
@@ -261,8 +210,9 @@ def token_reject():
     
     print(f"Successfully rejected NFTs {nft_ids[0]} and {nft_ids[1]} from account {receiver_id}")
     
-    # Get token balances
-    get_token_balances(client, account_id, receiver_id, token_id, nft_token_id)
+    # Get and print NFT balances after rejection to show the final state
+    print("\nNFT balances after rejection:")
+    get_nft_balances(client, treasury_id, receiver_id, nft_token_id)
     
 if __name__ == "__main__":
-    token_reject()
+    token_reject_nft()
