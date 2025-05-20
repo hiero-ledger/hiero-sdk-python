@@ -940,7 +940,6 @@ def test_token_reject_transaction_receiver_sig_required_fungible():
     env = IntegrationTestEnv()
     
     try:
-        # Create treasury account with receiver signature required
         treasury_private_key = PrivateKey.generate()
         treasury_public_key = treasury_private_key.public_key()
         
@@ -991,11 +990,8 @@ def test_token_reject_transaction_receiver_sig_required_fungible():
         assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Reject the token
-        ft_reject_transaction = TokenRejectTransaction(
-            owner_id=receiver_id,
-            token_ids=[fungible_token_id]
-        )
-        receipt = ft_reject_transaction.freeze_with(env.client).sign(receiver_private_key).execute(env.client)
+        receipt = (TokenRejectTransaction().set_owner_id(receiver_id).set_token_ids([fungible_token_id])
+            .freeze_with(env.client).sign(receiver_private_key).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Token rejection failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Verify the balance of the receiver is 0
