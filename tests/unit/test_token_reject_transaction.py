@@ -184,15 +184,11 @@ def test_reject_transaction_can_execute(mock_account_ids):
         
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
 
-def test_reject_transaction_from_proto(mock_account_ids, mock_client):
+def test_reject_transaction_from_proto(mock_account_ids):
     """Test that a reject transaction can be created from a protobuf object."""
     _, owner_account_id, _, token_id, _ = mock_account_ids
     token_ids = [token_id]
     nft_ids = [NftId(tokenId=token_id, serialNumber=1)]
-
-    reject_tx = TokenRejectTransaction(owner_id=owner_account_id, token_ids=token_ids, nft_ids=nft_ids)    
-    reject_tx.freeze_with(mock_client)
-    reject_tx.sign(mock_client.operator_private_key)
 
     # Create protobuf object with both fungible token and NFT rejections
     proto = TokenRejectTransactionBody(
