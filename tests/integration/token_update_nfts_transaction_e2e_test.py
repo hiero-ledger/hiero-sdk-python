@@ -20,10 +20,12 @@ def test_token_update_nfts_updates_metadata():
         # Create metadata key
         metadata_private_key = PrivateKey.generate_ed25519() 
         
-        nft_count = 4
         # Create initial metadata for NFTs
-        mint_metadata = [b"1 2 3"] * nft_count  # Creates a list containing mint_metadata repeated nft_count (4) times, so [b"1 2 3", b"1 2 3", b"1 2 3", b"1 2 3"]
-        updated_metadata = b"8 9"
+        mint_metadata = [b"Metadata1", b"Metadata2", b"Metadata3", b"Metadata4"]
+        nft_count = len(mint_metadata)
+        
+        # Create updated metadata
+        updated_metadata = b"UpdatedMetadata"
 
         # Create NFT token with metadata key
         nft_id = create_nft_token(env, [
@@ -58,14 +60,18 @@ def test_token_update_nfts_updates_metadata():
         assert receipt.status == ResponseCode.SUCCESS, f"NFT update failed with status: {ResponseCode.get_name(receipt.status)}"
 
         # Verify updated metadata for first half
-        for i, serial in enumerate(serials[:nft_count//2]):
+        for serial in serials[:nft_count//2]:
             nft_info = TokenNftInfoQuery(NftId(nft_id, serial)).execute(env.client)
             assert nft_info.metadata == updated_metadata, f"Updated metadata mismatch for serial {serial}"
 
         # Verify unchanged metadata for second half
-        for i, serial in enumerate(serials[nft_count//2:]):
+        nfts_metadata = []
+        for serial in serials[nft_count//2:]:
             nft_info = TokenNftInfoQuery(NftId(nft_id, serial)).execute(env.client)
-            assert nft_info.metadata == mint_metadata[i], f"Original metadata should be unchanged for serial {serial}"
+            nfts_metadata.append(nft_info.metadata)
+        
+        assert nfts_metadata == mint_metadata[nft_count//2:], f"Original metadata should be unchanged for serial {serial}"
+            
     finally:
         env.close()
 
@@ -77,9 +83,8 @@ def test_can_update_empty_nft_metadata():
         supply_private_key = PrivateKey.generate_ed25519()
         metadata_private_key = PrivateKey.generate_ed25519()
 
-        # Create initial metadata for NFTs - replicate the same metadata for each NFT
-        nft_count = 4
-        mint_metadata = [b"1 2 3"] * nft_count  # Creates a list containing mint_metadata repeated nft_count (4) times, so [b"1 2 3", b"1 2 3", b"1 2 3", b"1 2 3"]
+        # Create initial metadata for NFTs
+        mint_metadata = [b"Metadata1", b"Metadata2", b"Metadata3", b"Metadata4"]
         
         # Create empty metadata for update
         updated_metadata = b""
@@ -119,7 +124,7 @@ def test_can_update_empty_nft_metadata():
         assert receipt.status == ResponseCode.SUCCESS, f"NFT update failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Get and verify updated metadata list
-        for i, serial in enumerate(serials):
+        for serial in serials:
             nft_info = TokenNftInfoQuery(NftId(nft_id, serial)).execute(env.client)
             assert nft_info.metadata == updated_metadata, f"Updated metadata mismatch for serial {serial}"
     finally:
@@ -136,11 +141,12 @@ def test_cannot_update_nft_metadata_when_key_is_not_set():
         # Create metadata key (not used in token creation)
         metadata_private_key = PrivateKey.generate_ed25519()
 
-        # Create NFT metadata
-        nft_count = 4
-        mint_metadata = [b"1 2 3"] * nft_count  # Creates a list containing mint_metadata repeated nft_count (4) times, so [b"1 2 3", b"1 2 3", b"1 2 3", b"1 2 3"]
-        updated_metadata = b"8 9"
-
+        # Create initial metadata for NFTs
+        mint_metadata = [b"Metadata1", b"Metadata2", b"Metadata3", b"Metadata4"]
+        
+        # Create updated metadata
+        updated_metadata = b"UpdatedMetadata"
+        
         # Create NFT token without metadata key
         nft_id = create_nft_token(env, [
             lambda x: x.set_supply_key(supply_private_key)
@@ -188,9 +194,10 @@ def test_cannot_update_nft_metadata_when_transaction_not_signed_with_metadata_ke
         metadata_private_key = PrivateKey.generate_ed25519() 
         
         # Create initial metadata for NFTs
-        nft_count = 4
-        mint_metadata = [b"1 2 3"] * nft_count  # Creates a list containing mint_metadata repeated nft_count (4) times, so [b"1 2 3", b"1 2 3", b"1 2 3", b"1 2 3"]
-        updated_metadata = b"8 9"
+        mint_metadata = [b"Metadata1", b"Metadata2", b"Metadata3", b"Metadata4"]
+        
+        # Create updated metadata
+        updated_metadata = b"UpdatedMetadata"
 
         # Create a new NFT token with supply and metadata keys
         # Pass lambda functions to create_nft_token to configure the token with the generated keys
@@ -254,6 +261,8 @@ def test_token_update_nfts_transaction_fails_for_nonexistent_serial():
         
         # Create initial metadata for NFTs
         mint_metadata = b"Initial Metadata"
+
+        # Create updated metadata
         updated_metadata = b"Updated Metadata"
 
         # Create NFT token with metadata key
