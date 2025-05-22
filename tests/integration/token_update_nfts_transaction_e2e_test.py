@@ -240,3 +240,51 @@ def test_cannot_update_nft_metadata_when_transaction_not_signed_with_metadata_ke
         assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"NFT update should fail with INVALID_SIGNATURE, got status: {ResponseCode.get_name(receipt.status)}"
     finally:
         env.close()
+
+@pytest.mark.integration
+def test_token_update_nfts_transaction_fails_for_nonexistent_serial():
+    env = IntegrationTestEnv()
+    
+    try:
+        # Create supply key
+        supply_private_key = PrivateKey.generate_ed25519()
+
+        # Create metadata key
+        metadata_private_key = PrivateKey.generate_ed25519() 
+        
+        # Create initial metadata for NFTs
+        mint_metadata = b"Initial Metadata"
+        updated_metadata = b"Updated Metadata"
+
+        # Create NFT token with metadata key
+        nft_id = create_nft_token(env, [
+            lambda tx: tx.set_supply_key(supply_private_key),
+            lambda tx: tx.set_metadata_key(metadata_private_key)
+        ])
+
+        # Mint NFTs with initial metadata
+        mint_transaction = TokenMintTransaction(
+            token_id=nft_id,
+            metadata=mint_metadata
+        )
+        
+        receipt = mint_transaction.freeze_with(env.client).sign(supply_private_key).execute(env.client)
+        
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        serials = receipt.serial_numbers
+        
+        # Verify that only one NFT was minted and the serial number is 1
+        assert len(serials) == 1 and serials[0] == 1
+        
+        # Update metadata for non-existent NFT serial number 2 (should fail)
+        update_transaction = TokenUpdateNftsTransaction(
+            token_id=nft_id,
+            serial_numbers=[2],  # Serial number 2 was never minted
+            metadata=updated_metadata
+        )
+        
+        receipt = update_transaction.freeze_with(env.client).sign(metadata_private_key).execute(env.client)
+        
+        assert receipt.status == ResponseCode.INVALID_NFT_ID, f"NFT update should fail with INVALID_NFT_ID, got status: {ResponseCode.get_name(receipt.status)}"
+    finally:
+        env.close()
