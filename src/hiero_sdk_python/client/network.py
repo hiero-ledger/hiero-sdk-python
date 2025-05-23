@@ -1,6 +1,9 @@
-import random
+import secrets
 import requests
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.address_book.node_address import NodeAddress
+from hiero_sdk_python.node import _Node
+
 
 class Network:
     """
@@ -56,7 +59,7 @@ class Network:
     def __init__(
         self,
         network: str = 'testnet',
-        nodes: list = None,
+        nodes: list[_Node] = None,
         mirror_address: str = None,
     ):
         """
@@ -68,26 +71,28 @@ class Network:
             mirror_address (str, optional): A mirror node address (host:port) for topic queries.
                                             If not provided, we'll use a default from MIRROR_ADDRESS_DEFAULT[network].
         """
-        self.network = network
+        self.network = network or 'testnet'
         self.mirror_address = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, 'localhost:5600')
 
         if nodes is not None:
             self.nodes = nodes
+        elif self.network in ('solo', 'localhost', 'local'):
+            self.nodes = self._fetch_nodes_from_default_nodes()
         else:
             self.nodes = self._fetch_nodes_from_mirror_node()
-            if not self.nodes:
-                if self.network in self.DEFAULT_NODES:
-                    self.nodes = self.DEFAULT_NODES[self.network]
-                else:
-                    raise ValueError(f"No default nodes for network='{self.network}'")
-
-        self._select_node()
+            if not self.nodes and self.network in self.DEFAULT_NODES:
+                self.nodes = self._fetch_nodes_from_default_nodes()
+            elif not self.nodes:
+                raise ValueError(f"No default nodes for network='{self.network}'")
+        
+        self._node_index = secrets.randbelow(len(self.nodes))
+        self.current_node = self.nodes[self._node_index]
 
     def _fetch_nodes_from_mirror_node(self):
         """
         Fetches the list of nodes from the Hedera Mirror Node REST API.
         Returns:
-            list: A list of tuples [(node_address, AccountId), ...].
+            list: A list of _Node objects.
         """
         base_url = self.MIRROR_NODE_URLS.get(self.network)
         if not base_url:
@@ -102,39 +107,46 @@ class Network:
             data = response.json()
 
             nodes = []
+            # Process each node from the mirror node API response
             for node in data.get('nodes', []):
-                service_endpoints = node.get('service_endpoints', [])
-                for endpoint in service_endpoints:
-                    if endpoint.get('port') == 50211 and endpoint.get('protocol') == 'PROTOBUF':
-                        ip_address = endpoint.get('ip_address_v4')
-                        if ip_address:
-                            address = f"{ip_address}:{endpoint['port']}"
-                            account_id_str = node['node_account_id']
-                            account_id = AccountId.from_string(account_id_str)
-                            nodes.append((address, account_id))
+                address_book = NodeAddress._from_dict(node)
+                account_id = address_book._account_id
+                address = str(address_book._addresses[0])
+                
+                nodes.append(_Node(account_id, address, address_book))
+            
             return nodes
         except requests.RequestException as e:
             print(f"Error fetching nodes from mirror node API: {e}")
             return []
-
-    def _select_node(self):
+        
+    def _fetch_nodes_from_default_nodes(self):
         """
-        Select a random node from self.nodes and store it if you want to track a 'current' node.
-        This is optional. The client can still pick or switch nodes as needed.
+        Fetches the list of nodes from the default nodes for the network.
+        """
+        nodes = []
+        for node in self.DEFAULT_NODES[self.network]:
+            nodes.append(_Node(node[1], node[0], None))
+        return nodes
+
+    def _select_node(self) -> _Node:
+        """
+        Select the next node in the collection of available nodes using round-robin selection.
+        
+        This method increments the internal node index, wrapping around when reaching the end
+        of the node list, and updates the current_node reference.
+        
+        Raises:
+            ValueError: If no nodes are available for selection.
+        
+        Returns:
+            _Node: The selected node instance.
         """
         if not self.nodes:
             raise ValueError("No nodes available to select.")
-        self.node_address, self.node_account_id = random.choice(self.nodes)
-        # print(f"Selected node: {self.node_address} (Account ID: {self.node_account_id})")
-
-    def get_node_address(self, node_account_id):
-        """
-        Return the gRPC address (host:port) for the given node_account_id, or None if not found.
-        """
-        for address, acct_id in self.nodes:
-            if acct_id == node_account_id:
-                return address
-        return None
+        self._node_index = (self._node_index + 1) % len(self.nodes)
+        self.current_node = self.nodes[self._node_index]
+        return self.current_node
 
     def get_mirror_address(self) -> str:
         """

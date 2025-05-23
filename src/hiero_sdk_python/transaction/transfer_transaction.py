@@ -3,34 +3,51 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import crypto_transfer_pb2, basic_types_pb2
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
+from hiero_sdk_python.tokens.nft_id import NftId
 
 class TransferTransaction(Transaction):
     """
     Represents a transaction to transfer HBAR or tokens between accounts.
     """
 
-    def __init__(self, hbar_transfers=None, token_transfers=None):
+    def __init__(self, hbar_transfers=None, token_transfers=None, nft_transfers=None):
         """
         Initializes a new TransferTransaction instance.
 
         Args:
             hbar_transfers (dict[AccountId, int], optional): Initial HBAR transfers.
             token_transfers (dict[TokenId, dict[AccountId, int]], optional): Initial token transfers.
+            nft_transfers (dict[TokenId, list[tuple[AccountId, AccountId, int, bool]]], optional): Initial NFT transfers.
         """
         super().__init__()
         self.hbar_transfers = defaultdict(int)
         self.token_transfers = defaultdict(lambda: defaultdict(int))
+        self.nft_transfers = defaultdict(list[TokenNftTransfer])
         self._default_transaction_fee = 100_000_000
 
         if hbar_transfers:
-            for account_id, amount in hbar_transfers.items():
-                self.add_hbar_transfer(account_id, amount)
-
+            self._init_hbar_transfers(hbar_transfers)
         if token_transfers:
-            for token_id, account_transfers in token_transfers.items():
-                for account_id, amount in account_transfers.items():
-                    self.add_token_transfer(token_id, account_id, amount)
+            self._init_token_transfers(token_transfers)
+        if nft_transfers:
+            self._init_nft_transfers(nft_transfers)
+
+    def _init_hbar_transfers(self, hbar_transfers):
+        for account_id, amount in hbar_transfers.items():
+            self.add_hbar_transfer(account_id, amount)
+
+    def _init_token_transfers(self, token_transfers):
+        for token_id, account_transfers in token_transfers.items():
+            for account_id, amount in account_transfers.items():
+                self.add_token_transfer(token_id, account_id, amount)
+
+    def _init_nft_transfers(self, nft_transfers):
+        for token_id, transfers in nft_transfers.items():
+            for sender_id, receiver_id, serial_number, is_approved in transfers:
+                self.add_nft_transfer(NftId(token_id, serial_number), sender_id, receiver_id, is_approved)
 
     def add_hbar_transfer(self, account_id: AccountId, amount: int) -> "TransferTransaction":
         """
@@ -60,6 +77,21 @@ class TransferTransaction(Transaction):
         self.token_transfers[token_id][account_id] += amount
         return self
 
+    def add_nft_transfer(self, nft_id: NftId, sender_id: AccountId, receiver_id: AccountId, is_approved: bool = False) -> "TransferTransaction":
+        """
+        Adds a NFT transfer to the transaction.
+        """
+        self._require_not_frozen()
+        if not isinstance(nft_id, NftId):
+            raise TypeError("nft_id must be a NftId instance.")
+        if not isinstance(sender_id, AccountId):
+            raise TypeError("sender_id must be an AccountId instance.")
+        if not isinstance(receiver_id, AccountId):
+            raise TypeError("receiver_id must be an AccountId instance.")
+
+        self.nft_transfers[nft_id.tokenId].append(TokenNftTransfer(sender_id, receiver_id, nft_id.serialNumber, is_approved))
+        return self
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for a transfer transaction.
@@ -77,6 +109,16 @@ class TransferTransaction(Transaction):
                     )
                 )
             crypto_transfer_tx_body.transfers.CopyFrom(transfer_list)
+
+        # NFTs
+        for token_id, transfers in self.nft_transfers.items():
+            token_transfer_list = basic_types_pb2.TokenTransferList(
+                token=token_id.to_proto()
+            )
+            for transfer in transfers:
+                token_transfer_list.nftTransfers.append(transfer.to_proto())
+
+            crypto_transfer_tx_body.tokenTransfers.append(token_transfer_list)
 
         # Tokens
         for token_id, transfers in self.token_transfers.items():
@@ -97,23 +139,8 @@ class TransferTransaction(Transaction):
 
         return transaction_body
 
-    def _execute_transaction(self, client, transaction_proto):
-        """
-        Executes the transfer transaction using the provided client.
-
-        Args:
-            client (Client): The client instance.
-            transaction_proto (Transaction): The transaction protobuf message.
-
-        Returns:
-            TransactionReceipt: The receipt from the network.
-        """
-        response = client.crypto_stub.cryptoTransfer(transaction_proto)
-
-        if response.nodeTransactionPrecheckCode != ResponseCode.OK:
-            error_code = response.nodeTransactionPrecheckCode
-            error_message = ResponseCode.get_name(error_code)
-            raise Exception(f"Error during transaction submission: {error_code} ({error_message})")
-
-        receipt = self.get_receipt(client)
-        return receipt
+    def _get_method(self, channel: _Channel) -> _Method:
+        return _Method(
+            transaction_func=channel.crypto.cryptoTransfer,
+            query_func=None
+        )

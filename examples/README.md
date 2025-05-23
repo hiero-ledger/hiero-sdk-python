@@ -20,8 +20,14 @@ You can choose either syntax or even mix both styles in your projects.
   - [Associating a Token](#associating-a-token)
   - [Dissociating a Token](#dissociating-a-token)
   - [Transferring Tokens](#transferring-tokens)
+  - [Transferring NFTs](#transferring-nfts)
+  - [Wiping Tokens](#wiping-tokens)
   - [Deleting a Token](#deleting-a-token)
   - [Freezing a Token](#freezing-a-token)
+  - [Unfreezing a Token](#unfreezing-a-token)
+  - [Rejecting a Token](#rejecting-a-token)
+  - [Rejecting a Non-Fungible Token](#rejecting-a-non-fungible-token)
+  - [Querying NFT Info](#querying-nft-info)
 - [HBAR Transactions](#hbar-transactions)
   - [Transferring HBAR](#transferring-hbar)
 - [Topic Transactions](#topic-transactions)
@@ -85,9 +91,11 @@ transaction = TokenCreateTransaction(
     token_params=TokenParams(
         token_name="ExampleToken",
         token_symbol="EXT",
-        decimals=2, # 0 for NON_FUNGIBLE_UNIQUE
-        initial_supply=1000,  # 0 for NON_FUNGIBLE_UNIQUE
+        decimals=2,                            # 0 for NON_FUNGIBLE_UNIQUE
+        initial_supply=1000,                   # 0 for NON_FUNGIBLE_UNIQUE
         token_type=TokenType.FUNGIBLE_COMMON,  # or TokenType.NON_FUNGIBLE_UNIQUE
+        max_supply=1000                        # Must be 0 for INFINITE
+        supply_type=SupplyType.FINITE,         # or SupplyType.INFINITE
         freeze_default=False,
         treasury_account_id=operator_id
     ),
@@ -108,9 +116,11 @@ transaction = (
     TokenCreateTransaction()  # no params => uses default placeholders which are next overwritten.
     .set_token_name("ExampleToken")
     .set_token_symbol("EXT")
-    .set_decimals(2) # 0 for NON_FUNGIBLE_UNIQUE
-    .set_initial_supply(1000) # 0 for NON_FUNGIBLE_UNIQUE
-    .set_token_type(TokenType.FUNGIBLE_COMMON) # or TokenType.NON_FUNGIBLE_UNIQUE
+    .set_decimals(2)                            # 0 for NON_FUNGIBLE_UNIQUE
+    .set_initial_supply(1000)                   # 0 for NON_FUNGIBLE_UNIQUE
+    .set_token_type(TokenType.FUNGIBLE_COMMON)  # or TokenType.NON_FUNGIBLE_UNIQUE
+    .set_max_supply(1000)                       # Must be 0 for INFINITE
+    .set_supply_type(SupplyType.FINITE)         # or SupplyType.INFINITE
     .set_freeze_default(False)
     .set_treasury_account_id(operator_id)
     .set_admin_key(admin_key)       # added but optional. Necessary for Token Delete or Update.
@@ -256,6 +266,64 @@ transaction.execute(client)
     transaction.execute(client)
 ```
 
+### Transferring NFTs
+
+#### Pythonic Syntax:
+```
+transaction = TransferTransaction(
+    nft_transfers={
+        token_id: [
+            (
+                operator_id,
+                recipient_id,
+                serial_number
+            )
+        ]
+    }
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TransferTransaction()
+        .add_nft_transfer(nft_id, operator_id, recipient_id)
+        .freeze_with(client)
+        .sign(operator_key)
+    )
+
+    transaction.execute(client)
+```
+
+### Wiping tokens
+
+#### Pythonic Syntax:
+```
+transaction = TokenWipeTransaction(
+    token_id=token_id,
+    account_id=account_id,
+    amount=amount
+).freeze_with(client)
+
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenWipeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .set_amount(amount)
+        .freeze_with(client)
+    )
+
+    transaction.execute(client)
+```
+
 ### Deleting a Token
 
 #### Pythonic Syntax:
@@ -305,6 +373,99 @@ transaction.execute(client)
     transaction.sign(freeze_key) # Freeze key must also have been set in Token Create
     transaction.execute(client)
 ```
+### Unfreezing a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenUnfreezeTransaction(
+    token_id=token_id
+    account_id=account_id
+).freeze_with(client)
+transaction.sign(freeze_key)
+transaction.execute(client)
+```
+#### Method Chaining:
+```
+transaction = (
+        TokenUnfreezeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .freeze_with(client)
+    )
+    transaction.sign(freeze_key)
+    transaction.execute(client)
+```
+
+### Rejecting a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenRejectTransaction(
+    owner_id=owner_id,
+    token_ids=[token_id]
+).freeze_with(client)
+
+transaction.sign(owner_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenRejectTransaction()
+        .set_owner_id(owner_id)
+        .set_token_ids([token_id])
+        .freeze_with(client)
+        .sign(owner_key)
+    )
+
+    transaction.execute(client)
+```
+
+### Rejecting a Non-Fungible Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenRejectTransaction(
+    owner_id=owner_id,
+    nft_ids=[nft_id1]
+).freeze_with(client)
+
+transaction.sign(owner_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenRejectTransaction()
+        .set_owner_id(owner_id)
+        .set_nft_ids([nft_id1])
+        .freeze_with(client)
+        .sign(owner_key)
+    )
+
+    transaction.execute(client)
+```
+
+### Querying NFT Info
+
+#### Pythonic Syntax:
+```
+nft_info_query = TokenNftInfoQuery(nft_id=nft_id)
+nft_info = nft_info_query.execute(client)
+print(nft_info)
+```
+#### Method Chaining:
+```
+nft_info_query = (
+        TokenNftInfoQuery()
+        .set_nft_id(nft_id)
+    )
+
+nft_info = nft_info_query.execute(client)
+print(nft_info)
+```
 
 ## HBAR Transactions
 
@@ -352,7 +513,7 @@ transaction.execute(client)
     transaction.execute(client)
 ```
 #### Method Chaining:
-```
+``` 
 transaction = (
     TopicCreateTransaction()
     .set_memo("My Super Topic Memo")

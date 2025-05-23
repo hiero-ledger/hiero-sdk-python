@@ -1,11 +1,12 @@
 from typing import Union
 
-from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2
-from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 class AccountCreateTransaction(Transaction):
@@ -152,28 +153,8 @@ class AccountCreateTransaction(Transaction):
 
         return transaction_body
 
-    def _execute_transaction(self, client, transaction_proto):
-        """
-        Executes the account creation transaction using the provided client.
-
-        Args:
-            client (Client): The client instance to use for execution.
-            transaction_proto (Transaction): The protobuf Transaction message.
-
-        Returns:
-            TransactionReceipt: The receipt from the network after transaction execution.
-
-        Raises:
-            Exception: If the transaction submission fails or receives an error response.
-        """
-        response = client.crypto_stub.createAccount(transaction_proto)
-
-        if response.nodeTransactionPrecheckCode != ResponseCode.OK:
-            error_code = response.nodeTransactionPrecheckCode
-            error_message = ResponseCode.get_name(error_code)
-            raise Exception(
-                f"Error during transaction submission: {error_code} ({error_message})"
-            )
-
-        receipt = self.get_receipt(client)
-        return receipt
+    def _get_method(self, channel: _Channel) -> _Method:
+        return _Method(
+            transaction_func=channel.crypto.createAccount,
+            query_func=None
+        )

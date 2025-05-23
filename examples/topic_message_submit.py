@@ -18,7 +18,7 @@ def submit_message(message):
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
     topic_id = TopicId.from_string(os.getenv('TOPIC_ID'))
 
     client.set_operator(operator_id, operator_key)

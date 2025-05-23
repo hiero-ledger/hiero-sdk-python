@@ -1,7 +1,9 @@
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_freeze_account_pb2
 from hiero_sdk_python.response_code import ResponseCode
- 
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
+
 class TokenFreezeTransaction(Transaction):
     """
     Represents a token freeze transaction on the Hedera network.
@@ -81,46 +83,9 @@ class TokenFreezeTransaction(Transaction):
 
         return transaction_body
 
-    def _execute_transaction(self, client, transaction_proto):
-        """
-        Executes the token freeze transaction using the provided client.
 
-        Args:
-            client (Client): The client instance to use for execution.
-            transaction_proto (Transaction): The protobuf Transaction message.
-
-        Returns:
-            TransactionReceipt: The receipt from the network after transaction execution.
-
-        Raises:
-            Exception: If the transaction submission fails or receives an error response.
-        """
-        response = client.token_stub.freezeTokenAccount(transaction_proto)
-
-        if response.nodeTransactionPrecheckCode != ResponseCode.OK:
-            error_code = response.nodeTransactionPrecheckCode
-            error_message = ResponseCode.get_name(error_code)
-            raise Exception(f"Error during transaction submission: {error_code} ({error_message})")
-
-        receipt = self.get_receipt(client)
-        return receipt
-
-    def get_receipt(self, client, timeout=60):
-        """
-        Retrieves the receipt for the transaction.
-
-        Args:
-            client (Client): The client instance.
-            timeout (int): Maximum time in seconds to wait for the receipt.
-
-        Returns:
-            TransactionReceipt: The transaction receipt from the network.
-
-        Raises:
-            Exception: If the transaction ID is not set or if receipt retrieval fails.
-        """
-        if self.transaction_id is None:
-            raise Exception("Transaction ID is not set.")
-
-        receipt = client.get_transaction_receipt(self.transaction_id, timeout)
-        return receipt
+    def _get_method(self, channel: _Channel) -> _Method:
+        return _Method(
+            transaction_func=channel.token.freezeTokenAccount,
+            query_func=None
+        )

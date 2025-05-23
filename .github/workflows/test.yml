@@ -29,7 +29,7 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: AlexanderShenshin/hiero-solo-action@v0.0.5-dev # Tagged version from fork, reflects upstream PR: https://github.com/hiero-ledger/hiero-solo-action/pull/37
+        uses: hiero-ledger/hiero-solo-action@8c976203a7b809c121f9844581f65ef9782c254f #v0.8
         with:
           installMirrorNode: true
 
@@ -43,7 +43,7 @@ jobs:
       - name: Install your package
         run: pip install -e .
 
-      - name: Run tests
+      - name: Run integration tests
         env:
           OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
           OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
@@ -51,4 +51,8 @@ jobs:
           PUBLIC_KEY: ${{ steps.solo.outputs.publicKey }}
           NETWORK: solo
         run: |
-          python test.py; uv run pytest
+          uv run pytest -m integration
+
+      - name: Run unit tests
+        run: |
+          uv run pytest -m unit

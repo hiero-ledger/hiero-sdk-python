@@ -53,7 +53,8 @@ package-dir = "src"
 excludes = ["**/.pytest_cache"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 120
