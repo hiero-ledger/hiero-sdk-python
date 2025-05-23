@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives import serialization
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
+pytestmark = pytest.mark.unit
 
 def test_generate_ed25519():
     """
