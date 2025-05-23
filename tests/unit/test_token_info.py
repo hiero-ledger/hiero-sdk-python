@@ -9,6 +9,8 @@ from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
 
+pytestmark = pytest.mark.unit
+
 @pytest.fixture
 def token_info():
     return TokenInfo(
@@ -132,7 +134,7 @@ def test_from_proto(proto_token_info):
     proto_token_info.pause_status = hiero_sdk_python.hapi.services.basic_types_pb2.Paused
     proto_token_info.supplyType = hiero_sdk_python.hapi.services.basic_types_pb2.INFINITE
 
-    token_info = TokenInfo.from_proto(proto_token_info)
+    token_info = TokenInfo._from_proto(proto_token_info)
 
     assert token_info.tokenId == TokenId(0, 0, 100)
     assert token_info.name == "TestToken"
@@ -177,7 +179,7 @@ def test_to_proto(token_info):
     token_info.set_pause_status(TokenPauseStatus.PAUSED)
     token_info.set_supply_type(SupplyType.INFINITE)
 
-    proto = token_info.to_proto()
+    proto = token_info._to_proto()
 
     assert proto.tokenId == TokenId(0, 0, 100).to_proto()
     assert proto.name == "TestToken"

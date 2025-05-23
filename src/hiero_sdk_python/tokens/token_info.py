@@ -99,17 +99,17 @@ class TokenInfo:
             maxSupply=proto_obj.maxSupply,
             ledger_id=proto_obj.ledger_id
         )
-        if proto_obj.adminKey.ECDSA_secp256k1 or proto_obj.adminKey.ed25519:
+        if proto_obj.adminKey.WhichOneof("key"):
             tokenInfoObject.set_admin_key(PublicKey.from_proto(proto_obj.adminKey))
-        if proto_obj.kycKey.ECDSA_secp256k1 or proto_obj.kycKey.ed25519:
+        if proto_obj.kycKey.WhichOneof("key"):
             tokenInfoObject.set_kycKey(PublicKey.from_proto(proto_obj.kycKey))
-        if proto_obj.freezeKey.ECDSA_secp256k1 or proto_obj.freezeKey.ed25519:
+        if proto_obj.freezeKey.WhichOneof("key"):
             tokenInfoObject.set_freezeKey(PublicKey.from_proto(proto_obj.freezeKey))
-        if proto_obj.wipeKey.ECDSA_secp256k1 or proto_obj.wipeKey.ed25519:
+        if proto_obj.wipeKey.WhichOneof("key"):
             tokenInfoObject.set_wipeKey(PublicKey.from_proto(proto_obj.wipeKey))
-        if proto_obj.supplyKey.ECDSA_secp256k1 or proto_obj.supplyKey.ed25519:
+        if proto_obj.supplyKey.WhichOneof("key"):
             tokenInfoObject.set_supplyKey(PublicKey.from_proto(proto_obj.supplyKey))
-        if proto_obj.fee_schedule_key.ECDSA_secp256k1 or proto_obj.fee_schedule_key.ed25519:
+        if proto_obj.fee_schedule_key.WhichOneof("key"):
             tokenInfoObject.set_fee_schedule_key(PublicKey.from_proto(proto_obj.fee_schedule_key))
         if proto_obj.defaultFreezeStatus:
             tokenInfoObject.set_default_freeze_status(TokenFreezeStatus.from_proto(proto_obj.defaultFreezeStatus))
@@ -121,7 +121,7 @@ class TokenInfo:
             tokenInfoObject.set_auto_renew_period(Duration.from_proto(proto_obj.autoRenewPeriod))
         if proto_obj.expiry:
             tokenInfoObject.set_expiry(Timestamp.from_protobuf(proto_obj.expiry))
-        if proto_obj.pause_key.ECDSA_secp256k1 or proto_obj.pause_key.ed25519:
+        if proto_obj.pause_key.WhichOneof("key"):
             tokenInfoObject.set_pause_key(PublicKey.from_proto(proto_obj.pause_key))
         if proto_obj.pause_status:
             tokenInfoObject.set_pause_status(TokenPauseStatus.from_proto(proto_obj.pause_status))
