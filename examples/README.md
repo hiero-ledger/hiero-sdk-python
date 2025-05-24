@@ -27,6 +27,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Unfreezing a Token](#unfreezing-a-token)
   - [Rejecting a Token](#rejecting-a-token)
   - [Rejecting a Non-Fungible Token](#rejecting-a-non-fungible-token)
+  - [Pausing a Token](#pausing-a-token)
   - [Querying NFT Info](#querying-nft-info)
 - [HBAR Transactions](#hbar-transactions)
   - [Transferring HBAR](#transferring-hbar)
@@ -446,6 +447,32 @@ transaction.execute(client)
     )
 
     transaction.execute(client)
+```
+
+### Pausing a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenPauseTransaction(
+    token_id=token_id
+).freeze_with(client)
+
+transaction.sign(pause_key)
+receipt = transaction.execute(client)
+print(f"Pause status: {receipt.status.name}")
+
+
+```
+#### Method Chaining:
+```
+receipt = (
+    TokenPauseTransaction()
+    .set_token_id(token_id)
+    .freeze_with(client)
+    .sign(pause_key)            # pause_key must match
+    .execute(client)
+)
+print(f"Pause status: {receipt.status.name}")
 ```
 
 ### Querying NFT Info
