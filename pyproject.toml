@@ -32,6 +32,7 @@ classifiers = [
 [dependency-groups]
 dev = [
     "pytest>=8.3.4",
+    "pytest-asyncio>=0.26.0"
 ]
 lint = [
     "ruff>=0.8.3",

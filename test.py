@@ -18,11 +18,8 @@ Each is designed to validate expected behavior of each transaction type using th
 Usage:
     Run the script to execute all test cases sequentially.
 """
-import asyncio
 import os
 import sys
-import time
-from threading import Timer
 
 from dotenv import load_dotenv
 import traceback
@@ -58,25 +55,19 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 # Topic related imports
 from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
-from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import (
     TopicMessageSubmitTransaction
 )
 from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
-from hiero_sdk_python.consensus.topic_message import TopicMessage
 
 # Query-related imports
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
 
 # Response handling
 from hiero_sdk_python.response_code import ResponseCode
-
-# Timestamp utility class
-from hiero_sdk_python.timestamp import Timestamp
 
 load_dotenv(override=True)
 

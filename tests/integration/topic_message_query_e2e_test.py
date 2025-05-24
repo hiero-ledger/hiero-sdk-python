@@ -105,7 +105,7 @@ async def test_integration_topic_message_query_returns_all_messages():
         create_receipt = create_transaction.execute(env.client)
         topic_id = create_receipt.topicId
 
-        submit_message(env.client, topic_id, "Hello, Python SDK!")
+        submit_message(env.client, topic_id, "First topic message")
         submit_message(env.client, topic_id, "Second topic message")
         submit_message(env.client, topic_id, "Third topic message")
 
