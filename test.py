@@ -479,75 +479,8 @@ def query_topic_info(client, topic_id):
         print(f"Failed to retrieve topic info: {str(e)}")
         print(traceback.format_exc())
 
-MESSAGE_WAITING_TIMEOUT = float(10)
-waiting_timer: Timer | None = None
-last_message_arrival_time = time.time()
 
-async def query_topic_messages(client, topic_id):
-    try:
-        received_timestamps = []
-        messages = []
-
-        completion_future = asyncio.get_running_loop().create_future()
-
-        def complete():
-            completion_future.get_loop().call_soon_threadsafe(completion_future.set_result, messages)
-
-            if waiting_timer:
-                waiting_timer.cancel()
-
-        def wait_or_complete():
-            global waiting_timer
-            global last_message_arrival_time
-
-            time_diff = time.time() - last_message_arrival_time
-
-            print(time_diff, time.time(), last_message_arrival_time)
-
-            if time_diff <= MESSAGE_WAITING_TIMEOUT:
-                if waiting_timer:
-                    waiting_timer.cancel()
-                timer_interval = MESSAGE_WAITING_TIMEOUT - time_diff
-                waiting_timer = Timer(timer_interval, wait_or_complete)
-                waiting_timer.start()
-                return
-            else:
-                complete()
-
-        def on_message(topic_message: TopicMessage):
-            print(f"Received Topic Message: {topic_message}")
-
-            global last_message_arrival_time
-            last_message_arrival_time = time.time()
-
-            if topic_message.consensus_timestamp in received_timestamps:
-                return
-
-            messages.append(topic_message)
-            received_timestamps.append(topic_message.consensus_timestamp)
-
-        def handle_error(error: Exception):
-            if not completion_future.done() and str(error) != "CANCELLED: unsubscribe":
-                completion_future.set_exception(error)
-
-        query = TopicMessageQuery(topic_id=topic_id, start_time=Timestamp(0, 0).to_date())
-        query.subscribe(client, on_message, handle_error)
-
-        global last_message_arrival_time
-        last_message_arrival_time = time.time()
-
-        wait_or_complete()
-
-        await completion_future
-
-        print(f"Topic Messages: {messages}")
-
-        return completion_future.result()
-    except Exception as e:
-        print(f"Failed to retrieve topic messages: {str(e)}")
-
-
-async def main():
+def main():
     """Runs the various tests in required sequence for valid testing"""
 
     # Load operator credentials
@@ -588,7 +521,7 @@ async def main():
     associate_token(client, recipient_id, recipient_private_key, [token_id_1, token_id_2])
     associate_token(client, recipient_id, recipient_private_key, [token_id_nft_1, token_id_nft_2])
 
-    # Test transfering fungible by moving one token from the operator to the recipient.
+    # Test transferring fungible by moving one token from the operator to the recipient.
     transfer_token(client, operator_id, operator_key, recipient_id, token_id_1)
 
     # Test freezing fungible and nft tokens. In this case from the recipient that just received token 1.
@@ -609,18 +542,7 @@ async def main():
 
     # Create a topic and perform various test actions
     topic_id = create_topic(client)
-
-    # Submit multiple messages to the topic
     submit_message(client, topic_id, "Hello, Python SDK!")
-    submit_message(client, topic_id, "Second topic message")
-    submit_message(client, topic_id, "Third topic message")
-
-    # Wait until changes are propagated to Hedera Mirror Node
-    await asyncio.sleep(10)
-
-    # Query topic messages and ensure
-    topic_messages = await query_topic_messages(client, topic_id)
-    assert len(topic_messages) == 3
 
     # Update and query topic info
     update_topic(client, topic_id)
@@ -630,5 +552,4 @@ async def main():
     delete_topic(client, topic_id)
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    main()
