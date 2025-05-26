@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 from dataclasses import dataclass
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -89,7 +92,21 @@ class IntegrationTestEnv:
             TokenPauseTransaction().set_token_id(token_id),
             key,
         )
-        
+
+    def get_balance(self, account_id: AccountId):
+        """
+        Wraps:
+          balance = CryptoGetAccountBalanceQuery(account_id).execute(self.client)
+        """
+        return CryptoGetAccountBalanceQuery(account_id).execute(self.client)
+
+    def get_token_info(self, token_id):
+        """
+        Wraps:
+          info = TokenInfoQuery().set_token_id(token_id).execute(self.client)
+        """
+        return TokenInfoQuery().set_token_id(token_id).execute(self.client)
+    
 def create_fungible_token(env, opts=[]):
     """
     Create a fungible token with the given options.
