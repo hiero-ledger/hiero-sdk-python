@@ -38,7 +38,6 @@ def built_pause_tx(mock_account_ids, mock_client, generate_transaction_id):
 
     return _make
 
-
 def test_builds_token_pause_body_with_correct_ids(mock_account_ids, generate_transaction_id):
     """
     build_transaction_body() should embed:
@@ -58,7 +57,6 @@ def test_builds_token_pause_body_with_correct_ids(mock_account_ids, generate_tra
     assert body.transactionID         == pause_tx.transaction_id.to_proto()
     assert body.nodeAccountID         == pause_tx.node_account_id.to_proto()
 
-
 @pytest.mark.parametrize("bad_token", [None, TokenId(0, 0, 0)])
 def test_build_transaction_body_without_valid_token_id_raises(bad_token):
     """
@@ -70,6 +68,27 @@ def test_build_transaction_body_without_valid_token_id_raises(bad_token):
 
     with pytest.raises(ValueError, match="token_id must be set"):
         pause_tx.build_transaction_body()
+
+def test__get_method_points_to_pauseToken(mock_channel):
+    """
+    _get_method() should route to the gRPC stub method for pausing tokens.
+    """
+    tx = TokenPauseTransaction().set_token_id(TokenId(1, 2, 3))
+    method = tx._get_method(mock_channel)
+
+    assert method.transaction_func is mock_channel.token.pauseToken
+    assert method.query_func       is None
+
+def test__from_proto_restores_token_id():
+    """
+    _from_proto() should deserialize a TokenPauseTransactionBody back into .token_id.
+    """
+    proto_body = TokenPauseTransaction._get_transaction_body_class()(
+        token=TokenId(7, 8, 9).to_proto()
+    )
+    pause_tx = TokenPauseTransaction()._from_proto(proto_body)
+
+    assert pause_tx.token_id == TokenId(7, 8, 9)
 
 def test_signed_bytes_include_token_pause_transaction(built_pause_tx):
     """
@@ -131,5 +150,3 @@ def test_pause_transaction_can_execute(mock_account_ids):
 
         receipt = pause_tx.execute(client)
         assert receipt.status == ResponseCode.SUCCESS
-
-
