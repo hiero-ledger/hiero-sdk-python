@@ -56,13 +56,6 @@ class IntegrationTestEnv:
         )
         return receipt
 
-    def freeze_sign_execute(self, tx, *signing_keys):
-        """Freeze, sign with key(s), execute, assert success, return receipt."""
-        tx = tx.freeze_with(self.client)
-        for key in signing_keys:
-            tx = tx.sign(key)
-        return tx.execute(self.client)
-
     def create_account(self, initial_hbar: float = 1.0) -> Account:
         """Create a new account funded with `initial_hbar` HBAR, defaulting to 1."""
         key     = PrivateKey.generate()
