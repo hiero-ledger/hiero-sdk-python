@@ -43,6 +43,7 @@ class IntegrationTestEnv:
         self.client.close()
 
     def freeze_sign_execute(self, tx, *signing_keys):
+        """Freeze, sign with provided keys (or operator), execute, and assert success."""
         # Freeze
         tx = tx.freeze_with(self.client)
         # Sign (default to operator_key if none provided)
@@ -63,6 +64,7 @@ class IntegrationTestEnv:
         return tx.execute(self.client)
 
     def create_account(self, initial_hbar: float = 1.0) -> Account:
+        """Create a new account funded with `initial_hbar` HBAR, defaulting to 1."""
         key     = PrivateKey.generate()
         receipt = self.freeze_sign_execute(
             AccountCreateTransaction()
@@ -73,9 +75,7 @@ class IntegrationTestEnv:
         return Account(id=receipt.accountId, key=key)
     
     def associate_and_transfer(self, receiver: AccountId, receiver_key, token_id, amount: int):
-        """
-        Associate the token id for the receiver account. Then transfer an amount of the token from the operator (sender) to the receiver.
-        """
+        """Associate the token id for the receiver account. Then transfer an amount of the token from the operator (sender) to the receiver."""
         self.freeze_sign_execute(
             TokenAssociateTransaction()
                 .set_account_id(receiver)
@@ -90,6 +90,7 @@ class IntegrationTestEnv:
         )
 
     def pause_token(self, token_id, key=None):
+        """Pause the given token, signing with `key` or the operator key."""
         key = key or self.operator_key
         return self.freeze_sign_execute(
             TokenPauseTransaction().set_token_id(token_id),
