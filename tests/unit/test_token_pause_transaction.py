@@ -1,11 +1,9 @@
-import time
 import pytest
 from unittest.mock import MagicMock
 
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
-    timestamp_pb2,
     transaction_get_receipt_pb2,
 )
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
@@ -23,8 +21,8 @@ pytestmark = pytest.mark.unit
 @pytest.fixture
 def built_pause_tx(mock_account_ids, mock_client, generate_transaction_id):
     """
-    Factory fixture: given a pause_key, returns a TokenPauseTransaction
-    that’s already set up, frozen, and signed with that key.
+    Factory: returns a TokenPauseTransaction (set, frozen, signed) given a pause_key.
+    Usage: tx = built_pause_tx(pause_key)
     """
     sender, _, node_account, fungible_token, _ = mock_account_ids
 
@@ -47,31 +45,35 @@ def test_builds_token_pause_body_with_correct_ids(mock_account_ids, generate_tra
     """
     sender, _, node_account, token_id, _ = mock_account_ids
 
-    pause_tx = TokenPauseTransaction().set_token_id(token_id)
-    pause_tx.transaction_id  = generate_transaction_id(sender)
-    pause_tx.node_account_id = node_account
+    tx = TokenPauseTransaction().set_token_id(token_id)
+    tx.transaction_id  = generate_transaction_id(sender)
+    tx.node_account_id = node_account
 
-    body = pause_tx.build_transaction_body()
+    body = tx.build_transaction_body()
 
     assert body.tokenPause.token  == token_id.to_proto()
-    assert body.transactionID         == pause_tx.transaction_id.to_proto()
-    assert body.nodeAccountID         == pause_tx.node_account_id.to_proto()
+    assert body.transactionID     == tx.transaction_id.to_proto()
+    assert body.nodeAccountID     == tx.node_account_id.to_proto()
+
 
 @pytest.mark.parametrize("bad_token", [None, TokenId(0, 0, 0)])
 def test_build_transaction_body_without_valid_token_id_raises(bad_token):
     """
-    If token_id is missing or zero, build_transaction_body() must ValueError.
+    If token_id is missing or zero, build_transaction_body() must raise ValueError.
     """
-    pause_tx = TokenPauseTransaction()
+    tx = TokenPauseTransaction()
     if bad_token is not None:
-        pause_tx.token_id = bad_token
+        tx.token_id = bad_token
 
     with pytest.raises(ValueError, match="token_id must be set"):
-        pause_tx.build_transaction_body()
+        tx.build_transaction_body()
+
 
 def test__get_method_points_to_pauseToken(mock_channel):
     """
-    _get_method() should route to the gRPC stub method for pausing tokens.
+    _get_method() should return:
+      transaction_func = mock_channel.token.pauseToken
+      query_func       = None
     """
     tx = TokenPauseTransaction().set_token_id(TokenId(1, 2, 3))
     method = tx._get_method(mock_channel)
@@ -81,45 +83,43 @@ def test__get_method_points_to_pauseToken(mock_channel):
 
 def test__from_proto_restores_token_id():
     """
-    _from_proto() should deserialize a TokenPauseTransactionBody back into .token_id.
+    _from_proto() must deserialize TokenPauseTransactionBody → .token_id correctly.
     """
     proto_body = TokenPauseTransaction._get_transaction_body_class()(
         token=TokenId(7, 8, 9).to_proto()
     )
-    pause_tx = TokenPauseTransaction()._from_proto(proto_body)
+    tx = TokenPauseTransaction()._from_proto(proto_body)
 
-    assert pause_tx.token_id == TokenId(7, 8, 9)
+    assert tx.token_id == TokenId(7, 8, 9)
+
 
 def test_signed_bytes_include_token_pause_transaction(built_pause_tx):
     """
-    After freeze() and sign(pause_key), to_proto() must embed a non-empty
-    signedTransactionBytes blob.
+    After freeze() and sign(pause_key), to_proto() must produce non-empty
+    signedTransactionBytes.
     """
-    # Arrange: stub pause key + public key
     pause_key = MagicMock()
     pause_key.sign.return_value = b'__FAKE_SIG__'
-
     fake_pub = pause_key.public_key()
     fake_pub.to_bytes_raw.return_value = b'__FAKE_PUB__'
 
-    # Act
-    pause_tx = built_pause_tx(pause_key)
-    proto = pause_tx.to_proto()
+    tx = built_pause_tx(pause_key)
+    proto = tx.to_proto()
 
-    # Assert
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
 
-def test_pause_transaction_can_execute(mock_account_ids):
+
+def test_pause_transaction_can_execute(mock_account_ids, generate_transaction_id):
     """
-    A properly built & signed TokenPauseTransaction against a mock server
+    A well-formed & signed TokenPauseTransaction against the mock server
     should return a SUCCESS receipt.
     """
     sender, _, node_account, fungible_token, _ = mock_account_ids
 
-    # 1) Precheck-ok response
+    # 1) Precheck OK
     ok_resp = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
-    # 2) Receipt SUCCESS response
+    # 2) Receipt SUCCESS
     success_receipt = TransactionReceiptProto(status=ResponseCode.SUCCESS)
     receipt_query = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
@@ -133,20 +133,17 @@ def test_pause_transaction_can_execute(mock_account_ids):
     response_sequences = [
         [ok_resp, receipt_query],
     ]
-    with mock_hedera_servers(response_sequences) as client:
-        pause_tx = TokenPauseTransaction().set_token_id(fungible_token)
-        pause_tx.transaction_id  = TransactionId.generate(sender)
-        pause_tx.node_account_id = node_account
+    with mock_hedera_servers(response_sequences) as client:        
+        tx = TokenPauseTransaction().set_token_id(fungible_token)
+        tx.transaction_id  = generate_transaction_id(sender)
+        tx.node_account_id = node_account
 
-        pause_tx.freeze_with(client)
+        tx.freeze_with(client)
+        fake_priv = MagicMock()
+        fake_priv.sign.return_value = b'__SIG__'
+        fake_pub = fake_priv.public_key()
+        fake_pub.to_bytes_raw.return_value = b'PUB'
+        tx.sign(fake_priv)
 
-        dummy_priv_key = MagicMock()
-        dummy_priv_key.sign.return_value = b'__SIG__'
-        
-        dummy_pub_key = dummy_priv_key.public_key()
-        dummy_pub_key.to_bytes_raw.return_value = b'PUB'
-
-        pause_tx.sign(dummy_priv_key)
-
-        receipt = pause_tx.execute(client)
+        receipt = tx.execute(client)
         assert receipt.status == ResponseCode.SUCCESS
