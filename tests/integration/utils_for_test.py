@@ -1,5 +1,8 @@
 import os
+
 from dotenv import load_dotenv
+from dataclasses import dataclass
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
@@ -9,8 +12,18 @@ from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.hbar                    import Hbar
+from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 
 load_dotenv(override=True)
+
+@dataclass
+class Account:
+    id:    AccountId
+    key:   PrivateKey
 
 class IntegrationTestEnv:
     def __init__(self):
@@ -29,7 +42,46 @@ class IntegrationTestEnv:
     def close(self):
         self.client.close()
     
+    def freeze_sign_execute(self, tx, key):
+        """Freeze, sign with `key`, execute, assert success, return receipt."""
+        receipt = tx.freeze_with(self.client).sign(key).execute(self.client)
+        assert receipt.status == ResponseCode.SUCCESS
+        return receipt
 
+    def create_account(self, initial_hbar: float = 1.0) -> Account:
+        key     = PrivateKey.generate()
+        receipt = self.freeze_sign_execute(
+            AccountCreateTransaction()
+                .set_key(key.public_key())
+                .set_initial_balance(Hbar(initial_hbar)),
+            self.operator_key,
+        )
+        return Account(id=receipt.accountId, key=key)
+    
+    def associate_and_transfer(self, receiver: AccountId, receiver_key, token_id, amount: int):
+        """
+        Associate the token id for the receiver account. Then transfer an amount of the token from the operator (sender) to the receiver.
+        """
+        self.freeze_sign_execute(
+            TokenAssociateTransaction()
+                .set_account_id(receiver)
+                .add_token_id(token_id),
+            receiver_key,
+        )
+        self.freeze_sign_execute(
+            TransferTransaction()
+                .add_token_transfer(token_id,    self.operator_id, -amount)
+                .add_token_transfer(token_id,    receiver,          amount),
+            self.operator_key,
+        )
+
+    def pause_token(self, token_id, key=None):
+        key = key or self.operator_key
+        return self.freeze_sign_execute(
+            TokenPauseTransaction().set_token_id(token_id),
+            key,
+        )
+        
 def create_fungible_token(env, opts=[]):
     """
     Create a fungible token with the given options.
