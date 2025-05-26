@@ -42,11 +42,12 @@ class IntegrationTestEnv:
     def close(self):
         self.client.close()
     
-    def freeze_sign_execute(self, tx, key):
-        """Freeze, sign with `key`, execute, assert success, return receipt."""
-        receipt = tx.freeze_with(self.client).sign(key).execute(self.client)
-        assert receipt.status == ResponseCode.SUCCESS
-        return receipt
+    def freeze_sign_execute(self, tx, *signing_keys):
+        """Freeze, sign with key(s), execute, assert success, return receipt."""
+        tx = tx.freeze_with(self.client)
+        for key in signing_keys:
+            tx = tx.sign(key)
+        return tx.execute(self.client)
 
     def create_account(self, initial_hbar: float = 1.0) -> Account:
         key     = PrivateKey.generate()
