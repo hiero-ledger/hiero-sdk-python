@@ -41,7 +41,20 @@ class IntegrationTestEnv:
         
     def close(self):
         self.client.close()
-    
+
+    def freeze_sign_execute(self, tx, *signing_keys):
+        # Freeze
+        tx = tx.freeze_with(self.client)
+        # Sign (default to operator_key if none provided)
+        for key in signing_keys or (self.operator_key,):
+            tx = tx.sign(key)
+        # Execute and assert success
+        receipt = tx.execute(self.client)
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Transaction failed: {ResponseCode.get_name(receipt.status)}"
+        )
+        return receipt
+
     def freeze_sign_execute(self, tx, *signing_keys):
         """Freeze, sign with key(s), execute, assert success, return receipt."""
         tx = tx.freeze_with(self.client)
