@@ -1,227 +1,202 @@
+from collections import namedtuple
+
 import pytest
+from pytest import mark, fixture, lazy_fixture
 
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.exceptions import PrecheckError
-from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.crypto.private_key       import PrivateKey
+from hiero_sdk_python.exceptions              import PrecheckError, ReceiptStatusException
+from hiero_sdk_python.hbar                    import Hbar
+from hiero_sdk_python.response_code           import ResponseCode
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+
+from hiero_sdk_python.tokens import (
+    TokenCreateTransaction,
+    TokenAssociateTransaction,
+    TokenPauseTransaction,
+    TokenId,
+    TokenType,
+    SupplyType,
+    TokenInfoQuery,
+)
+
 from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token
-from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_info_query import TokenInfoQuery
 
-@pytest.mark.integration
-def test_pause_without_setting_token_id_raises_client_error():
+Account = namedtuple("Account", ["id", "key"])
+
+def freeze_sign_execute(tx, client, key):
+    receipt = tx.freeze_with(client).sign(key).execute(client)
+    assert receipt.status == ResponseCode.SUCCESS
+    return receipt
+
+def associate_and_transfer(env, receiver, receiver_key, token_id, amount):
+    """Associate the token id for the receiver account. Then transfer an amount of the token from the operator (sender) to the receiver."""
+    # build and execute the associate transaction
+    freeze_sign_execute(
+        TokenAssociateTransaction()
+        .set_account_id(receiver)
+        .add_token_id(token_id),
+        env.client, 
+        receiver_key,
+    )
+
+    # build and execute the transfer transaction
+    freeze_sign_execute(
+        TransferTransaction()
+            .add_token_transfer(token_id, env.operator_id, -amount)
+            .add_token_transfer(token_id, receiver, amount),
+        env.client,
+        env.operator_key,
+    )
+
+@pytest.fixture
+def pause_token(env, freeze_sign_execute):
     """
-    Building a TokenPauseTransaction without ever
-    calling set_token_id(), should error.
+    Helper to pause a token with the given key (defaults to pause_key=env.operator_key).
     """
-    env = IntegrationTestEnv()
-    try:
-        tx = TokenPauseTransaction()  # no set_token_id()
-        with pytest.raises(ValueError, match="token_id must be set"):
-            tx.freeze_with(env.client)
-    finally:
-        env.close()
-
-@pytest.mark.integration
-def test_pause_nonexistent_token_raises_precheck():
-    """
-    Trying to pause a token that doesn’t exist should fail fast
-    with INVALID_TOKEN_ID.
-    """
-    env = IntegrationTestEnv()
-    try:
-        bogus = TokenPauseTransaction().set_token_id(TokenId(0, 0, 99999999))
-        bogus.freeze_with(env.client)
-
-        with pytest.raises(
-            PrecheckError,
-            match="failed precheck with status: INVALID_TOKEN_ID"
-        ) as excinfo:
-            bogus.execute(env.client)
-
-        assert "INVALID_TOKEN_ID" in str(excinfo.value)
-    finally:
-        env.close()
-
-@pytest.mark.integration
-def test_pause_without_pause_key_fails():
-    """
-    A token WITHOUT a pause key, attempting to pause it
-    should hit TOKEN_HAS_NO_PAUSE_KEY error.
-    """
-    env = IntegrationTestEnv()
-    try:
-        # 1) Create a token with no pause_key
-        token = (
-            TokenCreateTransaction()
-            .set_token_name("NoPause")
-            .set_token_symbol("NOP")
-            .set_decimals(0)
-            .set_initial_supply(1)
-            .set_treasury_account_id(env.operator_id)
-            .set_token_type(TokenType.FUNGIBLE_COMMON)
-            .set_supply_type(SupplyType.FINITE)
-            .set_max_supply(1)
-            .freeze_with(env.client)
-        ).execute(env.client).tokenId
-
-        # 2) Attempt to pause it
-        tx = TokenPauseTransaction().set_token_id(token)
-        tx.freeze_with(env.client)
-
-        with pytest.raises(
-            PrecheckError,
-            match="failed precheck with status: TOKEN_HAS_NO_PAUSE_KEY"
-        ):
-            tx.execute(env.client)
-    finally:
-        env.close()
-
-
-@pytest.mark.integration
-def test_pause_prevents_transfers_and_reflects_in_info():
-    """
-    Create a token with a pause key, make a transfer,
-    pause the token, verify transfers now fail,
-    and confirm TokenInfoQuery reports PAUSED status.
-    """
-    env = IntegrationTestEnv()
-    try:
-        # 1) create a test account to receive tokens
-        recv_key = PrivateKey.generate()
-        recv_tx = (
-            AccountCreateTransaction()
-            .set_key(recv_key.public_key())
-            .set_initial_balance(Hbar(1))
-            .freeze_with(env.client)
-        ).execute(env.client)
-        recv = recv_tx.accountId
-
-        # 2) create a token WITH a pause key
-        token = env.create_fungible_token(pause_key=env.operator_key)
-
-        # 3) associate and transfer some
-        (
-            TokenAssociateTransaction()
-            .set_account_id(recv)
-            .add_token_id(token)
-            .freeze_with(env.client)
-            .sign(recv_key)
-        ).execute(env.client)
-        (
-            TransferTransaction()
-            .add_token_transfer(token, env.operator_id, -10)
-            .add_token_transfer(token, recv, 10)
-            .freeze_with(env.client)
-        ).execute(env.client)
-
-        # balance check before pause
-        bal = CryptoGetAccountBalanceQuery(recv).execute(env.client)
-        assert bal.token_balances[token] == 10
-
-        # 4) pause the token
-        (
-            TokenPauseTransaction()
-            .set_token_id(token)
-            .freeze_with(env.client)
-            .sign(env.operator_key)
-        ).execute(env.client)
-
-        # info query should show PAUSED
-        status = TokenInfoQuery().set_token_id(token).execute(env.client).token_status
-        assert status.name == "PAUSED"
-
-        # 5) any further transfer should now throw ReceiptStatusException TOKEN_IS_PAUSED
-        with pytest.raises(ReceiptStatusException) as exc:
-            (
-                TransferTransaction()
-                .add_token_transfer(token, env.operator_id, -1)
-                .add_token_transfer(token, recv, 1)
-                .freeze_with(env.client)
-                .sign(env.operator_key)
-                .execute(env.client)
-            )
-        assert "TOKEN_IS_PAUSED" in str(exc.value)
-
-    finally:
-        env.close()
-
-@pytest.mark.integration
-def test_double_pause_raises_token_already_paused():
-    """
-    Once a token is already paused, attempting to pause it again
-    should hit the TOKEN_ALREADY_PAUSED precheck error.
-    """
-    env = IntegrationTestEnv()
-    try:
-        # Create a token with a pause key
-        token = env.create_fungible_token(pause_key=env.operator_key)
-
-        # First pause should succeed
-        (
-            TokenPauseTransaction()
-            .set_token_id(token)
-            .freeze_with(env.client)
-            .sign(env.operator_key)
-            .execute(env.client)
+    def _pause(token_id, key=env.operator_key):
+        return freeze_sign_execute(
+            TokenPauseTransaction().set_token_id(token_id),
+            env.client,
+            key,
         )
+    return _pause
 
-        # Confirm status is PAUSED
-        status = (
-            TokenInfoQuery()
-            .set_token_id(token)
-            .execute(env.client)
-            .token_status
-        )
-        assert status.name == "PAUSED"
+@fixture
+def env():
+    """Integration test environment with client/operator set up."""
+    e = IntegrationTestEnv()
+    yield e
+    e.close()
 
-        # Second pause should fail with TOKEN_ALREADY_PAUSED
-        tx = TokenPauseTransaction().set_token_id(token)
-        tx.freeze_with(env.client)
-        tx.sign(env.operator_key)
-        with pytest.raises(
-            PrecheckError,
-            match="failed precheck with status: TOKEN_ALREADY_PAUSED"
-        ):
-            tx.execute(env.client)
+@fixture
+def account(env):
+    """Create a fresh account with 1 ℏ and return (account_id, private_key)."""
 
-    finally:
-        env.close()
+    key = PrivateKey.generate()
+    receipt = freeze_sign_execute(
+        AccountCreateTransaction()
+            .set_key(key.public_key())
+            .set_initial_balance(Hbar(1)),
+        env.client,
+        env.operator_key,
+    )
+    return Account(id=receipt.accountId, key=key)
 
+@fixture
+def pausable_token(env):
+    """Create a token that has a pause key (signed by operator)."""
+    pause_key = env.operator_key
+    return create_fungible_token(env, [
+        lambda t: t.set_pause_key(pause_key).freeze_with(env.client),
+        lambda t: t.sign(pause_key),
+    ])
 
-@pytest.mark.integration
-def test_pause_with_wrong_key_raises_sig_mismatch():
+@fixture
+def unpausable_token(env):
+    """Create a token with no pause key."""
+    tx = (
+        TokenCreateTransaction()
+        .set_token_name("NoPause")
+        .set_token_symbol("NOP")
+        .set_decimals(0)
+        .set_initial_supply(1)
+        .set_treasury_account_id(env.operator_id)
+        .set_token_type(TokenType.FUNGIBLE_COMMON)
+        .set_supply_type(SupplyType.FINITE)
+        .set_max_supply(1)
+    )
+    receipt = freeze_sign_execute(tx, env.client, env.operator_key)
+    return receipt.tokenId
+
+@mark.integration
+@mark.parametrize(
+    "token_id, exception, msg",
+    [
+        (None,                              ValueError,    "token_id must be set"),
+        (TokenId(0, 0, 99999999),           PrecheckError, ResponseCode.INVALID_TOKEN_ID.name),
+        (lazy_fixture("unpausable_token"),  PrecheckError, ResponseCode.TOKEN_HAS_NO_PAUSE_KEY.name),
+    ],
+)
+def test_pause_error_cases(env, token_id, exception, msg):
     """
-    Signing a pause transaction with a key that is NOT the token's pause key
-    should fail the precheck with SIG_MISMATCH.
+    Invalid-pause scenarios:
+      1) missing token_id
+      2) non-existent token_id
+      3) token exists but has no pause key
     """
-    env = IntegrationTestEnv()
-    try:
-        # Create a token whose pause key is the operator
-        token = env.create_fungible_token(pause_key=env.operator_key)
+    tx = TokenPauseTransaction()
+    if token_id is not None:
+        tx.set_token_id(token_id)
 
-        # Build & freeze the pause transaction
-        tx = TokenPauseTransaction().set_token_id(token)
-        tx.freeze_with(env.client)
+    tx.freeze_with(env.client)
+    with pytest.raises(exception, match=msg):
+        tx.execute(env.client)
 
-        # Sign with a completely unrelated key
-        wrong_key = PrivateKey.generate()
-        tx.sign(wrong_key)
+@mark.integration
+@pytest.mark.usefixtures("freeze_sign_execute")
+class TestTokenPause:
+    """Integration tests for pausing tokens."""
 
-        # Expect signature mismatch at precheck
-        with pytest.raises(
-            PrecheckError,
-            match="failed precheck with status: SIG_MISMATCH"
-        ):
-            tx.execute(env.client)
+    def test_transfer_before_pause(self, env, account, pausable_token):
+        """
+        A pausable token is transferred in 10 units to a fresh account that has them associated.
+        The receiver's balance increases by 10.
+        """
+        recv_id, recv_key = account.id, account.key
 
-    finally:
-        env.close()
+        associate_and_transfer(env, recv_id, recv_key, pausable_token, 10)
+        balance = CryptoGetAccountBalanceQuery(recv_id).execute(env.client)
+        assert balance.token_balances[pausable_token] == 10
+
+    def test_pause_sets_token_status_to_paused(self, env, pausable_token, pause_token):
+        """
+        Take a pausable token, that is not paused, it should be UNPAUSED.
+        A token pause transaction to an unpaused token now makes it PAUSED.
+        """
+        # pre-pause sanity check
+        before = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
+        assert before.token_status.name == "UNPAUSED"
+
+        # pause via fixture
+        pause_token(pausable_token)
+
+        # verify
+        after = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
+        assert after.token_status.name == "PAUSED"
+
+    def test_transfers_are_blocked_when_paused(self, env, account, pausable_token, pause_token):
+        """
+        Pause a token.
+        Now that the token is PAUSED, it cannot perform operations.
+        For example, an attempt to transfer tokens fails with TOKEN_IS_PAUSED.
+        """
+        acc_id, acc_key = account.id, account.key
+
+        # pause via fixture
+        pause_token(pausable_token)
+
+        with pytest.raises(ReceiptStatusException, match=ResponseCode.TOKEN_IS_PAUSED.name):
+            associate_and_transfer(env, acc_id, acc_key, pausable_token, 1)
+
+    def test_double_pause_raises_already_paused(self, env, pausable_token, pause_token):
+        """
+        Pause the token.
+        Attempt to pause again, the SDK rejects with TOKEN_ALREADY_PAUSED.
+        """
+        # first pause
+        pause_token(pausable_token)
+
+        # second pause
+        with pytest.raises(PrecheckError, match=ResponseCode.TOKEN_ALREADY_PAUSED.name):
+            pause_token(pausable_token)
+
+    def test_wrong_key_fails_to_pause(self, env, pausable_token, pause_token):
+        """
+        Given a valid pause transaction signed by the wrong key
+        The SDK rejects with SIG_MISMATCH.
+        """
+        bad_key = PrivateKey.generate()
+        with pytest.raises(PrecheckError, match=ResponseCode.SIG_MISMATCH.name):
+            pause_token(pausable_token, key=bad_key)
