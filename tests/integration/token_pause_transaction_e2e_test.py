@@ -29,10 +29,14 @@ def account(env):
 
 @fixture
 def pausable_token(env):
-    """Create a token that has a pause key (signed by operator)."""
+    """Create a token that has a pause key."""
     pause_key = env.operator_key
+
     return create_fungible_token(env, [
-        lambda tx: tx.set_pause_key(pause_key).sign(pause_key),
+        lambda tx: tx
+            .set_pause_key(pause_key)
+            .freeze_with(env.client)
+            .sign(pause_key),
     ])
 
 @fixture
