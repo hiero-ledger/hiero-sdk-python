@@ -4,6 +4,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody
+from google.protobuf.wrappers_pb2 import BytesValue
 
 class TokenUpdateNftsTransaction(Transaction):
     """
@@ -62,16 +63,11 @@ class TokenUpdateNftsTransaction(Transaction):
         if self.metadata and len(self.metadata) > 100:
             raise ValueError("Metadata must be less than 100 bytes")
         
-        token_update_body = TokenUpdateNftsTransactionBody()
-        
-        if self.token_id:
-            token_update_body.token.CopyFrom(self.token_id.to_proto())
-        
-        if self.serial_numbers:
-            token_update_body.serial_numbers.extend(self.serial_numbers)
-        
-        if self.metadata is not None:
-            token_update_body.metadata.value = self.metadata
+        token_update_body = TokenUpdateNftsTransactionBody(
+            token=self.token_id.to_proto(),
+            serial_numbers=self.serial_numbers,
+            metadata=BytesValue(value=self.metadata)
+        )
         
         transaction_body = self.build_base_transaction_body()
         transaction_body.token_update_nfts.CopyFrom(token_update_body)
