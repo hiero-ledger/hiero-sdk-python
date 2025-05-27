@@ -20,6 +20,7 @@ Usage:
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 import traceback
 
@@ -54,7 +55,6 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 # Topic related imports
 from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
-from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import (
     TopicMessageSubmitTransaction
@@ -394,11 +394,11 @@ def create_topic(client):
     return topic_id
 
 
-def submit_message(client, topic_id):
+def submit_message(client, topic_id, message):
     """Tests submitting a message"""
     transaction = TopicMessageSubmitTransaction(
         topic_id=topic_id,
-        message="Hello, Python SDK!"
+        message=message
     )
     transaction.freeze_with(client)
     transaction.sign(client.operator_private_key)
@@ -512,7 +512,7 @@ def main():
     associate_token(client, recipient_id, recipient_private_key, [token_id_1, token_id_2])
     associate_token(client, recipient_id, recipient_private_key, [token_id_nft_1, token_id_nft_2])
 
-    # Test transfering fungible by moving one token from the operator to the recipient.
+    # Test transferring fungible by moving one token from the operator to the recipient.
     transfer_token(client, operator_id, operator_key, recipient_id, token_id_1)
 
     # Test freezing fungible and nft tokens. In this case from the recipient that just received token 1.
@@ -533,9 +533,13 @@ def main():
 
     # Create a topic and perform various test actions
     topic_id = create_topic(client)
-    submit_message(client, topic_id)
+    submit_message(client, topic_id, "Hello, Python SDK!")
+
+    # Update and query topic info
     update_topic(client, topic_id)
     query_topic_info(client, topic_id)
+
+    # Delete the topic
     delete_topic(client, topic_id)
 
 if __name__ == "__main__":
