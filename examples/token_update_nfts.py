@@ -8,18 +8,14 @@ from hiero_sdk_python import (
     PrivateKey,
     Network,
 )
-from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
-from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_update_nfts_transaction import TokenUpdateNftsTransaction
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
-from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 load_dotenv()
 
@@ -33,49 +29,6 @@ def setup_client():
     client.set_operator(operator_id, operator_key)
     
     return client, operator_id, operator_key
-
-def create_test_account(client):
-    """Create a new account for testing"""
-    # Generate private key for new account
-    new_account_private_key = PrivateKey.generate_ed25519()
-    new_account_public_key = new_account_private_key.public_key()
-    
-    # Create new account with initial balance of 1 HBAR
-    receipt = (
-        AccountCreateTransaction()
-        .set_key(new_account_public_key)
-        .set_initial_balance(Hbar(1))
-        .execute(client)
-    )
-    
-    # Check if account creation was successful
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}")
-        sys.exit(1)
-    
-    # Get account ID from receipt
-    account_id = receipt.accountId
-    print(f"New account created with ID: {account_id}")
-    
-    return account_id, new_account_private_key
-
-def associate_token(client, nft_token_id, receiver_id, receiver_private_key):
-    """Associate token with an account"""
-    # Associate the token_id with the new account
-    receipt = (
-        TokenAssociateTransaction()
-        .set_account_id(receiver_id)
-        .add_token_id(nft_token_id)
-        .freeze_with(client)
-        .sign(receiver_private_key) # Has to be signed here by receiver's key
-        .execute(client)
-    )
-    
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token association failed with status: {ResponseCode.get_name(receipt.status)}")
-        sys.exit(1)
-    
-    print(f"Token successfully associated with account: {receiver_id}")
 
 def create_nft(client, operator_id, operator_key, metadata_key):
     """Create a non-fungible token"""
@@ -134,21 +87,6 @@ def get_nft_info(client, nft_id):
     
     return info
 
-def transfer_nft(client, nft_id, operator_id, account_id):
-    """Transfer NFT from operator to the specified account"""
-    receipt = (
-        TransferTransaction()
-        .add_nft_transfer(nft_id, operator_id, account_id)
-        .execute(client)
-    )
-        
-    # Check if nft transfer was successful
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT transfer failed with status: {ResponseCode.get_name(receipt.status)}")
-        sys.exit(1)
-    
-    print(f"Successfully transferred NFT to account {account_id}")
-
 def update_nft_metadata(client, nft_token_id, serial_numbers, new_metadata, metadata_private_key):
     """Update metadata for NFTs in a collection"""
     receipt = (
@@ -174,10 +112,8 @@ def token_update_nfts():
     2. Creating a non-fungible token with metadata key
     3. Minting two NFTs with initial metadata
     4. Checking the current NFT info
-    5. Creating and setting up receiver account
-    6. Transferring first NFT to receiver account
-    7. Updating metadata for both NFTs
-    8. Verifying the updated NFT metadata
+    5. Updating metadata for the first NFT
+    6. Verifying the updated NFT metadata
     """
     client, operator_id, operator_key = setup_client()
     
@@ -202,21 +138,13 @@ def token_update_nfts():
         nft_info = get_nft_info(client, nft_id)
         print(f"NFT ID: {nft_info.nft_id}, Metadata: {nft_info.metadata}")
     
-    # Create an account to send the NFT to
-    receiver_id, receiver_private_key = create_test_account(client)
-    
-    # Associate the token with the receiver account
-    associate_token(client, nft_token_id, receiver_id, receiver_private_key)
-    
-    # Transfer only the first NFT (serial number 1) to the receiver account
-    transfer_nft(client, nft_ids[0], operator_id, receiver_id)
-    
     # Update metadata for specific NFTs by providing their id and serial numbers
     # Only the NFTs with the provided serial numbers will have their metadata updated
-    update_nft_metadata(client, nft_token_id, serial_numbers, new_metadata, metadata_private_key)
+    serial_numbers_to_update = [serial_numbers[0]]
+    update_nft_metadata(client, nft_token_id, serial_numbers_to_update, new_metadata, metadata_private_key)
     
     # Get and print information about the NFTs
-    print("\nCheck that the NFTs have the updated metadata")
+    print("\nCheck that only the first NFT has the updated metadata")
     for nft_id in nft_ids:
         nft_info = get_nft_info(client, nft_id)
         print(f"NFT ID: {nft_info.nft_id}, Metadata: {nft_info.metadata}")
