@@ -53,6 +53,11 @@ def nft_id():
     return NftId(tokenId=token_id, serialNumber=serial_number)
 
 @pytest.fixture
+def token_id():
+    """Fixture to provide a mock TokenId instance."""
+    return TokenId(shard=0, realm=0, num=3)
+
+@pytest.fixture
 def mock_client():
     """Fixture to provide a mock client with hardcoded nodes for testing purposes."""
     nodes = [_Node(AccountId(0, 0, 3), "node1.example.com:50211", None)]
