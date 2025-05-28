@@ -53,29 +53,12 @@ def test_token_info_query_execute(mock_account_ids):
         name="Test Token",
         symbol="TEST",
         decimals=8,
-        totalSupply=1000000,
+        totalSupply=100,
         treasury=account_id.to_proto(),
-        adminKey=None,
-        kycKey=None,
-        freezeKey=None,
-        wipeKey=None,
-        supplyKey=None,
         defaultFreezeStatus=0,
         defaultKycStatus=0,
-        deleted=False,
         autoRenewAccount=renew_account_id.to_proto(),
-        autoRenewPeriod=None,
-        expiry=None,
-        memo="",
-        tokenType=0,
-        supplyType=0,
-        maxSupply=0,
-        fee_schedule_key=None,
-        custom_fees=None,
-        pause_key=None,
-        pause_status=0,
-        metadata_key=None,
-        ledger_id=None
+        maxSupply=10000
     )
 
     response = response_pb2.Response(
@@ -92,21 +75,21 @@ def test_token_info_query_execute(mock_account_ids):
     response_sequences = [[response]]
     
     with mock_hedera_servers(response_sequences) as client:
-        query = TokenInfoQuery().set_token_id(token_id)
+        query = TokenInfoQuery(token_id)
         
         try:
             result = query.execute(client)
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
         
-        # Verify the result contains the expected values
         assert result.tokenId.shard == 1
         assert result.tokenId.realm == 1
         assert result.tokenId.num == 1
         assert result.name == "Test Token"
         assert result.symbol == "TEST"
         assert result.decimals == 8
-        assert result.totalSupply == 1000000
+        assert result.totalSupply == 100
+        assert result.maxSupply == 10000
         assert result.treasury.shard == 0
         assert result.treasury.realm == 0
         assert result.treasury.num == 1
