@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+# from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
