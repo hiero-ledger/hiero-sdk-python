@@ -19,7 +19,7 @@ load_dotenv()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network='solo')
+    network = Network(network='testnet')
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
@@ -28,7 +28,7 @@ def setup_client():
     
     return client, operator_id, operator_key
 
-def create_fungible_token(client: 'Client', treasury_id, treasury_private_key):
+def create_fungible_token(client, operator_id, operator_key):
     """Create a fungible token"""
     receipt = (
         TokenCreateTransaction()
@@ -36,20 +36,22 @@ def create_fungible_token(client: 'Client', treasury_id, treasury_private_key):
         .set_token_symbol("EXFT")
         .set_decimals(2)
         .set_initial_supply(100)
-        .set_treasury_account_id(treasury_id)
+        .set_treasury_account_id(operator_id)
         .set_token_type(TokenType.FUNGIBLE_COMMON)
         .set_supply_type(SupplyType.FINITE)
         .set_max_supply(1000)
-        .set_admin_key(treasury_private_key)
-        .set_supply_key(treasury_private_key)
-        .set_freeze_key(treasury_private_key)
+        .set_admin_key(operator_key)
+        .set_supply_key(operator_key)
+        .set_freeze_key(operator_key)
         .execute(client)
     )
     
+    # Check if token creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(f"Fungible token creation failed with status: {ResponseCode.get_name(receipt.status)}")
         sys.exit(1)
     
+    # Get token ID from receipt
     token_id = receipt.tokenId
     print(f"Fungible token created with ID: {token_id}")
     
