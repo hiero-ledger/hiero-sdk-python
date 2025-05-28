@@ -42,7 +42,7 @@ def test_integration_token_info_query_can_execute():
         env.close()
 
 @pytest.mark.integration
-def test_integration_token_info_query_insufficient_cost():
+def test_integration_token_info_query_fails_with_insufficient_tx_fee():
     """Test that token info query fails with insufficient payment."""
     env = IntegrationTestEnv()
     
@@ -58,11 +58,12 @@ def test_integration_token_info_query_insufficient_cost():
         env.close()
 
 @pytest.mark.integration
-def test_integration_token_info_query_can_execute_with_invalid_token_id():
+def test_integration_token_info_query_fails_with_invalid_token_id():
     env = IntegrationTestEnv()
     
     try:
         token_id = TokenId(0,0,123456789)
+        
         with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_TOKEN_ID"):
             TokenInfoQuery(token_id).execute(env.client)
     finally:
