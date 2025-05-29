@@ -80,6 +80,7 @@ def test_build_transaction_body_without_key(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("adminKey")
     assert not transaction_body.tokenCreation.HasField("supplyKey")
     assert not transaction_body.tokenCreation.HasField("freezeKey")
+    assert not transaction_body.tokenCreation.HasField("pause_key")
 
 # This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body(mock_account_ids):
