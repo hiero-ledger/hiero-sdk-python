@@ -400,7 +400,7 @@ class TokenCreateTransaction(Transaction):
             supplyKey=supply_key_proto,
             freezeKey=freeze_key_proto,
             wipeKey=wipe_key_proto,
-            pauseKey=pause_key_proto
+            pause_key=pause_key_proto
         )
         # Build the base transaction body and attach the token creation details
         transaction_body = self.build_base_transaction_body()
