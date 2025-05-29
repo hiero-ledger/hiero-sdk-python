@@ -132,7 +132,8 @@ def create_fungible_token(env, opts=[]):
             admin_key=env.operator_key,
             supply_key=env.operator_key,
             freeze_key=env.operator_key,
-            wipe_key=env.operator_key
+            wipe_key=env.operator_key,
+            pause_key=env.pause_key
         )
         
     token_transaction = TokenCreateTransaction(token_params, token_keys)
