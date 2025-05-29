@@ -178,12 +178,14 @@ class TokenKeys:
         supply_key: The supply key for the token to mint and burn.
         freeze_key: The freeze key for the token to freeze and unfreeze.
         wipe_key: The wipe key for the token to wipe tokens from an account.
+        pause_key: The pause key for the token to be paused.
     """
 
     admin_key: Optional[PrivateKey] = None
     supply_key: Optional[PrivateKey] = None
     freeze_key: Optional[PrivateKey] = None
     wipe_key: Optional[PrivateKey] = None
+    pause_key: Optional[PrivateKey] = None
 
 class TokenCreateTransaction(Transaction):
     """
@@ -320,6 +322,11 @@ class TokenCreateTransaction(Transaction):
         self._keys.wipe_key = key
         return self
 
+    def set_pause_key(self, key):
+        self._require_not_frozen()
+        self._keys.pause_key = key
+        return self
+    
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for token creation.
@@ -356,6 +363,11 @@ class TokenCreateTransaction(Transaction):
         if self._keys.wipe_key:
             wipe_public_key_bytes = self._keys.wipe_key.public_key().to_bytes_raw()
             wipe_key_proto = basic_types_pb2.Key(ed25519=wipe_public_key_bytes)
+            
+        pause_key_proto = None
+        if self._keys.pause_key:
+            pause_public_key_bytes = self._keys.pause_key.public_key().to_bytes_raw()
+            pause_key_proto = basic_types_pb2.Key(ed25519=pause_public_key_bytes)
 
         # Ensure token type is correctly set with default to fungible
         if self._token_params.token_type is None:
@@ -387,7 +399,8 @@ class TokenCreateTransaction(Transaction):
             adminKey=admin_key_proto,
             supplyKey=supply_key_proto,
             freezeKey=freeze_key_proto,
-            wipeKey=wipe_key_proto
+            wipeKey=wipe_key_proto,
+            pauseKey=pause_key_proto
         )
         # Build the base transaction body and attach the token creation details
         transaction_body = self.build_base_transaction_body()
