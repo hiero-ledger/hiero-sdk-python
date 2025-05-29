@@ -37,7 +37,6 @@ def built_pause_tx(mock_account_ids, mock_client, generate_transaction_id):
 
     return _make
 
-@pytest.fixture
 def test_builds_token_pause_body_with_correct_ids(mock_account_ids, generate_transaction_id):
     """
     build_transaction_body() should embed:
@@ -93,7 +92,6 @@ def test__from_proto_restores_token_id():
 
     assert tx.token_id == TokenId(7, 8, 9)
 
-
 def test_signed_bytes_include_token_pause_transaction(built_pause_tx):
     """
     After freeze() and sign(pause_key), to_proto() must produce non-empty
@@ -109,7 +107,6 @@ def test_signed_bytes_include_token_pause_transaction(built_pause_tx):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
-
 
 def test_pause_transaction_can_execute(mock_account_ids, generate_transaction_id):
     """
