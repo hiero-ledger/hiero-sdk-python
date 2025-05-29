@@ -133,7 +133,7 @@ class TestTokenPause:
         For example, an attempt to transfer tokens fails with TOKEN_IS_PAUSED.
         """
         env.pause_token(pausable_token)
-        with pytest.raises(ReceiptStatusError, match=ResponseCode.TOKEN_IS_PAUSED.name):
+        with pytest.raises(ReceiptStatusError, match=ResponseCode.TOKEN_IS_PAUSED):
             env.associate_and_transfer(account.id, account.key, pausable_token, 1)
 
 @mark.integration
