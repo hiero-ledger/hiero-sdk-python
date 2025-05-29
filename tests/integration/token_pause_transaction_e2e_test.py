@@ -62,9 +62,10 @@ def unpausable_token(env):
     "token_id, exception, msg",
     [
         (None,                              ValueError,    "token_id must be set"),
-        (TokenId(0, 0, 99999999),           PrecheckError, ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID.value)),
-        # (lazy_fixture("unpausable_token"),  PrecheckError, ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY.value)),
+        (TokenId(0, 0, 99999999),           PrecheckError, ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)),
+        # (lazy_fixture("unpausable_token"),  PrecheckError, ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY)),
     ],
+
 )
 
 def test_pause_error_cases(env, token_id, exception, msg):
@@ -83,7 +84,7 @@ def test_pause_error_cases(env, token_id, exception, msg):
             tx.freeze_with(env.client)
     else:
         with pytest.raises(exception, match=msg):
-            tx.execute(env.client)
+            tx.freeze_with(env.client)
 
 @mark.integration
 class TestTokenPause:
@@ -131,5 +132,5 @@ class TestTokenPause:
 ])
 def test_double_pause_errors(self, env, pausable_token, bad_key, code):
     env.pause_token(pausable_token)
-    with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(code.value)):
+    with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(code)):
         env.pause_token(pausable_token, key=bad_key)
