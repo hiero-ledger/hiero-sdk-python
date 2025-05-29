@@ -37,6 +37,7 @@ def built_pause_tx(mock_account_ids, mock_client, generate_transaction_id):
 
     return _make
 
+@pytest.fixture
 def test_builds_token_pause_body_with_correct_ids(mock_account_ids, generate_transaction_id):
     """
     build_transaction_body() should embed:
@@ -55,7 +56,6 @@ def test_builds_token_pause_body_with_correct_ids(mock_account_ids, generate_tra
     assert body.tokenPause.token  == token_id.to_proto()
     assert body.transactionID     == tx.transaction_id.to_proto()
     assert body.nodeAccountID     == tx.node_account_id.to_proto()
-
 
 @pytest.mark.parametrize("bad_token", [None, TokenId(0, 0, 0)])
 def test_build_transaction_body_without_valid_token_id_raises(bad_token):

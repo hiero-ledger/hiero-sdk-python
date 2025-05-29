@@ -51,8 +51,8 @@ class TokenPauseTransaction(Transaction):
         Raises:
         ValueError: If no token_id has been set.
         """
-        if self.token_id is None:
-            raise ValueError("token_id must be set before building the transaction body")
+        if self.token_id is None or self.token_id.num == 0:
+             raise ValueError("token_id must be set before building the transaction body")
 
         token_pause_body = TokenPauseTransactionBody(
             token=self.token_id.to_proto()
