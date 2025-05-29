@@ -125,11 +125,11 @@ class TestTokenPause:
         with pytest.raises(ReceiptStatusError, match=ResponseCode.TOKEN_IS_PAUSED.name):
             env.associate_and_transfer(account.id, account.key, pausable_token, 1)
 
-    @mark.parametrize("bad_key, exc_cls, msg", [
-        (None,                  ReceiptStatusError, ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY)),
-        (PrivateKey.generate(), ReceiptStatusError, ResponseCode.get_name(ResponseCode.INVALID_PAUSE_KEY)),
-    ])
-    def test_double_pause_errors(self, env, pausable_token, bad_key, exc_cls, msg):
-        env.pause_token(pausable_token)
-        with pytest.raises(exc_cls, match=msg):
-            env.pause_token(pausable_token, key=bad_key)
+@mark.parametrize("bad_key, code", [
+    (None,                  ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
+    (PrivateKey.generate(), ResponseCode.INVALID_PAUSE_KEY),
+])
+def test_double_pause_errors(self, env, pausable_token, bad_key, code):
+    env.pause_token(pausable_token)
+    with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(code.value)):
+        env.pause_token(pausable_token, key=bad_key)
