@@ -82,7 +82,6 @@ def test_pause_error_cases(env, token_id, exception, msg):
         with pytest.raises(ValueError, match=msg):
             tx.freeze_with(env.client)
     else:
-        tx.freeze_with(env.client)
         with pytest.raises(exception, match=msg):
             tx.execute(env.client)
 
