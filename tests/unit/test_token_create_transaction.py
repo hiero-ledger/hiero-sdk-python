@@ -260,6 +260,10 @@ def test_sign_transaction(mock_account_ids, mock_client):
     private_key_freeze.sign.return_value = b"freeze_signature"
     private_key_freeze.public_key().to_bytes_raw.return_value = b"freeze_public_key"
 
+    private_key_pause = MagicMock()
+    private_key_pause.sign.return_value = b"pause_signature"
+    private_key_pause.public_key().to_bytes_raw.return_value = b"pause_public_key"
+
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
     token_tx.set_token_symbol("MTK")
@@ -269,6 +273,7 @@ def test_sign_transaction(mock_account_ids, mock_client):
     token_tx.set_admin_key(private_key_admin)
     token_tx.set_supply_key(private_key_supply)
     token_tx.set_freeze_key(private_key_freeze)
+    token_tx.set_pause_key(private_key_pause)
 
     token_tx.transaction_id = generate_transaction_id(treasury_account)
     
@@ -294,7 +299,11 @@ def test_sign_transaction(mock_account_ids, mock_client):
 
     # Confirm that neither sigPair belongs to supply_key or freeze_key:
     for sig_pair in token_tx._signature_map[body_bytes].sigPair:
-        assert sig_pair.pubKeyPrefix not in (b"supply_public_key", b"freeze_public_key")
+        assert sig_pair.pubKeyPrefix not in (
+            b"supply_public_key",
+            b"freeze_public_key",
+            b"pause_public_key"
+        )
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter
 def test_to_proto_without_keys(mock_account_ids, mock_client):
@@ -653,6 +662,10 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     private_key_freeze.sign.return_value = b"freeze_signature"
     private_key_freeze.public_key().to_bytes_raw.return_value = b"freeze_public_key"
 
+    private_key_pause = MagicMock()
+    private_key_pause.sign.return_value = b"pause_signature"
+    private_key_pause.public_key().to_bytes_raw.return_value = b"pause_public_key"
+
     # Build the transaction
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyNFTToken")
@@ -664,6 +677,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     token_tx.set_admin_key(private_key_admin)
     token_tx.set_supply_key(private_key_supply)
     token_tx.set_freeze_key(private_key_freeze)
+    token_tx.set_pause_key(private_key_pause)
 
     token_tx.transaction_id = generate_transaction_id(treasury_account)
 
@@ -699,6 +713,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     assert tx_body.tokenCreation.adminKey.ed25519 == b"admin_public_key"
     assert tx_body.tokenCreation.supplyKey.ed25519 == b"supply_public_key"
     assert tx_body.tokenCreation.freezeKey.ed25519 == b"freeze_public_key"
+    assert tx_body.tokenCreation.pause_key.ed25519  == b"pause_public_key"
 
 @pytest.mark.parametrize(
     "token_type, supply_type, max_supply, initial_supply, expected_error",
