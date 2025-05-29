@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
@@ -68,18 +68,18 @@ def test_build_transaction_body_without_valid_token_id_raises(bad_token):
     with pytest.raises(ValueError, match="token_id must be set"):
         tx.build_transaction_body()
 
+def test__get_method_points_to_pause_token():
+    """_get_method() should return pauseToken as the transaction RPC, and no query RPC."""
+    query = TokenPauseTransaction().set_token_id(TokenId(1, 2, 3))
 
-def test__get_method_points_to_pauseToken(mock_channel):
-    """
-    _get_method() should return:
-      transaction_func = mock_channel.token.pauseToken
-      query_func       = None
-    """
-    tx = TokenPauseTransaction().set_token_id(TokenId(1, 2, 3))
-    method = tx._get_method(mock_channel)
+    mock_channel    = Mock()
+    mock_token_stub = Mock()
+    mock_channel.token = mock_token_stub
 
-    assert method.transaction_func is mock_channel.token.pauseToken
-    assert method.query_func       is None
+    method = query._get_method(mock_channel)
+
+    assert method.transaction is mock_token_stub.pauseToken
+    assert method.query       is None
 
 def test__from_proto_restores_token_id():
     """
