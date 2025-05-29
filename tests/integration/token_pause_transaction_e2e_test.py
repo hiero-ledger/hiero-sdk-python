@@ -62,10 +62,11 @@ def unpausable_token(env):
     "token_id, exception, msg",
     [
         (None,                              ValueError,    "token_id must be set"),
-        (TokenId(0, 0, 99999999),           PrecheckError, str(ResponseCode.INVALID_TOKEN_ID)),
-        # (lazy_fixture("unpausable_token"),  PrecheckError, ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
+        (TokenId(0, 0, 99999999),           PrecheckError, ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID.value)),
+        # (lazy_fixture("unpausable_token"),  PrecheckError, ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY.value)),
     ],
 )
+
 def test_pause_error_cases(env, token_id, exception, msg):
     """
     Invalid-pause scenarios:
