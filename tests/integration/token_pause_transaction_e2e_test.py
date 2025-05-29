@@ -62,7 +62,7 @@ def unpausable_token(env):
     "token_id, exception, msg",
     [
         (None,                              ValueError,    "token_id must be set"),
-        (TokenId(0, 0, 99999999),           PrecheckError, ResponseCode.INVALID_TOKEN_ID),
+        (TokenId(0, 0, 99999999),           PrecheckError, str(ResponseCode.INVALID_TOKEN_ID)),
         # (lazy_fixture("unpausable_token"),  PrecheckError, ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
     ],
 )
@@ -77,9 +77,13 @@ def test_pause_error_cases(env, token_id, exception, msg):
     if token_id is not None:
         tx.set_token_id(token_id)
 
-    tx.freeze_with(env.client)
-    with pytest.raises(exception, match=msg):
-        tx.execute(env.client)
+    if exception is ValueError:
+        with pytest.raises(ValueError, match=msg):
+            tx.freeze_with(env.client)
+    else:
+        tx.freeze_with(env.client)
+        with pytest.raises(exception, match=msg):
+            tx.execute(env.client)
 
 @mark.integration
 class TestTokenPause:
