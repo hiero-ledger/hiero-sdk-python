@@ -11,6 +11,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
+from hiero_sdk_python.hapi.services.token_pause_pb2 import TokenPauseTransactionBody
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
@@ -85,7 +86,7 @@ def test__from_proto_restores_token_id():
     """
     _from_proto() must deserialize TokenPauseTransactionBody → .token_id correctly.
     """
-    proto_body = TokenPauseTransaction._get_transaction_body_class()(
+    proto_body = TokenPauseTransactionBody(
         token=TokenId(7, 8, 9).to_proto()
     )
     tx = TokenPauseTransaction()._from_proto(proto_body)
