@@ -53,7 +53,7 @@ def test_builds_token_pause_body_with_correct_ids(mock_account_ids, generate_tra
 
     body = tx.build_transaction_body()
 
-    assert body.tokenPause.token  == token_id.to_proto()
+    assert body.token_pause.token  == token_id.to_proto()
     assert body.transactionID     == tx.transaction_id.to_proto()
     assert body.nodeAccountID     == tx.node_account_id.to_proto()
 

@@ -58,7 +58,7 @@ class TokenPauseTransaction(Transaction):
             token=self.token_id.to_proto()
         )
         transaction_body = self.build_base_transaction_body()
-        transaction_body.tokenPause.CopyFrom(token_pause_body)
+        transaction_body.token_pause.CopyFrom(token_pause_body)
         return transaction_body
     
     def _get_method(self, channel: _Channel) -> _Method:
