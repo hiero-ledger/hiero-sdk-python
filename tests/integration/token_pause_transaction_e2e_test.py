@@ -61,19 +61,15 @@ def unpausable_token(env):
 @mark.parametrize(
     "token_id, exception, msg",
     [
-        (None,                              ValueError,    "token_id must be set"),
-        (TokenId(0, 0, 99999999),           PrecheckError, ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)),
-        # (lazy_fixture("unpausable_token"),  PrecheckError, ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY)),
+        (None,                    ValueError,    "token_id must be set"),
+        (TokenId(0, 0, 99999999), PrecheckError, ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)),
     ],
-
 )
-
 def test_pause_error_cases(env, token_id, exception, msg):
     """
     Invalid-pause scenarios:
       1) missing token_id
       2) non-existent token_id
-      3) token exists but has no pause key
     """
     tx = TokenPauseTransaction()
     if token_id is not None:
@@ -83,8 +79,22 @@ def test_pause_error_cases(env, token_id, exception, msg):
         with pytest.raises(ValueError, match=msg):
             tx.freeze_with(env.client)
     else:
-        with pytest.raises(exception, match=msg):
+        with pytest.raises(PrecheckError, match=msg):
             tx.freeze_with(env.client)
+
+@mark.integration
+def test_pause_error_without_pause_key(env, unpausable_token):
+    """
+    If a token exists but was created with no pause key,
+    attempting to freeze it should fail with TOKEN_HAS_NO_PAUSE_KEY.
+    """
+    tx = TokenPauseTransaction().set_token_id(unpausable_token)
+
+    with pytest.raises(
+        PrecheckError,
+        match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
+    ):
+        tx.freeze_with(env.client)
 
 @mark.integration
 class TestTokenPause:
@@ -126,11 +136,12 @@ class TestTokenPause:
         with pytest.raises(ReceiptStatusError, match=ResponseCode.TOKEN_IS_PAUSED.name):
             env.associate_and_transfer(account.id, account.key, pausable_token, 1)
 
+@mark.integration
 @mark.parametrize("bad_key, code", [
     (None,                  ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
     (PrivateKey.generate(), ResponseCode.INVALID_PAUSE_KEY),
 ])
-def test_double_pause_errors(self, env, pausable_token, bad_key, code):
+def test_double_pause_errors(env, pausable_token, bad_key, code):
     env.pause_token(pausable_token)
     with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(code)):
         env.pause_token(pausable_token, key=bad_key)
