@@ -7,10 +7,13 @@ from hiero_sdk_python.response_code           import ResponseCode
 
 from hiero_sdk_python.tokens import (
     TokenPauseTransaction,
-    TokenId,
+    TokenId
 )
 
 from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, Account
+from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 
 @fixture
 def env():
@@ -107,7 +110,7 @@ class TestTokenPause:
         """
         env.associate_and_transfer(account.id, account.key, pausable_token, 10)
 
-        balance = env.get_balance(account.id).token_balances[pausable_token]
+        balance = (CryptoGetAccountBalanceQuery(account.id).execute(env.client).token_balances[pausable_token])
         assert balance == 10
 
     def test_pause_sets_token_status_to_paused(self, env, pausable_token):
@@ -116,15 +119,14 @@ class TestTokenPause:
         A token pause transaction to an unpaused token now makes it PAUSED.
         """
         # pre-pause sanity check
-        info = env.get_token_info(pausable_token)
+        info = (TokenInfoQuery().set_token_id(pausable_token).execute(env.client))
         assert info.token_status.name == "UNPAUSED"
 
         # pause via fixture
-        pause_key = env.operator_key
-        env.pause_token(pausable_token, key=pause_key)
+        env.pause_token(pausable_token, key=env.operator_key)
 
         # verify
-        info2 = env.get_token_info(pausable_token)
+        info2 = (TokenInfoQuery().set_token_id(pausable_token).execute(env.client))
         assert info2.token_status.name == "PAUSED"
 
     def test_transfers_blocked_when_paused(self, env, account: Account, pausable_token):
@@ -133,8 +135,24 @@ class TestTokenPause:
         Now that the token is PAUSED, it cannot perform operations.
         For example, an attempt to transfer tokens fails with TOKEN_IS_PAUSED.
         """
+        # first associate (this must succeed)
+        env.freeze_sign_execute(
+            TokenAssociateTransaction()
+                .set_account_id(account.id)
+                .add_token_id(pausable_token),
+            account.key,
+        )
+
+        # pause the token
         pause_key = env.operator_key
         env.pause_token(pausable_token, key=pause_key)
-        
+
+        # attempt to transfer 1 token
+        tx = (
+            TransferTransaction()
+            .add_token_transfer(pausable_token, env.operator_id, -1)
+            .add_token_transfer(pausable_token, account.id,      1)
+        )
+
         with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(ResponseCode.TOKEN_IS_PAUSED)):
-            env.associate_and_transfer(account.id, account.key, pausable_token, 1)
+            tx.execute(env.client)

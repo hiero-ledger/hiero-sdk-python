@@ -48,45 +48,49 @@ class IntegrationTestEnv:
     def close(self):
         self.client.close()
 
-    def freeze_sign_execute(self, tx, *signing_keys):
-        """Freeze, sign with provided keys (or operator), execute, and assert success."""
-        # Freeze
-        tx = tx.freeze_with(self.client)
-        # Sign (default to operator_key if none provided)
-        for key in signing_keys or (self.operator_key,):
-            tx = tx.sign(key)
-        # Execute and assert success
-        receipt = tx.execute(self.client)
-        assert receipt.status == ResponseCode.SUCCESS, (
-            f"Transaction failed: {ResponseCode.get_name(receipt.status)}"
-        )
-        return receipt
-
     def create_account(self, initial_hbar: float = 1.0) -> Account:
         """Create a new account funded with `initial_hbar` HBAR, defaulting to 1."""
-        key     = PrivateKey.generate()
-        receipt = self.freeze_sign_execute(
+        key = PrivateKey.generate()
+        tx = (
             AccountCreateTransaction()
                 .set_key(key.public_key())
-                .set_initial_balance(Hbar(initial_hbar)),
-            self.operator_key,
+                .set_initial_balance(Hbar(initial_hbar))
         )
+        receipt = tx.execute(self.client)
+        if receipt.status != ResponseCode.SUCCESS:
+            raise AssertionError(
+                f"Account creation failed: {ResponseCode.get_name(receipt.status)}"
+            )
         return Account(id=receipt.accountId, key=key)
-    
-    def associate_and_transfer(self, receiver: AccountId, receiver_key, token_id, amount: int):
-        """Associate the token id for the receiver account. Then transfer an amount of the token from the operator (sender) to the receiver."""
-        self.freeze_sign_execute(
+
+    def associate_and_transfer(self, receiver: AccountId, receiver_key: PrivateKey, token_id, amount: int):
+        """
+        Associate the token with `receiver`, then transfer `amount` of the token
+        from the operator to that receiver.
+        """
+        assoc_tx = (
             TokenAssociateTransaction()
                 .set_account_id(receiver)
-                .add_token_id(token_id),
-            receiver_key,
+                .add_token_id(token_id)
         )
-        self.freeze_sign_execute(
+        assoc_tx = assoc_tx.freeze_with(self.client)
+        assoc_tx = assoc_tx.sign(receiver_key)
+        assoc_receipt = assoc_tx.execute(self.client)
+        if assoc_receipt.status != ResponseCode.SUCCESS:
+            raise AssertionError(
+                f"Association failed: {ResponseCode.get_name(assoc_receipt.status)}"
+            )
+
+        transfer_tx = (
             TransferTransaction()
-                .add_token_transfer(token_id,    self.operator_id, -amount)
-                .add_token_transfer(token_id,    receiver,          amount),
-            self.operator_key,
+                .add_token_transfer(token_id, self.operator_id, -amount)
+                .add_token_transfer(token_id, receiver, amount)
         )
+        transfer_receipt = transfer_tx.execute(self.client)
+        if transfer_receipt.status != ResponseCode.SUCCESS:
+            raise AssertionError(
+                f"Transfer failed: {ResponseCode.get_name(transfer_receipt.status)}"
+            )
 
     def pause_token(self, token_id, key=_NO_KEY):
             """
@@ -114,20 +118,6 @@ class IntegrationTestEnv:
 
             return tx.execute(self.client)
 
-    def get_balance(self, account_id: AccountId):
-        """
-        Wraps:
-          balance = CryptoGetAccountBalanceQuery(account_id).execute(self.client)
-        """
-        return CryptoGetAccountBalanceQuery(account_id).execute(self.client)
-
-    def get_token_info(self, token_id):
-        """
-        Wraps:
-          info = TokenInfoQuery().set_token_id(token_id).execute(self.client)
-        """
-        return TokenInfoQuery().set_token_id(token_id).execute(self.client)
-    
 def create_fungible_token(env, opts=[]):
     """
     Create a fungible token with the given options.
