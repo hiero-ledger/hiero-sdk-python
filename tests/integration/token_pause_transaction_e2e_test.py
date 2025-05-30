@@ -32,10 +32,7 @@ def account(env):
 # Signing by the treasury account handled by the executable method in env
 @fixture
 def pausable_token(env):
-    pause_key = env.operator_key
-    return create_fungible_token(env, opts=[
-        lambda tx: tx.set_pause_key(pause_key)
-    ])
+    return create_fungible_token(env, opts=[lambda tx: tx.set_pause_key(env.operator_key)])
 
 # Fungible token in env has no pause key
 @fixture
@@ -61,10 +58,7 @@ def test_pause_nonexistent_token_id_raises_precheck_error(env):
     fake = TokenId(0, 0, 99999999)
     tx = TokenPauseTransaction().set_token_id(fake)
 
-    with pytest.raises(
-        PrecheckError,
-        match=ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)
-    ):
+    with pytest.raises(PrecheckError, match=ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)):
         # .execute() will auto‐freeze and auto‐sign with the operator key
         tx.execute(env.client)
 
@@ -83,12 +77,29 @@ def test_pause_fails_for_unpausable_token(env, unpausable_token):
 @mark.integration
 def test_pause_requires_pause_key_signature(env, pausable_token):
     """
-    A pausable token with a pauses key must be signed with it—
-    an unsigned pause transaction fails precheck with TOKEN_HAS_NO_PAUSE_KEY.
+    A pausable token has a pause key.  If you submit a pause tx without
+    that pause-key signature, you get TOKEN_HAS_NO_PAUSE_KEY.
     """
+    # Build & freeze, but never sign with the pause key:
+    tx = TokenPauseTransaction().set_token_id(pausable_token)
+    tx = tx.freeze_with(env.client)
+
+    with pytest.raises(PrecheckError, match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),):
+        tx.execute(env.client)
+
+@mark.integration
+def test_pause_requires_pause_key_signature(env, pausable_token):
+    """
+    A pausable token has a pause key. If submitting a pause tx without
+    that pause-key signature, the network rejects with TOKEN_HAS_NO_PAUSE_KEY
+    """
+    # Build & freeze, but never sign with the pause key:
+    tx = TokenPauseTransaction().set_token_id(pausable_token)
+    tx = tx.freeze_with(env.client)
+
+    # execute() will auto-sign with operator, but operator≠pause key → still fails:
     with pytest.raises(PrecheckError,match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),):
-        # skip signing entirely
-        env.pause_token(pausable_token, key=None)
+        tx.execute(env.client)
 
 @mark.integration
 def test_pause_with_invalid_key_fails_precheck(env, pausable_token):
