@@ -90,20 +90,6 @@ class IntegrationTestEnv:
                 f"Transfer failed: {ResponseCode.get_name(transfer_receipt.status)}"
             )
 
-    def pause_token(self, token_id, key=None):
-        """
-        Pause a token:
-        • If `key` is None: use the operator’s pause key (the normal happy-path).  
-        • If `key` is provided: sign with *that* key.
-        """
-        tx = TokenPauseTransaction().set_token_id(token_id)
-        tx = tx.freeze_with(self.client)
-
-        signer = self.operator_key if key is None else key
-        tx = tx.sign(signer)
-
-        return tx.execute(self.client)
-
 def create_fungible_token(env, opts=[]):
     """
     Create a fungible token with the given options.
