@@ -23,8 +23,6 @@ from hiero_sdk_python.hbar                    import Hbar
 
 load_dotenv(override=True)
 
-_NO_KEY = object()   # unique sentinel meaning “no key argument was provided”
-
 @dataclass
 class Account:
     id:    AccountId
@@ -92,31 +90,19 @@ class IntegrationTestEnv:
                 f"Transfer failed: {ResponseCode.get_name(transfer_receipt.status)}"
             )
 
-    def pause_token(self, token_id, key=_NO_KEY):
-            """
-            Pause a token with explicit control over which key (if any) is used to sign.
-            Allows for multiple testing scenarios:
-            1. Default (key=_NO_KEY):  
-                Use the operator’s pause key to sign and submit.
+    def pause_token(self, token_id, key=None):
+        """
+        Pause a token:
+        • If `key` is None: use the operator’s pause key (the normal happy-path).  
+        • If `key` is provided: sign with *that* key.
+        """
+        tx = TokenPauseTransaction().set_token_id(token_id)
+        tx = tx.freeze_with(self.client)
 
-            2. Explicit no-key (key=None)
+        signer = self.operator_key if key is None else key
+        tx = tx.sign(signer)
 
-            3. Custom key (key=some PrivateKey):  
-                • E.g. a randomly generated key different to the pause key
-                • The operator’s key again on an already-paused token
-            """
-            tx = TokenPauseTransaction().set_token_id(token_id)
-            tx = tx.freeze_with(self.client)
-
-            if key is _NO_KEY:
-                # happy-path: operator’s pause key
-                tx = tx.sign(self.operator_key)
-            elif key is not None:
-                # custom key provided
-                tx = tx.sign(key)
-            # else key is None → leave unsigned
-
-            return tx.execute(self.client)
+        return tx.execute(self.client)
 
 def create_fungible_token(env, opts=[]):
     """
