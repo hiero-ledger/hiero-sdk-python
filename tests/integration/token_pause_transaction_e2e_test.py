@@ -49,7 +49,7 @@ def unpausable_token(env):
         (TokenId(0, 0, 99999999), PrecheckError, ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)),
     ],
 )
-def test_pause_error_cases(env, token_id, exception, msg):
+def test_pause_error_invalid_token_id(env, token_id, exception, msg):
     """
     Invalid-pause scenarios:
       1) missing token_id
@@ -70,8 +70,7 @@ def test_pause_error_cases(env, token_id, exception, msg):
 @mark.integration
 def test_pause_error_without_pause_key(env, unpausable_token):
     """
-    If a token exists but was created with no pause key,
-    attempting to freeze it should fail with TOKEN_HAS_NO_PAUSE_KEY.
+    Invalid-pause scenario: missing pause key for a valid token.
     """
     tx = TokenPauseTransaction().set_token_id(unpausable_token)
 
@@ -81,6 +80,24 @@ def test_pause_error_without_pause_key(env, unpausable_token):
     ):
         # .execute() will auto‐freeze and auto‐sign with the operator key
         tx.execute(env.client)
+
+@mark.integration
+@mark.parametrize("second_key, expected_code", [
+    (None,                          ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
+    (lambda: PrivateKey.generate(), ResponseCode.INVALID_PAUSE_KEY),
+    (lambda env: env.operator_key,  ResponseCode.TOKEN_IS_PAUSED),
+])
+def test_double_pause_errors(env, pausable_token, second_key, expected_code):
+    # 1st pause must succeed (signed with real pause key) via fixture
+    pause_key = env.operator_key
+    env.pause_token(pausable_token, key=pause_key)
+
+    # prepare the second‐pause key, which could be: None, a different key or the previously set pause key:
+    key = second_key(env) if callable(second_key) else second_key
+
+    # 2nd pause attempt in all these scenarios should fail in exactly the expected way
+    with pytest.raises(ReceiptStatusError,match=ResponseCode.get_name(expected_code)):
+        env.pause_token(pausable_token, key=key)
 
 @mark.integration
 class TestTokenPause:
@@ -124,13 +141,3 @@ class TestTokenPause:
         
         with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(ResponseCode.TOKEN_IS_PAUSED)):
             env.associate_and_transfer(account.id, account.key, pausable_token, 1)
-
-@mark.integration
-@mark.parametrize("bad_key, code", [
-    (None,                  ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
-    (PrivateKey.generate(), ResponseCode.INVALID_PAUSE_KEY),
-])
-def test_double_pause_errors(env, pausable_token, bad_key, code):
-    env.pause_token(pausable_token)
-    with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(code)):
-        env.pause_token(pausable_token, key=bad_key)
