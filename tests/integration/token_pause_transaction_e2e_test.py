@@ -64,7 +64,8 @@ def test_pause_error_cases(env, token_id, exception, msg):
             tx.freeze_with(env.client)
     else:
         with pytest.raises(PrecheckError, match=msg):
-            tx.freeze_with(env.client)
+            # .execute() will auto‐freeze and auto‐sign with the operator key
+            tx.execute(env.client)
 
 @mark.integration
 def test_pause_error_without_pause_key(env, unpausable_token):
@@ -78,7 +79,8 @@ def test_pause_error_without_pause_key(env, unpausable_token):
         PrecheckError,
         match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
     ):
-        tx.freeze_with(env.client)
+        # .execute() will auto‐freeze and auto‐sign with the operator key
+        tx.execute(env.client)
 
 @mark.integration
 class TestTokenPause:
