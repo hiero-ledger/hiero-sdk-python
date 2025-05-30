@@ -15,15 +15,14 @@ from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
+from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.hbar                    import Hbar
-from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 
 load_dotenv(override=True)
 
-_NO_KEY = object()   # unique sentinel meaning “no key argument was provided”
 
 @dataclass
 class Account:
@@ -31,6 +30,8 @@ class Account:
     key:   PrivateKey
 
 class IntegrationTestEnv:
+    _NO_KEY = object()   # unique sentinel meaning “no key argument was provided”
+
     def __init__(self):
         network = Network(os.getenv('NETWORK'))
         self.client = Client(network)
