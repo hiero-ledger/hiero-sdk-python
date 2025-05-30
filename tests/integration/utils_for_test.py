@@ -23,6 +23,7 @@ from hiero_sdk_python.hbar                    import Hbar
 
 load_dotenv(override=True)
 
+_NO_KEY = object()   # unique sentinel meaning “no key argument was provided”
 
 @dataclass
 class Account:
@@ -30,7 +31,6 @@ class Account:
     key:   PrivateKey
 
 class IntegrationTestEnv:
-    _NO_KEY = object()   # unique sentinel meaning “no key argument was provided”
 
     def __init__(self):
         network = Network(os.getenv('NETWORK'))
