@@ -24,7 +24,7 @@ def test_integration_token_info_query_can_execute():
         assert info.name == "PTokenTest34", "Name mismatch"
         assert info.symbol == "PTT34", "Symbol mismatch" 
         assert info.decimals == 3, "Decimals mismatch"
-        assert str(info.treasury) == str(env.client.operator_account_id), "Treasury mismatch"
+        assert str(info.treasury) == str(env.operator_id), "Treasury mismatch"
         assert info.tokenType == TokenType.FUNGIBLE_COMMON, "Token type mismatch"
         assert info.supplyType == SupplyType.FINITE, "Supply type mismatch"
         assert info.maxSupply == 10000, "Max supply mismatch"
@@ -35,9 +35,9 @@ def test_integration_token_info_query_can_execute():
         assert info.supplyKey is not None, "Supply key should not be None"
         assert info.kycKey is None, "KYC key should be None"
         
-        assert str(info.adminKey) == str(env.client.operator_private_key.public_key()), "Admin key mismatch"
-        assert str(info.freezeKey) == str(env.client.operator_private_key.public_key()), "Freeze key mismatch"
-        assert str(info.supplyKey) == str(env.client.operator_private_key.public_key()), "Supply key mismatch"
+        assert str(info.adminKey) == str(env.operator_key.public_key()), "Admin key mismatch"
+        assert str(info.freezeKey) == str(env.operator_key.public_key()), "Freeze key mismatch"
+        assert str(info.supplyKey) == str(env.operator_key.public_key()), "Supply key mismatch"
     finally:
         env.close()
 

@@ -24,7 +24,7 @@ def test_constructor(token_id):
     assert query.token_id == token_id
 
 # This test uses fixture mock_client as parameter
-def test_execute_without_token_id(mock_client):
+def test_execute_fails_with_missing_token_id(mock_client):
     """Test request creation with missing Token ID."""
     query = TokenInfoQuery()
     
@@ -44,8 +44,8 @@ def test_get_method():
     assert method.transaction is None
     assert method.query == mock_token_stub.getTokenInfo
 
-# This test uses fixture mock_account_ids as parameter
-def test_token_info_query_execute(mock_account_ids):
+# This test uses fixture (mock_account_ids, private_key) as parameter
+def test_token_info_query_execute(mock_account_ids, private_key):
     """Test basic functionality of TokenInfoQuery with mock server."""
     account_id, renew_account_id, _, token_id, _ = mock_account_ids
     token_info_response = token_get_info_pb2.TokenInfo(
@@ -58,7 +58,10 @@ def test_token_info_query_execute(mock_account_ids):
         defaultFreezeStatus=0,
         defaultKycStatus=0,
         autoRenewAccount=renew_account_id.to_proto(),
-        maxSupply=10000
+        maxSupply=10000,
+        adminKey=private_key.public_key().to_proto(),
+        kycKey=private_key.public_key().to_proto(),
+        wipeKey=private_key.public_key().to_proto(),
     )
 
     response = response_pb2.Response(
@@ -82,20 +85,18 @@ def test_token_info_query_execute(mock_account_ids):
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
         
-        assert result.tokenId.shard == 1
-        assert result.tokenId.realm == 1
-        assert result.tokenId.num == 1
+        assert result.tokenId == token_id
         assert result.name == "Test Token"
         assert result.symbol == "TEST"
         assert result.decimals == 8
         assert result.totalSupply == 100
         assert result.maxSupply == 10000
-        assert result.treasury.shard == 0
-        assert result.treasury.realm == 0
-        assert result.treasury.num == 1
-        assert result.autoRenewAccount.shard == 0
-        assert result.autoRenewAccount.realm == 0
-        assert result.autoRenewAccount.num == 2
+        assert result.treasury == account_id
+        assert result.autoRenewAccount == renew_account_id
         assert result.defaultFreezeStatus == 0
         assert result.defaultKycStatus == 0
-        assert result.isDeleted == False
+        assert result.adminKey.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        assert result.kycKey.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        assert result.wipeKey.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        assert result.supplyKey == None
+        assert result.freezeKey == None
