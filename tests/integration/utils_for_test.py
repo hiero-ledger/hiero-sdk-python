@@ -86,12 +86,12 @@ class IntegrationTestEnv:
         )
 
     def pause_token(self, token_id, key=None):
-        """Pause the given token, signing with `key` or the operator key."""
-        key = key or self.operator_key
-        return self.freeze_sign_execute(
-            TokenPauseTransaction().set_token_id(token_id),
-            key,
-        )
+            """Pause the given token, signing with `key` or the operator key."""
+            key = key or self.operator_key
+            return self.freeze_sign_execute(
+                TokenPauseTransaction().set_token_id(token_id),
+                key,
+            )
 
     def get_balance(self, account_id: AccountId):
         """
@@ -132,8 +132,8 @@ def create_fungible_token(env, opts=[]):
             admin_key=env.operator_key,
             supply_key=env.operator_key,
             freeze_key=env.operator_key,
-            wipe_key=env.operator_key,
-            pause_key=env.pause_key
+            wipe_key=env.operator_key
+            # pause_key=  None  # implicitly “no pause key” use opts to add one
         )
         
     token_transaction = TokenCreateTransaction(token_params, token_keys)
@@ -173,6 +173,8 @@ def create_nft_token(env, opts=[]):
         admin_key=env.operator_key,
         supply_key=env.operator_key,
         freeze_key=env.operator_key
+        # pause_key=  None  # implicitly “no pause key” use opts to add one
+
     )
 
     transaction = TokenCreateTransaction(token_params, token_keys)
