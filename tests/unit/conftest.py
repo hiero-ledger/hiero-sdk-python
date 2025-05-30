@@ -1,4 +1,5 @@
 import pytest
+import time
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
@@ -9,6 +10,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.hapi.services import timestamp_pb2
 
 @pytest.fixture
 def mock_account_ids():
@@ -19,6 +21,34 @@ def mock_account_ids():
     token_id_1 = TokenId(1, 1, 1)
     token_id_2 = TokenId(2, 2, 2)
     return account_id_sender, account_id_recipient, node_account_id, token_id_1, token_id_2
+
+@pytest.fixture
+def mock_client():
+    """Fixture to provide a mock client with hardcoded nodes for testing purposes."""
+    nodes = [_Node(AccountId(0, 0, 3), "node1.example.com:50211", None)]
+    network = Network(nodes=nodes)
+    client = Client(network)
+    client.logger.set_level(LogLevel.DISABLED)
+
+    operator_key = PrivateKey.generate()
+    operator_id = AccountId(0, 0, 1984)
+    client.set_operator(operator_id, operator_key)
+
+    return client
+
+@pytest.fixture
+def generate_transaction_id():
+    """
+    Return a factory which, given an AccountId proto, returns a TransactionId
+    stamped with the current time.
+    """
+    def _make(account_id_proto):
+        now = time.time()
+        secs = int(now)
+        nanos = int((now - secs) * 1e9)
+        ts = timestamp_pb2.Timestamp(seconds=secs, nanos=nanos)
+        return TransactionId(valid_start=ts, account_id=account_id_proto)
+    return _make
 
 @pytest.fixture
 def amount():
@@ -52,16 +82,3 @@ def nft_id():
     serial_number = 8
     return NftId(tokenId=token_id, serialNumber=serial_number)
 
-@pytest.fixture
-def mock_client():
-    """Fixture to provide a mock client with hardcoded nodes for testing purposes."""
-    nodes = [_Node(AccountId(0, 0, 3), "node1.example.com:50211", None)]
-    network = Network(nodes=nodes)
-    client = Client(network)
-    client.logger.set_level(LogLevel.DISABLED)
-
-    operator_key = PrivateKey.generate()
-    operator_id = AccountId(0, 0, 1984)
-    client.set_operator(operator_id, operator_key)
-
-    return client
