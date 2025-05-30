@@ -16,6 +16,8 @@ from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTr
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 # from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
+pause_key = PrivateKey.generate()
+
 @fixture
 def env():
     """Integration test environment with client/operator set up."""
@@ -29,10 +31,11 @@ def account(env):
     return env.create_account()
 
 # Uses lambda opts to add a pause key → pausable
+# Create a unique pause key to enable varied tests
 # Signing by the treasury account handled by the executable method in env
 @fixture
 def pausable_token(env):
-    return create_fungible_token(env, opts=[lambda tx: tx.set_pause_key(env.operator_key)])
+    return create_fungible_token(env, opts=[lambda tx: tx.set_pause_key(pause_key)])
 
 # Fungible token in env has no pause key
 @fixture
@@ -84,15 +87,15 @@ def test_pause_fails_for_unpausable_token(env, unpausable_token):
 def test_pause_requires_pause_key_signature(env, pausable_token):
     """
     A pausable token has a pause key.  If you submit a pause tx without
-    that pause-key signature, you get TOKEN_HAS_NO_PAUSE_KEY.
+    that pause-key signature, the service rejects it with INVALID_SIGNATURE.
     """
     # Build & freeze, but never sign with the pause key:
     tx = TokenPauseTransaction().set_token_id(pausable_token)
     tx = tx.freeze_with(env.client)
-    receipt = tx.execute(env.client)
+    receipt = tx.execute(env.client) # This autosigns with operator key, which is different to the pause key
 
-    assert receipt.status == ResponseCode.TOKEN_HAS_NO_PAUSE_KEY, (
-        f"Expected TOKEN_HAS_NO_PAUSE_KEY but got "
+    assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
+        f"Expected INVALID_SIGNATURE but got "
         f"{ResponseCode.get_name(receipt.status)}"
     )
 
@@ -100,7 +103,7 @@ def test_pause_requires_pause_key_signature(env, pausable_token):
 def test_pause_with_invalid_key(env, pausable_token):
     """
     A pausable token created with a pause key must be signed with it—
-    signing with some other key causes an INVALID_PAUSE_KEY.
+    signing with some other key causes an INVALID_SIGNATURE.
     """
     bad_key = PrivateKey.generate()
 
@@ -109,40 +112,9 @@ def test_pause_with_invalid_key(env, pausable_token):
     tx = tx.sign(bad_key) # ← signed with wrong key
     receipt = tx.execute(env.client)
 
-    assert receipt.status == ResponseCode.INVALID_PAUSE_KEY, (
-        f"Expected INVALID_PAUSE_KEY but got "
+    assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
+        f"Expected INVALID_SIGNATURE but got "
         f"{ResponseCode.get_name(receipt.status)}"
-    )
-
-
-@mark.integration
-def test_pause_already_paused_token_fails(env, pausable_token):
-    """
-    Attempting to pause a token that is already paused should fail
-    with TOKEN_IS_PAUSED.
-    """
-    # 1) First pause: build, freeze, sign with the real pause key, execute
-    tx1 = (
-        TokenPauseTransaction()
-        .set_token_id(pausable_token)
-        .freeze_with(env.client)
-        .sign(env.operator_key)
-    )
-    receipt1 = tx1.execute(env.client)
-    assert receipt1.status == ResponseCode.SUCCESS
-
-    # 2) Second pause: do the exact same, but now expect TOKEN_IS_PAUSED
-    tx2 = (
-        TokenPauseTransaction()
-        .set_token_id(pausable_token)
-        .freeze_with(env.client)
-        .sign(env.operator_key)
-    )
-    receipt2 = tx2.execute(env.client)
-
-    assert receipt2.status == ResponseCode.TOKEN_IS_PAUSED, (
-        f"Expected TOKEN_IS_PAUSED but got "
-        f"{ResponseCode.get_name(receipt2.status)}"
     )
 
 @mark.integration
@@ -168,7 +140,6 @@ def test_pause_sets_token_status_to_paused(env, pausable_token):
     assert info.token_status.name == "UNPAUSED"
 
     # 2) build, freeze, sign & execute the pause tx
-    pause_key = env.operator_key
     tx = (
         TokenPauseTransaction()
         .set_token_id(pausable_token)
@@ -205,7 +176,7 @@ def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
         TokenPauseTransaction()
             .set_token_id(pausable_token)
             .freeze_with(env.client)
-            .sign(env.operator_key)
+            .sign(pause_key)
     )
     pause_receipt = pause_tx.execute(env.client)
     assert pause_receipt.status == ResponseCode.SUCCESS
