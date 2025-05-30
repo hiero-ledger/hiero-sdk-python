@@ -61,7 +61,8 @@ def query_token_info():
     """
     Demonstrates the token info query functionality by:
     1. Creating a fungible token
-    2. Querying the token info
+    2. Querying the token's information using TokenInfoQuery
+    3. Printing the token details of the TokenInfo object
     """
     client, operator_id, operator_key = setup_client()
     token_id = create_fungible_token(client, operator_id, operator_key)
