@@ -58,21 +58,27 @@ def test_pause_nonexistent_token_id_raises_precheck_error(env):
     fake = TokenId(0, 0, 99999999)
     tx = TokenPauseTransaction().set_token_id(fake)
 
-    with pytest.raises(PrecheckError, match=ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)):
-        # .execute() will auto‐freeze and auto‐sign with the operator key
-        tx.execute(env.client)   # ← this is what runs the precheck
+    receipt = tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.INVALID_TOKEN_ID, (
+        f"Expected INVALID_TOKEN_ID but got "
+        f"{ResponseCode.get_name(receipt.status)}"
+    )
 
 @mark.integration
 def test_pause_fails_for_unpausable_token(env, unpausable_token):
     """
-    Verify that attempting to pause a token that was created without any pause key
-    fails with a TOKEN_HAS_NO_PAUSE_KEY precheck error.
+    If you pause a token without a pause key, execute() should
+    return a receipt with status TOKEN_HAS_NO_PAUSE_KEY.
     """
     tx = TokenPauseTransaction().set_token_id(unpausable_token)
 
-    with pytest.raises(PrecheckError, match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),):
-        # .execute() will auto‐freeze and auto‐sign with the operator key
-        tx.execute(env.client)   # ← this is what runs the precheck
+    receipt = tx.execute(env.client)  # ← auto-freeze & sign with operator key
+
+    assert receipt.status == ResponseCode.TOKEN_HAS_NO_PAUSE_KEY, (
+        f"Expected TOKEN_HAS_NO_PAUSE_KEY but got "
+        f"{ResponseCode.get_name(receipt.status)}"
+    )
 
 @mark.integration
 def test_pause_requires_pause_key_signature(env, pausable_token):
@@ -83,29 +89,37 @@ def test_pause_requires_pause_key_signature(env, pausable_token):
     # Build & freeze, but never sign with the pause key:
     tx = TokenPauseTransaction().set_token_id(pausable_token)
     tx = tx.freeze_with(env.client)
+    receipt = tx.execute(env.client)
 
-    with pytest.raises(PrecheckError, match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),):
-        tx.execute(env.client)   # ← this is what runs the precheck
+    assert receipt.status == ResponseCode.TOKEN_HAS_NO_PAUSE_KEY, (
+        f"Expected TOKEN_HAS_NO_PAUSE_KEY but got "
+        f"{ResponseCode.get_name(receipt.status)}"
+    )
 
 @mark.integration
-def test_pause_with_invalid_key_fails_precheck(env, pausable_token):
+def test_pause_with_invalid_key(env, pausable_token):
     """
     A pausable token created with a pause key must be signed with it—
-    signing with some other key causes an INVALID_PAUSE_KEY precheck failure.
+    signing with some other key causes an INVALID_PAUSE_KEY.
     """
     bad_key = PrivateKey.generate()
-    with pytest.raises(PrecheckError,match=ResponseCode.get_name(ResponseCode.INVALID_PAUSE_KEY)):
-        # freeze, sign with wrong key, then execute
-        tx = TokenPauseTransaction().set_token_id(pausable_token)
-        tx = tx.freeze_with(env.client)
-        tx = tx.sign(bad_key)    # ← signed with wrong key
-        tx.execute(env.client)   # ← this is what runs the precheck
+
+    tx = TokenPauseTransaction().set_token_id(pausable_token)
+    tx = tx.freeze_with(env.client)
+    tx = tx.sign(bad_key) # ← signed with wrong key
+    receipt = tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.INVALID_PAUSE_KEY, (
+        f"Expected INVALID_PAUSE_KEY but got "
+        f"{ResponseCode.get_name(receipt.status)}"
+    )
+
 
 @mark.integration
 def test_pause_already_paused_token_fails(env, pausable_token):
     """
     Attempting to pause a token that is already paused should fail
-    in the handle phase with TOKEN_IS_PAUSED.
+    with TOKEN_IS_PAUSED.
     """
     # 1) First pause: build, freeze, sign with the real pause key, execute
     tx1 = (
@@ -124,11 +138,12 @@ def test_pause_already_paused_token_fails(env, pausable_token):
         .freeze_with(env.client)
         .sign(env.operator_key)
     )
-    with pytest.raises(
-        ReceiptStatusError,
-        match=ResponseCode.get_name(ResponseCode.TOKEN_IS_PAUSED)
-    ):
-        tx2.execute(env.client)
+    receipt2 = tx2.execute(env.client)
+
+    assert receipt2.status == ResponseCode.TOKEN_IS_PAUSED, (
+        f"Expected TOKEN_IS_PAUSED but got "
+        f"{ResponseCode.get_name(receipt2.status)}"
+    )
 
 @mark.integration
 def test_transfer_before_pause(env, account: Account, pausable_token):
@@ -201,5 +216,8 @@ def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
             .add_token_transfer(pausable_token, env.operator_id, -1)
             .add_token_transfer(pausable_token, account.id,       1)
     )
-    with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(ResponseCode.TOKEN_IS_PAUSED)):
-        tx.execute(env.client)
+    transfer_receipt = tx.execute(env.client)
+    assert transfer_receipt.status == ResponseCode.TOKEN_IS_PAUSED, (
+        f"Expected TOKEN_IS_PAUSED but got "
+        f"{ResponseCode.get_name(transfer_receipt.status)}"
+    )
