@@ -119,7 +119,9 @@ class TestTokenPause:
         Now that the token is PAUSED, it cannot perform operations.
         For example, an attempt to transfer tokens fails with TOKEN_IS_PAUSED.
         """
-        env.pause_token(pausable_token)
+        pause_key = env.operator_key
+        env.pause_token(pausable_token, key=pause_key)
+        
         with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(ResponseCode.TOKEN_IS_PAUSED)):
             env.associate_and_transfer(account.id, account.key, pausable_token, 1)
 
