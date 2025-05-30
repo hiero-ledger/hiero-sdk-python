@@ -106,7 +106,8 @@ class TestTokenPause:
         assert info.token_status.name == "UNPAUSED"
 
         # pause via fixture
-        env.pause_token(pausable_token)
+        pause_key = env.operator_key
+        env.pause_token(pausable_token, key=pause_key)
 
         # verify
         info2 = env.get_token_info(pausable_token)
