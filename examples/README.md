@@ -27,6 +27,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Unfreezing a Token](#unfreezing-a-token)
   - [Rejecting a Token](#rejecting-a-token)
   - [Rejecting a Non-Fungible Token](#rejecting-a-non-fungible-token)
+  - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
   - [Querying NFT Info](#querying-nft-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -447,6 +448,35 @@ transaction.execute(client)
     )
 
     transaction.execute(client)
+```
+
+### Token Update NFTs
+
+#### Pythonic Syntax:
+```
+transaction = TokenUpdateNftsTransaction(
+    token_id=nft_token_id,
+    serial_numbers=serial_numbers,
+    metadata=new_metadata
+).freeze_with(client)
+
+transaction.sign(metadata_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenUpdateNftsTransaction()
+        .set_token_id(nft_token_id)
+        .set_serial_numbers(serial_numbers) 
+        .set_metadata(new_metadata)
+        .freeze_with(client)
+        .sign(metadata_key)
+    )
+
+    transaction.execute(client)
+
 ```
 
 ### Pausing a Token
