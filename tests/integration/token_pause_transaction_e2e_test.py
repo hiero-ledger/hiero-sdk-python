@@ -88,20 +88,6 @@ def test_pause_requires_pause_key_signature(env, pausable_token):
         tx.execute(env.client)
 
 @mark.integration
-def test_pause_requires_pause_key_signature(env, pausable_token):
-    """
-    A pausable token has a pause key. If submitting a pause tx without
-    that pause-key signature, the network rejects with TOKEN_HAS_NO_PAUSE_KEY
-    """
-    # Build & freeze, but never sign with the pause key:
-    tx = TokenPauseTransaction().set_token_id(pausable_token)
-    tx = tx.freeze_with(env.client)
-
-    # execute() will auto-sign with operator, but operator≠pause key → still fails:
-    with pytest.raises(PrecheckError,match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),):
-        tx.execute(env.client)
-
-@mark.integration
 def test_pause_with_invalid_key_fails_precheck(env, pausable_token):
     """
     A pausable token created with a pause key must be signed with it—
