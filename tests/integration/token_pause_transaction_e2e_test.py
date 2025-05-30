@@ -81,7 +81,7 @@ def test_pause_error_without_pause_key(env, unpausable_token):
 @mark.integration
 @mark.parametrize("second_key, expected_code", [
     (None,                          ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
-    (lambda: PrivateKey.generate(), ResponseCode.INVALID_PAUSE_KEY),
+    (lambda env: PrivateKey.generate(), ResponseCode.INVALID_PAUSE_KEY),
     (lambda env: env.operator_key,  ResponseCode.TOKEN_IS_PAUSED),
 ])
 def test_double_pause_errors(env, pausable_token, second_key, expected_code):
