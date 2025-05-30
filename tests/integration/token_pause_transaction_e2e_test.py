@@ -27,35 +27,19 @@ def account(env):
     """A fresh account funded with 1 HBAR balance."""
     return env.create_account()
 
+# Uses lambda opts to add a pause key → pausable
+# Signing by the treasury account handled by the executable method in env
 @fixture
 def pausable_token(env):
-    """Create a token that has a pause key."""
     pause_key = env.operator_key
-
-    return create_fungible_token(env, [
-        lambda tx: tx
-            .set_pause_key(pause_key)
-            .freeze_with(env.client)
-            .sign(pause_key),
+    return create_fungible_token(env, opts=[
+        lambda tx: tx.set_pause_key(pause_key)
     ])
 
+# Fungible token in env has no pause key
 @fixture
 def unpausable_token(env):
-    """Create a token with no pause key."""
-    tx = (
-        TokenCreateTransaction()
-        .set_token_name("NoPause")
-        .set_token_symbol("NOP")
-        .set_decimals(0)
-        .set_initial_supply(1)
-        .set_treasury_account_id(env.operator_id)
-        .set_token_type(TokenType.FUNGIBLE_COMMON)
-        .set_supply_type(SupplyType.FINITE)
-        .set_max_supply(1)
-    )
-
-    receipt = env.freeze_sign_execute(tx, env.operator_key)
-    return receipt.tokenId
+    return create_fungible_token(env)
 
 @mark.integration
 @mark.parametrize(
@@ -133,7 +117,7 @@ class TestTokenPause:
         For example, an attempt to transfer tokens fails with TOKEN_IS_PAUSED.
         """
         env.pause_token(pausable_token)
-        with pytest.raises(ReceiptStatusError, match=ResponseCode.TOKEN_IS_PAUSED):
+        with pytest.raises(ReceiptStatusError, match=ResponseCode.get_name(ResponseCode.TOKEN_IS_PAUSED)):
             env.associate_and_transfer(account.id, account.key, pausable_token, 1)
 
 @mark.integration
