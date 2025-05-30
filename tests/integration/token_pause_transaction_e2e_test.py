@@ -14,6 +14,7 @@ from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+# from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 @fixture
 def env():
@@ -42,62 +43,78 @@ def unpausable_token(env):
     return create_fungible_token(env)
 
 @mark.integration
-@mark.parametrize(
-    "token_id, exception, msg",
-    [
-        (None,                    ValueError,    "token_id must be set"),
-        (TokenId(0, 0, 99999999), PrecheckError, ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)),
-    ],
-)
-def test_pause_error_invalid_token_id(env, token_id, exception, msg):
+def test_pause_missing_token_id_raises_value_error(env):
     """
-    Invalid-pause scenarios:
-      1) missing token_id
-      2) non-existent token_id
+    If you never set token_id, freeze_with should raise a ValueError.
     """
     tx = TokenPauseTransaction()
-    if token_id is not None:
-        tx.set_token_id(token_id)
 
-    if exception is ValueError:
-        with pytest.raises(ValueError, match=msg):
-            tx.freeze_with(env.client)
-    else:
-        with pytest.raises(PrecheckError, match=msg):
-            # .execute() will auto‐freeze and auto‐sign with the operator key
-            tx.execute(env.client)
+    with pytest.raises(ValueError, match="token_id must be set"):
+        tx.freeze_with(env.client)
 
 @mark.integration
-def test_pause_error_without_pause_key(env, unpausable_token):
+def test_pause_nonexistent_token_id_raises_precheck_error(env):
     """
-    Invalid-pause scenario: missing pause key for a valid token.
+    If you set a token_id that doesn’t exist, execute should
+    raise a PrecheckError(INVALID_TOKEN_ID).
     """
-    tx = TokenPauseTransaction().set_token_id(unpausable_token)
+    fake = TokenId(0, 0, 99999999)
+    tx = TokenPauseTransaction().set_token_id(fake)
 
     with pytest.raises(
         PrecheckError,
-        match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
+        match=ResponseCode.get_name(ResponseCode.INVALID_TOKEN_ID)
     ):
         # .execute() will auto‐freeze and auto‐sign with the operator key
         tx.execute(env.client)
 
 @mark.integration
-@mark.parametrize("second_key, expected_code", [
-    (None,                          ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),
-    (lambda env: PrivateKey.generate(), ResponseCode.INVALID_PAUSE_KEY),
-    (lambda env: env.operator_key,  ResponseCode.TOKEN_IS_PAUSED),
-])
-def test_double_pause_errors(env, pausable_token, second_key, expected_code):
-    # 1st pause must succeed (signed with real pause key) via fixture
-    pause_key = env.operator_key
-    env.pause_token(pausable_token, key=pause_key)
+def test_pause_fails_for_unpausable_token(env, unpausable_token):
+    """
+    Verify that attempting to pause a token that was created without any pause key
+    fails with a TOKEN_HAS_NO_PAUSE_KEY precheck error.
+    """
+    tx = TokenPauseTransaction().set_token_id(unpausable_token)
 
-    # prepare the second‐pause key, which could be: None, a different key or the previously set pause key:
-    key = second_key(env) if callable(second_key) else second_key
+    with pytest.raises(PrecheckError, match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),):
+        # .execute() will auto‐freeze and auto‐sign with the operator key
+        tx.execute(env.client)
 
-    # 2nd pause attempt in all these scenarios should fail in exactly the expected way
-    with pytest.raises(ReceiptStatusError,match=ResponseCode.get_name(expected_code)):
-        env.pause_token(pausable_token, key=key)
+@mark.integration
+def test_pause_requires_pause_key_signature(env, pausable_token):
+    """
+    A pausable token with a pauses key must be signed with it—
+    an unsigned pause transaction fails precheck with TOKEN_HAS_NO_PAUSE_KEY.
+    """
+    with pytest.raises(PrecheckError,match=ResponseCode.get_name(ResponseCode.TOKEN_HAS_NO_PAUSE_KEY),):
+        # skip signing entirely
+        env.pause_token(pausable_token, key=None)
+
+@mark.integration
+def test_pause_with_invalid_key_fails_precheck(env, pausable_token):
+    """
+    A pausable token created with a pause key must be signed with it—
+    signing with some other key causes an INVALID_PAUSE_KEY precheck failure.
+    """
+    bad_key = PrivateKey.generate()
+    with pytest.raises(PrecheckError,match=ResponseCode.get_name(ResponseCode.INVALID_PAUSE_KEY)):
+        # freeze, sign with wrong key, then execute
+        tx = TokenPauseTransaction().set_token_id(pausable_token)
+        tx = tx.freeze_with(env.client)
+        tx = tx.sign(bad_key)
+        tx.execute(env.client)
+
+@mark.integration
+def test_pause_already_paused_token_fails(env, pausable_token):
+    """
+    Attempting to pause a token that is already paused should fail 
+    in the handle phase with TOKEN_IS_PAUSED.
+    """
+    env.pause_token(pausable_token)
+
+    # 2) Second pause (signed with the same pause key by default)
+    with pytest.raises(ReceiptStatusError,match=ResponseCode.get_name(ResponseCode.TOKEN_IS_PAUSED)):
+        env.pause_token(pausable_token)
 
 @mark.integration
 class TestTokenPause:
@@ -110,7 +127,7 @@ class TestTokenPause:
         """
         env.associate_and_transfer(account.id, account.key, pausable_token, 10)
 
-        balance = (CryptoGetAccountBalanceQuery(account.id).execute(env.client).token_balances[pausable_token])
+        balance = CryptoGetAccountBalanceQuery(account.id).execute(env.client).token_balances[pausable_token]
         assert balance == 10
 
     def test_pause_sets_token_status_to_paused(self, env, pausable_token):
@@ -119,14 +136,14 @@ class TestTokenPause:
         A token pause transaction to an unpaused token now makes it PAUSED.
         """
         # pre-pause sanity check
-        info = (TokenInfoQuery().set_token_id(pausable_token).execute(env.client))
+        info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
         assert info.token_status.name == "UNPAUSED"
 
         # pause via fixture
         env.pause_token(pausable_token, key=env.operator_key)
 
         # verify
-        info2 = (TokenInfoQuery().set_token_id(pausable_token).execute(env.client))
+        info2 = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
         assert info2.token_status.name == "PAUSED"
 
     def test_transfers_blocked_when_paused(self, env, account: Account, pausable_token):
