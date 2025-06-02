@@ -129,7 +129,7 @@ def test_transfer_before_pause(env, account: Account, pausable_token):
     assert balance == 10
 
 @mark.integration
-def test_pause_sets_token_status_to_paused(env, pausable_token):
+def test_pause_sets_pause_status_to_paused(env, pausable_token):
     """
     Take a pausable token (UNPAUSED), submit a pause transaction signed
     with its pause key, then verify it ends up PAUSED.
