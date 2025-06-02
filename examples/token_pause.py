@@ -14,7 +14,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
-from hiero_sdk_python.tokens.token_info_query import TokenInfoQuery
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 load_dotenv()
 

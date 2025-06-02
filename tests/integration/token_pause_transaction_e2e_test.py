@@ -14,7 +14,7 @@ from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-# from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 pause_key = PrivateKey.generate()
 
