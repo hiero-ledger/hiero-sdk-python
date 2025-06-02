@@ -6,6 +6,8 @@ from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 
+pytestmark = pytest.mark.unit
+
 @pytest.fixture
 def ed25519_keypair():
     """Returns (private_key, public_key) for Ed25519."""
@@ -435,6 +437,31 @@ def test_from_string_catch_all_ed25519(ed25519_keypair):
     with pytest.warns(UserWarning, match="from_string.*cannot distinguish"):
         pubk = PublicKey.from_string(hex_str)
     assert pubk.is_ed25519()
+
+# ------------------------------------------------------------------------------
+# Test: from_proto
+# ------------------------------------------------------------------------------
+def test_from_proto_ed25519(ed25519_keypair):
+    _, pub = ed25519_keypair
+    pubk = PublicKey(pub)
+    proto = pubk.to_proto()
+    assert pubk.from_proto(proto).to_bytes_raw() == pubk.to_bytes_raw()
+
+def test_from_proto_ecdsa(ecdsa_keypair):
+    _, pub = ecdsa_keypair
+    pubk = PublicKey(pub)
+    proto = pubk.to_proto()
+    assert pubk.from_proto(proto).to_bytes_raw() == pubk.to_bytes_raw()
+
+def test_from_proto_unsupported_type():
+    # Create a Key proto with an unsupported type
+    proto = Key()
+    # Set some arbitrary bytes to a RSA_3072 as currently we do not support it
+    proto.RSA_3072 = b"currently unsupported"
+    
+    # Verify that attempting to parse an unsupported key type raises ValueError
+    with pytest.raises(ValueError, match="Unsupported public key type in protobuf"):
+        PublicKey.from_proto(proto)
 
 # ------------------------------------------------------------------------------
 # Test: to_proto
