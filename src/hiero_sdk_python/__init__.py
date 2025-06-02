@@ -58,6 +58,7 @@ from .query.topic_message_query import TopicMessageQuery
 from .query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
+from .query.token_info_query import TokenInfoQuery
 
 # Address book
 from .address_book.endpoint import Endpoint
@@ -120,6 +121,7 @@ __all__ = [
     "TransactionGetReceiptQuery",
     "CryptoGetAccountBalanceQuery",
     "TokenNftInfoQuery",
+    "TokenInfoQuery",
     
     # Address book
     "Endpoint",

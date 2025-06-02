@@ -30,6 +30,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
   - [Querying NFT Info](#querying-nft-info)
+  - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
   - [Transferring HBAR](#transferring-hbar)
 - [Topic Transactions](#topic-transactions)
@@ -522,6 +523,25 @@ nft_info_query = (
 
 nft_info = nft_info_query.execute(client)
 print(nft_info)
+```
+
+### Querying Fungible Token Info
+
+#### Pythonic Syntax:
+```
+info_query = TokenInfoQuery(token_id=token_id)
+info = info_query.execute(client)
+print(info)
+```
+#### Method Chaining:
+```
+info_query = (
+        TokenInfoQuery()
+        .set_token_id(token_id)
+    )
+
+info = info_query.execute(client)
+print(info)
 ```
 
 ## HBAR Transactions

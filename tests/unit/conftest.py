@@ -82,3 +82,8 @@ def nft_id():
     serial_number = 8
     return NftId(tokenId=token_id, serialNumber=serial_number)
 
+@pytest.fixture
+def token_id():
+    """Fixture to provide a mock TokenId instance."""
+    return TokenId(shard=0, realm=0, num=3)
+
