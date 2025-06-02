@@ -14,7 +14,7 @@ from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery, TokenInfo
 
 pause_key = PrivateKey.generate()
 
@@ -137,7 +137,7 @@ def test_pause_sets_token_status_to_paused(env, pausable_token):
     # 1) pre-pause sanity check
     info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
 
-    assert info.token_status.name == "UNPAUSED"
+    assert info.pause_status == TokenInfo.PauseStatus.UNPAUSED
 
     # 2) build, freeze, sign & execute the pause tx
     tx = (
@@ -152,7 +152,7 @@ def test_pause_sets_token_status_to_paused(env, pausable_token):
     # 3) post-pause verify
     info2 = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
 
-    assert info2.token_status.name == "PAUSED"
+    assert info2.pause_status == TokenInfo.PauseStatus.PAUSED
 
 @mark.integration
 def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
