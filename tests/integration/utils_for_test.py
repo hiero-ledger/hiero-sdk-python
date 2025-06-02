@@ -66,25 +66,25 @@ class IntegrationTestEnv:
         Associate the token with `receiver`, then transfer `amount` of the token
         from the operator to that receiver.
         """
-        assoc_tx = (
+        assoc_receipt = (
             TokenAssociateTransaction()
                 .set_account_id(receiver)
                 .add_token_id(token_id)
+                .freeze_with(self.client)
+                .sign(receiver_key)
+                .execute(self.client)
         )
-        assoc_tx = assoc_tx.freeze_with(self.client)
-        assoc_tx = assoc_tx.sign(receiver_key)
-        assoc_receipt = assoc_tx.execute(self.client)
         if assoc_receipt.status != ResponseCode.SUCCESS:
             raise AssertionError(
                 f"Association failed: {ResponseCode.get_name(assoc_receipt.status)}"
             )
 
-        transfer_tx = (
+        transfer_receipt = (
             TransferTransaction()
                 .add_token_transfer(token_id, self.operator_id, -amount)
                 .add_token_transfer(token_id, receiver, amount)
+                .execute(self.client) # auto-signs with operator’s key
         )
-        transfer_receipt = transfer_tx.execute(self.client)
         if transfer_receipt.status != ResponseCode.SUCCESS:
             raise AssertionError(
                 f"Transfer failed: {ResponseCode.get_name(transfer_receipt.status)}"

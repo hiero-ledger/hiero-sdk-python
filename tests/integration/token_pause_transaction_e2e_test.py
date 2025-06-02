@@ -2,7 +2,6 @@ import pytest
 from pytest import mark, fixture
 
 from hiero_sdk_python.crypto.private_key      import PrivateKey
-from hiero_sdk_python.exceptions              import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.response_code           import ResponseCode
 
 from hiero_sdk_python.tokens import (
@@ -14,7 +13,7 @@ from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery, TokenInfo
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 pause_key = PrivateKey.generate()
 
@@ -56,12 +55,12 @@ def test_pause_missing_token_id_raises_value_error(env):
 def test_pause_nonexistent_token_id_raises_precheck_error(env):
     """
     If you set a token_id that doesn’t exist, execute should
-    raise a PrecheckError(INVALID_TOKEN_ID).
+    return a receipt with status INVALID_TOKEN_ID.
     """
-    fake = TokenId(0, 0, 99999999)
-    tx = TokenPauseTransaction().set_token_id(fake)
+    non_exist = TokenId(0, 0, 99999999)
+    tx = TokenPauseTransaction().set_token_id(non_exist)
 
-    receipt = tx.execute(env.client)
+    receipt = tx.execute(env.client)  # ← auto-freeze & sign with operator key
 
     assert receipt.status == ResponseCode.INVALID_TOKEN_ID, (
         f"Expected INVALID_TOKEN_ID but got "
@@ -86,13 +85,14 @@ def test_pause_fails_for_unpausable_token(env, unpausable_token):
 @mark.integration
 def test_pause_requires_pause_key_signature(env, pausable_token):
     """
-    A pausable token has a pause key.  If you submit a pause tx without
-    that pause-key signature, the service rejects it with INVALID_SIGNATURE.
+    A pausable token has a pause key.  If you submit a pause tx without its pause key as a signature,
+    the service rejects it with INVALID_SIGNATURE.
     """
-    # Build & freeze, but never sign with the pause key:
-    tx = TokenPauseTransaction().set_token_id(pausable_token)
-    tx = tx.freeze_with(env.client)
-    receipt = tx.execute(env.client) # This autosigns with operator key, which is different to the pause key
+    # Create pausable token and attempt to pause it but note no sign with the pause key
+    tx = TokenPauseTransaction().set_token_id(pausable_token).freeze_with(env.client)
+
+    # Execute autosigns tx with operator key, which is different to the pause key signature
+    receipt = tx.execute(env.client) 
 
     assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
         f"Expected INVALID_SIGNATURE but got "
@@ -102,14 +102,13 @@ def test_pause_requires_pause_key_signature(env, pausable_token):
 @mark.integration
 def test_pause_with_invalid_key(env, pausable_token):
     """
-    A pausable token created with a pause key must be signed with it—
-    signing with some other key causes an INVALID_SIGNATURE.
+    Double checking that signing with the wrong pause key before the execute step
+    causes an INVALID_SIGNATURE.
     """
-    bad_key = PrivateKey.generate()
+    wrong_key = PrivateKey.generate()
 
-    tx = TokenPauseTransaction().set_token_id(pausable_token)
-    tx = tx.freeze_with(env.client)
-    tx = tx.sign(bad_key) # ← signed with wrong key
+    tx = TokenPauseTransaction().set_token_id(pausable_token).freeze_with(env.client)
+    tx = tx.sign(wrong_key) # ← signed with wrong key
     receipt = tx.execute(env.client)
 
     assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
@@ -120,9 +119,10 @@ def test_pause_with_invalid_key(env, pausable_token):
 @mark.integration
 def test_transfer_before_pause(env, account: Account, pausable_token):
     """
-    A pausable token is transferred in 10 units to a fresh account that has them associated.
+    10 units of a pausable token is sent to a newly created receiver account that has them associated.
     The receiver's balance increases by 10.
     """
+    # Uses associate and transfer util
     env.associate_and_transfer(account.id, account.key, pausable_token, 10)
 
     balance = CryptoGetAccountBalanceQuery(account.id).execute(env.client).token_balances[pausable_token]
@@ -137,7 +137,7 @@ def test_pause_sets_token_status_to_paused(env, pausable_token):
     # 1) pre-pause sanity check
     info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
 
-    assert info.pause_status == TokenInfo.PauseStatus.UNPAUSED
+    assert info.pause_status.name == "UNPAUSED"
 
     # 2) build, freeze, sign & execute the pause tx
     tx = (
@@ -152,7 +152,7 @@ def test_pause_sets_token_status_to_paused(env, pausable_token):
     # 3) post-pause verify
     info2 = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
 
-    assert info2.pause_status == TokenInfo.PauseStatus.PAUSED
+    assert info2.pause_status.name == "PAUSED"
 
 @mark.integration
 def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
@@ -162,32 +162,33 @@ def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
     For example, an attempt to transfer tokens fails with TOKEN_IS_PAUSED.
     """
     # first associate (this must succeed)
-    assoc_tx = (
+    assoc_receipt = (
         TokenAssociateTransaction()
             .set_account_id(account.id)
             .add_token_id(pausable_token)
+            .freeze_with(env.client)
+            .sign(account.key)
+            .execute(env.client)
     )
-    assoc_tx = assoc_tx.freeze_with(env.client).sign(account.key)
-    assoc_receipt = assoc_tx.execute(env.client)
     assert assoc_receipt.status == ResponseCode.SUCCESS
 
     # pause the token
-    pause_tx = (
+    pause_receipt = (
         TokenPauseTransaction()
             .set_token_id(pausable_token)
             .freeze_with(env.client)
             .sign(pause_key)
+            .execute(env.client)
     )
-    pause_receipt = pause_tx.execute(env.client)
     assert pause_receipt.status == ResponseCode.SUCCESS
 
     # attempt to transfer 1 token
-    tx = (
+    transfer_receipt = (
         TransferTransaction()
             .add_token_transfer(pausable_token, env.operator_id, -1)
             .add_token_transfer(pausable_token, account.id,       1)
+            .execute(env.client)
     )
-    transfer_receipt = tx.execute(env.client)
     assert transfer_receipt.status == ResponseCode.TOKEN_IS_PAUSED, (
         f"Expected TOKEN_IS_PAUSED but got "
         f"{ResponseCode.get_name(transfer_receipt.status)}"
