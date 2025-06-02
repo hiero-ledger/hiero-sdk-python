@@ -489,21 +489,19 @@ transaction = TokenPauseTransaction(
 ).freeze_with(client)
 
 transaction.sign(pause_key)
-receipt = transaction.execute(client)
-print(f"Pause status: {receipt.status.name}")
-
+transaction.execute(client)
 
 ```
 #### Method Chaining:
 ```
-receipt = (
-    TokenPauseTransaction()
-    .set_token_id(token_id)
-    .freeze_with(client)
-    .sign(pause_key)            # pause_key must match
-    .execute(client)
-)
-print(f"Pause status: {receipt.status.name}")
+    transaction = (
+        TokenPauseTransaction()
+        .set_token_id(token_id)
+        .freeze_with(client)
+        .sign(pause_key)
+    )
+    transaction.execute(client)
+
 ```
 
 ### Querying NFT Info
