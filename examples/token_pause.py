@@ -89,12 +89,12 @@ def pause_token(client, token_id, pause_key):
 
     print(f"Successfully paused token {token_id}")
 
-def check_token_status(client, token_id):
+def check_pause_status(client, token_id):
     """
     Query and print the current paused/unpaused status of a token.
     """
     info = TokenInfoQuery().set_token_id(token_id).execute(client)
-    print(f"Token status is now: {info.token_status.name}")
+    print(f"Token status is now: {info.pause_status.name}")
     
 def delete_token(client, token_id, admin_key):
     """Delete token"""
@@ -131,7 +131,7 @@ def token_pause():
     pause_token(client, token_id, pause_key)
 
     # Verify it is paused
-    check_token_status(client, token_id)
+    check_pause_status(client, token_id)
 
     # Try deleting token with admin key – should fail with TOKEN_IS_PAUSED
     try:
