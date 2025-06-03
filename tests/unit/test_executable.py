@@ -8,6 +8,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
+    crypto_get_account_balance_pb2,
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
@@ -15,6 +16,8 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import RealRpcError, mock_hedera_servers
 
@@ -427,4 +430,42 @@ def test_transaction_node_switching_body_bytes():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         # Verify we're now on the second node
+        assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
+        
+def test_query_retry_on_busy():
+    """Test that Query retries on BUSY response."""
+    # First response is BUSY, second is OK
+    busy_response = response_pb2.Response(
+            cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.BUSY
+                )
+            )
+        )
+    ok_response = response_pb2.Response(
+            cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK
+                ),
+                balance=100000000
+            )
+        )
+    
+    # Create a response for the receipt query
+    response_sequences = [
+        [busy_response],
+        [ok_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+        # We set the current node to the first node
+        client.network.current_node = client.network.nodes[0]
+        
+        query = CryptoGetAccountBalanceQuery()
+        query.set_account_id(AccountId(0, 0, 1234))
+        query.set_query_payment(Hbar(1))
+        
+        balance = query.execute(client)
+        
+        assert balance.hbars.to_tinybars() == 100000000
         assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
