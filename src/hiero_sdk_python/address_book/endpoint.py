@@ -86,7 +86,7 @@ class Endpoint:
         return self._domain_name
     
     @classmethod
-    def from_proto(cls, service_endpoint : 'ServiceEndpoint'):
+    def _from_proto(cls, service_endpoint : 'ServiceEndpoint'):
         """
         Create an Endpoint from a protobuf ServiceEndpoint.
         

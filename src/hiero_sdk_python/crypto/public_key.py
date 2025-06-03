@@ -269,7 +269,7 @@ class PublicKey:
     #
     
     @classmethod
-    def from_proto(cls, proto: Key) -> "PublicKey":
+    def _from_proto(cls, proto: Key) -> "PublicKey":
         """
         Load a public key from a protobuf Key message.
         """
@@ -286,7 +286,7 @@ class PublicKey:
     # ---------------------------------
     #
 
-    def to_proto(self) -> Key:
+    def _to_proto(self) -> Key:
         """
         Returns the protobuf representation of the public key (key type is known).
         For Ed25519, uses the 'ed25519' field.

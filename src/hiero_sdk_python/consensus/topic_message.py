@@ -130,7 +130,7 @@ class TopicMessage:
         )
 
     @classmethod
-    def from_proto(
+    def _from_proto(
         cls,
         response_or_responses: Union[mirror_proto.ConsensusTopicResponse, List[mirror_proto.ConsensusTopicResponse]],
         chunking_enabled: bool = False
@@ -145,7 +145,7 @@ class TopicMessage:
         """
         if not isinstance(response_or_responses, mirror_proto.ConsensusTopicResponse):
             if not response_or_responses:
-                raise ValueError("Empty response list provided to from_proto().")
+                raise ValueError("Empty response list provided to _from_proto().")
 
             if not chunking_enabled and len(response_or_responses) == 1:
                 return cls.of_single(response_or_responses[0])

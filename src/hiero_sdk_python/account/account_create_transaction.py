@@ -141,7 +141,7 @@ class AccountCreateTransaction(Transaction):
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
 
         crypto_create_body = crypto_create_pb2.CryptoCreateTransactionBody(
-            key=self.key.to_proto(),
+            key=self.key._to_proto(),
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
