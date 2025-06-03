@@ -14,7 +14,7 @@ from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto
 from hiero_sdk_python.tokens.token_type import TokenType
 
 class TokenInfo:
-    def __init__(self, tokenId: TokenId, name: str, symbol: str, decimals: int, totalSupply: int, treasury: AccountId, isDeleted: bool, memo: str, tokenType: TokenType, maxSupply: int, ledger_id: bytes):
+    def __init__(self, tokenId: TokenId, name: str, symbol: str, decimals: int, totalSupply: int, treasury: AccountId, isDeleted: bool, memo: str, tokenType: TokenType, maxSupply: int, ledger_id: bytes, metadata: bytes):
         self.tokenId = tokenId
         self.name = name
         self.symbol = symbol
@@ -26,12 +26,14 @@ class TokenInfo:
         self.tokenType = tokenType
         self.maxSupply = maxSupply
         self.ledger_id = ledger_id
+        self.metadata = metadata
 
         self.adminKey = None
         self.kycKey = None
         self.freezeKey = None
         self.wipeKey = None
         self.supplyKey = None
+        self.metadata_key = None
         self.fee_schedule_key = None
         self.defaultFreezeStatus = TokenFreezeStatus.FREEZE_NOT_APPLICABLE
         self.defaultKycStatus = TokenKycStatus.KYC_NOT_APPLICABLE
@@ -56,6 +58,9 @@ class TokenInfo:
 
     def set_supplyKey(self, supplyKey: PublicKey):
         self.supplyKey = supplyKey
+
+    def set_metadata_key(self, metadata_key: PublicKey):
+        self.metadata_key = metadata_key
 
     def set_fee_schedule_key(self, fee_schedule_key: PublicKey):
         self.fee_schedule_key = fee_schedule_key
@@ -84,6 +89,9 @@ class TokenInfo:
     def set_supply_type(self, supplyType: SupplyType | int):
         self.supplyType = supplyType
 
+    def set_metadata(self, metadata: bytes):
+        self.metadata = metadata
+
     @classmethod
     def _from_proto(cls, proto_obj: proto_TokenInfo) -> "TokenInfo":
         tokenInfoObject = TokenInfo(
@@ -97,7 +105,8 @@ class TokenInfo:
             memo=proto_obj.memo,
             tokenType=TokenType(proto_obj.tokenType),
             maxSupply=proto_obj.maxSupply,
-            ledger_id=proto_obj.ledger_id
+            ledger_id=proto_obj.ledger_id,
+            metadata=proto_obj.metadata
         )
         if proto_obj.adminKey.WhichOneof("key"):
             tokenInfoObject.set_admin_key(PublicKey._from_proto(proto_obj.adminKey))
@@ -109,6 +118,8 @@ class TokenInfo:
             tokenInfoObject.set_wipeKey(PublicKey._from_proto(proto_obj.wipeKey))
         if proto_obj.supplyKey.WhichOneof("key"):
             tokenInfoObject.set_supplyKey(PublicKey._from_proto(proto_obj.supplyKey))
+        if proto_obj.metadata_key.WhichOneof("key"):
+            tokenInfoObject.set_metadata_key(PublicKey._from_proto(proto_obj.metadata_key))
         if proto_obj.fee_schedule_key.WhichOneof("key"):
             tokenInfoObject.set_fee_schedule_key(PublicKey._from_proto(proto_obj.fee_schedule_key))
         if proto_obj.defaultFreezeStatus:
@@ -145,7 +156,8 @@ class TokenInfo:
             supplyType=self.supplyType.value,
             maxSupply=self.maxSupply,
             expiry = self.expiry._to_protobuf(),
-            ledger_id=self.ledger_id
+            ledger_id=self.ledger_id,
+            metadata=self.metadata
         )
         if self.adminKey:
             proto.adminKey.CopyFrom(self.adminKey._to_proto())
@@ -157,6 +169,8 @@ class TokenInfo:
             proto.wipeKey.CopyFrom(self.wipeKey._to_proto())
         if self.supplyKey:
             proto.supplyKey.CopyFrom(self.supplyKey._to_proto())
+        if self.metadata_key:
+            proto.metadata_key.CopyFrom(self.metadata_key._to_proto())
         if self.fee_schedule_key:
             proto.fee_schedule_key.CopyFrom(self.fee_schedule_key._to_proto())
         if self.defaultFreezeStatus:
@@ -180,4 +194,4 @@ class TokenInfo:
         return (f"TokenInfo(tokenId={self.tokenId}, name={self.name}, symbol={self.symbol}, "
                 f"decimals={self.decimals}, totalSupply={self.totalSupply}, treasury={self.treasury}, "
                 f"isDeleted={self.isDeleted}, memo={self.memo}, tokenType={self.tokenType}, "
-                f"maxSupply={self.maxSupply}, ledger_id={self.ledger_id})")
+                f"maxSupply={self.maxSupply}, ledger_id={self.ledger_id}, metadata={self.metadata})")
