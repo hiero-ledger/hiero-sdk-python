@@ -28,7 +28,7 @@ class TopicInfo:
         self.ledger_id = ledger_id
 
     @classmethod
-    def from_proto(cls, topic_info_proto):
+    def _from_proto(cls, topic_info_proto):
         """
         Constructs a TopicInfo object from a protobuf ConsensusTopicInfo message.
         """
@@ -49,7 +49,7 @@ class TopicInfo:
                 if topic_info_proto.HasField("submitKey") else None
             ),
             auto_renew_period=(
-                Duration.from_proto(proto=topic_info_proto.autoRenewPeriod)
+                Duration._from_proto(proto=topic_info_proto.autoRenewPeriod)
                 if topic_info_proto.HasField("autoRenewPeriod") else None
             ),
             auto_renew_account=(

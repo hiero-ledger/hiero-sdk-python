@@ -104,7 +104,7 @@ class TransferTransaction(Transaction):
             for account_id, amount in self.hbar_transfers.items():
                 transfer_list.accountAmounts.append(
                     basic_types_pb2.AccountAmount(
-                        accountID=account_id.to_proto(),
+                        accountID=account_id._to_proto(),
                         amount=amount,
                     )
                 )
@@ -113,22 +113,22 @@ class TransferTransaction(Transaction):
         # NFTs
         for token_id, transfers in self.nft_transfers.items():
             token_transfer_list = basic_types_pb2.TokenTransferList(
-                token=token_id.to_proto()
+                token=token_id._to_proto()
             )
             for transfer in transfers:
-                token_transfer_list.nftTransfers.append(transfer.to_proto())
+                token_transfer_list.nftTransfers.append(transfer._to_proto())
 
             crypto_transfer_tx_body.tokenTransfers.append(token_transfer_list)
 
         # Tokens
         for token_id, transfers in self.token_transfers.items():
             token_transfer_list = basic_types_pb2.TokenTransferList(
-                token=token_id.to_proto()
+                token=token_id._to_proto()
             )
             for account_id, amount in transfers.items():
                 token_transfer_list.transfers.append(
                     basic_types_pb2.AccountAmount(
-                        accountID=account_id.to_proto(),
+                        accountID=account_id._to_proto(),
                         amount=amount,
                     )
                 )

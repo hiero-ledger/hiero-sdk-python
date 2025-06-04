@@ -53,8 +53,8 @@ class TokenAssociateTransaction(Transaction):
             raise ValueError("Account ID and token IDs must be set.")
 
         token_associate_body = token_associate_pb2.TokenAssociateTransactionBody(
-            account=self.account_id.to_proto(),
-            tokens=[token_id.to_proto() for token_id in self.token_ids]
+            account=self.account_id._to_proto(),
+            tokens=[token_id._to_proto() for token_id in self.token_ids]
         )
 
         transaction_body = self.build_base_transaction_body()

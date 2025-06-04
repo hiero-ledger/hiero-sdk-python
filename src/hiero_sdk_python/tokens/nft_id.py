@@ -25,21 +25,21 @@ class NftId:
         return True
 
     @classmethod
-    def from_proto(cls, nft_id_proto:basic_types_pb2.NftID = None):
+    def _from_proto(cls, nft_id_proto:basic_types_pb2.NftID = None):
         """
         :param nft_id_proto: the proto NftID object
         :return: a NftId object
         """
         return cls(
-            tokenId=TokenId.from_proto(nft_id_proto.token_ID),
+            tokenId=TokenId._from_proto(nft_id_proto.token_ID),
             serialNumber=nft_id_proto.serial_number
         )
 
-    def to_proto(self):
+    def _to_proto(self):
         """
         :return: a protobuf NftID object representation of this NftId object
         """
-        nft_id_proto = basic_types_pb2.NftID(token_ID=self.tokenId.to_proto(), serial_number=self.serialNumber)
+        nft_id_proto = basic_types_pb2.NftID(token_ID=self.tokenId._to_proto(), serial_number=self.serialNumber)
 
         return nft_id_proto
 

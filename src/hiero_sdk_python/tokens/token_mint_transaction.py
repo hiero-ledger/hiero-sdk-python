@@ -72,7 +72,7 @@ class TokenMintTransaction(Transaction):
                 raise ValueError("Amount to mint must be positive.")
         
             token_mint_body = token_mint_pb2.TokenMintTransactionBody(
-                token=self.token_id.to_proto(),
+                token=self.token_id._to_proto(),
                 amount=self.amount,
                 metadata=[] # Must be empty for fungible tokens
             )
@@ -86,7 +86,7 @@ class TokenMintTransaction(Transaction):
                 raise ValueError("Metadata list cannot be empty for NFTs.")
             
             token_mint_body = token_mint_pb2.TokenMintTransactionBody(
-                token=self.token_id.to_proto(),
+                token=self.token_id._to_proto(),
                 amount=0,  # Must be zero for NFTs
                 metadata=self.metadata
             )

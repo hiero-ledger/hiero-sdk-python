@@ -52,7 +52,7 @@ class TokenDeleteTransaction(Transaction):
             raise ValueError("Missing required TokenID.")
 
         token_delete_body = token_delete_pb2.TokenDeleteTransactionBody(
-            token=self.token_id.to_proto()
+            token=self.token_id._to_proto()
         )
 
         transaction_body = self.build_base_transaction_body()

@@ -53,12 +53,12 @@ class Transaction(_Executable):
         Implements the Executable._make_request method to build the transaction request.
 
         This method simply converts the transaction to its protobuf representation
-        using the to_proto method.
+        using the _to_proto method.
 
         Returns:
             Transaction: The protobuf transaction message ready to be sent
         """
-        return self.to_proto()
+        return self._to_proto()
 
     def _map_response(self, response, node_id, proto_request):
         """
@@ -177,7 +177,7 @@ class Transaction(_Executable):
         
         return self
 
-    def to_proto(self):
+    def _to_proto(self):
         """
         Converts the transaction to its protobuf representation.
 
@@ -325,14 +325,14 @@ class Transaction(_Executable):
                     raise ValueError("Operator account ID is not set.")
                 self.transaction_id = TransactionId.generate(self.operator_account_id)
 
-        transaction_id_proto = self.transaction_id.to_proto()
+        transaction_id_proto = self.transaction_id._to_proto()
 
         if self.node_account_id is None:
             raise ValueError("Node account ID is not set.")
 
         transaction_body = transaction_body_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
-        transaction_body.nodeAccountID.CopyFrom(self.node_account_id.to_proto())
+        transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
 
         transaction_body.transactionFee = self.transaction_fee or self._default_transaction_fee
 

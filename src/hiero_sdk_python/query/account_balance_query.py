@@ -56,7 +56,7 @@ class CryptoGetAccountBalanceQuery(Query):
             query_header = self._make_request_header()
             crypto_get_balance = crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery()
             crypto_get_balance.header.CopyFrom(query_header)
-            crypto_get_balance.accountID.CopyFrom(self.account_id.to_proto())
+            crypto_get_balance.accountID.CopyFrom(self.account_id._to_proto())
 
             query = query_pb2.Query()
             if not hasattr(query, 'cryptogetAccountBalance'):
@@ -110,7 +110,7 @@ class CryptoGetAccountBalanceQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
 
-        return AccountBalance.from_proto(response.cryptogetAccountBalance)
+        return AccountBalance._from_proto(response.cryptogetAccountBalance)
 
     def _get_query_response(self, response):
         """

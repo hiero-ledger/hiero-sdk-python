@@ -11,11 +11,11 @@ class Duration:
         if not isinstance(self.seconds, int):
             raise TypeError(f"seconds must be an integer, got {type(self.seconds).__name__}")
 
-    def to_proto(self) -> proto_Duration:
+    def _to_proto(self) -> proto_Duration:
         return proto_Duration(seconds=self.seconds)
 
     @classmethod
-    def from_proto(cls, proto: proto_Duration) -> 'Duration':
+    def _from_proto(cls, proto: proto_Duration) -> 'Duration':
         if isinstance(proto, Duration):
             raise ValueError("Invalid duration proto")
         return cls(seconds=proto.seconds)

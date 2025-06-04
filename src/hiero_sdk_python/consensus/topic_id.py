@@ -7,7 +7,7 @@ class TopicId:
         self.num = num
 
     @classmethod
-    def from_proto(cls, topic_id_proto: basic_types_pb2.TopicID):
+    def _from_proto(cls, topic_id_proto: basic_types_pb2.TopicID):
         """
         Creates a TopicId instance from a protobuf TopicID object.
         """
@@ -17,7 +17,7 @@ class TopicId:
             num=topic_id_proto.topicNum
         )
 
-    def to_proto(self):
+    def _to_proto(self):
         """
         Converts the TopicId instance to a protobuf TopicID object.
         """

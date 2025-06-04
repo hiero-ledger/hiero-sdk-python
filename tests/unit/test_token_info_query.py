@@ -49,19 +49,19 @@ def test_token_info_query_execute(mock_account_ids, private_key):
     """Test basic functionality of TokenInfoQuery with mock server."""
     account_id, renew_account_id, _, token_id, _ = mock_account_ids
     token_info_response = token_get_info_pb2.TokenInfo(
-        tokenId=token_id.to_proto(),
+        tokenId=token_id._to_proto(),
         name="Test Token",
         symbol="TEST",
         decimals=8,
         totalSupply=100,
-        treasury=account_id.to_proto(),
+        treasury=account_id._to_proto(),
         defaultFreezeStatus=0,
         defaultKycStatus=0,
-        autoRenewAccount=renew_account_id.to_proto(),
+        autoRenewAccount=renew_account_id._to_proto(),
         maxSupply=10000,
-        adminKey=private_key.public_key().to_proto(),
-        kycKey=private_key.public_key().to_proto(),
-        wipeKey=private_key.public_key().to_proto(),
+        adminKey=private_key.public_key()._to_proto(),
+        kycKey=private_key.public_key()._to_proto(),
+        wipeKey=private_key.public_key()._to_proto(),
     )
 
     response = response_pb2.Response(

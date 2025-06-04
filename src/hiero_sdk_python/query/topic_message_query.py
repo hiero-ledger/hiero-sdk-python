@@ -57,7 +57,7 @@ class TopicMessageQuery:
             shard, realm, topic = map(int, parts)
             return basic_types_pb2.TopicID(shardNum=shard, realmNum=realm, topicNum=topic)
         elif isinstance(topic_id, TopicId):
-            return topic_id.to_proto()
+            return topic_id._to_proto()
         else:
             raise TypeError("Invalid topic_id format. Must be a string or TopicId.")
 

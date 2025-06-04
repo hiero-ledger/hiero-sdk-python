@@ -30,12 +30,12 @@ def token_info():
 @pytest.fixture
 def proto_token_info():
     proto = proto_TokenInfo(
-        tokenId=TokenId(0, 0, 100).to_proto(),
+        tokenId=TokenId(0, 0, 100)._to_proto(),
         name="TestToken",
         symbol="TST",
         decimals=2,
         totalSupply=1000000,
-        treasury=AccountId(0, 0, 200).to_proto(),
+        treasury=AccountId(0, 0, 200)._to_proto(),
         deleted=False,
         memo="Test token",
         tokenType=TokenType.FUNGIBLE_COMMON.value,
@@ -128,8 +128,8 @@ def test_from_proto(proto_token_info):
     proto_token_info.pause_key.ed25519 = public_key.to_bytes_raw()
     proto_token_info.defaultFreezeStatus = TokenFreezeStatus.FROZEN.value
     proto_token_info.defaultKycStatus = TokenKycStatus.GRANTED.value
-    proto_token_info.autoRenewAccount.CopyFrom(AccountId(0, 0, 300).to_proto())
-    proto_token_info.autoRenewPeriod.CopyFrom(Duration(3600).to_proto())
+    proto_token_info.autoRenewAccount.CopyFrom(AccountId(0, 0, 300)._to_proto())
+    proto_token_info.autoRenewPeriod.CopyFrom(Duration(3600)._to_proto())
     proto_token_info.expiry.CopyFrom(Timestamp(1625097600, 0).to_protobuf())
     proto_token_info.pause_status = hiero_sdk_python.hapi.services.basic_types_pb2.Paused
     proto_token_info.supplyType = hiero_sdk_python.hapi.services.basic_types_pb2.INFINITE
@@ -181,12 +181,12 @@ def test_to_proto(token_info):
 
     proto = token_info._to_proto()
 
-    assert proto.tokenId == TokenId(0, 0, 100).to_proto()
+    assert proto.tokenId == TokenId(0, 0, 100)._to_proto()
     assert proto.name == "TestToken"
     assert proto.symbol == "TST"
     assert proto.decimals == 2
     assert proto.totalSupply == 1000000
-    assert proto.treasury == AccountId(0, 0, 200).to_proto()
+    assert proto.treasury == AccountId(0, 0, 200)._to_proto()
     assert proto.deleted is False
     assert proto.memo == "Test token"
     assert proto.tokenType == TokenType.FUNGIBLE_COMMON.value
@@ -201,8 +201,8 @@ def test_to_proto(token_info):
     assert proto.fee_schedule_key.ed25519 == public_key.to_bytes_raw()
     assert proto.defaultFreezeStatus == TokenFreezeStatus.FROZEN.value
     assert proto.defaultKycStatus == TokenKycStatus.GRANTED.value
-    assert proto.autoRenewAccount == AccountId(0, 0, 300).to_proto()
-    assert proto.autoRenewPeriod == Duration(3600).to_proto()
+    assert proto.autoRenewAccount == AccountId(0, 0, 300)._to_proto()
+    assert proto.autoRenewPeriod == Duration(3600)._to_proto()
     assert proto.expiry == Timestamp(1625097600, 0).to_protobuf()
     assert proto.pause_key.ed25519 == public_key.to_bytes_raw()
     assert proto.pause_status == TokenPauseStatus.PAUSED.value
