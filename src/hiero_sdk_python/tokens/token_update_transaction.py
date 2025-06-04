@@ -115,7 +115,7 @@ class TokenUpdateTransaction(Transaction):
         # Set default transaction fee to 2 HBAR for token update transactions
         self._default_transaction_fee = Hbar(2).to_tinybars()
 
-    def set_token_id(self, token_id: TokenId) -> 'TokenUpdateTransaction':
+    def set_token_id(self, token_id):
         """
         Sets the token ID to update.
 
@@ -129,7 +129,7 @@ class TokenUpdateTransaction(Transaction):
         self.token_id = token_id
         return self
 
-    def set_treasury_account_id(self, treasury_account_id: AccountId) -> 'TokenUpdateTransaction':
+    def set_treasury_account_id(self, treasury_account_id):
         """
         Sets the new treasury account ID for the token.
 
@@ -143,7 +143,7 @@ class TokenUpdateTransaction(Transaction):
         self.treasury_account_id = treasury_account_id
         return self
     
-    def set_token_name(self, token_name: str) -> 'TokenUpdateTransaction':
+    def set_token_name(self, token_name):
         """
         Sets the new name for the token.
 
@@ -157,7 +157,7 @@ class TokenUpdateTransaction(Transaction):
         self.token_name = token_name
         return self
     
-    def set_token_symbol(self, token_symbol: str) -> 'TokenUpdateTransaction':
+    def set_token_symbol(self, token_symbol):
         """
         Sets the new symbol for the token.
 
@@ -171,7 +171,7 @@ class TokenUpdateTransaction(Transaction):
         self.token_symbol = token_symbol
         return self
     
-    def set_token_memo(self, token_memo: str) -> 'TokenUpdateTransaction':
+    def set_token_memo(self, token_memo):
         """
         Sets the new memo for the token.
 
@@ -185,7 +185,7 @@ class TokenUpdateTransaction(Transaction):
         self.token_memo = token_memo
         return self
     
-    def set_metadata(self, metadata: bytes) -> 'TokenUpdateTransaction':
+    def set_metadata(self, metadata):
         """
         Sets the new metadata for the token.
 
@@ -199,7 +199,7 @@ class TokenUpdateTransaction(Transaction):
         self.metadata = metadata
         return self
     
-    def set_admin_key(self, admin_key: PrivateKey) -> 'TokenUpdateTransaction':
+    def set_admin_key(self, admin_key):
         """
         Sets the new admin key for the token.
 
@@ -213,7 +213,7 @@ class TokenUpdateTransaction(Transaction):
         self.admin_key = admin_key
         return self
     
-    def set_freeze_key(self, freeze_key: PrivateKey) -> 'TokenUpdateTransaction':
+    def set_freeze_key(self, freeze_key):
         """
         Sets the new freeze key for the token.
 
@@ -227,7 +227,7 @@ class TokenUpdateTransaction(Transaction):
         self.freeze_key = freeze_key
         return self
     
-    def set_wipe_key(self, wipe_key: PrivateKey) -> 'TokenUpdateTransaction':
+    def set_wipe_key(self, wipe_key):
         """
         Sets the new wipe key for the token.
 
@@ -241,7 +241,7 @@ class TokenUpdateTransaction(Transaction):
         self.wipe_key = wipe_key
         return self
     
-    def set_supply_key(self, supply_key: PrivateKey) -> 'TokenUpdateTransaction':
+    def set_supply_key(self, supply_key):
         """
         Sets the new supply key for the token.
 
@@ -255,7 +255,7 @@ class TokenUpdateTransaction(Transaction):
         self.supply_key = supply_key
         return self
     
-    def set_pause_key(self, pause_key: PrivateKey) -> 'TokenUpdateTransaction':
+    def set_pause_key(self, pause_key):
         """
         Sets the new pause key for the token.
 
@@ -269,7 +269,7 @@ class TokenUpdateTransaction(Transaction):
         self.pause_key = pause_key
         return self
     
-    def set_metadata_key(self, metadata_key: PrivateKey) -> 'TokenUpdateTransaction':
+    def set_metadata_key(self, metadata_key):
         """
         Sets the new metadata key for the token.
 
@@ -283,7 +283,7 @@ class TokenUpdateTransaction(Transaction):
         self.metadata_key = metadata_key
         return self
     
-    def set_key_verification_mode(self, key_verification_mode: TokenKeyValidation) -> 'TokenUpdateTransaction':
+    def set_key_verification_mode(self, key_verification_mode):
         """
         Sets the key verification mode for the token.
 
@@ -317,10 +317,9 @@ class TokenUpdateTransaction(Transaction):
             memo=StringValue(value=self.token_memo) if self.token_memo else None,
             metadata=BytesValue(value=self.metadata) if self.metadata else None,
             symbol=self.token_symbol,
-            **self._convert_keys_to_proto(),
             key_verification_mode=self.token_key_verification_mode._to_proto()
         )
-        
+        self._set_keys_to_proto(token_update_body)
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenUpdate.CopyFrom(token_update_body)
         
@@ -345,29 +344,19 @@ class TokenUpdateTransaction(Transaction):
             query_func=None
         )
         
-    def _convert_keys_to_proto(self):
+    def _set_keys_to_proto(self, token_update_body: TokenUpdateTransactionBody):
         """
-        Build all key fields for token update body.
-    
-        This method converts all available keys to their protobuf format.
-        Only keys that are not None will be included in the result.
-    
-        Returns:
-            dict: A dictionary mapping field names to protobuf key objects
+        Sets the keys to the protobuf transaction body.
         """
-        key_attributes = [
-            ('adminKey', self.admin_key),
-            ('freezeKey', self.freeze_key),
-            ('wipeKey', self.wipe_key),
-            ('supplyKey', self.supply_key),
-            ('metadata_key', self.metadata_key),
-            ('pause_key', self.pause_key),
-        ]
-        
-        result = {}
-        for field_name, key in key_attributes:
-            if key is not None:
-                proto_key = key.public_key().to_proto()
-                result[field_name] = proto_key
-        
-        return result
+        if self.admin_key:
+            token_update_body.adminKey.CopyFrom(self.admin_key.public_key().to_proto())
+        if self.freeze_key:
+            token_update_body.freezeKey.CopyFrom(self.freeze_key.public_key().to_proto())
+        if self.wipe_key:
+            token_update_body.wipeKey.CopyFrom(self.wipe_key.public_key().to_proto())
+        if self.supply_key:
+            token_update_body.supplyKey.CopyFrom(self.supply_key.public_key().to_proto())
+        if self.metadata_key:
+            token_update_body.metadata_key.CopyFrom(self.metadata_key.public_key().to_proto())
+        if self.pause_key:
+            token_update_body.pause_key.CopyFrom(self.pause_key.public_key().to_proto())
