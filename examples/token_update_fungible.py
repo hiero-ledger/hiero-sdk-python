@@ -79,7 +79,7 @@ def get_token_info(client, token_id):
     return info
 
 def update_token_data(client, token_id, update_metadata, update_token_name, update_token_symbol, update_token_memo):
-    """Update metadata for NFTs in a collection"""
+    """Update metadata for a fungible token"""
     tx = (
         TokenUpdateTransaction()
         .set_token_id(token_id)
@@ -117,7 +117,7 @@ def token_update_fungible():
     token_info = get_token_info(client, token_id)
     print(token_info)
     
-    # New data to update the NFT
+    # New data to update the fungible token
     update_metadata = b"Updated metadata"
     update_token_name = "Updated Token"
     update_token_symbol = "UPD"
