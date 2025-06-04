@@ -20,15 +20,14 @@ def test_integration_token_update_transaction_can_execute():
     try:
         token_id = create_fungible_token(env)
         
-        tx = (
+        receipt = (
            TokenUpdateTransaction()
            .set_token_id(token_id)
            .set_token_name("UpdatedName")
            .set_token_symbol("UPD")
            .set_freeze_key(private_key)
+           .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
         
         info = (
@@ -136,14 +135,15 @@ def test_integration_token_update_transaction_treasury():
         assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Update token with new treasury account
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_token_symbol("UPD")
             .set_treasury_account_id(account_id)
+            .freeze_with(env.client)
+            .sign(new_private_key)
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.freeze_with(env.client).sign(new_private_key).execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Query token info and verify updates
@@ -191,14 +191,12 @@ def test_integration_token_update_transaction_fungible_metadata():
         assert info.metadata == b"", "Initial metadata mismatch"
         
         # Update token with new metadata
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(new_metadata)
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        tx.freeze_with(env.client)
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Query token info and verify updated metadata
@@ -231,14 +229,12 @@ def test_integration_token_update_transaction_nft_metadata():
         assert info.metadata == b"", "Initial metadata mismatch"
         
         # Update token with new metadata
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(new_metadata)
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        tx.freeze_with(env.client)
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Query token info and verify updated metadata
@@ -279,14 +275,14 @@ def test_integration_token_update_transaction_metadata_immutable_fungible_token(
         assert info.adminKey is None, "Admin key should be None"
         
         # Update token with new metadata, signed by metadata key
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(new_metadata)
+            .freeze_with(env.client)
+            .sign(metadata_key)
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        tx.freeze_with(env.client).sign(metadata_key)
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Query token info and verify updated metadata
@@ -327,14 +323,14 @@ def test_integration_token_update_transaction_metadata_immutable_nft():
         assert info.adminKey is None, "Admin key should be None"
         
         # Update token with new metadata, signed by metadata key
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(new_metadata)
+            .freeze_with(env.client)
+            .sign(metadata_key)
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        tx.freeze_with(env.client).sign(metadata_key)
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Query token info and verify updated metadata
@@ -365,13 +361,12 @@ def test_token_update_transaction_cannot_update_metadata_fungible():
         assert info.metadata == b"", "Initial metadata mismatch"
         
         # Try to update token with new memo, metadata should remain unchanged
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_token_memo("updated memo")
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Query token info and verify metadata remains unchanged
@@ -402,13 +397,12 @@ def test_integration_token_update_transaction_cannot_update_metadata_nft():
         assert info.metadata == b"", "Initial metadata mismatch"
         
         # Try to update token with new memo, metadata should remain unchanged
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_token_memo("asdf")
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
         
         # Query token info and verify metadata remains unchanged
@@ -439,13 +433,12 @@ def test_integration_token_update_transaction_erase_metadata_fungible_token():
         assert info.metadata == b"", "Initial metadata mismatch"
 
         # Update token with empty metadata
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(b"")
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
 
         # Query token info and verify metadata was erased
@@ -476,13 +469,12 @@ def test_integration_token_update_transaction_erase_metadata_nft():
         assert info.metadata == b"", "Initial metadata mismatch"
 
         # Update token with empty metadata
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(b"")
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
 
         # Query token info and verify metadata was erased
@@ -513,13 +505,12 @@ def test_integration_token_update_transaction_cannot_update_metadata_without_key
         ])
         
         # Try to update metadata without signing with metadata key
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(b"New metadata")
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
         
         assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"Token update should have failed with INVALID_SIGNATURE status but got: {ResponseCode.get_name(receipt.status)}"
     finally:
@@ -543,13 +534,12 @@ def test_integration_token_update_transaction_cannot_update_metadata_without_key
         ])
 
         # Try to update metadata without signing with metadata key
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(b"New metadata")
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
 
         assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"Token update should have failed with INVALID_SIGNATURE status but got: {ResponseCode.get_name(receipt.status)}"
     finally:
@@ -568,13 +558,12 @@ def test_integration_token_update_transaction_cannot_update_immutable_fungible_t
         ])
         
         # Try to update metadata on immutable token
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(b"New metadata")
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
         
         assert receipt.status == ResponseCode.TOKEN_IS_IMMUTABLE, f"Token update should have failed with TOKEN_IS_IMMUTABLE status but got: {ResponseCode.get_name(receipt.status)}"
     finally:
@@ -592,13 +581,12 @@ def test_integration_token_update_transaction_cannot_update_immutable_nft():
         ])
         
         # Try to update metadata on immutable token
-        tx = (
+        receipt = (
             TokenUpdateTransaction()
             .set_token_id(nft_token_id)
             .set_metadata(b"New metadata")
+            .execute(env.client)
         )
-        tx.transaction_fee = Hbar(1).to_tinybars()
-        receipt = tx.execute(env.client)
         
         assert receipt.status == ResponseCode.TOKEN_IS_IMMUTABLE, f"Token update should have failed with TOKEN_IS_IMMUTABLE status but got: {ResponseCode.get_name(receipt.status)}"
     finally:

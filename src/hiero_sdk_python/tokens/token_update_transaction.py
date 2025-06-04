@@ -1,6 +1,7 @@
 from typing import Optional
 from dataclasses import dataclass
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.account.account_id import AccountId
@@ -110,6 +111,9 @@ class TokenUpdateTransaction(Transaction):
         self.metadata_key: Optional[PrivateKey] = keys.metadata_key
         
         self.token_key_verification_mode: TokenKeyValidation = token_key_verification_mode
+        
+        # Set default transaction fee to 2 HBAR for token update transactions
+        self._default_transaction_fee = Hbar(2).to_tinybars()
 
     def set_token_id(self, token_id: TokenId) -> 'TokenUpdateTransaction':
         """
