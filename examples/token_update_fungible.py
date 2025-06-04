@@ -78,15 +78,15 @@ def get_token_info(client, token_id):
     
     return info
 
-def update_token_data(client, token_id, new_metadata, token_name, token_symbol, token_memo):
+def update_token_data(client, token_id, update_metadata, update_token_name, update_token_symbol, update_token_memo):
     """Update metadata for NFTs in a collection"""
     tx = (
         TokenUpdateTransaction()
         .set_token_id(token_id)
-        .set_metadata(new_metadata)
-        .set_token_name(token_name)
-        .set_token_symbol(token_symbol)
-        .set_token_memo(token_memo)
+        .set_metadata(update_metadata)
+        .set_token_name(update_token_name)
+        .set_token_symbol(update_token_symbol)
+        .set_token_memo(update_token_memo)
     )
     tx.transaction_fee = Hbar(1).to_tinybars() # Set transaction fee to be heigher
     receipt = tx.execute(client)
@@ -118,12 +118,12 @@ def token_update_fungible():
     print(token_info)
     
     # New data to update the NFT
-    new_metadata = b"Updated metadata"
-    token_name = "Updated Token"
-    token_symbol = "UPD"
-    token_memo = "Updated memo"
+    update_metadata = b"Updated metadata"
+    update_token_name = "Updated Token"
+    update_token_symbol = "UPD"
+    update_token_memo = "Updated memo"
     
-    update_token_data(client, token_id, new_metadata, token_name, token_symbol, token_memo)
+    update_token_data(client, token_id, update_metadata, update_token_name, update_token_symbol, update_token_memo)
     
     print("\nToken info after update:")
     token_info = get_token_info(client, token_id)
