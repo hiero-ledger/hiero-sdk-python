@@ -308,17 +308,12 @@ class TokenUpdateTransaction(Transaction):
         
         token_update_body = TokenUpdateTransactionBody(
             token=self.token_id.to_proto(),
-            treasury=self.treasury_account_id and self.treasury_account_id.to_proto(),
+            treasury=self.treasury_account_id.to_proto() if self.treasury_account_id else None,
             name=self.token_name,
-            memo=StringValue(value=self.token_memo) if self.token_memo is not None else None,
-            metadata=BytesValue(value=self.metadata) if self.metadata is not None else None,
+            memo=StringValue(value=self.token_memo) if self.token_memo else None,
+            metadata=BytesValue(value=self.metadata) if self.metadata else None,
             symbol=self.token_symbol,
-            adminKey=self.admin_key and self.admin_key.public_key().to_proto(),
-            freezeKey=self.freeze_key and self.freeze_key.public_key().to_proto(),
-            wipeKey=self.wipe_key and self.wipe_key.public_key().to_proto(),
-            supplyKey=self.supply_key and self.supply_key.public_key().to_proto(),
-            pause_key=self.pause_key and self.pause_key.public_key().to_proto(),
-            metadata_key=self.metadata_key and self.metadata_key.public_key().to_proto(),
+            **self._convert_keys_to_proto(),
             key_verification_mode=self.token_key_verification_mode.to_proto()
         )
         
@@ -345,3 +340,30 @@ class TokenUpdateTransaction(Transaction):
             transaction_func=channel.token.updateToken,
             query_func=None
         )
+        
+    def _convert_keys_to_proto(self):
+        """
+        Build all key fields for token update body.
+    
+        This method converts all available keys to their protobuf format.
+        Only keys that are not None will be included in the result.
+    
+        Returns:
+            dict: A dictionary mapping field names to protobuf key objects
+        """
+        key_attributes = [
+            ('adminKey', self.admin_key),
+            ('freezeKey', self.freeze_key),
+            ('wipeKey', self.wipe_key),
+            ('supplyKey', self.supply_key),
+            ('metadata_key', self.metadata_key),
+            ('pause_key', self.pause_key),
+        ]
+        
+        result = {}
+        for field_name, key in key_attributes:
+            if key is not None:
+                proto_key = key.public_key().to_proto()
+                result[field_name] = proto_key
+        
+        return result
