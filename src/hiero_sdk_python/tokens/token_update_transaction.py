@@ -22,9 +22,9 @@ class TokenUpdateParams:
         token_memo (optional): The new memo for the token.
         metadata (optional): The new metadata for the token.
     """
-    treasury_account_id : Optional[AccountId] = None
-    token_name : Optional[str] = None
-    token_symbol : Optional[str] = None
+    treasury_account_id: Optional[AccountId] = None
+    token_name: Optional[str] = None
+    token_symbol: Optional[str] = None
     token_memo: Optional[str] = None
     metadata: Optional[bytes] = None
 
@@ -90,26 +90,26 @@ class TokenUpdateTransaction(Transaction):
         """
         super().__init__()
         
-        self.token_id : TokenId = token_id
+        self.token_id: TokenId = token_id
         
         # Initialize params attributes
         params = token_params or TokenUpdateParams()
-        self.treasury_account_id : Optional[AccountId] = params.treasury_account_id
-        self.token_name : Optional[str] = params.token_name
-        self.token_symbol : Optional[str] = params.token_symbol
-        self.token_memo : Optional[str] = params.token_memo
-        self.metadata : Optional[bytes] = params.metadata
+        self.treasury_account_id: Optional[AccountId] = params.treasury_account_id
+        self.token_name: Optional[str] = params.token_name
+        self.token_symbol: Optional[str] = params.token_symbol
+        self.token_memo: Optional[str] = params.token_memo
+        self.metadata: Optional[bytes] = params.metadata
         
         # Initialize keys attributes
         keys = token_keys or TokenUpdateKeys()
-        self.admin_key : Optional[PrivateKey] = keys.admin_key
-        self.freeze_key : Optional[PrivateKey] = keys.freeze_key
-        self.wipe_key : Optional[PrivateKey] = keys.wipe_key
-        self.supply_key : Optional[PrivateKey] = keys.supply_key
-        self.pause_key : Optional[PrivateKey] = keys.pause_key
-        self.metadata_key : Optional[PrivateKey] = keys.metadata_key
+        self.admin_key: Optional[PrivateKey] = keys.admin_key
+        self.freeze_key: Optional[PrivateKey] = keys.freeze_key
+        self.wipe_key: Optional[PrivateKey] = keys.wipe_key
+        self.supply_key: Optional[PrivateKey] = keys.supply_key
+        self.pause_key: Optional[PrivateKey] = keys.pause_key
+        self.metadata_key: Optional[PrivateKey] = keys.metadata_key
         
-        self.token_key_verification_mode : TokenKeyValidation = token_key_verification_mode
+        self.token_key_verification_mode: TokenKeyValidation = token_key_verification_mode
 
     def set_token_id(self, token_id: TokenId) -> 'TokenUpdateTransaction':
         """
