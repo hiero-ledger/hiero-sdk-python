@@ -318,7 +318,7 @@ class TokenUpdateTransaction(Transaction):
             metadata=BytesValue(value=self.metadata) if self.metadata else None,
             symbol=self.token_symbol,
             **self._convert_keys_to_proto(),
-            key_verification_mode=self.token_key_verification_mode.to_proto()
+            key_verification_mode=self.token_key_verification_mode._to_proto()
         )
         
         transaction_body = self.build_base_transaction_body()

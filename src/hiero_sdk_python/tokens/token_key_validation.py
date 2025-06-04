@@ -11,13 +11,13 @@ class TokenKeyValidation(Enum):
     NO_VALIDATION = 1
 
     @staticmethod
-    def from_proto(proto_obj: proto_TokenKeyValidation):
+    def _from_proto(proto_obj: proto_TokenKeyValidation):
         if proto_obj == proto_TokenKeyValidation.FULL_VALIDATION:
             return TokenKeyValidation.FULL_VALIDATION
         elif proto_obj == proto_TokenKeyValidation.NO_VALIDATION:
             return TokenKeyValidation.NO_VALIDATION
         
-    def to_proto(self):
+    def _to_proto(self):
         if self == TokenKeyValidation.FULL_VALIDATION:
             return proto_TokenKeyValidation.FULL_VALIDATION
         elif self == TokenKeyValidation.NO_VALIDATION:
