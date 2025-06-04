@@ -433,8 +433,18 @@ def test_transaction_node_switching_body_bytes():
         assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
         
 def test_query_retry_on_busy():
-    """Test that Query retries on BUSY response."""
-    # First response is BUSY, second is OK
+    """
+    Test query retry behavior when receiving BUSY response.
+    
+    This test simulates two scenarios:
+    1. First node returns BUSY response
+    2. Second node returns OK response with the balance
+    
+    Verifies that the query successfully retries on a different node after receiving BUSY,
+    that the balance is returned correctly and that time.sleep was called once for the retry delay.
+    """
+    # Create a BUSY response to simulate a node being temporarily unavailable
+    # This response indicates the node cannot process the request at this time
     busy_response = response_pb2.Response(
             cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
                 header=response_header_pb2.ResponseHeader(
@@ -442,30 +452,38 @@ def test_query_retry_on_busy():
                 )
             )
         )
+
+    # Create a successful OK response with a balance of 1 Hbar
+    # This simulates a successful account balance query response
     ok_response = response_pb2.Response(
             cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
                 header=response_header_pb2.ResponseHeader(
                     nodeTransactionPrecheckCode=ResponseCode.OK
                 ),
-                balance=100000000
+                balance=100000000  # Balance in tinybars
             )
         )
     
-    # Create a response for the receipt query
+    # Set up response sequences for multiple nodes:
+    # First node returns BUSY, forcing a retry
+    # Second node returns OK with the balance
     response_sequences = [
         [busy_response],
         [ok_response],
     ]
     
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
-        # We set the current node to the first node
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
+        # We set the current node to the first node so we are sure it will return BUSY response
         client.network.current_node = client.network.nodes[0]
         
         query = CryptoGetAccountBalanceQuery()
         query.set_account_id(AccountId(0, 0, 1234))
-        query.set_query_payment(Hbar(1))
         
         balance = query.execute(client)
         
+        # Verify we slept once for the retry
+        assert mock_sleep.call_count == 1, "Should have retried once"
+        
         assert balance.hbars.to_tinybars() == 100000000
+        # Verify we switched to the second node
         assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
