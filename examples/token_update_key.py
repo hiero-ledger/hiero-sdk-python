@@ -72,8 +72,15 @@ def get_token_info(client, token_id):
     return info
 
 def update_wipe_key_full_validation(client, token_id, old_wipe_key):
-    """Update token data and remove wipe key"""
+    """
+    Update token wipe key with full validation mode.
     
+    This demonstrates using FULL_VALIDATION mode (default) which requires both old and new key signatures.
+    This ensures that there cannot be an accidental update to a public key for which the user does not possess
+    the private key.
+    Although only private keys can be set currently, the validation provides additional safety by requiring
+    signatures from both keys.
+    """
     # Generate new wipe key
     new_wipe_key = PrivateKey.generate_ed25519()
     
@@ -102,7 +109,7 @@ def update_wipe_key_full_validation(client, token_id, old_wipe_key):
     info = get_token_info(client, token_id)
     print(f"Token's wipe key after update: {info.wipeKey}")
 
-def token_update_keys():
+def token_update_key():
     """
     Demonstrates updating keys on a fungible token by:
     1. Setting up client with operator account
@@ -126,4 +133,4 @@ def token_update_keys():
     update_wipe_key_full_validation(client, token_id, wipe_key)
     
 if __name__ == "__main__":
-    token_update_keys()
+    token_update_key()
