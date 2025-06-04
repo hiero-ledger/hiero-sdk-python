@@ -10,7 +10,6 @@ from hiero_sdk_python import (
     Network,
 )
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
-from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_key_validation import TokenKeyValidation
@@ -84,18 +83,14 @@ def update_wipe_key_full_validation(client, token_id, old_wipe_key):
     # Generate new wipe key
     new_wipe_key = PrivateKey.generate_ed25519()
     
-    tx = (
+    receipt = (
         TokenUpdateTransaction()
         .set_token_id(token_id)
         .set_wipe_key(new_wipe_key)
         .set_key_verification_mode(TokenKeyValidation.FULL_VALIDATION)
-    )
-    tx.transaction_fee = Hbar(1).to_tinybars()
-    
-    receipt = (
-        tx.freeze_with(client)
-        .sign(new_wipe_key) # New wipe key is required to sign
-        .sign(old_wipe_key) # Old wipe key is required to sign
+        .freeze_with(client)
+        .sign(new_wipe_key)
+        .sign(old_wipe_key)
         .execute(client)
     )
     

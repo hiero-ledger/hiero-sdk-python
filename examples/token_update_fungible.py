@@ -9,7 +9,6 @@ from hiero_sdk_python import (
     Network,
 )
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
-from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
@@ -80,16 +79,15 @@ def get_token_info(client, token_id):
 
 def update_token_data(client, token_id, update_metadata, update_token_name, update_token_symbol, update_token_memo):
     """Update metadata for a fungible token"""
-    tx = (
+    receipt = (
         TokenUpdateTransaction()
         .set_token_id(token_id)
         .set_metadata(update_metadata)
         .set_token_name(update_token_name)
         .set_token_symbol(update_token_symbol)
         .set_token_memo(update_token_memo)
+        .execute(client)
     )
-    tx.transaction_fee = Hbar(1).to_tinybars() # Set transaction fee to be heigher
-    receipt = tx.execute(client)
     
     if receipt.status != ResponseCode.SUCCESS:
         print(f"Token metadata update failed with status: {ResponseCode.get_name(receipt.status)}")
