@@ -39,7 +39,7 @@ class Query(_Executable):
         self.operator = None
         self.node_index = 0
         self._user_query_payment = None
-        self._default_query_payment = Hbar(1)
+        self._is_payment_required = True
         
     def _get_query_response(self, response):
         """
