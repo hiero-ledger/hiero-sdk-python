@@ -39,7 +39,7 @@ class Query(_Executable):
         self.operator = None
         self.node_index = 0
         self._user_query_payment = None
-        self._default_query_payment = Hbar(1)
+        self._is_payment_required = True
         
     def _get_query_response(self, response):
         """
@@ -78,10 +78,13 @@ class Query(_Executable):
     def _before_execute(self, client):
         """
         Performs setup before executing the query.
+
+        Configures node accounts, operator, and payment details from the client.
+        If no payment amount was specified and payment is required for the query,
+        gets the cost from the network and sets it as the payment amount.
         
-        Sets up node list, operator, and determines if we should pay 1 Hbar by default.
-        This method is called automatically before execution.
-        
+        This method is called automatically before query execution.
+
         Args:
             client: The client instance to use for execution
         """
@@ -90,20 +93,31 @@ class Query(_Executable):
 
         self.operator = self.operator or client.operator
         self.node_account_ids = list(set(self.node_account_ids))
-
-        if self._user_query_payment is None:
-            self._user_query_payment = self._default_query_payment
-
+        
+        # If no payment amount was specified - get the cost (if payment is not required, it was already set to 0 above)
+        if self._user_query_payment is None and self._is_payment_required:
+            self._user_query_payment = self._get_cost(client)
+        
     def _make_request_header(self):
         """
         Constructs the request header for the query.
         
         This includes a payment transaction if we have an operator and node.
         
+        If no payment amount is specified and payment is required for the query,
+        returns a header with COST_ANSWER response type to get the cost of executing
+        the query. Otherwise returns ANSWER_ONLY response type.
+        
         Returns:
             QueryHeader: The protobuf QueryHeader object
         """
         header = query_header_pb2.QueryHeader()
+        
+        # If there isn't a user query payment and payment is required, return COST_ANSWER
+        if self._user_query_payment is None and self._is_payment_required:
+            header.responseType = query_header_pb2.ResponseType.COST_ANSWER
+            return header
+        
         header.responseType = query_header_pb2.ResponseType.ANSWER_ONLY
 
         if (
@@ -140,7 +154,6 @@ class Query(_Executable):
         tx.add_hbar_transfer(payer_account_id, -amount.to_tinybars())
         tx.add_hbar_transfer(node_account_id, amount.to_tinybars())
 
-        tx.transaction_fee = 100_000_000 
         tx.node_account_id = node_account_id
         tx.transaction_id = TransactionId.generate(payer_account_id)
 
@@ -150,6 +163,37 @@ class Query(_Executable):
 
         return tx.to_proto()
     
+    def _get_cost(self, client):
+        """
+        Gets the cost of executing this query on the network.
+        
+        This method executes a special cost query to determine how many Hbars 
+        would be required to execute the actual query. The cost query uses
+        ResponseType.COST_ANSWER instead of ResponseType.ANSWER_ONLY.
+        
+        This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
+        
+        Args:
+            client (Client): The client instance to use for execution. Must have an operator set.
+        
+        Returns:
+            Hbar: The cost in Hbars that would be charged to execute this query
+            
+        Raises:
+            ValueError: If the client is None or the client's operator is not set
+            PrecheckError: If the cost query fails precheck validation
+            MaxAttemptsError: If the cost query fails after maximum retry attempts
+            ReceiptStatusError: If the cost query fails with a receipt error
+        """
+        if client is None or client.operator is None:
+            raise ValueError("Client and operator must be set to get the cost")
+        
+        # Here we execute the query to get the cost of it
+        resp = self._execute(client)
+        query_response = self._get_query_response(resp)
+        
+        return Hbar.from_tinybars(query_response.header.cost)
+        
     def _get_method(self, channel):
         """
         Returns the appropriate gRPC method for the query.
