@@ -150,6 +150,37 @@ class Query(_Executable):
 
         return tx.to_proto()
     
+    def _get_cost(self, client):
+        """
+        Gets the cost of executing this query on the network.
+        
+        This method executes a special cost query to determine how many Hbars 
+        would be required to execute the actual query. The cost query uses
+        ResponseType.COST_ANSWER instead of ResponseType.ANSWER_ONLY.
+        
+        This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
+        
+        Args:
+            client (Client): The client instance to use for execution. Must have an operator set.
+        
+        Returns:
+            Hbar: The cost in Hbars that would be charged to execute this query
+            
+        Raises:
+            ValueError: If the client is None or the client's operator is not set
+            PrecheckError: If the cost query fails precheck validation
+            MaxAttemptsError: If the cost query fails after maximum retry attempts
+            ReceiptStatusError: If the cost query fails with a receipt error
+        """
+        if client is None or client.operator is None:
+            raise ValueError("Client and operator must be set to get the cost")
+        
+        # Here we execute the query to get the cost of it
+        resp = self._execute(client)
+        query_response = self._get_query_response(resp)
+        
+        return Hbar.from_tinybars(query_response.header.cost)
+        
     def _get_method(self, channel):
         """
         Returns the appropriate gRPC method for the query.
