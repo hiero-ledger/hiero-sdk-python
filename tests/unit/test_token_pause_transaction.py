@@ -77,15 +77,15 @@ def test_to_proto(token_id, mock_client):
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
 
-def test__from_proto_restores_token_id():
+def test_from_proto_restores_token_id():
     """
-    _from_proto() must deserialize TokenPauseTransactionBody → .token_id correctly.
+    from_proto() must deserialize TokenPauseTransactionBody → .token_id correctly.
     """
     # Construct a TokenPauseTransactionBody protobuf for an example token id.
     proto_body = TokenPauseTransactionBody(token=TokenId(7, 8, 9).to_proto())
 
-    # Use _from_proto to build a TokenPauseTransaction whose token_id comes from the protobuf just created.
-    tx = TokenPauseTransaction()._from_proto(proto_body)
+    # Use from_proto to build a TokenPauseTransaction whose token_id comes from the protobuf just created.
+    tx = TokenPauseTransaction().from_proto(proto_body)
 
     # Verify that tx.token_id matches TokenId(7, 8, 9)
     assert tx.token_id == TokenId(7, 8, 9)

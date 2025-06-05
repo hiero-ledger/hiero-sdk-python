@@ -67,7 +67,7 @@ class TokenPauseTransaction(Transaction):
             query_func=None
         )
     
-    def _from_proto(self, proto: TokenPauseTransactionBody):
+    def from_proto(self, proto: TokenPauseTransactionBody):
         """
         Deserializes a TokenPauseTransactionBody from a protobuf object.
 
