@@ -78,10 +78,13 @@ class Query(_Executable):
     def _before_execute(self, client):
         """
         Performs setup before executing the query.
+
+        Configures node accounts, operator, and payment details from the client.
+        If no payment amount was specified and payment is required for the query,
+        gets the cost from the network and sets it as the payment amount.
         
-        Sets up node list, operator, and determines if we should pay 1 Hbar by default.
-        This method is called automatically before execution.
-        
+        This method is called automatically before query execution.
+
         Args:
             client: The client instance to use for execution
         """
@@ -100,6 +103,10 @@ class Query(_Executable):
         Constructs the request header for the query.
         
         This includes a payment transaction if we have an operator and node.
+        
+        If no payment amount is specified and payment is required for the query,
+        returns a header with COST_ANSWER response type to get the cost of executing
+        the query. Otherwise returns ANSWER_ONLY response type.
         
         Returns:
             QueryHeader: The protobuf QueryHeader object
