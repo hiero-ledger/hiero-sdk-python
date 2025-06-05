@@ -30,6 +30,7 @@ class TransactionGetReceiptQuery(Query):
         super().__init__()
         self.transaction_id = transaction_id
         self._frozen = False
+        self._is_payment_required = False
 
     def _require_not_frozen(self):
         """
@@ -69,16 +70,6 @@ class TransactionGetReceiptQuery(Query):
         """
         self._frozen = True
         return self
-
-    def _is_payment_required(self):
-        """
-        Override the default in the base Query class:
-        This particular query does NOT require a payment.
-        
-        Returns:
-            bool: Always False, as this query doesn't require payment.
-        """
-        return False
 
     def _make_request(self):
         """

@@ -23,6 +23,7 @@ class CryptoGetAccountBalanceQuery(Query):
         """
         super().__init__()
         self.account_id = account_id
+        self._is_payment_required = False
 
     def set_account_id(self, account_id: AccountId):
         """
