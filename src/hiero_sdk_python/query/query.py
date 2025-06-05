@@ -90,10 +90,11 @@ class Query(_Executable):
 
         self.operator = self.operator or client.operator
         self.node_account_ids = list(set(self.node_account_ids))
-
-        if self._user_query_payment is None:
-            self._user_query_payment = self._default_query_payment
-
+        
+        # If no payment amount was specified - get the cost (if payment is not required, it was already set to 0 above)
+        if self._user_query_payment is None and self._is_payment_required:
+            self._user_query_payment = self._get_cost(client)
+        
     def _make_request_header(self):
         """
         Constructs the request header for the query.
@@ -104,6 +105,12 @@ class Query(_Executable):
             QueryHeader: The protobuf QueryHeader object
         """
         header = query_header_pb2.QueryHeader()
+        
+        # If there isn't a user query payment and payment is required, return COST_ANSWER
+        if self._user_query_payment is None and self._is_payment_required:
+            header.responseType = query_header_pb2.ResponseType.COST_ANSWER
+            return header
+        
         header.responseType = query_header_pb2.ResponseType.ANSWER_ONLY
 
         if (
