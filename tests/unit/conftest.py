@@ -23,20 +23,6 @@ def mock_account_ids():
     return account_id_sender, account_id_recipient, node_account_id, token_id_1, token_id_2
 
 @pytest.fixture
-def generate_transaction_id():
-    """
-    Return a factory which, given an AccountId proto, returns a TransactionId
-    stamped with the current time.
-    """
-    def _make(account_id_proto):
-        now = time.time()
-        secs = int(now)
-        nanos = int((now - secs) * 1e9)
-        ts = timestamp_pb2.Timestamp(seconds=secs, nanos=nanos)
-        return TransactionId(valid_start=ts, account_id=account_id_proto)
-    return _make
-
-@pytest.fixture
 def amount():
     """Fixture to provide a default amount for fungible tokens."""
     return 1000

@@ -20,22 +20,22 @@ from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
 
-# This test uses fixture mock_account_ids and generate_transaction id as parameter
-def test_build_transaction_body(mock_account_ids, generate_transaction_id, token_id):
+# This test uses fixture mock_account_ids and token_id as parameter
+def test_build_transaction_body(mock_account_ids, token_id):
     """Test building a fungible token pause transaction body with valid values."""
     account_id, _, node_account_id, _, _ = mock_account_ids
 
     pause_tx = TokenPauseTransaction().set_token_id(token_id)
-    pause_tx.transaction_id = generate_transaction_id(account_id)
+    pause_tx.operator_account_id = account_id
     pause_tx.node_account_id = node_account_id
 
-    transaction_body = pause_tx.build_transaction_body()
+    transaction_body = pause_tx.build_transaction_body() # Will generate a transaction_id
 
     assert transaction_body.token_pause.token  == token_id.to_proto()
     assert transaction_body.transactionID     == pause_tx.transaction_id.to_proto()
     assert transaction_body.nodeAccountID     == pause_tx.node_account_id.to_proto()
 
-def test_build_transaction_body_nft(mock_account_ids, generate_transaction_id, nft_id):
+def test_build_transaction_body_nft(mock_account_ids, nft_id):
     """Test building an NFT‐pause transaction body with valid values."""
     account_id, _, node_account_id, _, _ = mock_account_ids
 
@@ -43,7 +43,7 @@ def test_build_transaction_body_nft(mock_account_ids, generate_transaction_id, n
     base_token_id = nft_id.tokenId
 
     pause_tx = TokenPauseTransaction().set_token_id(base_token_id)
-    pause_tx.transaction_id  = generate_transaction_id(account_id)
+    pause_tx.operator_account_id = account_id
     pause_tx.node_account_id = node_account_id
 
     transaction_body = pause_tx.build_transaction_body()
@@ -52,10 +52,9 @@ def test_build_transaction_body_nft(mock_account_ids, generate_transaction_id, n
     assert transaction_body.transactionID    == pause_tx.transaction_id.to_proto()
     assert transaction_body.nodeAccountID    == pause_tx.node_account_id.to_proto()
 
-# This test uses fixture (mock_account_ids, mock_client) as parameter
-def test_to_proto(mock_account_ids, mock_client, generate_transaction_id):
+# This test uses fixture (token_id, mock_client) as parameter
+def test_to_proto(token_id, mock_client):
     """Test converting the token pause transaction to protobuf format after signing."""
-    account_id, _, _, token_id, _ = mock_account_ids
     
     # Build the TokenPauseTransaction 
     pause_tx = (
@@ -63,14 +62,12 @@ def test_to_proto(mock_account_ids, mock_client, generate_transaction_id):
         .set_token_id(token_id)
     )
     
-    pause_tx.transaction_id = generate_transaction_id(account_id)
-
     # Create a fake pause key that returns certain bytes when sign() is called:
     pause_key = MagicMock()
     pause_key.sign.return_value = b'signature'
     pause_key.public_key().to_bytes_raw.return_value = b'public_key'
     
-    # Freeze and sign using the pause key:
+    # Freeze and sign using the pause key, which also generates transaction_id:
     pause_tx.freeze_with(mock_client)
     pause_tx.sign(pause_key)
 
