@@ -27,7 +27,7 @@ def test_integration_token_mint_nft_transaction_can_execute():
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         assert account_id is not None
@@ -44,7 +44,7 @@ def test_integration_token_mint_nft_transaction_can_execute():
         mint_transaction.freeze_with(env.client)
         receipt = mint_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT token minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT token minting failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close() 
 
@@ -68,7 +68,7 @@ def test_integration_token_mint_fungible_transaction_can_execute():
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         token_id = create_fungible_token(env)
         assert token_id is not None
@@ -81,6 +81,6 @@ def test_integration_token_mint_fungible_transaction_can_execute():
         mint_transaction.freeze_with(env.client)
         receipt = mint_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close() 

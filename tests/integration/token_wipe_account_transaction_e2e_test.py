@@ -32,7 +32,7 @@ def test_integration_token_wipe_account_transaction_can_execute():
         account_transaction.freeze_with(env.client)
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         
@@ -51,7 +51,7 @@ def test_integration_token_wipe_account_transaction_can_execute():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_token_transfer(token_id, env.client.operator_account_id, -10)
@@ -60,7 +60,7 @@ def test_integration_token_wipe_account_transaction_can_execute():
         transfer_transaction.freeze_with(env.client)
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -76,7 +76,7 @@ def test_integration_token_wipe_account_transaction_can_execute():
         wipe_transaction.freeze_with(env.client)
         receipt = wipe_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token wipe failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token wipe failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -105,7 +105,7 @@ def test_integration_token_wipe_transaction_no_token_id():
         account_transaction.freeze_with(env.client)
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         
@@ -124,7 +124,7 @@ def test_integration_token_wipe_transaction_no_token_id():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_token_transfer(token_id, env.client.operator_account_id, -10)
@@ -133,7 +133,7 @@ def test_integration_token_wipe_transaction_no_token_id():
         transfer_transaction.freeze_with(env.client)
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -178,7 +178,7 @@ def test_integration_token_wipe_transaction_no_account_id():
         account_transaction.freeze_with(env.client)
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         
@@ -197,7 +197,7 @@ def test_integration_token_wipe_transaction_no_account_id():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_token_transfer(token_id, env.client.operator_account_id, -10)
@@ -206,7 +206,7 @@ def test_integration_token_wipe_transaction_no_account_id():
         transfer_transaction.freeze_with(env.client)
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -251,7 +251,7 @@ def test_integration_token_wipe_transaction_no_amount():
         account_transaction.freeze_with(env.client)
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         
@@ -270,7 +270,7 @@ def test_integration_token_wipe_transaction_no_amount():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_token_transfer(token_id, env.client.operator_account_id, -10)
@@ -279,7 +279,7 @@ def test_integration_token_wipe_transaction_no_amount():
         transfer_transaction.freeze_with(env.client)
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -295,7 +295,7 @@ def test_integration_token_wipe_transaction_no_amount():
         wipe_transaction.freeze_with(env.client)
         receipt = wipe_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token wipe failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token wipe failed with status: {ResponseCode(receipt.status).name}"
 
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -325,7 +325,7 @@ def test_integration_token_wipe_account_transaction_not_zero_tokens_at_delete():
         account_transaction.freeze_with(env.client)
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         
@@ -344,7 +344,7 @@ def test_integration_token_wipe_account_transaction_not_zero_tokens_at_delete():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_token_transfer(token_id, env.client.operator_account_id, -20)
@@ -353,7 +353,7 @@ def test_integration_token_wipe_account_transaction_not_zero_tokens_at_delete():
         transfer_transaction.freeze_with(env.client)
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -369,7 +369,7 @@ def test_integration_token_wipe_account_transaction_not_zero_tokens_at_delete():
         wipe_transaction.freeze_with(env.client)
         receipt = wipe_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token wipe failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token wipe failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)

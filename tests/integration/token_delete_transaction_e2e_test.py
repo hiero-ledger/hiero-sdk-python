@@ -17,6 +17,6 @@ def test_integration_token_delete_transaction_can_execute():
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token deletion failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token deletion failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close() 

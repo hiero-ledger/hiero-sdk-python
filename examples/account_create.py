@@ -39,7 +39,7 @@ def create_new_account():
         print(f"Transaction status: {receipt.status}")
 
         if receipt.status != ResponseCode.SUCCESS:
-            status_message = ResponseCode.get_name(receipt.status)
+            status_message = ResponseCode(receipt.status).name
             raise Exception(f"Transaction failed with status: {status_message}")
 
         new_account_id = receipt.accountId

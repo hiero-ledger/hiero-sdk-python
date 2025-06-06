@@ -17,7 +17,7 @@ class PrecheckError(Exception):
         
         # Build a default message if none provided
         if message is None:
-            status_name = ResponseCode.get_name(status)
+            status_name = ResponseCode(status).name
             message = f"Transaction failed precheck with status: {status_name} ({status})"
             if transaction_id:
                 message += f", transaction ID: {transaction_id}"
@@ -78,7 +78,7 @@ class ReceiptStatusError(Exception):
         
         # Build a default message if none provided
         if message is None:
-            status_name = ResponseCode.get_name(status)
+            status_name = ResponseCode(status).name
             message = f"Receipt for transaction {transaction_id} contained error status: {status_name} ({status})"
             
         self.message = message

@@ -20,7 +20,7 @@ def test_integration_topic_update_transaction_can_execute():
         
         create_transaction.freeze_with(env.client)
         create_receipt = create_transaction.execute(env.client)
-        assert create_receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode.get_name(create_receipt.status)}"
+        assert create_receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode(create_receipt.status).name}"
         
         topic_id = create_receipt.topicId
         
@@ -38,7 +38,7 @@ def test_integration_topic_update_transaction_can_execute():
         update_transaction.freeze_with(env.client)
         update_receipt = update_transaction.execute(env.client)
         
-        assert update_receipt.status == ResponseCode.SUCCESS, f"Topic update failed with status: {ResponseCode.get_name(update_receipt.status)}"
+        assert update_receipt.status == ResponseCode.SUCCESS, f"Topic update failed with status: {ResponseCode(update_receipt.status).name}"
         
         info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
         
@@ -49,6 +49,6 @@ def test_integration_topic_update_transaction_can_execute():
         transaction = TopicDeleteTransaction(topic_id=topic_id)
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
-        assert receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close() 

@@ -52,7 +52,7 @@ def create_test_account(client):
     
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get account ID from receipt
@@ -83,7 +83,7 @@ def create_nft(client, operator_id, operator_key):
     
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get token ID from receipt
@@ -104,7 +104,7 @@ def mint_nft(client, nft_token_id, operator_key):
     receipt = transaction.execute(client)
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"NFT minted with serial number: {receipt.serial_numbers[0]}")
@@ -125,7 +125,7 @@ def associate_nft(client, account_id, token_id, account_private_key):
     receipt = associate_transaction.execute(client)
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT association failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print("NFT successfully associated with account")
@@ -156,7 +156,7 @@ def transfer_nft():
     
     # Check if nft transfer was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT transfer failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT transfer failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Successfully transferred NFT to account {account_id}")

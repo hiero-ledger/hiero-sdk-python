@@ -24,7 +24,7 @@ def test_integration_token_nft_info_query_can_execute():
         
         receipt = mint.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode(receipt.status).name}"
         nft_id = NftId(token_id, receipt.serial_numbers[0])
         
         info = TokenNftInfoQuery(nft_id).execute(env.client)

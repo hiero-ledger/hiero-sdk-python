@@ -42,7 +42,7 @@ def test_integration_token_dissociate_transaction_can_execute():
         
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         dissociate_transaction = TokenDissociateTransaction(
             account_id=new_account_id,
@@ -53,6 +53,6 @@ def test_integration_token_dissociate_transaction_can_execute():
         
         receipt = dissociate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token dissociation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token dissociation failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
