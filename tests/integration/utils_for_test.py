@@ -66,7 +66,7 @@ def create_fungible_token(env, opts=[]):
     
     token_receipt = token_transaction.execute(env.client)
     
-    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
+    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
     
     return token_receipt.tokenId
 
@@ -105,6 +105,6 @@ def create_nft_token(env, opts=[]):
 
     token_receipt = transaction.execute(env.client)
     
-    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
+    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
     
     return token_receipt.tokenId

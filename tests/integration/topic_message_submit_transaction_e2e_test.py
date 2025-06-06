@@ -29,12 +29,12 @@ def test_integration_topic_message_submit_transaction_can_execute():
         message_transaction.freeze_with(env.client)
         message_receipt = message_transaction.execute(env.client)
         
-        assert message_receipt.status == ResponseCode.SUCCESS, f"Message submission failed with status: {ResponseCode.get_name(message_receipt.status)}"
+        assert message_receipt.status == ResponseCode.SUCCESS, f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
         
         delete_transaction = TopicDeleteTransaction(topic_id=topic_id)
         delete_transaction.freeze_with(env.client)
         delete_receipt = delete_transaction.execute(env.client)
         
-        assert delete_receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode.get_name(delete_receipt.status)}"
+        assert delete_receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode(delete_receipt.status).name}"
     finally:
         env.close() 
