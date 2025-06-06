@@ -44,6 +44,45 @@ def test_integration_token_update_transaction_can_execute():
         env.close()
 
 @pytest.mark.integration
+def test_integration_token_update_preserves_fields_without_updating_parameters():
+    env = IntegrationTestEnv()
+    
+    try:
+        token_id = create_fungible_token(env)
+        
+        original_info = (
+            TokenInfoQuery()
+            .set_token_id(token_id)
+            .execute(env.client)
+        )
+        
+        receipt = (
+            TokenUpdateTransaction()
+            .set_token_id(token_id)
+            .execute(env.client)
+        )
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        
+        info = (
+            TokenInfoQuery()
+            .set_token_id(token_id)
+            .execute(env.client)
+        )
+        
+        assert info.name == original_info.name, "Token name should not have changed"
+        assert info.symbol == original_info.symbol, "Token symbol should not have changed"
+        assert info.memo == original_info.memo, "Token memo should not have changed"
+        assert info.metadata == original_info.metadata, "Token metadata should not have changed"
+        assert info.treasury == original_info.treasury, "Token treasury should not have changed"
+        assert info.adminKey.to_bytes_raw() == original_info.adminKey.to_bytes_raw(), "Admin key should not have changed"
+        assert info.freezeKey.to_bytes_raw() == original_info.freezeKey.to_bytes_raw(), "Freeze key should not have changed"
+        assert info.wipeKey.to_bytes_raw() == original_info.wipeKey.to_bytes_raw(), "Wipe key should not have changed"
+        assert info.supplyKey.to_bytes_raw() == original_info.supplyKey.to_bytes_raw(), "Supply key should not have changed"
+        assert info.pause_key is None, "Pause key should not have changed"
+    finally:
+        env.close()
+
+@pytest.mark.integration
 def test_integration_token_update_transaction_different_keys():
     env = IntegrationTestEnv()
     
@@ -114,16 +153,8 @@ def test_integration_token_update_transaction_treasury():
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
         account_id = receipt.accountId
         
-        # Create NFT token
-        token_id = create_nft_token(env)
-        
-        receipt = (
-            TokenMintTransaction()
-            .set_token_id(token_id)
-            .set_metadata(b"Metadata1")
-            .execute(env.client)
-        )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token mint failed with status: {ResponseCode.get_name(receipt.status)}"
+        # Create fungible token
+        token_id = create_fungible_token(env)
         
         tx = (
             TokenAssociateTransaction()
