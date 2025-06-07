@@ -8,7 +8,7 @@ It:
 
 Required environment variables:
 - OPERATOR_ID, OPERATOR_KEY (mandatory)
-- ADMIN_KEY, SUPPLY_KEY, FREEZE_KEY (optional)
+- ADMIN_KEY, SUPPLY_KEY, FREEZE_KEY, PAUSE_KEY (optional)
 
 Dependencies:
 - dotenv
@@ -47,6 +47,7 @@ def create_token_fungible_finite():
     admin_key = PrivateKey.from_string_ed25519(os.getenv('ADMIN_KEY'))# Optional
     supply_key = PrivateKey.from_string_ed25519(os.getenv('SUPPLY_KEY'))# Optional
     freeze_key = PrivateKey.from_string_ed25519(os.getenv('FREEZE_KEY'))# Optional
+    pause_key = PrivateKey.from_string_ed25519(os.getenv('PAUSE_KEY'))# Optional
 
     # Set the operator for the client
     client.set_operator(operator_id, operator_key)
@@ -66,6 +67,7 @@ def create_token_fungible_finite():
         .set_admin_key(admin_key) # Optional
         .set_supply_key(supply_key) # Optional
         .set_freeze_key(freeze_key) # Optional
+        .set_pause_key(pause_key) # Optional
         .freeze_with(client) # Freeze the transaction. Returns self so we can sign.
     )
 
