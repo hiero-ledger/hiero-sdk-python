@@ -1,11 +1,10 @@
 import os
+from pytest import fixture
 
 from dotenv import load_dotenv
 from dataclasses import dataclass
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
@@ -16,12 +15,18 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
-from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.hbar                    import Hbar
 
 load_dotenv(override=True)
+
+@fixture
+def env():
+    """Integration test environment with client/operator set up."""
+    e = IntegrationTestEnv()
+    yield e
+    e.close()
 
 @dataclass
 class Account:
