@@ -21,7 +21,7 @@ class AccountCreateTransaction(Transaction):
         receiver_signature_required: bool = False,
         auto_renew_period: Duration = Duration(7890000),  # 90 days in seconds
         memo: str = ""
-    ):
+     ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values or specified keyword arguments.
 
@@ -40,7 +40,7 @@ class AccountCreateTransaction(Transaction):
         self.account_memo = memo
         self._default_transaction_fee = 300_000_000
 
-    def set_key(self, key: PublicKey):
+    def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
         """
         Sets the public key for the new account.
 
@@ -54,7 +54,7 @@ class AccountCreateTransaction(Transaction):
         self.key = key
         return self
 
-    def set_initial_balance(self, balance: Union[Hbar, int]):
+    def set_initial_balance(self, balance: Union[Hbar, int]) -> "AccountCreateTransaction":
         """
         Sets the initial balance for the new account.
 
@@ -72,7 +72,7 @@ class AccountCreateTransaction(Transaction):
         self.initial_balance = balance
         return self
 
-    def set_receiver_signature_required(self, required: bool):
+    def set_receiver_signature_required(self, required: bool) -> "AccountCreateTransaction":
         """
         Sets whether a receiver signature is required.
 
@@ -86,7 +86,7 @@ class AccountCreateTransaction(Transaction):
         self.receiver_signature_required = required
         return self
 
-    def set_auto_renew_period(self, seconds: int | Duration):
+    def set_auto_renew_period(self, seconds: Union[int,Duration]) -> "AccountCreateTransaction":
         """
         Sets the auto-renew period in seconds.
 
@@ -105,7 +105,7 @@ class AccountCreateTransaction(Transaction):
             raise TypeError("Duration of invalid type")
 
 
-    def set_account_memo(self, memo: str):
+    def set_account_memo(self, memo: str) -> "AccountCreateTransaction":
         """
         Sets the memo for the new account.
 
@@ -119,7 +119,7 @@ class AccountCreateTransaction(Transaction):
         self.account_memo = memo
         return self
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> crypto_create_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for account creation.
 
@@ -148,7 +148,7 @@ class AccountCreateTransaction(Transaction):
             memo=self.account_memo
         )
 
-        transaction_body = self.build_base_transaction_body()
+        transaction_body:crypto_create_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.cryptoCreateAccount.CopyFrom(crypto_create_body)
 
         return transaction_body

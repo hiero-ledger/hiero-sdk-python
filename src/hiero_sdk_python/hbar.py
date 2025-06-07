@@ -6,7 +6,7 @@ class Hbar:
     """ There are 100 million tinybars in one hbar. """
     TINYBAR_TO_HBAR = 100_000_000
 
-    def __init__(self, amount, in_tinybars=False):
+    def __init__(self, amount:int, in_tinybars:bool=False):
         """ Create an hbar instance with the given amount designated either in hbars or tinybars. """
         if in_tinybars:
             self._amount_in_tinybar = int(amount)
@@ -22,7 +22,7 @@ class Hbar:
         return self._amount_in_tinybar / self.TINYBAR_TO_HBAR
 
     @classmethod
-    def from_tinybars(cls, tinybars):
+    def from_tinybars(cls, tinybars:int):
         """ Creates an hbar instance from the given amount in tinybars. """
         return cls(tinybars, in_tinybars=True)
 
