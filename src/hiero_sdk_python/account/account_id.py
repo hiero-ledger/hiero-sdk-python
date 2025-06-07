@@ -2,7 +2,19 @@ from typing import List
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 class AccountId:
-    def __init__(self, shard:int=0, realm:int=0, num:int=0):
+    def __init__(
+        self,
+        shard : int = 0, 
+        realm : int = 0, 
+        num : int = 0
+    ) -> None:
+        """
+        Initialize a new AccountId instance.
+        Args:
+            shard (int): The shard number of the account.
+            realm (int): The realm number of the account.
+            num (int): The account number.
+        """
         self.shard = shard
         self.realm = realm
         self.num = num
@@ -55,9 +67,17 @@ class AccountId:
         return f"{self.shard}.{self.realm}.{self.num}"
 
     def __eq__(self, other: object) -> bool:
-            if not isinstance(other, AccountId):
-                return False
-            return (self.shard, self.realm, self.num) == (other.shard, other.realm, other.num)
+        """
+        Checks equality between two AccountId instances.
+        Args:
+            other (object): The object to compare with.
+        Returns:
+            bool: True if both instances are equal, False otherwise.
+        """
+        if not isinstance(other, AccountId):
+            return False
+        return (self.shard, self.realm, self.num) == (other.shard, other.realm, other.num)
 
     def __hash__(self) -> int:
+        """Returns a hash value for the AccountId instance."""
         return hash((self.shard, self.realm, self.num))

@@ -16,11 +16,11 @@ class AccountCreateTransaction(Transaction):
 
     def __init__(
         self,
-        key: PublicKey = None,
-        initial_balance: Union[Hbar, int] = 0,
-        receiver_signature_required: bool = False,
-        auto_renew_period: Duration = Duration(7890000),  # 90 days in seconds
-        memo: str = ""
+        key : PublicKey = None,
+        initial_balance : Union[Hbar, int] = 0,
+        receiver_signature_required : bool = False,
+        auto_renew_period : Duration = Duration(7890000),  # 90 days in seconds
+        memo : str = ""
      ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values or specified keyword arguments.
@@ -40,7 +40,7 @@ class AccountCreateTransaction(Transaction):
         self.account_memo = memo
         self._default_transaction_fee = 300_000_000
 
-    def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
+    def set_key(self, key : PublicKey) -> "AccountCreateTransaction":
         """
         Sets the public key for the new account.
 
@@ -54,7 +54,7 @@ class AccountCreateTransaction(Transaction):
         self.key = key
         return self
 
-    def set_initial_balance(self, balance: Union[Hbar, int]) -> "AccountCreateTransaction":
+    def set_initial_balance(self, balance : Union[Hbar, int]) -> "AccountCreateTransaction":
         """
         Sets the initial balance for the new account.
 
@@ -105,7 +105,7 @@ class AccountCreateTransaction(Transaction):
             raise TypeError("Duration of invalid type")
 
 
-    def set_account_memo(self, memo: str) -> "AccountCreateTransaction":
+    def set_account_memo(self, memo : str) -> "AccountCreateTransaction":
         """
         Sets the memo for the new account.
 
@@ -148,12 +148,19 @@ class AccountCreateTransaction(Transaction):
             memo=self.account_memo
         )
 
-        transaction_body:crypto_create_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body : crypto_create_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.cryptoCreateAccount.CopyFrom(crypto_create_body)
 
         return transaction_body
 
-    def _get_method(self, channel: _Channel) -> _Method:
+    def _get_method(self, channel : _Channel) -> _Method:
+        """
+        Returns the method for executing the account creation transaction.
+        Args:
+            channel (_Channel): The channel to use for the transaction.
+        Returns:
+            _Method: An instance of _Method containing the transaction and query functions.
+        """
         return _Method(
             transaction_func=channel.crypto.createAccount,
             query_func=None

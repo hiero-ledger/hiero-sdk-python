@@ -1,7 +1,28 @@
+from typing import List, TypedDict
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
+from hiero_sdk_python.hapi.services.basic_types_pb2 import ServiceEndpoint
 from hiero_sdk_python.hapi.services.basic_types_pb2 import NodeAddress as NodeAddressProto
 
+class NodeDict(TypedDict):
+    """
+    A TypedDict representing the structure of a node address in JSON format.
+    
+    Attributes:
+        public_key (str): The RSA public key of the node.
+        node_account_id (str): The account ID of the node in 'shard.realm.num' format.
+        node_id (int): The node ID.
+        node_cert_hash (str): The node certificate hash in hexadecimal format.
+        service_endpoints (list[EndpointDict]): List of service endpoints for the node.
+        description (str): Description of the node.
+    """
+    public_key : str
+    node_account_id : str
+    node_id : int
+    node_cert_hash : str
+    service_endpoints : List[Endpoint]
+    description : str
 
 class NodeAddress:
     """
@@ -10,12 +31,12 @@ class NodeAddress:
     
     def __init__(
         self,
-        public_key=None,
-        account_id=None,
-        node_id=None,
-        cert_hash=None,
-        addresses=None,
-        description=None
+        public_key : str = None,
+        account_id : AccountId = None,
+        node_id : int = None,
+        cert_hash : bytes = None,
+        addresses : List[Endpoint] = None,
+        description : str = None
     ):
         """
         Initialize a new NodeAddress instance.
@@ -32,11 +53,11 @@ class NodeAddress:
         self._account_id : AccountId = account_id
         self._node_id : int = node_id
         self._cert_hash : bytes = cert_hash
-        self._addresses : list[Endpoint] = addresses
+        self._addresses : List[Endpoint] = addresses
         self._description : str = description
     
     @classmethod
-    def _from_proto(cls, node_address_proto : 'NodeAddressProto'):
+    def _from_proto(cls, node_address_proto : NodeAddressProto) -> "NodeAddress":
         """
         Create a NodeAddress from a protobuf NodeAddress.
         
@@ -46,12 +67,12 @@ class NodeAddress:
         Returns:
             NodeAddress: A new NodeAddress instance.
         """
-        addresses = []
+        addresses : List[Endpoint] = []
         
         for endpoint_proto in node_address_proto.serviceEndpoint:
             addresses.append(Endpoint.from_proto(endpoint_proto))
         
-        account_id = None
+        account_id : AccountId = None
         if node_address_proto.nodeAccountId:
             account_id = AccountId.from_proto(node_address_proto.nodeAccountId)
         
@@ -81,7 +102,7 @@ class NodeAddress:
         if self._account_id:
             node_address_proto.nodeAccountId.CopyFrom(self._account_id.to_proto())
         
-        service_endpoints = []
+        service_endpoints : List[ServiceEndpoint] = []
         for endpoint in self._addresses:
             service_endpoints.append(endpoint._to_proto())
         
@@ -96,12 +117,12 @@ class NodeAddress:
         Returns:
             str: The string representation of the NodeAddress.
         """
-        addresses_str = ""
+        addresses_str : str = ""
         for address in self._addresses:
             addresses_str += str(address)
-        cert_hash_str = self._cert_hash.hex()
-        node_id_str = str(self._node_id)
-        account_id_str = str(self._account_id)
+        cert_hash_str : str = self._cert_hash.hex()
+        node_id_str : str = str(self._node_id)
+        account_id_str : str = str(self._account_id)
         
         return (
             f"NodeAccountId: {account_id_str} {addresses_str}\n"
@@ -111,20 +132,20 @@ class NodeAddress:
         )
 
     @classmethod
-    def _from_dict(cls, node) -> 'NodeAddress':
+    def _from_dict(cls, node : NodeDict) -> 'NodeAddress':
         """
         Create a NodeAddress from a dictionary.
         """
         
-        service_endpoints = node.get('service_endpoints', [])
-        public_key = node.get('public_key')
-        account_id = AccountId.from_string(node.get('node_account_id'))
-        node_id = node.get('node_id')
+        service_endpoints : List[ServiceEndpoint] = node.get('service_endpoints', [])
+        public_key : str = node.get('public_key')
+        account_id : str= AccountId.from_string(node.get('node_account_id'))
+        node_id : int = node.get('node_id')
         # Get the hash from the node, remove the 0x prefix and convert to bytes
-        cert_hash = bytes.fromhex(node.get('node_cert_hash').removeprefix('0x'))
-        description = node.get('description')
+        cert_hash : bytes = bytes.fromhex(node.get('node_cert_hash').removeprefix('0x'))
+        description : str = node.get('description')
         
-        endpoints = []
+        endpoints : List[ServiceEndpoint] = []
         for endpoint in service_endpoints:
             endpoints.append(Endpoint.from_dict(endpoint))
         
