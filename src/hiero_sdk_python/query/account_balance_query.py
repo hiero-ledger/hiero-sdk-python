@@ -14,7 +14,7 @@ class CryptoGetAccountBalanceQuery(Query):
     including hbars and tokens.
     """
 
-    def __init__(self, account_id: AccountId = None):
+    def __init__(self, account_id: AccountId = None) -> None:
         """
         Initializes a new instance of the CryptoGetAccountBalanceQuery class.
 
@@ -24,7 +24,7 @@ class CryptoGetAccountBalanceQuery(Query):
         super().__init__()
         self.account_id = account_id
 
-    def set_account_id(self, account_id: AccountId):
+    def set_account_id(self, account_id: AccountId) -> "CryptoGetAccountBalanceQuery":
         """
         Sets the account ID for which to retrieve the balance.
 
@@ -37,7 +37,7 @@ class CryptoGetAccountBalanceQuery(Query):
         self.account_id = account_id
         return self
 
-    def _make_request(self):
+    def _make_request(self) -> query_pb2.Query:
         """
         Constructs the protobuf request for the account balance query.
 
@@ -87,7 +87,7 @@ class CryptoGetAccountBalanceQuery(Query):
             query_func=channel.crypto.cryptoGetBalance
         )
 
-    def execute(self, client):
+    def execute(self, client) -> AccountBalance:
         """
         Executes the account balance query.
         
@@ -112,7 +112,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
         return AccountBalance.from_proto(response.cryptogetAccountBalance)
 
-    def _get_query_response(self, response):
+    def _get_query_response(self, response) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
         """
         Extracts the account balance response from the full response.
         
