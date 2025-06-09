@@ -90,13 +90,14 @@ class Query(_Executable):
         """
         if not self.node_account_ids:
             self.node_account_ids = client.get_node_account_ids()
-
+                
         self.operator = self.operator or client.operator
         self.node_account_ids = list(set(self.node_account_ids))
         
-        # If no payment amount was specified - get the cost (if payment is not required, it was already set to 0 above)
+        # If no payment amount was specified and payment is required for this query,
+        # get the cost from the network and set it as the payment amount
         if self.payment_amount is None and self._is_payment_required:
-            self.payment_amount = self._get_cost(client)
+            self.payment_amount = self.get_cost(client)
         
     def _make_request_header(self):
         """
@@ -163,7 +164,7 @@ class Query(_Executable):
 
         return tx.to_proto()
     
-    def _get_cost(self, client):
+    def get_cost(self, client):
         """
         Gets the cost of executing this query on the network.
         
@@ -185,6 +186,12 @@ class Query(_Executable):
             MaxAttemptsError: If the cost query fails after maximum retry attempts
             ReceiptStatusError: If the cost query fails with a receipt error
         """
+        if self.payment_amount is not None:
+            return self.payment_amount
+        
+        if not self._is_payment_required:
+            return Hbar.from_tinybars(0)
+        
         if client is None or client.operator is None:
             raise ValueError("Client and operator must be set to get the cost")
         
