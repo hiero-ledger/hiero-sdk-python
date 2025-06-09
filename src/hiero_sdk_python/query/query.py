@@ -38,7 +38,7 @@ class Query(_Executable):
         self.node_account_ids = []
         self.operator = None
         self.node_index = 0
-        self._user_query_payment = None
+        self.payment_amount = None
         self._is_payment_required = True
         
     def _get_query_response(self, response):
@@ -72,7 +72,7 @@ class Query(_Executable):
         Returns:
             Query: The current query instance for method chaining
         """
-        self._user_query_payment = amount
+        self.payment_amount = amount
         return self
 
     def _before_execute(self, client):
@@ -95,8 +95,8 @@ class Query(_Executable):
         self.node_account_ids = list(set(self.node_account_ids))
         
         # If no payment amount was specified - get the cost (if payment is not required, it was already set to 0 above)
-        if self._user_query_payment is None and self._is_payment_required:
-            self._user_query_payment = self._get_cost(client)
+        if self.payment_amount is None and self._is_payment_required:
+            self.payment_amount = self._get_cost(client)
         
     def _make_request_header(self):
         """
@@ -114,7 +114,7 @@ class Query(_Executable):
         header = query_header_pb2.QueryHeader()
         
         # If there isn't a user query payment and payment is required, return COST_ANSWER
-        if self._user_query_payment is None and self._is_payment_required:
+        if self.payment_amount is None and self._is_payment_required:
             header.responseType = query_header_pb2.ResponseType.COST_ANSWER
             return header
         
@@ -123,13 +123,13 @@ class Query(_Executable):
         if (
             self.operator is not None
             and self.node_account_id is not None
-            and self._user_query_payment is not None
+            and self.payment_amount is not None
         ):
             payment_tx = self._build_query_payment_transaction(
                 payer_account_id=self.operator.account_id,
                 payer_private_key=self.operator.private_key,
                 node_account_id=self.node_account_id,
-                amount=self._user_query_payment
+                amount=self.payment_amount
             )
             header.payment.CopyFrom(payment_tx)
 
