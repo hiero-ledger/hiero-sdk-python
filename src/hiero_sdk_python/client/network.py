@@ -12,7 +12,7 @@ class Network:
     Manages the network configuration for connecting to the Hedera network.
     """
 
-    MIRROR_ADDRESS_DEFAULT : Dict[str,str] = {
+    MIRROR_ADDRESS_DEFAULT: Dict[str,str] = {
         'mainnet': 'hcs.mainnet.mirrornode.hedera.com:5600',
         'testnet': 'hcs.testnet.mirrornode.hedera.com:5600',
         'previewnet': 'hcs.previewnet.mirrornode.hedera.com:5600',
@@ -26,7 +26,7 @@ class Network:
         'solo': 'http://localhost:8080'
     }
 
-    DEFAULT_NODES : Dict[str,List] = {
+    DEFAULT_NODES: Dict[str,List] = {
         'mainnet': [
             ("35.237.200.180:50211", AccountId(0, 0, 3)),
             ("35.186.191.247:50211", AccountId(0, 0, 4)),
@@ -73,22 +73,22 @@ class Network:
             mirror_address (str, optional): A mirror node address (host:port) for topic queries.
                                             If not provided, we'll use a default from MIRROR_ADDRESS_DEFAULT[network].
         """
-        self.network : str = network or 'testnet'
-        self.mirror_address : str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, 'localhost:5600')
+        self.network: str = network or 'testnet'
+        self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, 'localhost:5600')
 
         if nodes is not None:
-            self.nodes : List[_Node] = nodes
+            self.nodes: List[_Node] = nodes
         elif self.network in ('solo', 'localhost', 'local'):
-            self.nodes : List[_Node] = self._fetch_nodes_from_default_nodes()
+            self.nodes: List[_Node] = self._fetch_nodes_from_default_nodes()
         else:
-            self.nodes : List[_Node] = self._fetch_nodes_from_mirror_node()
+            self.nodes: List[_Node] = self._fetch_nodes_from_mirror_node()
             if not self.nodes and self.network in self.DEFAULT_NODES:
                 self.nodes = self._fetch_nodes_from_default_nodes()
             elif not self.nodes:
                 raise ValueError(f"No default nodes for network='{self.network}'")
         
-        self._node_index : int = secrets.randbelow(len(self.nodes))
-        self.current_node : _Node = self.nodes[self._node_index]
+        self._node_index: int = secrets.randbelow(len(self.nodes))
+        self.current_node: _Node = self.nodes[self._node_index]
 
     def _fetch_nodes_from_mirror_node(self) -> List[_Node]:
         """
@@ -96,24 +96,24 @@ class Network:
         Returns:
             list: A list of _Node objects.
         """
-        base_url : str = self.MIRROR_NODE_URLS.get(self.network)
+        base_url: str = self.MIRROR_NODE_URLS.get(self.network)
         if not base_url:
             print(f"No known mirror node URL for network='{self.network}'. Skipping fetch.")
             return []
 
-        url : str = f"{base_url}/api/v1/network/nodes?limit=100&order=desc"
+        url: str = f"{base_url}/api/v1/network/nodes?limit=100&order=desc"
 
         try:
-            response : requests.Response = requests.get(url)
+            response: requests.Response = requests.get(url)
             response.raise_for_status()
-            data : dict = response.json()
+            data: dict = response.json()
 
-            nodes : List[_Node] = []
+            nodes: List[_Node] = []
             # Process each node from the mirror node API response
             for node in data.get('nodes', []):
-                address_book : NodeAddress = NodeAddress._from_dict(node)
-                account_id : AccountId = address_book._account_id
-                address : str = str(address_book._addresses[0])
+                address_book: NodeAddress = NodeAddress._from_dict(node)
+                account_id: AccountId = address_book._account_id
+                address: str = str(address_book._addresses[0])
                 
                 nodes.append(_Node(account_id, address, address_book))
             
@@ -126,7 +126,7 @@ class Network:
         """
         Fetches the list of nodes from the default nodes for the network.
         """
-        nodes : List[_Node] = []
+        nodes: List[_Node] = []
         for node in self.DEFAULT_NODES[self.network]:
             nodes.append(_Node(node[1], node[0], None))
         return nodes

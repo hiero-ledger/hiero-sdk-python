@@ -11,9 +11,9 @@ class EndpointDict(TypedDict):
         port (int): The port number of the endpoint.
         domain_name (str): The domain name of the endpoint.
     """
-    ip_address_v4 : str
-    port : int
-    domain_name : str
+    ip_address_v4: str
+    port: int
+    domain_name: str
 
 class Endpoint:
     """
@@ -23,9 +23,9 @@ class Endpoint:
     
     def __init__(
         self,
-        address : bytes = None,
-        port : int = None,
-        domain_name : str = None
+        address: bytes = None,
+        port: int = None,
+        domain_name: str = None
     ) -> None:
         """
         Initialize a new Endpoint instance.
@@ -35,11 +35,11 @@ class Endpoint:
             port (int, optional): The port number.
             domain_name (str, optional): The domain name.
         """
-        self._address : bytes = address
-        self._port : int = port
-        self._domain_name : str = domain_name
+        self._address: bytes = address
+        self._port: int = port
+        self._domain_name: str = domain_name
     
-    def set_address(self, address : bytes) -> "Endpoint":
+    def set_address(self, address: bytes) -> "Endpoint":
         """
         Set the IP address of the endpoint.
         
@@ -61,7 +61,7 @@ class Endpoint:
         """
         return self._address
     
-    def set_port(self, port : int) -> "Endpoint":
+    def set_port(self, port: int) -> "Endpoint":
         """
         Set the port of the endpoint.
         
@@ -83,7 +83,7 @@ class Endpoint:
         """
         return self._port
     
-    def set_domain_name(self, domain_name : str) -> "Endpoint":
+    def set_domain_name(self, domain_name: str) -> "Endpoint":
         """
         Set the domain name of the endpoint.
         
@@ -106,7 +106,7 @@ class Endpoint:
         return self._domain_name
     
     @classmethod
-    def from_proto(cls, service_endpoint : ServiceEndpoint) -> "Endpoint":
+    def from_proto(cls, service_endpoint: ServiceEndpoint) -> "Endpoint":
         """
         Create an Endpoint from a protobuf ServiceEndpoint.
         
@@ -152,7 +152,7 @@ class Endpoint:
         return f"{self._address.decode('utf-8')}:{self._port}"
 
     @classmethod
-    def from_dict(cls, json_data : EndpointDict) -> "Endpoint":
+    def from_dict(cls, json_data: EndpointDict) -> "Endpoint":
         """
         Create an Endpoint from a JSON object.
         

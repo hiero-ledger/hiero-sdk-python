@@ -4,7 +4,7 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
 class TopicMessageSubmitTransaction(Transaction):
-    def __init__(self, topic_id : basic_types_pb2.TopicID = None, message : str = None) -> None:
+    def __init__(self, topic_id: basic_types_pb2.TopicID = None, message: str = None) -> None:
         """
         Initializes a new TopicMessageSubmitTransaction instance.
         
@@ -13,10 +13,10 @@ class TopicMessageSubmitTransaction(Transaction):
             message (str, optional): The message to submit.
         """
         super().__init__()
-        self.topic_id : basic_types_pb2.TopicID = topic_id
-        self.message : str = message
+        self.topic_id: basic_types_pb2.TopicID = topic_id
+        self.message: str = message
 
-    def set_topic_id(self, topic_id : basic_types_pb2.TopicID) -> "TopicMessageSubmitTransaction":
+    def set_topic_id(self, topic_id: basic_types_pb2.TopicID) -> "TopicMessageSubmitTransaction":
         """
         Sets the topic ID for the message submission.
 
@@ -30,7 +30,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self.topic_id = topic_id
         return self
 
-    def set_message(self, message : str) -> "TopicMessageSubmitTransaction":
+    def set_message(self, message: str) -> "TopicMessageSubmitTransaction":
         """
         Sets the message to submit to the topic.
 

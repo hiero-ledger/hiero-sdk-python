@@ -1,7 +1,7 @@
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 class TopicId:
-    def __init__(self, shard : int = 0, realm : int = 0, num : int = 0) -> None:
+    def __init__(self, shard: int = 0, realm: int = 0, num: int = 0) -> None:
         """
         Initializes a new instance of the TopicId class.
         Args:
@@ -9,12 +9,12 @@ class TopicId:
             realm (int): The realm number of the topic.
             num (int): The topic number.
         """
-        self.shard : int = shard
-        self.realm : int = realm
-        self.num : int = num
+        self.shard: int = shard
+        self.realm: int = realm
+        self.num: int = num
 
     @classmethod
-    def from_proto(cls, topic_id_proto : basic_types_pb2.TopicID) -> "TopicId":
+    def from_proto(cls, topic_id_proto: basic_types_pb2.TopicID) -> "TopicId":
         """
         Creates a TopicId instance from a protobuf TopicID object.
         """

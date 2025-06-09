@@ -25,10 +25,10 @@ class TokenWipeTransaction(Transaction):
             serial (list[int], optional): The serial numbers of NFTs to wipe.
         """
         super().__init__()
-        self.token_id : TokenId = token_id
-        self.account_id : AccountId = account_id
-        self.amount : int = amount
-        self.serial : list[int] = serial
+        self.token_id: TokenId = token_id
+        self.account_id: AccountId = account_id
+        self.amount: int = amount
+        self.serial: list[int] = serial
         
     def set_token_id(self, token_id):
         """

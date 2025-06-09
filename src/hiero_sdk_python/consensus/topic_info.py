@@ -8,15 +8,15 @@ from hiero_sdk_python.utils.key_format import format_key
 class TopicInfo:
     def __init__(
         self,
-        memo : str,
-        running_hash : bytes,
-        sequence_number : int,
-        expiration_time : Timestamp,
-        admin_key : Key,
-        submit_key : Key,
-        auto_renew_period : Duration,
-        auto_renew_account : AccountID,
-        ledger_id : bytes,
+        memo: str,
+        running_hash: bytes,
+        sequence_number: int,
+        expiration_time: Timestamp,
+        admin_key: Key,
+        submit_key: Key,
+        auto_renew_period: Duration,
+        auto_renew_account: AccountID,
+        ledger_id: bytes,
     ) -> None:
         """
         Initializes a new instance of the TopicInfo class.
@@ -31,18 +31,18 @@ class TopicInfo:
             auto_renew_account (AccountID): The account ID for auto-renewal.
             ledger_id (bytes): The ledger ID associated with the topic.
         """
-        self.memo : str = memo
-        self.running_hash : bytes = running_hash
-        self.sequence_number : int = sequence_number
-        self.expiration_time : Timestamp = expiration_time
-        self.admin_key : Key = admin_key
-        self.submit_key : Key = submit_key
-        self.auto_renew_period : Duration = auto_renew_period
-        self.auto_renew_account : AccountID = auto_renew_account
-        self.ledger_id : bytes = ledger_id
+        self.memo: str = memo
+        self.running_hash: bytes = running_hash
+        self.sequence_number: int = sequence_number
+        self.expiration_time: Timestamp = expiration_time
+        self.admin_key: Key = admin_key
+        self.submit_key: Key = submit_key
+        self.auto_renew_period: Duration = auto_renew_period
+        self.auto_renew_account: AccountID = auto_renew_account
+        self.ledger_id: bytes = ledger_id
 
     @classmethod
-    def from_proto(cls, topic_info_proto : consensus_topic_info_pb2.ConsensusTopicInfo) -> "TopicInfo":
+    def from_proto(cls, topic_info_proto: consensus_topic_info_pb2.ConsensusTopicInfo) -> "TopicInfo":
         """
         Constructs a TopicInfo object from a protobuf ConsensusTopicInfo message.
         """
@@ -84,11 +84,11 @@ class TopicInfo:
         Pretty-print the TopicInfo in a multi-line, user-friendly style.
         """
 
-        exp_dt : datetime = None
+        exp_dt: datetime = None
         if self.expiration_time and hasattr(self.expiration_time, "seconds"):
             exp_dt = datetime.fromtimestamp(self.expiration_time.seconds)
             
-        running_hash_hex : str = self.running_hash.hex() if self.running_hash else None
+        running_hash_hex: str = self.running_hash.hex() if self.running_hash else None
 
         return (
             "TopicInfo(\n"

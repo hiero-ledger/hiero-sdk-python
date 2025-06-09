@@ -13,7 +13,7 @@ class AccountBalance:
         token_balances (dict): A dictionary mapping TokenId to token balances.
     """
 
-    def __init__(self, hbars : Hbar, token_balances : Dict[TokenId,int] = None) -> None:
+    def __init__(self, hbars: Hbar, token_balances: Dict[TokenId,int] = None) -> None:
         """
         Initializes the AccountBalance with the given hbar balance and token balances.
 
@@ -25,7 +25,7 @@ class AccountBalance:
         self.token_balances = token_balances or {}
 
     @classmethod
-    def from_proto(cls, proto : CryptoGetAccountBalanceResponse) -> "AccountBalance":
+    def from_proto(cls, proto: CryptoGetAccountBalanceResponse) -> "AccountBalance":
         """
         Creates an AccountBalance instance from a protobuf response.
 
@@ -35,13 +35,13 @@ class AccountBalance:
         Returns:
             AccountBalance: The account balance instance.
         """
-        hbars : Hbar = Hbar.from_tinybars(tinybars=proto.balance)
+        hbars: Hbar = Hbar.from_tinybars(tinybars=proto.balance)
 
-        token_balances : Dict[TokenId,int] = {}
+        token_balances: Dict[TokenId,int] = {}
         if proto.tokenBalances:
             for token_balance in proto.tokenBalances:
-                token_id : TokenId = TokenId.from_proto(token_balance.tokenId)
-                balance : Union[Hbar,int] = token_balance.balance
+                token_id: TokenId = TokenId.from_proto(token_balance.tokenId)
+                balance: Union[Hbar,int] = token_balance.balance
                 token_balances[token_id] = balance
 
         return cls(hbars=hbars, token_balances=token_balances)

@@ -19,10 +19,10 @@ class TokenNftTransfer:
             serial_number (int): The serial number of the NFT being transferred.
             is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
         """
-        self.sender_id : AccountId = sender_id
-        self.receiver_id : AccountId = receiver_id
-        self.serial_number : int = serial_number
-        self.is_approved : bool = is_approved
+        self.sender_id: AccountId = sender_id
+        self.receiver_id: AccountId = receiver_id
+        self.serial_number: int = serial_number
+        self.is_approved: bool = is_approved
         
     def to_proto(self):
         """

@@ -10,11 +10,11 @@ from hiero_sdk_python.account.account_id import AccountId
 class TopicCreateTransaction(Transaction):
     def __init__(
         self,
-        memo : str = None,
-        admin_key : basic_types_pb2.Key = None,
-        submit_key : basic_types_pb2.Key = None,
-        auto_renew_period : Duration = None,
-        auto_renew_account : AccountId = None
+        memo: str = None,
+        admin_key: basic_types_pb2.Key = None,
+        submit_key: basic_types_pb2.Key = None,
+        auto_renew_period: Duration = None,
+        auto_renew_account: AccountId = None
     ) -> None:
         """
         Initializes a new instance of the TopicCreateTransaction class.
@@ -27,13 +27,13 @@ class TopicCreateTransaction(Transaction):
         """
         super().__init__()
         self.memo = memo or ""
-        self.admin_key : basic_types_pb2.Key = admin_key
-        self.submit_key : basic_types_pb2.Key = submit_key
-        self.auto_renew_period : Duration = auto_renew_period or Duration(7890000)
-        self.auto_renew_account : AccountId = auto_renew_account
-        self.transaction_fee : int = 10_000_000
+        self.admin_key: basic_types_pb2.Key = admin_key
+        self.submit_key: basic_types_pb2.Key = submit_key
+        self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
+        self.auto_renew_account: AccountId = auto_renew_account
+        self.transaction_fee: int = 10_000_000
 
-    def set_memo(self, memo : str) -> "TopicCreateTransaction":
+    def set_memo(self, memo: str) -> "TopicCreateTransaction":
         """
         Sets the memo for the topic creation transaction.
         Args:
@@ -45,7 +45,7 @@ class TopicCreateTransaction(Transaction):
         self.memo = memo
         return self
 
-    def set_admin_key(self, key : basic_types_pb2.Key) -> "TopicCreateTransaction":
+    def set_admin_key(self, key: basic_types_pb2.Key) -> "TopicCreateTransaction":
         """
         Sets the admin key for the topic creation transaction.
         Args:
@@ -57,7 +57,7 @@ class TopicCreateTransaction(Transaction):
         self.admin_key = key
         return self
 
-    def set_submit_key(self, key : basic_types_pb2.Key) -> "TopicCreateTransaction":
+    def set_submit_key(self, key: basic_types_pb2.Key) -> "TopicCreateTransaction":
         """
         Sets the submit key for the topic creation transaction.
         Args:
@@ -69,7 +69,7 @@ class TopicCreateTransaction(Transaction):
         self.submit_key = key
         return self
 
-    def set_auto_renew_period(self, seconds : Union[Duration,int]) -> "TopicCreateTransaction":
+    def set_auto_renew_period(self, seconds: Union[Duration,int]) -> "TopicCreateTransaction":
         """
         Sets the auto-renew period for the topic creation transaction.
         Args:
@@ -88,7 +88,7 @@ class TopicCreateTransaction(Transaction):
             raise TypeError("Duration of invalid type")
         return self
 
-    def set_auto_renew_account(self, account_id : AccountId) -> "TopicCreateTransaction":
+    def set_auto_renew_account(self, account_id: AccountId) -> "TopicCreateTransaction":
         """
         Sets the account ID for auto-renewal of the topic.
         Args:
@@ -110,7 +110,7 @@ class TopicCreateTransaction(Transaction):
         Raises:
             ValueError: If required fields are missing.
         """
-        transaction_body : transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.consensusCreateTopic.CopyFrom(consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
             adminKey=self.admin_key.to_proto() if self.admin_key is not None else None,
             submitKey=self.submit_key.to_proto() if self.submit_key is not None else None,
@@ -121,7 +121,7 @@ class TopicCreateTransaction(Transaction):
 
         return transaction_body
 
-    def _get_method(self, channel : _Channel) -> _Method:
+    def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the method to be used for executing the transaction.
         Args:

@@ -23,7 +23,7 @@ class TokenNftInfoQuery(Query):
             nft_id (NftId, optional): The ID of the NFT to query.
         """
         super().__init__()
-        self.nft_id : NftId = nft_id
+        self.nft_id: NftId = nft_id
 
     def set_nft_id(self, nft_id: NftId):
         """

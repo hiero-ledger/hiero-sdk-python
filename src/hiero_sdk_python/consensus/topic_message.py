@@ -11,16 +11,16 @@ class TopicMessageChunk:
     Mirrors the Java 'TopicMessageChunk'.
     """
 
-    def __init__(self, response : mirror_proto.ConsensusTopicResponse) -> None:
+    def __init__(self, response: mirror_proto.ConsensusTopicResponse) -> None:
         """
         Initializes a TopicMessageChunk from a ConsensusTopicResponse.
         Args:
             response: The ConsensusTopicResponse containing chunk data.
         """
-        self.consensus_timestamp : Timestamp = Timestamp.from_protobuf(response.consensusTimestamp).to_date()
-        self.content_size : int = len(response.message)
-        self.running_hash : Union[bytes, int] = response.runningHash
-        self.sequence_number : Union[bytes, int] = response.sequenceNumber
+        self.consensus_timestamp: Timestamp = Timestamp.from_protobuf(response.consensusTimestamp).to_date()
+        self.content_size: int = len(response.message)
+        self.running_hash: Union[bytes, int] = response.runningHash
+        self.sequence_number: Union[bytes, int] = response.sequenceNumber
 
 
 class TopicMessage:
@@ -30,10 +30,10 @@ class TopicMessage:
 
     def __init__(
         self,
-        consensus_timestamp : datetime,
-        message_data : Dict[str, Union[bytes, int]],
-        chunks : List[TopicMessageChunk],
-        transaction_id : Optional[str] = None,
+        consensus_timestamp: datetime,
+        message_data: Dict[str, Union[bytes, int]],
+        chunks: List[TopicMessageChunk],
+        transaction_id: Optional[str] = None,
     ) -> None:
         """
         Args:
@@ -47,25 +47,25 @@ class TopicMessage:
             chunks: All individual chunks that form this message.
             transaction_id: The transaction ID string if available.
         """
-        self.consensus_timestamp : datetime = consensus_timestamp
-        self.contents : Union[bytes, int] = message_data["contents"]
-        self.running_hash : Union[bytes, int] = message_data["running_hash"]
-        self.sequence_number : Union[bytes, int] = message_data["sequence_number"]
-        self.chunks : List[TopicMessageChunk] = chunks
-        self.transaction_id : Optional[str] = transaction_id
+        self.consensus_timestamp: datetime = consensus_timestamp
+        self.contents: Union[bytes, int] = message_data["contents"]
+        self.running_hash: Union[bytes, int] = message_data["running_hash"]
+        self.sequence_number: Union[bytes, int] = message_data["sequence_number"]
+        self.chunks: List[TopicMessageChunk] = chunks
+        self.transaction_id: Optional[str] = transaction_id
 
     @classmethod
-    def of_single(cls, response : mirror_proto.ConsensusTopicResponse) -> "TopicMessage":
+    def of_single(cls, response: mirror_proto.ConsensusTopicResponse) -> "TopicMessage":
         """
         Build a TopicMessage from a single-chunk response.
         """
-        chunk : TopicMessageChunk = TopicMessageChunk(response)
-        consensus_timestamp : datetime = chunk.consensus_timestamp
-        contents : Union[bytes, int] = response.message
-        running_hash : Union[bytes, int] = response.runningHash
-        sequence_number : Union[bytes, int] = chunk.sequence_number
+        chunk: TopicMessageChunk = TopicMessageChunk(response)
+        consensus_timestamp: datetime = chunk.consensus_timestamp
+        contents: Union[bytes, int] = response.message
+        running_hash: Union[bytes, int] = response.runningHash
+        sequence_number: Union[bytes, int] = chunk.sequence_number
 
-        transaction_id : Optional[str] = None
+        transaction_id: Optional[str] = None
         if response.HasField("chunkInfo") and response.chunkInfo.HasField("initialTransactionID"):
             tx_id = response.chunkInfo.initialTransactionID
             transaction_id = (
@@ -137,8 +137,8 @@ class TopicMessage:
     @classmethod
     def from_proto(
         cls,
-        response_or_responses : Union[mirror_proto.ConsensusTopicResponse, List[mirror_proto.ConsensusTopicResponse]],
-        chunking_enabled : bool = False
+        response_or_responses: Union[mirror_proto.ConsensusTopicResponse, List[mirror_proto.ConsensusTopicResponse]],
+        chunking_enabled: bool = False
     ) -> "TopicMessage":
         """
         Creates a TopicMessage from either:

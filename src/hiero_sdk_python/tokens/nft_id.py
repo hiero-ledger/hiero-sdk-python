@@ -25,7 +25,7 @@ class NftId:
         return True
 
     @classmethod
-    def from_proto(cls, nft_id_proto:basic_types_pb2.NftID = None):
+    def from_proto(cls, nft_id_proto: basic_types_pb2.NftID = None):
         """
         :param nft_id_proto: the proto NftID object
         :return: a NftId object
@@ -44,7 +44,7 @@ class NftId:
         return nft_id_proto
 
     @classmethod
-    def from_string(cls, nft_id_str:str = ""):
+    def from_string(cls, nft_id_str: str = ""):
         """
         :param nft_id_str: a string NftId representation
         :return: returns the NftId parsed from the string input

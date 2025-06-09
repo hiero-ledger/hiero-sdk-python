@@ -17,10 +17,10 @@ class _Node:
             min_backoff (int): The minimum backoff time in seconds.
         """
         
-        self._account_id : AccountId = account_id
-        self._channel : _Channel = None
-        self._address_book : NodeAddress = address_book
-        self._address = _ManagedNodeAddress._from_string(address)
+        self._account_id: AccountId = account_id
+        self._channel: _Channel = None
+        self._address_book: NodeAddress = address_book
+        self._address: _ManagedNodeAddress = _ManagedNodeAddress._from_string(address)
     
     def _close(self):
         """

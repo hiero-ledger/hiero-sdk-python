@@ -50,7 +50,7 @@ class TokenId:
         return token_id_proto
 
     @classmethod
-    def from_string(cls, token_id_str:str = ""):
+    def from_string(cls, token_id_str: str = ""):
         """
         Parses a string in the format 'shard.realm.num' to create a TokenId instance.
         """

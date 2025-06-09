@@ -25,9 +25,9 @@ class TokenUpdateNftsTransaction(Transaction):
             metadata (bytes, optional): The new metadata for the NFTs.
         """
         super().__init__()
-        self.token_id : TokenId = token_id
-        self.serial_numbers : list[int] = serial_numbers if serial_numbers else []
-        self.metadata : bytes = metadata
+        self.token_id: TokenId = token_id
+        self.serial_numbers: list[int] = serial_numbers if serial_numbers else []
+        self.metadata: bytes = metadata
 
     def set_token_id(self, token_id):
         self._require_not_frozen()

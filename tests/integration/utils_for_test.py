@@ -16,8 +16,8 @@ class IntegrationTestEnv:
     def __init__(self):
         network = Network(os.getenv('NETWORK'))
         self.client = Client(network)
-        self.operator_id : AccountId = None
-        self.operator_key : PrivateKey = None
+        self.operator_id: AccountId = None
+        self.operator_key: PrivateKey = None
         operator_id = os.getenv('OPERATOR_ID')
         operator_key = os.getenv('OPERATOR_KEY')
         if operator_id and operator_key:

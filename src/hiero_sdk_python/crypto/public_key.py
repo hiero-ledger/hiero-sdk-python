@@ -20,11 +20,14 @@ class PublicKey:
     
     """
 
-    def __init__(self, public_key: Union[ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey]):
+    def __init__(
+        self,
+        public_key: Union[ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey]
+    ) -> None:
         """
         Initializes a PublicKey from a cryptography PublicKey object.
         """
-        self._public_key = public_key
+        self._public_key: Union[ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey] = public_key
 
     #
     # ---------------------------------
@@ -368,6 +371,10 @@ class PublicKey:
         )
         
     def to_bytes_ecdsa(self, compressed: bool = True) -> bytes:
+        """
+        Specific name for clarity.
+        Returns the ECDSA public key in compressed or uncompressed form.
+        """
         format_ = (serialization.PublicFormat.CompressedPoint 
                 if compressed 
                 else serialization.PublicFormat.UncompressedPoint)
@@ -474,7 +481,10 @@ class PublicKey:
         """
         self._public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the PublicKey.
+        """
         if self.is_ed25519():
             return f"<PublicKey (Ed25519) hex={self.to_string_raw()}>"
         return f"<PublicKey (ECDSA) hex={self.to_string_raw()}>"

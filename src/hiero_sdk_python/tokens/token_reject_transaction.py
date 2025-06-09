@@ -27,9 +27,9 @@ class TokenRejectTransaction(Transaction):
             nft_ids (list[NftId], optional): The IDs of the non-fungible tokens (NFTs) to reject.
         """
         super().__init__()
-        self.owner_id : AccountId = owner_id
-        self.token_ids : list[TokenId] = token_ids if token_ids else []
-        self.nft_ids : list[NftId] = nft_ids if nft_ids else []
+        self.owner_id: AccountId = owner_id
+        self.token_ids: list[TokenId] = token_ids if token_ids else []
+        self.nft_ids: list[NftId] = nft_ids if nft_ids else []
         
     def set_owner_id(self, owner_id):
         self._require_not_frozen()

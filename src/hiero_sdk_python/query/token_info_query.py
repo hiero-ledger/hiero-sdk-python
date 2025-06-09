@@ -23,7 +23,7 @@ class TokenInfoQuery(Query):
             token_id (TokenId, optional): The ID of the token to query.
         """
         super().__init__()
-        self.token_id : TokenId = token_id
+        self.token_id: TokenId = token_id
 
     def set_token_id(self, token_id: TokenId):
         """

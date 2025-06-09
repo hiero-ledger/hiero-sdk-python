@@ -19,26 +19,26 @@ class Client:
     Represents a client to interact with the Hedera network.
     """
 
-    def __init__(self, network : Network = None) -> None:
+    def __init__(self, network: Network = None) -> None:
         """
         Initializes the Client with a given network configuration.
         If no network is provided, it defaults to a new Network instance.
         """
-        self.operator_account_id : AccountId = None
-        self.operator_private_key : PrivateKey = None
+        self.operator_account_id: AccountId = None
+        self.operator_private_key: PrivateKey = None
 
         if network is None:
             network = Network()
-        self.network : Network = network
+        self.network: Network = network
         
-        self.mirror_channel : grpc.Channel = None
-        self.mirror_stub : mirror_consensus_grpc.ConsensusServiceStub = None
+        self.mirror_channel: grpc.Channel = None
+        self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
 
-        self.max_attempts : int = 10
+        self.max_attempts: int = 10
         
         self._init_mirror_stub()
         
-        self.logger : Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
+        self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
     def _init_mirror_stub(self) -> None:
         """
@@ -49,7 +49,7 @@ class Client:
         self.mirror_channel = grpc.insecure_channel(mirror_address)
         self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
 
-    def set_operator(self, account_id : AccountId, private_key : PrivateKey) -> None:
+    def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:
         """
         Sets the operator credentials (account ID and private key).
         """
