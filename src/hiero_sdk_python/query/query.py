@@ -178,7 +178,8 @@ class Query(_Executable):
             client (Client): The client instance to use for execution. Must have an operator set.
         
         Returns:
-            Hbar: The cost in Hbars that would be charged to execute this query
+            Hbar: The cost in Hbars that would be charged to execute this query. Returns the
+                 pre-set payment amount if one exists, or 0 if no payment is required.
             
         Raises:
             ValueError: If the client is None or the client's operator is not set
