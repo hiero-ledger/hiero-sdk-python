@@ -4,7 +4,7 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2
+from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_body_pb2
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -119,7 +119,7 @@ class AccountCreateTransaction(Transaction):
         self.account_memo = memo
         return self
 
-    def build_transaction_body(self) -> crypto_create_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for account creation.
 
@@ -148,7 +148,7 @@ class AccountCreateTransaction(Transaction):
             memo=self.account_memo
         )
 
-        transaction_body : crypto_create_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body : transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.cryptoCreateAccount.CopyFrom(crypto_create_body)
 
         return transaction_body

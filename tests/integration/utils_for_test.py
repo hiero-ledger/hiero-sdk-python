@@ -16,13 +16,15 @@ class IntegrationTestEnv:
     def __init__(self):
         network = Network(os.getenv('NETWORK'))
         self.client = Client(network)
+        self.operator_id : AccountId = None
+        self.operator_key : PrivateKey = None
         operator_id = os.getenv('OPERATOR_ID')
         operator_key = os.getenv('OPERATOR_KEY')
         if operator_id and operator_key:
             self.operator_id = AccountId.from_string(operator_id)
             self.operator_key = PrivateKey.from_string(operator_key)
             self.client.set_operator(self.operator_id, self.operator_key)
-        
+
         self.client.logger.set_level(LogLevel.ERROR)
         self.public_operator_key = self.operator_key.public_key()
         
