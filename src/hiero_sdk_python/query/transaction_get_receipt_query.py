@@ -30,7 +30,6 @@ class TransactionGetReceiptQuery(Query):
         super().__init__()
         self.transaction_id = transaction_id
         self._frozen = False
-        self._is_payment_required = False
 
     def _require_not_frozen(self):
         """
@@ -232,3 +231,12 @@ class TransactionGetReceiptQuery(Query):
             The transaction get receipt response object
         """
         return response.transactionGetReceipt
+
+    def _is_payment_required(self):
+        """
+        Transaction receipt query does not require payment.
+        
+        Returns:
+            bool: False
+        """
+        return False

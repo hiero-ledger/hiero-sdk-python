@@ -39,7 +39,6 @@ class Query(_Executable):
         self.operator = None
         self.node_index = 0
         self.payment_amount = None
-        self._is_payment_required = True
         
     def _get_query_response(self, response):
         """
@@ -96,7 +95,7 @@ class Query(_Executable):
         
         # If no payment amount was specified and payment is required for this query,
         # get the cost from the network and set it as the payment amount
-        if self.payment_amount is None and self._is_payment_required:
+        if self.payment_amount is None and self._is_payment_required():
             self.payment_amount = self.get_cost(client)
         
     def _make_request_header(self):
@@ -115,7 +114,7 @@ class Query(_Executable):
         header = query_header_pb2.QueryHeader()
         
         # If there isn't a user query payment and payment is required, return COST_ANSWER
-        if self.payment_amount is None and self._is_payment_required:
+        if self.payment_amount is None and self._is_payment_required():
             header.responseType = query_header_pb2.ResponseType.COST_ANSWER
             return header
         
@@ -190,7 +189,7 @@ class Query(_Executable):
         if self.payment_amount is not None:
             return self.payment_amount
         
-        if not self._is_payment_required:
+        if not self._is_payment_required():
             return Hbar.from_tinybars(0)
         
         if client is None or client.operator is None:
@@ -289,3 +288,12 @@ class Query(_Executable):
         """
         query_response = self._get_query_response(response)
         return PrecheckError(query_response.header.nodeTransactionPrecheckCode)
+
+    def _is_payment_required(self):
+        """
+        Determines if query requires payment.
+        
+        Returns:
+            bool: True if payment is required, False otherwise
+        """
+        return True

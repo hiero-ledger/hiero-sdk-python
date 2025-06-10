@@ -23,7 +23,6 @@ class CryptoGetAccountBalanceQuery(Query):
         """
         super().__init__()
         self.account_id = account_id
-        self._is_payment_required = False
 
     def set_account_id(self, account_id: AccountId):
         """
@@ -127,3 +126,12 @@ class CryptoGetAccountBalanceQuery(Query):
             The crypto get account balance response object
         """
         return response.cryptogetAccountBalance
+    
+    def _is_payment_required(self):
+        """
+        Account balance query does not require payment.
+        
+        Returns:
+            bool: False
+        """
+        return False
