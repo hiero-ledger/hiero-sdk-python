@@ -112,6 +112,17 @@ def test_request_header_operator_set(query, mock_client):
     header = query._make_request_header()
     assert not header.HasField('payment'), "Payment field should not be present when only operator and node account are set"
 
+def test_request_header_payment_zero(query, mock_client):
+    """Test that payment field is not present in request header when payment amount is 0"""
+    # Set up operator and node account ID from mock client
+    query.operator = mock_client.operator
+    query.node_account_id = mock_client.network.current_node._account_id
+    
+    # Test with payment amount set to 0 Hbar
+    query.payment_amount = Hbar(0)
+    header = query._make_request_header()
+    assert not header.HasField('payment'), "Payment field should not be present when payment is set to 0"
+
 def test_make_request_header_with_payment(query, mock_client):
     """Test making request header with payment transaction"""
     # Setup

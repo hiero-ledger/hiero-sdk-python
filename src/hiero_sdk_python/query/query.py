@@ -124,6 +124,7 @@ class Query(_Executable):
             self.operator is not None
             and self.node_account_id is not None
             and self.payment_amount is not None
+            and self.payment_amount.to_tinybars() > 0
         ):
             payment_tx = self._build_query_payment_transaction(
                 payer_account_id=self.operator.account_id,
