@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 
+from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
@@ -211,3 +212,9 @@ def test_get_cost_when_payment_required_and_not_set(query_requires_payment, toke
         # Verify cost matches expected value of 2 tinybars
         assert result.to_tinybars() == 2
     
+def test_query_payment_requirement_defaults_to_true(query_requires_payment):
+    """Test that the base Query class and payment-requiring queries default to requiring payment."""
+    query = Query()
+    assert query._is_payment_required() == True
+    # Verify that payment-requiring query also defaults to requiring payment
+    assert query_requires_payment._is_payment_required() == True
