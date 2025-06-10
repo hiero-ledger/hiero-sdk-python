@@ -123,18 +123,31 @@ def test_request_header_payment_zero(query, mock_client):
     header = query._make_request_header()
     assert not header.HasField('payment'), "Payment field should not be present when payment is set to 0"
 
-def test_make_request_header_with_payment(query, mock_client):
-    """Test making request header with payment transaction"""
-    # Setup
+def test_make_request_header_with_payment(query_requires_payment, mock_client):
+    """Test making request header with payment transaction for queries that require payment"""
+    query_requires_payment.operator = mock_client.operator
+    query_requires_payment.node_account_id = mock_client.network.current_node._account_id
+    query_requires_payment.set_query_payment(Hbar(1))
+    
+    header = query_requires_payment._make_request_header()
+    
+    assert isinstance(header, query_header_pb2.QueryHeader)
+    assert header.responseType == query_header_pb2.ResponseType.ANSWER_ONLY
+    assert header.HasField('payment'), "Payment field should be present when payment is set for queries that require payment"
+    
+def test_request_header_excludes_payment_for_free_query(query, mock_client):
+    """Test that payment is not included in request header for queries that don't require payment"""
     query.operator = mock_client.operator
     query.node_account_id = mock_client.network.current_node._account_id
+    # Set query payment to 1 Hbar
     query.set_query_payment(Hbar(1))
     
+    # Get header and verify payment was not included
     header = query._make_request_header()
     
     assert isinstance(header, query_header_pb2.QueryHeader)
     assert header.responseType == query_header_pb2.ResponseType.ANSWER_ONLY
-    assert header.HasField('payment')
+    assert not header.HasField('payment'), "Payment field should not be present for queries that don't require payment"
 
 def test_should_retry_retryable_statuses(query):
     """Test that retryable status codes trigger retry"""

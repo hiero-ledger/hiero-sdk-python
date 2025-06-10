@@ -113,13 +113,18 @@ class Query(_Executable):
         """
         header = query_header_pb2.QueryHeader()
         
-        # If there isn't a user query payment and payment is required, return COST_ANSWER
-        if self.payment_amount is None and self._is_payment_required():
+        # Default to ANSWER_ONLY response type
+        header.responseType = query_header_pb2.ResponseType.ANSWER_ONLY
+        
+        # If payment is not required, return header
+        if not self._is_payment_required():
+            return header
+
+        # If there isn't a user query payment, return COST_ANSWER
+        if self.payment_amount is None:
             header.responseType = query_header_pb2.ResponseType.COST_ANSWER
             return header
         
-        header.responseType = query_header_pb2.ResponseType.ANSWER_ONLY
-
         if (
             self.operator is not None
             and self.node_account_id is not None
