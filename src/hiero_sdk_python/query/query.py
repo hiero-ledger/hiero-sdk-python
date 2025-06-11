@@ -192,11 +192,11 @@ class Query(_Executable):
             MaxAttemptsError: If the cost query fails after maximum retry attempts
             ReceiptStatusError: If the cost query fails with a receipt error
         """
-        if self.payment_amount is not None:
-            return self.payment_amount
-        
         if not self._is_payment_required():
             return Hbar.from_tinybars(0)
+        
+        if self.payment_amount is not None:
+            return self.payment_amount
         
         if client is None or client.operator is None:
             raise ValueError("Client and operator must be set to get the cost")

@@ -205,7 +205,7 @@ def test_get_cost_when_payment_not_required(query, mock_client):
     # Test with payment_amount
     query.set_query_payment(Hbar(2))
     result = query.get_cost(mock_client)
-    assert result.to_tinybars() == Hbar(2).to_tinybars()
+    assert result.to_tinybars() == Hbar(0).to_tinybars()
 
 def test_get_cost_when_payment_required_and_set(query_requires_payment, mock_client):
     """Test get_cost when payment is required and set"""
