@@ -180,6 +180,7 @@ class TokenKeys:
         wipe_key: The wipe key for the token to wipe tokens from an account.
         pause_key: The pause key for the token to be paused.
         metadata_key: The metadata key for the token to update NFT metadata.
+        kyc_key: The KYC key for the token to grant KYC to an account.
     """
 
     admin_key: Optional[PrivateKey] = None
@@ -188,6 +189,7 @@ class TokenKeys:
     wipe_key: Optional[PrivateKey] = None
     metadata_key: Optional[PrivateKey] = None
     pause_key: Optional[PrivateKey] = None
+    kyc_key: Optional[PrivateKey] = None
 
 class TokenCreateTransaction(Transaction):
     """
@@ -334,6 +336,11 @@ class TokenCreateTransaction(Transaction):
         self._keys.pause_key = key
         return self
     
+    def set_kyc_key(self, key):
+        self._require_not_frozen()
+        self._keys.kyc_key = key
+        return self
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for token creation.
@@ -380,6 +387,11 @@ class TokenCreateTransaction(Transaction):
         if self._keys.pause_key:
             pause_public_key_bytes = self._keys.pause_key.public_key().to_bytes_raw()
             pause_key_proto = basic_types_pb2.Key(ed25519=pause_public_key_bytes)
+        
+        kyc_key_proto = None
+        if self._keys.kyc_key:
+            kyc_public_key_bytes = self._keys.kyc_key.public_key().to_bytes_raw()
+            kyc_key_proto = basic_types_pb2.Key(ed25519=kyc_public_key_bytes)
 
         # Ensure token type is correctly set with default to fungible
         if self._token_params.token_type is None:
@@ -414,6 +426,7 @@ class TokenCreateTransaction(Transaction):
             wipeKey=wipe_key_proto,
             metadata_key=metadata_key_proto,
             pause_key=pause_key_proto,
+            kycKey=kyc_key_proto
         )
         # Build the base transaction body and attach the token creation details
         transaction_body = self.build_base_transaction_body()
