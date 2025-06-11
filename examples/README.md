@@ -27,6 +27,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Unfreezing a Token](#unfreezing-a-token)
   - [Rejecting a Token](#rejecting-a-token)
   - [Rejecting a Non-Fungible Token](#rejecting-a-non-fungible-token)
+  - [Burning a Token](#burning-a-token)
+  - [Burning a Non-Fungible Token](#burning-a-non-fungible-token)
   - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
   - [Querying NFT Info](#querying-nft-info)
@@ -446,6 +448,56 @@ transaction.execute(client)
         .set_nft_ids([nft_id1])
         .freeze_with(client)
         .sign(owner_key)
+    )
+
+    transaction.execute(client)
+```
+
+### Burning a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenBurnTransaction(
+    token_id=token_id,
+    amount=amount
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenBurnTransaction()
+        .set_amount(amount)
+        .freeze_with(client)
+        .sign(operator_key)
+    )
+
+    transaction.execute(client)
+```
+
+### Burning a Non-Fungible Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenBurnTransaction(
+    token_id=token_id,
+    serials=serials
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenBurnTransaction()
+        .set_serials(serials)
+        .freeze_with(client)
+        .sign(operator_key)
     )
 
     transaction.execute(client)
