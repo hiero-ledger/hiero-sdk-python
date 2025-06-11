@@ -22,6 +22,7 @@ from .tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
 from .tokens.token_wipe_transaction import TokenWipeTransaction
 from .tokens.token_reject_transaction import TokenRejectTransaction
 from .tokens.token_update_nfts_transaction import TokenUpdateNftsTransaction
+from .tokens.token_burn_transaction import TokenBurnTransaction
 from .tokens.token_id import TokenId
 from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
@@ -98,6 +99,7 @@ __all__ = [
     "TokenNftInfo",
     "TokenRejectTransaction",
     "TokenUpdateNftsTransaction",
+    "TokenBurnTransaction",
 
     # Transaction
     "TransferTransaction",
