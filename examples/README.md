@@ -28,6 +28,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Rejecting a Token](#rejecting-a-token)
   - [Rejecting a Non-Fungible Token](#rejecting-a-non-fungible-token)
   - [Token Update NFTs](#token-update-nfts)
+  - [Pausing a Token](#pausing-a-token)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -475,6 +476,30 @@ transaction.execute(client)
         .sign(metadata_key)
     )
 
+    transaction.execute(client)
+
+```
+
+### Pausing a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenPauseTransaction(
+    token_id=token_id
+).freeze_with(client)
+
+transaction.sign(pause_key)
+transaction.execute(client)
+
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenPauseTransaction()
+        .set_token_id(token_id)
+        .freeze_with(client)
+        .sign(pause_key)
+    )
     transaction.execute(client)
 
 ```
