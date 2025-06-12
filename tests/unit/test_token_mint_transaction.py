@@ -217,7 +217,7 @@ def test_to_proto_fungible(mock_account_ids, amount, mock_client):
     mint_tx.freeze_with(mock_client)
 
     mint_tx.sign(supply_key)
-    proto = mint_tx.to_proto()
+    proto = mint_tx._to_proto()
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
@@ -239,7 +239,7 @@ def test_to_proto_nft(mock_account_ids, metadata, mock_client):
     supply_key.public_key().to_bytes_raw.return_value = b'public_key'
     mint_tx.sign(supply_key)
 
-    proto = mint_tx.to_proto()
+    proto = mint_tx._to_proto()
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
 

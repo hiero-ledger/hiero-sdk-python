@@ -357,7 +357,7 @@ def test_to_proto_without_keys(mock_account_ids, mock_client):
     token_tx.sign(private_key)
 
     # Parse the TransactionBody starting with the outer wrapper
-    proto_tx = token_tx.to_proto()
+    proto_tx = token_tx._to_proto()
     assert len(proto_tx.signedTransactionBytes) > 0
 
     outer_tx = transaction_pb2.Transaction.FromString(proto_tx.SerializeToString())
@@ -430,7 +430,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     token_tx.sign(private_key_admin)
 
     # Convert to protobuf
-    proto_tx = token_tx.to_proto()
+    proto_tx = token_tx._to_proto()
     assert len(proto_tx.signedTransactionBytes) > 0
 
     # 1) Parse the outer Transaction
@@ -566,7 +566,7 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
     token_tx.sign(private_key)
 
     # Convert to protobuf transaction
-    proto_tx = token_tx.to_proto()
+    proto_tx = token_tx._to_proto()
     assert len(proto_tx.signedTransactionBytes) > 0, "Expected non-empty signedTransactionBytes"
 
     # # Deserialize the protobuf to verify the fields that actually got serialized
@@ -740,7 +740,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     token_tx.sign(private_key_admin)
 
     # Convert to protobuf (outer Transaction)
-    proto_tx = token_tx.to_proto()
+    proto_tx = token_tx._to_proto()
     assert len(proto_tx.signedTransactionBytes) > 0
 
     # Parse the outer Transaction

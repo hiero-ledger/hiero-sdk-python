@@ -67,8 +67,8 @@ class TokenWipeTransaction(Transaction):
             TransactionBody: The protobuf transaction body containing the token wipe details.
         """
         token_wipe_body = TokenWipeAccountTransactionBody(
-            token=self.token_id and self.token_id.to_proto(),
-            account=self.account_id and self.account_id.to_proto(),
+            token=self.token_id and self.token_id._to_proto(),
+            account=self.account_id and self.account_id._to_proto(),
             amount=self.amount,
             serialNumbers=self.serial
         )
@@ -92,8 +92,8 @@ class TokenWipeTransaction(Transaction):
         Returns:
             TokenWipeTransaction: Returns self for method chaining.
         """
-        self.token_id = TokenId.from_proto(proto.token)
-        self.account_id = AccountId.from_proto(proto.account)
+        self.token_id = TokenId._from_proto(proto.token)
+        self.account_id = AccountId._from_proto(proto.account)
         self.amount = proto.amount
         self.serial = proto.serialNumbers
         return self

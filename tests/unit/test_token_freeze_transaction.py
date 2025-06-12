@@ -38,7 +38,7 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenFreeze.token.realmNum == 1
     assert transaction_body.tokenFreeze.token.tokenNum == 1
 
-    proto_account = freeze_id.to_proto()
+    proto_account = freeze_id._to_proto()
     assert transaction_body.tokenFreeze.account == proto_account
 
 # This test uses fixture mock_account_ids as parameter
@@ -104,7 +104,7 @@ def test_to_proto(mock_account_ids, mock_client):
     freeze_tx.freeze_with(mock_client)
 
     freeze_tx.sign(freeze_key)
-    proto = freeze_tx.to_proto()
+    proto = freeze_tx._to_proto()
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0

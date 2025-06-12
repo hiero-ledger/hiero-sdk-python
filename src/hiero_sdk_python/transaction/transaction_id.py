@@ -77,7 +77,7 @@ class TransactionId:
         """
         return f"{self.account_id}@{self.valid_start.seconds}.{self.valid_start.nanos}"
 
-    def to_proto(self) -> basic_types_pb2.TransactionID:
+    def _to_proto(self) -> basic_types_pb2.TransactionID:
         """
         Converts the TransactionId to its protobuf representation.
 
@@ -86,13 +86,13 @@ class TransactionId:
         """
         transaction_id_proto = basic_types_pb2.TransactionID()
         if self.account_id is not None:
-            transaction_id_proto.accountID.CopyFrom(self.account_id.to_proto())
+            transaction_id_proto.accountID.CopyFrom(self.account_id._to_proto())
         if self.valid_start is not None:
             transaction_id_proto.transactionValidStart.CopyFrom(self.valid_start)
         return transaction_id_proto
 
     @classmethod
-    def from_proto(cls, transaction_id_proto: basic_types_pb2.TransactionID):
+    def _from_proto(cls, transaction_id_proto: basic_types_pb2.TransactionID):
         """
         Creates a TransactionId instance from a protobuf TransactionID object.
 
@@ -102,7 +102,7 @@ class TransactionId:
         Returns:
             TransactionId: A new TransactionId instance.
         """
-        account_id = AccountId.from_proto(transaction_id_proto.accountID)
+        account_id = AccountId._from_proto(transaction_id_proto.accountID)
         valid_start = transaction_id_proto.transactionValidStart
         return cls(account_id, valid_start)
 

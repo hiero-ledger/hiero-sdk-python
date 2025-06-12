@@ -10,7 +10,7 @@ class TokenKycStatus(Enum):
     REVOKED = 2
 
     @staticmethod
-    def from_proto(proto_obj: proto_TokenKycStatus):
+    def _from_proto(proto_obj: proto_TokenKycStatus):
         if proto_obj == proto_TokenKycStatus.KycNotApplicable:
             return TokenKycStatus.KYC_NOT_APPLICABLE
         elif proto_obj == proto_TokenKycStatus.Granted:

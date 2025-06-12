@@ -24,7 +24,7 @@ class TokenNftTransfer:
         self.serial_number : int = serial_number
         self.is_approved : bool = is_approved
         
-    def to_proto(self):
+    def _to_proto(self):
         """
         Converts this TokenNftTransfer instance to its protobuf representation.
         
@@ -32,8 +32,8 @@ class TokenNftTransfer:
             NftTransfer: The protobuf representation of this NFT transfer.
         """
         return basic_types_pb2.NftTransfer(
-            senderAccountID=self.sender_id.to_proto(),
-            receiverAccountID=self.receiver_id.to_proto(),
+            senderAccountID=self.sender_id._to_proto(),
+            receiverAccountID=self.receiver_id._to_proto(),
             serialNumber=self.serial_number,
             is_approval=self.is_approved
         )

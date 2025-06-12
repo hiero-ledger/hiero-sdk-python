@@ -97,7 +97,7 @@ def test_to_proto(mock_account_ids, mock_client):
     associate_tx.freeze_with(mock_client)
 
     associate_tx.sign(private_key)
-    proto = associate_tx.to_proto()
+    proto = associate_tx._to_proto()
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0

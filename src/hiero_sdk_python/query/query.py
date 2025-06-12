@@ -148,7 +148,7 @@ class Query(_Executable):
         tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
         tx.sign(payer_private_key)
 
-        return tx.to_proto()
+        return tx._to_proto()
     
     def _get_method(self, channel):
         """

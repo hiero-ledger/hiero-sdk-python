@@ -34,7 +34,7 @@ class TransactionReceipt:
             TokenId or None: The TokenId if present; otherwise, None.
         """
         if self._receipt_proto.HasField('tokenID') and self._receipt_proto.tokenID.tokenNum != 0:
-            return TokenId.from_proto(self._receipt_proto.tokenID)
+            return TokenId._from_proto(self._receipt_proto.tokenID)
         else:
             return None
 
@@ -47,7 +47,7 @@ class TransactionReceipt:
             TopicId or None: The TopicId if present; otherwise, None.
         """
         if self._receipt_proto.HasField('topicID') and self._receipt_proto.topicID.topicNum != 0:
-            return TopicId.from_proto(self._receipt_proto.topicID)
+            return TopicId._from_proto(self._receipt_proto.topicID)
         else:
             return None
 
@@ -60,7 +60,7 @@ class TransactionReceipt:
             AccountId or None: The AccountId if present; otherwise, None.
         """
         if self._receipt_proto.HasField('accountID') and self._receipt_proto.accountID.accountNum != 0:
-            return AccountId.from_proto(self._receipt_proto.accountID)
+            return AccountId._from_proto(self._receipt_proto.accountID)
         else:
             return None
 
@@ -74,7 +74,7 @@ class TransactionReceipt:
         """
         return self._receipt_proto.serialNumbers
 
-    def to_proto(self):
+    def _to_proto(self):
         """
         Returns the underlying protobuf transaction receipt.
 
@@ -84,5 +84,5 @@ class TransactionReceipt:
         return self._receipt_proto
 
     @classmethod
-    def from_proto(cls, proto):
+    def _from_proto(cls, proto):
         return cls(receipt_proto=proto)

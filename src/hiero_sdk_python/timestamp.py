@@ -94,7 +94,7 @@ class Timestamp:
 
         return Timestamp(new_seconds, new_nanos)
 
-    def to_protobuf(self) -> TimestampProto:
+    def _to_protobuf(self) -> TimestampProto:
         """
         Convert the `Timestamp` to corresponding protobuf object.
 
@@ -104,7 +104,7 @@ class Timestamp:
         return TimestampProto(seconds=self.seconds, nanos=self.nanos)
 
     @staticmethod
-    def from_protobuf(pb_obj: TimestampProto) -> "Timestamp":
+    def _from_protobuf(pb_obj: TimestampProto) -> "Timestamp":
         """
         Create a `Timestamp` from a protobuf object.
 

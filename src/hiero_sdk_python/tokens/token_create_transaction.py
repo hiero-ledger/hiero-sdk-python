@@ -407,7 +407,7 @@ class TokenCreateTransaction(Transaction):
             supplyType=supply_type_value,
             maxSupply=self._token_params.max_supply,
             freezeDefault=self._token_params.freeze_default,
-            treasury=self._token_params.treasury_account_id.to_proto(),
+            treasury=self._token_params.treasury_account_id._to_proto(),
             adminKey=admin_key_proto,
             supplyKey=supply_key_proto,
             freezeKey=freeze_key_proto,

@@ -171,24 +171,24 @@ def test_update_nfts_transaction_from_proto(mock_account_ids):
     
     # Create protobuf object for token update NFTs transaction
     proto = TokenUpdateNftsTransactionBody(
-        token=token_id.to_proto(),
+        token=token_id._to_proto(),
         serial_numbers=serial_numbers,
         metadata=BytesValue(value=metadata_bytes)
     )
     
     # Deserialize the protobuf object
-    from_proto = TokenUpdateNftsTransaction()._from_proto(proto)
+    _from_proto = TokenUpdateNftsTransaction()._from_proto(proto)
     
     # Verify deserialized transaction matches original data
-    assert from_proto.token_id == token_id
-    assert from_proto.serial_numbers == serial_numbers
-    assert from_proto.metadata == metadata_bytes
+    assert _from_proto.token_id == token_id
+    assert _from_proto.serial_numbers == serial_numbers
+    assert _from_proto.metadata == metadata_bytes
     
     # Test with empty protobuf
     empty_proto = TokenUpdateNftsTransactionBody()
     empty_tx = TokenUpdateNftsTransaction()._from_proto(empty_proto)
     
-    # TokenId.from_proto with empty proto should return a new TokenId
+    # TokenId._from_proto with empty proto should return a new TokenId
     assert isinstance(empty_tx.token_id, TokenId)
     assert empty_tx.serial_numbers == []
     assert empty_tx.metadata is empty_proto.metadata.value  # Should be None or empty 

@@ -57,7 +57,7 @@ class TokenNftInfoQuery(Query):
 
             nft_info_query = token_get_nft_info_pb2.TokenGetNftInfoQuery()
             nft_info_query.header.CopyFrom(query_header)
-            nft_info_query.nftID.CopyFrom(self.nft_id.to_proto())
+            nft_info_query.nftID.CopyFrom(self.nft_id._to_proto())
 
             query = query_pb2.Query()
             query.tokenGetNftInfo.CopyFrom(nft_info_query)

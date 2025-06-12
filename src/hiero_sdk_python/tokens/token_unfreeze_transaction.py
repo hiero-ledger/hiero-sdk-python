@@ -55,8 +55,8 @@ class TokenUnfreezeTransaction(Transaction):
             raise ValueError("Missing required AccountID.")
         
         token_unfreeze_body = token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody(
-            account=self.account_id.to_proto(),
-            token=self.token_id.to_proto()
+            account=self.account_id._to_proto(),
+            token=self.token_id._to_proto()
         )
 
         transaction_body = self.build_base_transaction_body()

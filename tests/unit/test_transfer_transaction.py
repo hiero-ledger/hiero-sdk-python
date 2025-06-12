@@ -230,8 +230,8 @@ def test_build_transaction_body(mock_account_ids):
     assert len(token_transfers) == 2
     
     # Check if token matches
-    assert token_transfers[0].token == token_id_1.to_proto()
-    assert token_transfers[1].token == token_id_1.to_proto()
+    assert token_transfers[0].token == token_id_1._to_proto()
+    assert token_transfers[1].token == token_id_1._to_proto()
     
     # Check token amounts
     token_amounts = token_transfers[1].transfers

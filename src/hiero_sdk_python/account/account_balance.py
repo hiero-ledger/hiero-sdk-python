@@ -22,7 +22,7 @@ class AccountBalance:
         self.token_balances = token_balances or {}
 
     @classmethod
-    def from_proto(cls, proto):
+    def _from_proto(cls, proto):
         """
         Creates an AccountBalance instance from a protobuf response.
 
@@ -37,7 +37,7 @@ class AccountBalance:
         token_balances = {}
         if proto.tokenBalances:
             for token_balance in proto.tokenBalances:
-                token_id = TokenId.from_proto(token_balance.tokenId)
+                token_id = TokenId._from_proto(token_balance.tokenId)
                 balance = token_balance.balance
                 token_balances[token_id] = balance
 

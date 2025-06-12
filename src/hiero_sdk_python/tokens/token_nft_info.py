@@ -39,11 +39,11 @@ class TokenNftInfo:
             TokenNftInfo: A new instance populated with data from the protobuf message.
         """
         return cls(
-            nft_id=NftId.from_proto(proto.nftID),
-            account_id=AccountId.from_proto(proto.accountID),
+            nft_id=NftId._from_proto(proto.nftID),
+            account_id=AccountId._from_proto(proto.accountID),
             creation_time=proto.creationTime.seconds,
             metadata=proto.metadata,
-            spender_id=AccountId.from_proto(proto.spender_id)
+            spender_id=AccountId._from_proto(proto.spender_id)
         )
     
     def _to_proto(self):
@@ -54,11 +54,11 @@ class TokenNftInfo:
             token_get_nft_info_pb2.TokenNftInfo: The protobuf representation of this NFT information.
         """
         return token_get_nft_info_pb2.TokenNftInfo(
-            nftID=self.nft_id.to_proto(),
-            accountID=self.account_id.to_proto(),
+            nftID=self.nft_id._to_proto(),
+            accountID=self.account_id._to_proto(),
             creationTime=timestamp_pb2.Timestamp(seconds=self.creation_time),
             metadata=self.metadata,
-            spender_id=self.spender_id.to_proto()
+            spender_id=self.spender_id._to_proto()
         )
     
     def __str__(self):
