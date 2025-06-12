@@ -55,7 +55,7 @@ class TokenPauseTransaction(Transaction):
              raise ValueError("token_id must be set before building the transaction body")
 
         token_pause_body = TokenPauseTransactionBody(
-            token=self.token_id.to_proto()
+            token=self.token_id._to_proto()
         )
         transaction_body = self.build_base_transaction_body()
         transaction_body.token_pause.CopyFrom(token_pause_body)
@@ -67,7 +67,7 @@ class TokenPauseTransaction(Transaction):
             query_func=None
         )
     
-    def from_proto(self, proto: TokenPauseTransactionBody):
+    def _from_proto(self, proto: TokenPauseTransactionBody):
         """
         Deserializes a TokenPauseTransactionBody from a protobuf object.
 
@@ -77,5 +77,5 @@ class TokenPauseTransaction(Transaction):
         Returns:
             TokenPauseTransaction: Returns self for method chaining.
         """
-        self.token_id = TokenId.from_proto(proto.token)
+        self.token_id = TokenId._from_proto(proto.token)
         return self
