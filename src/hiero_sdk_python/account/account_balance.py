@@ -41,7 +41,7 @@ class AccountBalance:
         token_balances: Dict[TokenId,int] = {}
         if proto.tokenBalances:
             for token_balance in proto.tokenBalances:
-                token_id: TokenId = TokenId.from_proto(token_balance.tokenId)
+                token_id: TokenId = TokenId._from_proto(token_balance.tokenId)
                 balance: Union[Hbar,int] = token_balance.balance
                 token_balances[token_id] = balance
 
