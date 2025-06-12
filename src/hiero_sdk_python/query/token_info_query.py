@@ -61,7 +61,7 @@ class TokenInfoQuery(Query):
 
             token_info_query = token_get_info_pb2.TokenGetInfoQuery()
             token_info_query.header.CopyFrom(query_header)
-            token_info_query.token.CopyFrom(self.token_id.to_proto())
+            token_info_query.token.CopyFrom(self.token_id._to_proto())
 
             query = query_pb2.Query()
             query.tokenGetInfo.CopyFrom(token_info_query)

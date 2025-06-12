@@ -57,7 +57,7 @@ class TopicMessageSubmitTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusSubmitMessage.CopyFrom(
             consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
-                topicID=self.topic_id.to_proto(),
+                topicID=self.topic_id._to_proto(),
                 message=bytes(self.message, 'utf-8')
             )
         )

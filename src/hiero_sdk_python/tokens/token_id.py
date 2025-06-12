@@ -24,7 +24,7 @@ class TokenId:
 
 
     @classmethod
-    def from_proto(cls, token_id_proto: basic_types_pb2.TokenID = None):
+    def _from_proto(cls, token_id_proto: basic_types_pb2.TokenID = None):
         """
         Creates a TokenId instance from a protobuf TokenID object.
         """
@@ -39,7 +39,7 @@ class TokenId:
             num=token_id_proto.tokenNum
         )
 
-    def to_proto(self):
+    def _to_proto(self):
         """
         Converts the TokenId instance to a protobuf TokenID object.
         """

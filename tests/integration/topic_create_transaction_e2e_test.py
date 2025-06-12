@@ -18,7 +18,7 @@ def test_integration_topic_create_transaction_can_execute():
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
         
         transaction = TopicCreateTransaction(
             memo=topic_memo,
@@ -28,7 +28,7 @@ def test_integration_topic_create_transaction_can_execute():
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
         
         topic_id = receipt.topicId
         assert topic_id is not None
@@ -45,6 +45,6 @@ def test_integration_topic_create_transaction_can_execute():
         delete_transaction.freeze_with(env.client)
         receipt = delete_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close() 

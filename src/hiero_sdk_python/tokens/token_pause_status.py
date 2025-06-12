@@ -10,7 +10,7 @@ class TokenPauseStatus(Enum):
     UNPAUSED = 2
 
     @staticmethod
-    def from_proto(proto_obj: proto_TokenPauseStatus):
+    def _from_proto(proto_obj: proto_TokenPauseStatus):
         if proto_obj == proto_TokenPauseStatus.PauseNotApplicable:
             return TokenPauseStatus.PAUSE_NOT_APPLICABLE
         elif proto_obj == proto_TokenPauseStatus.Paused:

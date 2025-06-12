@@ -55,12 +55,12 @@ class TokenRejectTransaction(Transaction):
         """
         token_references = []
         for token_id in self.token_ids:
-            token_references.append(TokenReference(fungible_token=token_id.to_proto()))
+            token_references.append(TokenReference(fungible_token=token_id._to_proto()))
         for nft_id in self.nft_ids:
-            token_references.append(TokenReference(nft=nft_id.to_proto()))
+            token_references.append(TokenReference(nft=nft_id._to_proto()))
         
         token_reject_body = TokenRejectTransactionBody(
-            owner=self.owner_id and self.owner_id.to_proto(),
+            owner=self.owner_id and self.owner_id._to_proto(),
             rejections=token_references
         )
         transaction_body = self.build_base_transaction_body()
@@ -95,12 +95,12 @@ class TokenRejectTransaction(Transaction):
         Returns:
             TokenRejectTransaction: Returns self for method chaining.
         """
-        self.owner_id = AccountId.from_proto(proto.owner)
+        self.owner_id = AccountId._from_proto(proto.owner)
         
         # Extract fungible token IDs from rejections with fungible_token field set (using HasField to filter out default/empty values)
-        self.token_ids = [TokenId.from_proto(token_id.fungible_token) for token_id in proto.rejections if token_id.HasField('fungible_token')]
+        self.token_ids = [TokenId._from_proto(token_id.fungible_token) for token_id in proto.rejections if token_id.HasField('fungible_token')]
         
         # Extract NFT IDs from rejections with nft field set (using HasField to filter out default/empty values)
-        self.nft_ids = [NftId.from_proto(nft_id.nft) for nft_id in proto.rejections if nft_id.HasField('nft')]
+        self.nft_ids = [NftId._from_proto(nft_id.nft) for nft_id in proto.rejections if nft_id.HasField('nft')]
         
         return self

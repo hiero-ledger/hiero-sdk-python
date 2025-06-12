@@ -37,11 +37,11 @@ def query_receipt():
     receipt = transaction.execute(client)
     transaction_id = transaction.transaction_id
     print(f"Transaction ID: {transaction_id}")
-    print(f"Transfer transaction status: {ResponseCode.get_name(receipt.status)}")
+    print(f"Transfer transaction status: {ResponseCode(receipt.status).name}")
 
     receipt_query = TransactionGetReceiptQuery().set_transaction_id(transaction_id)
     queried_receipt = receipt_query.execute(client)
-    print(f"Queried transaction status: {ResponseCode.get_name(queried_receipt.status)}")
+    print(f"Queried transaction status: {ResponseCode(queried_receipt.status).name}")
 
 if __name__ == "__main__":
     query_receipt()

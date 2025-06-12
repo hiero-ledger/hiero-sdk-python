@@ -112,10 +112,10 @@ class TopicCreateTransaction(Transaction):
         """
         transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.consensusCreateTopic.CopyFrom(consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
-            adminKey=self.admin_key.to_proto() if self.admin_key is not None else None,
-            submitKey=self.submit_key.to_proto() if self.submit_key is not None else None,
-            autoRenewPeriod=self.auto_renew_period.to_proto() if self.auto_renew_period is not None else None,
-            autoRenewAccount=self.auto_renew_account.to_proto() if self.auto_renew_account is not None else None,
+            adminKey=self.admin_key._to_proto() if self.admin_key is not None else None,
+            submitKey=self.submit_key._to_proto() if self.submit_key is not None else None,
+            autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period is not None else None,
+            autoRenewAccount=self.auto_renew_account._to_proto() if self.auto_renew_account is not None else None,
             memo=self.memo
         ))
 

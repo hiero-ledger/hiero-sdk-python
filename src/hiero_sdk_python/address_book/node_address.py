@@ -70,11 +70,11 @@ class NodeAddress:
         addresses: List[Endpoint] = []
         
         for endpoint_proto in node_address_proto.serviceEndpoint:
-            addresses.append(Endpoint.from_proto(endpoint_proto))
+            addresses.append(Endpoint._from_proto(endpoint_proto))
         
         account_id: AccountId = None
         if node_address_proto.nodeAccountId:
-            account_id = AccountId.from_proto(node_address_proto.nodeAccountId)
+            account_id = AccountId._from_proto(node_address_proto.nodeAccountId)
         
         return cls(
             public_key=node_address_proto.RSA_PubKey,
@@ -100,7 +100,7 @@ class NodeAddress:
         )
         
         if self._account_id:
-            node_address_proto.nodeAccountId.CopyFrom(self._account_id.to_proto())
+            node_address_proto.nodeAccountId.CopyFrom(self._account_id._to_proto())
         
         service_endpoints: List[ServiceEndpoint] = []
         for endpoint in self._addresses:

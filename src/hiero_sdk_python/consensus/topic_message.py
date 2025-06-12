@@ -22,7 +22,6 @@ class TopicMessageChunk:
         self.running_hash: Union[bytes, int] = response.runningHash
         self.sequence_number: Union[bytes, int] = response.sequenceNumber
 
-
 class TopicMessage:
     """
     Represents a Hedera TopicMessage, possibly composed of multiple chunks.
@@ -119,7 +118,7 @@ class TopicMessage:
             offset = end
 
         last_r = sorted_responses[-1]
-        consensus_timestamp = Timestamp.from_protobuf(last_r.consensusTimestamp).to_date()
+        consensus_timestamp = Timestamp._from_protobuf(last_r.consensusTimestamp).to_date()
         running_hash = last_r.runningHash
         sequence_number = last_r.sequenceNumber
 
@@ -135,7 +134,7 @@ class TopicMessage:
         )
 
     @classmethod
-    def from_proto(
+    def _from_proto(
         cls,
         response_or_responses: Union[mirror_proto.ConsensusTopicResponse, List[mirror_proto.ConsensusTopicResponse]],
         chunking_enabled: bool = False
@@ -150,7 +149,7 @@ class TopicMessage:
         """
         if not isinstance(response_or_responses, mirror_proto.ConsensusTopicResponse):
             if not response_or_responses:
-                raise ValueError("Empty response list provided to from_proto().")
+                raise ValueError("Empty response list provided to _from_proto().")
 
             if not chunking_enabled and len(response_or_responses) == 1:
                 return cls.of_single(response_or_responses[0])

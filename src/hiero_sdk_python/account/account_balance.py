@@ -25,7 +25,8 @@ class AccountBalance:
         self.token_balances = token_balances or {}
 
     @classmethod
-    def from_proto(cls, proto: CryptoGetAccountBalanceResponse) -> "AccountBalance":
+
+    def _from_proto(cls, proto: CryptoGetAccountBalanceResponse) -> "AccountBalance":
         """
         Creates an AccountBalance instance from a protobuf response.
 

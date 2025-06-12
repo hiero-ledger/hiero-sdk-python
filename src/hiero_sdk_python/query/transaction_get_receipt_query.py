@@ -107,7 +107,7 @@ class TransactionGetReceiptQuery(Query):
 
             transaction_get_receipt = transaction_get_receipt_pb2.TransactionGetReceiptQuery()
             transaction_get_receipt.header.CopyFrom(query_header)
-            transaction_get_receipt.transactionID.CopyFrom(self.transaction_id.to_proto())
+            transaction_get_receipt.transactionID.CopyFrom(self.transaction_id._to_proto())
 
             query = query_pb2.Query()
             if not hasattr(query, 'transactionGetReceipt'):
@@ -203,7 +203,7 @@ class TransactionGetReceiptQuery(Query):
         
         status = response.transactionGetReceipt.receipt.status
         
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt.from_proto(response.transactionGetReceipt.receipt))
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt))
         
     def execute(self, client: Client) -> TransactionReceipt:
         """
@@ -228,7 +228,7 @@ class TransactionGetReceiptQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
 
-        return TransactionReceipt.from_proto(response.transactionGetReceipt.receipt)
+        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt)
 
     def _get_query_response(self, response: response_pb2.Response) -> transaction_get_receipt_pb2.TransactionGetReceiptResponse:
         """

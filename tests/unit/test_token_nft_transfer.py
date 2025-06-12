@@ -48,7 +48,7 @@ def test_to_proto(mock_account_ids):
     )
     
     # Convert to protobuf
-    proto = nft_transfer.to_proto()
+    proto = nft_transfer._to_proto()
     
     # Verify protobuf fields
     assert proto.senderAccountID.shardNum == sender_id.shard

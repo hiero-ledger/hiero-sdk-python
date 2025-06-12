@@ -90,7 +90,7 @@ class TopicInfoQuery(Query):
 
             topic_info_query = consensus_get_topic_info_pb2.ConsensusGetTopicInfoQuery()
             topic_info_query.header.CopyFrom(query_header)
-            topic_info_query.topicID.CopyFrom(self.topic_id.to_proto())
+            topic_info_query.topicID.CopyFrom(self.topic_id._to_proto())
 
             query = query_pb2.Query()
             query.consensusGetTopicInfo.CopyFrom(topic_info_query)
@@ -171,7 +171,7 @@ class TopicInfoQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
         
-        return TopicInfo.from_proto(response.consensusGetTopicInfo.topicInfo)
+        return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
 
     def _get_query_response(self, response: response_pb2.Response) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
         """

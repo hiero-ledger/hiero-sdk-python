@@ -52,7 +52,7 @@ def create_account_and_transfer():
     )
     transfer_transaction.sign(operator_key)
     transfer_receipt = transfer_transaction.execute(client)
-    print(f"Transfer transaction status: {ResponseCode.get_name(transfer_receipt.status)}")
+    print(f"Transfer transaction status: {ResponseCode(transfer_receipt.status).name}")
 
     time.sleep(2)
 
