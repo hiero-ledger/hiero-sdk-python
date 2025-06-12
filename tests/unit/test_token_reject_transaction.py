@@ -192,26 +192,26 @@ def test_reject_transaction_from_proto(mock_account_ids):
 
     # Create protobuf object with both fungible token and NFT rejections
     proto = TokenRejectTransactionBody(
-        owner=owner_account_id.to_proto(),
+        owner=owner_account_id._to_proto(),
         rejections=[
-            TokenReference(fungible_token=token_id.to_proto(), nft=None),
-            TokenReference(fungible_token=None, nft=nft_ids[0].to_proto())
+            TokenReference(fungible_token=token_id._to_proto(), nft=None),
+            TokenReference(fungible_token=None, nft=nft_ids[0]._to_proto())
         ]
     )
     
     # Deserialize the protobuf object
-    from_proto = TokenRejectTransaction()._from_proto(proto)
+    _from_proto = TokenRejectTransaction()._from_proto(proto)
     
     # Verify deserialized transaction matches original data
-    assert from_proto.owner_id == owner_account_id
-    assert from_proto.token_ids == token_ids
-    assert from_proto.nft_ids == nft_ids
+    assert _from_proto.owner_id == owner_account_id
+    assert _from_proto.token_ids == token_ids
+    assert _from_proto.nft_ids == nft_ids
     
     # Deserialize empty protobuf
-    from_proto = TokenRejectTransaction()._from_proto(TokenRejectTransactionBody())
+    _from_proto = TokenRejectTransaction()._from_proto(TokenRejectTransactionBody())
     
     # Verify empty protobuf deserializes to empty/default values
-    assert from_proto.owner_id == AccountId()
-    assert from_proto.token_ids == []
-    assert from_proto.nft_ids == []
+    assert _from_proto.owner_id == AccountId()
+    assert _from_proto.token_ids == []
+    assert _from_proto.nft_ids == []
     

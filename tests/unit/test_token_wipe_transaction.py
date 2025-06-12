@@ -106,7 +106,7 @@ def test_to_proto(mock_account_ids, mock_client):
     wipe_tx.freeze_with(mock_client)
 
     wipe_tx.sign(wipe_key)
-    proto = wipe_tx.to_proto()
+    proto = wipe_tx._to_proto()
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0

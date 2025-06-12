@@ -144,12 +144,12 @@ class TopicUpdateTransaction(Transaction):
 
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusUpdateTopic.CopyFrom(consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
-            topicID=self.topic_id.to_proto(),
-            adminKey=self.admin_key.to_proto() if self.admin_key else None,
-            submitKey=self.submit_key.to_proto() if self.submit_key else None,
+            topicID=self.topic_id._to_proto(),
+            adminKey=self.admin_key._to_proto() if self.admin_key else None,
+            submitKey=self.submit_key._to_proto() if self.submit_key else None,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds) if self.auto_renew_period else None,
-            autoRenewAccount=self.auto_renew_account.to_proto() if self.auto_renew_account else None,
-            expirationTime=self.expiration_time.to_proto() if self.expiration_time else None,
+            autoRenewAccount=self.auto_renew_account._to_proto() if self.auto_renew_account else None,
+            expirationTime=self.expiration_time._to_proto() if self.expiration_time else None,
             memo=_wrappers_pb2.StringValue(value=self.memo) if self.memo else None
         ))
 

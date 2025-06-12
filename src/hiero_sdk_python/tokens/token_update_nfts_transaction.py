@@ -64,7 +64,7 @@ class TokenUpdateNftsTransaction(Transaction):
             raise ValueError("Metadata must be less than 100 bytes")
         
         token_update_body = TokenUpdateNftsTransactionBody(
-            token=self.token_id.to_proto(),
+            token=self.token_id._to_proto(),
             serial_numbers=self.serial_numbers,
             metadata=BytesValue(value=self.metadata)
         )
@@ -101,7 +101,7 @@ class TokenUpdateNftsTransaction(Transaction):
         Returns:
             TokenUpdateNftsTransaction: Returns self for method chaining.
         """
-        self.token_id = TokenId.from_proto(proto.token)
+        self.token_id = TokenId._from_proto(proto.token)
         self.serial_numbers = proto.serial_numbers
         self.metadata = proto.metadata.value
         return self

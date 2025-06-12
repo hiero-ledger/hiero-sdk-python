@@ -38,7 +38,7 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenUnfreeze.token.realmNum == 1
     assert transaction_body.tokenUnfreeze.token.tokenNum == 1
 
-    proto_account = freeze_id.to_proto()
+    proto_account = freeze_id._to_proto()
     assert transaction_body.tokenUnfreeze.account == proto_account
 
 def test_missing_token_id(mock_account_ids):
@@ -104,7 +104,7 @@ def test_to_proto(mock_account_ids, mock_client):
     unfreeze_tx.freeze_with(mock_client)
 
     unfreeze_tx.sign(freeze_key)
-    proto = unfreeze_tx.to_proto()
+    proto = unfreeze_tx._to_proto()
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
