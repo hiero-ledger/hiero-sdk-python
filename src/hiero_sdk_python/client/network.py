@@ -104,7 +104,7 @@ class Network:
         url: str = f"{base_url}/api/v1/network/nodes?limit=100&order=desc"
 
         try:
-            response: requests.Response = requests.get(url)
+            response: requests.Response = requests.get(url, timeout=30) # Add 30 second timeout
             response.raise_for_status()
             data: dict = response.json()
 
