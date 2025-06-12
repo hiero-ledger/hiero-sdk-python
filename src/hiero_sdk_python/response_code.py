@@ -1,3 +1,4 @@
+import warnings
 from enum import IntEnum
 
 class ResponseCode(IntEnum):
@@ -358,3 +359,15 @@ class ResponseCode(IntEnum):
         unknown._name_ = f'UNKNOWN_CODE_{value}'
         unknown._value_ = value
         return unknown
+    
+    @classmethod
+    def get_name(cls,code):
+        """
+        Returns the name of the response code.
+        """
+        warnings.warn(
+            "The `get_name` method is deprecated and will be removed in 3 months. "
+            "Please use `ResponseCode(code).name` instead.", 
+            DeprecationWarning
+        )
+        return cls(code).name
