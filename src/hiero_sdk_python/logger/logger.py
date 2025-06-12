@@ -5,6 +5,7 @@ Simple logger module for the Hiero SDK.
 import logging
 import sys
 
+from typing import Optional, Union
 from hiero_sdk_python.logger.log_level import LogLevel
 
 class Logger:
@@ -30,7 +31,7 @@ class Logger:
         
         logging.Logger.trace = trace_method
     
-    def __init__(self, level=None, name=None):
+    def __init__(self, level: Optional[Union[int, str, LogLevel]] = None, name: str = None):
         """
         Constructor
         
@@ -46,9 +47,9 @@ class Logger:
             name = "hiero_sdk_python"
             
         # Get logger and set level
-        self.name = name
-        self.internal_logger = logging.getLogger(name)
-        self.level = level or LogLevel.TRACE
+        self.name: str = name
+        self.internal_logger: Logger = logging.getLogger(name)
+        self.level: Union[int, str, LogLevel] = level or LogLevel.TRACE
         
         # Add handler if needed
         if not self.internal_logger.handlers:
@@ -61,7 +62,7 @@ class Logger:
         # Set level
         self.set_level(self.level)
     
-    def set_level(self, level):
+    def set_level(self, level: Union[int, str, LogLevel]):
         """Set log level"""
         if isinstance(level, str):
             level = LogLevel.from_string(level)
