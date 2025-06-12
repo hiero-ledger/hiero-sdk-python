@@ -347,3 +347,14 @@ class ResponseCode(IntEnum):
     DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST = 385
     DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST = 386
     MAX_CUSTOM_FEES_IS_NOT_SUPPORTED = 387
+
+    @classmethod
+    def _missing_(cls,value):
+        """
+        Handles cases where an integer value does not match ResponseCode member.
+        and return 'UNKNOWN_CODE_<value>'
+        """
+        unknown = int.__new__(cls,value)
+        unknown._name_ = f'UNKNOWN_CODE_{value}'
+        unknown._value_ = value
+        return unknown
