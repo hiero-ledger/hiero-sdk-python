@@ -30,7 +30,7 @@ def test_integration_transfer_transaction_can_transfer_hbar():
         
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         assert account_id is not None
@@ -41,7 +41,7 @@ def test_integration_transfer_transaction_can_transfer_hbar():
         
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Transfer failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -69,7 +69,7 @@ def test_integration_token_transfer_transaction_can_transfer_token():
         
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         assert account_id is not None
@@ -86,7 +86,7 @@ def test_integration_token_transfer_transaction_can_transfer_token():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_token_transfer(token_id, env.operator_id, -1)
@@ -94,7 +94,7 @@ def test_integration_token_transfer_transaction_can_transfer_token():
         
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -121,7 +121,7 @@ def test_integration_token_transfer_transaction_can_transfer_nft():
         
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         assert account_id is not None
@@ -136,7 +136,7 @@ def test_integration_token_transfer_transaction_can_transfer_nft():
         
         receipt = mint_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT mint failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT mint failed with status: {ResponseCode(receipt.status).name}"
         
         serial_number = receipt.serial_numbers[0]
         
@@ -151,14 +151,14 @@ def test_integration_token_transfer_transaction_can_transfer_nft():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_nft_transfer(nft_id, env.operator_id, account_id)
         
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT transfer failed with status: {ResponseCode(receipt.status).name}"
         
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
@@ -178,7 +178,7 @@ def test_integration_transfer_transaction_transfer_hbar_nothing_set():
         
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Transfer failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Transfer failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -200,7 +200,7 @@ def test_integration_transfer_transaction_transfer_wrong_hbar_amount():
         
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         assert account_id is not None
@@ -232,7 +232,7 @@ def test_integration_transfer_transaction_transfer_hbar_fail_not_enough_balance(
         
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_1_id = receipt.accountId
         assert account_1_id is not None
@@ -245,7 +245,7 @@ def test_integration_transfer_transaction_transfer_hbar_fail_not_enough_balance(
         transfer_transaction.sign(new_account_private_key)
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.INSUFFICIENT_ACCOUNT_BALANCE, f"Transfer should have failed with INSUFFICIENT_ACCOUNT_BALANCE status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INSUFFICIENT_ACCOUNT_BALANCE, f"Transfer should have failed with INSUFFICIENT_ACCOUNT_BALANCE status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -267,7 +267,7 @@ def test_integration_token_transfer_transaction_fail_not_enough_balance():
         
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         assert account_id is not None
@@ -284,7 +284,7 @@ def test_integration_token_transfer_transaction_fail_not_enough_balance():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_token_transfer(token_id, env.operator_id, -100000)
@@ -292,7 +292,7 @@ def test_integration_token_transfer_transaction_fail_not_enough_balance():
         
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.INSUFFICIENT_TOKEN_BALANCE, f"Token transfer should have failed with INSUFFICIENT_TOKEN_BALANCE status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INSUFFICIENT_TOKEN_BALANCE, f"Token transfer should have failed with INSUFFICIENT_TOKEN_BALANCE status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -314,7 +314,7 @@ def test_integration_token_transfer_transaction_fail_not_your_nft():
         
         receipt = account_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         account_id = receipt.accountId
         assert account_id is not None
@@ -329,7 +329,7 @@ def test_integration_token_transfer_transaction_fail_not_your_nft():
         
         receipt = mint_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT mint failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT mint failed with status: {ResponseCode(receipt.status).name}"
         
         serial_number = receipt.serial_numbers[0]
         
@@ -344,7 +344,7 @@ def test_integration_token_transfer_transaction_fail_not_your_nft():
         associate_transaction.sign(new_account_private_key)
         receipt = associate_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT association failed with status: {ResponseCode(receipt.status).name}"
         
         transfer_transaction = TransferTransaction()
         transfer_transaction.add_nft_transfer(nft_id, account_id, env.operator_id)
@@ -353,6 +353,6 @@ def test_integration_token_transfer_transaction_fail_not_your_nft():
         transfer_transaction.sign(new_account_private_key)
         receipt = transfer_transaction.execute(env.client)
         
-        assert receipt.status == ResponseCode.SENDER_DOES_NOT_OWN_NFT_SERIAL_NO, f"NFT transfer should have failed with SENDER_DOES_NOT_OWN_NFT_SERIAL_NO status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SENDER_DOES_NOT_OWN_NFT_SERIAL_NO, f"NFT transfer should have failed with SENDER_DOES_NOT_OWN_NFT_SERIAL_NO status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()

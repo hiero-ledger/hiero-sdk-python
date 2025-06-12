@@ -51,7 +51,7 @@ def create_nft(client, operator_id, operator_key):
     
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get token ID from receipt
@@ -70,7 +70,7 @@ def mint_nft(client, nft_token_id):
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"NFT minted with serial number: {receipt.serial_numbers[0]}")

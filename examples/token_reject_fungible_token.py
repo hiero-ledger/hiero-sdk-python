@@ -48,7 +48,7 @@ def create_test_account(client):
     
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get account ID from receipt
@@ -78,7 +78,7 @@ def create_fungible_token(client: 'Client', treasury_id, treasury_private_key):
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Fungible token creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     token_id = receipt.tokenId
@@ -99,7 +99,7 @@ def associate_token(client, receiver_id, token_id, receiver_private_key):
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token association failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Token successfully associated with account: {receiver_id}")
@@ -118,7 +118,7 @@ def transfer_tokens(client, treasury_id, treasury_private_key, receiver_id, toke
     
     # Check if transfer was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Transfer failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Transfer failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Successfully transferred {amount} tokens to receiver account {receiver_id}")
@@ -179,7 +179,7 @@ def token_reject_fungible():
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token rejection failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token rejection failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
         
     print(f"Successfully rejected token {token_id} from account {receiver_id}")

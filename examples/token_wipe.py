@@ -51,7 +51,7 @@ def create_test_account(client):
     
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get account ID from receipt
@@ -85,7 +85,7 @@ def create_token(client, operator_id, operator_key):
     
     # Check if token creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get token ID from receipt
@@ -109,7 +109,7 @@ def associate_token(client, account_id, token_id, account_private_key):
     receipt = associate_transaction.execute(client)
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token association failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print("Token successfully associated with account")
@@ -129,7 +129,7 @@ def transfer_tokens(client, token_id, operator_id, account_id, amount):
     
     # Check if token transfer was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token transfer failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token transfer failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Successfully transferred {amount} tokens to account {account_id}")
@@ -149,7 +149,7 @@ def wipe_tokens(client, token_id, account_id, amount):
     receipt = transaction.execute(client)
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token wipe failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token wipe failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Successfully wiped {amount} tokens from account {account_id}")
