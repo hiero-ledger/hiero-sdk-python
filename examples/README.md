@@ -28,6 +28,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Rejecting a Token](#rejecting-a-token)
   - [Rejecting a Non-Fungible Token](#rejecting-a-non-fungible-token)
   - [Token Update NFTs](#token-update-nfts)
+  - [Token Grant KYC](#token-grant-kyc)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -477,6 +478,31 @@ transaction.execute(client)
 
     transaction.execute(client)
 
+```
+
+### Token Grant KYC
+
+#### Pythonic Syntax:
+```
+transaction = TokenGrantKycTransaction(
+    token_id=token_id,
+    account_id=account_id
+).freeze_with(client)
+
+transaction.sign(kyc_key)   # KYC key is required for granting KYC approval
+transaction.execute(client)
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenGrantKycTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .freeze_with(client)
+        .sign(kyc_key)   # KYC key is required for granting KYC approval
+    )
+
+    transaction.execute(client)
 ```
 
 ### Querying NFT Info

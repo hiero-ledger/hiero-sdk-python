@@ -26,6 +26,7 @@ from .tokens.token_id import TokenId
 from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
 from .tokens.token_nft_info import TokenNftInfo
+from .tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -98,6 +99,7 @@ __all__ = [
     "TokenNftInfo",
     "TokenRejectTransaction",
     "TokenUpdateNftsTransaction",
+    "TokenGrantKycTransaction",
 
     # Transaction
     "TransferTransaction",
