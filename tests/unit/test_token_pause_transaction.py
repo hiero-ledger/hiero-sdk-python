@@ -31,9 +31,9 @@ def test_build_transaction_body(mock_account_ids, token_id):
 
     transaction_body = pause_tx.build_transaction_body() # Will generate a transaction_id
 
-    assert transaction_body.token_pause.token  == token_id.to_proto()
-    assert transaction_body.transactionID     == pause_tx.transaction_id.to_proto()
-    assert transaction_body.nodeAccountID     == pause_tx.node_account_id.to_proto()
+    assert transaction_body.token_pause.token  == token_id._to_proto()
+    assert transaction_body.transactionID     == pause_tx.transaction_id._to_proto()
+    assert transaction_body.nodeAccountID     == pause_tx.node_account_id._to_proto()
 
 def test_build_transaction_body_nft(mock_account_ids, nft_id):
     """Test building an NFT‐pause transaction body with valid values."""
@@ -48,12 +48,12 @@ def test_build_transaction_body_nft(mock_account_ids, nft_id):
 
     transaction_body = pause_tx.build_transaction_body()
 
-    assert transaction_body.token_pause.token == base_token_id.to_proto()
-    assert transaction_body.transactionID    == pause_tx.transaction_id.to_proto()
-    assert transaction_body.nodeAccountID    == pause_tx.node_account_id.to_proto()
+    assert transaction_body.token_pause.token == base_token_id._to_proto()
+    assert transaction_body.transactionID    == pause_tx.transaction_id._to_proto()
+    assert transaction_body.nodeAccountID    == pause_tx.node_account_id._to_proto()
 
 # This test uses fixture (token_id, mock_client) as parameter
-def test_to_proto(token_id, mock_client):
+def test__to_proto(token_id, mock_client):
     """Test converting the token pause transaction to protobuf format after signing."""
     
     # Build the TokenPauseTransaction 
@@ -72,20 +72,20 @@ def test_to_proto(token_id, mock_client):
     pause_tx.sign(pause_key)
 
     # Convert to proto and verify that signedTransactionBytes is non-empty:
-    proto = pause_tx.to_proto()
+    proto = pause_tx._to_proto()
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
 
-def test_from_proto_restores_token_id():
+def test__from_proto_restores_token_id():
     """
-    from_proto() must deserialize TokenPauseTransactionBody → .token_id correctly.
+    _from_proto() must deserialize TokenPauseTransactionBody → .token_id correctly.
     """
     # Construct a TokenPauseTransactionBody protobuf for an example token id.
-    proto_body = TokenPauseTransactionBody(token=TokenId(7, 8, 9).to_proto())
+    proto_body = TokenPauseTransactionBody(token=TokenId(7, 8, 9)._to_proto())
 
-    # Use from_proto to build a TokenPauseTransaction whose token_id comes from the protobuf just created.
-    tx = TokenPauseTransaction().from_proto(proto_body)
+    # Use _from_proto to build a TokenPauseTransaction whose token_id comes from the protobuf just created.
+    tx = TokenPauseTransaction()._from_proto(proto_body)
 
     # Verify that tx.token_id matches TokenId(7, 8, 9)
     assert tx.token_id == TokenId(7, 8, 9)

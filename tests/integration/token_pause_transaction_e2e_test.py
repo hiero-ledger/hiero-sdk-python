@@ -57,7 +57,7 @@ def test_pause_nonexistent_token_id_raises_precheck_error(env):
 
     assert receipt.status == ResponseCode.INVALID_TOKEN_ID, (
         f"Expected INVALID_TOKEN_ID but got "
-        f"{ResponseCode.get_name(receipt.status)}"
+        f"{ResponseCode(receipt.status).name}"
     )
 
 @mark.integration
@@ -72,7 +72,7 @@ def test_pause_fails_for_unpausable_token(env, unpausable_token):
 
     assert receipt.status == ResponseCode.TOKEN_HAS_NO_PAUSE_KEY, (
         f"Expected TOKEN_HAS_NO_PAUSE_KEY but got "
-        f"{ResponseCode.get_name(receipt.status)}"
+        f"{ResponseCode(receipt.status).name}"
     )
 
 @mark.integration
@@ -89,7 +89,7 @@ def test_pause_requires_pause_key_signature(env, pausable_token):
 
     assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
         f"Expected INVALID_SIGNATURE but got "
-        f"{ResponseCode.get_name(receipt.status)}"
+        f"{ResponseCode(receipt.status).name}"
     )
 
 @mark.integration
@@ -106,7 +106,7 @@ def test_pause_with_invalid_key(env, pausable_token):
 
     assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
         f"Expected INVALID_SIGNATURE but got "
-        f"{ResponseCode.get_name(receipt.status)}"
+        f"{ResponseCode(receipt.status).name}"
     )
 
 @mark.integration
@@ -184,5 +184,5 @@ def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
     )
     assert transfer_receipt.status == ResponseCode.TOKEN_IS_PAUSED, (
         f"Expected TOKEN_IS_PAUSED but got "
-        f"{ResponseCode.get_name(transfer_receipt.status)}"
+        f"{ResponseCode(transfer_receipt.status).name}"
     )

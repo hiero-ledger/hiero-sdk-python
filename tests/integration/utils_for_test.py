@@ -62,7 +62,7 @@ class IntegrationTestEnv:
         receipt = tx.execute(self.client)
         if receipt.status != ResponseCode.SUCCESS:
             raise AssertionError(
-                f"Account creation failed: {ResponseCode.get_name(receipt.status)}"
+                f"Account creation failed: {ResponseCode(receipt.status).name}"
             )
         return Account(id=receipt.accountId, key=key)
 
@@ -81,7 +81,7 @@ class IntegrationTestEnv:
         )
         if assoc_receipt.status != ResponseCode.SUCCESS:
             raise AssertionError(
-                f"Association failed: {ResponseCode.get_name(assoc_receipt.status)}"
+                f"Association failed: {ResponseCode(assoc_receipt.status).name}"
             )
 
         transfer_receipt = (
@@ -92,7 +92,7 @@ class IntegrationTestEnv:
         )
         if transfer_receipt.status != ResponseCode.SUCCESS:
             raise AssertionError(
-                f"Transfer failed: {ResponseCode.get_name(transfer_receipt.status)}"
+                f"Transfer failed: {ResponseCode(transfer_receipt.status).name}"
             )
 
 def create_fungible_token(env, opts=[]):

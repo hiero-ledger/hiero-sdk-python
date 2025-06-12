@@ -44,7 +44,7 @@ def assert_success(receipt, action: str):
                       indicating which action failed and the status name.
     """
     if receipt.status != ResponseCode.SUCCESS:
-        name = ResponseCode.get_name(receipt.status)
+        name = ResponseCode(receipt.status).name
         raise RuntimeError(f"{action!r} failed with status {name}")
 
 def create_token(client, operator_id, admin_key, pause_key):
