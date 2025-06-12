@@ -351,8 +351,8 @@ class ResponseCode(IntEnum):
     @classmethod
     def _missing_(cls,value):
         """
-        Handles cases where an integer value does not match ResponseCode member.
-        and return 'UNKNOWN_CODE_<value>'
+        Handles cases where an integer value does not match any ResponseCode member
+        and returns 'UNKNOWN_CODE_<value>'.
         """
         unknown = int.__new__(cls,value)
         unknown._name_ = f'UNKNOWN_CODE_{value}'
