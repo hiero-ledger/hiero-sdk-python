@@ -120,7 +120,7 @@ class TokenInfo:
         if proto_obj.autoRenewPeriod:
             tokenInfoObject.set_auto_renew_period(Duration._from_proto(proto_obj.autoRenewPeriod))
         if proto_obj.expiry:
-            tokenInfoObject.set_expiry(Timestamp.from_protobuf(proto_obj.expiry))
+            tokenInfoObject.set_expiry(Timestamp._from_protobuf(proto_obj.expiry))
         if proto_obj.pause_key.WhichOneof("key"):
             tokenInfoObject.set_pause_key(PublicKey._from_proto(proto_obj.pause_key))
         if proto_obj.pause_status:
@@ -144,7 +144,7 @@ class TokenInfo:
             tokenType=self.tokenType.value,
             supplyType=self.supplyType.value,
             maxSupply=self.maxSupply,
-            expiry = self.expiry.to_protobuf(),
+            expiry = self.expiry._to_protobuf(),
             ledger_id=self.ledger_id
         )
         if self.adminKey:
@@ -168,7 +168,7 @@ class TokenInfo:
         if self.autoRenewPeriod:
             proto.autoRenewPeriod.CopyFrom(self.autoRenewPeriod._to_proto())
         if self.expiry:
-            proto.expiry.CopyFrom(self.expiry.to_protobuf())
+            proto.expiry.CopyFrom(self.expiry._to_protobuf())
         if self.pause_key:
             proto.pause_key.CopyFrom(self.pause_key._to_proto())
         if self.pause_status:

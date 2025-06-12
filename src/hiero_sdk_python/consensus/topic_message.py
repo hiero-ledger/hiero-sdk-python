@@ -12,7 +12,7 @@ class TopicMessageChunk:
     """
 
     def __init__(self, response: mirror_proto.ConsensusTopicResponse):
-        self.consensus_timestamp = Timestamp.from_protobuf(response.consensusTimestamp).to_date()
+        self.consensus_timestamp = Timestamp._from_protobuf(response.consensusTimestamp).to_date()
         self.content_size = len(response.message)
         self.running_hash = response.runningHash
         self.sequence_number = response.sequenceNumber
@@ -114,7 +114,7 @@ class TopicMessage:
             offset = end
 
         last_r = sorted_responses[-1]
-        consensus_timestamp = Timestamp.from_protobuf(last_r.consensusTimestamp).to_date()
+        consensus_timestamp = Timestamp._from_protobuf(last_r.consensusTimestamp).to_date()
         running_hash = last_r.runningHash
         sequence_number = last_r.sequenceNumber
 

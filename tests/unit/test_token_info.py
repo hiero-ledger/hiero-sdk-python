@@ -130,7 +130,7 @@ def test_from_proto(proto_token_info):
     proto_token_info.defaultKycStatus = TokenKycStatus.GRANTED.value
     proto_token_info.autoRenewAccount.CopyFrom(AccountId(0, 0, 300)._to_proto())
     proto_token_info.autoRenewPeriod.CopyFrom(Duration(3600)._to_proto())
-    proto_token_info.expiry.CopyFrom(Timestamp(1625097600, 0).to_protobuf())
+    proto_token_info.expiry.CopyFrom(Timestamp(1625097600, 0)._to_protobuf())
     proto_token_info.pause_status = hiero_sdk_python.hapi.services.basic_types_pb2.Paused
     proto_token_info.supplyType = hiero_sdk_python.hapi.services.basic_types_pb2.INFINITE
 
@@ -203,7 +203,7 @@ def test_to_proto(token_info):
     assert proto.defaultKycStatus == TokenKycStatus.GRANTED.value
     assert proto.autoRenewAccount == AccountId(0, 0, 300)._to_proto()
     assert proto.autoRenewPeriod == Duration(3600)._to_proto()
-    assert proto.expiry == Timestamp(1625097600, 0).to_protobuf()
+    assert proto.expiry == Timestamp(1625097600, 0)._to_protobuf()
     assert proto.pause_key.ed25519 == public_key.to_bytes_raw()
     assert proto.pause_status == TokenPauseStatus.PAUSED.value
 
