@@ -139,13 +139,13 @@ class NodeAddress:
         
         service_endpoints: List[ServiceEndpoint] = node.get('service_endpoints', [])
         public_key: str = node.get('public_key')
-        account_id: str= AccountId.from_string(node.get('node_account_id'))
+        account_id: AccountId = AccountId.from_string(node.get('node_account_id'))
         node_id: int = node.get('node_id')
         # Get the hash from the node, remove the 0x prefix and convert to bytes
         cert_hash: bytes = bytes.fromhex(node.get('node_cert_hash').removeprefix('0x'))
         description: str = node.get('description')
         
-        endpoints: List[ServiceEndpoint] = []
+        endpoints: List[Endpoint] = []
         for endpoint in service_endpoints:
             endpoints.append(Endpoint.from_dict(endpoint))
         
