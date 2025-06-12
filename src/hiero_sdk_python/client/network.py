@@ -26,7 +26,7 @@ class Network:
         'solo': 'http://localhost:8080'
     }
 
-    DEFAULT_NODES: Dict[str,List] = {
+    DEFAULT_NODES: Dict[str,List[_Node]] = {
         'mainnet': [
             ("35.237.200.180:50211", AccountId(0, 0, 3)),
             ("35.186.191.247:50211", AccountId(0, 0, 4)),
