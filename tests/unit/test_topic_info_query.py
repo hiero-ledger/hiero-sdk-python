@@ -10,6 +10,7 @@ from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2
 )
+from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 
@@ -25,22 +26,43 @@ def create_topic_info_response(status_code=ResponseCode.OK, with_info=True):
         sequenceNumber=10,
         adminKey=basic_types_pb2.Key(ed25519=b"\x01" * 32)
     ) if with_info else consensus_topic_info_pb2.ConsensusTopicInfo()
-    
-    response = response_pb2.Response(
-        consensusGetTopicInfo=consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=status_code
-            ),
-            topicInfo=topic_info
+
+    responses = [
+        response_pb2.Response(
+            consensusGetTopicInfo=consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2
+                )
+            )
+        ),
+        response_pb2.Response(
+            consensusGetTopicInfo=consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2
+                )
+            )
+        ),
+        response_pb2.Response(
+            consensusGetTopicInfo=consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=status_code
+                ),
+                topicInfo=topic_info
+            )
         )
-    )
-    return response
+    ]
+    
+    return responses
 
 
 def test_topic_info_query(topic_id):
     """Test basic functionality of TopicInfoQuery with mock server."""
-    response = create_topic_info_response()
-    response_sequences = [[response]]
+    responses = create_topic_info_response()
+    response_sequences = [responses]
     
     with mock_hedera_servers(response_sequences) as client:
         query = (
@@ -49,6 +71,10 @@ def test_topic_info_query(topic_id):
         )
         
         try:
+            # Get the cost of executing the query - should be 2 tinybars based on the mock response
+            cost = query.get_cost(client)
+            assert cost.to_tinybars() == 2
+            
             result = query.execute(client)
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
