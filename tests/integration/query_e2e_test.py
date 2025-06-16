@@ -49,9 +49,6 @@ def test_integration_free_query_no_cost():
         balance_result = query.execute(env.client)
         assert balance_result.hbars.to_tinybars() == initial_balance.to_tinybars()
         
-        # Wait for transaction to be processed by network
-        time.sleep(1)
-        
         balance_after = (
             CryptoGetAccountBalanceQuery()
             .set_account_id(account_id)
@@ -106,9 +103,6 @@ def test_integration_free_query_with_manual_payment():
         
         balance_result = query.execute(env.client)
         assert balance_result.hbars.to_tinybars() == initial_balance.to_tinybars()
-        
-        # Wait for transaction to be processed by network
-        time.sleep(1)
         
         balance_after = (
             CryptoGetAccountBalanceQuery()
