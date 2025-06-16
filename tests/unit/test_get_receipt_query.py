@@ -130,3 +130,8 @@ def test_receipt_query_receipt_status_error(transaction_id):
             query.execute(client)
         
         assert str(f"Receipt for transaction {transaction_id} contained error status: UNKNOWN ({ResponseCode.UNKNOWN})") in str(exc_info.value)
+
+def test_receipt_query_does_not_require_payment():
+    """Test that the receipt query does not require payment."""
+    query = TransactionGetReceiptQuery()
+    assert not query._is_payment_required()

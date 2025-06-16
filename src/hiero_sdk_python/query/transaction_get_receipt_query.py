@@ -73,15 +73,6 @@ class TransactionGetReceiptQuery(Query):
         self._frozen = True
         return self
 
-    def _is_payment_required(self) -> bool:
-        """
-        Override the default in the base Query class:
-        This particular query does NOT require a payment.
-        
-        Returns:
-            bool: Always False, as this query doesn't require payment.
-        """
-        return False
 
     def _make_request(self) -> query_pb2.Query:
         """
@@ -244,3 +235,12 @@ class TransactionGetReceiptQuery(Query):
             The transaction get receipt response object
         """
         return response.transactionGetReceipt
+
+    def _is_payment_required(self):
+        """
+        Transaction receipt query does not require payment.
+        
+        Returns:
+            bool: False
+        """
+        return False

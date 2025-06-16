@@ -48,3 +48,8 @@ def test_execute_account_balance_query():
             CryptoGetAccountBalanceQuery().set_account_id(AccountId(0, 0, 1800)).execute(client)
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
+
+def test_account_balance_query_does_not_require_payment():
+    """Test that the account balance query does not require payment."""
+    query = CryptoGetAccountBalanceQuery()
+    assert not query._is_payment_required()

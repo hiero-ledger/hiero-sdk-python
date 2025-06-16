@@ -75,8 +75,8 @@ class TokenInfo:
     def set_expiry(self, expiry: Timestamp):
         self.expiry = expiry
 
-    def set_pause_key(self, pauseKey: PublicKey):
-        self.pause_key = pauseKey
+    def set_pause_key(self, pause_key: PublicKey):
+        self.pause_key = pause_key
 
     def set_pause_status(self, pauseStatus: TokenPauseStatus):
         self.pause_status = pauseStatus
