@@ -48,6 +48,9 @@ def test_integration_token_burn_transaction_no_amount():
         )
         
         assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode.get_name(receipt.status)}"
+        
+        info = TokenInfoQuery(token_id).execute(env.client)
+        assert info.totalSupply == 1000, f"Total supply should remain 1000, but is {info.totalSupply}"
     finally:
         env.close()
 
