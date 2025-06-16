@@ -3,7 +3,9 @@ from typing import Optional, Union
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519, ec
+from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.utils.crypto_utils import keccak256
 
 class PrivateKey:
     """
@@ -261,8 +263,11 @@ class PrivateKey:
             # Ed25519 automatically handles the hashing internally
             return self._private_key.sign(data)
         else:
-            # ECDSA requires specifying a hash algorithm
-            return self._private_key.sign(data, ec.ECDSA(hashes.SHA256()))
+            data_hash = keccak256(data)
+            signature_der = self._private_key.sign(data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
+            r, s = asym_utils.decode_dss_signature(signature_der)
+            signature = r.to_bytes(32, "big") + s.to_bytes(32, "big")
+            return signature
 
     def public_key(self) -> PublicKey:
         return PublicKey(self._private_key.public_key())
