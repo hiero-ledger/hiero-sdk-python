@@ -1,4 +1,5 @@
 from collections import defaultdict
+from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from hiero_sdk_python.tokens.token_transfer_list import TokenTransferList
@@ -15,7 +16,7 @@ class AbstractTokenTransferTransaction(Transaction):
         self._default_transaction_fee = 100_000_000
 
 
-    def build_token_transfer_list(self) -> 'list[TokenTransferList]':
+    def build_token_transfers(self) -> 'list[basic_types_pb2.TokenTransferList]':
         """
         Aggregates all individual fungible token transfers and NFT transfers into
         a list of TokenTransferList objects, where each TokenTransferList groups
@@ -43,4 +44,9 @@ class AbstractTokenTransferTransaction(Transaction):
 
             transfer_list[nft_transfer.token_id].add_nft_transfer(nft_transfer)
 
-        return list(transfer_list.values())
+        token_transfers = list[basic_types_pb2.TokenTransferList]
+
+        for transfer in transfer_list:
+            token_transfers.append(transfer)
+        
+        return token_transfers

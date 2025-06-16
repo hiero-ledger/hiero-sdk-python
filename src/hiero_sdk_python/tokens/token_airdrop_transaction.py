@@ -127,12 +127,10 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         """
         Builds and returns the protobuf transaction body for token airdrop.
         """
-        token_transfer_list = self.build_token_transfer_list()
-        token_airdrop_body = token_airdrop_pb2.TokenAirdropTransactionBody()
-
-        for transfer in token_transfer_list:
-            token_airdrop_body.token_transfers.append(transfer._to_proto())
-
+        token_transfers = self.build_token_transfers()
+        token_airdrop_body = token_airdrop_pb2.TokenAirdropTransactionBody(
+            token_transfers=token_transfers
+        )
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenAirdrop.CopyFrom(token_airdrop_body)
 
