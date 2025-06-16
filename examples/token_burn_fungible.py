@@ -46,7 +46,7 @@ def create_fungible_token(client, operator_id, operator_key):
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Fungible token creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     token_id = receipt.tokenId
@@ -93,7 +93,7 @@ def token_burn_fungible():
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token burn failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token burn failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
         
     print(f"Successfully burned {burn_amount} tokens from {token_id}")

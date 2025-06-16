@@ -25,7 +25,7 @@ def test_integration_token_burn_transaction_can_execute():
             .execute(env.client)
         )
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode(receipt.status).name}"
         
         info = TokenInfoQuery(token_id).execute(env.client)
         assert info.totalSupply == 990, f"Total supply is not 990, but {info.totalSupply}"
@@ -47,7 +47,7 @@ def test_integration_token_burn_transaction_no_amount():
             .execute(env.client)
         )
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode(receipt.status).name}"
         
         info = TokenInfoQuery(token_id).execute(env.client)
         assert info.totalSupply == 1000, f"Total supply should remain 1000, but is {info.totalSupply}"
@@ -70,7 +70,7 @@ def test_integration_token_burn_transaction_nft():
             .set_metadata([b"Metadata"])
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token mint failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token mint failed with status: {ResponseCode(receipt.status).name}"
         
         # Try to burn the NFT
         receipt = (
@@ -79,7 +79,7 @@ def test_integration_token_burn_transaction_nft():
             .set_serials([1])
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode(receipt.status).name}"
         
         info = TokenInfoQuery(token_id).execute(env.client)
         assert info.totalSupply == 0, f"Total supply is not 0, but {info.totalSupply}"
@@ -103,7 +103,7 @@ def test_integration_token_burn_transaction_fails_invalid_metadata():
             .set_amount(1)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.INVALID_TOKEN_BURN_METADATA, f"Token burn should have failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INVALID_TOKEN_BURN_METADATA, f"Token burn should have failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
         
@@ -122,6 +122,6 @@ def test_integration_token_burn_transaction_fails_no_supply_key():
             .set_amount(10)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.TOKEN_HAS_NO_SUPPLY_KEY, f"Token burn should have failed with TOKEN_HAS_NO_SUPPLY_KEY but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.TOKEN_HAS_NO_SUPPLY_KEY, f"Token burn should have failed with TOKEN_HAS_NO_SUPPLY_KEY but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
