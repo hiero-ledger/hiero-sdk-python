@@ -41,7 +41,7 @@ def test_token_update_nfts_updates_metadata():
         
         receipt = mint_transaction.freeze_with(env.client).sign(supply_private_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode(receipt.status).name}"
         serials = receipt.serial_numbers
 
         # Verify initial metadata
@@ -57,7 +57,7 @@ def test_token_update_nfts_updates_metadata():
         )
         
         receipt = update_transaction.freeze_with(env.client).sign(metadata_private_key).execute(env.client)
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT update failed with status: {ResponseCode(receipt.status).name}"
 
         # Verify updated metadata for first half
         for serial in serials[:nft_count//2]:
@@ -103,7 +103,7 @@ def test_can_update_empty_nft_metadata():
         
         receipt = mint_transaction.freeze_with(env.client).sign(supply_private_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode(receipt.status).name}"
         serials = receipt.serial_numbers
 
         # Get and verify initial metadata list
@@ -121,7 +121,7 @@ def test_can_update_empty_nft_metadata():
         
         receipt = update_transaction.freeze_with(env.client).sign(metadata_private_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT update failed with status: {ResponseCode(receipt.status).name}"
         
         # Get and verify updated metadata list
         for serial in serials:
@@ -160,7 +160,7 @@ def test_cannot_update_nft_metadata_when_key_is_not_set():
         
         receipt = mint_transaction.freeze_with(env.client).sign(supply_private_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode(receipt.status).name}"
         serials = receipt.serial_numbers
 
         # Get and verify initial metadata list
@@ -178,7 +178,7 @@ def test_cannot_update_nft_metadata_when_key_is_not_set():
         
         receipt = update_transaction.freeze_with(env.client).sign(metadata_private_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"NFT update should fail with INVALID_SIGNATURE, got status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"NFT update should fail with INVALID_SIGNATURE, got status: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -214,7 +214,7 @@ def test_cannot_update_nft_metadata_when_transaction_not_signed_with_metadata_ke
         
         receipt = mint_transaction.freeze_with(env.client).sign(supply_private_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode(receipt.status).name}"
         serials = receipt.serial_numbers
 
         # Verify initial metadata
@@ -232,7 +232,7 @@ def test_cannot_update_nft_metadata_when_transaction_not_signed_with_metadata_ke
         
         receipt = tx.execute(env.client)
         
-        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"NFT update should fail with INVALID_SIGNATURE, got status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"NFT update should fail with INVALID_SIGNATURE, got status: {ResponseCode(receipt.status).name}"
         
         # Try to update metadata by signing the transaction with some key
         tx = TokenUpdateNftsTransaction(
@@ -244,7 +244,7 @@ def test_cannot_update_nft_metadata_when_transaction_not_signed_with_metadata_ke
         
         receipt = tx.freeze_with(env.client).sign(env.operator_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"NFT update should fail with INVALID_SIGNATURE, got status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"NFT update should fail with INVALID_SIGNATURE, got status: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -279,7 +279,7 @@ def test_token_update_nfts_transaction_fails_for_nonexistent_serial():
         
         receipt = mint_transaction.freeze_with(env.client).sign(supply_private_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"NFT minting failed with status: {ResponseCode(receipt.status).name}"
         serials = receipt.serial_numbers
         
         # Verify that only one NFT was minted and the serial number is 1
@@ -294,6 +294,6 @@ def test_token_update_nfts_transaction_fails_for_nonexistent_serial():
         
         receipt = update_transaction.freeze_with(env.client).sign(metadata_private_key).execute(env.client)
         
-        assert receipt.status == ResponseCode.INVALID_NFT_ID, f"NFT update should fail with INVALID_NFT_ID, got status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INVALID_NFT_ID, f"NFT update should fail with INVALID_NFT_ID, got status: {ResponseCode(receipt.status).name}"
     finally:
         env.close()

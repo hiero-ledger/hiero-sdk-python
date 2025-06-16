@@ -18,7 +18,7 @@ class AccountId:
         return cls(shard, realm, num)
 
     @classmethod
-    def from_proto(cls, account_id_proto):
+    def _from_proto(cls, account_id_proto):
         """
         Creates an AccountId instance from a protobuf AccountID object.
 
@@ -34,7 +34,7 @@ class AccountId:
             num=account_id_proto.accountNum
         )
 
-    def to_proto(self):
+    def _to_proto(self):
         """
         Converts the AccountId instance to a protobuf AccountID object.
 

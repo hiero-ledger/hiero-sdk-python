@@ -75,8 +75,8 @@ class TokenInfo:
     def set_expiry(self, expiry: Timestamp):
         self.expiry = expiry
 
-    def set_pause_key(self, pauseKey: PublicKey):
-        self.pause_key = pauseKey
+    def set_pause_key(self, pause_key: PublicKey):
+        self.pause_key = pause_key
 
     def set_pause_status(self, pauseStatus: TokenPauseStatus):
         self.pause_status = pauseStatus
@@ -87,12 +87,12 @@ class TokenInfo:
     @classmethod
     def _from_proto(cls, proto_obj: proto_TokenInfo) -> "TokenInfo":
         tokenInfoObject = TokenInfo(
-            tokenId=TokenId.from_proto(proto_obj.tokenId),
+            tokenId=TokenId._from_proto(proto_obj.tokenId),
             name=proto_obj.name,
             symbol=proto_obj.symbol,
             decimals=proto_obj.decimals,
             totalSupply=proto_obj.totalSupply,
-            treasury=AccountId.from_proto(proto_obj.treasury),
+            treasury=AccountId._from_proto(proto_obj.treasury),
             isDeleted=proto_obj.deleted,
             memo=proto_obj.memo,
             tokenType=TokenType(proto_obj.tokenType),
@@ -100,31 +100,31 @@ class TokenInfo:
             ledger_id=proto_obj.ledger_id
         )
         if proto_obj.adminKey.WhichOneof("key"):
-            tokenInfoObject.set_admin_key(PublicKey.from_proto(proto_obj.adminKey))
+            tokenInfoObject.set_admin_key(PublicKey._from_proto(proto_obj.adminKey))
         if proto_obj.kycKey.WhichOneof("key"):
-            tokenInfoObject.set_kycKey(PublicKey.from_proto(proto_obj.kycKey))
+            tokenInfoObject.set_kycKey(PublicKey._from_proto(proto_obj.kycKey))
         if proto_obj.freezeKey.WhichOneof("key"):
-            tokenInfoObject.set_freezeKey(PublicKey.from_proto(proto_obj.freezeKey))
+            tokenInfoObject.set_freezeKey(PublicKey._from_proto(proto_obj.freezeKey))
         if proto_obj.wipeKey.WhichOneof("key"):
-            tokenInfoObject.set_wipeKey(PublicKey.from_proto(proto_obj.wipeKey))
+            tokenInfoObject.set_wipeKey(PublicKey._from_proto(proto_obj.wipeKey))
         if proto_obj.supplyKey.WhichOneof("key"):
-            tokenInfoObject.set_supplyKey(PublicKey.from_proto(proto_obj.supplyKey))
+            tokenInfoObject.set_supplyKey(PublicKey._from_proto(proto_obj.supplyKey))
         if proto_obj.fee_schedule_key.WhichOneof("key"):
-            tokenInfoObject.set_fee_schedule_key(PublicKey.from_proto(proto_obj.fee_schedule_key))
+            tokenInfoObject.set_fee_schedule_key(PublicKey._from_proto(proto_obj.fee_schedule_key))
         if proto_obj.defaultFreezeStatus:
-            tokenInfoObject.set_default_freeze_status(TokenFreezeStatus.from_proto(proto_obj.defaultFreezeStatus))
+            tokenInfoObject.set_default_freeze_status(TokenFreezeStatus._from_proto(proto_obj.defaultFreezeStatus))
         if proto_obj.defaultKycStatus:
-            tokenInfoObject.set_default_kyc_status(TokenKycStatus.from_proto(proto_obj.defaultKycStatus))
+            tokenInfoObject.set_default_kyc_status(TokenKycStatus._from_proto(proto_obj.defaultKycStatus))
         if proto_obj.autoRenewAccount:
-            tokenInfoObject.set_auto_renew_account(AccountId.from_proto(proto_obj.autoRenewAccount))
+            tokenInfoObject.set_auto_renew_account(AccountId._from_proto(proto_obj.autoRenewAccount))
         if proto_obj.autoRenewPeriod:
-            tokenInfoObject.set_auto_renew_period(Duration.from_proto(proto_obj.autoRenewPeriod))
+            tokenInfoObject.set_auto_renew_period(Duration._from_proto(proto_obj.autoRenewPeriod))
         if proto_obj.expiry:
-            tokenInfoObject.set_expiry(Timestamp.from_protobuf(proto_obj.expiry))
+            tokenInfoObject.set_expiry(Timestamp._from_protobuf(proto_obj.expiry))
         if proto_obj.pause_key.WhichOneof("key"):
-            tokenInfoObject.set_pause_key(PublicKey.from_proto(proto_obj.pause_key))
+            tokenInfoObject.set_pause_key(PublicKey._from_proto(proto_obj.pause_key))
         if proto_obj.pause_status:
-            tokenInfoObject.set_pause_status(TokenPauseStatus.from_proto(proto_obj.pause_status))
+            tokenInfoObject.set_pause_status(TokenPauseStatus._from_proto(proto_obj.pause_status))
         if proto_obj.supplyType is not None:
             tokenInfoObject.set_supply_type(SupplyType(proto_obj.supplyType))
 
@@ -133,44 +133,44 @@ class TokenInfo:
 
     def _to_proto(self) -> proto_TokenInfo:
         proto = proto_TokenInfo(
-            tokenId=self.tokenId.to_proto(),
+            tokenId=self.tokenId._to_proto(),
             name=self.name,
             symbol=self.symbol,
             decimals=self.decimals,
             totalSupply=self.totalSupply,
-            treasury=self.treasury.to_proto(),
+            treasury=self.treasury._to_proto(),
             deleted=self.isDeleted,
             memo=self.memo,
             tokenType=self.tokenType.value,
             supplyType=self.supplyType.value,
             maxSupply=self.maxSupply,
-            expiry = self.expiry.to_protobuf(),
+            expiry = self.expiry._to_protobuf(),
             ledger_id=self.ledger_id
         )
         if self.adminKey:
-            proto.adminKey.CopyFrom(self.adminKey.to_proto())
+            proto.adminKey.CopyFrom(self.adminKey._to_proto())
         if self.kycKey:
-            proto.kycKey.CopyFrom(self.kycKey.to_proto())
+            proto.kycKey.CopyFrom(self.kycKey._to_proto())
         if self.freezeKey:
-            proto.freezeKey.CopyFrom(self.freezeKey.to_proto())
+            proto.freezeKey.CopyFrom(self.freezeKey._to_proto())
         if self.wipeKey:
-            proto.wipeKey.CopyFrom(self.wipeKey.to_proto())
+            proto.wipeKey.CopyFrom(self.wipeKey._to_proto())
         if self.supplyKey:
-            proto.supplyKey.CopyFrom(self.supplyKey.to_proto())
+            proto.supplyKey.CopyFrom(self.supplyKey._to_proto())
         if self.fee_schedule_key:
-            proto.fee_schedule_key.CopyFrom(self.fee_schedule_key.to_proto())
+            proto.fee_schedule_key.CopyFrom(self.fee_schedule_key._to_proto())
         if self.defaultFreezeStatus:
             proto.defaultFreezeStatus = self.defaultFreezeStatus.value
         if self.defaultKycStatus:
             proto.defaultKycStatus = self.defaultKycStatus.value
         if self.autoRenewAccount:
-            proto.autoRenewAccount.CopyFrom(self.autoRenewAccount.to_proto())
+            proto.autoRenewAccount.CopyFrom(self.autoRenewAccount._to_proto())
         if self.autoRenewPeriod:
-            proto.autoRenewPeriod.CopyFrom(self.autoRenewPeriod.to_proto())
+            proto.autoRenewPeriod.CopyFrom(self.autoRenewPeriod._to_proto())
         if self.expiry:
-            proto.expiry.CopyFrom(self.expiry.to_protobuf())
+            proto.expiry.CopyFrom(self.expiry._to_protobuf())
         if self.pause_key:
-            proto.pause_key.CopyFrom(self.pause_key.to_proto())
+            proto.pause_key.CopyFrom(self.pause_key._to_proto())
         if self.pause_status:
             proto.pause_status = self.pause_status.value
 
