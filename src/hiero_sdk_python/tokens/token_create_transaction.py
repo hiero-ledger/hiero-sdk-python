@@ -341,6 +341,22 @@ class TokenCreateTransaction(Transaction):
         self._keys.kyc_key = key
         return self
 
+    def _to_proto_key(self, private_key):
+        """
+        Helper method to convert a private key to protobuf Key format.
+        
+        Args:
+            private_key: The private key to convert, or None
+            
+        Returns:
+            basic_types_pb2.Key or None: The protobuf key or None if private_key is None
+        """
+        if not private_key:
+            return None
+        
+        public_key_bytes = private_key.public_key().to_bytes_raw()
+        return basic_types_pb2.Key(ed25519=public_key_bytes)
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for token creation.
@@ -357,41 +373,14 @@ class TokenCreateTransaction(Transaction):
 
         # Validate freeze status
         TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
-
-        admin_key_proto = None
-        if self._keys.admin_key:
-            admin_public_key_bytes = self._keys.admin_key.public_key().to_bytes_raw()
-            admin_key_proto = basic_types_pb2.Key(ed25519=admin_public_key_bytes)
-
-        supply_key_proto = None
-        if self._keys.supply_key:
-            supply_public_key_bytes = self._keys.supply_key.public_key().to_bytes_raw()
-            supply_key_proto = basic_types_pb2.Key(ed25519=supply_public_key_bytes)
-
-        freeze_key_proto = None
-        if self._keys.freeze_key:
-            freeze_public_key_bytes = self._keys.freeze_key.public_key().to_bytes_raw()
-            freeze_key_proto = basic_types_pb2.Key(ed25519=freeze_public_key_bytes)
-            
-        wipe_key_proto = None
-        if self._keys.wipe_key:
-            wipe_public_key_bytes = self._keys.wipe_key.public_key().to_bytes_raw()
-            wipe_key_proto = basic_types_pb2.Key(ed25519=wipe_public_key_bytes)
-
-        metadata_key_proto = None
-        if self._keys.metadata_key:
-            metadata_public_key_bytes = self._keys.metadata_key.public_key().to_bytes_raw()
-            metadata_key_proto = basic_types_pb2.Key(ed25519=metadata_public_key_bytes)
-
-        pause_key_proto = None
-        if self._keys.pause_key:
-            pause_public_key_bytes = self._keys.pause_key.public_key().to_bytes_raw()
-            pause_key_proto = basic_types_pb2.Key(ed25519=pause_public_key_bytes)
         
-        kyc_key_proto = None
-        if self._keys.kyc_key:
-            kyc_public_key_bytes = self._keys.kyc_key.public_key().to_bytes_raw()
-            kyc_key_proto = basic_types_pb2.Key(ed25519=kyc_public_key_bytes)
+        admin_key_proto = self._to_proto_key(self._keys.admin_key)
+        supply_key_proto = self._to_proto_key(self._keys.supply_key)
+        freeze_key_proto = self._to_proto_key(self._keys.freeze_key)
+        wipe_key_proto = self._to_proto_key(self._keys.wipe_key)
+        metadata_key_proto = self._to_proto_key(self._keys.metadata_key)
+        pause_key_proto = self._to_proto_key(self._keys.pause_key)
+        kyc_key_proto = self._to_proto_key(self._keys.kyc_key)
 
         # Ensure token type is correctly set with default to fungible
         if self._token_params.token_type is None:
