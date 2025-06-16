@@ -215,7 +215,7 @@ class TransactionGetReceiptQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
 
-        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt)
+        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id)
 
     def _get_query_response(self, response):
         """
