@@ -58,7 +58,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_get_query_response must be implemented by subclasses.")
 
-    def set_query_payment(self, amount: Hbar):
+    def set_query_payment(self, payment_amount: Hbar):
         """
         Sets the payment amount for this query.
         
@@ -66,12 +66,12 @@ class Query(_Executable):
         If not set, the default is 1 Hbar.
         
         Args:
-            amount (Hbar): The payment amount for this query
+            payment_amount (Hbar): The payment amount for this query
             
         Returns:
             Query: The current query instance for method chaining
         """
-        self.payment_amount = amount
+        self.payment_amount = payment_amount
         return self
 
     def _before_execute(self, client):
@@ -183,8 +183,11 @@ class Query(_Executable):
             client (Client): The client instance to use for execution. Must have an operator set.
         
         Returns:
-            Hbar: The cost in Hbars that would be charged to execute this query. Returns the
-                 pre-set payment amount if one exists, or 0 if no payment is required.
+            Hbar: The cost in Hbars to execute this query. 
+                - Returns 0 if no payment is required (_is_payment_required is False),
+                  regardless of any manually set payment.
+                - Returns the manually set payment amount if one was provided for a paid query.
+                - Otherwise, fetches the cost from the network for a paid query.
             
         Raises:
             ValueError: If the client is None or the client's operator is not set
