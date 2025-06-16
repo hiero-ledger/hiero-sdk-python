@@ -311,8 +311,8 @@ class TokenUpdateTransaction(Transaction):
             raise ValueError("Missing token ID")
         
         token_update_body = TokenUpdateTransactionBody(
-            token=self.token_id.to_proto(),
-            treasury=self.treasury_account_id.to_proto() if self.treasury_account_id else None,
+            token=self.token_id._to_proto(),
+            treasury=self.treasury_account_id._to_proto() if self.treasury_account_id else None,
             name=self.token_name,
             memo=StringValue(value=self.token_memo) if self.token_memo else None,
             metadata=BytesValue(value=self.metadata) if self.metadata else None,
@@ -349,14 +349,14 @@ class TokenUpdateTransaction(Transaction):
         Sets the keys to the protobuf transaction body.
         """
         if self.admin_key:
-            token_update_body.adminKey.CopyFrom(self.admin_key.public_key().to_proto())
+            token_update_body.adminKey.CopyFrom(self.admin_key.public_key()._to_proto())
         if self.freeze_key:
-            token_update_body.freezeKey.CopyFrom(self.freeze_key.public_key().to_proto())
+            token_update_body.freezeKey.CopyFrom(self.freeze_key.public_key()._to_proto())
         if self.wipe_key:
-            token_update_body.wipeKey.CopyFrom(self.wipe_key.public_key().to_proto())
+            token_update_body.wipeKey.CopyFrom(self.wipe_key.public_key()._to_proto())
         if self.supply_key:
-            token_update_body.supplyKey.CopyFrom(self.supply_key.public_key().to_proto())
+            token_update_body.supplyKey.CopyFrom(self.supply_key.public_key()._to_proto())
         if self.metadata_key:
-            token_update_body.metadata_key.CopyFrom(self.metadata_key.public_key().to_proto())
+            token_update_body.metadata_key.CopyFrom(self.metadata_key.public_key()._to_proto())
         if self.pause_key:
-            token_update_body.pause_key.CopyFrom(self.pause_key.public_key().to_proto())
+            token_update_body.pause_key.CopyFrom(self.pause_key.public_key()._to_proto())

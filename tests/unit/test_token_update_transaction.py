@@ -74,8 +74,8 @@ def test_build_transaction_body(mock_account_ids, new_token_data):
     update_tx.node_account_id = node_account_id
     transaction_body = update_tx.build_transaction_body()
     
-    assert transaction_body.tokenUpdate.token == token_id.to_proto()
-    assert transaction_body.tokenUpdate.treasury == operator_id.to_proto()
+    assert transaction_body.tokenUpdate.token == token_id._to_proto()
+    assert transaction_body.tokenUpdate.treasury == operator_id._to_proto()
     assert transaction_body.tokenUpdate.name == new_token_data["name"]
     assert transaction_body.tokenUpdate.symbol == new_token_data["symbol"]
     assert transaction_body.tokenUpdate.memo.value == new_token_data["memo"]
