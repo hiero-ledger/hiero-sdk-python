@@ -43,7 +43,7 @@ def test_build_transaction_body(mock_account_ids):
     burn_tx.node_account_id = node_account_id
     transaction_body = burn_tx.build_transaction_body()
 
-    assert transaction_body.tokenBurn.token == token_id.to_proto()
+    assert transaction_body.tokenBurn.token == token_id._to_proto()
     assert transaction_body.tokenBurn.amount == 100
 
 def test_build_transaction_body_validation_errors():
@@ -134,7 +134,7 @@ def test_burn_transaction_from_proto(mock_account_ids):
 
     # Create protobuf object with token burn details
     proto = TokenBurnTransactionBody(
-        token=token_id.to_proto(),
+        token=token_id._to_proto(),
         amount=100,
         serialNumbers=[1, 2, 3]
     )

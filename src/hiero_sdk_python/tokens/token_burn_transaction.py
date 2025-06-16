@@ -103,7 +103,7 @@ class TokenBurnTransaction(Transaction):
             raise ValueError("Cannot burn both amount and serial in the same transaction")
         
         token_burn_body = TokenBurnTransactionBody(
-            token=self.token_id.to_proto(),
+            token=self.token_id._to_proto(),
             amount=self.amount,
             serialNumbers=self.serials
         )
@@ -139,7 +139,7 @@ class TokenBurnTransaction(Transaction):
         Returns:
             TokenBurnTransaction: Returns self for method chaining.
         """
-        self.token_id = TokenId.from_proto(proto.token)
+        self.token_id = TokenId._from_proto(proto.token)
         self.amount = proto.amount
         self.serials = proto.serialNumbers
         return self
