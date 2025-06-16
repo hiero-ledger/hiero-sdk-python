@@ -52,6 +52,9 @@ def test_build_transaction_body_validation_errors():
 
     with pytest.raises(ValueError, match="Missing token ID"):
         burn_tx.build_transaction_body()
+    
+    with pytest.raises(ValueError, match="Cannot burn both amount and serial in the same transaction"):
+        burn_tx.set_token_id(TokenId(0, 0, 0)).set_amount(100).set_serials([1, 2, 3]).build_transaction_body()
 
 def test_set_methods(mock_account_ids):
     """Test the set methods of TokenBurnTransaction."""
