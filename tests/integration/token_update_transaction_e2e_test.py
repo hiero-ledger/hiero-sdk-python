@@ -87,8 +87,8 @@ def test_integration_token_update_transaction_different_keys():
     env = IntegrationTestEnv()
     
     try:
-        # Generate 4 key pairs
-        keys = [PrivateKey.generate() for _ in range(5)]
+        # Generate 6 key pairs
+        keys = [PrivateKey.generate() for _ in range(6)]
         
         # Create new account with first key
         tx = (
@@ -99,8 +99,8 @@ def test_integration_token_update_transaction_different_keys():
         receipt = tx.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
         
-        # Create token with supply key set to first public key
-        token_id = create_fungible_token(env, opts=[lambda tx: tx.set_metadata_key(keys[0])])
+        # Create fungible token with initial metadata and pause keys both set to the first key
+        token_id = create_fungible_token(env, opts=[lambda tx: tx.set_metadata_key(keys[0]), lambda tx: tx.set_pause_key(keys[0])])
         
         # Update token with different keys
         receipt = (
@@ -114,6 +114,7 @@ def test_integration_token_update_transaction_different_keys():
             .set_wipe_key(keys[2])
             .set_supply_key(keys[3])
             .set_metadata_key(keys[4])
+            .set_pause_key(keys[5])
             .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -131,6 +132,7 @@ def test_integration_token_update_transaction_different_keys():
         assert info.wipeKey.to_bytes_raw() == keys[2].public_key().to_bytes_raw(), "Wipe key mismatch"
         assert info.supplyKey.to_bytes_raw() == keys[3].public_key().to_bytes_raw(), "Supply key mismatch"
         assert info.metadata_key.to_bytes_raw() == keys[4].public_key().to_bytes_raw(), "Metadata key mismatch"
+        assert info.pause_key.to_bytes_raw() == keys[5].public_key().to_bytes_raw(), "Pause key mismatch"
         assert info.adminKey.to_bytes_raw() == env.public_operator_key.to_bytes_raw(), "Admin key mismatch"
     finally:
         env.close()
