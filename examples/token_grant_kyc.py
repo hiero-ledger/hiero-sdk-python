@@ -49,7 +49,7 @@ def create_fungible_token(client, operator_id, operator_key, kyc_private_key):
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Fungible token creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     token_id = receipt.tokenId
@@ -70,7 +70,7 @@ def associate_token(client, token_id, account_id, account_private_key):
     receipt = associate_transaction.execute(client)
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token association failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print("Token successfully associated with account")
@@ -93,7 +93,7 @@ def create_test_account(client):
     
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get account ID from receipt
@@ -137,7 +137,7 @@ def token_grant_kyc():
     
     # Check if the transaction was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token grant KYC failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token grant KYC failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Granted KYC for account {account_id} on token {token_id}")

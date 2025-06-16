@@ -23,7 +23,7 @@ def test_token_grant_kyc_transaction_can_execute():
             .set_initial_balance(Hbar(2))
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         account_id = receipt.accountId
 
         # Create a new token and set the kyc key to be the operator's key
@@ -38,7 +38,7 @@ def test_token_grant_kyc_transaction_can_execute():
             .sign(new_account_private_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         # Grant KYC to the new account
         receipt = (
@@ -47,7 +47,7 @@ def test_token_grant_kyc_transaction_can_execute():
             .set_token_id(token_id)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token grant KYC failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token grant KYC failed with status: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -66,7 +66,7 @@ def test_token_grant_kyc_transaction_fails_with_no_kyc_key():
             .set_initial_balance(Hbar(2))
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         account_id = receipt.accountId
         
         # Create a new token without KYC key
@@ -81,7 +81,7 @@ def test_token_grant_kyc_transaction_fails_with_no_kyc_key():
             .sign(new_account_private_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         # Try to grant KYC for token without KYC key - should fail with TOKEN_HAS_NO_KYC_KEY
         receipt = (
@@ -90,7 +90,7 @@ def test_token_grant_kyc_transaction_fails_with_no_kyc_key():
             .set_token_id(token_id)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.TOKEN_HAS_NO_KYC_KEY, f"Token grant KYC should have failed with TOKEN_HAS_NO_KYC_KEY status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.TOKEN_HAS_NO_KYC_KEY, f"Token grant KYC should have failed with TOKEN_HAS_NO_KYC_KEY status but got: {ResponseCode(receipt.status).name}"
         
         # Try to grant KYC with non-KYC key - should fail with TOKEN_HAS_NO_KYC_KEY
         receipt = (
@@ -101,7 +101,7 @@ def test_token_grant_kyc_transaction_fails_with_no_kyc_key():
             .sign(new_account_private_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.TOKEN_HAS_NO_KYC_KEY, f"Token grant KYC should have failed with TOKEN_HAS_NO_KYC_KEY status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.TOKEN_HAS_NO_KYC_KEY, f"Token grant KYC should have failed with TOKEN_HAS_NO_KYC_KEY status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
         
@@ -120,7 +120,7 @@ def test_token_grant_kyc_transaction_fails_when_account_not_associated():
             .set_initial_balance(Hbar(2))
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         account_id = receipt.accountId
         
         # Create a new token and set the kyc key to be the operator's key
@@ -133,6 +133,6 @@ def test_token_grant_kyc_transaction_fails_when_account_not_associated():
             .set_token_id(token_id)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.TOKEN_NOT_ASSOCIATED_TO_ACCOUNT, f"Token grant KYC should have failed with TOKEN_NOT_ASSOCIATED_TO_ACCOUNT status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.TOKEN_NOT_ASSOCIATED_TO_ACCOUNT, f"Token grant KYC should have failed with TOKEN_NOT_ASSOCIATED_TO_ACCOUNT status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
