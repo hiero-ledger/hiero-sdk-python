@@ -44,9 +44,9 @@ class AbstractTokenTransferTransaction(Transaction):
 
             transfer_list[nft_transfer.token_id].add_nft_transfer(nft_transfer)
 
-        token_transfers = list[basic_types_pb2.TokenTransferList]
+        token_transfers: list[basic_types_pb2.TokenTransferList] = []
 
-        for transfer in transfer_list:
-            token_transfers.append(transfer)
+        for transfer in list(transfer_list.values()):
+            token_transfers.append(transfer._to_proto())
         
         return token_transfers
