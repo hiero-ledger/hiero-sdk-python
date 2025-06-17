@@ -32,6 +32,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
   - [Token Grant KYC](#token-grant-kyc)
+  - [Token Revoke KYC](#token-revoke-kyc)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -577,6 +578,31 @@ transaction.execute(client)
         .set_account_id(account_id)
         .freeze_with(client)
         .sign(kyc_key)   # KYC key is required for granting KYC approval
+    )
+
+    transaction.execute(client)
+```
+
+### Token Revoke KYC
+
+#### Pythonic Syntax:
+```
+transaction = TokenRevokeKycTransaction(
+    token_id=token_id,
+    account_id=account_id
+).freeze_with(client)
+
+transaction.sign(kyc_key)   # KYC key is required for revoking KYC approval
+transaction.execute(client)
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenRevokeKycTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .freeze_with(client)
+        .sign(kyc_key)   # KYC key is required for revoking KYC approval
     )
 
     transaction.execute(client)
