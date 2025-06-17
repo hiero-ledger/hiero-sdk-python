@@ -34,6 +34,7 @@ from .transaction.transfer_transaction import TransferTransaction
 from .transaction.transaction_id import TransactionId
 from .transaction.transaction_receipt import TransactionReceipt
 from .transaction.transaction_response import TransactionResponse
+from .transaction.transaction_record import TransactionRecord
 
 # Response / Codes
 from .response_code import ResponseCode
@@ -58,6 +59,7 @@ from .consensus.topic_id import TopicId
 from .query.topic_info_query import TopicInfoQuery
 from .query.topic_message_query import TopicMessageQuery
 from .query.transaction_get_receipt_query import TransactionGetReceiptQuery
+from .query.transaction_record_query import TransactionRecordQuery
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
 from .query.token_info_query import TokenInfoQuery
@@ -108,6 +110,7 @@ __all__ = [
     "TransactionId",
     "TransactionReceipt",
     "TransactionResponse",
+    "TransactionRecord",
 
     # Response
     "ResponseCode",
@@ -123,6 +126,7 @@ __all__ = [
     "TopicInfoQuery",
     "TopicMessageQuery",
     "TransactionGetReceiptQuery",
+    "TransactionRecordQuery",
     "CryptoGetAccountBalanceQuery",
     "TokenNftInfoQuery",
     "TokenInfoQuery",
