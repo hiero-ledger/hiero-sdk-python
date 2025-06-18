@@ -8,7 +8,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 class AbstractTokenTransferTransaction(Transaction):
     def __init__(self):
         """
-        Initializes a new ABstractTokenTransferTransaction instance.
+        Initializes a new AbstractTokenTransferTransaction instance.
         """
         super().__init__()
         self.token_transfers: list[TokenTransfer] = []
@@ -23,7 +23,8 @@ class AbstractTokenTransferTransaction(Transaction):
         transfers for a specific token ID.
 
         Returns:
-            list[TokenTransferList]: A list of TokenTransferList objects
+            list[basic_types_pb2.TokenTransferList]: A list of TokenTransferList objects,
+            each grouping transfers for a specific token ID.
         """
         transfer_list = defaultdict(TokenTransferList)
 
