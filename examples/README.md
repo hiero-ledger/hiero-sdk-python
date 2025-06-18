@@ -13,6 +13,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [Account Transactions](#account-transactions)
   - [Creating an Account](#creating-an-account)
   - [Querying Account Balance](#querying-account-balance)
+  - [Querying Account Info](#querying-account-info)
   - [Creating a Token](#creating-a-token)
 - [Token Transactions](#token-transactions)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -86,6 +87,33 @@ balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(clien
 balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
 ```
 
+### Querying Account Info
+
+#### Pythonic Syntax:
+```
+info = AccountInfoQuery(account_id=account_id).execute(client)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
+```
+
+#### Method Chaining:
+```
+info = (
+    AccountInfoQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
+```
 
 ## Token Transactions
 
