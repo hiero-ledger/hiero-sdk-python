@@ -62,6 +62,8 @@ def test_to_proto(mock_account_ids):
         is_approved=is_approved
     )
 
+    assert token_transfer.token_id == token_id
+
     # Convert to protobuf 
     proto = token_transfer._to_proto()
 
@@ -79,6 +81,8 @@ def test_to_proto(mock_account_ids):
         expected_decimals=expected_decimals,
         is_approved=is_approved
     )
+
+    assert debiting_token_transfer.token_id == token_id
 
     # Convert to protobuf 
     proto = debiting_token_transfer._to_proto()
