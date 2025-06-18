@@ -1,6 +1,7 @@
 # pylint: disable=C901
 # pylint: disable=too-many-arguments
 
+from dataclasses import dataclass
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -13,36 +14,36 @@ from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
 from hiero_sdk_python.tokens.token_type import TokenType
 
+@dataclass
 class TokenInfo:
-    def __init__(self, tokenId: TokenId, name: str, symbol: str, decimals: int, totalSupply: int, treasury: AccountId, isDeleted: bool, memo: str, tokenType: TokenType, maxSupply: int, ledger_id: bytes, metadata: bytes):
-        self.tokenId = tokenId
-        self.name = name
-        self.symbol = symbol
-        self.decimals = decimals
-        self.totalSupply = totalSupply
-        self.treasury = treasury
-        self.isDeleted = isDeleted
-        self.memo = memo
-        self.tokenType = tokenType
-        self.maxSupply = maxSupply
-        self.ledger_id = ledger_id
-        self.metadata = metadata
+    tokenId: TokenId = None
+    name: str = None
+    symbol: str = None
+    decimals: int = None
+    totalSupply: int = None
+    treasury: AccountId = None
+    isDeleted: bool = None
+    memo: str = None
+    tokenType: TokenType = None
+    maxSupply: int = None
+    ledger_id: bytes = None
+    metadata: bytes = None
 
-        self.adminKey = None
-        self.kycKey = None
-        self.freezeKey = None
-        self.wipeKey = None
-        self.supplyKey = None
-        self.metadata_key = None
-        self.fee_schedule_key = None
-        self.defaultFreezeStatus = TokenFreezeStatus.FREEZE_NOT_APPLICABLE
-        self.defaultKycStatus = TokenKycStatus.KYC_NOT_APPLICABLE
-        self.autoRenewAccount = None
-        self.autoRenewPeriod = None
-        self.expiry = None
-        self.pause_key = None
-        self.pause_status = TokenPauseStatus.PAUSE_NOT_APPLICABLE
-        self.supplyType = SupplyType.FINITE
+    adminKey = None
+    kycKey = None
+    freezeKey = None
+    wipeKey = None
+    supplyKey = None
+    metadata_key = None
+    fee_schedule_key = None
+    defaultFreezeStatus = TokenFreezeStatus.FREEZE_NOT_APPLICABLE
+    defaultKycStatus = TokenKycStatus.KYC_NOT_APPLICABLE
+    autoRenewAccount = None
+    autoRenewPeriod = None
+    expiry = None
+    pause_key = None
+    pause_status = TokenPauseStatus.PAUSE_NOT_APPLICABLE
+    supplyType = SupplyType.FINITE
 
     def set_admin_key(self, adminKey: PublicKey):
         self.adminKey = adminKey
