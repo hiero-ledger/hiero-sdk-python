@@ -67,6 +67,24 @@ def test_to_proto(mock_account_ids):
 
     assert proto.accountID.shardNum == account_id.shard
     assert proto.accountID.realmNum == account_id.realm
-    assert proto.accountID.accountNum == account_id.num  
+    assert proto.accountID.accountNum == account_id.num 
     assert proto.amount == amount
+    assert proto.is_approval is is_approved
+
+    # Check for debiting amount
+    debiting_token_transfer = TokenTransfer(
+        token_id=token_id,
+        account_id=account_id,
+        amount=-amount,
+        expected_decimals=expected_decimals,
+        is_approved=is_approved
+    )
+
+    # Convert to protobuf 
+    proto = debiting_token_transfer._to_proto()
+
+    assert proto.accountID.shardNum == account_id.shard
+    assert proto.accountID.realmNum == account_id.realm
+    assert proto.accountID.accountNum == account_id.num 
+    assert proto.amount == -amount
     assert proto.is_approval is is_approved
