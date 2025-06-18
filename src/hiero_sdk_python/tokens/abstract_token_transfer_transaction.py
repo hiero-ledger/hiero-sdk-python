@@ -1,4 +1,3 @@
-from collections import defaultdict
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -54,7 +53,7 @@ class AbstractTokenTransferTransaction(Transaction):
             list[basic_types_pb2.TokenTransferList]: A list of TokenTransferList objects,
             each grouping transfers for a specific token ID.
         """
-        transfer_list = defaultdict(TokenTransferList)
+        transfer_list: dict[TokenId,TokenTransferList] = {}
 
         for token_transfer in self.token_transfers:
             if token_transfer.token_id not in transfer_list:
