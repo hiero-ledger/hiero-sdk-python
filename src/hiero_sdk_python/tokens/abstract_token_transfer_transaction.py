@@ -1,5 +1,7 @@
 from collections import defaultdict
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from hiero_sdk_python.tokens.token_transfer_list import TokenTransferList
@@ -15,6 +17,32 @@ class AbstractTokenTransferTransaction(Transaction):
         self.nft_transfers: list[TokenNftTransfer] = []
         self._default_transaction_fee = 100_000_000
 
+    def _init_token_transfers(self, token_transfers: list[TokenTransfer]):
+        for transfer in token_transfers:
+            self._add_token_transfer(transfer.token_id, transfer.account_id, transfer.account_id, transfer.expected_decimals, transfer.is_approved)
+
+    def _init_nft_transfers(self, nft_transfers: list[TokenNftTransfer]):
+        for transfer in nft_transfers:
+            self._add_nft_transfer(transfer.token_id, transfer.sender_id, transfer.receiver_id, transfer.serial_number, transfer.is_approved)
+
+    def _add_token_transfer(self, token_id: TokenId, account_id: AccountId, amount: int, expected_decimals: int=None, is_approved: bool=False):
+        """
+        Adds a token transfer to the transaction.
+        """
+        if amount == 0:
+            raise ValueError("Amount must be a non-zero integer.")
+        
+        self.token_transfers.append(
+            TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved)
+        )
+
+    def _add_nft_transfer(self, token_id: TokenId, sender: AccountId, receiver: AccountId, serial_number: int, is_approved: bool=False):
+        """
+        Adds a nft transfer to the transaction.
+        """
+        self.nft_transfers.append(
+            TokenNftTransfer(token_id,sender, receiver, serial_number, is_approved)
+        )
 
     def build_token_transfers(self) -> 'list[basic_types_pb2.TokenTransferList]':
         """
@@ -48,6 +76,13 @@ class AbstractTokenTransferTransaction(Transaction):
         token_transfers: list[basic_types_pb2.TokenTransferList] = []
 
         for transfer in list(transfer_list.values()):
+            net_amount = 0
+            for token_transfer in transfer.transfers:
+                net_amount += token_transfer.amount
+
+            if net_amount != 0:
+                raise ValueError("All fungible token transfers must be balanced, debits must equal credits.")
+            
             token_transfers.append(transfer._to_proto())
         
         return token_transfers

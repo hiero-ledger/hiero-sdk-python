@@ -25,9 +25,9 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         """
         super().__init__()
         if token_transfers:
-            self.token_transfers = token_transfers
+            self._init_token_transfers(token_transfers)
         if nft_transfers:
-            self.nft_transfers = nft_transfers
+            self._init_nft_transfers(nft_transfers)
 
     def add_token_transfer(self, token_id: TokenId, account_id: AccountId, amount: int) -> 'TokenAirdropTransaction':
         """
@@ -41,7 +41,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
             TokenAirdropTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        self.token_transfers.append(TokenTransfer(token_id, account_id, amount))
+        self._add_token_transfer(token_id, account_id, amount)
         return self
     
     def add_token_transfer_with_decimals(self, token_id: TokenId, account_id: AccountId, amount: int, decimals: int) -> 'TokenAirdropTransaction':
@@ -57,7 +57,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
             TokenAirdropTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        self.token_transfers.append(TokenTransfer(token_id, account_id, amount, expected_decimals=decimals))
+        self._add_token_transfer(token_id, account_id, amount, expected_decimals=decimals)
         return self
     
     def add_approved_token_transfer(self, token_id: TokenId, account_id: AccountId, amount: int) -> 'TokenAirdropTransaction':
@@ -72,7 +72,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
             TokenAirdropTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        self.token_transfers.append(TokenTransfer(token_id, account_id, amount, is_approved=True))
+        self._add_token_transfer(token_id, account_id, amount, is_approved=True)
         return self
     
     def add_approved_token_transfer_with_decimals(self, token_id: TokenId, account_id: AccountId, amount: int, decimals: int) -> 'TokenAirdropTransaction':
@@ -88,7 +88,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
             TokenAirdropTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        self.token_transfers.append(TokenTransfer(token_id, account_id, amount, expected_decimals=decimals, is_approved=True))
+        self._add_token_transfer(token_id, account_id, amount, decimals, True)
         return self
         
     def add_nft_transfer(self, nft_id: NftId, sender: AccountId, receiver: AccountId) -> 'TokenAirdropTransaction':
@@ -104,7 +104,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
             TokenAirdropTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        self.nft_transfers.append(TokenNftTransfer(nft_id.tokenId, sender, receiver, nft_id.serialNumber))
+        self._add_nft_transfer(nft_id.tokenId, sender, receiver, nft_id.serialNumber)
         return self
     
     def add_approved_nft_transfer(self, nft_id: NftId, sender: AccountId, receiver: AccountId) -> 'TokenAirdropTransaction':
@@ -120,7 +120,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
             TokenAirdropTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        self.nft_transfers.append(TokenNftTransfer(nft_id.tokenId, sender, receiver, nft_id.serialNumber, True))
+        self._add_nft_transfer(nft_id.tokenId, sender, receiver, nft_id.serialNumber,True)
         return self
     
     def build_transaction_body(self):
@@ -128,6 +128,10 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         Builds and returns the protobuf transaction body for token airdrop.
         """
         token_transfers = self.build_token_transfers()
+
+        if (len(token_transfers) < 1 or len(token_transfers) > 10):
+            raise ValueError("Airdrop transfer list must contain mininum 1 and maximum 10 transfers.") 
+
         token_airdrop_body = token_airdrop_pb2.TokenAirdropTransactionBody(
             token_transfers=token_transfers
         )
