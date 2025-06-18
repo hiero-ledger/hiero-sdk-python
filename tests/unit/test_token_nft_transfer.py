@@ -18,6 +18,7 @@ def test_token_nft_transfer_constructor(mock_account_ids):
     
     # Verify all fields were set correctly
     
+    assert nft_transfer.token_id == token_id
     assert nft_transfer.sender_id == sender_id
     assert nft_transfer.receiver_id == receiver_id
     assert nft_transfer.serial_number == serial_number
@@ -32,6 +33,7 @@ def test_token_nft_transfer_constructor(mock_account_ids):
         is_approved=True
     )
     
+    assert nft_transfer.token_id == token_id
     assert approved_transfer.sender_id == sender_id
     assert approved_transfer.receiver_id == receiver_id
     assert approved_transfer.serial_number == serial_number
