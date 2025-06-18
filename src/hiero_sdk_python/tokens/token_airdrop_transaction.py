@@ -15,7 +15,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
     The TokenAirdropTransaction allows users to transfer tokens to multiple accounts,
     handling both fungible tokens and NFTs.
     """
-    def __init__(self, token_transfers: list[TokenTransfer]=None, nft_transfers: list[TokenNftTransfer]=None):
+    def __init__(self, token_transfers: list[TokenTransfer]|None=None, nft_transfers: list[TokenNftTransfer]|None=None):
         """
         Initializes a new TokenAirdropTransaction instance.
 
@@ -91,7 +91,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         self.token_transfers.append(TokenTransfer(token_id, account_id, amount, expected_decimals=decimals, is_approved=True))
         return self
         
-    def add_nft_transfer(self, nft_id: NftId, sender: AccountId, receiver: AccountId):
+    def add_nft_transfer(self, nft_id: NftId, sender: AccountId, receiver: AccountId) -> 'TokenAirdropTransaction':
         """
         Adds a transfer to the nft_transfers
 
@@ -107,7 +107,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         self.nft_transfers.append(TokenNftTransfer(nft_id.tokenId, sender, receiver, nft_id.serialNumber))
         return self
     
-    def add_approved_nft_transfer(self, nft_id: NftId, sender: AccountId, receiver: AccountId):
+    def add_approved_nft_transfer(self, nft_id: NftId, sender: AccountId, receiver: AccountId) -> 'TokenAirdropTransaction':
         """
         Adds a transfer to the nft_transfers with approved allowance
 
