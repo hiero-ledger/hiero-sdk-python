@@ -138,6 +138,6 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
-            transaction_func=channel.token.associateTokens,
+            transaction_func=channel.token.airdropTokens,
             query_func=None
         )        
