@@ -73,38 +73,7 @@ def test_transaction_record_query_execute(transaction_id):
         transactionFee=100000
     )
 
-    responses = [
-        response_pb2.Response(
-            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
-                header=response_header_pb2.ResponseHeader(
-                    nodeTransactionPrecheckCode=ResponseCode.OK,
-                    responseType=ResponseType.COST_ANSWER,
-                    cost=2
-                )
-            )
-        ),
-        response_pb2.Response(
-            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
-                header=response_header_pb2.ResponseHeader(
-                    nodeTransactionPrecheckCode=ResponseCode.OK,
-                    responseType=ResponseType.COST_ANSWER,
-                    cost=2
-                )
-            )
-        ),
-        response_pb2.Response(
-            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
-                header=response_header_pb2.ResponseHeader(
-                    nodeTransactionPrecheckCode=ResponseCode.OK,
-                    responseType=ResponseType.ANSWER_ONLY,
-                    cost=2
-                ),
-                transactionRecord=transaction_record
-            )
-        )
-    ]
-    
-    response_sequences = [responses]
+    response_sequences = get_transaction_record_responses(transaction_record)
     
     with mock_hedera_servers(response_sequences) as client:
         query = TransactionRecordQuery(transaction_id)
@@ -123,3 +92,35 @@ def test_transaction_record_query_execute(transaction_id):
         assert result.transaction_fee == 100000
         assert result.transaction_hash == b'\x01' * 48
         assert result.transaction_memo == "Test transaction"
+        
+def get_transaction_record_responses(transaction_record):
+        return [[
+            response_pb2.Response(
+                transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                    header=response_header_pb2.ResponseHeader(
+                        nodeTransactionPrecheckCode=ResponseCode.OK,
+                        responseType=ResponseType.COST_ANSWER,
+                        cost=2
+                    )
+                )
+            ),
+            response_pb2.Response(
+                transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                    header=response_header_pb2.ResponseHeader(
+                        nodeTransactionPrecheckCode=ResponseCode.OK,
+                        responseType=ResponseType.COST_ANSWER,
+                        cost=2
+                    )
+                )
+            ),
+            response_pb2.Response(
+                transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                    header=response_header_pb2.ResponseHeader(
+                        nodeTransactionPrecheckCode=ResponseCode.OK,
+                        responseType=ResponseType.ANSWER_ONLY,
+                        cost=2
+                    ),
+                    transactionRecord=transaction_record
+                )
+            )
+        ]]
