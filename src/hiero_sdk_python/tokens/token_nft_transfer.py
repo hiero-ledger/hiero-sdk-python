@@ -38,6 +38,18 @@ class TokenNftTransfer:
             is_approval=self.is_approved
         )
     
+    @classmethod
+    def _from_proto(cls, proto: basic_types_pb2.NftTransfer):
+        """
+        Creates a TokenNftTransfer from a protobuf representation.
+        """
+        return cls(
+            sender_id=AccountId._from_proto(proto.senderAccountID),
+            receiver_id=AccountId._from_proto(proto.receiverAccountID),
+            serial_number=proto.serialNumber,
+            is_approved=proto.is_approval
+        )
+
     def __str__(self):
         """
         Returns a string representation of this TokenNftTransfer instance.
