@@ -75,7 +75,7 @@ def test_account_info_default_initialization():
     assert account_info.receiver_signature_required is None
     assert account_info.expiration_time is None
     assert account_info.auto_renew_period is None
-    assert account_info.token_relationships is None
+    assert account_info.token_relationships == []
     assert account_info.account_memo is None
     assert account_info.owned_nfts is None
 
