@@ -18,7 +18,7 @@ class AbstractTokenTransferTransaction(Transaction):
 
     def _init_token_transfers(self, token_transfers: list[TokenTransfer]):
         for transfer in token_transfers:
-            self._add_token_transfer(transfer.token_id, transfer.account_id, transfer.account_id, transfer.expected_decimals, transfer.is_approved)
+            self._add_token_transfer(transfer.token_id, transfer.account_id, transfer.amount, transfer.expected_decimals, transfer.is_approved)
 
     def _init_nft_transfers(self, nft_transfers: list[TokenNftTransfer]):
         for transfer in nft_transfers:
