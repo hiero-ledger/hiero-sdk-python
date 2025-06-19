@@ -24,7 +24,8 @@ def token_info():
         memo="Test token",
         tokenType=TokenType.FUNGIBLE_COMMON,
         maxSupply=10000000,
-        ledger_id=b"ledger123"
+        ledger_id=b"ledger123",
+        metadata=b"Test metadata"
     )
 
 @pytest.fixture
@@ -41,7 +42,8 @@ def proto_token_info():
         tokenType=TokenType.FUNGIBLE_COMMON.value,
         maxSupply=10000000,
         ledger_id=b"ledger123",
-        supplyType=SupplyType.FINITE.value
+        supplyType=SupplyType.FINITE.value,
+        metadata=b"Test metadata"
     )
     return proto
 
@@ -57,6 +59,7 @@ def test_token_info_initialization(token_info):
     assert token_info.tokenType == TokenType.FUNGIBLE_COMMON
     assert token_info.maxSupply == 10000000
     assert token_info.ledger_id == b"ledger123"
+    assert token_info.metadata == b"Test metadata"
     assert token_info.supplyType == SupplyType.FINITE
     assert token_info.defaultKycStatus == TokenKycStatus.KYC_NOT_APPLICABLE
     assert token_info.defaultFreezeStatus == TokenFreezeStatus.FREEZE_NOT_APPLICABLE
@@ -147,6 +150,7 @@ def test_from_proto(proto_token_info):
     assert token_info.tokenType == TokenType.FUNGIBLE_COMMON
     assert token_info.maxSupply == 10000000
     assert token_info.ledger_id == b"ledger123"
+    assert token_info.metadata == b"Test metadata"
     assert token_info.adminKey.to_bytes_raw() == public_key.to_bytes_raw()
     assert token_info.kycKey.to_bytes_raw() == public_key.to_bytes_raw()
     assert token_info.freezeKey.to_bytes_raw() == public_key.to_bytes_raw()
@@ -193,6 +197,7 @@ def test_to_proto(token_info):
     assert proto.supplyType == SupplyType.INFINITE.value
     assert proto.maxSupply == 10000000
     assert proto.ledger_id == b"ledger123"
+    assert proto.metadata == b"Test metadata"
     assert proto.adminKey.ed25519 == public_key.to_bytes_raw()
     assert proto.kycKey.ed25519 == public_key.to_bytes_raw()
     assert proto.freezeKey.ed25519 == public_key.to_bytes_raw()
@@ -214,6 +219,6 @@ def test_str_representation(token_info):
         f"totalSupply={token_info.totalSupply}, treasury={token_info.treasury}, "
         f"isDeleted={token_info.isDeleted}, memo={token_info.memo}, "
         f"tokenType={token_info.tokenType}, maxSupply={token_info.maxSupply}, "
-        f"ledger_id={token_info.ledger_id})"
+        f"ledger_id={token_info.ledger_id}, metadata={token_info.metadata})"
     )
     assert str(token_info) == expected
