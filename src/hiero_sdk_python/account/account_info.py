@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -35,7 +35,7 @@ class AccountInfo:
     receiver_signature_required : bool = None
     expiration_time : Timestamp = None
     auto_renew_period : Duration = None
-    token_relationships : list[TokenRelationship] = None
+    token_relationships : list[TokenRelationship] = field(default_factory=list)
     account_memo : str = None
     owned_nfts : int = None
     
@@ -43,11 +43,6 @@ class AccountInfo:
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> 'AccountInfo':
         if proto is None:
             raise ValueError("Account info proto is None")
-
-        token_relationships = []
-        if proto.tokenRelationships:
-            for relationship in proto.tokenRelationships:
-                token_relationships.append(TokenRelationship._from_proto(relationship))
 
         return cls(
             account_id=AccountId._from_proto(proto.accountID) if proto.accountID else None,
@@ -59,17 +54,12 @@ class AccountInfo:
             receiver_signature_required=proto.receiverSigRequired,
             expiration_time=Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None,
             auto_renew_period=Duration._from_proto(proto.autoRenewPeriod) if proto.autoRenewPeriod else None,
-            token_relationships=token_relationships,
+            token_relationships=[TokenRelationship._from_proto(relationship) for relationship in proto.tokenRelationships],
             account_memo=proto.memo,
             owned_nfts=proto.ownedNfts
         )
         
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
-        token_relationships_proto = []
-        if self.token_relationships:
-            for relationship in self.token_relationships:
-                token_relationships_proto.append(relationship._to_proto())
-
         return CryptoGetInfoResponse.AccountInfo(
             accountID=self.account_id._to_proto() if self.account_id else None,
             contractAccountID=self.contract_account_id,
@@ -80,7 +70,7 @@ class AccountInfo:
             receiverSigRequired=self.receiver_signature_required,
             expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
             autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None,
-            tokenRelationships=token_relationships_proto,
+            tokenRelationships=[relationship._to_proto() for relationship in self.token_relationships],
             memo=self.account_memo,
             ownedNfts=self.owned_nfts
         )
