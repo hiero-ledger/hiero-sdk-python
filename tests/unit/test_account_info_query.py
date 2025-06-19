@@ -55,6 +55,7 @@ def test_account_info_query_execute(mock_account_ids, private_key):
     expiration_time = TimestampProto(seconds=1718745600)
     auto_renew_period = DurationProto(seconds=7890000)
     
+    # Create account info response with test data
     account_info_response = crypto_get_info_pb2.CryptoGetInfoResponse.AccountInfo(
         accountID=account_id._to_proto(),
         contractAccountID="",
@@ -69,7 +70,33 @@ def test_account_info_query_execute(mock_account_ids, private_key):
         ownedNfts=0
     )
 
-    responses = [
+    response_sequences = get_account_info_responses(account_info_response)
+    
+    with mock_hedera_servers(response_sequences) as client:
+        query = AccountInfoQuery(account_id)
+        
+        # Get cost and verify it matches expected value
+        cost = query.get_cost(client)
+        assert cost.to_tinybars() == 2
+        
+        # Execute query and get result
+        result = query.execute(client)
+        
+        assert result.account_id == account_id
+        assert result.contract_account_id == ""
+        assert not result.is_deleted
+        assert result.proxy_received.to_tinybars() == 0
+        assert result.key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        assert result.balance.to_tinybars() == 1000
+        assert result.expiration_time == Timestamp._from_protobuf(expiration_time)
+        assert result.auto_renew_period == Duration._from_proto(auto_renew_period)
+        assert not result.receiver_signature_required
+        assert result.token_relationships == []
+        assert result.account_memo == "test memo"
+        assert result.owned_nfts == 0
+
+def get_account_info_responses(account_info_response):
+    return [[
         response_pb2.Response(
             cryptoGetInfo=crypto_get_info_pb2.CryptoGetInfoResponse(
                 header=response_header_pb2.ResponseHeader(
@@ -98,31 +125,4 @@ def test_account_info_query_execute(mock_account_ids, private_key):
                 accountInfo=account_info_response
             )
         )
-    ]
-    
-    response_sequences = [responses]
-    
-    with mock_hedera_servers(response_sequences) as client:
-        query = AccountInfoQuery(account_id)
-        
-        try:
-            # Get the cost of executing the query - should be 2 tinybars based on the mock response
-            cost = query.get_cost(client)
-            assert cost.to_tinybars() == 2
-            
-            result = query.execute(client)
-        except Exception as e:
-            pytest.fail(f"Unexpected exception raised: {e}")
-        
-        assert result.account_id == account_id
-        assert result.contract_account_id == ""
-        assert result.is_deleted == False
-        assert result.proxy_received.to_tinybars() == 0
-        assert result.key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
-        assert result.balance.to_tinybars() == 1000
-        assert result.expiration_time == Timestamp._from_protobuf(expiration_time)
-        assert result.auto_renew_period == Duration._from_proto(auto_renew_period)
-        assert result.receiver_signature_required == False
-        assert result.token_relationships == []
-        assert result.account_memo == "test memo"
-        assert result.owned_nfts == 0
+    ]]
