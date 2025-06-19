@@ -1,126 +1,30 @@
 from collections import defaultdict
-from functools import cached_property
+from dataclasses import dataclass, field
+from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
-from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.hapi.services import transaction_record_pb2
 
-
-class TransactionRecord():
+@dataclass
+class TransactionRecord:
     """
     Represents a transaction record on the network.
     """
-
-    def __init__(self, record_proto : 'transaction_record_pb2.TransactionRecord', transaction_id : TransactionId = None):
-        """
-        Initializes the TransactionRecord with the provided protobuf record.
-        """
-        self._transaction_id : TransactionId = transaction_id
-        self._record_proto = record_proto
-
-    @cached_property
-    def receipt(self):
-        """
-        Returns the receipt associated with the transaction record.
-        """
-        return TransactionReceipt._from_proto(self._record_proto.receipt)
-
-    @property
-    def transaction_id(self):
-        """
-        Returns the transaction ID of the transaction record.
-        """
-        return self._transaction_id
-
-    @property
-    def transaction_hash(self):
-        """
-        Returns the transaction hash of the transaction record.
-        """
-        return self._record_proto.transactionHash
-
-    @property
-    def transaction_memo(self):
-        """
-        Returns the transaction memo of the transaction record.
-        """
-        return self._record_proto.memo
-
-    @property
-    def transaction_fee(self):
-        """
-        Returns the transaction fee of the transaction record.
-        """
-        return self._record_proto.transactionFee
-
-    @cached_property
-    def token_transfers(self):
-        """
-        Returns the token transfers associated with the transaction record.
-
-        Returns:
-            dict[TokenId, dict[AccountId, int]]: A nested dictionary mapping token IDs to account transfer amounts
-        """
-        token_transfers = defaultdict(lambda: defaultdict(int))
-        
-        for token_transfer_list in self._record_proto.tokenTransferLists:
-            token_id = TokenId._from_proto(token_transfer_list.token)
-            for transfer in token_transfer_list.transfers:
-                account_id = AccountId._from_proto(transfer.accountID)
-                token_transfers[token_id][account_id] = transfer.amount
-        
-        return token_transfers
-
-    @cached_property
-    def nft_transfers(self):
-        """
-        Returns a dictionary mapping TokenId to a list of NFT transfers that occurred in this transaction.
-
-        Returns:
-            dict[TokenId, list[TokenNftTransfer]]: A dictionary mapping token IDs to their NFT transfers
-        """
-        nft_transfers = defaultdict(list[TokenNftTransfer])
-         
-        for token_transfer_list in self._record_proto.tokenTransferLists:
-            token_id = TokenId._from_proto(token_transfer_list.token)
-            for nft_transfer in token_transfer_list.nftTransfers:
-                sender = AccountId._from_proto(nft_transfer.senderAccountID)
-                receiver = AccountId._from_proto(nft_transfer.receiverAccountID)
-                nft_transfers[token_id].append(TokenNftTransfer(
-                    sender,
-                    receiver, 
-                    nft_transfer.serialNumber,
-                    nft_transfer.is_approval
-                ))
-                 
-        return nft_transfers
-
-    @cached_property
-    def transfers(self):
-        """
-        Returns a dictionary mapping AccountId to HBAR amount for all transfers in this transaction.
-        This includes:
-        - The node fee payment
-        - The network/service fee
-        - The transaction fee
-        - Any other HBAR transfers that were part of the transaction
-        
-        Returns:
-            dict[AccountId, int]: A dictionary mapping account IDs to transfer amounts
-        """
-        transfers = defaultdict(int)
-        
-        for transfer in self._record_proto.transferList.accountAmounts:
-            account_id = AccountId._from_proto(transfer.accountID)
-            transfers[account_id] += transfer.amount
-        
-        return transfers
+    transaction_id: TransactionId = None
+    transaction_hash: bytes = None
+    transaction_memo: str = None
+    transaction_fee: int = None
+    receipt: TransactionReceipt = None
     
+    token_transfers: defaultdict[TokenId, defaultdict[AccountId, int]] = field(default_factory=lambda: defaultdict(lambda: defaultdict(int)))
+    nft_transfers: defaultdict[TokenId, list[TokenNftTransfer]] = field(default_factory=lambda: defaultdict(list[TokenNftTransfer]))
+    transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
+
     @classmethod
-    def _from_proto(cls, proto, transaction_id=None):
+    def _from_proto(cls, proto: transaction_record_pb2.TransactionRecord, transaction_id: Optional[TransactionId] = None) -> 'TransactionRecord':
         """
         Creates a TransactionRecord from a protobuf record.
 
@@ -128,10 +32,66 @@ class TransactionRecord():
             proto: The protobuf transaction record
             transaction_id: Optional transaction ID to associate with the record
         """
-        return cls(proto, transaction_id)
+        token_transfers = defaultdict(lambda: defaultdict(int))
+        for token_transfer_list in proto.tokenTransferLists:
+            token_id = TokenId._from_proto(token_transfer_list.token)
+            for transfer in token_transfer_list.transfers:
+                account_id = AccountId._from_proto(transfer.accountID)
+                token_transfers[token_id][account_id] = transfer.amount
+        
+        nft_transfers = defaultdict(list[TokenNftTransfer])
+        for token_transfer_list in proto.tokenTransferLists:
+            token_id = TokenId._from_proto(token_transfer_list.token)
+            for nft_transfer in token_transfer_list.nftTransfers:
+                nft_transfers[token_id].append(TokenNftTransfer._from_proto(nft_transfer))
+        
+        transfers = defaultdict(int)
+        for transfer in proto.transferList.accountAmounts:
+            account_id = AccountId._from_proto(transfer.accountID)
+            transfers[account_id] += transfer.amount
+        
+        return cls(
+            transaction_id=transaction_id,
+            transaction_hash=proto.transactionHash,
+            transaction_memo=proto.memo,
+            transaction_fee=proto.transactionFee,
+            receipt=TransactionReceipt._from_proto(proto.receipt),
+            token_transfers=token_transfers,
+            nft_transfers=nft_transfers,
+            transfers=transfers
+        )
 
-    def _to_proto(self):
+    def _to_proto(self) -> transaction_record_pb2.TransactionRecord:
         """
         Returns the underlying protobuf transaction record.
         """
-        return self._record_proto
+        record_proto = transaction_record_pb2.TransactionRecord(
+            transactionHash=self.transaction_hash,
+            memo=self.transaction_memo,
+            transactionFee=self.transaction_fee,
+            receipt=self.receipt._to_proto() if self.receipt else None
+        )
+        
+        if self.transaction_id is not None:
+            record_proto.transactionID.CopyFrom(self.transaction_id._to_proto())
+    
+        for token_id, account_transfers in self.token_transfers.items():
+            token_transfer_list = record_proto.tokenTransferLists.add()
+            token_transfer_list.token.CopyFrom(token_id._to_proto())
+            for account_id, amount in account_transfers.items():
+                transfer = token_transfer_list.transfers.add()
+                transfer.accountID.CopyFrom(account_id._to_proto())
+                transfer.amount = amount
+    
+        for token_id, nft_transfers in self.nft_transfers.items():
+            token_transfer_list = record_proto.tokenTransferLists.add()
+            token_transfer_list.token.CopyFrom(token_id._to_proto())
+            for nft_transfer in nft_transfers:
+                token_transfer_list.nftTransfers.append(nft_transfer._to_proto())
+    
+        for account_id, amount in self.transfers.items():
+            transfer = record_proto.transferList.accountAmounts.add()
+            transfer.accountID.CopyFrom(account_id._to_proto())
+            transfer.amount = amount
+        
+        return record_proto
