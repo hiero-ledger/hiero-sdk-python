@@ -43,6 +43,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Deleting a Topic](#deleting-a-topic)
   - [Querying Topic](#querying-topic)
   - [Querying Topic Message](#querying-topic-message)
+- [Miscellaneous Queries](#miscellaneous-queries)
+  - [Querying Transaction Record](#querying-transaction-record)
 
 
 ## Account Transactions
@@ -801,4 +803,37 @@ query = (
     )
 
 query.subscribe(client)
+```
+
+## Miscellaneous Queries
+
+### Querying Transaction Record
+
+#### Pythonic Syntax:
+```
+query = TransactionRecordQuery(
+    transaction_id=transaction_id
+)
+
+record = query.execute(client)
+
+print(f"Transaction ID: {record.transaction_id}")
+print(f"Transaction Fee: {record.transaction_fee}")
+print(f"Transaction Hash: {record.transaction_hash}")
+print(f"Transaction Memo: {record.transaction_memo}")
+print(f"Transaction Account ID: {record.receipt.accountId}")
+```
+#### Method Chaining:
+```
+record = (
+    TransactionRecordQuery()
+    .set_transaction_id(transaction_id)
+    .execute(client)
+)
+
+print(f"Transaction ID: {record.transaction_id}")
+print(f"Transaction Fee: {record.transaction_fee}")
+print(f"Transaction Hash: {record.transaction_hash}")
+print(f"Transaction Memo: {record.transaction_memo}")
+print(f"Transaction Account ID: {record.receipt.accountId}")
 ```
