@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional,Union
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
@@ -23,7 +23,7 @@ class TransactionGetReceiptQuery(Query):
     
     """
 
-    def __init__(self, transaction_id: TransactionId = None) -> None:
+    def __init__(self, transaction_id: Optional[TransactionId] = None) -> None:
         """
         Initializes a new instance of the TransactionGetReceiptQuery class.
 
@@ -31,7 +31,7 @@ class TransactionGetReceiptQuery(Query):
             transaction_id (TransactionId, optional): The ID of the transaction.
         """
         super().__init__()
-        self.transaction_id: TransactionId = transaction_id
+        self.transaction_id: Optional[TransactionId] = transaction_id
         self._frozen: bool = False
 
     def _require_not_frozen(self) -> None:
@@ -82,7 +82,7 @@ class TransactionGetReceiptQuery(Query):
         appropriate header and transaction ID.
 
         Returns:
-            Query: The protobuf Query object containing the transaction receipt query.
+            query_pb2.Query: The protobuf Query object containing the transaction receipt query.
 
         Raises:
             ValueError: If the transaction ID is not set.
@@ -129,7 +129,7 @@ class TransactionGetReceiptQuery(Query):
             query_func=channel.crypto.getTransactionReceipts
         )
 
-    def _should_retry(self, response: response_pb2.Response) -> _ExecutionState:
+    def _should_retry(self, response: any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -167,7 +167,7 @@ class TransactionGetReceiptQuery(Query):
         else:
             return _ExecutionState.FINISHED
         
-    def _map_status_error(self, response: response_pb2.Response) -> Union[PrecheckError,ReceiptStatusError]:
+    def _map_status_error(self, response: any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
@@ -236,7 +236,7 @@ class TransactionGetReceiptQuery(Query):
         """
         return response.transactionGetReceipt
 
-    def _is_payment_required(self):
+    def _is_payment_required(self) -> bool:
         """
         Transaction receipt query does not require payment.
         
