@@ -1,3 +1,4 @@
+from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.hapi.services import timestamp_pb2, token_get_nft_info_pb2
@@ -10,7 +11,14 @@ class TokenNftInfo:
     owner account, creation time, associated metadata, and any account with spending privileges.
     """
     
-    def __init__(self, nft_id=None, account_id=None, creation_time=None, metadata=None, spender_id=None):
+    def __init__(
+        self,
+        nft_id: Optional[NftId] = None,
+        account_id: Optional[AccountId] = None,
+        creation_time: Optional[int] = None,
+        metadata: Optional[bytes] = None,
+        spender_id: Optional[AccountId] = None
+    ) -> None:
         """
         Initialize a TokenNftInfo instance.
         
@@ -28,7 +36,7 @@ class TokenNftInfo:
         self.spender_id: AccountId = spender_id
 
     @classmethod
-    def _from_proto(cls, proto: token_get_nft_info_pb2.TokenNftInfo):
+    def _from_proto(cls, proto: token_get_nft_info_pb2.TokenNftInfo) -> "TokenNftInfo":
         """
         Create a TokenNftInfo instance from a protobuf message.
         
@@ -46,7 +54,7 @@ class TokenNftInfo:
             spender_id=AccountId._from_proto(proto.spender_id)
         )
     
-    def _to_proto(self):
+    def _to_proto(self) -> token_get_nft_info_pb2.TokenNftInfo:
         """
         Convert this TokenNftInfo instance to a protobuf message.
         
@@ -61,7 +69,7 @@ class TokenNftInfo:
             spender_id=self.spender_id._to_proto()
         )
     
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Get a string representation of this TokenNftInfo instance.
         
