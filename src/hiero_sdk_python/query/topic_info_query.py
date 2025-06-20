@@ -1,3 +1,4 @@
+from typing import Optional
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, consensus_get_topic_info_pb2, response_pb2
 from hiero_sdk_python.client.client import Client
@@ -18,7 +19,7 @@ class TopicInfoQuery(Query):
 
     """
 
-    def __init__(self, topic_id: TopicId = None) -> None:
+    def __init__(self, topic_id: Optional[TopicId] = None) -> None:
         """
         Initializes a new TopicInfoQuery instance with an optional topic_id.
 
@@ -26,7 +27,7 @@ class TopicInfoQuery(Query):
             topic_id (TopicId, optional): The ID of the topic to query.
         """
         super().__init__()
-        self.topic_id: TopicId = topic_id
+        self.topic_id: Optional[TopicId] = topic_id
         self._frozen: bool = False 
 
     def _require_not_frozen(self) -> None:
@@ -76,7 +77,7 @@ class TopicInfoQuery(Query):
         appropriate header and topic ID.
 
         Returns:
-            Query: The protobuf query message.
+            query_pb2.Query: The protobuf query message.
 
         Raises:
             ValueError: If the topic ID is not set.
@@ -173,7 +174,7 @@ class TopicInfoQuery(Query):
         
         return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
 
-    def _get_query_response(self, response: response_pb2.Response) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
+    def _get_query_response(self, response: any) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
         """
         Extracts the topic info response from the full response.
         
