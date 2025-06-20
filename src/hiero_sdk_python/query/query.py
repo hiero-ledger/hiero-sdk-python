@@ -1,11 +1,11 @@
 import time
 
-from typing import List
+from typing import List, Optional
 
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.hapi.services import query_header_pb2
+from hiero_sdk_python.hapi.services import query_header_pb2, query_pb2
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
@@ -45,11 +45,11 @@ class Query(_Executable):
         
         self.timestamp: int = int(time.time())
         self.node_account_ids: List[AccountId] = []
-        self.operator: Operator = None
+        self.operator: Optional[Operator] = None
         self.node_index: int = 0
-        self.payment_amount: Hbar = None
+        self.payment_amount: Optional[Hbar] = None
 
-    def _get_query_response(self, response) -> "Query":
+    def _get_query_response(self, response: any) -> query_pb2.Query:
         """
         Extracts the query-specific response object from the full response.
         
@@ -57,7 +57,7 @@ class Query(_Executable):
         specific response object.
         
         Args:
-            response: The full response from the network
+            response (any): The full response from the network
             
         Returns:
             The query-specific response object
@@ -243,7 +243,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_get_method must be implemented by subclasses.")
 
-    def _make_request(self) -> "Query":
+    def _make_request(self) -> query_pb2.Query:
         """
         Builds the final query request to be sent to the network.
         
@@ -257,7 +257,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_make_request must be implemented by subclasses.")
 
-    def _map_response(self, response, node_id, proto_request) -> "Query":
+    def _map_response(self, response: any, node_id: int, proto_request: query_pb2.Query) -> query_pb2.Query:
         """
         Maps the network response to the appropriate response object.
         
@@ -271,7 +271,7 @@ class Query(_Executable):
         """
         return response
 
-    def _should_retry(self, response) -> _ExecutionState:
+    def _should_retry(self, response: any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -300,7 +300,7 @@ class Query(_Executable):
         else:
             return _ExecutionState.ERROR
 
-    def _map_status_error(self, response) -> PrecheckError:
+    def _map_status_error(self, response: any) -> PrecheckError:
         """
         Maps a response status code to an appropriate error object.
         
@@ -313,7 +313,7 @@ class Query(_Executable):
         query_response = self._get_query_response(response)
         return PrecheckError(query_response.header.nodeTransactionPrecheckCode)
 
-    def _is_payment_required(self):
+    def _is_payment_required(self) -> bool:
         """
         Determines if query requires payment.
         
