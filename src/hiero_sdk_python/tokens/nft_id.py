@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from typing import Optional
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
 
@@ -13,7 +14,8 @@ class NftId:
     tokenId: TokenId
     serialNumber: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> bool:
+        """Validate the NftId after initialization."""
         if self.tokenId is None:
             raise TypeError("token_id is required")
         if not isinstance(self.tokenId, TokenId):
@@ -25,7 +27,7 @@ class NftId:
         return True
 
     @classmethod
-    def _from_proto(cls, nft_id_proto:basic_types_pb2.NftID = None):
+    def _from_proto(cls, nft_id_proto: Optional[basic_types_pb2.NftID] = None) -> "NftId":
         """
         :param nft_id_proto: the proto NftID object
         :return: a NftId object
@@ -35,7 +37,7 @@ class NftId:
             serialNumber=nft_id_proto.serial_number
         )
 
-    def _to_proto(self):
+    def _to_proto(self) -> basic_types_pb2.NftID:
         """
         :return: a protobuf NftID object representation of this NftId object
         """
@@ -44,13 +46,13 @@ class NftId:
         return nft_id_proto
 
     @classmethod
-    def from_string(cls, nft_id_str:str = ""):
+    def from_string(cls, nft_id_str: str = "") -> "NftId":
         """
         :param nft_id_str: a string NftId representation
         :return: returns the NftId parsed from the string input
         """
 
-        parts = re.split(r"/", nft_id_str)
+        parts: list[str] = re.split(r"/", nft_id_str)
         if len(parts) != 2:
             raise ValueError("nft_id_str must formatted as: shard.realm.number/serial_number")
 
@@ -59,7 +61,7 @@ class NftId:
             serialNumber=int(parts[1])
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         :return: a human-readable representation of the NftId
         """
