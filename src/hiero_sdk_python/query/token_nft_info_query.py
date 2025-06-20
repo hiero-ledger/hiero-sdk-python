@@ -1,3 +1,4 @@
+from typing import Optional
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
 from hiero_sdk_python.executable import _Method
@@ -16,7 +17,7 @@ class TokenNftInfoQuery(Query):
     on the Hedera network, including the NFT's properties and settings.
     
     """
-    def __init__(self, nft_id: NftId = None) -> None:
+    def __init__(self, nft_id: Optional[NftId] = None) -> None:
         """
         Initializes a new TokenNftInfoQuery instance with an optional nft_id.
 
@@ -24,7 +25,7 @@ class TokenNftInfoQuery(Query):
             nft_id (NftId, optional): The ID of the NFT to query.
         """
         super().__init__()
-        self.nft_id: NftId = nft_id
+        self.nft_id: Optional[NftId] = nft_id
 
     def set_nft_id(self, nft_id: NftId) -> "TokenNftInfoQuery":
         """
