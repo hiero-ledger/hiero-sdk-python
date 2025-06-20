@@ -42,7 +42,7 @@ class CryptoGetAccountBalanceQuery(Query):
         Constructs the protobuf request for the account balance query.
 
         Returns:
-            Query: The protobuf Query object containing the account balance query.
+            query_pb2.Query: The protobuf Query object containing the account balance query.
 
         Raises:
             ValueError: If the account ID is not set.
@@ -112,7 +112,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
         return AccountBalance._from_proto(response.cryptogetAccountBalance)
 
-    def _get_query_response(self, response) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
+    def _get_query_response(self, response: any) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
         """
         Extracts the account balance response from the full response.
         
