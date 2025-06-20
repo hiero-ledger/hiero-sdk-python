@@ -47,7 +47,7 @@ class TokenInfoQuery(Query):
         appropriate header and token ID.
 
         Returns:
-            Query: The protobuf query message.
+            query_pb2.Query: The protobuf query message.
 
         Raises:
             ValueError: If the token ID is not set.
