@@ -121,7 +121,7 @@ class TopicInfoQuery(Query):
             query_func=channel.topic.getTopicInfo
         )
 
-    def _should_retry(self, response: consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse) -> _ExecutionState:
+    def _should_retry(self, response: any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
