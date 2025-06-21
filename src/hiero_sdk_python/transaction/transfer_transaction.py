@@ -89,7 +89,7 @@ class TransferTransaction(Transaction):
         if not isinstance(receiver_id, AccountId):
             raise TypeError("receiver_id must be an AccountId instance.")
 
-        self.nft_transfers[nft_id.tokenId].append(TokenNftTransfer(sender_id, receiver_id, nft_id.serialNumber, is_approved))
+        self.nft_transfers[nft_id.tokenId].append(TokenNftTransfer(nft_id.tokenId, sender_id, receiver_id, nft_id.serialNumber, is_approved))
         return self
 
     def build_transaction_body(self):
