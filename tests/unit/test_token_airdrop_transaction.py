@@ -140,6 +140,37 @@ def test_build_transaction_body_with_expected_decimal(mock_account_ids):
     assert token_transfer_2.transfers[1].amount == amount
     assert token_transfer_2.transfers[1].is_approval == True
 
+def test_add_zero_transfer_amount(mock_account_ids):
+    account_id, _, _, token_id, _ = mock_account_ids
+    airdrop_tx = TokenAirdropTransaction()
+
+    with pytest.raises(ValueError):
+        airdrop_tx.add_token_transfer(account_id, token_id, 0)
+
+    with pytest.raises(ValueError):
+        airdrop_tx.add_token_transfer_with_decimals(account_id, token_id, 0, 1)
+
+    with pytest.raises(ValueError):
+        airdrop_tx.add_approved_token_transfer(account_id, token_id, 0)
+        
+    with pytest.raises(ValueError):
+        airdrop_tx.add_approved_token_transfer_with_decimals(account_id, token_id, 0, 1)
+
+def test_add_unbalanced_transfer_amount(mock_account_ids):
+    sender, receiver, _, token_id, _ = mock_account_ids
+    airdrop_tx = TokenAirdropTransaction()
+    airdrop_tx.add_token_transfer(sender, token_id, -1)
+    airdrop_tx.add_token_transfer(receiver, token_id, -2)
+
+    with pytest.raises(ValueError):
+        airdrop_tx.build_transaction_body()
+
+def test_add_invalid_transfer(mock_account_ids):
+    _, _, _, _, _ = mock_account_ids
+    airdrop_tx = TokenAirdropTransaction()
+
+    with pytest.raises(ValueError):
+        airdrop_tx.build_transaction_body()
 
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token airdrop transaction with a private key."""
