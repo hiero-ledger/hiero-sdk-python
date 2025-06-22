@@ -21,17 +21,17 @@ def test_constructor_with_parameters():
     public_key = private_key.public_key()
     key_list = [public_key]
     contents = b"Test file content"
-    memo = "Test memo"
+    file_memo = "Test memo"
 
     file_tx = FileCreateTransaction(
         keys=key_list,
         contents=contents,
-        memo=memo
+        file_memo=file_memo
     )
 
     assert file_tx.keys == key_list
     assert file_tx.contents == contents
-    assert file_tx.file_memo == memo
+    assert file_tx.file_memo == file_memo
     assert file_tx.expiration_time is not None  # Should have default expiration
     assert file_tx._default_transaction_fee == Hbar(5).to_tinybars()
 
@@ -46,7 +46,7 @@ def test_build_transaction_body(mock_account_ids):
     file_tx = FileCreateTransaction(
         keys=key_list,
         contents=b"Test content",
-        memo="Test memo"
+        file_memo="Test memo"
     )
 
     # Set operator and node account IDs needed for building transaction body
