@@ -23,7 +23,7 @@ class FileCreateTransaction(Transaction):
         Initializes a new FileCreateTransaction instance with the specified parameters.
 
         Args:
-            keys (KeyList, optional): The keys that are allowed to update/delete the file.
+            keys (list[PublicKey], optional): The keys that are allowed to update/delete the file.
             contents (bytes, optional): The contents of the file to create.
             expiration_time (Timestamp, optional): The time at which the file should expire.
             file_memo (str, optional): A memo to include with the file.
@@ -40,7 +40,7 @@ class FileCreateTransaction(Transaction):
         Sets the keys for this file create transaction.
 
         Args:
-            keys (list[PublicKey]): The keys to set for the file. Can be a list of PublicKey objects.
+            keys (list[PublicKey] | PublicKey): The keys to set for the file. Can be a list of PublicKey objects.
 
         Returns:
             FileCreateTransaction: This transaction instance.
