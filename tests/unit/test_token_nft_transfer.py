@@ -6,16 +6,19 @@ pytestmark = pytest.mark.unit
 
 def test_token_nft_transfer_constructor(mock_account_ids):
     """Test the TokenNftTransfer constructor with various parameters"""
-    sender_id, receiver_id, _, _, _ = mock_account_ids
+    sender_id, receiver_id, _, token_id, _ = mock_account_ids
     serial_number = 789
     
     nft_transfer = TokenNftTransfer(
+        token_id=token_id,
         sender_id=sender_id,
         receiver_id=receiver_id,
         serial_number=serial_number
     )
     
     # Verify all fields were set correctly
+    
+    assert nft_transfer.token_id == token_id
     assert nft_transfer.sender_id == sender_id
     assert nft_transfer.receiver_id == receiver_id
     assert nft_transfer.serial_number == serial_number
@@ -23,12 +26,14 @@ def test_token_nft_transfer_constructor(mock_account_ids):
     
     # Test with explicit is_approved=True
     approved_transfer = TokenNftTransfer(
+        token_id=token_id,
         sender_id=sender_id,
         receiver_id=receiver_id,
         serial_number=serial_number,
         is_approved=True
     )
     
+    assert nft_transfer.token_id == token_id
     assert approved_transfer.sender_id == sender_id
     assert approved_transfer.receiver_id == receiver_id
     assert approved_transfer.serial_number == serial_number
@@ -36,11 +41,12 @@ def test_token_nft_transfer_constructor(mock_account_ids):
 
 def test_to_proto(mock_account_ids):
     """Test converting TokenNftTransfer to a protobuf object"""
-    sender_id, receiver_id, _, _, _ = mock_account_ids
+    sender_id, receiver_id, _, token_id, _ = mock_account_ids
     serial_number = 789
     is_approved = True
     
     nft_transfer = TokenNftTransfer(
+        token_id=token_id,
         sender_id=sender_id,
         receiver_id=receiver_id,
         serial_number=serial_number,
