@@ -10,7 +10,7 @@ class TokenFreezeStatus(Enum):
     UNFROZEN = 2
 
     @staticmethod
-    def from_proto(proto_obj: proto_TokenFreezeStatus):
+    def _from_proto(proto_obj: proto_TokenFreezeStatus):
         if proto_obj == proto_TokenFreezeStatus.FreezeNotApplicable:
             return TokenFreezeStatus.FREEZE_NOT_APPLICABLE
         elif proto_obj == proto_TokenFreezeStatus.Frozen:

@@ -50,7 +50,7 @@ def create_test_account(client):
     
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get account ID from receipt
@@ -81,7 +81,7 @@ def create_nft(client, treasury_id, treasury_private_key):
     
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     # Get token ID from receipt
@@ -102,7 +102,7 @@ def mint_nfts(client, nft_token_id, metadata_list, treasury_private_key):
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT minting failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"NFT minted with serial numbers: {receipt.serial_numbers}")
@@ -122,7 +122,7 @@ def associate_token(client, receiver_id, nft_token_id, receiver_private_key):
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token association failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Token successfully associated with account: {receiver_id}")
@@ -141,7 +141,7 @@ def transfer_nfts(client, treasury_id, treasury_private_key, receiver_id, nft_id
     
     # Check if transfer was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Transfer failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"Transfer failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Successfully transferred NFTs to receiver account {receiver_id}")
@@ -205,7 +205,7 @@ def token_reject_nft():
     )
     
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT rejection failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(f"NFT rejection failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
     print(f"Successfully rejected NFTs {nft_ids[0]} and {nft_ids[1]} from account {receiver_id}")

@@ -70,16 +70,6 @@ class TransactionGetReceiptQuery(Query):
         self._frozen = True
         return self
 
-    def _is_payment_required(self):
-        """
-        Override the default in the base Query class:
-        This particular query does NOT require a payment.
-        
-        Returns:
-            bool: Always False, as this query doesn't require payment.
-        """
-        return False
-
     def _make_request(self):
         """
         Constructs the protobuf request for the transaction receipt query.
@@ -104,7 +94,7 @@ class TransactionGetReceiptQuery(Query):
 
             transaction_get_receipt = transaction_get_receipt_pb2.TransactionGetReceiptQuery()
             transaction_get_receipt.header.CopyFrom(query_header)
-            transaction_get_receipt.transactionID.CopyFrom(self.transaction_id.to_proto())
+            transaction_get_receipt.transactionID.CopyFrom(self.transaction_id._to_proto())
 
             query = query_pb2.Query()
             if not hasattr(query, 'transactionGetReceipt'):
@@ -200,7 +190,7 @@ class TransactionGetReceiptQuery(Query):
         
         status = response.transactionGetReceipt.receipt.status
         
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt.from_proto(response.transactionGetReceipt.receipt))
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt))
         
     def execute(self, client):
         """
@@ -225,7 +215,7 @@ class TransactionGetReceiptQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
 
-        return TransactionReceipt.from_proto(response.transactionGetReceipt.receipt)
+        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt)
 
     def _get_query_response(self, response):
         """
@@ -241,3 +231,12 @@ class TransactionGetReceiptQuery(Query):
             The transaction get receipt response object
         """
         return response.transactionGetReceipt
+
+    def _is_payment_required(self):
+        """
+        Transaction receipt query does not require payment.
+        
+        Returns:
+            bool: False
+        """
+        return False

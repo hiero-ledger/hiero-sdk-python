@@ -1,4 +1,5 @@
 import pytest
+import time
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
@@ -9,6 +10,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.hapi.services import timestamp_pb2
 
 @pytest.fixture
 def mock_account_ids():
@@ -51,6 +53,11 @@ def nft_id():
     token_id = TokenId(shard=0, realm=0, num=1)
     serial_number = 8
     return NftId(tokenId=token_id, serialNumber=serial_number)
+
+@pytest.fixture
+def token_id():
+    """Fixture to provide a mock TokenId instance."""
+    return TokenId(shard=0, realm=0, num=3)
 
 @pytest.fixture
 def mock_client():

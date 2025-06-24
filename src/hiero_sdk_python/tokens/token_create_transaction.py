@@ -178,12 +178,18 @@ class TokenKeys:
         supply_key: The supply key for the token to mint and burn.
         freeze_key: The freeze key for the token to freeze and unfreeze.
         wipe_key: The wipe key for the token to wipe tokens from an account.
+        pause_key: The pause key for the token to be paused.
+        metadata_key: The metadata key for the token to update NFT metadata.
+        kyc_key: The KYC key for the token to grant KYC to an account.
     """
 
     admin_key: Optional[PrivateKey] = None
     supply_key: Optional[PrivateKey] = None
     freeze_key: Optional[PrivateKey] = None
     wipe_key: Optional[PrivateKey] = None
+    metadata_key: Optional[PrivateKey] = None
+    pause_key: Optional[PrivateKey] = None
+    kyc_key: Optional[PrivateKey] = None
 
 class TokenCreateTransaction(Transaction):
     """
@@ -319,6 +325,37 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._keys.wipe_key = key
         return self
+    
+    def set_metadata_key(self, key):
+        self._require_not_frozen()
+        self._keys.metadata_key = key
+        return self
+
+    def set_pause_key(self, key):
+        self._require_not_frozen()
+        self._keys.pause_key = key
+        return self
+    
+    def set_kyc_key(self, key):
+        self._require_not_frozen()
+        self._keys.kyc_key = key
+        return self
+
+    def _to_proto_key(self, private_key):
+        """
+        Helper method to convert a private key to protobuf Key format.
+        
+        Args:
+            private_key: The private key to convert, or None
+            
+        Returns:
+            basic_types_pb2.Key or None: The protobuf key or None if private_key is None
+        """
+        if not private_key:
+            return None
+        
+        public_key_bytes = private_key.public_key().to_bytes_raw()
+        return basic_types_pb2.Key(ed25519=public_key_bytes)
 
     def build_transaction_body(self):
         """
@@ -336,26 +373,14 @@ class TokenCreateTransaction(Transaction):
 
         # Validate freeze status
         TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
-
-        admin_key_proto = None
-        if self._keys.admin_key:
-            admin_public_key_bytes = self._keys.admin_key.public_key().to_bytes_raw()
-            admin_key_proto = basic_types_pb2.Key(ed25519=admin_public_key_bytes)
-
-        supply_key_proto = None
-        if self._keys.supply_key:
-            supply_public_key_bytes = self._keys.supply_key.public_key().to_bytes_raw()
-            supply_key_proto = basic_types_pb2.Key(ed25519=supply_public_key_bytes)
-
-        freeze_key_proto = None
-        if self._keys.freeze_key:
-            freeze_public_key_bytes = self._keys.freeze_key.public_key().to_bytes_raw()
-            freeze_key_proto = basic_types_pb2.Key(ed25519=freeze_public_key_bytes)
-            
-        wipe_key_proto = None
-        if self._keys.wipe_key:
-            wipe_public_key_bytes = self._keys.wipe_key.public_key().to_bytes_raw()
-            wipe_key_proto = basic_types_pb2.Key(ed25519=wipe_public_key_bytes)
+        
+        admin_key_proto = self._to_proto_key(self._keys.admin_key)
+        supply_key_proto = self._to_proto_key(self._keys.supply_key)
+        freeze_key_proto = self._to_proto_key(self._keys.freeze_key)
+        wipe_key_proto = self._to_proto_key(self._keys.wipe_key)
+        metadata_key_proto = self._to_proto_key(self._keys.metadata_key)
+        pause_key_proto = self._to_proto_key(self._keys.pause_key)
+        kyc_key_proto = self._to_proto_key(self._keys.kyc_key)
 
         # Ensure token type is correctly set with default to fungible
         if self._token_params.token_type is None:
@@ -383,11 +408,14 @@ class TokenCreateTransaction(Transaction):
             supplyType=supply_type_value,
             maxSupply=self._token_params.max_supply,
             freezeDefault=self._token_params.freeze_default,
-            treasury=self._token_params.treasury_account_id.to_proto(),
+            treasury=self._token_params.treasury_account_id._to_proto(),
             adminKey=admin_key_proto,
             supplyKey=supply_key_proto,
             freezeKey=freeze_key_proto,
-            wipeKey=wipe_key_proto
+            wipeKey=wipe_key_proto,
+            metadata_key=metadata_key_proto,
+            pause_key=pause_key_proto,
+            kycKey=kyc_key_proto
         )
         # Build the base transaction body and attach the token creation details
         transaction_body = self.build_base_transaction_body()

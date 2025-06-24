@@ -9,6 +9,8 @@ from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
 
+pytestmark = pytest.mark.unit
+
 @pytest.fixture
 def token_info():
     return TokenInfo(
@@ -22,24 +24,26 @@ def token_info():
         memo="Test token",
         tokenType=TokenType.FUNGIBLE_COMMON,
         maxSupply=10000000,
-        ledger_id=b"ledger123"
+        ledger_id=b"ledger123",
+        metadata=b"Test metadata"
     )
 
 @pytest.fixture
 def proto_token_info():
     proto = proto_TokenInfo(
-        tokenId=TokenId(0, 0, 100).to_proto(),
+        tokenId=TokenId(0, 0, 100)._to_proto(),
         name="TestToken",
         symbol="TST",
         decimals=2,
         totalSupply=1000000,
-        treasury=AccountId(0, 0, 200).to_proto(),
+        treasury=AccountId(0, 0, 200)._to_proto(),
         deleted=False,
         memo="Test token",
         tokenType=TokenType.FUNGIBLE_COMMON.value,
         maxSupply=10000000,
         ledger_id=b"ledger123",
-        supplyType=SupplyType.FINITE.value
+        supplyType=SupplyType.FINITE.value,
+        metadata=b"Test metadata"
     )
     return proto
 
@@ -55,6 +59,7 @@ def test_token_info_initialization(token_info):
     assert token_info.tokenType == TokenType.FUNGIBLE_COMMON
     assert token_info.maxSupply == 10000000
     assert token_info.ledger_id == b"ledger123"
+    assert token_info.metadata == b"Test metadata"
     assert token_info.supplyType == SupplyType.FINITE
     assert token_info.defaultKycStatus == TokenKycStatus.KYC_NOT_APPLICABLE
     assert token_info.defaultFreezeStatus == TokenFreezeStatus.FREEZE_NOT_APPLICABLE
@@ -126,13 +131,13 @@ def test_from_proto(proto_token_info):
     proto_token_info.pause_key.ed25519 = public_key.to_bytes_raw()
     proto_token_info.defaultFreezeStatus = TokenFreezeStatus.FROZEN.value
     proto_token_info.defaultKycStatus = TokenKycStatus.GRANTED.value
-    proto_token_info.autoRenewAccount.CopyFrom(AccountId(0, 0, 300).to_proto())
-    proto_token_info.autoRenewPeriod.CopyFrom(Duration(3600).to_proto())
-    proto_token_info.expiry.CopyFrom(Timestamp(1625097600, 0).to_protobuf())
+    proto_token_info.autoRenewAccount.CopyFrom(AccountId(0, 0, 300)._to_proto())
+    proto_token_info.autoRenewPeriod.CopyFrom(Duration(3600)._to_proto())
+    proto_token_info.expiry.CopyFrom(Timestamp(1625097600, 0)._to_protobuf())
     proto_token_info.pause_status = hiero_sdk_python.hapi.services.basic_types_pb2.Paused
     proto_token_info.supplyType = hiero_sdk_python.hapi.services.basic_types_pb2.INFINITE
 
-    token_info = TokenInfo.from_proto(proto_token_info)
+    token_info = TokenInfo._from_proto(proto_token_info)
 
     assert token_info.tokenId == TokenId(0, 0, 100)
     assert token_info.name == "TestToken"
@@ -145,6 +150,7 @@ def test_from_proto(proto_token_info):
     assert token_info.tokenType == TokenType.FUNGIBLE_COMMON
     assert token_info.maxSupply == 10000000
     assert token_info.ledger_id == b"ledger123"
+    assert token_info.metadata == b"Test metadata"
     assert token_info.adminKey.to_bytes_raw() == public_key.to_bytes_raw()
     assert token_info.kycKey.to_bytes_raw() == public_key.to_bytes_raw()
     assert token_info.freezeKey.to_bytes_raw() == public_key.to_bytes_raw()
@@ -177,20 +183,21 @@ def test_to_proto(token_info):
     token_info.set_pause_status(TokenPauseStatus.PAUSED)
     token_info.set_supply_type(SupplyType.INFINITE)
 
-    proto = token_info.to_proto()
+    proto = token_info._to_proto()
 
-    assert proto.tokenId == TokenId(0, 0, 100).to_proto()
+    assert proto.tokenId == TokenId(0, 0, 100)._to_proto()
     assert proto.name == "TestToken"
     assert proto.symbol == "TST"
     assert proto.decimals == 2
     assert proto.totalSupply == 1000000
-    assert proto.treasury == AccountId(0, 0, 200).to_proto()
+    assert proto.treasury == AccountId(0, 0, 200)._to_proto()
     assert proto.deleted is False
     assert proto.memo == "Test token"
     assert proto.tokenType == TokenType.FUNGIBLE_COMMON.value
     assert proto.supplyType == SupplyType.INFINITE.value
     assert proto.maxSupply == 10000000
     assert proto.ledger_id == b"ledger123"
+    assert proto.metadata == b"Test metadata"
     assert proto.adminKey.ed25519 == public_key.to_bytes_raw()
     assert proto.kycKey.ed25519 == public_key.to_bytes_raw()
     assert proto.freezeKey.ed25519 == public_key.to_bytes_raw()
@@ -199,9 +206,9 @@ def test_to_proto(token_info):
     assert proto.fee_schedule_key.ed25519 == public_key.to_bytes_raw()
     assert proto.defaultFreezeStatus == TokenFreezeStatus.FROZEN.value
     assert proto.defaultKycStatus == TokenKycStatus.GRANTED.value
-    assert proto.autoRenewAccount == AccountId(0, 0, 300).to_proto()
-    assert proto.autoRenewPeriod == Duration(3600).to_proto()
-    assert proto.expiry == Timestamp(1625097600, 0).to_protobuf()
+    assert proto.autoRenewAccount == AccountId(0, 0, 300)._to_proto()
+    assert proto.autoRenewPeriod == Duration(3600)._to_proto()
+    assert proto.expiry == Timestamp(1625097600, 0)._to_protobuf()
     assert proto.pause_key.ed25519 == public_key.to_bytes_raw()
     assert proto.pause_status == TokenPauseStatus.PAUSED.value
 
@@ -212,6 +219,6 @@ def test_str_representation(token_info):
         f"totalSupply={token_info.totalSupply}, treasury={token_info.treasury}, "
         f"isDeleted={token_info.isDeleted}, memo={token_info.memo}, "
         f"tokenType={token_info.tokenType}, maxSupply={token_info.maxSupply}, "
-        f"ledger_id={token_info.ledger_id})"
+        f"ledger_id={token_info.ledger_id}, metadata={token_info.metadata})"
     )
     assert str(token_info) == expected

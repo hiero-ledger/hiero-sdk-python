@@ -6,6 +6,8 @@ from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 
+pytestmark = pytest.mark.unit
+
 @pytest.fixture
 def ed25519_keypair():
     """Returns (private_key, public_key) for Ed25519."""
@@ -437,14 +439,39 @@ def test_from_string_catch_all_ed25519(ed25519_keypair):
     assert pubk.is_ed25519()
 
 # ------------------------------------------------------------------------------
-# Test: to_proto
+# Test: _from_proto
+# ------------------------------------------------------------------------------
+def test_from_proto_ed25519(ed25519_keypair):
+    _, pub = ed25519_keypair
+    pubk = PublicKey(pub)
+    proto = pubk._to_proto()
+    assert pubk._from_proto(proto).to_bytes_raw() == pubk.to_bytes_raw()
+
+def test_from_proto_ecdsa(ecdsa_keypair):
+    _, pub = ecdsa_keypair
+    pubk = PublicKey(pub)
+    proto = pubk._to_proto()
+    assert pubk._from_proto(proto).to_bytes_raw() == pubk.to_bytes_raw()
+
+def test_from_proto_unsupported_type():
+    # Create a Key proto with an unsupported type
+    proto = Key()
+    # Set some arbitrary bytes to a RSA_3072 as currently we do not support it
+    proto.RSA_3072 = b"currently unsupported"
+    
+    # Verify that attempting to parse an unsupported key type raises ValueError
+    with pytest.raises(ValueError, match="Unsupported public key type in protobuf"):
+        PublicKey._from_proto(proto)
+
+# ------------------------------------------------------------------------------
+# Test: _to_proto
 # ------------------------------------------------------------------------------
 def test_to_proto_ed25519(ed25519_keypair):
     _, pub = ed25519_keypair    
     pubk = PublicKey(pub)
     
     # Convert to the protobuf Key message
-    proto = pubk.to_proto()
+    proto = pubk._to_proto()
     # Ensure the oneof field named “key” is set to the ed25519 variant
     assert proto.WhichOneof("key") == "ed25519"
     # The bytes in the proto should exactly match the raw Ed25519 bytes
@@ -456,7 +483,7 @@ def test_to_proto_ecdsa(ecdsa_keypair):
     pubk = PublicKey(pub)
     
     # Convert to the protobuf Key message
-    proto = pubk.to_proto()
+    proto = pubk._to_proto()
     # Ensure the oneof field named “key” is set to the ECDSA_secp256k1 variant
     assert proto.WhichOneof("key") == "ECDSA_secp256k1"
     # The bytes in the proto should exactly match the compressed secp256k1 bytes

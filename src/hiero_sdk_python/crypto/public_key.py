@@ -264,11 +264,29 @@ class PublicKey:
 
     #
     # ---------------------------------
+    # From proto
+    # ---------------------------------
+    #
+    
+    @classmethod
+    def _from_proto(cls, proto: Key) -> "PublicKey":
+        """
+        Load a public key from a protobuf Key message.
+        """
+        if proto.ed25519:
+            return cls.from_bytes_ed25519(proto.ed25519)
+        elif proto.ECDSA_secp256k1:
+            return cls.from_bytes_ecdsa(proto.ECDSA_secp256k1)
+        else:
+            raise ValueError("Unsupported public key type in protobuf")
+
+    #
+    # ---------------------------------
     # To proto
     # ---------------------------------
     #
 
-    def to_proto(self) -> Key:
+    def _to_proto(self) -> Key:
         """
         Returns the protobuf representation of the public key (key type is known).
         For Ed25519, uses the 'ed25519' field.

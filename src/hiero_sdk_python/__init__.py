@@ -21,6 +21,10 @@ from .tokens.token_freeze_transaction import TokenFreezeTransaction
 from .tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
 from .tokens.token_wipe_transaction import TokenWipeTransaction
 from .tokens.token_reject_transaction import TokenRejectTransaction
+from .tokens.token_update_nfts_transaction import TokenUpdateNftsTransaction
+from .tokens.token_burn_transaction import TokenBurnTransaction
+from .tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
+from .tokens.token_update_transaction import TokenUpdateTransaction
 from .tokens.token_id import TokenId
 from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
@@ -57,6 +61,7 @@ from .query.topic_message_query import TopicMessageQuery
 from .query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
+from .query.token_info_query import TokenInfoQuery
 
 # Address book
 from .address_book.endpoint import Endpoint
@@ -95,6 +100,10 @@ __all__ = [
     "TokenNftTransfer",
     "TokenNftInfo",
     "TokenRejectTransaction",
+    "TokenUpdateNftsTransaction",
+    "TokenBurnTransaction",
+    "TokenGrantKycTransaction",
+    "TokenUpdateTransaction",
 
     # Transaction
     "TransferTransaction",
@@ -118,6 +127,7 @@ __all__ = [
     "TransactionGetReceiptQuery",
     "CryptoGetAccountBalanceQuery",
     "TokenNftInfoQuery",
+    "TokenInfoQuery",
     
     # Address book
     "Endpoint",

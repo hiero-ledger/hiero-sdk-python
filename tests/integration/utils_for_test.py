@@ -1,6 +1,11 @@
 import os
+from pytest import fixture
+
 from dotenv import load_dotenv
+from dataclasses import dataclass
+
 from hiero_sdk_python.account.account_id import AccountId
+
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -9,10 +14,27 @@ from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
+from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+from hiero_sdk_python.hbar                    import Hbar
 
 load_dotenv(override=True)
 
+@fixture
+def env():
+    """Integration test environment with client/operator set up."""
+    e = IntegrationTestEnv()
+    yield e
+    e.close()
+
+@dataclass
+class Account:
+    id:    AccountId
+    key:   PrivateKey
+
 class IntegrationTestEnv:
+
     def __init__(self):
         network = Network(os.getenv('NETWORK'))
         self.client = Client(network)
@@ -28,7 +50,50 @@ class IntegrationTestEnv:
         
     def close(self):
         self.client.close()
-    
+
+    def create_account(self, initial_hbar: float = 1.0) -> Account:
+        """Create a new account funded with `initial_hbar` HBAR, defaulting to 1."""
+        key = PrivateKey.generate()
+        tx = (
+            AccountCreateTransaction()
+                .set_key(key.public_key())
+                .set_initial_balance(Hbar(initial_hbar))
+        )
+        receipt = tx.execute(self.client)
+        if receipt.status != ResponseCode.SUCCESS:
+            raise AssertionError(
+                f"Account creation failed: {ResponseCode(receipt.status).name}"
+            )
+        return Account(id=receipt.accountId, key=key)
+
+    def associate_and_transfer(self, receiver: AccountId, receiver_key: PrivateKey, token_id, amount: int):
+        """
+        Associate the token with `receiver`, then transfer `amount` of the token
+        from the operator to that receiver.
+        """
+        assoc_receipt = (
+            TokenAssociateTransaction()
+                .set_account_id(receiver)
+                .add_token_id(token_id)
+                .freeze_with(self.client)
+                .sign(receiver_key)
+                .execute(self.client)
+        )
+        if assoc_receipt.status != ResponseCode.SUCCESS:
+            raise AssertionError(
+                f"Association failed: {ResponseCode(assoc_receipt.status).name}"
+            )
+
+        transfer_receipt = (
+            TransferTransaction()
+                .add_token_transfer(token_id, self.operator_id, -amount)
+                .add_token_transfer(token_id, receiver, amount)
+                .execute(self.client) # auto-signs with operator’s key
+        )
+        if transfer_receipt.status != ResponseCode.SUCCESS:
+            raise AssertionError(
+                f"Transfer failed: {ResponseCode(transfer_receipt.status).name}"
+            )
 
 def create_fungible_token(env, opts=[]):
     """
@@ -56,6 +121,7 @@ def create_fungible_token(env, opts=[]):
             supply_key=env.operator_key,
             freeze_key=env.operator_key,
             wipe_key=env.operator_key
+            # pause_key=  None  # implicitly “no pause key” use opts to add one
         )
         
     token_transaction = TokenCreateTransaction(token_params, token_keys)
@@ -66,7 +132,7 @@ def create_fungible_token(env, opts=[]):
     
     token_receipt = token_transaction.execute(env.client)
     
-    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
+    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
     
     return token_receipt.tokenId
 
@@ -95,6 +161,8 @@ def create_nft_token(env, opts=[]):
         admin_key=env.operator_key,
         supply_key=env.operator_key,
         freeze_key=env.operator_key
+        # pause_key=  None  # implicitly “no pause key” use opts to add one
+
     )
 
     transaction = TokenCreateTransaction(token_params, token_keys)
@@ -105,6 +173,6 @@ def create_nft_token(env, opts=[]):
 
     token_receipt = transaction.execute(env.client)
     
-    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode.get_name(token_receipt.status)}"
+    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
     
     return token_receipt.tokenId
