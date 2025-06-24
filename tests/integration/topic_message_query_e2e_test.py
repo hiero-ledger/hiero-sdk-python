@@ -10,7 +10,7 @@ from hiero_sdk_python.consensus.topic_message import TopicMessage
 from tests.integration.utils_for_test import IntegrationTestEnv
 
 
-MESSAGE_WAITING_TIMEOUT = float(60)
+MESSAGE_WAITING_TIMEOUT = float(120)
 waiting_timer: Timer | None = None
 last_message_arrival_time = time.time()
 
@@ -110,7 +110,7 @@ async def test_integration_topic_message_query_returns_all_messages():
         submit_message(env.client, topic_id, "Third topic message")
 
         # Wait until changes are propagated to Hedera Mirror Node
-        await asyncio.sleep(60)
+        await asyncio.sleep(120)
 
         topic_messages = await query_topic_messages(env.client, topic_id)
         assert len(topic_messages) == 3
