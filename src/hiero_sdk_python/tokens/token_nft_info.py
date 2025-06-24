@@ -29,11 +29,11 @@ class TokenNftInfo:
             metadata (bytes, optional): The metadata associated with the NFT.
             spender_id (AccountId, optional): The account ID with spending privileges for this NFT.
         """
-        self.nft_id: NftId = nft_id
-        self.account_id: AccountId = account_id
-        self.creation_time: int = creation_time
-        self.metadata: bytes = metadata
-        self.spender_id: AccountId = spender_id
+        self.nft_id: Optional[NftId] = nft_id
+        self.account_id: Optional[AccountId] = account_id
+        self.creation_time: Optional[int] = creation_time
+        self.metadata: Optional[bytes] = metadata
+        self.spender_id: Optional[AccountId] = spender_id
 
     @classmethod
     def _from_proto(cls, proto: token_get_nft_info_pb2.TokenNftInfo) -> "TokenNftInfo":
