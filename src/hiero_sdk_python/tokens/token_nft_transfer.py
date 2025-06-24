@@ -35,7 +35,7 @@ class TokenNftTransfer:
         Converts this TokenNftTransfer instance to its protobuf representation.
         
         Returns:
-            NftTransfer: The protobuf representation of this NFT transfer.
+            basic_type_pb2.NftTransfer: The protobuf representation of this NFT transfer.
         """
         return basic_types_pb2.NftTransfer(
             senderAccountID=self.sender_id._to_proto(),
