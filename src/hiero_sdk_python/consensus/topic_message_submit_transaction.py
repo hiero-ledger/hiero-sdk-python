@@ -1,10 +1,10 @@
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import consensus_submit_message_pb2
+from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2, transaction_body_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
 class TopicMessageSubmitTransaction(Transaction):
-    def __init__(self, topic_id=None, message=None):
+    def __init__(self, topic_id: basic_types_pb2.TopicID = None, message: str = None) -> None:
         """
         Initializes a new TopicMessageSubmitTransaction instance.
         
@@ -13,10 +13,10 @@ class TopicMessageSubmitTransaction(Transaction):
             message (str, optional): The message to submit.
         """
         super().__init__()
-        self.topic_id = topic_id
-        self.message = message
+        self.topic_id: basic_types_pb2.TopicID = topic_id
+        self.message: str = message
 
-    def set_topic_id(self, topic_id):
+    def set_topic_id(self, topic_id: basic_types_pb2.TopicID) -> "TopicMessageSubmitTransaction":
         """
         Sets the topic ID for the message submission.
 
@@ -30,7 +30,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self.topic_id = topic_id
         return self
 
-    def set_message(self, message):
+    def set_message(self, message: str) -> "TopicMessageSubmitTransaction":
         """
         Sets the message to submit to the topic.
 
@@ -44,7 +44,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self.message = message
         return self
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for message submission.
         Raises ValueError if required fields (topic_id, message) are missing.

@@ -1,5 +1,7 @@
+from typing import Optional
 from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import query_pb2, consensus_get_topic_info_pb2
+from hiero_sdk_python.hapi.services import query_pb2, consensus_get_topic_info_pb2, response_pb2
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_info import TopicInfo
 from hiero_sdk_python.executable import _Method, _ExecutionState
@@ -17,7 +19,7 @@ class TopicInfoQuery(Query):
 
     """
 
-    def __init__(self, topic_id=None):
+    def __init__(self, topic_id: Optional[TopicId] = None) -> None:
         """
         Initializes a new TopicInfoQuery instance with an optional topic_id.
 
@@ -25,10 +27,10 @@ class TopicInfoQuery(Query):
             topic_id (TopicId, optional): The ID of the topic to query.
         """
         super().__init__()
-        self.topic_id = topic_id
-        self._frozen = False 
+        self.topic_id: Optional[TopicId] = topic_id
+        self._frozen: bool = False 
 
-    def _require_not_frozen(self):
+    def _require_not_frozen(self) -> None:
         """
         Ensures the query is not frozen before making changes.
         
@@ -38,7 +40,7 @@ class TopicInfoQuery(Query):
         if self._frozen:
             raise ValueError("This query is frozen and cannot be modified.")
 
-    def set_topic_id(self, topic_id: TopicId):
+    def set_topic_id(self, topic_id: TopicId) -> "TopicInfoQuery":
         """
         Sets the ID of the topic to query.
 
@@ -55,7 +57,7 @@ class TopicInfoQuery(Query):
         self.topic_id = topic_id
         return self
 
-    def freeze(self):
+    def freeze(self) -> "TopicInfoQuery":
         """
         Marks the query as frozen, preventing further modification.
         
@@ -67,7 +69,7 @@ class TopicInfoQuery(Query):
         self._frozen = True
         return self
 
-    def _make_request(self):
+    def _make_request(self) -> query_pb2.Query:
         """
         Constructs the protobuf request for the query.
         
@@ -75,7 +77,7 @@ class TopicInfoQuery(Query):
         appropriate header and topic ID.
 
         Returns:
-            Query: The protobuf query message.
+            query_pb2.Query: The protobuf query message.
 
         Raises:
             ValueError: If the topic ID is not set.
@@ -119,7 +121,7 @@ class TopicInfoQuery(Query):
             query_func=channel.topic.getTopicInfo
         )
 
-    def _should_retry(self, response):
+    def _should_retry(self, response: any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -147,7 +149,7 @@ class TopicInfoQuery(Query):
         else:
             return _ExecutionState.ERROR
 
-    def execute(self, client):
+    def execute(self, client: Client) -> TopicInfo:
         """
         Executes the topic info query.
         
@@ -172,7 +174,7 @@ class TopicInfoQuery(Query):
         
         return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
 
-    def _get_query_response(self, response):
+    def _get_query_response(self, response: any) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
         """
         Extracts the topic info response from the full response.
         

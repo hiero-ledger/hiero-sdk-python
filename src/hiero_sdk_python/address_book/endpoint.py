@@ -1,4 +1,19 @@
+from typing import TypedDict
+
 from hiero_sdk_python.hapi.services.basic_types_pb2 import ServiceEndpoint
+
+class EndpointDict(TypedDict):
+    """
+    A TypedDict representing the structure of an endpoint in JSON format.
+    
+    Attributes:
+        ip_address_v4 (str): The IPv4 address of the endpoint.
+        port (int): The port number of the endpoint.
+        domain_name (str): The domain name of the endpoint.
+    """
+    ip_address_v4: str
+    port: int
+    domain_name: str
 
 class Endpoint:
     """
@@ -6,7 +21,12 @@ class Endpoint:
     This class is used to handle service endpoints in the Hedera network.
     """
     
-    def __init__(self, address=None, port=None, domain_name=None):
+    def __init__(
+        self,
+        address: bytes = None,
+        port: int = None,
+        domain_name: str = None
+    ) -> None:
         """
         Initialize a new Endpoint instance.
         
@@ -15,11 +35,11 @@ class Endpoint:
             port (int, optional): The port number.
             domain_name (str, optional): The domain name.
         """
-        self._address : bytes = address
-        self._port : int = port
-        self._domain_name : str = domain_name
+        self._address: bytes = address
+        self._port: int = port
+        self._domain_name: str = domain_name
     
-    def set_address(self, address):
+    def set_address(self, address: bytes) -> "Endpoint":
         """
         Set the IP address of the endpoint.
         
@@ -32,7 +52,7 @@ class Endpoint:
         self._address = address
         return self
     
-    def get_address(self):
+    def get_address(self) -> bytes:
         """
         Get the IP address of the endpoint.
         
@@ -41,7 +61,7 @@ class Endpoint:
         """
         return self._address
     
-    def set_port(self, port):
+    def set_port(self, port: int) -> "Endpoint":
         """
         Set the port of the endpoint.
         
@@ -54,7 +74,7 @@ class Endpoint:
         self._port = port
         return self
     
-    def get_port(self):
+    def get_port(self) -> int:
         """
         Get the port of the endpoint.
         
@@ -63,7 +83,7 @@ class Endpoint:
         """
         return self._port
     
-    def set_domain_name(self, domain_name):
+    def set_domain_name(self, domain_name: str) -> "Endpoint":
         """
         Set the domain name of the endpoint.
         
@@ -76,7 +96,7 @@ class Endpoint:
         self._domain_name = domain_name
         return self
     
-    def get_domain_name(self):
+    def get_domain_name(self) -> str:
         """
         Get the domain name of the endpoint.
         
@@ -86,7 +106,7 @@ class Endpoint:
         return self._domain_name
     
     @classmethod
-    def _from_proto(cls, service_endpoint : 'ServiceEndpoint'):
+    def _from_proto(cls, service_endpoint: ServiceEndpoint) -> "Endpoint":
         """
         Create an Endpoint from a protobuf ServiceEndpoint.
         
@@ -107,7 +127,7 @@ class Endpoint:
             domain_name=service_endpoint.domain_name
         )
     
-    def _to_proto(self):
+    def _to_proto(self) -> ServiceEndpoint:
         """
         Convert this Endpoint to a protobuf ServiceEndpoint.
         
@@ -121,7 +141,7 @@ class Endpoint:
             domain_name=self._domain_name
         )
     
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Get a string representation of the Endpoint.
         
@@ -132,13 +152,15 @@ class Endpoint:
         return f"{self._address.decode('utf-8')}:{self._port}"
 
     @classmethod
-    def from_dict(cls, json_data):
+    def from_dict(cls, json_data: EndpointDict) -> "Endpoint":
         """
         Create an Endpoint from a JSON object.
         
         Args:
             json_data: The JSON object.
         """
+        if 'ip_address_v4' not in json_data or 'port' not in json_data or 'domain_name' not in json_data:
+            raise ValueError("JSON data must contain 'ip_address_v4', 'port', and 'domain_name' keys.")
         return cls(
             address=bytes(json_data.get('ip_address_v4', ''), 'utf-8'),
             port=json_data.get('port'),

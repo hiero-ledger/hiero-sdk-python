@@ -33,6 +33,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Pausing a Token](#pausing-a-token)
   - [Token Grant KYC](#token-grant-kyc)
   - [Token Revoke KYC](#token-revoke-kyc)
+  - [Updating a Token](#updating-a-token)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -569,6 +570,7 @@ transaction = TokenGrantKycTransaction(
 
 transaction.sign(kyc_key)   # KYC key is required for granting KYC approval
 transaction.execute(client)
+
 ```
 #### Method Chaining:
 ```
@@ -579,8 +581,55 @@ transaction.execute(client)
         .freeze_with(client)
         .sign(kyc_key)   # KYC key is required for granting KYC approval
     )
-
     transaction.execute(client)
+
+```
+
+### Updating a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenUpdateTransaction(
+    token_id=token_id,
+    token_params=TokenUpdateParams(
+        token_name="UpdateToken",
+        token_symbol="UPD", 
+        token_memo="Updated memo",
+        metadata="Updated metadata",
+        treasury_account_id=new_account_id
+    ),
+    token_keys=TokenUpdateKeys(
+        admin_key=new_admin_key,
+        freeze_key=new_freeze_key, # freeze_key can sign a transaction that changes only the Freeze Key
+        metadata_key=new_metadata_key, # metadata_key can sign a transaction that changes only the metadata
+        supply_key=new_supply_key   # supply_key can sign a transaction that changes only the Supply Key
+    ),
+    token_key_verification_mode=TokenKeyValidation.FULL_VALIDATION  # Default value. Also, it can be NO_VALIDATION
+).freeze_with(client)
+transaction.sign(new_account_id_private_key) # If a new treasury account is set, the new treasury key is required to sign.
+transaction.sign(new_admin_key) # Updating the admin key requires the new admin key to sign.
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    TokenCreateTransaction()  # no params => uses default placeholders which are next overwritten.
+    .set_token_name("UpdateToken")
+    .set_token_symbol("UPD")
+    .set_token_memo("Updated memo")
+    .set_metadata("Updated metadata)
+    .set_treasury_account_id(new_account_id)
+    .set_admin_key(new_admin_key)
+    .set_supply_key(new_supply_key)
+    .set_freeze_key(new_freeze_key)
+    .set_metadata_key(new_metadata_key)
+    .freeze_with(client)
+)
+
+transaction.sign(new_account_id_private_key) # If a new treasury account is set, the new treasury key is required to sign.
+transaction.sign(new_admin_key) # Updating the admin key requires the new admin key to sign.
+transaction.execute(client)
 ```
 
 ### Token Revoke KYC
