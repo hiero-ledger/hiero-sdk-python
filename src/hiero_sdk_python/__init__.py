@@ -5,6 +5,7 @@ from .client.network import Network
 # Account
 from .account.account_id import AccountId
 from .account.account_create_transaction import AccountCreateTransaction
+from .account.account_info import AccountInfo
 
 # Crypto
 from .crypto.private_key import PrivateKey
@@ -29,6 +30,7 @@ from .tokens.token_id import TokenId
 from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
 from .tokens.token_nft_info import TokenNftInfo
+from .tokens.token_relationship import TokenRelationship
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -62,6 +64,7 @@ from .query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
 from .query.token_info_query import TokenInfoQuery
+from .query.account_info_query import AccountInfoQuery
 
 # Address book
 from .address_book.endpoint import Endpoint
@@ -80,6 +83,7 @@ __all__ = [
     # Account
     "AccountId",
     "AccountCreateTransaction",
+    "AccountInfo",
 
     # Crypto
     "PrivateKey",
@@ -103,6 +107,7 @@ __all__ = [
     "TokenUpdateNftsTransaction",
     "TokenBurnTransaction",
     "TokenGrantKycTransaction",
+    "TokenRelationship",
     "TokenUpdateTransaction",
 
     # Transaction
@@ -128,6 +133,7 @@ __all__ = [
     "CryptoGetAccountBalanceQuery",
     "TokenNftInfoQuery",
     "TokenInfoQuery",
+    "AccountInfoQuery",
     
     # Address book
     "Endpoint",

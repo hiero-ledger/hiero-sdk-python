@@ -113,10 +113,6 @@ class TokenCreateValidator:
             if not keys.freeze_key:
                 # Without a freeze key but a frozen account, it is immutable.
                 raise ValueError("Token is permanently frozen. Unable to proceed.")
-            # With a freeze key but a frozen account, first unfreezing is required.
-            raise ValueError(
-                "Token frozen. Please complete a Token Unfreeze Transaction."
-            )
 
     @staticmethod
     def _validate_supply_max_and_type(token_params):
