@@ -1,32 +1,52 @@
+from typing import Union
+
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import consensus_update_topic_pb2, duration_pb2
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2, 
+    consensus_update_topic_pb2,
+    duration_pb2, 
+    timestamp_pb2, 
+    transaction_body_pb2
+)
 from google.protobuf import wrappers_pb2 as _wrappers_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.account.account_id import AccountId
 
 class TopicUpdateTransaction(Transaction):
     def __init__(
         self,
-        topic_id=None,
-        memo=None,
-        admin_key=None,
-        submit_key=None,
+        topic_id: basic_types_pb2.TopicID =None,
+        memo: str = None,
+        admin_key: basic_types_pb2.Key = None,
+        submit_key: basic_types_pb2.Key = None,
         auto_renew_period: Duration = Duration(7890000),
-        auto_renew_account=None,
-        expiration_time=None,
-    ):
+        auto_renew_account: AccountId = None,
+        expiration_time: timestamp_pb2.Timestamp = None,
+    ) -> None:
+        """
+        Initializes a new instance of the TopicUpdateTransaction class.
+        Args:
+            topic_id (basic_types_pb2.TopicID): The ID of the topic to update.
+            memo (str): The memo associated with the topic.
+            admin_key (basic_types_pb2.Key): The admin key for the topic.
+            submit_key (basic_types_pb2.Key): The submit key for the topic.
+            auto_renew_period (Duration): The auto-renew period for the topic.
+            auto_renew_account (AccountId): The account ID for auto-renewal.
+            expiration_time (timestamp_pb2.Timestamp): The expiration time of the topic.
+        """
         super().__init__()
-        self.topic_id = topic_id
-        self.memo = memo or ""
-        self.admin_key = admin_key
-        self.submit_key = submit_key
-        self.auto_renew_period:Duration = auto_renew_period
-        self.auto_renew_account = auto_renew_account
-        self.expiration_time = expiration_time
-        self.transaction_fee = 10_000_000
+        self.topic_id: basic_types_pb2.TopicID = topic_id
+        self.memo: str = memo or ""
+        self.admin_key: basic_types_pb2.Key = admin_key
+        self.submit_key: basic_types_pb2.Key = submit_key
+        self.auto_renew_period: Duration = auto_renew_period
+        self.auto_renew_account: AccountId = auto_renew_account
+        self.expiration_time: timestamp_pb2.Timestamp = expiration_time
+        self.transaction_fee: int = 10_000_000
 
-    def set_topic_id(self, topic_id):
+    def set_topic_id(self, topic_id: basic_types_pb2.TopicID) -> "TopicUpdateTransaction":
         """
         Sets the topic ID for the transaction.
 
@@ -40,7 +60,7 @@ class TopicUpdateTransaction(Transaction):
         self.topic_id = topic_id
         return self
 
-    def set_memo(self, memo):
+    def set_memo(self, memo: str) -> "TopicUpdateTransaction":
         """
         Sets the memo for the topic.
 
@@ -54,7 +74,7 @@ class TopicUpdateTransaction(Transaction):
         self.memo = memo
         return self
 
-    def set_admin_key(self, key):
+    def set_admin_key(self, key: basic_types_pb2.Key) -> "TopicUpdateTransaction":
         """
         Sets the admin key for the topic.
 
@@ -68,7 +88,7 @@ class TopicUpdateTransaction(Transaction):
         self.admin_key = key
         return self
 
-    def set_submit_key(self, key):
+    def set_submit_key(self, key: basic_types_pb2.Key) -> "TopicUpdateTransaction":
         """
         Sets the submit key for the topic.
 
@@ -82,7 +102,7 @@ class TopicUpdateTransaction(Transaction):
         self.submit_key = key
         return self
 
-    def set_auto_renew_period(self, seconds: Duration | int):
+    def set_auto_renew_period(self, seconds: Union[Duration, int]) -> "TopicUpdateTransaction":
         """
         Sets the auto-renew period for the topic.
 
@@ -101,7 +121,7 @@ class TopicUpdateTransaction(Transaction):
             raise TypeError("Duration of invalid type")
         return self
 
-    def set_auto_renew_account(self, account_id):
+    def set_auto_renew_account(self, account_id: AccountId) -> "TopicUpdateTransaction":
         """
         Sets the auto-renew account for the topic.
 
@@ -115,7 +135,7 @@ class TopicUpdateTransaction(Transaction):
         self.auto_renew_account = account_id
         return self
 
-    def set_expiration_time(self, expiration_time):
+    def set_expiration_time(self, expiration_time: timestamp_pb2.Timestamp) -> "TopicUpdateTransaction":
         """
         Sets the expiration time for the topic.
 
@@ -129,7 +149,7 @@ class TopicUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for topic update.
 
@@ -156,6 +176,13 @@ class TopicUpdateTransaction(Transaction):
         return transaction_body
 
     def _get_method(self, channel: _Channel) -> _Method:
+        """
+        Returns the method for executing the topic update transaction.
+        Args:
+            channel (_Channel): The channel to use for the transaction.
+        Returns:
+            _Method: The method to execute the transaction.
+        """
         return _Method(
             transaction_func=channel.topic.updateTopic,
             query_func=None

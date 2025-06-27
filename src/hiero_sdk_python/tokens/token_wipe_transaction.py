@@ -1,7 +1,9 @@
+from typing import Optional, List
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody
+from hiero_sdk_python.hapi.services import transaction_body_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -14,7 +16,13 @@ class TokenWipeTransaction(Transaction):
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token wipe transaction.
     """
-    def __init__(self, token_id=None, account_id=None, amount=None, serial=[]):
+    def __init__(
+        self,
+        token_id: Optional[TokenId] = None,
+        account_id: Optional[AccountId] = None, 
+        amount: Optional[int] = None, 
+        serial: Optional[List[int]] = None
+    ) -> None:
         """
         Initializes a new TokenWipeTransaction instance with optional token_id and account_id.
 
@@ -25,12 +33,12 @@ class TokenWipeTransaction(Transaction):
             serial (list[int], optional): The serial numbers of NFTs to wipe.
         """
         super().__init__()
-        self.token_id : TokenId = token_id
-        self.account_id : AccountId = account_id
-        self.amount : int = amount
-        self.serial : list[int] = serial
+        self.token_id: Optional[TokenId] = token_id
+        self.account_id: Optional[AccountId] = account_id
+        self.amount: Optional[int] = amount
+        self.serial: List[int] = serial if serial else []
         
-    def set_token_id(self, token_id):
+    def set_token_id(self, token_id: TokenId) -> "TokenWipeTransaction":
         """
         Sets the ID of the token to be wiped.
 
@@ -44,22 +52,49 @@ class TokenWipeTransaction(Transaction):
         self.token_id = token_id
         return self
     
-    def set_account_id(self, account_id):
+    def set_account_id(self, account_id: AccountId) -> "TokenWipeTransaction":
+        """
+        Sets the ID of the account to have their tokens wiped.
+
+        Args:
+            account_id (AccountId): The ID of the account to have their tokens wiped.
+        
+        Returns:
+            TokenWipeTransaction: Returns self for method chaining.
+        """
         self._require_not_frozen()
         self.account_id = account_id
         return self
     
-    def set_amount(self, amount):
+    def set_amount(self, amount: int) -> "TokenWipeTransaction":
+        """
+        Sets the amount of tokens to wipe.
+
+        Args:
+            amount (int): The amount of tokens to wipe.
+        
+        Returns:
+            TokenWipeTransaction: Returns self for method chaining.
+        """
         self._require_not_frozen()
         self.amount = amount
         return self
     
-    def set_serial(self, serial):
+    def set_serial(self, serial: List[int]) -> "TokenWipeTransaction":
+        """
+        Sets the serial numbers of NFTs to wipe.
+
+        Args:
+            serial (List[int]): The serial numbers of the NFTs to wipe.
+        
+        Returns:
+            TokenWipeTransaction: Returns self for method chaining.
+        """
         self._require_not_frozen()
         self.serial = serial
         return self
     
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token wipe.
 
@@ -72,7 +107,7 @@ class TokenWipeTransaction(Transaction):
             amount=self.amount,
             serialNumbers=self.serial
         )
-        transaction_body = self.build_base_transaction_body()
+        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenWipe.CopyFrom(token_wipe_body)
         return transaction_body
     
@@ -82,7 +117,7 @@ class TokenWipeTransaction(Transaction):
             query_func=None
         )
     
-    def _from_proto(self, proto: TokenWipeAccountTransactionBody):
+    def _from_proto(self, proto: TokenWipeAccountTransactionBody) -> "TokenWipeTransaction":
         """
         Deserializes a TokenWipeAccountTransactionBody from a protobuf object.
 
