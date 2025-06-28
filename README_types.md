@@ -1,3 +1,17 @@
+## Introduction
+
+This guide provides an overview of Python’s built-in types, explains how and why to use type hints, and demonstrates how to leverage the `typing` module and MyPy for static type checking. Whether you’re new to type annotations or looking to adopt a more robust workflow, you’ll find examples and best practices for writing clearer, safer, and more maintainable Python code.
+
+## Table of Contents
+
+- [What are Types in Python?](#what-are-types-in-python)  
+- [What are Type Hints?](#what-are-type-hints)  
+- [Why Type Hint?](#why-type-hint)  
+- [Typing Using the `typing` Module](#typing-using-the-typing-module)  
+- [Custom Types](#custom-types)  
+- [Installing and Using MyPy](#installing-and-using-mypy)  
+- [Configuring MyPy](#configuring-mypy)
+
 ## What are Types in Python?
 
 Python code can be written using various built-in types that define their behavior and available operations:
