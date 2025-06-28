@@ -162,18 +162,41 @@ if __name__ == "__main__":
     account = AccountId(0, 0, 200)
     query_hbar_balance(account)
 
+def_query_hbar_balance function takes account as an argument, which is of custom type AccountId, then the function returns type None. It returns None because there is no return statement in the function, and it instead prints.
+
+### Example 2
+from dataclasses import dataclass
+from hiero_sdk import AccountId
+from hiero_sdk import CryptoGetAccountBalanceQuery
+
+def build_balance_query(account: AccountId) -> CryptoGetAccountBalanceQuery:
+    """
+    Construct and return a CryptoGetAccountBalanceQuery for the given account.
+
+    Args:
+        account (AccountId): The Hedera account identifier.
+
+    Returns:
+        CryptoGetAccountBalanceQuery: A query object you can execute to fetch the balance.
+    """
+    return CryptoGetAccountBalanceQuery(account)
+
+if __name__ == "__main__":
+    account = AccountId(0, 0, 200)
+    query = build_balance_query(acct)
+    print(query)
+
 ## Installing and Using MyPy
 
-Use MyPy to help check for correct typing in your code and its imports. You can adopt type hints gradually—MyPy will not:
+Use MyPy to help check for correct typing in your code and its imports. You can adopt type hints gradually without impacting runtime. MyPy will not:
 
 - Prevent or change the running of your code  
-- By default, check untyped code  
 
 This makes MyPy safe to introduce at your own pace.
 
 ### Install MyPy
 
-```bash
+bash:
 pip install mypy
 
 Command to check type hinting with MyPy for program.py:
@@ -182,10 +205,9 @@ E.g.
 mypy src/hiero_sdk_python/tokens/token_info.py
 
 Read about MyPy:
-https://mypy.readthedocs.io/en/stable/
+Mypy [general](https://mypy.readthedocs.io/en/stable/).
 
-Mypy cheatsheet:
-https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html#cheat-sheet-py3
+Mypy cheatsheet [cheatsheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html#cheat-sheet-py3).
 
 ## Configuring MyPy
 
@@ -201,5 +223,5 @@ implicit_optional = True
 # Suppress errors when calling functions without type annotations
 allow_untyped_calls = True
 
-For a full list of flags and options, see the MyPy command-line reference:
-https://mypy.readthedocs.io/en/stable/command_line.html#command-line
+For a full list of flags and options, see the MyPy command-line reference:  
+[MyPy command-line reference](https://mypy.readthedocs.io/en/stable/command_line.html#command-line)
