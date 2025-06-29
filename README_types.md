@@ -1,4 +1,5 @@
 ## Introduction
+This is a markdown file, click Ctrl+Shift+V to view or click open preview.
 
 This guide provides an overview of Python’s built-in types, explains how and why to use type hints, and demonstrates how to leverage the `typing` module and MyPy for static type checking. Whether you’re new to type annotations or looking to adopt a more robust workflow, you’ll find examples and best practices for writing clearer, safer, and more maintainable Python code.
 
@@ -52,10 +53,12 @@ Python code can be written using various built-in types that define their behavi
 
 ### Example
 
+```python
 x: int       = 3
 y: float     = 1.0
 frozen: bool = True
 name: str    = "Rupert"
+```
 
 ## What are Type Hints?
 
@@ -72,7 +75,8 @@ Type hints let you declare the expected types of variables, function parameters,
 
 ### Examples
 
-#### Correct
+#### Example 1: Correct
+```python
 name: str = ""
 
 def greet(name: str) -> str:
@@ -80,8 +84,10 @@ def greet(name: str) -> str:
     return f"Hello, {name}!"
 
 print(greet("Beatrice"))
+```
 
-#### Incorrect
+#### Example 2: Incorrect
+```python
 name: str = ""
 
 def greet(name: str) -> str:
@@ -97,6 +103,7 @@ def greet(name: str) -> str:
     return f"Hello, {name}!"
 
 print(greet("Beatrice"))
+```
 
 ## Why Type Hint?
 
@@ -113,8 +120,9 @@ Additionally, type hints unlock the use of static analysis tools (like MyPy), al
 
 ## Typing Using the `typing` Module
 
-Most common types (e.g., `str`, `int`, `float`, `bool`, `bytes`, `list`, `dict`, `tuple`, `set`, `None`) are built-in in Python 3.10+. For more advanced or generic types, import from the `typing` module:
+Most common types (e.g., `str`, `int`, `float`, `bool`, `bytes`, `list`, `dict`, `tuple`, `set`, `None`) are built-in in Python 3.10. For more advanced or generic types, import from the `typing` module:
 
+```python
 from typing import (
     Any,            # “escape hatch” for unknown types
     Union,         # still available, though often replaced by |
@@ -131,8 +139,10 @@ from typing import (
     ParamSpec, Concatenate,  # for decorator/dependent signatures
     overload, cast, NoReturn,  # various mypy helpers
 )
+```
 
 ### Example
+```python
 from typing import TypedDict, Literal
 
 class User(TypedDict):
@@ -150,12 +160,14 @@ def find_user(uid: int) -> User | None:
     if uid == 1:
         return {"id": 1, "name": "Alice", "active": True}
     return None
+```
 
 ## Custom Types
 
 You can use custom types whenever you’ve defined your own classes.
 
-### Example
+### Example 1
+```python
 from dataclasses import dataclass
 from hiero_sdk import CryptoGetAccountBalanceQuery
 
@@ -175,10 +187,12 @@ def query_hbar_balance(account: AccountId) -> None:
 if __name__ == "__main__":
     account = AccountId(0, 0, 200)
     query_hbar_balance(account)
+```
 
-def_query_hbar_balance function takes account as an argument, which is of custom type AccountId, then the function returns type None. It returns None because there is no return statement in the function, and it instead prints.
+query_hbar_balance function takes account as an argument, which is of custom type AccountId, then the function returns type None. It returns None because there is no return statement in the function, and it instead prints.
 
 ### Example 2
+```python
 from dataclasses import dataclass
 from hiero_sdk import AccountId
 from hiero_sdk import CryptoGetAccountBalanceQuery
@@ -197,8 +211,9 @@ def build_balance_query(account: AccountId) -> CryptoGetAccountBalanceQuery:
 
 if __name__ == "__main__":
     account = AccountId(0, 0, 200)
-    query = build_balance_query(acct)
+    query = build_balance_query(account)
     print(query)
+```
 
 ## Installing and Using MyPy
 
@@ -210,22 +225,28 @@ This makes MyPy safe to introduce at your own pace.
 
 ### Install MyPy
 
-bash:
+```bash
 pip install mypy
+```
 
 Command to check type hinting with MyPy for program.py:
+```bash
 mypy path/to/program.py
+```
 E.g.
+```bash
 mypy src/hiero_sdk_python/tokens/token_info.py
+```
 
-Read about MyPy:
+Read more:
+
 Mypy [general](https://mypy.readthedocs.io/en/stable/).
 
-Mypy cheatsheet [cheatsheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html#cheat-sheet-py3).
+Mypy [cheatsheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html#cheat-sheet-py3).
 
 ## Configuring MyPy
 
-By default, MyPy is a very strict type checker. This project includes a `mypy.ini` at `/mypy.ini` to enable gradual, module-by-module checking. You can customize it to suit your needs:
+By default, MyPy is a fairly strict type checker. This project includes a `mypy.ini` at `/mypy.ini` to facilitate gradual, module-by-module checking. Customize mypy.ini it to suit your needs:
 
 ```ini
 # Do not error on imports that lack type stubs
@@ -236,6 +257,7 @@ implicit_optional = True
 
 # Suppress errors when calling functions without type annotations
 allow_untyped_calls = True
+```
 
 For a full list of flags and options, see the MyPy command-line reference:  
 [MyPy command-line reference](https://mypy.readthedocs.io/en/stable/command_line.html#command-line)
