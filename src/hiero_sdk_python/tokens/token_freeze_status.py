@@ -10,7 +10,8 @@ class TokenFreezeStatus(Enum):
     UNFROZEN = 2
 
     @staticmethod
-    def _from_proto(proto_obj: proto_TokenFreezeStatus):
+    def _from_proto(proto_obj: proto_TokenFreezeStatus) -> "TokenFreezeStatus":
+        """Converts a protobuf TokenFreezeStatus to a TokenFreezeStatus enum."""
         if proto_obj == proto_TokenFreezeStatus.FreezeNotApplicable:
             return TokenFreezeStatus.FREEZE_NOT_APPLICABLE
         elif proto_obj == proto_TokenFreezeStatus.Frozen:
@@ -18,7 +19,8 @@ class TokenFreezeStatus(Enum):
         elif proto_obj == proto_TokenFreezeStatus.Unfrozen:
             return TokenFreezeStatus.UNFROZEN
 
-    def __eq__(self, other):
+    def __eq__(self, other: any) -> bool:
+        """Checks equality with another TokenFreezeStatus or an integer."""
         if isinstance(other, TokenFreezeStatus):
             return self.value == other.value
         elif isinstance(other, int):

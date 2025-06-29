@@ -14,7 +14,7 @@ class NftId:
     tokenId: TokenId
     serialNumber: int
 
-    def __post_init__(self) -> bool:
+    def __post_init__(self) -> None:
         """Validate the NftId after initialization."""
         if self.tokenId is None:
             raise TypeError("token_id is required")
@@ -24,7 +24,6 @@ class NftId:
             raise TypeError(f"Expected an integer for serial_number, got {type(self.serialNumber)}")
         if self.serialNumber < 0:
             raise ValueError("serial_number must be positive")
-        return True
 
     @classmethod
     def _from_proto(cls, nft_id_proto: Optional[basic_types_pb2.NftID] = None) -> "NftId":
@@ -41,14 +40,14 @@ class NftId:
         """
         :return: a protobuf NftID object representation of this NftId object
         """
-        nft_id_proto = basic_types_pb2.NftID(token_ID=self.tokenId._to_proto(), serial_number=self.serialNumber)
+        nft_id_proto:basic_types_pb2.NftID = basic_types_pb2.NftID(token_ID=self.tokenId._to_proto(), serial_number=self.serialNumber)
 
         return nft_id_proto
 
     @classmethod
     def from_string(cls, nft_id_str: str = "") -> "NftId":
         """
-        :param nft_id_str: a string NftId representation
+        :param nft_id_str (str): a string NftId representation
         :return: returns the NftId parsed from the string input
         """
 
