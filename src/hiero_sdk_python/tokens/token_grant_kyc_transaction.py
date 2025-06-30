@@ -1,4 +1,5 @@
-from hiero_sdk_python.hapi.services.token_grant_kyc_pb2 import TokenGrantKycTransactionBody
+from typing import Optional
+from hiero_sdk_python.hapi.services import token_grant_kyc_pb2, transaction_body_pb2
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -14,7 +15,11 @@ class TokenGrantKycTransaction(Transaction):
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token grant KYC transaction.
     """
-    def __init__(self, token_id: TokenId = None, account_id: AccountId = None):
+    def __init__(
+        self, 
+        token_id: Optional[TokenId] = None, 
+        account_id: Optional[AccountId] = None
+    ) -> None:
         """
         Initializes a new TokenGrantKycTransaction instance with the token ID and account ID.
 
@@ -23,10 +28,10 @@ class TokenGrantKycTransaction(Transaction):
             account_id (AccountId, optional): The ID of the account to grant KYC to.
         """
         super().__init__()
-        self.token_id: TokenId = token_id
-        self.account_id: AccountId = account_id
+        self.token_id: Optional[TokenId] = token_id
+        self.account_id: Optional[AccountId] = account_id
     
-    def set_token_id(self, token_id: TokenId):
+    def set_token_id(self, token_id: TokenId) -> "TokenGrantKycTransaction":
         """
         Sets the token ID for this grant KYC transaction.
 
@@ -40,7 +45,7 @@ class TokenGrantKycTransaction(Transaction):
         self.token_id = token_id
         return self
     
-    def set_account_id(self, account_id: AccountId):
+    def set_account_id(self, account_id: AccountId) -> "TokenGrantKycTransaction":
         """
         Sets the account ID for this grant KYC transaction.
 
@@ -54,7 +59,7 @@ class TokenGrantKycTransaction(Transaction):
         self.account_id = account_id
         return self
     
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds the transaction body for this token grant KYC transaction.
 
@@ -70,11 +75,11 @@ class TokenGrantKycTransaction(Transaction):
         if self.account_id is None:
             raise ValueError("Missing account ID")
         
-        token_grant_kyc_body = TokenGrantKycTransactionBody(
+        token_grant_kyc_body = token_grant_kyc_pb2.TokenGrantKycTransactionBody(
             token=self.token_id._to_proto(),
             account=self.account_id._to_proto()
         )
-        transaction_body = self.build_base_transaction_body()
+        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenGrantKyc.CopyFrom(token_grant_kyc_body)
         return transaction_body
     
@@ -96,12 +101,12 @@ class TokenGrantKycTransaction(Transaction):
             query_func=None
         )
 
-    def _from_proto(self, proto: TokenGrantKycTransactionBody):
+    def _from_proto(self, proto: token_grant_kyc_pb2.TokenGrantKycTransactionBody) -> "TokenGrantKycTransaction":
         """
         Initializes a new TokenGrantKycTransaction instance from a protobuf object.
 
         Args:
-            proto (TokenGrantKycTransactionBody): The protobuf object to initialize from.
+            proto (token_grant_kyc_pb2.TokenGrantKycTransactionBody): The protobuf object to initialize from.
 
         Returns:
             TokenGrantKycTransaction: This transaction instance.

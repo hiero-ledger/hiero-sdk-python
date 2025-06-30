@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenFreezeStatus as proto_TokenFreezeStatus
 
 """
@@ -19,7 +20,7 @@ class TokenFreezeStatus(Enum):
         elif proto_obj == proto_TokenFreezeStatus.Unfrozen:
             return TokenFreezeStatus.UNFROZEN
 
-    def __eq__(self, other: any) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Checks equality with another TokenFreezeStatus or an integer."""
         if isinstance(other, TokenFreezeStatus):
             return self.value == other.value

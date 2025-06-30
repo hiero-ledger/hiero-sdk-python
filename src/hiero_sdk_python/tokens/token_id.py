@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List,Optional
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 @dataclass(frozen=True, eq=True, init=True, repr=True)
@@ -24,7 +25,7 @@ class TokenId:
 
 
     @classmethod
-    def _from_proto(cls, token_id_proto: basic_types_pb2.TokenID = None):
+    def _from_proto(cls, token_id_proto: Optional[basic_types_pb2.TokenID] = None) -> "TokenId":
         """
         Creates a TokenId instance from a protobuf TokenID object.
         """
@@ -39,7 +40,7 @@ class TokenId:
             num=token_id_proto.tokenNum
         )
 
-    def _to_proto(self):
+    def _to_proto(self) -> basic_types_pb2.TokenID:
         """
         Converts the TokenId instance to a protobuf TokenID object.
         """
@@ -50,7 +51,7 @@ class TokenId:
         return token_id_proto
 
     @classmethod
-    def from_string(cls, token_id_str: str = ""):
+    def from_string(cls, token_id_str: str = "") -> "TokenId":
         """
         Parses a string in the format 'shard.realm.num' to create a TokenId instance.
         """
@@ -59,16 +60,17 @@ class TokenId:
         elif not isinstance(token_id_str, str):
             raise TypeError('TokenId must be a string')
 
-        parts = token_id_str.strip().split('.')
+        parts: List[str] = token_id_str.strip().split('.')
         if len(parts) != 3:
             raise ValueError("Invalid TokenId format. Expected 'shard.realm.num'")
         return cls(shard=int(parts[0]), realm=int(parts[1]), num=int(parts[2]))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns the string representation of the TokenId in the format 'shard.realm.num'.
         """
         return f"{self.shard}.{self.realm}.{self.num}"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """ Returns a hash of the TokenId instance. """
         return hash((self.shard, self.realm, self.num))
