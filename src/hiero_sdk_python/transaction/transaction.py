@@ -1,10 +1,18 @@
 import hashlib
-
+from typing import Union, Optional, Dict, Any
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_body_pb2, transaction_contents_pb2, transaction_pb2)
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2, 
+    transaction_body_pb2, 
+    transaction_contents_pb2, 
+    transaction_pb2,
+    transaction_response_pb2
+)
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -22,33 +30,33 @@ class Transaction(_Executable):
     2. _get_method(channel) - Return the appropriate gRPC method to call
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes a new Transaction instance with default values.
         """
 
         super().__init__()
 
-        self.transaction_id = None
-        self.transaction_fee = None
-        self.transaction_valid_duration = 120 
-        self.generate_record = False
-        self.memo = ""
+        self.transaction_id: Optional[TransactionId] = None
+        self.transaction_fee: Optional[int] = None
+        self.transaction_valid_duration: Optional[Duration] = 120 
+        self.generate_record: bool = False
+        self.memo: str = ""
         # Maps each node's AccountId to its corresponding transaction body bytes
         # This allows us to maintain separate transaction bodies for each node
         # which is necessary in case node is unhealthy and we have to switch it with other node.
         # Each transaction body has the AccountId of the node it's being submitted to.
         # If these do not match `INVALID_NODE_ACCOUNT` error will occur.
-        self._transaction_body_bytes: dict[AccountId, bytes] = {}
+        self._transaction_body_bytes: Dict[AccountId, bytes] = {}
         
         # Maps transaction body bytes to their associated signatures
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
-        self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
-        self._default_transaction_fee = 2_000_000
-        self.operator_account_id = None  
+        self._signature_map: Dict[bytes, basic_types_pb2.SignatureMap] = {}
+        self._default_transaction_fee: int = 2_000_000
+        self.operator_account_id: AccountId = None  
 
-    def _make_request(self):
+    def _make_request(self) -> transaction_pb2.Transaction:
         """
         Implements the Executable._make_request method to build the transaction request.
 
@@ -60,7 +68,12 @@ class Transaction(_Executable):
         """
         return self._to_proto()
 
-    def _map_response(self, response, node_id, proto_request):
+    def _map_response(
+        self,
+        response: Any, 
+        node_id: Union[int,str], 
+        proto_request: transaction_pb2.Transaction
+    ) -> TransactionResponse:
         """
         Implements the Executable._map_response method to create a TransactionResponse.
 
@@ -68,8 +81,8 @@ class Transaction(_Executable):
         executed transaction, including the transaction ID, node ID, and transaction hash.
 
         Args:
-            response: The response from the network
-            node_id: The ID of the node that processed the request
+            response (Any): The response from the network
+            node_id (Union[int,str]): The ID of the node that processed the request
             proto_request: The protobuf request that was sent
 
         Returns:
@@ -104,7 +117,7 @@ class Transaction(_Executable):
         Returns:
             _ExecutionState: The execution state indicating what to do next
         """
-        if not isinstance(response, TransactionResponseProto):
+        if not isinstance(response, transaction_response_pb2.TransactionResponse):
             raise ValueError(f"Expected TransactionResponseProto but got {type(response)}")
 
         status = response.nodeTransactionPrecheckCode
@@ -127,7 +140,7 @@ class Transaction(_Executable):
 
         return _ExecutionState.ERROR
 
-    def _map_status_error(self, response):
+    def _map_status_error(self, response: Any) -> PrecheckError:
         """
         Maps a transaction response to a corresponding PrecheckError exception.
 
@@ -142,7 +155,7 @@ class Transaction(_Executable):
         
         return PrecheckError(error_code, tx_id)
 
-    def sign(self, private_key):
+    def sign(self, private_key) -> "Transaction":
         """
         Signs the transaction using the provided private key.
 
@@ -177,7 +190,7 @@ class Transaction(_Executable):
         
         return self
 
-    def _to_proto(self):
+    def _to_proto(self) -> transaction_pb2.Transaction:
         """
         Converts the transaction to its protobuf representation.
 
@@ -207,7 +220,7 @@ class Transaction(_Executable):
             signedTransactionBytes=signed_transaction.SerializeToString()
         )
 
-    def freeze_with(self, client):
+    def freeze_with(self, client: Client) -> "Transaction":
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
 
@@ -238,7 +251,7 @@ class Transaction(_Executable):
         
         return self
 
-    def execute(self, client):
+    def execute(self, client: Client) -> "TransactionResponse":
         """
         Executes the transaction on the Hedera network using the provided client.
 
@@ -273,7 +286,7 @@ class Transaction(_Executable):
 
         return response.get_receipt(client)
 
-    def is_signed_by(self, public_key):
+    def is_signed_by(self, public_key: PublicKey) -> bool:
         """
         Checks if the transaction has been signed by the given public key.
 
@@ -295,7 +308,7 @@ class Transaction(_Executable):
                 return True
         return False
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Abstract method to build the transaction body.
 
@@ -325,7 +338,7 @@ class Transaction(_Executable):
                     raise ValueError("Operator account ID is not set.")
                 self.transaction_id = TransactionId.generate(self.operator_account_id)
 
-        transaction_id_proto = self.transaction_id._to_proto()
+        transaction_id_proto: basic_types_pb2.TransactionID  = self.transaction_id._to_proto()
 
         if self.node_account_id is None:
             raise ValueError("Node account ID is not set.")
@@ -342,7 +355,7 @@ class Transaction(_Executable):
 
         return transaction_body
 
-    def _require_not_frozen(self):
+    def _require_not_frozen(self) -> None:
         """
         Ensures the transaction is not frozen before allowing modifications.
 
@@ -352,7 +365,7 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             raise Exception("Transaction is immutable; it has been frozen.")
 
-    def _require_frozen(self):
+    def _require_frozen(self) -> None:
         """
         Ensures the transaction is frozen before allowing operations that require a frozen transaction.
 
@@ -365,7 +378,7 @@ class Transaction(_Executable):
         if not self._transaction_body_bytes:
             raise Exception("Transaction is not frozen")
 
-    def set_transaction_memo(self, memo):
+    def set_transaction_memo(self, memo: str) -> "Transaction":
         """
         Sets the memo field for the transaction.
 

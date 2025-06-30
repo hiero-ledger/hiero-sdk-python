@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Optional, List
 from hiero_sdk_python.hapi.services.token_reject_pb2 import TokenReference, TokenRejectTransactionBody
 from hiero_sdk_python.hapi.services import transaction_body_pb2
 from hiero_sdk_python.tokens.nft_id import NftId
