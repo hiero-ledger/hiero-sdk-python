@@ -1,10 +1,11 @@
+import traceback
+from typing import Any
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_balance import AccountBalance
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
-import traceback
 
 class CryptoGetAccountBalanceQuery(Query):
     """
@@ -112,7 +113,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
         return AccountBalance._from_proto(response.cryptogetAccountBalance)
 
-    def _get_query_response(self, response: any) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
+    def _get_query_response(self, response: Any) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
         """
         Extracts the account balance response from the full response.
         

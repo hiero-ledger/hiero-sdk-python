@@ -2,6 +2,7 @@
 # pylint: disable=too-many-arguments
 
 from dataclasses import dataclass
+from typing import Optional, Union
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -11,90 +12,113 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
-from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
+from hiero_sdk_python.hapi.services import token_get_info_pb2
 from hiero_sdk_python.tokens.token_type import TokenType
 
 @dataclass
 class TokenInfo:
-    tokenId: TokenId = None
-    name: str = None
-    symbol: str = None
-    decimals: int = None
-    totalSupply: int = None
-    treasury: AccountId = None
-    isDeleted: bool = None
-    memo: str = None
-    tokenType: TokenType = None
-    maxSupply: int = None
-    ledger_id: bytes = None
-    metadata: bytes = None
+    """Represents information about a token in the Hedera network."""
+    autoRenewAccount: Optional[AccountId] = None
+    autoRenewPeriod:  Optional[Duration]  = None
+    decimals:         Optional[int]       = None
+    expiry:           Optional[Timestamp] = None
+    isDeleted:        Optional[bool]      = None
+    ledger_id:        Optional[bytes]     = None
+    maxSupply:        Optional[int]       = None
+    memo:             Optional[str]       = None
+    metadata:         Optional[bytes]     = None
+    name:             Optional[str]       = None
+    symbol:           Optional[str]       = None
+    tokenId:          Optional[TokenId]   = None
+    tokenType:        Optional[TokenType] = None
+    totalSupply:      Optional[int]       = None
+    treasury:         Optional[AccountId] = None
 
-    adminKey = None
-    kycKey = None
-    freezeKey = None
-    wipeKey = None
-    supplyKey = None
-    metadata_key = None
-    fee_schedule_key = None
-    defaultFreezeStatus = TokenFreezeStatus.FREEZE_NOT_APPLICABLE
-    defaultKycStatus = TokenKycStatus.KYC_NOT_APPLICABLE
-    autoRenewAccount = None
-    autoRenewPeriod = None
-    expiry = None
-    pause_key = None
-    pause_status = TokenPauseStatus.PAUSE_NOT_APPLICABLE
-    supplyType = SupplyType.FINITE
+    adminKey:         Optional[PublicKey] = None
+    fee_schedule_key: Optional[PublicKey] = None
+    freezeKey:        Optional[PublicKey] = None
+    kycKey:           Optional[PublicKey] = None
+    metadata_key:     Optional[PublicKey] = None
+    pause_key:        Optional[PublicKey] = None
+    supplyKey:        Optional[PublicKey] = None
+    wipeKey:          Optional[PublicKey] = None
 
-    def set_admin_key(self, adminKey: PublicKey):
+    defaultFreezeStatus: TokenFreezeStatus = TokenFreezeStatus.FREEZE_NOT_APPLICABLE
+    defaultKycStatus:    TokenKycStatus    = TokenKycStatus.KYC_NOT_APPLICABLE
+    pause_status:        TokenPauseStatus  = TokenPauseStatus.PAUSE_NOT_APPLICABLE
+    supplyType:          SupplyType        = SupplyType.FINITE
+
+    def set_admin_key(self, adminKey: PublicKey) -> None:
+        """Sets the admin key for the token."""
         self.adminKey = adminKey
 
-    def set_kycKey(self, kycKey: PublicKey):
+    def set_kycKey(self, kycKey: PublicKey) -> None:
+        """Sets the KYC key for the token."""
         self.kycKey = kycKey
 
-    def set_freezeKey(self, freezeKey: PublicKey):
+    def set_freezeKey(self, freezeKey: PublicKey) -> None:
+        """Sets the freeze key for the token."""
         self.freezeKey = freezeKey
 
-    def set_wipeKey(self, wipeKey: PublicKey):
+    def set_wipeKey(self, wipeKey: PublicKey) -> None:
+        """Sets the wipe key for the token."""
         self.wipeKey = wipeKey
 
-    def set_supplyKey(self, supplyKey: PublicKey):
+    def set_supplyKey(self, supplyKey: PublicKey) -> None:
+        """Sets the supply key for the token."""
         self.supplyKey = supplyKey
 
-    def set_metadata_key(self, metadata_key: PublicKey):
+    def set_metadata_key(self, metadata_key: PublicKey) -> None:
+        """Sets the metadata key for the token."""
         self.metadata_key = metadata_key
 
-    def set_fee_schedule_key(self, fee_schedule_key: PublicKey):
+    def set_fee_schedule_key(self, fee_schedule_key: PublicKey) -> None:
+        """Sets the fee schedule key for the token."""
         self.fee_schedule_key = fee_schedule_key
 
-    def set_default_freeze_status(self, freezeStatus: TokenFreezeStatus):
+    def set_default_freeze_status(self, freezeStatus: TokenFreezeStatus) -> None:
+        """Sets the default freeze status for the token."""
         self.defaultFreezeStatus = freezeStatus
 
-    def set_default_kyc_status(self, kycStatus: TokenKycStatus):
+    def set_default_kyc_status(self, kycStatus: TokenKycStatus) -> None:
+        """Sets the default KYC status for the token."""
         self.defaultKycStatus = kycStatus
 
-    def set_auto_renew_account(self, autoRenewAccount: AccountId):
+    def set_auto_renew_account(self, autoRenewAccount: AccountId) -> None:
+        """Sets the account that will automatically renew the token."""
         self.autoRenewAccount = autoRenewAccount
 
-    def set_auto_renew_period(self, autoRenewPeriod: Duration):
+    def set_auto_renew_period(self, autoRenewPeriod: Duration) -> None:
+        """Sets the period after which the token will be automatically renewed."""
         self.autoRenewPeriod = autoRenewPeriod
 
-    def set_expiry(self, expiry: Timestamp):
+    def set_expiry(self, expiry: Timestamp) -> None:
+        """Sets the expiry timestamp for the token."""
         self.expiry = expiry
 
-    def set_pause_key(self, pause_key: PublicKey):
+    def set_pause_key(self, pause_key: PublicKey) -> None:
+        """Sets the pause key for the token."""
         self.pause_key = pause_key
 
-    def set_pause_status(self, pauseStatus: TokenPauseStatus):
+    def set_pause_status(self, pauseStatus: TokenPauseStatus) -> None:
+        """Sets the pause status for the token."""
         self.pause_status = pauseStatus
 
-    def set_supply_type(self, supplyType: SupplyType | int):
+    def set_supply_type(self, supplyType: Union[SupplyType, int]) -> None:
+        """Sets the supply type for the token."""
         self.supplyType = supplyType
 
-    def set_metadata(self, metadata: bytes):
+    def set_metadata(self, metadata: bytes) -> None:
+        """Sets the metadata for the token."""
         self.metadata = metadata
 
     @classmethod
-    def _from_proto(cls, proto_obj: proto_TokenInfo) -> "TokenInfo":
+    def _from_proto(cls, proto_obj: token_get_info_pb2.TokenInfo) -> "TokenInfo":
+        """
+        Creates a TokenInfo instance from a protobuf TokenInfo object.
+        :param proto_obj: The token_get_info_pb2.TokenInfo object.
+        :return: An instance of TokenInfo.
+        """
         tokenInfoObject = TokenInfo(
             tokenId=TokenId._from_proto(proto_obj.tokenId),
             name=proto_obj.name,
@@ -143,8 +167,12 @@ class TokenInfo:
 
         return tokenInfoObject
 
-    def _to_proto(self) -> proto_TokenInfo:
-        proto = proto_TokenInfo(
+    def _to_proto(self) -> token_get_info_pb2.TokenInfo:
+        """
+        Converts the TokenInfo instance to a protobuf TokenInfo object.
+        :return: A token_get_info_pb2.TokenInfo object.
+        """
+        proto = token_get_info_pb2.TokenInfo(
             tokenId=self.tokenId._to_proto(),
             name=self.name,
             symbol=self.symbol,
@@ -191,7 +219,8 @@ class TokenInfo:
 
         return proto
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Returns a string representation of the TokenInfo instance."""
         return (f"TokenInfo(tokenId={self.tokenId}, name={self.name}, symbol={self.symbol}, "
                 f"decimals={self.decimals}, totalSupply={self.totalSupply}, treasury={self.treasury}, "
                 f"isDeleted={self.isDeleted}, memo={self.memo}, tokenType={self.tokenType}, "
