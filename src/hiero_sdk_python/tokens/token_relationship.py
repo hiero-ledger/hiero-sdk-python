@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenRelationship as TokenRelationshipProto
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenFreezeStatus as TokenFreezeStatusProto
@@ -13,21 +14,21 @@ class TokenRelationship:
     Represents a relationship between an account and a token.
 
     Attributes:
-        token_id (TokenId): The ID of the token.
-        symbol (str): The symbol of the token.
-        balance (int): The balance of tokens held by the account.
-        kyc_status (TokenFreezeStatusProto): The KYC status of the account for this token.
-        freeze_status (TokenFreezeStatusProto): The freeze status of the account for this token.
-        decimals (int): The number of decimal places used by the token.
-        automatic_association (bool): Whether the token was automatically associated with the account.
+        token_id (Optional[TokenId]): The ID of the token.
+        symbol (Optional[str]): The symbol of the token.
+        balance (Optional[int]): The balance of tokens held by the account.
+        kyc_status (Optional[TokenFreezeStatusProto]): The KYC status of the account for this token.
+        freeze_status (Optional[TokenFreezeStatusProto]): The freeze status of the account for this token.
+        decimals (Optional[int]): The number of decimal places used by the token.
+        automatic_association (Optional[bool]): Whether the token was automatically associated with the account.
     """
-    token_id: TokenId = None 
-    symbol: str = None
-    balance: int = None
-    kyc_status: TokenFreezeStatusProto = None
-    freeze_status: TokenFreezeStatusProto = None
-    decimals: int = None
-    automatic_association: bool = None
+    token_id: Optional[TokenId] = None 
+    symbol: Optional[str] = None
+    balance: Optional[int] = None
+    kyc_status: Optional[TokenFreezeStatusProto] = None
+    freeze_status: Optional[TokenFreezeStatusProto] = None
+    decimals: Optional[int] = None
+    automatic_association: Optional[bool] = None
 
     @classmethod
     def _from_proto(cls, proto: TokenRelationshipProto) -> 'TokenRelationship':

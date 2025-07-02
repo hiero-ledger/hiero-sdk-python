@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -13,31 +14,31 @@ class AccountInfo:
     Contains information about an account.
 
     Attributes:
-        account_id (AccountId): The ID of this account.
-        contract_account_id (str): The contract account ID.
-        is_deleted (bool): Whether the account has been deleted.
-        proxy_received (Hbar): The total number of tinybars proxy staked to this account.
-        key (PublicKey): The key for this account.
-        balance (Hbar): The current balance of account in hbar.
-        receiver_signature_required (bool): If true, this account's key must sign any transaction depositing into this account.
-        expiration_time (Timestamp): The timestamp at which this account is set to expire.
-        auto_renew_period (Duration): The duration for which this account will automatically renew.
+        account_id (Optional[AccountId]): The ID of this account.
+        contract_account_id (Optional[str]): The contract account ID.
+        is_deleted (Optional[bool]): Whether the account has been deleted.
+        proxy_received (Optional[Hbar]): The total number of tinybars proxy staked to this account.
+        key (Optional[PublicKey]): The key for this account.
+        balance (Optional[Hbar]): The current balance of account in hbar.
+        receiver_signature_required (Optional[bool]): If true, this account's key must sign any transaction depositing into this account.
+        expiration_time (Optional[Timestamp]): The timestamp at which this account is set to expire.
+        auto_renew_period (Optional[Duration]): The duration for which this account will automatically renew.
         token_relationships (list[TokenRelationship]): List of token relationships associated with this account.
-        account_memo (str): The memo associated with this account.
-        owned_nfts (int): The number of NFTs owned by this account.
+        account_memo (Optional[str]): The memo associated with this account.
+        owned_nfts (Optional[int]): The number of NFTs owned by this account.
     """
-    account_id : AccountId = None
-    contract_account_id : str = None
-    is_deleted : bool = None
-    proxy_received : Hbar = None
-    key : PublicKey = None
-    balance : Hbar = None
-    receiver_signature_required : bool = None
-    expiration_time : Timestamp = None
-    auto_renew_period : Duration = None
+    account_id : Optional[AccountId] = None
+    contract_account_id : Optional[str] = None
+    is_deleted : Optional[bool] = None
+    proxy_received : Optional[Hbar] = None
+    key : Optional[PublicKey] = None
+    balance : Optional[Hbar] = None
+    receiver_signature_required : Optional[bool] = None
+    expiration_time : Optional[Timestamp] = None
+    auto_renew_period : Optional[Duration] = None
     token_relationships : list[TokenRelationship] = field(default_factory=list)
-    account_memo : str = None
-    owned_nfts : int = None
+    account_memo : Optional[str] = None
+    owned_nfts : Optional[int] = None
     
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> 'AccountInfo':

@@ -53,6 +53,7 @@ def test_account_info_query_execute(mock_account_ids, private_key):
     """Test basic functionality of AccountInfoQuery with mock server."""
     account_id = mock_account_ids[0]
     expiration_time = TimestampProto(seconds=1718745600)
+    # 90 days in seconds
     auto_renew_period = DurationProto(seconds=7890000)
     
     # Create account info response with test data

@@ -1,3 +1,4 @@
+from typing import Optional
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, crypto_get_info_pb2
 from hiero_sdk_python.executable import _Method
@@ -16,15 +17,15 @@ class AccountInfoQuery(Query):
     and settings.
     
     """
-    def __init__(self, account_id: AccountId = None):
+    def __init__(self, account_id: Optional[AccountId] = None):
         """
         Initializes a new AccountInfoQuery instance with an optional account_id.
 
         Args:
-            account_id (AccountId, optional): The ID of the account to query.
+            account_id (Optional[AccountId], optional): The ID of the account to query.
         """
         super().__init__()
-        self.account_id : AccountId = account_id
+        self.account_id : Optional[AccountId] = account_id
         
     def set_account_id(self, account_id: AccountId):
         """
