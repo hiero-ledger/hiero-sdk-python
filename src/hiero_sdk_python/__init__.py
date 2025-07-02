@@ -25,6 +25,7 @@ from .tokens.token_reject_transaction import TokenRejectTransaction
 from .tokens.token_update_nfts_transaction import TokenUpdateNftsTransaction
 from .tokens.token_burn_transaction import TokenBurnTransaction
 from .tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
+from .tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from .tokens.token_update_transaction import TokenUpdateTransaction
 from .tokens.token_id import TokenId
 from .tokens.nft_id import NftId
