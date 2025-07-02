@@ -108,8 +108,8 @@ __all__ = [
     "TokenGrantKycTransaction",
     "TokenRevokeKycTransaction",
     "TokenUpdateTransaction",
-    "TokenType"
-    "SupplyType"
+    "TokenType",
+    "SupplyType",
 
     # Transaction
     "TransferTransaction",
