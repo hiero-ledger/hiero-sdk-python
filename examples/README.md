@@ -33,6 +33,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
   - [Token Grant KYC](#token-grant-kyc)
+  - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
@@ -657,6 +658,31 @@ transaction = (
 transaction.sign(new_account_id_private_key) # If a new treasury account is set, the new treasury key is required to sign.
 transaction.sign(new_admin_key) # Updating the admin key requires the new admin key to sign.
 transaction.execute(client)
+```
+
+### Token Revoke KYC
+
+#### Pythonic Syntax:
+```
+transaction = TokenRevokeKycTransaction(
+    token_id=token_id,
+    account_id=account_id
+).freeze_with(client)
+
+transaction.sign(kyc_key)   # KYC key is required for revoking KYC approval
+transaction.execute(client)
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenRevokeKycTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .freeze_with(client)
+        .sign(kyc_key)   # KYC key is required for revoking KYC approval
+    )
+
+    transaction.execute(client)
 ```
 
 ### Querying NFT Info
