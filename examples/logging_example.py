@@ -1,5 +1,4 @@
 import os
-import sys
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
@@ -8,11 +7,11 @@ from hiero_sdk_python import (
     PrivateKey,
     AccountCreateTransaction,
     Network,
+    Logger,
+    LogLevel,
 )
-from hiero_sdk_python.logger.logger import Logger
-from hiero_sdk_python.logger.log_level import LogLevel
 
-load_dotenv()
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env.example"))
 
 def show_logging_workflow():
     """Function to demonstrate logging functionality in the Hiero SDK."""
