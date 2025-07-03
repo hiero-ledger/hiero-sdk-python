@@ -1,16 +1,15 @@
-from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 def build_query_payment_transaction(
     payer_account_id: AccountId,
-    payer_private_key,
+    payer_private_key: PrivateKey,
     node_account_id: AccountId,
     amount: Hbar
-):
+) -> TransferTransaction:
     """
     Build and sign a TransferTransaction that sends `amount` of HBAR from
     `payer_account_id` to `node_account_id`. Returns a Transaction proto

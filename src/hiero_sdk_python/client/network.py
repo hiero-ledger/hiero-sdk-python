@@ -63,7 +63,7 @@ class Network:
         network: str = 'testnet',
         nodes: list[_Node] = None,
         mirror_address: str = None,
-    ):
+    ) -> None:
         """
         Initializes the Network with the specified network name or custom config.
 
