@@ -2,8 +2,9 @@ from datetime import datetime
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key, AccountID
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
 from hiero_sdk_python.hapi.services import consensus_topic_info_pb2
-from hiero_sdk_python import Duration
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.utils.key_format import format_key
+from typing import Optional
 
 class TopicInfo:
     def __init__(
@@ -12,11 +13,12 @@ class TopicInfo:
         running_hash: bytes,
         sequence_number: int,
         expiration_time: Timestamp,
-        admin_key: Key,
-        submit_key: Key,
-        auto_renew_period: Duration,
-        auto_renew_account: AccountID,
-        ledger_id: bytes,
+        admin_key: Optional[Key],
+        submit_key: Optional[Key],
+        auto_renew_period: Optional[Duration],
+        auto_renew_account: Optional[AccountID],
+        ledger_id: Optional[bytes],
+
     ) -> None:
         """
         Initializes a new instance of the TopicInfo class.
@@ -89,6 +91,9 @@ class TopicInfo:
             exp_dt = datetime.fromtimestamp(self.expiration_time.seconds)
             
         running_hash_hex: str = self.running_hash.hex() if self.running_hash else None
+        ledger_id_hex: Optional[str] = (
+            self.ledger_id.hex() if isinstance(self.ledger_id, (bytes, bytearray)) else None
+        )
 
         return (
             "TopicInfo(\n"
@@ -100,6 +105,6 @@ class TopicInfo:
             f"  submit_key={format_key(self.submit_key)},\n"
             f"  auto_renew_period={self.auto_renew_period.seconds},\n"
             f"  auto_renew_account={self.auto_renew_account},\n"
-            f"  ledger_id={self.ledger_id}\n"
+            f"  ledger_id=0x{ledger_id_hex}\n"
             ")"
         )
