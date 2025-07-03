@@ -4,24 +4,20 @@ Simple logger module for the Hiero SDK.
 
 import logging
 import sys
-
 from typing import Optional, Union, Sequence
+
 from hiero_sdk_python.logger.log_level import LogLevel
 
-# Adding local constants instead of adding untyped to logging module
+# Register custom levels on import
 _DISABLED_LEVEL = LogLevel.DISABLED.value
 _TRACE_LEVEL = LogLevel.TRACE.value
+logging.addLevelName(_DISABLED_LEVEL, "DISABLED")
+logging.addLevelName(_TRACE_LEVEL,   "TRACE")
 
 class Logger:
     """
     Custom logger that wraps Python's logging module
     """
-    
-    @classmethod
-    def _init_logging(cls) -> None:
-        """Initialize logging"""
-        logging.addLevelName(_DISABLED_LEVEL, "DISABLED")
-        logging.addLevelName(_TRACE_LEVEL, "TRACE")
     
     def __init__(self, level: Optional[LogLevel] = None, name: Optional[str] = None) -> None:
         """
@@ -31,8 +27,6 @@ class Logger:
             level (LogLevel, optional): the current log level
             name (str, optional): logger name, defaults to class name
         """
-        # Initialize logging system
-        Logger._init_logging()
         
         # Get logger name
         if name is None:
@@ -115,7 +109,6 @@ class Logger:
         """Log at ERROR level"""
         if self.internal_logger.isEnabledFor(LogLevel.ERROR.value):
             self.internal_logger.error(self._format_args(message, args))
-
 
 def get_logger(name: Optional[str]=None, level: Optional[LogLevel]=None) -> Logger:
     """Get a logger instance"""
