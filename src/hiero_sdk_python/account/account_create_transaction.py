@@ -103,7 +103,7 @@ class AccountCreateTransaction(Transaction):
             self.auto_renew_period = seconds
         else:
             raise TypeError("Duration of invalid type")
-
+        return self
 
     def set_account_memo(self, memo: str) -> "AccountCreateTransaction":
         """
