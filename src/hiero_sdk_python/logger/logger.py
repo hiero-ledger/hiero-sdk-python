@@ -5,8 +5,12 @@ Simple logger module for the Hiero SDK.
 import logging
 import sys
 
-from typing import Optional, Union
+from typing import Optional, Union, Sequence
 from hiero_sdk_python.logger.log_level import LogLevel
+
+# Adding local constants instead of adding untyped to logging module
+_DISABLED_LEVEL = LogLevel.DISABLED.value
+_TRACE_LEVEL = LogLevel.TRACE.value
 
 class Logger:
     """
@@ -16,20 +20,8 @@ class Logger:
     @classmethod
     def _init_logging(cls) -> None:
         """Initialize logging"""
-        # Add DISABLED level to Python's logging
-        logging.DISABLED = LogLevel.DISABLED.value
-        logging.addLevelName(logging.DISABLED, "DISABLED")
-        
-        # Add TRACE level to Python's logging
-        logging.TRACE = LogLevel.TRACE.value
-        logging.addLevelName(logging.TRACE, "TRACE")
-        
-        # Add trace method to Logger
-        def trace_method(self, message, *args, **kwargs):
-            if self.isEnabledFor(logging.TRACE):
-                self._log(logging.TRACE, message, args, **kwargs)
-        
-        logging.Logger.trace = trace_method
+        logging.addLevelName(_DISABLED_LEVEL, "DISABLED")
+        logging.addLevelName(_TRACE_LEVEL, "TRACE")
     
     def __init__(self, level: Optional[LogLevel] = None, name: Optional[str] = None) -> None:
         """
@@ -45,7 +37,6 @@ class Logger:
         # Get logger name
         if name is None:
             name = "hiero_sdk_python"
-            
         # Get logger and set level
         self.name: str = name
         self.internal_logger: logging.Logger = logging.getLogger(name)
@@ -91,37 +82,36 @@ class Logger:
 
         return self
     
-    def _format_args(self, message: str, args: list) -> str:
+    def _format_args(self, message: str, args: Sequence[object]) -> str:
         """Format key-value pairs into string"""
         if not args or len(args) % 2 != 0:
             return message
-            
         pairs = []
         for i in range(0, len(args), 2):
             pairs.append(f"{args[i]} = {args[i+1]}")
         return f"{message}: {', '.join(pairs)}"
     
-    def trace(self, message: str, *args: tuple) -> None:
+    def trace(self, message: str, *args: object) -> None:
         """Log at TRACE level"""
-        if self.internal_logger.isEnabledFor(LogLevel.TRACE.value):
-            self.internal_logger.trace(self._format_args(message, args))
+        if self.internal_logger.isEnabledFor(_TRACE_LEVEL):
+            self.internal_logger.log(_TRACE_LEVEL, self._format_args(message, args))
     
-    def debug(self, message: str, *args: tuple) -> None:
+    def debug(self, message: str, *args: object) -> None:
         """Log at DEBUG level"""
         if self.internal_logger.isEnabledFor(LogLevel.DEBUG.value):
             self.internal_logger.debug(self._format_args(message, args))
     
-    def info(self, message: str, *args: tuple) -> None:
+    def info(self, message: str, *args: object) -> None:
         """Log at INFO level"""
         if self.internal_logger.isEnabledFor(LogLevel.INFO.value):
             self.internal_logger.info(self._format_args(message, args))
     
-    def warn(self, message: str, *args: tuple) -> None:
+    def warn(self, message: str, *args: object) -> None:
         """Log at WARN level"""
         if self.internal_logger.isEnabledFor(LogLevel.WARN.value):
             self.internal_logger.warning(self._format_args(message, args))
     
-    def error(self, message: str, *args: tuple) -> None:
+    def error(self, message: str, *args: object) -> None:
         """Log at ERROR level"""
         if self.internal_logger.isEnabledFor(LogLevel.ERROR.value):
             self.internal_logger.error(self._format_args(message, args))
