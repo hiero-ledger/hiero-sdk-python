@@ -46,7 +46,7 @@ def test_logger_output(capsys):
     logger.trace("trace message", "traceKey", "traceValue")
     logger.debug("debug message", "debugKey", "debugValue")
     logger.info("info message", "infoKey", "infoValue")
-    logger.warn("warn message", "warnKey", "warnValue")
+    logger.warning("warn message", "warnKey", "warnValue")
     logger.error("error message", "errorKey", "errorValue")
     
     # Get the captured output
@@ -87,7 +87,7 @@ def test_logger_respects_level(capsys):
     
     # These should be logged
     logger.info("info message")
-    logger.warn("warn message")
+    logger.warning("warn message")
     logger.error("error message")
     
     # Get the captured output
