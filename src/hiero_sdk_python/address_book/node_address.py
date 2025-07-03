@@ -1,7 +1,7 @@
 from typing import List, TypedDict
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.address_book.endpoint import Endpoint
+from hiero_sdk_python.address_book.endpoint import Endpoint, EndpointDict
 from hiero_sdk_python.hapi.services.basic_types_pb2 import NodeAddress as NodeAddressProto
 
 class NodeDict(TypedDict):
@@ -20,7 +20,7 @@ class NodeDict(TypedDict):
     node_account_id: str
     node_id: int
     node_cert_hash: str
-    service_endpoints: List[Endpoint]
+    service_endpoints: List[EndpointDict]
     description: str
 
 class NodeAddress:
@@ -136,7 +136,7 @@ class NodeAddress:
         Create a NodeAddress from a dictionary.
         """
         
-        service_endpoints: List[Endpoint] = node.get('service_endpoints', [])
+        service_endpoints: List[EndpointDict] = node.get('service_endpoints', [])
         public_key: str = node.get('public_key')
         account_id: AccountId = AccountId.from_string(node.get('node_account_id'))
         node_id: int = node.get('node_id')
