@@ -102,7 +102,7 @@ class Logger:
 
     def warning(self, message: str, *args: object) -> None:
         """Log at WARNING level"""
-        if self.internal_logger.isEnabledFor(LogLevel.WARN.value):
+        if self.internal_logger.isEnabledFor(LogLevel.WARNING.value):
             self.internal_logger.warning(self._format_args(message, args))
 
     def error(self, message: str, *args: object) -> None:
