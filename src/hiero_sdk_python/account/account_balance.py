@@ -1,4 +1,4 @@
-from typing import Union, Dict
+from typing import Dict
 
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.hbar import Hbar
@@ -42,7 +42,7 @@ class AccountBalance:
         if proto.tokenBalances:
             for token_balance in proto.tokenBalances:
                 token_id: TokenId = TokenId._from_proto(token_balance.tokenId)
-                balance: Union[Hbar,int] = token_balance.balance
+                balance: int = token_balance.balance
                 token_balances[token_id] = balance
 
         return cls(hbars=hbars, token_balances=token_balances)
