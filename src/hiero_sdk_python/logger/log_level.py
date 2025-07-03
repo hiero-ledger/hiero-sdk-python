@@ -15,7 +15,6 @@ class LogLevel(IntEnum):
     DEBUG = 10
     INFO = 20
     WARNING = 30
-    WARN    = WARNING  # temporary alias for backward-compatibility
     ERROR = 40
     CRITICAL = 50
     DISABLED = 60
