@@ -17,7 +17,7 @@ class TopicMessageChunk:
         Args:
             response: The ConsensusTopicResponse containing chunk data.
         """
-        self.consensus_timestamp: Timestamp = Timestamp._from_protobuf(response.consensusTimestamp).to_date()
+        self.consensus_timestamp: datetime = Timestamp._from_protobuf(response.consensusTimestamp).to_date()
         self.content_size: int = len(response.message)
         self.running_hash: Union[bytes, int] = response.runningHash
         self.sequence_number: Union[bytes, int] = response.sequenceNumber
