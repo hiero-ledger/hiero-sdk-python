@@ -72,11 +72,6 @@ class AccountId:
         """
         return f"AccountId(shard={self.shard}, realm={self.realm}, num={self.num})"
 
-    def __eq__(self, other):
-            if not isinstance(other, AccountId):
-                return False
-            return (self.shard, self.realm, self.num) == (other.shard, other.realm, other.num)
-
     def __eq__(self, other: object) -> bool:
         """
         Checks equality between two AccountId instances.
