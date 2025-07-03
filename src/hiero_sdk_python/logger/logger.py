@@ -110,6 +110,7 @@ class Logger:
         if self.internal_logger.isEnabledFor(LogLevel.ERROR.value):
             self.internal_logger.error(self._format_args(message, args))
 
-def get_logger(name: Optional[str]=None, level: Optional[LogLevel]=None) -> Logger:
-    """Get a logger instance"""
+def get_logger(level: Optional[LogLevel] = None,
+               name:  Optional[str]      = None) -> Logger:
+    """Get a logger instance."""
     return Logger(level, name)
