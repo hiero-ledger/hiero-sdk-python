@@ -99,12 +99,12 @@ class Logger:
         """Log at INFO level"""
         if self.internal_logger.isEnabledFor(LogLevel.INFO.value):
             self.internal_logger.info(self._format_args(message, args))
-    
-    def warn(self, message: str, *args: object) -> None:
-        """Log at WARN level"""
+
+    def warning(self, message: str, *args: object) -> None:
+        """Log at WARNING level"""
         if self.internal_logger.isEnabledFor(LogLevel.WARN.value):
             self.internal_logger.warning(self._format_args(message, args))
-    
+
     def error(self, message: str, *args: object) -> None:
         """Log at ERROR level"""
         if self.internal_logger.isEnabledFor(LogLevel.ERROR.value):
