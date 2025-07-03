@@ -13,15 +13,32 @@ class TransactionRecord:
     """
     Represents a transaction record on the network.
     """
-    transaction_id: TransactionId = None
-    transaction_hash: bytes = None
-    transaction_memo: str = None
-    transaction_fee: int = None
-    receipt: TransactionReceipt = None
+    transaction_id: Optional[TransactionId] = None
+    transaction_hash: Optional[bytes] = None
+    transaction_memo: Optional[str] = None
+    transaction_fee: Optional[int] = None
+    receipt: Optional[TransactionReceipt] = None
     
     token_transfers: defaultdict[TokenId, defaultdict[AccountId, int]] = field(default_factory=lambda: defaultdict(lambda: defaultdict(int)))
     nft_transfers: defaultdict[TokenId, list[TokenNftTransfer]] = field(default_factory=lambda: defaultdict(list[TokenNftTransfer]))
     transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
+
+    def __repr__(self) -> str:
+        status = None
+        if self.receipt:
+            try:
+                from hiero_sdk_python.response_code import ResponseCode
+                status = ResponseCode(self.receipt.status).name
+            except (ValueError, AttributeError):
+                status = self.receipt.status
+        return (f"TransactionRecord(transaction_id='{self.transaction_id}', "
+                f"transaction_hash={self.transaction_hash}, "
+                f"transaction_memo='{self.transaction_memo}', "
+                f"transaction_fee={self.transaction_fee}, "
+                f"receipt_status='{status}', "
+                f"token_transfers={dict(self.token_transfers)}, "
+                f"nft_transfers={dict(self.nft_transfers)}, "
+                f"transfers={dict(self.transfers)})")
 
     @classmethod
     def _from_proto(cls, proto: transaction_record_pb2.TransactionRecord, transaction_id: Optional[TransactionId] = None) -> 'TransactionRecord':

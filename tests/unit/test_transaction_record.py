@@ -194,3 +194,71 @@ def test_proto_conversion_with_nft_transfers():
     assert transfer.receiver_id == AccountId(0, 0, 200)
     assert transfer.serial_number == 1
     assert transfer.is_approved == False
+
+def test_repr_method(transaction_id):
+    """Test the __repr__ method of TransactionRecord."""
+    # Test with default values
+    record_default = TransactionRecord()
+    expected_repr_default = ("TransactionRecord(transaction_id='None', "
+                           "transaction_hash=None, "
+                           "transaction_memo='None', "
+                           "transaction_fee=None, "
+                           "receipt_status='None', "
+                           "token_transfers={}, "
+                           "nft_transfers={}, "
+                           "transfers={})")
+    assert repr(record_default) == expected_repr_default
+    
+    # Test with receipt only
+    receipt = TransactionReceipt(
+        receipt_proto=transaction_receipt_pb2.TransactionReceipt(
+            status=ResponseCode.SUCCESS
+        ),
+        transaction_id=transaction_id
+    )
+    record_with_receipt = TransactionRecord(transaction_id=transaction_id, receipt=receipt)
+    expected_repr_with_receipt = (f"TransactionRecord(transaction_id='{transaction_id}', "
+                                f"transaction_hash=None, "
+                                f"transaction_memo='None', "
+                                f"transaction_fee=None, "
+                                f"receipt_status='SUCCESS', "
+                                f"token_transfers={{}}, "
+                                f"nft_transfers={{}}, "
+                                f"transfers={{}})")
+    assert repr(record_with_receipt) == expected_repr_with_receipt
+    
+    # Test with all parameters set
+    record_full = TransactionRecord(
+        transaction_id=transaction_id,
+        transaction_hash=b'\x01\x02\x03\x04',
+        transaction_memo="Test memo",
+        transaction_fee=100000,
+        receipt=receipt
+    )
+    expected_repr_full = (f"TransactionRecord(transaction_id='{transaction_id}', "
+                         f"transaction_hash=b'\\x01\\x02\\x03\\x04', "
+                         f"transaction_memo='Test memo', "
+                         f"transaction_fee=100000, "
+                         f"receipt_status='SUCCESS', "
+                         f"token_transfers={{}}, "
+                         f"nft_transfers={{}}, "
+                         f"transfers={{}})")
+    assert repr(record_full) == expected_repr_full
+    
+    # Test with transfers
+    record_with_transfers = TransactionRecord(
+        transaction_id=transaction_id,
+        receipt=receipt
+    )
+    record_with_transfers.transfers[AccountId(0, 0, 100)] = -1000
+    record_with_transfers.transfers[AccountId(0, 0, 200)] = 1000
+    
+    expected_repr_with_transfers = (f"TransactionRecord(transaction_id='{transaction_id}', "
+                                  f"transaction_hash=None, "
+                                  f"transaction_memo='None', "
+                                  f"transaction_fee=None, "
+                                  f"receipt_status='SUCCESS', "
+                                  f"token_transfers={{}}, "
+                                  f"nft_transfers={{}}, "
+                                  f"transfers={{AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}})")
+    assert repr(record_with_transfers) == expected_repr_with_transfers
