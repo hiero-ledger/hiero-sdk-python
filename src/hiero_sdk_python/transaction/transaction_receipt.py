@@ -1,3 +1,4 @@
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.account.account_id import AccountId
@@ -75,6 +76,16 @@ class TransactionReceipt:
         """
         return self._receipt_proto.serialNumbers
 
+    @property
+    def fileId(self):
+        """
+        Returns the file ID associated with this receipt.
+        """
+        if self._receipt_proto.HasField('fileID') and self._receipt_proto.fileID.fileNum != 0:
+            return FileId._from_proto(self._receipt_proto.fileID)
+        else:
+            return None
+          
     @property
     def transaction_id(self):
         """
