@@ -5,6 +5,7 @@ from .client.network import Network
 # Account
 from .account.account_id import AccountId
 from .account.account_create_transaction import AccountCreateTransaction
+from .account.account_info import AccountInfo
 
 # Crypto
 from .crypto.private_key import PrivateKey
@@ -24,16 +25,22 @@ from .tokens.token_reject_transaction import TokenRejectTransaction
 from .tokens.token_update_nfts_transaction import TokenUpdateNftsTransaction
 from .tokens.token_burn_transaction import TokenBurnTransaction
 from .tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
+from .tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
+from .tokens.token_update_transaction import TokenUpdateTransaction
 from .tokens.token_id import TokenId
+from .tokens.token_type import TokenType
+from .tokens.supply_type import SupplyType
 from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
 from .tokens.token_nft_info import TokenNftInfo
+from .tokens.token_relationship import TokenRelationship
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
 from .transaction.transaction_id import TransactionId
 from .transaction.transaction_receipt import TransactionReceipt
 from .transaction.transaction_response import TransactionResponse
+from .transaction.transaction_record import TransactionRecord
 
 # Response / Codes
 from .response_code import ResponseCode
@@ -58,9 +65,11 @@ from .consensus.topic_id import TopicId
 from .query.topic_info_query import TopicInfoQuery
 from .query.topic_message_query import TopicMessageQuery
 from .query.transaction_get_receipt_query import TransactionGetReceiptQuery
+from .query.transaction_record_query import TransactionRecordQuery
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
 from .query.token_info_query import TokenInfoQuery
+from .query.account_info_query import AccountInfoQuery
 
 # Address book
 from .address_book.endpoint import Endpoint
@@ -81,6 +90,7 @@ __all__ = [
     # Account
     "AccountId",
     "AccountCreateTransaction",
+    "AccountInfo",
 
     # Crypto
     "PrivateKey",
@@ -104,12 +114,17 @@ __all__ = [
     "TokenUpdateNftsTransaction",
     "TokenBurnTransaction",
     "TokenGrantKycTransaction",
+    "TokenRelationship",
+    "TokenUpdateTransaction",
+    "TokenType",
+    "SupplyType",
 
     # Transaction
     "TransferTransaction",
     "TransactionId",
     "TransactionReceipt",
     "TransactionResponse",
+    "TransactionRecord",
 
     # Response
     "ResponseCode",
@@ -125,9 +140,11 @@ __all__ = [
     "TopicInfoQuery",
     "TopicMessageQuery",
     "TransactionGetReceiptQuery",
+    "TransactionRecordQuery",
     "CryptoGetAccountBalanceQuery",
     "TokenNftInfoQuery",
     "TokenInfoQuery",
+    "AccountInfoQuery",
     
     # Address book
     "Endpoint",

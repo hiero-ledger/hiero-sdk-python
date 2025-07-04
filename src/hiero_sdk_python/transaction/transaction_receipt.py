@@ -16,13 +16,14 @@ class TransactionReceipt:
         _receipt_proto (TransactionReceiptProto): The underlying protobuf receipt.
     """
 
-    def __init__(self, receipt_proto):
+    def __init__(self, receipt_proto, transaction_id=None):
         """
         Initializes the TransactionReceipt with the provided protobuf receipt.
 
         Args:
             receipt_proto (TransactionReceiptProto): The protobuf transaction receipt.
         """
+        self._transaction_id = transaction_id
         self.status = receipt_proto.status
         self._receipt_proto = receipt_proto
 
@@ -84,6 +85,16 @@ class TransactionReceipt:
             return FileId._from_proto(self._receipt_proto.fileID)
         else:
             return None
+          
+    @property
+    def transaction_id(self):
+        """
+        Returns the transaction ID associated with this receipt.
+
+        Returns:
+            TransactionId: The transaction ID.
+        """
+        return self._transaction_id
 
     def _to_proto(self):
         """
@@ -95,5 +106,5 @@ class TransactionReceipt:
         return self._receipt_proto
 
     @classmethod
-    def _from_proto(cls, proto):
-        return cls(receipt_proto=proto)
+    def _from_proto(cls, proto, transaction_id=None):
+        return cls(receipt_proto=proto, transaction_id=transaction_id)

@@ -13,6 +13,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [Account Transactions](#account-transactions)
   - [Creating an Account](#creating-an-account)
   - [Querying Account Balance](#querying-account-balance)
+  - [Querying Account Info](#querying-account-info)
   - [Creating a Token](#creating-a-token)
 - [Token Transactions](#token-transactions)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -32,6 +33,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
   - [Token Grant KYC](#token-grant-kyc)
+  - [Token Revoke KYC](#token-revoke-kyc)
+  - [Updating a Token](#updating-a-token)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -45,6 +48,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Topic Message](#querying-topic-message)
 - [File Transactions](#file-transactions)
   - [Creating a File](#creating-a-file)
+- [Miscellaneous Queries](#miscellaneous-queries)
+  - [Querying Transaction Record](#querying-transaction-record)
 
 
 ## Account Transactions
@@ -88,6 +93,33 @@ balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(clien
 balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
 ```
 
+### Querying Account Info
+
+#### Pythonic Syntax:
+```
+info = AccountInfoQuery(account_id=account_id).execute(client)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
+```
+
+#### Method Chaining:
+```
+info = (
+    AccountInfoQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
+```
 
 ## Token Transactions
 
@@ -570,6 +602,7 @@ transaction = TokenGrantKycTransaction(
 
 transaction.sign(kyc_key)   # KYC key is required for granting KYC approval
 transaction.execute(client)
+
 ```
 #### Method Chaining:
 ```
@@ -579,6 +612,78 @@ transaction.execute(client)
         .set_account_id(account_id)
         .freeze_with(client)
         .sign(kyc_key)   # KYC key is required for granting KYC approval
+    )
+    transaction.execute(client)
+
+```
+
+### Updating a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenUpdateTransaction(
+    token_id=token_id,
+    token_params=TokenUpdateParams(
+        token_name="UpdateToken",
+        token_symbol="UPD", 
+        token_memo="Updated memo",
+        metadata="Updated metadata",
+        treasury_account_id=new_account_id
+    ),
+    token_keys=TokenUpdateKeys(
+        admin_key=new_admin_key,
+        freeze_key=new_freeze_key, # freeze_key can sign a transaction that changes only the Freeze Key
+        metadata_key=new_metadata_key, # metadata_key can sign a transaction that changes only the metadata
+        supply_key=new_supply_key   # supply_key can sign a transaction that changes only the Supply Key
+    ),
+    token_key_verification_mode=TokenKeyValidation.FULL_VALIDATION  # Default value. Also, it can be NO_VALIDATION
+).freeze_with(client)
+transaction.sign(new_account_id_private_key) # If a new treasury account is set, the new treasury key is required to sign.
+transaction.sign(new_admin_key) # Updating the admin key requires the new admin key to sign.
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    TokenCreateTransaction()  # no params => uses default placeholders which are next overwritten.
+    .set_token_name("UpdateToken")
+    .set_token_symbol("UPD")
+    .set_token_memo("Updated memo")
+    .set_metadata("Updated metadata)
+    .set_treasury_account_id(new_account_id)
+    .set_admin_key(new_admin_key)
+    .set_supply_key(new_supply_key)
+    .set_freeze_key(new_freeze_key)
+    .set_metadata_key(new_metadata_key)
+    .freeze_with(client)
+)
+
+transaction.sign(new_account_id_private_key) # If a new treasury account is set, the new treasury key is required to sign.
+transaction.sign(new_admin_key) # Updating the admin key requires the new admin key to sign.
+transaction.execute(client)
+```
+
+### Token Revoke KYC
+
+#### Pythonic Syntax:
+```
+transaction = TokenRevokeKycTransaction(
+    token_id=token_id,
+    account_id=account_id
+).freeze_with(client)
+
+transaction.sign(kyc_key)   # KYC key is required for revoking KYC approval
+transaction.execute(client)
+```
+#### Method Chaining:
+```
+    transaction = (
+        TokenRevokeKycTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+        .freeze_with(client)
+        .sign(kyc_key)   # KYC key is required for revoking KYC approval
     )
 
     transaction.execute(client)
@@ -833,4 +938,37 @@ transaction.execute(client)
     )
 
     transaction.execute(client)
+
+## Miscellane
+ous Queries
+
+### Querying Transaction Record
+
+#### Pythonic Syntax:
+```
+query = TransactionRecordQuery(
+    transaction_id=transaction_id
+)
+
+record = query.execute(client)
+
+print(f"Transaction ID: {record.transaction_id}")
+print(f"Transaction Fee: {record.transaction_fee}")
+print(f"Transaction Hash: {record.transaction_hash}")
+print(f"Transaction Memo: {record.transaction_memo}")
+print(f"Transaction Account ID: {record.receipt.accountId}")
+```
+#### Method Chaining:
+```
+record = (
+    TransactionRecordQuery()
+    .set_transaction_id(transaction_id)
+    .execute(client)
+)
+
+print(f"Transaction ID: {record.transaction_id}")
+print(f"Transaction Fee: {record.transaction_fee}")
+print(f"Transaction Hash: {record.transaction_hash}")
+print(f"Transaction Memo: {record.transaction_memo}")
+print(f"Transaction Account ID: {record.receipt.accountId}")
 ```
