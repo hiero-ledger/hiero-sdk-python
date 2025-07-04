@@ -158,7 +158,7 @@ class FileCreateTransaction(Transaction):
             FileCreateTransaction: This transaction instance.
         """
         self.keys = [PublicKey._from_proto(key) for key in proto.keys.keys] if proto.keys.keys else []
-        self.contents = proto.contents if proto.contents else None
+        self.contents = proto.contents 
         self.expiration_time = Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None
-        self.file_memo = proto.memo if proto.memo else None
+        self.file_memo = proto.memo 
         return self

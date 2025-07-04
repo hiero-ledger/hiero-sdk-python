@@ -939,8 +939,7 @@ transaction.execute(client)
 
     transaction.execute(client)
 
-## Miscellane
-ous Queries
+## Miscellaneous Queries
 
 ### Querying Transaction Record
 
