@@ -1,3 +1,4 @@
+from typing import Optional
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, token_get_info_pb2, response_pb2
 from hiero_sdk_python.executable import _Method
@@ -16,7 +17,7 @@ class TokenInfoQuery(Query):
     including the token's properties and settings.
     
     """
-    def __init__(self, token_id: TokenId = None) -> None:
+    def __init__(self, token_id: Optional[TokenId] = None) -> None:
         """
         Initializes a new TokenInfoQuery instance with an optional token_id.
 
@@ -24,7 +25,7 @@ class TokenInfoQuery(Query):
             token_id (TokenId, optional): The ID of the token to query.
         """
         super().__init__()
-        self.token_id: TokenId = token_id
+        self.token_id: Optional[TokenId] = token_id
 
     def set_token_id(self, token_id: TokenId) -> "TokenInfoQuery":
         """
@@ -85,7 +86,7 @@ class TokenInfoQuery(Query):
             _Method: The method wrapper containing the query function
         """
         return _Method(
-            transaction_func=None,
+            transaction_func=lambda *args, **kwargs: None,
             query_func=channel.token.getTokenInfo
         )
 
