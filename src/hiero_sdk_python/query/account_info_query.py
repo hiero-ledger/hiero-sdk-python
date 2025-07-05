@@ -86,7 +86,7 @@ class AccountInfoQuery(Query):
             _Method: The method wrapper containing the query function
         """
         return _Method(
-            transaction_func=None,
+            transaction_func=lambda *args, **kwargs: None,
             query_func=channel.crypto.getAccountInfo
         )
 

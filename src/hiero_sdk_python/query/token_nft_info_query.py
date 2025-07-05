@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
 from hiero_sdk_python.executable import _Method
@@ -84,7 +84,7 @@ class TokenNftInfoQuery(Query):
             _Method: The method wrapper containing the query function
         """
         return _Method(
-            transaction_func=None,
+            transaction_func=lambda *args, **kwargs: None,
             query_func=channel.token.getTokenNftInfo
         )
 
