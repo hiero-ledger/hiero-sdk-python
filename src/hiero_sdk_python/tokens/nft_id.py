@@ -4,27 +4,27 @@ from typing import Optional
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
 
-@dataclass(frozen=True, init=True, repr=True, eq=True)
+@dataclass(frozen=True)
 class NftId:
     """
-    A unique identifiers for Non-Fungible Tokens (NFTs).
+    A unique identifier for Non-Fungible Tokens (NFTs).
     The NftId has a TokenId, and a serial number.
     """
 
     tokenId: TokenId
     serialNumber: int
 
-    def __post_init__(self) -> bool:
+    def __post_init__(self) -> None:
         """Validate the NftId after initialization."""
         if self.tokenId is None:
-            raise TypeError("token_id is required")
+            raise TypeError("TokenId is required")
         if not isinstance(self.tokenId, TokenId):
-            raise TypeError(f"token_id must be of type TokenId, got {type(self.tokenId)}")
+            raise TypeError(f"TokenId must be of type TokenId, got {type(self.tokenId)}")
         if not isinstance(self.serialNumber, int):
-            raise TypeError(f"Expected an integer for serial_number, got {type(self.serialNumber)}")
+            raise TypeError(f"Expected an integer for serialNumber, got {type(self.serialNumber)}")
         if self.serialNumber < 0:
-            raise ValueError("serial_number must be positive")
-        return True
+            raise ValueError("serial_number must be non-negative")
+        return None
 
     @classmethod
     def _from_proto(cls, nft_id_proto: Optional[basic_types_pb2.NftID] = None) -> "NftId":
@@ -32,6 +32,8 @@ class NftId:
         :param nft_id_proto: the proto NftID object
         :return: a NftId object
         """
+        if nft_id_proto is None:
+            raise ValueError("NftID protobuf message is required")
         return cls(
             tokenId=TokenId._from_proto(nft_id_proto.token_ID),
             serialNumber=nft_id_proto.serial_number
