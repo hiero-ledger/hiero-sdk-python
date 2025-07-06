@@ -1,4 +1,4 @@
-from typing import Optional,Union
+from typing import Optional,Union,Any
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
@@ -125,11 +125,11 @@ class TransactionGetReceiptQuery(Query):
             _Method: The method wrapper containing the query function
         """
         return _Method(
-            transaction_func=None,
+            transaction_func=None, 
             query_func=channel.crypto.getTransactionReceipts
         )
 
-    def _should_retry(self, response: any) -> _ExecutionState:
+    def _should_retry(self, response: Any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -143,7 +143,9 @@ class TransactionGetReceiptQuery(Query):
         Returns:
             _ExecutionState: The execution state indicating what to do next
         """
-        status = response.transactionGetReceipt.header.nodeTransactionPrecheckCode
+        receipt_response = response.transactionGetReceipt if hasattr(response, 'transactionGetReceipt') else response
+
+        status = receipt_response.header.nodeTransactionPrecheckCode
         
         retryable_statuses = {
             ResponseCode.UNKNOWN,
@@ -160,14 +162,14 @@ class TransactionGetReceiptQuery(Query):
         else:
             return _ExecutionState.ERROR
     
-        status = response.transactionGetReceipt.receipt.status
+        status = receipt_response.receipt.status
         
         if status in retryable_statuses or status == ResponseCode.OK:
             return _ExecutionState.RETRY
         else:
             return _ExecutionState.FINISHED
         
-    def _map_status_error(self, response: any) -> Union[PrecheckError,ReceiptStatusError]:
+    def _map_status_error(self, response: Any) -> Union[PrecheckError, ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
@@ -181,7 +183,9 @@ class TransactionGetReceiptQuery(Query):
             PrecheckError: An error object representing the error status
             ReceiptStatusError: An error object representing the receipt status
         """
-        status = response.transactionGetReceipt.header.nodeTransactionPrecheckCode
+        receipt_response = response.transactionGetReceipt if hasattr(response, 'transactionGetReceipt') else response
+
+        status = receipt_response.header.nodeTransactionPrecheckCode
         retryable_statuses = {
             ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
             ResponseCode.BUSY,
@@ -192,9 +196,9 @@ class TransactionGetReceiptQuery(Query):
         if status not in retryable_statuses:
             return PrecheckError(status)
         
-        status = response.transactionGetReceipt.receipt.status
+        status = receipt_response.receipt.status
         
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt))
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt_response.receipt, self.transaction_id))
         
     def execute(self, client: Client) -> TransactionReceipt:
         """
@@ -219,7 +223,8 @@ class TransactionGetReceiptQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
 
-        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id)
+        receipt_response = response.transactionGetReceipt if hasattr(response, 'transactionGetReceipt') else response
+        return TransactionReceipt._from_proto(receipt_response.receipt, self.transaction_id)
 
     def _get_query_response(self, response: response_pb2.Response) -> transaction_get_receipt_pb2.TransactionGetReceiptResponse:
         """

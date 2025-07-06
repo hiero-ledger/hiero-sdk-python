@@ -1,7 +1,7 @@
 import time
 import threading
 from datetime import datetime
-from typing import Optional, Callable, Union, Dict, List
+from typing import Optional, Callable, Union, Dict, List, Any
 
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
@@ -30,15 +30,15 @@ class TopicMessageQuery:
         """
         Initializes a TopicMessageQuery.
         """
-        self._topic_id: TopicId = self._parse_topic_id(topic_id) if topic_id else None
-        self._start_time: timestamp_pb2.Timestamp = self._parse_timestamp(start_time) if start_time else None
-        self._end_time: timestamp_pb2.Timestamp = self._parse_timestamp(end_time) if end_time else None
-        self._limit: int = limit
+        self._topic_id: Optional[TopicId] = self._parse_topic_id(topic_id) if topic_id else None
+        self._start_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(start_time) if start_time else None
+        self._end_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(end_time) if end_time else None
+        self._limit: Optional[int] = limit
         self._chunking_enabled: bool = chunking_enabled
         self._completion_handler: Optional[Callable[[], None]] = None
 
         self._max_attempts: int = 10
-        self._max_backoff: int = 8.0
+        self._max_backoff: float = 8.0
 
     def set_max_attempts(self, attempts: int) -> "TopicMessageQuery":
         """Sets the maximum number of attempts to reconnect on failure."""
