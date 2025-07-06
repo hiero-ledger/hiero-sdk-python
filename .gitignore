@@ -14,7 +14,6 @@ myenv/
 
 # Local environment variables for testing
 .env
-.env.example
 
 # Generated protobuf files
 .protos

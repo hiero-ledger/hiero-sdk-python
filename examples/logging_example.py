@@ -11,7 +11,7 @@ from hiero_sdk_python import (
     LogLevel,
 )
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env.example"))
+load_dotenv()
 
 def show_logging_workflow():
     """Function to demonstrate logging functionality in the Hiero SDK."""
