@@ -5,6 +5,7 @@ Simple logger module for the Hiero SDK.
 import logging
 import sys
 from typing import Optional, Union, Sequence
+import warnings
 
 from hiero_sdk_python.logger.log_level import LogLevel
 
@@ -105,12 +106,32 @@ class Logger:
         if self.internal_logger.isEnabledFor(LogLevel.WARNING.value):
             self.internal_logger.warning(self._format_args(message, args))
 
+    def warn(self, message: str, *args) -> None:
+        """Legacy warn method replaced by warning"""
+        warnings.warn(
+            "Logger.warn() is deprecated; use Logger.warning()",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        # Redirects to activate the new method
+        self.warning(message, *args)
+
     def error(self, message: str, *args: object) -> None:
         """Log at ERROR level"""
         if self.internal_logger.isEnabledFor(LogLevel.ERROR.value):
             self.internal_logger.error(self._format_args(message, args))
 
-def get_logger(level: Optional[LogLevel] = None,
-               name:  Optional[str]      = None) -> Logger:
-    """Get a logger instance."""
+def get_logger(
+    level: Optional[LogLevel] = None,
+    name:  Optional[str]      = None,
+) -> Logger:
+    # Legacy method: pass in name, level
+    if isinstance(level, str) and isinstance(name, LogLevel):
+        warnings.warn(
+            "get_logger(name, level) will be deprecated; use get_logger(level, name)",
+            DeprecationWarning, stacklevel=2
+        )
+        # Swaps them to correct sequence to follow init
+        level, name = name, level
+
     return Logger(level, name)
