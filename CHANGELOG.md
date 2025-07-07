@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).  
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+### Deprecated
+- logger.warn is deprecated and will be removed in a future release. Please use logger.warning instead.
+- get_logger method passing (name, level) will be removed in preference of (level, name) in a future release.
+
+
 ## [0.1.3]
 ### Added
 - a lot of Transactions
