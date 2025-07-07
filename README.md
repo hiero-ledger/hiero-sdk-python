@@ -118,9 +118,9 @@ uv run pytest
 ```
 
 The test file in the root of this project will be automatically run when pushing onto a branch.
-This is done by running 'Hedera Solo'. Read more about it here:
+This is done by running 'Hiero Solo Action'. Read more about it here:
 
-- [Github Marketplace](https://github.com/marketplace/actions/hedera-solo)
+- [Github Marketplace](https://github.com/marketplace/actions/hiero-solo-action)
 - [Blog Post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
 
 #### Output:

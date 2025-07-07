@@ -312,11 +312,12 @@ class PrivateKey:
         """
         Return the raw 32-byte ECDSA (secp256k1) scalar.
         """
-        if not self.is_ecdsa():
-            raise ValueError("Not an ECDSA key.")
+        if not isinstance(self._private_key, ec.EllipticCurvePrivateKey):
+            raise TypeError("Not an ECDSA (secp256k1) key.")
+
         return self._private_key.private_numbers()\
                    .private_value.to_bytes(32, "big")
-    
+
     def to_bytes_der(self) -> bytes:
         """
         Return the DER-encoded private key.
