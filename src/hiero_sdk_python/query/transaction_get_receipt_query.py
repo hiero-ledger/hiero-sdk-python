@@ -183,9 +183,7 @@ class TransactionGetReceiptQuery(Query):
             PrecheckError: An error object representing the error status
             ReceiptStatusError: An error object representing the receipt status
         """
-        receipt_response = response.transactionGetReceipt if hasattr(response, 'transactionGetReceipt') else response
-
-        status = receipt_response.header.nodeTransactionPrecheckCode
+        status = response.transactionGetReceipt.header.nodeTransactionPrecheckCode
         retryable_statuses = {
             ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
             ResponseCode.BUSY,
@@ -196,9 +194,9 @@ class TransactionGetReceiptQuery(Query):
         if status not in retryable_statuses:
             return PrecheckError(status)
         
-        status = receipt_response.receipt.status
+        status = response.transactionGetReceipt.receipt.status
         
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt_response.receipt, self.transaction_id))
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt))
         
     def execute(self, client: Client) -> TransactionReceipt:
         """
