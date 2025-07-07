@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Union
 from hiero_sdk_python.hapi.services import query_header_pb2, transaction_get_record_pb2, query_pb2
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
@@ -129,7 +129,7 @@ class TransactionRecordQuery(Query):
         else:
             return _ExecutionState.ERROR
         
-    def _map_status_error(self, response: Any) -> PrecheckError:
+    def _map_status_error(self, response: Any) -> Union[PrecheckError, ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
@@ -158,7 +158,7 @@ class TransactionRecordQuery(Query):
         
         receipt = response.transactionGetRecord.transactionRecord.receipt
         
-        return PrecheckError(status)       
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt))     
      
     def execute(self, client):
         """

@@ -134,8 +134,7 @@ class TopicInfoQuery(Query):
         Returns:
             _ExecutionState: The execution state indicating what to do next
         """
-        topic_response = response.consensusGetTopicInfo if hasattr(response, 'consensusGetTopicInfo') else response
-        status = topic_response.header.nodeTransactionPrecheckCode
+        status = response.consensusGetTopicInfo.header.nodeTransactionPrecheckCode
 
         retryable_statuses = {
             ResponseCode.UNKNOWN,
