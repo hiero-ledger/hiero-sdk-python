@@ -125,7 +125,7 @@ class TransactionGetReceiptQuery(Query):
             _Method: The method wrapper containing the query function
         """
         return _Method(
-            transaction_func=None, 
+            transaction_func=None,
             query_func=channel.crypto.getTransactionReceipts
         )
 
@@ -169,7 +169,7 @@ class TransactionGetReceiptQuery(Query):
         else:
             return _ExecutionState.FINISHED
         
-    def _map_status_error(self, response: Any) -> Union[PrecheckError, ReceiptStatusError]:
+    def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
@@ -221,8 +221,7 @@ class TransactionGetReceiptQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
 
-        receipt_response = response.transactionGetReceipt if hasattr(response, 'transactionGetReceipt') else response
-        return TransactionReceipt._from_proto(receipt_response.receipt, self.transaction_id)
+        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id)
 
     def _get_query_response(self, response: response_pb2.Response) -> transaction_get_receipt_pb2.TransactionGetReceiptResponse:
         """

@@ -172,8 +172,7 @@ class TopicInfoQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
         
-        topic_response = response.consensusGetTopicInfo if hasattr(response, 'consensusGetTopicInfo') else response
-        return TopicInfo._from_proto(topic_response.topicInfo)
+        return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
 
     def _get_query_response(self, response: Any) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
         """
@@ -188,7 +187,4 @@ class TopicInfoQuery(Query):
         Returns:
             The consensus get topic info response object
         """
-        if hasattr(response, 'consensusGetTopicInfo'):
-            return response.consensusGetTopicInfo
-        else:
-            return response
+        return response.consensusGetTopicInfo

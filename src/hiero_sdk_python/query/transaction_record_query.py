@@ -83,7 +83,7 @@ class TransactionRecordQuery(Query):
             _Method: The method wrapper containing the query function
         """
         return _Method(
-            transaction_func=None, 
+            transaction_func=None,
             query_func=channel.crypto.getTxRecordByTxID
         )
 
@@ -129,7 +129,7 @@ class TransactionRecordQuery(Query):
         else:
             return _ExecutionState.ERROR
         
-    def _map_status_error(self, response: Any) -> Union[PrecheckError, ReceiptStatusError]:
+    def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
@@ -158,7 +158,7 @@ class TransactionRecordQuery(Query):
         
         receipt = response.transactionGetRecord.transactionRecord.receipt
         
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt))     
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt))
      
     def execute(self, client):
         """

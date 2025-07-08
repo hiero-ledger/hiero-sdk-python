@@ -126,10 +126,7 @@ class CryptoGetAccountBalanceQuery(Query):
         Returns:
             The crypto get account balance response object
         """
-        if hasattr(response, 'cryptogetAccountBalance'):
-            return response.cryptogetAccountBalance
-        else:
-            return response
+        return response.cryptogetAccountBalance
     
     def _is_payment_required(self):
         """
