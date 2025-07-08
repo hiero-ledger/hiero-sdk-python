@@ -19,6 +19,10 @@ class FileCreateTransaction(Transaction):
     Inherits from the base Transaction class and implements the required methods
     to build and execute a file create transaction.
     """
+    
+    # 90 days in seconds is the default expiration time
+    DEFAULT_EXPIRY_SECONDS = 90 * 24 * 60 * 60  # 7776000
+    
     def __init__(self, keys: Optional[list[PublicKey]] = None, contents: Optional[str | bytes] = None, expiration_time: Optional[Timestamp] = None, file_memo: Optional[str] = None):
         """
         Initializes a new FileCreateTransaction instance with the specified parameters.
@@ -32,8 +36,7 @@ class FileCreateTransaction(Transaction):
         super().__init__()
         self.keys: Optional[list[PublicKey]] = keys or []
         self.contents: Optional[bytes] = self._encode_contents(contents)
-        # 90 days in seconds is the default expiration time
-        self.expiration_time: Optional[Timestamp] = expiration_time if expiration_time else Timestamp(int(time.time()) + 7890000, 0)
+        self.expiration_time: Optional[Timestamp] = expiration_time if expiration_time else Timestamp(int(time.time()) + self.DEFAULT_EXPIRY_SECONDS, 0)
         self.file_memo: Optional[str] = file_memo
         self._default_transaction_fee = Hbar(5).to_tinybars()
 

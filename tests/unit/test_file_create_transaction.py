@@ -1,10 +1,12 @@
 import pytest
+from unittest.mock import patch
 
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.hapi.services import basic_types_pb2, response_pb2
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
@@ -34,6 +36,25 @@ def test_constructor_with_parameters():
     assert file_tx.file_memo == file_memo
     assert file_tx.expiration_time is not None  # Should have default expiration
     assert file_tx._default_transaction_fee == Hbar(5).to_tinybars()
+
+def test_constructor_default_expiration_time():
+    """Test that constructor sets expiration time to exactly time.time() + DEFAULT_EXPIRY_SECONDS."""
+    fixed_time = 1640995200  # Fixed timestamp: Jan 1, 2022
+    
+    with patch('time.time', return_value=fixed_time):
+        file_tx = FileCreateTransaction()
+        
+        expected_expiration = Timestamp(fixed_time + FileCreateTransaction.DEFAULT_EXPIRY_SECONDS, 0)
+        assert file_tx.expiration_time == expected_expiration
+
+def test_constructor_with_custom_expiration_time():
+    """Test that constructor uses provided expiration time instead of default."""
+    custom_expiration = Timestamp(1704067200, 0)  # Jan 1, 2024
+    
+    with patch('time.time', return_value=1640995200):
+        file_tx = FileCreateTransaction(expiration_time=custom_expiration)
+        
+        assert file_tx.expiration_time == custom_expiration
 
 def test_build_transaction_body(mock_account_ids):
     """Test building a file create transaction body with valid values."""
@@ -67,13 +88,15 @@ def test_set_methods():
     key_list = [public_key]
     contents = b"Test content"
     file_memo = "Test memo"
+    expiration_time = Timestamp(1704067200, 0)  # Jan 1, 2024
 
     file_tx = FileCreateTransaction()
 
     test_cases = [
         ('set_keys', key_list, 'keys'),
         ('set_contents', contents, 'contents'),
-        ('set_file_memo', file_memo, 'file_memo')
+        ('set_file_memo', file_memo, 'file_memo'),
+        ('set_expiration_time', expiration_time, 'expiration_time')
     ]
 
     for method_name, value, attr_name in test_cases:
@@ -119,7 +142,8 @@ def test_set_methods_require_not_frozen(mock_client):
     test_cases = [
         ('set_keys', [public_key]),
         ('set_contents', b"new content"),
-        ('set_file_memo', "new memo")
+        ('set_file_memo', "new memo"),
+        ('set_expiration_time', Timestamp(1704067200, 0))
     ]
 
     for method_name, value in test_cases:

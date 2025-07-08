@@ -21,7 +21,7 @@ class FileId:
     file: int = 0
     
     @classmethod
-    def _from_proto(cls, file_id_proto: basic_types_pb2.FileID):
+    def _from_proto(cls, file_id_proto: basic_types_pb2.FileID) -> 'FileId':
         """
         Creates a FileId instance from a protobuf FileID object.
         """
@@ -31,7 +31,7 @@ class FileId:
             file=file_id_proto.fileNum
         )
     
-    def _to_proto(self):
+    def _to_proto(self) -> basic_types_pb2.FileID:
         """
         Converts the FileId instance to a protobuf FileID object.
         """
@@ -42,7 +42,7 @@ class FileId:
         )
         
     @classmethod
-    def from_string(cls, file_id_str: str):
+    def from_string(cls, file_id_str: str) -> 'FileId':
         """
         Creates a FileId instance from a string in the format 'shard.realm.file'.
         """
@@ -52,7 +52,7 @@ class FileId:
         shard, realm, file = map(int, parts)
         return cls(shard, realm, file)
     
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string representation of the FileId instance.
         """
