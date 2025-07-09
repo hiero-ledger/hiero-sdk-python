@@ -3,7 +3,7 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.hapi.services import transaction_receipt_pb2, transaction_get_receipt_pb2
+from hiero_sdk_python.hapi.services import transaction_receipt_pb2, response_code_pb2
 
 
 class TransactionReceipt:
@@ -31,7 +31,7 @@ class TransactionReceipt:
             receipt_proto (transaction_receipt_pb2.TransactionReceiptProto, optional): The protobuf transaction receipt.
         """
         self._transaction_id: Optional[TransactionId] = transaction_id
-        self.status: Optional[transaction_receipt_pb2.TransactionReceipt] = receipt_proto.status
+        self.status: Optional[response_code_pb2.ResponseCodeEnum] = receipt_proto.status
         self._receipt_proto: Optional[transaction_receipt_pb2.TransactionReceipt] = receipt_proto
 
     @property
