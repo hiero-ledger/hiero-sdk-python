@@ -13,6 +13,7 @@ from hiero_sdk_python.hapi.services import (
     transaction_response_pb2
 )
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -156,7 +157,7 @@ class Transaction(_Executable):
         
         return PrecheckError(error_code, tx_id)
 
-    def sign(self, private_key) -> "Transaction":
+    def sign(self, private_key: PrivateKey) -> "Transaction":
         """
         Signs the transaction using the provided private key.
 
