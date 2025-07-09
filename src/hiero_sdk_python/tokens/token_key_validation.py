@@ -18,6 +18,7 @@ class TokenKeyValidation(Enum):
             return TokenKeyValidation.FULL_VALIDATION
         elif proto_obj == basic_types_pb2.TokenKeyValidation.NO_VALIDATION:
             return TokenKeyValidation.NO_VALIDATION
+        raise ValueError(f"Unknown TokenKeyValidation proto value: {proto_obj}")
         
     def _to_proto(self) -> basic_types_pb2.TokenKeyValidation:
         """Converts a TokenKeyValidation enum to a proto TokenKeyValidation object."""
@@ -25,6 +26,7 @@ class TokenKeyValidation(Enum):
             return basic_types_pb2.TokenKeyValidation.FULL_VALIDATION
         elif self == TokenKeyValidation.NO_VALIDATION:
             return basic_types_pb2.TokenKeyValidation.NO_VALIDATION
+        raise ValueError(f"Unknown TokenKeyValidation value: {self.value}")
 
     def __eq__(self, other: Any) -> bool:
         """Checks equality with another TokenKeyValidation or an integer."""
@@ -32,3 +34,4 @@ class TokenKeyValidation(Enum):
             return self.value == other.value
         elif isinstance(other, int):
             return self.value == other
+        return False

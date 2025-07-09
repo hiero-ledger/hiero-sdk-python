@@ -19,6 +19,7 @@ class TokenKycStatus(Enum):
             return TokenKycStatus.GRANTED
         elif proto_obj == basic_types_pb2.TokenKycStatus.Revoked:
             return TokenKycStatus.REVOKED
+        raise ValueError(f"Unknown TokenKycStatus proto value: {proto_obj}")
 
     def __eq__(self, other: Any) -> bool:
         """Checks equality with another TokenKycStatus or an integer."""
@@ -26,3 +27,4 @@ class TokenKycStatus(Enum):
             return self.value == other.value
         elif isinstance(other, int):
             return self.value == other
+        return False

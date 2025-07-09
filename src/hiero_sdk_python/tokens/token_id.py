@@ -30,7 +30,7 @@ class TokenId:
         Creates a TokenId instance from a protobuf TokenID object.
         """
         if token_id_proto is None:
-            return ValueError('TokenId is required')
+            raise ValueError('TokenId is required')
         elif not isinstance(token_id_proto, basic_types_pb2.TokenID):
             raise TypeError('TokenId must be an instance of TokenID')
 

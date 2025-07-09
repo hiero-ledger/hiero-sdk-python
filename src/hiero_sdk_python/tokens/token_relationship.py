@@ -17,16 +17,16 @@ class TokenRelationship:
         token_id (Optional[TokenId]): The ID of the token.
         symbol (Optional[str]): The symbol of the token.
         balance (Optional[int]): The balance of tokens held by the account.
-        kyc_status (Optional[TokenFreezeStatusProto]): The KYC status of the account for this token.
-        freeze_status (Optional[TokenFreezeStatusProto]): The freeze status of the account for this token.
+        kyc_status (Optional[TokenKycStatus]): The KYC status of the account for this token.
+        freeze_status (Optional[TokenFreezeStatus]): The freeze status of the account for this token.
         decimals (Optional[int]): The number of decimal places used by the token.
         automatic_association (Optional[bool]): Whether the token was automatically associated with the account.
     """
     token_id: Optional[TokenId] = None 
     symbol: Optional[str] = None
     balance: Optional[int] = None
-    kyc_status: Optional[TokenFreezeStatusProto] = None
-    freeze_status: Optional[TokenFreezeStatusProto] = None
+    kyc_status: Optional[TokenKycStatus] = None
+    freeze_status: Optional[TokenFreezeStatus] = None
     decimals: Optional[int] = None
     automatic_association: Optional[bool] = None
 
@@ -35,9 +35,9 @@ class TokenRelationship:
         if proto is None:
             raise ValueError("Token relationship proto is None")
 
-        token_id = TokenId._from_proto(proto.tokenId) if proto.tokenId else None
-        kyc_status = TokenKycStatus._from_proto(proto.kycStatus)
-        freeze_status = TokenFreezeStatus._from_proto(proto.freezeStatus)
+        token_id: TokenId = TokenId._from_proto(proto.tokenId) if proto.tokenId else None
+        kyc_status: TokenKycStatus = TokenKycStatus._from_proto(proto.kycStatus)
+        freeze_status: TokenFreezeStatus = TokenFreezeStatus._from_proto(proto.freezeStatus)
         
         return cls(
             token_id=token_id,

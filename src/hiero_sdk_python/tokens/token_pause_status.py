@@ -12,12 +12,22 @@ class TokenPauseStatus(Enum):
 
     @staticmethod
     def _from_proto(proto_obj: basic_types_pb2.TokenPauseStatus) -> "TokenPauseStatus":
+        """
+        Converts a protobuf TokenPauseStatus to a TokenPauseStatus enum.
+        Args:
+            proto_obj (basic_types_pb2.TokenPauseStatus): The protobuf TokenPauseStatus object.
+        Returns:
+            TokenPauseStatus: The corresponding TokenPauseStatus enum value.
+        Raises:
+            ValueError: If the proto object does not match any known TokenPauseStatus.
+        """
         if proto_obj == basic_types_pb2.TokenPauseStatus.PauseNotApplicable:
             return TokenPauseStatus.PAUSE_NOT_APPLICABLE
         elif proto_obj == basic_types_pb2.TokenPauseStatus.Paused:
             return TokenPauseStatus.PAUSED
         elif proto_obj == basic_types_pb2.TokenPauseStatus.Unpaused:
             return TokenPauseStatus.UNPAUSED
+        raise ValueError(f"Unknown TokenPauseStatus proto value: {proto_obj}")
 
     def __eq__(self, other: Any) -> bool:
         """
@@ -31,3 +41,4 @@ class TokenPauseStatus(Enum):
             return self.value == other.value
         elif isinstance(other, int):
             return self.value == other
+        return False

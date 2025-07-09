@@ -2,6 +2,7 @@ from typing import Optional
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.hapi.services import transaction_receipt_pb2, transaction_get_receipt_pb2
 
 
@@ -15,16 +16,21 @@ class TransactionReceipt:
     Attributes:
         status (ResponseCode): The status code of the transaction.
         _receipt_proto (TransactionReceiptProto): The underlying protobuf receipt.
+        _transaction_id (TransactionId): The transaction ID associated with this receipt.
     """
 
-    def __init__(self, receipt_proto: Optional[transaction_receipt_pb2.TransactionReceipt] = None, transaction_id=None):
+    def __init__(
+        self, 
+        receipt_proto: Optional[transaction_receipt_pb2.TransactionReceipt] = None, 
+        transaction_id: Optional[TransactionId] = None
+    ) -> None:
         """
         Initializes the TransactionReceipt with the provided protobuf receipt.
 
         Args:
             receipt_proto (transaction_receipt_pb2.TransactionReceiptProto, optional): The protobuf transaction receipt.
         """
-        self._transaction_id = transaction_id
+        self._transaction_id: Optional[TransactionId] = transaction_id
         self.status: Optional[transaction_receipt_pb2.TransactionReceipt] = receipt_proto.status
         self._receipt_proto: Optional[transaction_receipt_pb2.TransactionReceipt] = receipt_proto
 
@@ -78,7 +84,7 @@ class TransactionReceipt:
         return self._receipt_proto.serialNumbers
 
     @property
-    def transaction_id(self):
+    def transaction_id(self) -> TransactionId:
         """
         Returns the transaction ID associated with this receipt.
 
@@ -87,7 +93,7 @@ class TransactionReceipt:
         """
         return self._transaction_id
 
-    def _to_proto(self) -> transaction_receipt_pb2.TransactionReceipt::
+    def _to_proto(self) -> transaction_receipt_pb2.TransactionReceipt:
         """
         Returns the underlying protobuf transaction receipt.
 
@@ -97,11 +103,14 @@ class TransactionReceipt:
         return self._receipt_proto
 
     @classmethod
-    def _from_proto(cls, proto: transaction_receipt_pb2.TransactionReceipt) -> "TransactionReceipt":
+    def _from_proto(cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: TransactionId) -> "TransactionReceipt":
         """
         Creates a TransactionReceipt instance from a protobuf TransactionReceipt object.
         Args:
             proto (transaction_receipt_pb2.TransactionReceipt): The protobuf TransactionReceipt object.
+            transaction_id (TransactionId): The transaction ID associated with this receipt.
+        Returns:
+            TransactionReceipt: A new instance of TransactionReceipt populated with data from the protobuf object.
         """
         return cls(receipt_proto=proto, transaction_id=transaction_id)
 
