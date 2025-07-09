@@ -465,6 +465,8 @@ class PublicKey:
         """
         Verify an Ed25519 signature for clarity purposes. Raises InvalidSignature on failure.
         """
+        if not isinstance(self._public_key, ed25519.Ed25519PublicKey):
+            raise TypeError("Not an Ed25519 key")
         # Ed25519 has no external hash; the library does it internally.
         self._public_key.verify(signature, data)
 
@@ -479,6 +481,8 @@ class PublicKey:
         Raises:
             InvalidSignature: If the signature does not match.
         """
+        if not isinstance(self._public_key, ec.EllipticCurvePublicKey):
+            raise TypeError("Not an ECDSA key")
         self._public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
 
     def __repr__(self) -> str:

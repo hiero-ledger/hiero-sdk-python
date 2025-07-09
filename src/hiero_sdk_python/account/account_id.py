@@ -66,6 +66,12 @@ class AccountId:
         """
         return f"{self.shard}.{self.realm}.{self.num}"
 
+    def __repr__(self):
+        """
+        Returns the repr representation of the AccountId.
+        """
+        return f"AccountId(shard={self.shard}, realm={self.realm}, num={self.num})"
+
     def __eq__(self, other: object) -> bool:
         """
         Checks equality between two AccountId instances.

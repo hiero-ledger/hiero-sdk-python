@@ -1,47 +1,107 @@
-import os 
-import sys 
+import os
+import sys
 from dotenv import load_dotenv
 
-from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.client.network import Network 
-from hiero_sdk_python.tokens.token_id import TokenId 
-from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
+from hiero_sdk_python import (
+    Client,
+    AccountId,
+    PrivateKey,
+    Network,
+    TokenCreateTransaction,
+    TokenFreezeTransaction,
+    TokenUnfreezeTransaction,
+)
 
+# Load environment variables from .env file
 load_dotenv()
 
-def unfreeze_token(): # Single Token
-    network = Network(network='testnet')
-    client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
-    freeze_key = PrivateKey.from_string_ed25519(os.getenv('FREEZE_KEY'))
-    token_id = TokenId.from_string(os.getenv('TOKEN_ID'))
-    account_id = AccountId.from_string(os.getenv('FREEZE_ACCOUNT_ID'))
-
-    client.set_operator(operator_id, operator_key)
-
-    transaction = (
-        TokenUnfreezeTransaction()
-        .set_token_id(token_id)
-        .set_account_id(account_id)
-        .freeze_with(client)
-        .sign(freeze_key)
-    )
+def token_unfreeze():
+    """
+    Creates a freezeable token, freezes it for the treasury account,
+    and then unfreezes it.
+    """
+    # 1. Setup Client
+    # =================================================================
+    print("Connecting to Hedera testnet...")
+    client = Client(Network(network='testnet'))
 
     try:
-        receipt = transaction.execute(client)
-        if receipt is not None and receipt.status == "SUCCESS":
-            print('Token unfreeze Successful')
-        else: 
-            print("Token freeze failed.")
-            sys.exit(1)
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
+        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        client.set_operator(operator_id, operator_key)
+    except (TypeError, ValueError):
+        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
+        sys.exit(1)
+
+    print(f"Using operator account: {operator_id}")
+
+    # 2. Generate a Freeze Key on the fly
+    # =================================================================
+    print("\nSTEP 1: Generating a new freeze key...")
+    freeze_key = PrivateKey.generate("ed25519")
+    print("✅ Freeze key generated.")
+
+    # 3. Create a token with the freeze key
+    # =================================================================
+    print("\nSTEP 2: Creating a new freezeable token...")
+    try:
+        tx = (
+            TokenCreateTransaction()
+            .set_token_name("Unfreezeable Token")
+            .set_token_symbol("UFT")
+            .set_initial_supply(1000)
+            .set_treasury_account_id(operator_id)
+            .set_freeze_key(freeze_key)
+        )
+        
+        # FIX: The .execute() method returns the receipt directly.
+        receipt = (
+            tx.freeze_with(client)
+            .sign(operator_key)
+            .sign(freeze_key)
+            .execute(client)
+        )
+        token_id = receipt.tokenId
+        print(f"✅ Success! Created token with ID: {token_id}")
     except Exception as e:
-        print(f"Token unfreeze failed: {str(e)}")
+        print(f"❌ Error creating token: {e}")
+        sys.exit(1)
+
+    # 4. Freeze the token for the operator account
+    # =================================================================
+    print(f"\nSTEP 3: Freezing token {token_id} for operator account {operator_id}...")
+    try:
+        receipt = (
+            TokenFreezeTransaction()
+            .set_token_id(token_id)
+            .set_account_id(operator_id)
+            .freeze_with(client)
+            .sign(freeze_key)
+            .execute(client)
+        )
+        print(f"✅ Success! Token freeze complete.")
+    except Exception as e:
+        print(f"❌ Error freezing token: {e}")
+        sys.exit(1)
+
+    # 5. Unfreeze the token for the operator account
+    # =================================================================
+    print(f"\nSTEP 4: Unfreezing token {token_id} for operator account {operator_id}...")
+    try:
+        receipt = (
+            TokenUnfreezeTransaction()
+            .set_token_id(token_id)
+            .set_account_id(operator_id)
+            .freeze_with(client)
+            .sign(freeze_key)
+            .execute(client)
+        )
+        print(f"✅ Success! Token unfreeze complete.")
+    except Exception as e:
+        print(f"❌ Error unfreezing token: {e}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    unfreeze_token() # For single token unfreeze
+    token_unfreeze()

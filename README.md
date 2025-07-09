@@ -55,7 +55,7 @@ Other installation methods can be found [here](https://docs.astral.sh/uv/getting
 2. Clone this repository:
 
 ```bash
-git clone https://github.com/hiero-ledger/hiero_sdk_python.git
+git clone https://github.com/hiero-ledger/hiero-sdk-python.git
 cd hiero-sdk-python
 ```
 
@@ -95,8 +95,8 @@ Create a .env file in the root of your project with the following (replace with 
 
 ```
 OPERATOR_ID=0.0.1234xx
-OPERATOR_KEY=302e020100300506032b657004220420...
-ADMIN_KEY=302a300506032b65700321009308ecfdf...
+OPERATOR_KEY=af20e47d590300506032b657004220420...
+ADMIN_KEY=af20e47d59032b65700321009308ecfdf...
 SUPPLY_KEY =302a300506032b6570032100c5e4af5..."
 FREEZE_KEY=302a300306072b65700321009308ecfdf...
 RECIPIENT_ID=0.0.789xx
@@ -118,9 +118,9 @@ uv run pytest
 ```
 
 The test file in the root of this project will be automatically run when pushing onto a branch.
-This is done by running 'Hedera Solo'. Read more about it here:
+This is done by running 'Hiero Solo Action'. Read more about it here:
 
-- [Github Marketplace](https://github.com/marketplace/actions/hedera-solo)
+- [Github Marketplace](https://github.com/marketplace/actions/hiero-solo-action)
 - [Blog Post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
 
 #### Output:
