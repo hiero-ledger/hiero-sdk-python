@@ -224,6 +224,5 @@ class TokenInfo:
         return (f"TokenInfo(tokenId={self.tokenId}, name={self.name}, symbol={self.symbol}, "
                 f"decimals={self.decimals}, totalSupply={self.totalSupply}, treasury={self.treasury}, "
                 f"isDeleted={self.isDeleted}, memo={self.memo}, tokenType={self.tokenType}, "
-                f"maxSupply={self.maxSupply}, ledger_id={self.ledger_id}, "
-                f"metadata={self.metadata.decode('utf-8') if self.metadata else None}")
+                f"maxSupply={self.maxSupply}, ledger_id={self.ledger_id}, metadata={self.metadata!r}")
     
