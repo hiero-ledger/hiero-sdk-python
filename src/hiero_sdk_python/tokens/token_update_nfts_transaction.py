@@ -19,7 +19,7 @@ class TokenUpdateNftsTransaction(Transaction):
     def __init__(
         self, 
         token_id: Optional[TokenId] = None, 
-        serial_numbers: List[int] = None, 
+        serial_numbers: Optional[List[int]] = None, 
         metadata: Optional[bytes] = None
     ) -> None:
         """
