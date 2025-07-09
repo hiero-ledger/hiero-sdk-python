@@ -3,13 +3,14 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.hapi.services import transaction_body_pb2
 
 def build_query_payment_transaction(
     payer_account_id: AccountId,
     payer_private_key: PrivateKey,
     node_account_id: AccountId,
     amount: Hbar
-) -> TransferTransaction:
+) -> transaction_body_pb2.TransactionBody:
     """
     Build and sign a TransferTransaction that sends `amount` of HBAR from
     `payer_account_id` to `node_account_id`. Returns a Transaction proto
