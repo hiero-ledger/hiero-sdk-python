@@ -29,9 +29,9 @@ class TransferTransaction(Transaction):
             nft_transfers (dict[TokenId, list[tuple[AccountId, AccountId, int, bool]]], optional): Initial NFT transfers.
         """
         super().__init__()
-        self.hbar_transfers:  Optional[Dict[AccountId, int]] = defaultdict(int)
-        self.token_transfers: Optional[Dict[TokenId, Dict[AccountId, int]]] = defaultdict(lambda: defaultdict(int))
-        self.nft_transfers:   Optional[Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]]] = defaultdict(list[TokenNftTransfer])
+        self.hbar_transfers:  Dict[AccountId, int] = defaultdict(int)
+        self.token_transfers: Dict[TokenId, Dict[AccountId, int]] = defaultdict(lambda: defaultdict(int))
+        self.nft_transfers:   Dict[TokenId, List[TokenNftTransfer]] = defaultdict(list)
         self._default_transaction_fee: int = 100_000_000
 
         if hbar_transfers:

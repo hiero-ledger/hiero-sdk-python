@@ -39,7 +39,7 @@ class Transaction(_Executable):
 
         self.transaction_id: Optional[TransactionId] = None
         self.transaction_fee: Optional[int] = None
-        self.transaction_valid_duration: Optional[Duration] = 120 
+        self.transaction_valid_duration: Optional[Duration] = Duration(120) 
         self.generate_record: bool = False
         self.memo: str = ""
         # Maps each node's AccountId to its corresponding transaction body bytes
@@ -71,7 +71,7 @@ class Transaction(_Executable):
     def _map_response(
         self,
         response: Any, 
-        node_id: Union[int,str], 
+        node_id: AccountId, 
         proto_request: transaction_pb2.Transaction
     ) -> TransactionResponse:
         """

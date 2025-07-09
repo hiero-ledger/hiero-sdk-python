@@ -44,7 +44,7 @@ class TransactionId:
             TransactionId: A new TransactionId instance.
         """
         cut_off_seconds: int = random.randint(5, 8) # subtract random number of seconds between 5 and 8
-        adjusted_time: time = time.time() - cut_off_seconds
+        adjusted_time: float = time.time() - cut_off_seconds
         seconds: int = int(adjusted_time)
         nanos: int = int((adjusted_time - seconds) * 1e9)
         valid_start = timestamp_pb2.Timestamp(seconds=seconds, nanos=nanos)
