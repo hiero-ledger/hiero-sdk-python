@@ -55,6 +55,7 @@ class Transaction(_Executable):
         self._signature_map: Dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee: int = 2_000_000
         self.operator_account_id: AccountId = None  
+        self.node_account_id: AccountId = None
 
     def _make_request(self) -> transaction_pb2.Transaction:
         """
