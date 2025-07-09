@@ -1,9 +1,11 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.client.client import Client
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.transaction.transaction import Transaction
 
 class TransactionResponse:
     """
@@ -18,7 +20,7 @@ class TransactionResponse:
         self.node_id: AccountId = AccountId()
         self.hash: bytes = bytes()
         self.validate_status: bool = False
-        self.transaction: Optional[Transaction] = None
+        self.transaction: Optional["Transaction"] = None
 
     def get_receipt(self, client: Client) -> TransactionReceipt:
         """

@@ -24,13 +24,13 @@ class TransactionRecord:
     transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
 
     def __repr__(self) -> str:
-        status = None
+        status: Optional[str] = None
         if self.receipt:
             try:
                 from hiero_sdk_python.response_code import ResponseCode
                 status = ResponseCode(self.receipt.status).name
             except (ValueError, AttributeError):
-                status = self.receipt.status
+                status = str(self.receipt.status)
         return (f"TransactionRecord(transaction_id='{self.transaction_id}', "
                 f"transaction_hash={self.transaction_hash.decode('utf-8')}, "
                 f"transaction_memo='{self.transaction_memo}', "
