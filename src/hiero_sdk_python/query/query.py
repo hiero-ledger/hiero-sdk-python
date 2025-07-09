@@ -1,8 +1,8 @@
 import time
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
-from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.hapi.services import query_header_pb2, query_pb2
@@ -300,7 +300,7 @@ class Query(_Executable):
         else:
             return _ExecutionState.ERROR
 
-    def _map_status_error(self, response: Any) -> PrecheckError:
+    def _map_status_error(self, response: Any) -> Union[PrecheckError, ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         

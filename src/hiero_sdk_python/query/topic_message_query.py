@@ -38,7 +38,7 @@ class TopicMessageQuery:
         self._completion_handler: Optional[Callable[[], None]] = None
 
         self._max_attempts: int = 10
-        self._max_backoff: int = 8.0
+        self._max_backoff: float = 8.0
 
     def set_max_attempts(self, attempts: int) -> "TopicMessageQuery":
         """Sets the maximum number of attempts to reconnect on failure."""
