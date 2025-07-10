@@ -32,7 +32,7 @@ class TransactionRecord:
             except (ValueError, AttributeError):
                 status = str(self.receipt.status)
         return (f"TransactionRecord(transaction_id='{self.transaction_id}', "
-                f"transaction_hash={self.transaction_hash.decode('utf-8')}, "
+                f"transaction_hash={self.transaction_hash!r}, "
                 f"transaction_memo='{self.transaction_memo}', "
                 f"transaction_fee={self.transaction_fee}, "
                 f"receipt_status='{status}', "

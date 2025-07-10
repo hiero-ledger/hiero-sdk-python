@@ -1,7 +1,10 @@
 import grpc
 from concurrent import futures
 from contextlib import contextmanager
-from hiero_sdk_python import Network, Client, AccountId, PrivateKey
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.client.network import _Node
 import socket
 from contextlib import closing

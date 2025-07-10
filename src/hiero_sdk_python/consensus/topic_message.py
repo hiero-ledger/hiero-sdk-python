@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List, Union, Dict
 
-from hiero_sdk_python import Timestamp
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 
 class TopicMessageChunk:

@@ -1,8 +1,8 @@
 # pylint: disable=C901
 # pylint: disable=too-many-arguments
 
-from dataclasses import dataclass
-from typing import Optional, Union
+from dataclasses import dataclass, field
+from typing import Optional
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -43,10 +43,10 @@ class TokenInfo:
     supplyKey:        Optional[PublicKey] = None
     wipeKey:          Optional[PublicKey] = None
 
-    defaultFreezeStatus: TokenFreezeStatus = TokenFreezeStatus.FREEZE_NOT_APPLICABLE
-    defaultKycStatus:    TokenKycStatus    = TokenKycStatus.KYC_NOT_APPLICABLE
-    pause_status:        TokenPauseStatus  = TokenPauseStatus.PAUSE_NOT_APPLICABLE
-    supplyType:          SupplyType        = SupplyType.FINITE
+    defaultFreezeStatus: TokenFreezeStatus = field(default_factory=lambda: TokenFreezeStatus.FREEZE_NOT_APPLICABLE)
+    defaultKycStatus:    TokenKycStatus    = field(default_factory=lambda: TokenKycStatus.KYC_NOT_APPLICABLE)
+    pause_status:        TokenPauseStatus  = field(default_factory=lambda: TokenPauseStatus.PAUSE_NOT_APPLICABLE)
+    supplyType:          SupplyType        = field(default_factory=lambda: SupplyType.FINITE)
 
     def set_admin_key(self, adminKey: PublicKey) -> None:
         """Sets the admin key for the token."""
@@ -224,5 +224,6 @@ class TokenInfo:
         return (f"TokenInfo(tokenId={self.tokenId}, name={self.name}, symbol={self.symbol}, "
                 f"decimals={self.decimals}, totalSupply={self.totalSupply}, treasury={self.treasury}, "
                 f"isDeleted={self.isDeleted}, memo={self.memo}, tokenType={self.tokenType}, "
-                f"maxSupply={self.maxSupply}, ledger_id={self.ledger_id}, metadata={self.metadata!r}")
+                f"maxSupply={self.maxSupply}, ledger_id={self.ledger_id}, "
+                f"metadata={self.metadata!r})")
     

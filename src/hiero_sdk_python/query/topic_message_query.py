@@ -8,7 +8,7 @@ from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message import TopicMessage
 from hiero_sdk_python.utils.subscription_handle import SubscriptionHandle
-from hiero_sdk_python import Client
+from hiero_sdk_python.client.client import Client
 
 
 class TopicMessageQuery:

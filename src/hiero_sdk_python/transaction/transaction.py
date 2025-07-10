@@ -351,7 +351,7 @@ class Transaction(_Executable):
 
         transaction_body.transactionFee = self.transaction_fee or self._default_transaction_fee
 
-        transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration
+        transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration.seconds
         transaction_body.generateRecord = self.generate_record
         transaction_body.memo = self.memo
 

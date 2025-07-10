@@ -13,6 +13,7 @@ from typing import Optional
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_create_pb2, basic_types_pb2, transaction_body_pb2
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
@@ -185,7 +186,6 @@ class TokenCreateValidator:
                     "Initial supply cannot exceed the defined max supply for a finite token"
                 )
 
-from hiero_sdk_python.transaction.transaction import Transaction
 class TokenCreateTransaction(Transaction):
     """
     Represents a token creation transaction on the Hedera network.

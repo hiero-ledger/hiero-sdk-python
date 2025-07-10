@@ -79,5 +79,5 @@ class TokenNftInfo:
         return (f"TokenNftInfo(nft_id={self.nft_id}, "
                 f"account_id={self.account_id}, "
                 f"creation_time={self.creation_time}, "
-                f"metadata={self.metadata.decode('utf-8') if self.metadata else None}, "
+                f"metadata={self.metadata!r}, "
                 f"spender_id={self.spender_id})")

@@ -1,7 +1,9 @@
 import pytest
 
 import hiero_sdk_python.hapi.services.basic_types_pb2
-from hiero_sdk_python import TokenInfo, TokenId, AccountId, Timestamp, PrivateKey, Duration
+from hiero_sdk_python.tokens.token_info import TokenInfo, TokenId, AccountId, Timestamp
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
