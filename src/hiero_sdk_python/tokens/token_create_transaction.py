@@ -185,8 +185,8 @@ class TokenCreateValidator:
                     "Initial supply cannot exceed the defined max supply for a finite token"
                 )
 
-from hiero_sdk_python.transaction.transaction import Transaction
-class TokenCreateTransaction(Transaction):
+from hiero_sdk_python.hapi.services import transaction_pb2
+class TokenCreateTransaction(transaction_pb2.Transaction):
     """
     Represents a token creation transaction on the Hedera network.
 
