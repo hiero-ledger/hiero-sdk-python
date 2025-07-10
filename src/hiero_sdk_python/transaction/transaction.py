@@ -1,5 +1,5 @@
 import hashlib
-from typing import Union, Optional, Dict, Any
+from typing import Optional, Dict, Any
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.Duration import Duration
