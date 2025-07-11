@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
 from hiero_sdk_python.executable import _Method

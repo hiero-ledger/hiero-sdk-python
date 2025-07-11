@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, consensus_get_topic_info_pb2, response_pb2
 from hiero_sdk_python.client.client import Client
@@ -121,7 +121,7 @@ class TopicInfoQuery(Query):
             query_func=channel.topic.getTopicInfo
         )
 
-    def _should_retry(self, response: any) -> _ExecutionState:
+    def _should_retry(self, response: Any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -174,7 +174,7 @@ class TopicInfoQuery(Query):
         
         return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
 
-    def _get_query_response(self, response: any) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
+    def _get_query_response(self, response: Any) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
         """
         Extracts the topic info response from the full response.
         

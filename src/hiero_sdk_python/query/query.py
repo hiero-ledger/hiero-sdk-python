@@ -1,8 +1,8 @@
 import time
 
-from typing import List, Optional
+from typing import List, Optional, Any, Union
 
-from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.hapi.services import query_header_pb2, query_pb2
@@ -49,7 +49,7 @@ class Query(_Executable):
         self.node_index: int = 0
         self.payment_amount: Optional[Hbar] = None
 
-    def _get_query_response(self, response: any) -> query_pb2.Query:
+    def _get_query_response(self, response: Any) -> query_pb2.Query:
         """
         Extracts the query-specific response object from the full response.
         
@@ -57,7 +57,7 @@ class Query(_Executable):
         specific response object.
         
         Args:
-            response (any): The full response from the network
+            response (Any): The full response from the network
             
         Returns:
             The query-specific response object
@@ -257,7 +257,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_make_request must be implemented by subclasses.")
 
-    def _map_response(self, response: any, node_id: int, proto_request: query_pb2.Query) -> query_pb2.Query:
+    def _map_response(self, response: Any, node_id: int, proto_request: query_pb2.Query) -> query_pb2.Query:
         """
         Maps the network response to the appropriate response object.
         
@@ -271,7 +271,7 @@ class Query(_Executable):
         """
         return response
 
-    def _should_retry(self, response: any) -> _ExecutionState:
+    def _should_retry(self, response: Any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -300,7 +300,7 @@ class Query(_Executable):
         else:
             return _ExecutionState.ERROR
 
-    def _map_status_error(self, response: any) -> PrecheckError:
+    def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         

@@ -1,3 +1,4 @@
+from typing import Optional, Any
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
 from hiero_sdk_python.account.account_id import AccountId
@@ -14,7 +15,7 @@ class CryptoGetAccountBalanceQuery(Query):
     including hbars and tokens.
     """
 
-    def __init__(self, account_id: AccountId = None) -> None:
+    def __init__(self, account_id: Optional[AccountId] = None) -> None:
         """
         Initializes a new instance of the CryptoGetAccountBalanceQuery class.
 
@@ -22,7 +23,7 @@ class CryptoGetAccountBalanceQuery(Query):
             account_id (AccountId, optional): The ID of the account to retrieve the balance for.
         """
         super().__init__()
-        self.account_id = account_id
+        self.account_id: Optional[AccountId] = account_id
 
     def set_account_id(self, account_id: AccountId) -> "CryptoGetAccountBalanceQuery":
         """
@@ -112,7 +113,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
         return AccountBalance._from_proto(response.cryptogetAccountBalance)
 
-    def _get_query_response(self, response: any) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
+    def _get_query_response(self, response: Any) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
         """
         Extracts the account balance response from the full response.
         

@@ -1,13 +1,13 @@
 from os import error
 import time
-import typing
+from typing import Callable, Optional, Any, TYPE_CHECKING
 import grpc
 from abc import ABC, abstractmethod
 from enum import IntEnum
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
 
 # Default values for retry and backoff configuration in miliseconds
@@ -28,8 +28,8 @@ class _Method:
 
     def __init__(
         self,
-        query_func: typing.Callable = None,
-        transaction_func: typing.Callable = None,
+        query_func: Callable = None,
+        transaction_func: Optional[Callable[..., Any]] = None,
     ):
         """
         Initialize a Method instance with the appropriate callable functions.
