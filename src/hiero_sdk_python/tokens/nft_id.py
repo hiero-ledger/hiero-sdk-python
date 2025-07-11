@@ -1,3 +1,10 @@
+"""
+nft_id.py
+
+Defines NftId, a value object for representing and validating a unique
+Non-Fungible Token (NFT) identifier, including conversion to/from
+Protobuf and string serialization.
+"""
 import re
 from dataclasses import dataclass
 from typing import Optional
@@ -41,8 +48,10 @@ class NftId:
         """
         :return: a protobuf NftID object representation of this NftId object
         """
-        nft_id_proto = basic_types_pb2.NftID(token_ID=self.tokenId._to_proto(), serial_number=self.serialNumber)
-
+        nft_id_proto = basic_types_pb2.NftID(
+            token_ID=self.tokenId._to_proto(),
+            serial_number=self.serialNumber,
+        )
         return nft_id_proto
 
     @classmethod
