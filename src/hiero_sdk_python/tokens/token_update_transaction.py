@@ -1,3 +1,10 @@
+"""
+hiero_sdk_python.transaction.token_update_transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines TokenUpdateParams, TokenUpdateKeys, and TokenUpdateTransaction for updating
+token properties (settings and keys) on the Hedera network via the HTS API.
+"""
 from typing import Optional
 from dataclasses import dataclass
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -61,7 +68,7 @@ class TokenUpdateTransaction(Transaction):
 
     Args:
         token_id (TokenId, optional): The ID of the token to update.
-        token_params (TokenUpdateParams, optional): Parameters specifying token properties to update.
+        token_params (TokenUpdateParams, optional): Parameters of token properties to update.
         token_keys (TokenUpdateKeys, optional): New keys to set for the token.
         token_key_validation (TokenKeyValidation, optional): The validation mode for token keys.
             Defaults to FULL_VALIDATION.
@@ -77,22 +84,22 @@ class TokenUpdateTransaction(Transaction):
         Initializes a new TokenUpdateTransaction instance with token parameters and optional keys.
 
         This transaction can be built in two ways to support flexibility:
-        1) By passing a fully-formed TokenId, TokenUpdateParams and TokenUpdateKeys at construction time.
-        2) By passing `None` (or partially filled objects) and then using the various `set_*` methods
-            to set or override fields incrementally. Validation is deferred until build time (`build_transaction_body()`), 
+        1) By passing a fully-formed TokenId, TokenUpdateParams and TokenUpdateKeys
+        2) By passing `None` (or partial) then using the `set_*` methods
+            Validation is deferred until build time (`build_transaction_body()`), 
             so you won't fail immediately if fields are missing at creation.
 
         Args:
             token_id (TokenId, optional): The ID of the token to update.
-            token_params (TokenUpdateParams, optional): Parameters specifying token properties to update.
+            token_params (TokenUpdateParams, optional): the token properties to update.
             token_keys (TokenUpdateKeys, optional): New keys to set for the token.
             token_key_validation (TokenKeyValidation, optional): The validation mode for token keys.
                 Defaults to FULL_VALIDATION.
         """
         super().__init__()
-        
+
         self.token_id: TokenId = token_id
-        
+
         # Initialize params attributes
         params = token_params or TokenUpdateParams()
         self.treasury_account_id: Optional[AccountId] = params.treasury_account_id
@@ -100,7 +107,7 @@ class TokenUpdateTransaction(Transaction):
         self.token_symbol: Optional[str] = params.token_symbol
         self.token_memo: Optional[str] = params.token_memo
         self.metadata: Optional[bytes] = params.metadata
-        
+
         # Initialize keys attributes
         keys = token_keys or TokenUpdateKeys()
         self.admin_key: Optional[PrivateKey] = keys.admin_key
@@ -109,9 +116,9 @@ class TokenUpdateTransaction(Transaction):
         self.supply_key: Optional[PrivateKey] = keys.supply_key
         self.pause_key: Optional[PrivateKey] = keys.pause_key
         self.metadata_key: Optional[PrivateKey] = keys.metadata_key
-        
+
         self.token_key_verification_mode: TokenKeyValidation = token_key_verification_mode
-        
+
         # Set default transaction fee to 2 HBAR for token update transactions
         self._default_transaction_fee = Hbar(2).to_tinybars()
 
@@ -142,7 +149,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.treasury_account_id = treasury_account_id
         return self
-    
+
     def set_token_name(self, token_name):
         """
         Sets the new name for the token.
@@ -156,7 +163,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.token_name = token_name
         return self
-    
+
     def set_token_symbol(self, token_symbol):
         """
         Sets the new symbol for the token.
@@ -170,7 +177,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.token_symbol = token_symbol
         return self
-    
+
     def set_token_memo(self, token_memo):
         """
         Sets the new memo for the token.
@@ -184,7 +191,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.token_memo = token_memo
         return self
-    
+
     def set_metadata(self, metadata):
         """
         Sets the new metadata for the token.
@@ -198,7 +205,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.metadata = metadata
         return self
-    
+
     def set_admin_key(self, admin_key):
         """
         Sets the new admin key for the token.
@@ -212,7 +219,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.admin_key = admin_key
         return self
-    
+
     def set_freeze_key(self, freeze_key):
         """
         Sets the new freeze key for the token.
@@ -226,7 +233,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.freeze_key = freeze_key
         return self
-    
+
     def set_wipe_key(self, wipe_key):
         """
         Sets the new wipe key for the token.
@@ -240,7 +247,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.wipe_key = wipe_key
         return self
-    
+
     def set_supply_key(self, supply_key):
         """
         Sets the new supply key for the token.
@@ -254,7 +261,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.supply_key = supply_key
         return self
-    
+
     def set_pause_key(self, pause_key):
         """
         Sets the new pause key for the token.
@@ -268,7 +275,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.pause_key = pause_key
         return self
-    
+
     def set_metadata_key(self, metadata_key):
         """
         Sets the new metadata key for the token.
@@ -282,7 +289,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.metadata_key = metadata_key
         return self
-    
+
     def set_key_verification_mode(self, key_verification_mode):
         """
         Sets the key verification mode for the token.
@@ -309,7 +316,7 @@ class TokenUpdateTransaction(Transaction):
         """
         if self.token_id is None:
             raise ValueError("Missing token ID")
-        
+
         token_update_body = TokenUpdateTransactionBody(
             token=self.token_id._to_proto(),
             treasury=self.treasury_account_id._to_proto() if self.treasury_account_id else None,
@@ -322,10 +329,9 @@ class TokenUpdateTransaction(Transaction):
         self._set_keys_to_proto(token_update_body)
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenUpdate.CopyFrom(token_update_body)
-        
+
         return transaction_body
-      
-    
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the token update transaction.
@@ -343,7 +349,7 @@ class TokenUpdateTransaction(Transaction):
             transaction_func=channel.token.updateToken,
             query_func=None
         )
-        
+
     def _set_keys_to_proto(self, token_update_body: TokenUpdateTransactionBody):
         """
         Sets the keys to the protobuf transaction body.
