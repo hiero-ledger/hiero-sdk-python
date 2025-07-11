@@ -8,7 +8,7 @@ from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message import TopicMessage
 from hiero_sdk_python.utils.subscription_handle import SubscriptionHandle
-from hiero_sdk_python import Client
+from hiero_sdk_python.client.client import Client
 
 
 class TopicMessageQuery:
@@ -38,7 +38,7 @@ class TopicMessageQuery:
         self._completion_handler: Optional[Callable[[], None]] = None
 
         self._max_attempts: int = 10
-        self._max_backoff: int = 8.0
+        self._max_backoff: float = 8.0
 
     def set_max_attempts(self, attempts: int) -> "TopicMessageQuery":
         """Sets the maximum number of attempts to reconnect on failure."""

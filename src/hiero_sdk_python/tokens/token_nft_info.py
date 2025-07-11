@@ -76,4 +76,8 @@ class TokenNftInfo:
         Returns:
             str: A string representation including all fields of this NFT information.
         """
-        return f"TokenNftInfo(nft_id={self.nft_id}, account_id={self.account_id}, creation_time={self.creation_time}, metadata={self.metadata}, spender_id={self.spender_id})"
+        return (f"TokenNftInfo(nft_id={self.nft_id}, "
+                f"account_id={self.account_id}, "
+                f"creation_time={self.creation_time}, "
+                f"metadata={self.metadata!r}, "
+                f"spender_id={self.spender_id})")

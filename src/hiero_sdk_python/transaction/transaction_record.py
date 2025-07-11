@@ -24,15 +24,15 @@ class TransactionRecord:
     transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
 
     def __repr__(self) -> str:
-        status = None
+        status: Optional[str] = None
         if self.receipt:
             try:
                 from hiero_sdk_python.response_code import ResponseCode
                 status = ResponseCode(self.receipt.status).name
             except (ValueError, AttributeError):
-                status = self.receipt.status
+                status = str(self.receipt.status)
         return (f"TransactionRecord(transaction_id='{self.transaction_id}', "
-                f"transaction_hash={self.transaction_hash}, "
+                f"transaction_hash={self.transaction_hash!r}, "
                 f"transaction_memo='{self.transaction_memo}', "
                 f"transaction_fee={self.transaction_fee}, "
                 f"receipt_status='{status}', "
@@ -49,20 +49,20 @@ class TransactionRecord:
             proto: The protobuf transaction record
             transaction_id: Optional transaction ID to associate with the record
         """
-        token_transfers = defaultdict(lambda: defaultdict(int))
+        token_transfers: defaultdict[TokenId, defaultdict[AccountId, int]] = defaultdict(lambda: defaultdict(int))
         for token_transfer_list in proto.tokenTransferLists:
             token_id = TokenId._from_proto(token_transfer_list.token)
             for transfer in token_transfer_list.transfers:
                 account_id = AccountId._from_proto(transfer.accountID)
                 token_transfers[token_id][account_id] = transfer.amount
         
-        nft_transfers = defaultdict(list[TokenNftTransfer])
+        nft_transfers: defaultdict[TokenId, list[TokenNftTransfer]] = defaultdict(list[TokenNftTransfer])
         for token_transfer_list in proto.tokenTransferLists:
             token_id = TokenId._from_proto(token_transfer_list.token)
             for nft_transfer in token_transfer_list.nftTransfers:
                 nft_transfers[token_id].append(TokenNftTransfer._from_proto(nft_transfer))
         
-        transfers = defaultdict(int)
+        transfers: defaultdict[AccountId, int] = defaultdict(int)
         for transfer in proto.transferList.accountAmounts:
             account_id = AccountId._from_proto(transfer.accountID)
             transfers[account_id] += transfer.amount
@@ -72,7 +72,7 @@ class TransactionRecord:
             transaction_hash=proto.transactionHash,
             transaction_memo=proto.memo,
             transaction_fee=proto.transactionFee,
-            receipt=TransactionReceipt._from_proto(proto.receipt),
+            receipt=TransactionReceipt._from_proto(proto.receipt, transaction_id=transaction_id),
             token_transfers=token_transfers,
             nft_transfers=nft_transfers,
             transfers=transfers

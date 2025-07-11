@@ -1,4 +1,4 @@
-from typing import Optional,Union
+from typing import Any, Optional, Union
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
@@ -129,7 +129,7 @@ class TransactionGetReceiptQuery(Query):
             query_func=channel.crypto.getTransactionReceipts
         )
 
-    def _should_retry(self, response: any) -> _ExecutionState:
+    def _should_retry(self, response: Any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -167,7 +167,7 @@ class TransactionGetReceiptQuery(Query):
         else:
             return _ExecutionState.FINISHED
         
-    def _map_status_error(self, response: any) -> Union[PrecheckError,ReceiptStatusError]:
+    def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
@@ -194,7 +194,7 @@ class TransactionGetReceiptQuery(Query):
         
         status = response.transactionGetReceipt.receipt.status
         
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt))
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id))
         
     def execute(self, client: Client) -> TransactionReceipt:
         """
