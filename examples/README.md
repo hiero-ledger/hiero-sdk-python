@@ -46,6 +46,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Deleting a Topic](#deleting-a-topic)
   - [Querying Topic](#querying-topic)
   - [Querying Topic Message](#querying-topic-message)
+- [File Transactions](#file-transactions)
+  - [Creating a File](#creating-a-file)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -907,6 +909,35 @@ query = (
 
 query.subscribe(client)
 ```
+
+## File Transactions
+
+### Creating a File
+
+#### Pythonic Syntax:
+```
+transaction = FileCreateTransaction(
+    keys=[account_public_key],
+    contents=file_contents,
+    file_memo="My first file on Hedera"
+).freeze_with(client)
+
+transaction.sign(account_private_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+    transaction = (
+        FileCreateTransaction()
+        .set_keys(account_public_key)
+        .set_contents(file_contents)
+        .set_file_memo("My first file on Hedera")
+        .freeze_with(client)
+        .sign(account_private_key)
+    )
+
+    transaction.execute(client)
 
 ## Miscellaneous Queries
 
