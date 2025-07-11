@@ -1,3 +1,10 @@
+"""
+hiero_sdk_python.transaction.token_nft_info
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines TokenNftInfo, a class representing Non-Fungible Token details (ID, owner,
+creation time, metadata, spender) on the Hedera network, with protobuf conversion.
+"""
 from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.nft_id import NftId
@@ -10,7 +17,7 @@ class TokenNftInfo:
     This class encapsulates details about an NFT including its unique identifier,
     owner account, creation time, associated metadata, and any account with spending privileges.
     """
-    
+
     def __init__(
         self,
         nft_id: Optional[NftId] = None,
@@ -41,7 +48,8 @@ class TokenNftInfo:
         Create a TokenNftInfo instance from a protobuf message.
         
         Args:
-            proto (token_get_nft_info_pb2.TokenNftInfo): The protobuf message containing NFT information.
+            proto (token_get_nft_info_pb2.TokenNftInfo): 
+            The protobuf message containing NFT information.
             
         Returns:
             TokenNftInfo: A new instance populated with data from the protobuf message.
@@ -53,13 +61,14 @@ class TokenNftInfo:
             metadata=proto.metadata,
             spender_id=AccountId._from_proto(proto.spender_id)
         )
-    
+
     def _to_proto(self) -> token_get_nft_info_pb2.TokenNftInfo:
         """
         Convert this TokenNftInfo instance to a protobuf message.
         
         Returns:
-            token_get_nft_info_pb2.TokenNftInfo: The protobuf representation of this NFT information.
+            token_get_nft_info_pb2.TokenNftInfo: 
+            The protobuf representation of this NFT information.
         """
         return token_get_nft_info_pb2.TokenNftInfo(
             nftID=self.nft_id._to_proto(),
@@ -68,12 +77,12 @@ class TokenNftInfo:
             metadata=self.metadata,
             spender_id=self.spender_id._to_proto()
         )
-    
+
     def __str__(self) -> str:
-        """
-        Get a string representation of this TokenNftInfo instance.
-        
-        Returns:
-            str: A string representation including all fields of this NFT information.
-        """
-        return f"TokenNftInfo(nft_id={self.nft_id}, account_id={self.account_id}, creation_time={self.creation_time}, metadata={self.metadata}, spender_id={self.spender_id})"
+        return (
+            "TokenNftInfo("
+            f"nft_id={self.nft_id}, account_id={self.account_id}, "
+            f"creation_time={self.creation_time}, metadata={self.metadata}, "
+            f"spender_id={self.spender_id}"
+            ")"
+        )

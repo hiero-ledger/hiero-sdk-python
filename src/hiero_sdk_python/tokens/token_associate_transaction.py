@@ -1,3 +1,10 @@
+"""
+hiero_sdk_python.transaction.token_associate_transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provides TokenAssociateTransaction, a subclass of Transaction for associating
+tokens with accounts on the Hedera network using the Hedera Token Service (HTS) API.
+"""
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import token_associate_pb2
@@ -30,11 +37,13 @@ class TokenAssociateTransaction(Transaction):
         self._default_transaction_fee = 500_000_000
 
     def set_account_id(self, account_id):
+        """Set the account ID for token association."""
         self._require_not_frozen()
         self.account_id = account_id
         return self
 
     def add_token_id(self, token_id):
+        """Add a token ID to the association list."""
         self._require_not_frozen()
         self.token_ids.append(token_id)
         return self

@@ -1,3 +1,10 @@
+"""
+hiero_sdk_python.transaction.token_pause_transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provides TokenPauseTransaction, a subclass of Transaction for pausing a specified token
+on the Hedera network via the Hedera Token Service (HTS) API.
+"""
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services.token_pause_pb2 import TokenPauseTransactionBody
@@ -12,7 +19,7 @@ class TokenPauseTransaction(Transaction):
 
     The token is required to have a pause key and the pause key must sign.
     Once a token is paused, token status will update from unpaused to paused. 
-    The token status for tokens that do not have an assigned pause key will state PauseNotApplicable.
+    Those without a pause key will state PauseNotApplicable.
     
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token pause transaction.
@@ -26,7 +33,7 @@ class TokenPauseTransaction(Transaction):
         """
         super().__init__()
         self.token_id : TokenId = token_id
-        
+
     def set_token_id(self, token_id):
         """
         Sets the ID of the token to be paused.
@@ -40,7 +47,7 @@ class TokenPauseTransaction(Transaction):
         self._require_not_frozen()
         self.token_id = token_id
         return self
-    
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for token pause.
@@ -52,7 +59,7 @@ class TokenPauseTransaction(Transaction):
         ValueError: If no token_id has been set.
         """
         if self.token_id is None or self.token_id.num == 0:
-             raise ValueError("token_id must be set before building the transaction body")
+            raise ValueError("token_id must be set before building the transaction body")
 
         token_pause_body = TokenPauseTransactionBody(
             token=self.token_id._to_proto()
@@ -60,13 +67,13 @@ class TokenPauseTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.token_pause.CopyFrom(token_pause_body)
         return transaction_body
-    
+
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
             transaction_func=channel.token.pauseToken,
             query_func=None
         )
-    
+
     def _from_proto(self, proto: TokenPauseTransactionBody):
         """
         Deserializes a TokenPauseTransactionBody from a protobuf object.

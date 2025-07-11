@@ -1,12 +1,22 @@
-from enum import Enum
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKeyValidation as proto_TokenKeyValidation
+"""
+hiero_sdk_python.tokens.token_key_validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Defines TokenKeyValidation enum to control whether token key validation checks
+are performed during Hedera transaction processing.
 """
-TokenKeyValidation specifies whether token key validation should be performed during transaction processing.
-FULL_VALIDATION means all token key validation checks will be performed.
-NO_VALIDATION means token key validation checks will be skipped.
-"""
+from enum import Enum
+from hiero_sdk_python.hapi.services.basic_types_pb2 import (
+    TokenKeyValidation as proto_TokenKeyValidation,
+)
+
 class TokenKeyValidation(Enum):
+    """
+    Enum for token key validation modes:
+
+      • FULL_VALIDATION – perform all validation checks  
+      • NO_VALIDATION   – skip validation checks
+    """
     FULL_VALIDATION = 0
     NO_VALIDATION = 1
 
@@ -16,7 +26,7 @@ class TokenKeyValidation(Enum):
             return TokenKeyValidation.FULL_VALIDATION
         elif proto_obj == proto_TokenKeyValidation.NO_VALIDATION:
             return TokenKeyValidation.NO_VALIDATION
-        
+
     def _to_proto(self):
         if self == TokenKeyValidation.FULL_VALIDATION:
             return proto_TokenKeyValidation.FULL_VALIDATION

@@ -1,3 +1,10 @@
+"""
+hiero_sdk_python.transaction.token_wipe_transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provides TokenWipeTransaction, a subclass of Transaction for wiping fungible tokens and NFTs
+from accounts on the Hedera network via the Hedera Token Service (HTS) API.
+"""
 from typing import Optional, List
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
@@ -19,8 +26,8 @@ class TokenWipeTransaction(Transaction):
     def __init__(
         self,
         token_id: Optional[TokenId] = None,
-        account_id: Optional[AccountId] = None, 
-        amount: Optional[int] = None, 
+        account_id: Optional[AccountId] = None,
+        amount: Optional[int] = None,
         serial: Optional[List[int]] = None
     ) -> None:
         """
@@ -37,7 +44,7 @@ class TokenWipeTransaction(Transaction):
         self.account_id: Optional[AccountId] = account_id
         self.amount: Optional[int] = amount
         self.serial: List[int] = serial if serial else []
-        
+
     def set_token_id(self, token_id: TokenId) -> "TokenWipeTransaction":
         """
         Sets the ID of the token to be wiped.
@@ -51,7 +58,7 @@ class TokenWipeTransaction(Transaction):
         self._require_not_frozen()
         self.token_id = token_id
         return self
-    
+
     def set_account_id(self, account_id: AccountId) -> "TokenWipeTransaction":
         """
         Sets the ID of the account to have their tokens wiped.
@@ -65,7 +72,7 @@ class TokenWipeTransaction(Transaction):
         self._require_not_frozen()
         self.account_id = account_id
         return self
-    
+
     def set_amount(self, amount: int) -> "TokenWipeTransaction":
         """
         Sets the amount of tokens to wipe.
@@ -79,7 +86,7 @@ class TokenWipeTransaction(Transaction):
         self._require_not_frozen()
         self.amount = amount
         return self
-    
+
     def set_serial(self, serial: List[int]) -> "TokenWipeTransaction":
         """
         Sets the serial numbers of NFTs to wipe.
@@ -93,7 +100,7 @@ class TokenWipeTransaction(Transaction):
         self._require_not_frozen()
         self.serial = serial
         return self
-    
+
     def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token wipe.
@@ -110,13 +117,13 @@ class TokenWipeTransaction(Transaction):
         transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenWipe.CopyFrom(token_wipe_body)
         return transaction_body
-    
+
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
             transaction_func=channel.token.wipeTokenAccount,
             query_func=None
         )
-    
+
     def _from_proto(self, proto: TokenWipeAccountTransactionBody) -> "TokenWipeTransaction":
         """
         Deserializes a TokenWipeAccountTransactionBody from a protobuf object.

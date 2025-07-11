@@ -1,4 +1,11 @@
-from hiero_sdk_python.transaction.transaction import Transaction 
+"""
+hiero_sdk_python.transaction.token_unfreeze_transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provides TokenUnfreezeTransaction, a subclass of Transaction for unfreezing tokens
+on the Hedera network via the Hedera Token Service (HTS) API.
+"""
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_unfreeze_account_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -21,19 +28,21 @@ class TokenUnfreezeTransaction(Transaction):
         self.token_id = token_id
         self.account_id = account_id
         self._default_transaction_fee = 3_000_000_000
-        self._is_frozen = False 
-    
+        self._is_frozen = False
+
     def set_token_id(self, token_id):
+        """Set the token ID to unfreeze."""
         self.__require_not_frozen()
         self.token_id = token_id
         return self
-    
+
     def set_account_id(self, account_id):
+        """Set the account ID whose token will be unfrozen."""
         self.__require_not_frozen()
         self.account_id = account_id
         return self
-    
-    def __require_not_frozen(self): 
+
+    def __require_not_frozen(self):
         if self._is_frozen:
             raise ValueError("Transaction is already frozen and cannot be modified.")
 
@@ -53,7 +62,7 @@ class TokenUnfreezeTransaction(Transaction):
 
         if not self.account_id:
             raise ValueError("Missing required AccountID.")
-        
+
         token_unfreeze_body = token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody(
             account=self.account_id._to_proto(),
             token=self.token_id._to_proto()
@@ -63,10 +72,9 @@ class TokenUnfreezeTransaction(Transaction):
         transaction_body.tokenUnfreeze.CopyFrom(token_unfreeze_body)
 
         return transaction_body
-    
+
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
             transaction_func=channel.token.unfreezeTokenAccount,
             query_func=None
         )
-    
