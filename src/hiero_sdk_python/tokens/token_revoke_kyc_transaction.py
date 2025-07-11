@@ -1,3 +1,11 @@
+"""
+hiero_sdk_python.transaction.token_revoke_kyc_transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provides TokenRevokeKycTransaction, a subclass of Transaction for revoking
+Know-Your-Customer (KYC) status from an account for a specific token on the
+Hedera network via the Hedera Token Service (HTS) API.
+"""
 from hiero_sdk_python.hapi.services.token_revoke_kyc_pb2 import TokenRevokeKycTransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
@@ -25,7 +33,7 @@ class TokenRevokeKycTransaction(Transaction):
         super().__init__()
         self.token_id: TokenId = token_id
         self.account_id: AccountId = account_id
-    
+
     def set_token_id(self, token_id: TokenId):
         """
         Sets the token ID for this revoke KYC transaction.
@@ -39,7 +47,7 @@ class TokenRevokeKycTransaction(Transaction):
         self._require_not_frozen()
         self.token_id = token_id
         return self
-    
+
     def set_account_id(self, account_id: AccountId):
         """
         Sets the account ID for this revoke KYC transaction.
@@ -53,7 +61,7 @@ class TokenRevokeKycTransaction(Transaction):
         self._require_not_frozen()
         self.account_id = account_id
         return self
-    
+
     def build_transaction_body(self):
         """
         Builds the transaction body for this token revoke KYC transaction.
@@ -66,10 +74,10 @@ class TokenRevokeKycTransaction(Transaction):
         """
         if self.token_id is None:
             raise ValueError("Missing token ID")
-        
+
         if self.account_id is None:
             raise ValueError("Missing account ID")
-        
+
         token_revoke_kyc_body = TokenRevokeKycTransactionBody(
             token=self.token_id._to_proto(),
             account=self.account_id._to_proto()
@@ -77,7 +85,7 @@ class TokenRevokeKycTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenRevokeKyc.CopyFrom(token_revoke_kyc_body)
         return transaction_body
-    
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the token revoke KYC transaction.
@@ -108,4 +116,4 @@ class TokenRevokeKycTransaction(Transaction):
         """
         self.token_id = TokenId._from_proto(proto.token)
         self.account_id = AccountId._from_proto(proto.account)
-        return self 
+        return self
