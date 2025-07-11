@@ -64,12 +64,12 @@ pylint src/hiero_sdk_python
 ### VS Code Integration
 Pylint can be integrated to become much more user-friendly in VS Code.
 
-Install and enable the extension for Pylint:
+#### Install and enable the extension for Pylint:
 
 Search in extensions:
 ms-python.pylint
 
-Once downloaded, point to a Python interpreter.
+#### Once downloaded, point to a Python interpreter.
 Run ⇧⌘P → Python: Select Interpreter and pick the venv or interpreter you’re using. 
 Be sure to point to the correct path or add the correct path.
 
@@ -81,12 +81,12 @@ Location: /Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site
 It should be more like:
 Location: /Users/../../hedera_sdk_python/.venv/lib/python3.10/site-packages
 
-Verify installation in that environment:
+#### Verify installation in that environment:
 ```bash
 python -m pip show pylint
 ```
 
-Then:
+#### Reload:
 ⌘+Shift+P → type → Developer: Reload Window
 
 Next, in the terminal, in the output section, click the dropdown and select Pylint.
