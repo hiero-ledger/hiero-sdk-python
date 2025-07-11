@@ -143,9 +143,7 @@ class TransactionGetReceiptQuery(Query):
         Returns:
             _ExecutionState: The execution state indicating what to do next
         """
-        receipt_response = response.transactionGetReceipt if hasattr(response, 'transactionGetReceipt') else response
-
-        status = receipt_response.header.nodeTransactionPrecheckCode
+        status = response.transactionGetReceipt.header.nodeTransactionPrecheckCode
         
         retryable_statuses = {
             ResponseCode.UNKNOWN,
@@ -162,7 +160,7 @@ class TransactionGetReceiptQuery(Query):
         else:
             return _ExecutionState.ERROR
     
-        status = receipt_response.receipt.status
+        status = response.transactionGetReceipt.receipt.status
         
         if status in retryable_statuses or status == ResponseCode.OK:
             return _ExecutionState.RETRY

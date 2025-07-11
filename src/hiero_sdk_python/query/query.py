@@ -300,7 +300,7 @@ class Query(_Executable):
         else:
             return _ExecutionState.ERROR
 
-    def _map_status_error(self, response: Any) -> Union[PrecheckError, ReceiptStatusError]:
+    def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
