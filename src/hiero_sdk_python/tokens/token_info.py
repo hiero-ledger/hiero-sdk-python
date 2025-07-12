@@ -270,23 +270,23 @@ class TokenInfo:
             ledger_id=proto_obj.ledger_id,
             metadata=proto_obj.metadata,
         )
-        if proto_obj.admin_key.WhichOneof("key"):
+        if proto_obj.adminKey.WhichOneof("key"):
             admin_key = PublicKey._from_proto(proto_obj.admin_key)
             tokenInfoObject.set_admin_key(admin_key)
 
-        if proto_obj.kyc_key.WhichOneof("key"):
+        if proto_obj.kycKey.WhichOneof("key"):
             kyc_key = PublicKey._from_proto(proto_obj.kyc_key)
             tokenInfoObject.set_kyc_key(kyc_key)
 
-        if proto_obj.freeze_key.WhichOneof("key"):
+        if proto_obj.freezeKey.WhichOneof("key"):
             freeze_key = PublicKey._from_proto(proto_obj.freeze_key)
             tokenInfoObject.set_freeze_key(freeze_key)
 
-        if proto_obj.wipe_key.WhichOneof("key"):
+        if proto_obj.wipeKey.WhichOneof("key"):
             wipe_key = PublicKey._from_proto(proto_obj.wipe_key)
             tokenInfoObject.set_wipe_key(wipe_key)
 
-        if proto_obj.supply_key.WhichOneof("key"):
+        if proto_obj.supplyKey.WhichOneof("key"):
             supply_key = PublicKey._from_proto(proto_obj.supply_key)
             tokenInfoObject.set_supply_key(supply_key)
 
@@ -298,19 +298,19 @@ class TokenInfo:
             fee_schedule_key = PublicKey._from_proto(proto_obj.fee_schedule_key)
             tokenInfoObject.set_fee_schedule_key(fee_schedule_key)
 
-        if proto_obj.default_freeze_status is not None:
+        if proto_obj.defaultFreezeStatus is not None:
             freeze_status = TokenFreezeStatus._from_proto(proto_obj.default_freeze_status)
             tokenInfoObject.set_default_freeze_status(freeze_status)
 
-        if proto_obj.default_kyc_status is not None:
+        if proto_obj.defaultKycStatus is not None:
             kyc_status = TokenKycStatus._from_proto(proto_obj.default_kyc_status)
             tokenInfoObject.set_default_kyc_status(kyc_status)
 
-        if proto_obj.auto_renew_account is not None:
+        if proto_obj.autoRenewAccount is not None:
             auto_renew_account = AccountId._from_proto(proto_obj.auto_renew_account)
             tokenInfoObject.set_auto_renew_account(auto_renew_account)
 
-        if proto_obj.auto_renew_period is not None:
+        if proto_obj.autoRenewPeriod is not None:
             auto_renew_period = Duration._from_proto(proto_obj.auto_renew_period)
             tokenInfoObject.set_auto_renew_period(auto_renew_period)
 
@@ -326,7 +326,7 @@ class TokenInfo:
             pause_status = TokenPauseStatus._from_proto(proto_obj.pause_status)
             tokenInfoObject.set_pause_status(pause_status)
 
-        if proto_obj.supply_type is not None:
+        if proto_obj.supplyType is not None:
             supply_type = SupplyType(proto_obj.supply_type)
             tokenInfoObject.set_supply_type(supply_type)
         return tokenInfoObject
