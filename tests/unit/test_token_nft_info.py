@@ -70,10 +70,10 @@ def test_from_proto():
     token_nft_info = TokenNftInfo._from_proto(proto)
     
     # Verify fields
-    assert token_nft_info.nft_id.tokenId.shard == 0
-    assert token_nft_info.nft_id.tokenId.realm == 0
-    assert token_nft_info.nft_id.tokenId.num == 123
-    assert token_nft_info.nft_id.serialNumber == 456
+    assert token_nft_info.nft_id.token_id.shard == 0
+    assert token_nft_info.nft_id.token_id.realm == 0
+    assert token_nft_info.nft_id.token_id.num == 123
+    assert token_nft_info.nft_id.serial_number == 456
     
     assert token_nft_info.account_id.shard == 0
     assert token_nft_info.account_id.realm == 0
@@ -106,10 +106,10 @@ def test_to_proto(mock_account_ids, nft_id):
     proto = token_nft_info._to_proto()
     
     # Verify protobuf fields
-    assert proto.nftID.token_ID.shardNum == nft_id.tokenId.shard
-    assert proto.nftID.token_ID.realmNum == nft_id.tokenId.realm
-    assert proto.nftID.token_ID.tokenNum == nft_id.tokenId.num
-    assert proto.nftID.serial_number == nft_id.serialNumber
+    assert proto.nftID.token_ID.shardNum == nft_id.token_id.shard
+    assert proto.nftID.token_ID.realmNum == nft_id.token_id.realm
+    assert proto.nftID.token_ID.tokenNum == nft_id.token_id.num
+    assert proto.nftID.serial_number == nft_id.serial_number
     
     assert proto.accountID.shardNum == account_id.shard
     assert proto.accountID.realmNum == account_id.realm
