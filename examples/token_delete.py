@@ -60,7 +60,7 @@ def create_and_delete_token():
         )
 
         create_receipt = create_tx.execute(client)
-        token_id_to_delete = create_receipt.tokenId
+        token_id_to_delete = create_receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id_to_delete}")
 
     except Exception as e:

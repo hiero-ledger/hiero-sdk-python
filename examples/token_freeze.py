@@ -62,7 +62,7 @@ def freeze_token():
             .sign(freeze_key) # The new freeze key must sign to give consent
             .execute(client)
         )
-        token_id = receipt.tokenId
+        token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
     except Exception as e:
         print(f"❌ Error creating token: {e}")

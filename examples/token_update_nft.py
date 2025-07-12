@@ -62,7 +62,7 @@ def create_nft(client, operator_id, operator_key, metadata_key):
         sys.exit(1)
     
     # Get token ID from receipt
-    nft_token_id = receipt.tokenId
+    nft_token_id = receipt.token_id
     print(f"NFT created with ID: {nft_token_id}")
     
     return nft_token_id

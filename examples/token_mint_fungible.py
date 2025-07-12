@@ -61,7 +61,7 @@ def token_mint_fungible():
             .sign(supply_key)  # The new supply key must sign to give consent
             .execute(client)
         )
-        token_id = receipt.tokenId
+        token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
     except Exception as e:
         print(f"❌ Error creating token: {e}")

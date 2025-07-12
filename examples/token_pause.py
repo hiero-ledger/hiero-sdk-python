@@ -69,7 +69,7 @@ def create_token(client, operator_id, admin_key, pause_key):
     assert_success(receipt, "Token creation")
     
     # Get token ID from receipt
-    token_id = receipt.tokenId
+    token_id = receipt.token_id
     print(f"Token created with ID: {token_id}")
     
     return token_id

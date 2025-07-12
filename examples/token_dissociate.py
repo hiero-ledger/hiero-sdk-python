@@ -52,7 +52,7 @@ def token_dissociate():
 
         # Freeze the transaction, sign with the operator, then execute
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
-        recipient_id = receipt.accountId
+        recipient_id = receipt.account_id
         print(f"✅ Success! Created new account with ID: {recipient_id}")
     except Exception as e:
         print(f"❌ Error creating new account: {e}")

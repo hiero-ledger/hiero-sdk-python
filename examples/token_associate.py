@@ -50,7 +50,7 @@ def create_and_associate_token():
             .set_initial_balance(Hbar.from_tinybars(100_000_000)) # 1 Hbar
         )
         receipt = tx.execute(client)
-        recipient_id = receipt.accountId
+        recipient_id = receipt.account_id
         print(f"✅ Success! Created new account with ID: {recipient_id}")
     except Exception as e:
         print(f"❌ Error creating new account: {e}")
@@ -69,7 +69,7 @@ def create_and_associate_token():
             .set_treasury_account_id(operator_id)
         )
         receipt = tx.execute(client)
-        token_id = receipt.tokenId
+        token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
     except Exception as e:
         print(f"❌ Error creating token: {e}")

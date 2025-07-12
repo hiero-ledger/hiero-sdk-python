@@ -42,7 +42,7 @@ def create_new_account():
             status_message = ResponseCode(receipt.status).name
             raise Exception(f"Transaction failed with status: {status_message}")
 
-        new_account_id = receipt.accountId
+        new_account_id = receipt.account_id
         if new_account_id is not None:
             print(f"Account creation successful. New Account ID: {new_account_id}")
             print(f"New Account Private Key: {new_account_private_key.to_string()}")

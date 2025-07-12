@@ -81,8 +81,8 @@ def create_token_fungible_finite():
     try:
         # Execute the transaction and get the receipt
         receipt = transaction.execute(client)
-        if receipt and receipt.tokenId:
-            print(f"Finite fungible token created with ID: {receipt.tokenId}")
+        if receipt and receipt.token_id:
+            print(f"Finite fungible token created with ID: {receipt.token_id}")
         else:
             print("Finite fungible token creation failed: Token ID not returned in receipt.")
             sys.exit(1)

@@ -60,7 +60,7 @@ def show_logging_workflow():
     
     try:
         receipt = transaction.execute(client)
-        print(f"Account creation with client trace level logging successful. Account ID: {receipt.accountId}")
+        print(f"Account creation with client trace level logging successful. Account ID: {receipt.account_id}")
     except Exception as e:
         print(f"Account creation failed: {str(e)}")
     
@@ -78,7 +78,7 @@ def show_logging_workflow():
     
     try:
         receipt = transaction.execute(client)
-        print(f"Account creation with disabled logging successful. Account ID: {receipt.accountId}")
+        print(f"Account creation with disabled logging successful. Account ID: {receipt.account_id}")
     except Exception as e:
         print(f"Account creation failed: {str(e)}")
 

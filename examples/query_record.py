@@ -52,7 +52,7 @@ def create_account_transaction(client):
         sys.exit(1)
     
     # Get the new account ID and transaction ID from receipt
-    new_account_id = receipt.accountId
+    new_account_id = receipt.account_id
     transaction_id = receipt.transaction_id
     
     print(f"Account created with ID: {new_account_id}")
@@ -80,7 +80,7 @@ def create_fungible_token(client: 'Client', account_id, account_private_key):
         print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
-    token_id = receipt.tokenId
+    token_id = receipt.token_id
     print(f"\nFungible token created with ID: {token_id}")
     
     return token_id
@@ -130,7 +130,7 @@ def print_transaction_record(record):
     print(f"Transaction Fee: {record.transaction_fee}")
     print(f"Transaction Hash: {record.transaction_hash.hex()}")
     print(f"Transaction Memo: {record.transaction_memo}")
-    print(f"Transaction Account ID: {record.receipt.accountId}")
+    print(f"Transaction Account ID: {record.receipt.account_id}")
     
     print(f"\nTransfers made in the transaction:")
     for account_id, amount in record.transfers.items():

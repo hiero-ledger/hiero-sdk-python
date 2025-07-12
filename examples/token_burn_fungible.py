@@ -49,7 +49,7 @@ def create_fungible_token(client, operator_id, operator_key):
         print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
-    token_id = receipt.tokenId
+    token_id = receipt.token_id
     print(f"Fungible token created with ID: {token_id}")
     
     return token_id

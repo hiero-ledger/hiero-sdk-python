@@ -52,7 +52,7 @@ def create_fungible_token(client, operator_id, operator_key):
         sys.exit(1)
     
     # Get token ID from receipt
-    token_id = receipt.tokenId
+    token_id = receipt.token_id
     print(f"Fungible token created with ID: {token_id}")
     
     return token_id

@@ -68,8 +68,8 @@ def create_token_nft_infinite():
         print("Executing transaction...")
         receipt = transaction.execute(client)
 
-        if receipt and receipt.tokenId:
-            print(f"✅ Success! Non-fungible token created with ID: {receipt.tokenId}")
+        if receipt and receipt.token_id:
+            print(f"✅ Success! Non-fungible token created with ID: {receipt.token_id}")
         else:
             print("❌ Token creation failed: Token ID not returned in receipt.")
             sys.exit(1)

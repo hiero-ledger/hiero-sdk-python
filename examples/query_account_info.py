@@ -52,7 +52,7 @@ def create_test_account(client, operator_key):
         print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
-    new_account_id = receipt.accountId
+    new_account_id = receipt.account_id
     print(f"\nTest account created with ID: {new_account_id}")
     
     return new_account_id, new_account_private_key
@@ -79,7 +79,7 @@ def create_fungible_token(client, operator_id, operator_key):
         print(f"Token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
-    token_id = receipt.tokenId
+    token_id = receipt.token_id
     print(f"\nFungible token created with ID: {token_id}")
     
     return token_id
@@ -110,7 +110,7 @@ def create_nft(client, account_id, account_private_key):
         sys.exit(1)
     
     # Get token ID from receipt
-    nft_token_id = receipt.tokenId
+    nft_token_id = receipt.token_id
     print(f"\nNFT created with ID: {nft_token_id}")
     
     return nft_token_id
