@@ -8,7 +8,7 @@ Provides TokenInfo, a dataclass representing Hedera token metadata (IDs, keys,
 statuses, supply details, and timing), with conversion to and from protobuf messages.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 import warnings
 
@@ -47,15 +47,24 @@ class TokenInfo:
     supply_key: Optional[PublicKey]        = None
     metadata_key: Optional[PublicKey]      = None
     fee_schedule_key: Optional[PublicKey]  = None
-    default_freeze_status: TokenFreezeStatus = TokenFreezeStatus.FREEZE_NOT_APPLICABLE
-    default_kyc_status: TokenKycStatus        = TokenKycStatus.KYC_NOT_APPLICABLE
+    default_freeze_status: TokenFreezeStatus = field(
+        default_factory=lambda: TokenFreezeStatus.FREEZE_NOT_APPLICABLE
+    )    
+    default_kyc_status: TokenKycStatus = field(
+        default_factory=lambda: TokenKycStatus.KYC_NOT_APPLICABLE
+    )
+    TokenKycStatus        = TokenKycStatus.KYC_NOT_APPLICABLE
     auto_renew_account: Optional[AccountId]  = None
     auto_renew_period: Optional[Duration]    = None
     expiry: Optional[Timestamp]              = None
     pause_key: Optional[PublicKey]           = None
-    pause_status: TokenPauseStatus           = TokenPauseStatus.PAUSE_NOT_APPLICABLE
-    supply_type: SupplyType                  = SupplyType.FINITE
-
+    pause_status: TokenPauseStatus = field(
+        default_factory=lambda: TokenPauseStatus.PAUSE_NOT_APPLICABLE
+    )    
+    supply_type: SupplyType = field(
+        default_factory=lambda: SupplyType.FINITE
+    )
+    
     # === legacy camelCase aliases, deprecated ===
     @property
     def tokenId(self) -> Optional[TokenId]:
