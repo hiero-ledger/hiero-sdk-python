@@ -67,42 +67,42 @@ class TransactionReceipt:
             return None
 
     # ——— Deprecated CamelCase aliases —————————————————————————
-    # @property
-    # def tokenId(self) -> TokenId | None:
-    #     warnings.warn(
-    #         "TransactionReceipt.tokenId is deprecated; use .token_id instead",
-    #         DeprecationWarning,
-    #         stacklevel=2,
-    #     )
-    #     return self.token_id
+    @property
+    def tokenId(self) -> TokenId | None:
+        warnings.warn(
+            "TransactionReceipt.tokenId is deprecated; use .token_id instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.token_id
 
-    # @property
-    # def topicId(self) -> TopicId | None:
-    #     warnings.warn(
-    #         "TransactionReceipt.topicId is deprecated; use .topic_id instead",
-    #         DeprecationWarning,
-    #         stacklevel=2,
-    #     )
-    #     return self.topic_id
+    @property
+    def topicId(self) -> TopicId | None:
+        warnings.warn(
+            "TransactionReceipt.topicId is deprecated; use .topic_id instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.topic_id
 
-    # @property
-    # def accountId(self) -> AccountId | None:
-    #     warnings.warn(
-    #         "TransactionReceipt.accountId is deprecated; use .account_id instead",
-    #         DeprecationWarning,
-    #         stacklevel=2,
-    #     )
-    #     return self.account_id
+    @property
+    def accountId(self) -> AccountId | None:
+        warnings.warn(
+            "TransactionReceipt.accountId is deprecated; use .account_id instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.account_id
     
-    # @property
-    # def serial_numbers(self):
-    #     """
-    #     Retrieves the serial numbers associated with the transaction receipt, if available.
+    @property
+    def serial_numbers(self):
+        """
+        Retrieves the serial numbers associated with the transaction receipt, if available.
         
-    #     Returns:
-    #         list of int: The serial numbers if present; otherwise, an empty list.
-    #     """
-    #     return self._receipt_proto.serialNumbers
+        Returns:
+            list of int: The serial numbers if present; otherwise, an empty list.
+        """
+        return self._receipt_proto.serialNumbers
     # ——— Deprecated CamelCase aliases —————————————————————————
 
     @property
