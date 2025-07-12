@@ -112,10 +112,10 @@ def test_execute_token_nft_info_query(nft_id):
             pytest.fail(f"Unexpected exception raised: {e}")
         
         # Verify the result contains the expected values
-        assert result.nft_id.tokenId.shard == 0
-        assert result.nft_id.tokenId.realm == 0
-        assert result.nft_id.tokenId.num == 1
-        assert result.nft_id.serialNumber == 2
+        assert result.nft_id.token_id.shard == 0
+        assert result.nft_id.token_id.realm == 0
+        assert result.nft_id.token_id.num == 1
+        assert result.nft_id.serial_number == 2
         assert result.account_id.shard == 0
         assert result.account_id.realm == 0
         assert result.account_id.num == 3
