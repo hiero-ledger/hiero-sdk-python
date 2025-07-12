@@ -248,7 +248,11 @@ class TokenInfo:
 
     def set_supply_type(self, supply_type: SupplyType | int):
         """Set the supply type."""
-        self.supplyType = supply_type
+        self.supply_type = (
+            supply_type
+            if isinstance(supply_type, SupplyType)
+            else SupplyType(supply_type)
+        )
 
     def set_metadata(self, metadata: bytes):
         """Set the token metadata."""
@@ -287,7 +291,7 @@ class TokenInfo:
             tokenInfoObject.set_wipe_key(wipe_key)
 
         if proto_obj.supplyKey.WhichOneof("key"):
-            supply_key = PublicKey._from_proto(proto_obj.supplyType)
+            supply_key = PublicKey._from_proto(proto_obj.supplyKey)
             tokenInfoObject.set_supply_key(supply_key)
 
         if proto_obj.metadata_key.WhichOneof("key"):
