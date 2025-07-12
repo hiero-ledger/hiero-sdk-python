@@ -14,11 +14,14 @@ class LogLevel(IntEnum):
     TRACE = 5
     DEBUG = 10
     INFO = 20
-    WARN = 30
+    WARNING = 30
     ERROR = 40
     CRITICAL = 50
     DISABLED = 60
-    
+
+    #Old warn method will be depreciated
+    WARN = WARNING
+
     def to_python_level(self) -> int:
         """Convert to Python's logging level
         
