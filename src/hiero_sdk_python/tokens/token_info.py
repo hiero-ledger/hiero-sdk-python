@@ -240,7 +240,7 @@ class TokenInfo:
 
     def set_supply_type(self, supply_type: SupplyType | int):
         """Set the supply type."""
-        self.supply_type = SupplyType(supply_type) if isinstance(supply_type, int) else supply_type
+        self.supplyType = supply_type
 
     def set_metadata(self, metadata: bytes):
         """Set the token metadata."""
