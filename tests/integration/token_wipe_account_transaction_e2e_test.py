@@ -34,7 +34,7 @@ def test_integration_token_wipe_account_transaction_can_execute():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         assert account_id is not None
         
@@ -107,7 +107,7 @@ def test_integration_token_wipe_transaction_no_token_id():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         assert account_id is not None
         
@@ -180,7 +180,7 @@ def test_integration_token_wipe_transaction_no_account_id():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         assert account_id is not None
         
@@ -253,7 +253,7 @@ def test_integration_token_wipe_transaction_no_amount():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         assert account_id is not None
         
@@ -327,7 +327,7 @@ def test_integration_token_wipe_account_transaction_not_zero_tokens_at_delete():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         assert account_id is not None
         

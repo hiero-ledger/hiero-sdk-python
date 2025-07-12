@@ -34,7 +34,7 @@ def test_integration_account_info_query_can_execute():
             .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        new_account_id = receipt.accountId
+        new_account_id = receipt.account_id
         
         info = AccountInfoQuery(new_account_id).execute(env.client)
         

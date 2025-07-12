@@ -64,7 +64,7 @@ class IntegrationTestEnv:
             raise AssertionError(
                 f"Account creation failed: {ResponseCode(receipt.status).name}"
             )
-        return Account(id=receipt.accountId, key=key)
+        return Account(id=receipt.account_id, key=key)
 
     def associate_and_transfer(self, receiver: AccountId, receiver_key: PrivateKey, token_id, amount: int):
         """
@@ -134,7 +134,7 @@ def create_fungible_token(env, opts=[]):
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
     
-    return token_receipt.tokenId
+    return token_receipt.token_id
 
 def create_nft_token(env, opts=[]):
     """
@@ -175,4 +175,4 @@ def create_nft_token(env, opts=[]):
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
     
-    return token_receipt.tokenId
+    return token_receipt.token_id

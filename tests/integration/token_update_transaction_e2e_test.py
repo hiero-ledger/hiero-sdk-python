@@ -153,7 +153,7 @@ def test_integration_token_update_transaction_treasury():
             .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Create fungible token
         token_id = create_fungible_token(env)

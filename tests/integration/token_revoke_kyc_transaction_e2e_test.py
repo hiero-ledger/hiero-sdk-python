@@ -25,7 +25,7 @@ def test_token_revoke_kyc_transaction_can_execute():
             .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
-        account_id = receipt.accountId
+        account_id = receipt.account_id
 
         # Create a new token and set the kyc key to be the operator's key
         token_id = create_fungible_token(env, [lambda tx: tx.set_kyc_key(env.operator_key)])
@@ -77,7 +77,7 @@ def test_token_revoke_kyc_transaction_fails_with_no_kyc_key():
             .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Create a new token without KYC key
         token_id = create_fungible_token(env)
@@ -129,7 +129,7 @@ def test_token_revoke_kyc_transaction_fails_when_account_not_associated():
             .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Create a new token and set the kyc key to be the operator's key
         token_id = create_fungible_token(env, [lambda tx: tx.set_kyc_key(env.operator_key)])

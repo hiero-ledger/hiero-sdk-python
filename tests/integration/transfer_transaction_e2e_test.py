@@ -32,7 +32,7 @@ def test_integration_transfer_transaction_can_transfer_hbar():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         transfer_transaction = TransferTransaction()
@@ -71,7 +71,7 @@ def test_integration_token_transfer_transaction_can_transfer_token():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         token_id = create_fungible_token(env)
@@ -123,7 +123,7 @@ def test_integration_token_transfer_transaction_can_transfer_nft():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         token_id = create_nft_token(env)
@@ -202,7 +202,7 @@ def test_integration_transfer_transaction_transfer_wrong_hbar_amount():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         transfer_transaction = TransferTransaction()
@@ -234,7 +234,7 @@ def test_integration_transfer_transaction_transfer_hbar_fail_not_enough_balance(
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_1_id = receipt.accountId
+        account_1_id = receipt.account_id
         assert account_1_id is not None
 
         transfer_transaction = TransferTransaction()
@@ -269,7 +269,7 @@ def test_integration_token_transfer_transaction_fail_not_enough_balance():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         token_id = create_fungible_token(env)
@@ -316,7 +316,7 @@ def test_integration_token_transfer_transaction_fail_not_your_nft():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         token_id = create_nft_token(env)

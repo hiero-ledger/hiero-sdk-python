@@ -27,7 +27,7 @@ def test_integration_free_query_no_cost():
             .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         env.client.set_operator(account_id, new_private_key)
@@ -78,7 +78,7 @@ def test_integration_free_query_with_manual_payment():
         )
         
         assert receipt.status == ResponseCode.SUCCESS
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
                 
         env.client.set_operator(account_id, new_private_key)
@@ -134,7 +134,7 @@ def test_integration_paid_query_network_cost():
             .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         env.client.set_operator(account_id, new_private_key)
@@ -174,7 +174,7 @@ def test_integration_paid_query_manual_payment():
         )
         
         assert receipt.status == ResponseCode.SUCCESS
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         env.client.set_operator(account_id, new_private_key)
@@ -220,7 +220,7 @@ def test_integration_paid_query_payment_too_high_fails():
         )
         
         assert receipt.status == ResponseCode.SUCCESS
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         env.client.set_operator(account_id, new_private_key)

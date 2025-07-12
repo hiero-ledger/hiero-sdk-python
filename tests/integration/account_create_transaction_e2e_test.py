@@ -25,7 +25,7 @@ def test_integration_account_create_transaction_can_execute():
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
         
-        assert receipt.accountId is not None, "AccountID not found in receipt. Account may not have been created."
+        assert receipt.account_id is not None, "AccountID not found in receipt. Account may not have been created."
     finally:
         env.close()
     

@@ -36,7 +36,7 @@ def test_integration_token_reject_transaction_can_execute():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         token1 = create_fungible_token(env)
         token2 = create_fungible_token(env)
@@ -116,7 +116,7 @@ def test_integration_token_reject_transaction_can_execute_for_nft():
             .set_key(new_account_public_key).set_initial_balance(Hbar(1))
             .set_account_memo("Receiver Account").execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         # Associate the tokens to the new account
@@ -176,7 +176,7 @@ def test_integration_token_reject_transaction_can_execute_for_ft_and_nft_paralle
         
         receipt = AccountCreateTransaction().set_key(new_account_public_key).set_initial_balance(Hbar(1)).set_account_memo("Receiver Account").execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         receipt = (TokenAssociateTransaction().set_account_id(account_id).add_token_id(token_id_1).add_token_id(token_id_2).add_token_id(nft_id_1).add_token_id(nft_id_2)
@@ -235,7 +235,7 @@ def test_token_reject_transaction_fails_with_invalid_signature():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         token1 = create_fungible_token(env)
         
@@ -302,7 +302,7 @@ def test_integration_token_reject_transaction_fails_with_reference_size_exceeded
         )
         receipt = account_transaction.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         assert account_id is not None
         
         # Associate the tokens to the new account
@@ -417,7 +417,7 @@ def test_integration_token_reject_transaction_fails_when_fungible_token_owner_ha
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Associate the token to the receiver account
         token_associate_transaction = TokenAssociateTransaction(
@@ -466,7 +466,7 @@ def test_integration_token_reject_transaction_fails_when_nft_owner_has_no_balanc
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Create NFT with treasury
         nft_token_id = create_nft_token(env)
@@ -532,7 +532,7 @@ def test_token_reject_transaction_fails_with_token_reference_repeated_fungible()
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Create fungible token with treasury
         token_id = create_fungible_token(env)
@@ -592,7 +592,7 @@ def test_token_reject_transaction_fails_with_token_reference_repeated_nft():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Create NFT with treasury
         nft_token_id = create_nft_token(env)
@@ -682,7 +682,7 @@ def test_integration_token_reject_transaction_fails_when_rejecting_nft_with_toke
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Associate the NFT to the receiver
         nft_associate_transaction = TokenAssociateTransaction(
@@ -755,7 +755,7 @@ def test_token_reject_transaction_fails_with_nft_token_frozen():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Associate the NFT to the receiver
         associate_transaction = TokenAssociateTransaction(
@@ -822,7 +822,7 @@ def test_token_reject_transaction_fails_with_fungible_token_frozen():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         # Create fungible token with treasury
         token_id = create_fungible_token(env)
@@ -884,7 +884,7 @@ def test_token_reject_transaction_receiver_sig_required_nft():
             .set_receiver_signature_required(True).set_account_memo("Treasury Account")
             .freeze_with(env.client).sign(treasury_private_key).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Treasury account creation failed with status: {ResponseCode(receipt.status).name}"
-        treasury_id = receipt.accountId
+        treasury_id = receipt.account_id
         
         # Create a new NFT token with a custom treasury account that requires receiver signatures
         # Pass lambda functions to create_nft_token to configure the treasury account and sign with its key
@@ -902,7 +902,7 @@ def test_token_reject_transaction_receiver_sig_required_nft():
         
         receipt = (AccountCreateTransaction().set_key(receiver_public_key).set_initial_balance(Hbar(1)).set_account_memo("Receiver Account").execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Receiver account creation failed with status: {ResponseCode(receipt.status).name}"
-        receiver_id = receipt.accountId
+        receiver_id = receipt.account_id
         
         associate_transaction = TokenAssociateTransaction(
             account_id=receiver_id,
@@ -950,7 +950,7 @@ def test_token_reject_transaction_receiver_sig_required_fungible():
         )
         receipt = transaction.freeze_with(env.client).sign(treasury_private_key).execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Treasury account creation failed with status: {ResponseCode(receipt.status).name}"
-        treasury_id = receipt.accountId
+        treasury_id = receipt.account_id
         
         # Create a fungible token with a custom treasury account that requires receiver signatures
         # Pass lambda functions to create_fungible_token to configure the treasury account and sign with its key
@@ -970,7 +970,7 @@ def test_token_reject_transaction_receiver_sig_required_fungible():
         )
         receipt = receiver_transaction.execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Receiver account creation failed with status: {ResponseCode(receipt.status).name}"
-        receiver_id = receipt.accountId
+        receiver_id = receipt.account_id
         
         # Associate the token to the receiver
         associate_transaction = TokenAssociateTransaction(
