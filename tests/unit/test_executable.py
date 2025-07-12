@@ -352,7 +352,7 @@ def test_topic_create_transaction_retry_on_busy():
             pytest.fail(f"Should not raise exception, but raised: {e}")
         # Verify transaction succeeded after retry
         assert receipt.status == ResponseCode.SUCCESS
-        assert receipt.topicId.num == 456
+        assert receipt.topic_id.num == 456
         
         # Verify we slept once for the retry
         assert mock_sleep.call_count == 1, "Should have retried once"
