@@ -1,3 +1,4 @@
+import warnings 
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.account.account_id import AccountId
@@ -27,7 +28,7 @@ class TransactionReceipt:
         self._receipt_proto = receipt_proto
 
     @property
-    def tokenId(self):
+    def token_id(self):
         """
         Retrieves the TokenId associated with the transaction receipt, if available.
 
@@ -40,7 +41,7 @@ class TransactionReceipt:
             return None
 
     @property
-    def topicId(self):
+    def topic_id(self):
         """
         Retrieves the TopicId associated with the transaction receipt, if available.
 
@@ -53,7 +54,7 @@ class TransactionReceipt:
             return None
 
     @property
-    def accountId(self):
+    def account_id(self):
         """
         Retrieves the AccountId associated with the transaction receipt, if available.
 
@@ -65,15 +66,44 @@ class TransactionReceipt:
         else:
             return None
 
-    @property
-    def serial_numbers(self):
-        """
-        Retrieves the serial numbers associated with the transaction receipt, if available.
+    # ——— Deprecated CamelCase aliases —————————————————————————
+    # @property
+    # def tokenId(self) -> TokenId | None:
+    #     warnings.warn(
+    #         "TransactionReceipt.tokenId is deprecated; use .token_id instead",
+    #         DeprecationWarning,
+    #         stacklevel=2,
+    #     )
+    #     return self.token_id
+
+    # @property
+    # def topicId(self) -> TopicId | None:
+    #     warnings.warn(
+    #         "TransactionReceipt.topicId is deprecated; use .topic_id instead",
+    #         DeprecationWarning,
+    #         stacklevel=2,
+    #     )
+    #     return self.topic_id
+
+    # @property
+    # def accountId(self) -> AccountId | None:
+    #     warnings.warn(
+    #         "TransactionReceipt.accountId is deprecated; use .account_id instead",
+    #         DeprecationWarning,
+    #         stacklevel=2,
+    #     )
+    #     return self.account_id
+    
+    # @property
+    # def serial_numbers(self):
+    #     """
+    #     Retrieves the serial numbers associated with the transaction receipt, if available.
         
-        Returns:
-            list of int: The serial numbers if present; otherwise, an empty list.
-        """
-        return self._receipt_proto.serialNumbers
+    #     Returns:
+    #         list of int: The serial numbers if present; otherwise, an empty list.
+    #     """
+    #     return self._receipt_proto.serialNumbers
+    # ——— Deprecated CamelCase aliases —————————————————————————
 
     @property
     def transaction_id(self):
