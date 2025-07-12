@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### 
 - tokenId, totalSupply, isDeleted, tokenType, maxSupply, adminKey, kycKey, freezeKey, wipeKey, supplyKey, defaultFreezeStatus, defaultKycStatus, autoRenewAccount, autoRenewPeriod, pauseStatus, supplyType in token_info.py will be replaced with snake_case varieties to conform with PEP8.
 - tokenId, serialNumber in nft_id.py will be replaced with snake_case varieties to conform with PEP8.
+- tokenId, topicId, accountId in transaction_receipt.py will be replaced with snake_case varieties to conform with PEP8.
 
 ## [0.1.3] - 2025-07-03
 ### Added
