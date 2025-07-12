@@ -8,10 +8,10 @@ pytestmark = pytest.mark.unit
 def test_nft_id():
     #return true
     nftid_constructor_tokenid = TokenId(shard=0, realm=1, num=2)
-    nftid_constructor_test = NftId(tokenId=nftid_constructor_tokenid, serialNumber=1234)
+    nftid_constructor_test = NftId(token_id=nftid_constructor_tokenid, serial_number=1234)
 
     assert str(nftid_constructor_test) == "0.1.2/1234"
-    assert repr(nftid_constructor_test) == "NftId(tokenId=TokenId(shard=0, realm=1, num=2), serialNumber=1234)"
+    assert repr(nftid_constructor_test) == "NftId(token_id=TokenId(shard=0, realm=1, num=2), serial_number=1234)"
     assert nftid_constructor_test._to_proto().__eq__(
         basic_types_pb2.NftID(
             token_ID=basic_types_pb2.TokenID(shardNum=0, realmNum=1, tokenNum=2),
@@ -32,13 +32,13 @@ def test_nft_id():
     with pytest.raises(TypeError):
         nftid_failed_constructor_tokenid = TokenId(shard='c', realm=1, num=1)
     with pytest.raises(TypeError):
-        nftid_failed_constructor = NftId(tokenId=None, serialNumber=1234)
+        nftid_failed_constructor = NftId(token_id=None, serial_number=1234)
     with pytest.raises(TypeError):
-        nftid_failed_constructor = NftId(tokenId=1234, serialNumber=1234)
+        nftid_failed_constructor = NftId(token_id=1234, serial_number=1234)
     with pytest.raises(TypeError):
-        nftid_failed_constructor = NftId(tokenId=TokenId(shard=0, realm=1, num=0), serialNumber="asdfasdfasdf")
+        nftid_failed_constructor = NftId(token_id=TokenId(shard=0, realm=1, num=0), serial_number="asdfasdfasdf")
     with pytest.raises(ValueError):
-        nftid_failed_constructor = NftId(tokenId=TokenId(shard=0, realm=1, num=0), serialNumber=-1234)
+        nftid_failed_constructor = NftId(token_id=TokenId(shard=0, realm=1, num=0), serial_number=-1234)
 
     #don't need to test protobuf cause its final and type checked
     with pytest.raises(ValueError):
