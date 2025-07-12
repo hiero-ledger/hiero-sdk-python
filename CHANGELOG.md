@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).  
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+### 
+- tokenId, totalSupply, isDeleted, tokenType, maxSupply, adminKey, kycKey, freezeKey, wipeKey, supplyKey, defaultFreezeStatus, defaultKycStatus, autoRenewAccount, autoRenewPeriod, pauseStatus, supplyType in token_info.py will be replaced with snake_case varieties to conform with PEP8.
+- tokenId, serialNumber in nft_id.py will be replaced with snake_case varieties to conform with PEP8.
+
 ## [0.1.3] - 2025-07-03
 ### Added
 - TokenType Class
