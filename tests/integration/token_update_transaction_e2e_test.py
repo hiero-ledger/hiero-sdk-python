@@ -38,8 +38,8 @@ def test_integration_token_update_transaction_can_execute():
         
         assert info.name == "UpdatedName", "Token failed to update"
         assert info.symbol == "UPD", "Token symbol failed to update"
-        assert info.freezeKey.to_bytes_raw() == private_key.public_key().to_bytes_raw(), "Freeze key did not update correctly"
-        assert info.adminKey.to_bytes_raw() == env.public_operator_key.to_bytes_raw(), "Admin key mismatch after update"
+        assert info.freeze_key.to_bytes_raw() == private_key.public_key().to_bytes_raw(), "Freeze key did not update correctly"
+        assert info.admin_key.to_bytes_raw() == env.public_operator_key.to_bytes_raw(), "Admin key mismatch after update"
     finally:
         env.close()
 
@@ -74,10 +74,10 @@ def test_integration_token_update_preserves_fields_without_updating_parameters()
         assert info.memo == original_info.memo, "Token memo should not have changed"
         assert info.metadata == original_info.metadata, "Token metadata should not have changed"
         assert info.treasury == original_info.treasury, "Token treasury should not have changed"
-        assert info.adminKey.to_bytes_raw() == original_info.adminKey.to_bytes_raw(), "Admin key should not have changed"
-        assert info.freezeKey.to_bytes_raw() == original_info.freezeKey.to_bytes_raw(), "Freeze key should not have changed"
-        assert info.wipeKey.to_bytes_raw() == original_info.wipeKey.to_bytes_raw(), "Wipe key should not have changed"
-        assert info.supplyKey.to_bytes_raw() == original_info.supplyKey.to_bytes_raw(), "Supply key should not have changed"
+        assert info.admin_key.to_bytes_raw() == original_info.adminKey.to_bytes_raw(), "Admin key should not have changed"
+        assert info.freeze_key.to_bytes_raw() == original_info.freezeKey.to_bytes_raw(), "Freeze key should not have changed"
+        assert info.wipe_key.to_bytes_raw() == original_info.wipeKey.to_bytes_raw(), "Wipe key should not have changed"
+        assert info.supply_key.to_bytes_raw() == original_info.supplyKey.to_bytes_raw(), "Supply key should not have changed"
         assert info.pause_key is None, "Pause key should not have changed"
     finally:
         env.close()
@@ -128,12 +128,12 @@ def test_integration_token_update_transaction_different_keys():
         
         assert info.name == "UpdatedName", "Token name mismatch"
         assert info.symbol == "UPD", "Token symbol mismatch"
-        assert info.freezeKey.to_bytes_raw() == keys[1].public_key().to_bytes_raw(), "Freeze key mismatch"
-        assert info.wipeKey.to_bytes_raw() == keys[2].public_key().to_bytes_raw(), "Wipe key mismatch"
-        assert info.supplyKey.to_bytes_raw() == keys[3].public_key().to_bytes_raw(), "Supply key mismatch"
+        assert info.freeze_key.to_bytes_raw() == keys[1].public_key().to_bytes_raw(), "Freeze key mismatch"
+        assert info.wipe_key.to_bytes_raw() == keys[2].public_key().to_bytes_raw(), "Wipe key mismatch"
+        assert info.supply_key.to_bytes_raw() == keys[3].public_key().to_bytes_raw(), "Supply key mismatch"
         assert info.metadata_key.to_bytes_raw() == keys[4].public_key().to_bytes_raw(), "Metadata key mismatch"
         assert info.pause_key.to_bytes_raw() == keys[5].public_key().to_bytes_raw(), "Pause key mismatch"
-        assert info.adminKey.to_bytes_raw() == env.public_operator_key.to_bytes_raw(), "Admin key mismatch"
+        assert info.admin_key.to_bytes_raw() == env.public_operator_key.to_bytes_raw(), "Admin key mismatch"
     finally:
         env.close()
 
@@ -305,7 +305,7 @@ def test_integration_token_update_transaction_metadata_immutable_fungible_token(
         )
         assert info.metadata == b"", "Initial metadata mismatch"
         assert info.metadata_key.to_bytes_raw() == metadata_key.public_key().to_bytes_raw(), "Metadata key mismatch"
-        assert info.adminKey is None, "Admin key should be None"
+        assert info.admin_key is None, "Admin key should be None"
         
         # Update token with new metadata, signed by metadata key
         receipt = (
@@ -353,7 +353,7 @@ def test_integration_token_update_transaction_metadata_immutable_nft():
         )
         assert info.metadata == b"", "Initial metadata mismatch"
         assert info.metadata_key.to_bytes_raw() == metadata_key.public_key().to_bytes_raw(), "Metadata key mismatch"
-        assert info.adminKey is None, "Admin key should be None"
+        assert info.admin_key is None, "Admin key should be None"
         
         # Update token with new metadata, signed by metadata key
         receipt = (
