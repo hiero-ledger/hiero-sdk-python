@@ -109,12 +109,12 @@ def test_token_info_query_execute(mock_account_ids, private_key):
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
         
-        assert result.tokenId == token_id
+        assert result.token_id == token_id
         assert result.name == "Test Token"
         assert result.symbol == "TEST"
         assert result.decimals == 8
-        assert result.totalSupply == 100
-        assert result.maxSupply == 10000
+        assert result.total_supply == 100
+        assert result.max_supply == 10000
         assert result.treasury == account_id
         assert result.auto_renew_account == renew_account_id
         assert result.default_freeze_status == 0

@@ -78,34 +78,34 @@ def test_token_info_initialization(token_info):
 def test_setters(token_info):
     public_key = PrivateKey.generate_ed25519().public_key()
     token_info.set_admin_key(public_key)
-    assert token_info.adminKey == public_key
+    assert token_info.admin_key == public_key
 
     token_info.set_kyc_key(public_key)
-    assert token_info.kycKey == public_key
+    assert token_info.kyc_key == public_key
 
     token_info.set_freeze_key(public_key)
-    assert token_info.freezeKey == public_key
+    assert token_info.freeze_key == public_key
 
     token_info.set_wipe_key(public_key)
-    assert token_info.wipeKey == public_key
+    assert token_info.wipe_key == public_key
 
     token_info.set_supply_key(public_key)
-    assert token_info.supplyKey == public_key
+    assert token_info.supply_key == public_key
 
     token_info.set_fee_schedule_key(public_key)
     assert token_info.fee_schedule_key == public_key
 
     token_info.set_default_freeze_status(TokenFreezeStatus.FROZEN)
-    assert token_info.defaultFreezeStatus == TokenFreezeStatus.FROZEN
+    assert token_info.default_freeze_status == TokenFreezeStatus.FROZEN
 
     token_info.set_default_kyc_status(TokenKycStatus.GRANTED)
-    assert token_info.defaultKycStatus == TokenKycStatus.GRANTED
+    assert token_info.default_kyc_status == TokenKycStatus.GRANTED
 
     token_info.set_auto_renew_account(AccountId(0, 0, 300))
-    assert token_info.autoRenewAccount == AccountId(0, 0, 300)
+    assert token_info.auto_renew_account == AccountId(0, 0, 300)
 
     token_info.set_auto_renew_period(Duration(3600))
-    assert token_info.autoRenewPeriod == Duration(3600)
+    assert token_info.auto_renew_period == Duration(3600)
 
     expiry = Timestamp(1625097600, 0)
     token_info.set_expiry(expiry)
@@ -118,7 +118,7 @@ def test_setters(token_info):
     assert token_info.pause_status == TokenPauseStatus.PAUSED
 
     token_info.set_supply_type(SupplyType.INFINITE)
-    assert token_info.supplyType == SupplyType.INFINITE
+    assert token_info.supply_type == SupplyType.INFINITE
 
 def test_from_proto(proto_token_info):
     public_key = PrivateKey.generate_ed25519().public_key()
@@ -139,32 +139,32 @@ def test_from_proto(proto_token_info):
 
     token_info = TokenInfo._from_proto(proto_token_info)
 
-    assert token_info.tokenId == TokenId(0, 0, 100)
+    assert token_info.token_id == TokenId(0, 0, 100)
     assert token_info.name == "TestToken"
     assert token_info.symbol == "TST"
     assert token_info.decimals == 2
-    assert token_info.totalSupply == 1000000
+    assert token_info.total_supply == 1000000
     assert token_info.treasury == AccountId(0, 0, 200)
-    assert token_info.isDeleted is False
+    assert token_info.is_deleted is False
     assert token_info.memo == "Test token"
-    assert token_info.tokenType == TokenType.FUNGIBLE_COMMON
-    assert token_info.maxSupply == 10000000
+    assert token_info.token_type == TokenType.FUNGIBLE_COMMON
+    assert token_info.max_supply == 10000000
     assert token_info.ledger_id == b"ledger123"
     assert token_info.metadata == b"Test metadata"
-    assert token_info.adminKey.to_bytes_raw() == public_key.to_bytes_raw()
-    assert token_info.kycKey.to_bytes_raw() == public_key.to_bytes_raw()
-    assert token_info.freezeKey.to_bytes_raw() == public_key.to_bytes_raw()
-    assert token_info.wipeKey.to_bytes_raw() == public_key.to_bytes_raw()
-    assert token_info.supplyKey.to_bytes_raw() == public_key.to_bytes_raw()
+    assert token_info.admin_key.to_bytes_raw() == public_key.to_bytes_raw()
+    assert token_info.kyc_key.to_bytes_raw() == public_key.to_bytes_raw()
+    assert token_info.freeze_key.to_bytes_raw() == public_key.to_bytes_raw()
+    assert token_info.wipe_key.to_bytes_raw() == public_key.to_bytes_raw()
+    assert token_info.supply_key.to_bytes_raw() == public_key.to_bytes_raw()
     assert token_info.fee_schedule_key.to_bytes_raw() == public_key.to_bytes_raw()
-    assert token_info.defaultFreezeStatus == TokenFreezeStatus.FROZEN
-    assert token_info.defaultKycStatus == TokenKycStatus.GRANTED
-    assert token_info.autoRenewAccount == AccountId(0, 0, 300)
-    assert token_info.autoRenewPeriod == Duration(3600)
+    assert token_info.default_freeze_status == TokenFreezeStatus.FROZEN
+    assert token_info.default_kyc_status == TokenKycStatus.GRANTED
+    assert token_info.auto_renew_account == AccountId(0, 0, 300)
+    assert token_info.auto_renew_period == Duration(3600)
     assert token_info.expiry == Timestamp(1625097600, 0)
     assert token_info.pause_key.to_bytes_raw() == public_key.to_bytes_raw()
     assert token_info.pause_status == TokenPauseStatus.PAUSED.value
-    assert token_info.supplyType.value == SupplyType.INFINITE.value
+    assert token_info.supply_type.value == SupplyType.INFINITE.value
 
 def test_to_proto(token_info):
     public_key = PrivateKey.generate_ed25519().public_key()
