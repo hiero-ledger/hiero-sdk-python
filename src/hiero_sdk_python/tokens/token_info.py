@@ -53,7 +53,6 @@ class TokenInfo:
     default_kyc_status: TokenKycStatus = field(
         default_factory=lambda: TokenKycStatus.KYC_NOT_APPLICABLE
     )
-    TokenKycStatus        = TokenKycStatus.KYC_NOT_APPLICABLE
     auto_renew_account: Optional[AccountId]  = None
     auto_renew_period: Optional[Duration]    = None
     expiry: Optional[Timestamp]              = None
@@ -64,7 +63,7 @@ class TokenInfo:
     supply_type: SupplyType = field(
         default_factory=lambda: SupplyType.FINITE
     )
-    
+
     # === legacy camelCase aliases, deprecated ===
     @property
     def tokenId(self) -> Optional[TokenId]:
