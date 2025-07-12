@@ -20,24 +20,24 @@ def test_integration_token_info_query_can_execute():
         
         info = TokenInfoQuery(token_id).execute(env.client)
         
-        assert str(info.tokenId) == str(token_id), "Token ID mismatch"
+        assert str(info.token_id) == str(token_id), "Token ID mismatch"
         assert info.name == "PTokenTest34", "Name mismatch"
         assert info.symbol == "PTT34", "Symbol mismatch" 
         assert info.decimals == 3, "Decimals mismatch"
         assert str(info.treasury) == str(env.operator_id), "Treasury mismatch"
-        assert info.tokenType == TokenType.FUNGIBLE_COMMON, "Token type mismatch"
-        assert info.supplyType == SupplyType.FINITE, "Supply type mismatch"
-        assert info.maxSupply == 10000, "Max supply mismatch"
+        assert info.token_type == TokenType.FUNGIBLE_COMMON, "Token type mismatch"
+        assert info.supply_type == SupplyType.FINITE, "Supply type mismatch"
+        assert info.max_supply == 10000, "Max supply mismatch"
         
-        assert info.adminKey is not None, "Admin key should not be None"
-        assert info.freezeKey is not None, "Freeze key should not be None"
-        assert info.wipeKey is None, "Wipe key should be None"
-        assert info.supplyKey is not None, "Supply key should not be None"
-        assert info.kycKey is None, "KYC key should be None"
+        assert info.admin_key is not None, "Admin key should not be None"
+        assert info.freeze_key is not None, "Freeze key should not be None"
+        assert info.wipe_key is None, "Wipe key should be None"
+        assert info.supply_key is not None, "Supply key should not be None"
+        assert info.kyc_key is None, "KYC key should be None"
         
-        assert str(info.adminKey) == str(env.operator_key.public_key()), "Admin key mismatch"
-        assert str(info.freezeKey) == str(env.operator_key.public_key()), "Freeze key mismatch"
-        assert str(info.supplyKey) == str(env.operator_key.public_key()), "Supply key mismatch"
+        assert str(info.admin_key) == str(env.operator_key.public_key()), "Admin key mismatch"
+        assert str(info.freeze_key) == str(env.operator_key.public_key()), "Freeze key mismatch"
+        assert str(info.supply_key) == str(env.operator_key.public_key()), "Supply key mismatch"
     finally:
         env.close()
 
