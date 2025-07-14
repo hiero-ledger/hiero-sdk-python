@@ -1,3 +1,5 @@
+This is a markdown file, click Ctrl+Shift+V to view or click open preview.
+
 # Changelog
 
 All notable changes to this project will be documented in this file.  
@@ -5,10 +7,36 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-### 
-- tokenId, totalSupply, isDeleted, tokenType, maxSupply, adminKey, kycKey, freezeKey, wipeKey, supplyKey, defaultFreezeStatus, defaultKycStatus, autoRenewAccount, autoRenewPeriod, pauseStatus, supplyType in token_info.py will be replaced with snake_case varieties to conform with PEP8.
-- tokenId, serialNumber in nft_id.py will be replaced with snake_case varieties to conform with PEP8.
-- tokenId, topicId, accountId in transaction_receipt.py will be replaced with snake_case varieties to conform with PEP8.
+
+### Breaking API changes  
+**We have several camelCase uses that will be depreciated → snake_case:**
+
+#### In `token_info.py`
+- tokenId → token_id 
+- totalSupply → total_supply 
+- isDeleted → `is_deleted
+- tokenType → `token_type 
+- maxSupply → `max_supply 
+- adminKey → `admin_key 
+- kycKey → `kyc_key
+- freezeKey → `freeze_key 
+- wipeKey → `wipe_key
+- supplyKey → `supply_key
+- defaultFreezeStatus` → default_freeze_status  
+- defaultKycStatus` → default_kyc_status 
+- autoRenewAccount` → auto_renew_account 
+- autoRenewPeriod` → auto_renew_period 
+- pauseStatus` → pause_status 
+- supplyType` → supply_type  
+
+#### In `nft_id.py`
+- tokenId → token_id 
+- serialNumber → serial_number 
+
+#### In `transaction_receipt.py`
+- tokenId → `token_id
+- topicId → `topic_id  
+- accountId → `account_id 
 
 ## [0.1.3] - 2025-07-03
 ### Added
