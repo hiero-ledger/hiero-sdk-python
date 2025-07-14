@@ -1,5 +1,4 @@
 import os
-import sys
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
@@ -8,9 +7,9 @@ from hiero_sdk_python import (
     PrivateKey,
     AccountCreateTransaction,
     Network,
+    Logger,
+    LogLevel,
 )
-from hiero_sdk_python.logger.logger import Logger
-from hiero_sdk_python.logger.log_level import LogLevel
 
 load_dotenv()
 

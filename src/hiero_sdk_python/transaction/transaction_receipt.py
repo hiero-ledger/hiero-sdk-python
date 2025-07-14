@@ -1,3 +1,4 @@
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.account.account_id import AccountId
@@ -15,13 +16,14 @@ class TransactionReceipt:
         _receipt_proto (TransactionReceiptProto): The underlying protobuf receipt.
     """
 
-    def __init__(self, receipt_proto):
+    def __init__(self, receipt_proto, transaction_id=None):
         """
         Initializes the TransactionReceipt with the provided protobuf receipt.
 
         Args:
             receipt_proto (TransactionReceiptProto): The protobuf transaction receipt.
         """
+        self._transaction_id = transaction_id
         self.status = receipt_proto.status
         self._receipt_proto = receipt_proto
 
@@ -74,6 +76,26 @@ class TransactionReceipt:
         """
         return self._receipt_proto.serialNumbers
 
+    @property
+    def fileId(self):
+        """
+        Returns the file ID associated with this receipt.
+        """
+        if self._receipt_proto.HasField('fileID') and self._receipt_proto.fileID.fileNum != 0:
+            return FileId._from_proto(self._receipt_proto.fileID)
+        else:
+            return None
+          
+    @property
+    def transaction_id(self):
+        """
+        Returns the transaction ID associated with this receipt.
+
+        Returns:
+            TransactionId: The transaction ID.
+        """
+        return self._transaction_id
+
     def _to_proto(self):
         """
         Returns the underlying protobuf transaction receipt.
@@ -84,5 +106,5 @@ class TransactionReceipt:
         return self._receipt_proto
 
     @classmethod
-    def _from_proto(cls, proto):
-        return cls(receipt_proto=proto)
+    def _from_proto(cls, proto, transaction_id=None):
+        return cls(receipt_proto=proto, transaction_id=transaction_id)

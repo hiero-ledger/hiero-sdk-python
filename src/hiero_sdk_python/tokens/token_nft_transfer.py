@@ -9,8 +9,15 @@ class TokenNftTransfer:
     This class encapsulates the details of an NFT transfer, including the sender,
     receiver, serial number of the NFT, and whether the transfer is approved.
     """
-    
-    def __init__(self, token_id, sender_id, receiver_id, serial_number, is_approved=False):
+
+    def __init__(
+        self,
+        token_id: TokenId
+        sender_id: AccountId,
+        receiver_id: AccountId,
+        serial_number: int,
+        is_approved: bool = False
+    ) -> None:
         """
         Initializes a new TokenNftTransfer instance.
         
@@ -27,12 +34,12 @@ class TokenNftTransfer:
         self.serial_number : int = serial_number
         self.is_approved : bool = is_approved
         
-    def _to_proto(self):
+    def _to_proto(self) -> basic_types_pb2.NftTransfer:
         """
         Converts this TokenNftTransfer instance to its protobuf representation.
         
         Returns:
-            NftTransfer: The protobuf representation of this NFT transfer.
+            basic_type_pb2.NftTransfer: The protobuf representation of this NFT transfer.
         """
         return basic_types_pb2.NftTransfer(
             senderAccountID=self.sender_id._to_proto(),
@@ -41,6 +48,18 @@ class TokenNftTransfer:
             is_approval=self.is_approved
         )
     
+    @classmethod
+    def _from_proto(cls, proto: basic_types_pb2.NftTransfer):
+        """
+        Creates a TokenNftTransfer from a protobuf representation.
+        """
+        return cls(
+            sender_id=AccountId._from_proto(proto.senderAccountID),
+            receiver_id=AccountId._from_proto(proto.receiverAccountID),
+            serial_number=proto.serialNumber,
+            is_approved=proto.is_approval
+        )
+
     def __str__(self):
         """
         Returns a string representation of this TokenNftTransfer instance.

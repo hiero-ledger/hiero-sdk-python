@@ -1,11 +1,20 @@
 import time
+
+from typing import List, Optional
+
 from hiero_sdk_python.exceptions import PrecheckError
-from hiero_sdk_python.hapi.services import query_header_pb2
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.hapi.services import query_header_pb2, query_pb2
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.executable import _Executable, _ExecutionState
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client, Operator
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.transaction.transaction import Transaction
 
 class Query(_Executable):
     """
@@ -24,7 +33,7 @@ class Query(_Executable):
     3. _get_method(channel) - Return the appropriate gRPC method to call
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes the Query with default values.
         
@@ -34,14 +43,13 @@ class Query(_Executable):
         
         super().__init__()
         
-        self.timestamp = int(time.time())
-        self.node_account_ids = []
-        self.operator = None
-        self.node_index = 0
-        self._user_query_payment = None
-        self._default_query_payment = Hbar(1)
-        
-    def _get_query_response(self, response):
+        self.timestamp: int = int(time.time())
+        self.node_account_ids: List[AccountId] = []
+        self.operator: Optional[Operator] = None
+        self.node_index: int = 0
+        self.payment_amount: Optional[Hbar] = None
+
+    def _get_query_response(self, response: any) -> query_pb2.Query:
         """
         Extracts the query-specific response object from the full response.
         
@@ -49,7 +57,7 @@ class Query(_Executable):
         specific response object.
         
         Args:
-            response: The full response from the network
+            response (any): The full response from the network
             
         Returns:
             The query-specific response object
@@ -59,7 +67,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_get_query_response must be implemented by subclasses.")
 
-    def set_query_payment(self, amount: Hbar):
+    def set_query_payment(self, payment_amount: Hbar) -> "Query":
         """
         Sets the payment amount for this query.
         
@@ -67,61 +75,88 @@ class Query(_Executable):
         If not set, the default is 1 Hbar.
         
         Args:
-            amount (Hbar): The payment amount for this query
+            payment_amount (Hbar): The payment amount for this query
             
         Returns:
             Query: The current query instance for method chaining
         """
-        self._user_query_payment = amount
+        self.payment_amount = payment_amount
         return self
 
-    def _before_execute(self, client):
+    def _before_execute(self, client: Client) -> None:
         """
         Performs setup before executing the query.
+
+        Configures node accounts, operator, and payment details from the client.
+        If no payment amount was specified and payment is required for the query,
+        gets the cost from the network and sets it as the payment amount.
         
-        Sets up node list, operator, and determines if we should pay 1 Hbar by default.
-        This method is called automatically before execution.
-        
+        This method is called automatically before query execution.
+
         Args:
             client: The client instance to use for execution
         """
         if not self.node_account_ids:
             self.node_account_ids = client.get_node_account_ids()
-
+                
         self.operator = self.operator or client.operator
         self.node_account_ids = list(set(self.node_account_ids))
 
-        if self._user_query_payment is None:
-            self._user_query_payment = self._default_query_payment
+        # If no payment amount was specified and payment is required for this query,
+        # get the cost from the network and set it as the payment amount
+        if self.payment_amount is None and self._is_payment_required():
+            self.payment_amount = self.get_cost(client)
 
-    def _make_request_header(self):
+    def _make_request_header(self) -> query_header_pb2.QueryHeader:
         """
         Constructs the request header for the query.
         
         This includes a payment transaction if we have an operator and node.
         
+        If no payment amount is specified and payment is required for the query,
+        returns a header with COST_ANSWER response type to get the cost of executing
+        the query. Otherwise returns ANSWER_ONLY response type.
+        
         Returns:
             QueryHeader: The protobuf QueryHeader object
         """
         header = query_header_pb2.QueryHeader()
+        
+        # Default to ANSWER_ONLY response type
         header.responseType = query_header_pb2.ResponseType.ANSWER_ONLY
+        
+        # If payment is not required, return header
+        if not self._is_payment_required():
+            return header
 
+        # If there isn't a user query payment, return COST_ANSWER
+        if self.payment_amount is None:
+            header.responseType = query_header_pb2.ResponseType.COST_ANSWER
+            return header
+        
         if (
             self.operator is not None
             and self.node_account_id is not None
-            and self._user_query_payment is not None
+            and self.payment_amount is not None
+            and self.payment_amount.to_tinybars() > 0
         ):
             payment_tx = self._build_query_payment_transaction(
                 payer_account_id=self.operator.account_id,
                 payer_private_key=self.operator.private_key,
                 node_account_id=self.node_account_id,
-                amount=self._user_query_payment
+                amount=self.payment_amount
             )
             header.payment.CopyFrom(payment_tx)
 
         return header
 
-    def _build_query_payment_transaction(self, payer_account_id, payer_private_key, node_account_id, amount: Hbar):
+    def _build_query_payment_transaction(
+        self, 
+        payer_account_id: AccountId,
+        payer_private_key: PrivateKey,
+        node_account_id: AccountId, 
+        amount: Hbar
+    ) -> Transaction:
         """
         Builds and signs a payment transaction for this query.
         
@@ -140,7 +175,6 @@ class Query(_Executable):
         tx.add_hbar_transfer(payer_account_id, -amount.to_tinybars())
         tx.add_hbar_transfer(node_account_id, amount.to_tinybars())
 
-        tx.transaction_fee = 100_000_000 
         tx.node_account_id = node_account_id
         tx.transaction_id = TransactionId.generate(payer_account_id)
 
@@ -150,7 +184,48 @@ class Query(_Executable):
 
         return tx._to_proto()
     
-    def _get_method(self, channel):
+    def get_cost(self, client: Client) -> Hbar:
+        """
+        Gets the cost of executing this query on the network.
+        
+        This method executes a special cost query to determine how many Hbars 
+        would be required to execute the actual query. The cost query uses
+        ResponseType.COST_ANSWER instead of ResponseType.ANSWER_ONLY.
+        
+        This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
+        
+        Args:
+            client (Client): The client instance to use for execution. Must have an operator set.
+        
+        Returns:
+            Hbar: The cost in Hbars to execute this query. 
+                - Returns 0 if no payment is required (_is_payment_required is False),
+                  regardless of any manually set payment.
+                - Returns the manually set payment amount if one was provided for a paid query.
+                - Otherwise, fetches the cost from the network for a paid query.
+            
+        Raises:
+            ValueError: If the client is None or the client's operator is not set
+            PrecheckError: If the cost query fails precheck validation
+            MaxAttemptsError: If the cost query fails after maximum retry attempts
+            ReceiptStatusError: If the cost query fails with a receipt error
+        """
+        if not self._is_payment_required():
+            return Hbar.from_tinybars(0)
+        
+        if self.payment_amount is not None:
+            return self.payment_amount
+        
+        if client is None or client.operator is None:
+            raise ValueError("Client and operator must be set to get the cost")
+        
+        # Here we execute the query to get the cost of it
+        resp = self._execute(client)
+        query_response = self._get_query_response(resp)
+        
+        return Hbar.from_tinybars(query_response.header.cost)
+        
+    def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the query.
         
@@ -168,7 +243,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_get_method must be implemented by subclasses.")
 
-    def _make_request(self):
+    def _make_request(self) -> query_pb2.Query:
         """
         Builds the final query request to be sent to the network.
         
@@ -182,7 +257,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_make_request must be implemented by subclasses.")
 
-    def _map_response(self, response, node_id, proto_request):
+    def _map_response(self, response: any, node_id: int, proto_request: query_pb2.Query) -> query_pb2.Query:
         """
         Maps the network response to the appropriate response object.
         
@@ -196,7 +271,7 @@ class Query(_Executable):
         """
         return response
 
-    def _should_retry(self, response):
+    def _should_retry(self, response: any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -225,7 +300,7 @@ class Query(_Executable):
         else:
             return _ExecutionState.ERROR
 
-    def _map_status_error(self, response):
+    def _map_status_error(self, response: any) -> PrecheckError:
         """
         Maps a response status code to an appropriate error object.
         
@@ -237,3 +312,12 @@ class Query(_Executable):
         """
         query_response = self._get_query_response(response)
         return PrecheckError(query_response.header.nodeTransactionPrecheckCode)
+
+    def _is_payment_required(self) -> bool:
+        """
+        Determines if query requires payment.
+        
+        Returns:
+            bool: True if payment is required, False otherwise
+        """
+        return True

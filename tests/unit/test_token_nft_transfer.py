@@ -1,5 +1,6 @@
 import pytest
 
+from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 
 pytestmark = pytest.mark.unit
@@ -67,3 +68,21 @@ def test_to_proto(mock_account_ids):
     
     assert proto.serialNumber == serial_number
     assert proto.is_approval is is_approved
+    
+def test_from_proto(mock_account_ids):
+    """Test converting a protobuf object to a TokenNftTransfer"""
+    sender_id, receiver_id, _, _, _ = mock_account_ids
+    serial_number = 789
+    is_approved = True
+    
+    proto = basic_types_pb2.NftTransfer(
+        senderAccountID=sender_id._to_proto(),
+        receiverAccountID=receiver_id._to_proto(),
+        serialNumber=serial_number,
+        is_approval=is_approved
+    )
+    
+    nft_transfer = TokenNftTransfer._from_proto(proto)
+    
+    assert nft_transfer.sender_id == sender_id
+    assert nft_transfer.receiver_id == receiver_id
