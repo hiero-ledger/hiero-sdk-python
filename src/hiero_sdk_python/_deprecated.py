@@ -26,7 +26,11 @@ class _DeprecatedAliasesMixin:  # pylint: disable=too-few-public-methods
         "pauseKey": "pause_key",
         "pauseStatus": "pause_status",
         "supplyType": "supply_type",
-        "serialNumber": "serial_number"
+
+        "serialNumber": "serial_number",
+
+        "topicId": "topic_id",
+        "accountId": "account_id"
     }
 
     def __getattr__(self, name):
