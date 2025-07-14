@@ -6,42 +6,23 @@ Non-Fungible Token (NFT) identifier, including conversion to/from
 Protobuf and string serialization.
 """
 import re
-import warnings
 
 from dataclasses import dataclass
 from typing import Optional
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
+from hedera_sdk_python._deprecated import _DeprecatedAliasesMixin
 
 @dataclass(frozen=True)
-class NftId:
+class NftId(_DeprecatedAliasesMixin):
     """
     A unique identifier for Non-Fungible Tokens (NFTs).
     The NftId has a TokenId and a serial number.
+    Imports deprecated aliases for TokenId and SerialNumber.
     """
 
     token_id: TokenId
     serial_number: int
-
-    # Legacy aliases for backward compatibility - will be depreciated
-    @property
-    def tokenId(self) -> TokenId:
-        warnings.warn(
-            "NftId.tokenId will be deprecated; use NftId.token_id",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.token_id
-
-    @property
-    def serialNumber(self) -> int:
-        """Legacy alias for serial_number (deprecated)."""
-        warnings.warn(
-            "NftId.serialNumber will be deprecated; use NftId.serial_number",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.serial_number
 
     def __post_init__(self) -> None:
         """Validate the NftId after initialization."""
