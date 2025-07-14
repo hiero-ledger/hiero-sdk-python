@@ -2,11 +2,12 @@ import warnings
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 
-
-class TransactionReceipt:
+class TransactionReceipt(_DeprecatedAliasesMixin):
     """
     Represents the receipt of a transaction.
+    Imports deprecated aliases for tokenId, topicId and accountId.
 
     The receipt contains information about the status and result of a transaction,
     such as the TokenId or AccountId involved.
@@ -66,34 +67,6 @@ class TransactionReceipt:
         else:
             return None
 
-    # ——— Deprecated CamelCase aliases —————————————————————————
-    @property
-    def tokenId(self) -> TokenId | None:
-        warnings.warn(
-            "TransactionReceipt.tokenId will be deprecated; use .token_id instead",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.token_id
-
-    @property
-    def topicId(self) -> TopicId | None:
-        warnings.warn(
-            "TransactionReceipt.topicId will be deprecated; use .topic_id instead",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.topic_id
-
-    @property
-    def accountId(self) -> AccountId | None:
-        warnings.warn(
-            "TransactionReceipt.accountId will be deprecated; use .account_id instead",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.account_id
-    
     @property
     def serial_numbers(self):
         """
@@ -103,7 +76,6 @@ class TransactionReceipt:
             list of int: The serial numbers if present; otherwise, an empty list.
         """
         return self._receipt_proto.serialNumbers
-    # ——— Deprecated CamelCase aliases —————————————————————————
 
     @property
     def transaction_id(self):
