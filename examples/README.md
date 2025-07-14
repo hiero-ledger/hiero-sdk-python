@@ -49,6 +49,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [File Transactions](#file-transactions)
   - [Creating a File](#creating-a-file)
   - [Querying File Info](#querying-file-info)
+  - [Deleting a File](#deleting-a-file)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -959,6 +960,31 @@ file_info = (
     .execute(client)
 )
 print(file_info)
+
+```
+
+### Deleting a File
+
+#### Pythonic Syntax:
+```
+transaction = FileDeleteTransaction(
+    file_id=file_id
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+    transaction = (
+        FileDeleteTransaction()
+        .set_file_id(file_id)
+        .freeze_with(client)
+    )
+
+    transaction.sign(operator_key)
+    transaction.execute(client)
 
 ```
 
