@@ -9,34 +9,34 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Breaking API changes  
-**We have several camelCase uses that will be depreciated → snake_case:**
+**We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
 
 #### In `token_info.py`
 - tokenId → token_id 
 - totalSupply → total_supply 
-- isDeleted → `is_deleted
-- tokenType → `token_type 
-- maxSupply → `max_supply 
-- adminKey → `admin_key 
-- kycKey → `kyc_key
-- freezeKey → `freeze_key 
-- wipeKey → `wipe_key
-- supplyKey → `supply_key
-- defaultFreezeStatus` → default_freeze_status  
-- defaultKycStatus` → default_kyc_status 
-- autoRenewAccount` → auto_renew_account 
-- autoRenewPeriod` → auto_renew_period 
-- pauseStatus` → pause_status 
-- supplyType` → supply_type  
+- isDeleted → is_deleted
+- tokenType → token_type 
+- maxSupply → max_supply 
+- adminKey → admin_key 
+- kycKey → kyc_key
+- freezeKey → freeze_key 
+- wipeKey → wipe_key
+- supplyKey → supply_key
+- defaultFreezeStatus → default_freeze_status  
+- defaultKycStatus → default_kyc_status 
+- autoRenewAccount → auto_renew_account 
+- autoRenewPeriod → auto_renew_period 
+- pauseStatus → pause_status 
+- supplyType → supply_type  
 
 #### In `nft_id.py`
 - tokenId → token_id 
 - serialNumber → serial_number 
 
 #### In `transaction_receipt.py`
-- tokenId → `token_id
-- topicId → `topic_id  
-- accountId → `account_id 
+- tokenId → token_id
+- topicId → topic_id  
+- accountId → account_id 
 
 ## [0.1.3] - 2025-07-03
 ### Added
