@@ -69,7 +69,7 @@ class TokenInfo:
     def tokenId(self) -> Optional[TokenId]:
         warnings.warn(
             "TokenInfo.tokenId is deprecated; use TokenInfo.token_id",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.token_id
@@ -78,7 +78,7 @@ class TokenInfo:
     def totalSupply(self) -> Optional[int]:
         warnings.warn(
             "TokenInfo.totalSupply is deprecated; use TokenInfo.total_supply",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.total_supply
@@ -87,7 +87,7 @@ class TokenInfo:
     def isDeleted(self) -> Optional[bool]:
         warnings.warn(
             "TokenInfo.isDeleted is deprecated; use TokenInfo.is_deleted",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.is_deleted
@@ -96,7 +96,7 @@ class TokenInfo:
     def tokenType(self) -> Optional[TokenType]:
         warnings.warn(
             "TokenInfo.tokenType is deprecated; use TokenInfo.token_type",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.token_type
@@ -105,41 +105,61 @@ class TokenInfo:
     def maxSupply(self) -> Optional[int]:
         warnings.warn(
             "TokenInfo.maxSupply is deprecated; use TokenInfo.max_supply",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.max_supply
 
     @property
     def adminKey(self) -> Optional[PublicKey]:
-        warnings.warn("TokenInfo.adminKey is deprecated; use TokenInfo.admin_key", DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "TokenInfo.adminKey is deprecated; use TokenInfo.admin_key", 
+            FutureWarning, 
+            stacklevel=2
+        )
         return self.admin_key
 
     @property
     def kycKey(self) -> Optional[PublicKey]:
-        warnings.warn("TokenInfo.kycKey is deprecated; use TokenInfo.kyc_key", DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "TokenInfo.kycKey is deprecated; use TokenInfo.kyc_key", 
+            FutureWarning, 
+            stacklevel=2
+        )
         return self.kyc_key
 
     @property
     def freezeKey(self) -> Optional[PublicKey]:
-        warnings.warn("TokenInfo.freezeKey is deprecated; use TokenInfo.freeze_key", DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "TokenInfo.freezeKey is deprecated; use TokenInfo.freeze_key", 
+            FutureWarning, 
+            stacklevel=2
+        )
         return self.freeze_key
 
     @property
     def wipeKey(self) -> Optional[PublicKey]:
-        warnings.warn("TokenInfo.wipeKey is deprecated; use TokenInfo.wipe_key", DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "TokenInfo.wipeKey is deprecated; use TokenInfo.wipe_key", 
+            FutureWarning, 
+            stacklevel=2
+        )
         return self.wipe_key
 
     @property
     def supplyKey(self) -> Optional[PublicKey]:
-        warnings.warn("TokenInfo.supplyKey is deprecated; use TokenInfo.supply_key", DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "TokenInfo.supplyKey is deprecated; use TokenInfo.supply_key", 
+            FutureWarning, 
+            stacklevel=2
+        )
         return self.supply_key
     
     @property
     def defaultFreezeStatus(self) -> TokenFreezeStatus:
         warnings.warn(
             "TokenInfo.defaultFreezeStatus is deprecated; use TokenInfo.default_freeze_status",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.default_freeze_status
@@ -148,7 +168,7 @@ class TokenInfo:
     def defaultKycStatus(self) -> TokenKycStatus:
         warnings.warn(
             "TokenInfo.defaultKycStatus is deprecated; use TokenInfo.default_kyc_status",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.default_kyc_status
@@ -157,7 +177,7 @@ class TokenInfo:
     def autoRenewAccount(self) -> Optional[AccountId]:
         warnings.warn(
             "TokenInfo.autoRenewAccount is deprecated; use TokenInfo.auto_renew_account",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.auto_renew_account
@@ -166,7 +186,7 @@ class TokenInfo:
     def autoRenewPeriod(self) -> Optional[Duration]:
         warnings.warn(
             "TokenInfo.autoRenewPeriod is deprecated; use TokenInfo.auto_renew_period",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.auto_renew_period
@@ -175,7 +195,7 @@ class TokenInfo:
     def pauseStatus(self) -> TokenPauseStatus:
         warnings.warn(
             "TokenInfo.pauseStatus is deprecated; use TokenInfo.pause_status",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.pause_status
@@ -184,7 +204,7 @@ class TokenInfo:
     def supplyType(self) -> SupplyType:
         warnings.warn(
             "TokenInfo.supplyType is deprecated; use TokenInfo.supply_type",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return self.supply_type

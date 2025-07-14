@@ -368,6 +368,6 @@ class ResponseCode(IntEnum):
         warnings.warn(
             "The `get_name` method is deprecated and will be removed in 3 months. "
             "Please use `ResponseCode(code).name` instead.", 
-            DeprecationWarning
+            FutureWarning
         )
         return cls(code).name
