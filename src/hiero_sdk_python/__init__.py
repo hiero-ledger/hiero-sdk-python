@@ -83,6 +83,7 @@ from .logger.log_level import LogLevel
 from .file.file_create_transaction import FileCreateTransaction
 from .file.file_info_query import FileInfoQuery
 from .file.file_info import FileInfo
+from .file.file_delete_transaction import FileDeleteTransaction
 
 __all__ = [
     # Client
@@ -147,11 +148,11 @@ __all__ = [
     "TokenNftInfoQuery",
     "TokenInfoQuery",
     "AccountInfoQuery",
-    
+
     # Address book
     "Endpoint",
     "NodeAddress",
-    
+
     # Logger
     "Logger",
     "LogLevel",
@@ -161,9 +162,10 @@ __all__ = [
     "ResponseCode",
     "Timestamp",
     "Duration",
-    
+
     # File
     "FileCreateTransaction",
     "FileInfoQuery",
     "FileInfo",
+    "FileDeleteTransaction",
 ]
