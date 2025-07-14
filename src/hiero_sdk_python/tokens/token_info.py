@@ -22,8 +22,7 @@ from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
 from hiero_sdk_python.tokens.token_type import TokenType
-
-from hedera_sdk_python._deprecated import _DeprecatedAliasesMixin
+from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 
 @dataclass
 class TokenInfo(_DeprecatedAliasesMixin):

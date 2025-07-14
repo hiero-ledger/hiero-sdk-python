@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Optional
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
-from hedera_sdk_python._deprecated import _DeprecatedAliasesMixin
+from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 
 @dataclass(frozen=True)
 class NftId(_DeprecatedAliasesMixin):
