@@ -79,6 +79,8 @@ from .address_book.node_address import NodeAddress
 from .logger.logger import Logger
 from .logger.log_level import LogLevel
 
+# File
+from .file.file_create_transaction import FileCreateTransaction
 
 __all__ = [
     # Client
@@ -156,5 +158,8 @@ __all__ = [
     "Hbar",
     "ResponseCode",
     "Timestamp",
-    "Duration"
+    "Duration",
+    
+    # File
+    "FileCreateTransaction",
 ]

@@ -38,6 +38,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - topicId → topic_id  
 - accountId → account_id 
 
+### Deprecated Additions
+- logger.warn is deprecated and will be removed in a future release. Please use logger.warning instead.
+- get_logger method passing (name, level) will be removed in preference of (level, name) in a future release.
+
 ## [0.1.3] - 2025-07-03
 ### Added
 - TokenType Class
