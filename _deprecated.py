@@ -1,7 +1,13 @@
-# src/hiero_sdk_python/deprecated.py
+"""Provides a mixin to emit FutureWarnings for deprecated camelCase attributes."""
 import warnings
 
-class _DeprecatedAliasesMixin:
+
+class _DeprecatedAliasesMixin:  # pylint: disable=too-few-public-methods
+    """
+    Mixin that maps legacy camelCase names to new snake_case attributes,
+    emitting a FutureWarning at use.
+    """
+
     _ALIASES = {
         "tokenId": "token_id",
         "totalSupply": "total_supply",
@@ -25,10 +31,11 @@ class _DeprecatedAliasesMixin:
     def __getattr__(self, name):
         try:
             snake = self._ALIASES[name]
-        except KeyError:
+        except KeyError as exc:
             raise AttributeError(
                 f"{self.__class__.__name__!r} has no attribute {name!r}"
-            )
+            ) from exc
+
         warnings.warn(
             f"{self.__class__.__name__}.{name} will be deprecated; use .{snake}",
             FutureWarning,
