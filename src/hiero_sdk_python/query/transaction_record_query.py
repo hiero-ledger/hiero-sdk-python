@@ -1,3 +1,4 @@
+from typing import Optional, Any, Union
 from hiero_sdk_python.hapi.services import query_header_pb2, transaction_get_record_pb2, query_pb2
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
@@ -15,12 +16,12 @@ class TransactionRecordQuery(Query):
     Represents a query for a transaction record on the Hedera network.
     """
 
-    def __init__(self, transaction_id: TransactionId = None):
+    def __init__(self, transaction_id: Optional[TransactionId] = None):
         """
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
         super().__init__()
-        self.transaction_id : TransactionId = transaction_id
+        self.transaction_id : Optional[TransactionId] = transaction_id
         
     def set_transaction_id(self, transaction_id: TransactionId):
         """
@@ -86,7 +87,7 @@ class TransactionRecordQuery(Query):
             query_func=channel.crypto.getTxRecordByTxID
         )
 
-    def _should_retry(self, response):
+    def _should_retry(self, response: Any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -128,7 +129,7 @@ class TransactionRecordQuery(Query):
         else:
             return _ExecutionState.ERROR
         
-    def _map_status_error(self, response):
+    def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
@@ -158,7 +159,7 @@ class TransactionRecordQuery(Query):
         receipt = response.transactionGetRecord.transactionRecord.receipt
         
         return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt))
-        
+     
     def execute(self, client):
         """
         Executes the transaction record query.
@@ -184,7 +185,7 @@ class TransactionRecordQuery(Query):
 
         return TransactionRecord._from_proto(response.transactionGetRecord.transactionRecord, self.transaction_id)
 
-    def _get_query_response(self, response):
+    def _get_query_response(self, response: Any):
         """
         Extracts the transaction record response from the full response.
         
