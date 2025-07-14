@@ -10,7 +10,6 @@ statuses, supply details, and timing), with conversion to and from protobuf mess
 
 from dataclasses import dataclass, field
 from typing import Optional
-import warnings
 
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
@@ -24,9 +23,11 @@ from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
 from hiero_sdk_python.tokens.token_type import TokenType
 
+from hedera_sdk_python._deprecated import _DeprecatedAliasesMixin
+
 @dataclass
-class TokenInfo:
-    """Data class for basic token details: ID, name, and symbol."""
+class TokenInfo(_DeprecatedAliasesMixin):
+    """Data class for basic token details: ID, name, and symbol inheriting deprecated aliases."""
     token_id: Optional[TokenId]      = None
     name:     Optional[str]          = None
     symbol:   Optional[str]          = None
@@ -63,152 +64,7 @@ class TokenInfo:
     supply_type: SupplyType = field(
         default_factory=lambda: SupplyType.FINITE
     )
-
-    # === legacy camelCase aliases, deprecated ===
-    @property
-    def tokenId(self) -> Optional[TokenId]:
-        warnings.warn(
-            "TokenInfo.tokenId will be deprecated; use TokenInfo.token_id",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.token_id
-
-    @property
-    def totalSupply(self) -> Optional[int]:
-        warnings.warn(
-            "TokenInfo.totalSupply will be deprecated; use TokenInfo.total_supply",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.total_supply
-
-    @property
-    def isDeleted(self) -> Optional[bool]:
-        warnings.warn(
-            "TokenInfo.isDeleted will be deprecated; use TokenInfo.is_deleted",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.is_deleted
-
-    @property
-    def tokenType(self) -> Optional[TokenType]:
-        warnings.warn(
-            "TokenInfo.tokenType will be deprecated; use TokenInfo.token_type",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.token_type
-
-    @property
-    def maxSupply(self) -> Optional[int]:
-        warnings.warn(
-            "TokenInfo.maxSupply will be deprecated; use TokenInfo.max_supply",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.max_supply
-
-    @property
-    def adminKey(self) -> Optional[PublicKey]:
-        warnings.warn(
-            "TokenInfo.adminKey will be deprecated; use TokenInfo.admin_key", 
-            FutureWarning, 
-            stacklevel=2
-        )
-        return self.admin_key
-
-    @property
-    def kycKey(self) -> Optional[PublicKey]:
-        warnings.warn(
-            "TokenInfo.kycKey will be deprecated; use TokenInfo.kyc_key", 
-            FutureWarning, 
-            stacklevel=2
-        )
-        return self.kyc_key
-
-    @property
-    def freezeKey(self) -> Optional[PublicKey]:
-        warnings.warn(
-            "TokenInfo.freezeKey will be deprecated; use TokenInfo.freeze_key", 
-            FutureWarning, 
-            stacklevel=2
-        )
-        return self.freeze_key
-
-    @property
-    def wipeKey(self) -> Optional[PublicKey]:
-        warnings.warn(
-            "TokenInfo.wipeKey will be deprecated; use TokenInfo.wipe_key", 
-            FutureWarning, 
-            stacklevel=2
-        )
-        return self.wipe_key
-
-    @property
-    def supplyKey(self) -> Optional[PublicKey]:
-        warnings.warn(
-            "TokenInfo.supplyKey will be deprecated; use TokenInfo.supply_key", 
-            FutureWarning, 
-            stacklevel=2
-        )
-        return self.supply_key
     
-    @property
-    def defaultFreezeStatus(self) -> TokenFreezeStatus:
-        warnings.warn(
-            "TokenInfo.defaultFreezeStatus will be deprecated; use TokenInfo.default_freeze_status",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.default_freeze_status
-
-    @property
-    def defaultKycStatus(self) -> TokenKycStatus:
-        warnings.warn(
-            "TokenInfo.defaultKycStatus will be deprecated; use TokenInfo.default_kyc_status",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.default_kyc_status
-
-    @property
-    def autoRenewAccount(self) -> Optional[AccountId]:
-        warnings.warn(
-            "TokenInfo.autoRenewAccount will be deprecated; use TokenInfo.auto_renew_account",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.auto_renew_account
-
-    @property
-    def autoRenewPeriod(self) -> Optional[Duration]:
-        warnings.warn(
-            "TokenInfo.autoRenewPeriod will be deprecated; use TokenInfo.auto_renew_period",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.auto_renew_period
-
-    @property
-    def pauseStatus(self) -> TokenPauseStatus:
-        warnings.warn(
-            "TokenInfo.pauseStatus will be deprecated; use TokenInfo.pause_status",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.pause_status
-
-    @property
-    def supplyType(self) -> SupplyType:
-        warnings.warn(
-            "TokenInfo.supplyType will be deprecated; use TokenInfo.supply_type",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return self.supply_type
-
     # === setter methods ===
     def set_admin_key(self, admin_key: PublicKey):
         """Set the admin key."""
