@@ -366,7 +366,7 @@ class ResponseCode(IntEnum):
         Returns the name of the response code.
         """
         warnings.warn(
-            "The `get_name` method is deprecated and will be removed in 3 months. "
+            "The `get_name` method will be deprecated and will be removed in 3 months. "
             "Please use `ResponseCode(code).name` instead.", 
             FutureWarning
         )

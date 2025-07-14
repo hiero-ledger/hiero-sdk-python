@@ -27,7 +27,7 @@ class NftId:
     @property
     def tokenId(self) -> TokenId:
         warnings.warn(
-            "NftId.tokenId is deprecated; use NftId.token_id",
+            "NftId.tokenId will be deprecated; use NftId.token_id",
             FutureWarning,
             stacklevel=2,
         )
@@ -37,7 +37,7 @@ class NftId:
     def serialNumber(self) -> int:
         """Legacy alias for serial_number (deprecated)."""
         warnings.warn(
-            "NftId.serialNumber is deprecated; use NftId.serial_number",
+            "NftId.serialNumber will be deprecated; use NftId.serial_number",
             FutureWarning,
             stacklevel=2,
         )

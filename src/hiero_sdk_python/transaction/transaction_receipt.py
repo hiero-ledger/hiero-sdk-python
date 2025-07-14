@@ -70,7 +70,7 @@ class TransactionReceipt:
     @property
     def tokenId(self) -> TokenId | None:
         warnings.warn(
-            "TransactionReceipt.tokenId is deprecated; use .token_id instead",
+            "TransactionReceipt.tokenId will be deprecated; use .token_id instead",
             FutureWarning,
             stacklevel=2,
         )
@@ -79,7 +79,7 @@ class TransactionReceipt:
     @property
     def topicId(self) -> TopicId | None:
         warnings.warn(
-            "TransactionReceipt.topicId is deprecated; use .topic_id instead",
+            "TransactionReceipt.topicId will be deprecated; use .topic_id instead",
             FutureWarning,
             stacklevel=2,
         )
@@ -88,7 +88,7 @@ class TransactionReceipt:
     @property
     def accountId(self) -> AccountId | None:
         warnings.warn(
-            "TransactionReceipt.accountId is deprecated; use .account_id instead",
+            "TransactionReceipt.accountId will be deprecated; use .account_id instead",
             FutureWarning,
             stacklevel=2,
         )
