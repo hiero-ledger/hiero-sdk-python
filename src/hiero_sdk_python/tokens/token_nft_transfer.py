@@ -12,7 +12,7 @@ class TokenNftTransfer:
 
     def __init__(
         self,
-        token_id: TokenId
+        token_id: TokenId,
         sender_id: AccountId,
         receiver_id: AccountId,
         serial_number: int,
