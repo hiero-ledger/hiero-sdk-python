@@ -12,9 +12,10 @@ from dataclasses import dataclass, field
 from typing import Optional
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 
 @dataclass(frozen=True, init=False)
-class NftId:
+class NftId(_DeprecatedAliasesMixin):
     """
     A unique identifier for Non-Fungible Tokens (NFTs).
     The NftId has a TokenId and a serial number.
