@@ -8,8 +8,9 @@ Provides TokenInfo, a dataclass representing Hedera token metadata (IDs, keys,
 statuses, supply details, and timing), with conversion to and from protobuf messages.
 """
 
-from dataclasses import dataclass, field
-from typing import Optional
+import warnings
+from dataclasses import dataclass, field, fields
+from typing import Optional, ClassVar, Dict, Any, Callable
 
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
@@ -24,7 +25,7 @@ from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 
-@dataclass
+@dataclass(init=False)
 class TokenInfo(_DeprecatedAliasesMixin):
     """Data class for basic token details: ID, name, and symbol inheriting deprecated aliases."""
     token_id: Optional[TokenId]      = None
@@ -63,6 +64,56 @@ class TokenInfo(_DeprecatedAliasesMixin):
     supply_type: SupplyType = field(
         default_factory=lambda: SupplyType.FINITE
     )
+
+    # map legacy camelCase → snake_case
+    LEGACY_MAP: ClassVar[Dict[str, str]] = {
+        "tokenId":             "token_id",
+        "totalSupply":         "total_supply",
+        "isDeleted":           "is_deleted",
+        "tokenType":           "token_type",
+        "maxSupply":           "max_supply",
+        "metadataKey":         "metadata_key",
+        "feeScheduleKey":      "fee_schedule_key",
+        "defaultFreezeStatus": "default_freeze_status",
+        "defaultKycStatus":    "default_kyc_status",
+        "autoRenewAccount":    "auto_renew_account",
+        "autoRenewPeriod":     "auto_renew_period",
+        "pauseKey":            "pause_key",
+        "pauseStatus":         "pause_status",
+        "supplyType":          "supply_type",
+    }
+
+    def __init__(self, **kwargs: Any):
+        # 1) Translate deprecated camelCase names → snake_case, with warnings
+        for legacy, snake in self.LEGACY_MAP.items():
+            if legacy in kwargs:
+                warnings.warn(
+                    f"TokenInfo({legacy}=...) is deprecated; use {snake}",
+                    FutureWarning,
+                    stacklevel=2,
+                )
+                # only set snake-case if not already provided
+                if snake not in kwargs:
+                    kwargs[snake] = kwargs.pop(legacy)
+                else:
+                    kwargs.pop(legacy)
+
+        # 2) Assign every dataclass field from kwargs (default remains otherwise)
+        for f in fields(self):
+            setattr(self, f.name, kwargs.get(f.name))
+
+    @staticmethod
+    def _apply_key(
+        instance: "TokenInfo",
+        proto_obj: proto_TokenInfo,
+        proto_field: str,
+        setter: Callable[[PublicKey], None],
+    ) -> None:
+        """Helper to extract a PublicKey from the proto and call the right setter."""
+        key_proto = getattr(proto_obj, proto_field)
+        if key_proto.WhichOneof("key"):
+            setter(PublicKey._from_proto(key_proto))
+
     
     # === setter methods ===
     def set_admin_key(self, admin_key: PublicKey):
