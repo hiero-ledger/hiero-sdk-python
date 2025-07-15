@@ -31,10 +31,10 @@ class NftId(_DeprecatedAliasesMixin):
 
     def __init__(
         self,
-        *,
         token_id: Optional[TokenId]      = None,
-        tokenId:  Optional[TokenId]      = None,
         serial_number: Optional[int]     = None,
+        *,
+        tokenId:  Optional[TokenId]      = None,
         serialNumber: Optional[int]      = None,
     ) -> None:
         # Map legacy tokenId -> token_id
