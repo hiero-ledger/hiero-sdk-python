@@ -121,22 +121,32 @@ class TokenInfo(_DeprecatedAliasesMixin):
     def set_admin_key(self, admin_key: PublicKey):
         """Set the admin key."""
         self.admin_key = admin_key
+    # alias for backwards compatibility
+    set_adminKey = set_admin_key
 
     def set_kyc_key(self, kyc_key: PublicKey):
         """Set the KYC key."""
         self.kyc_key = kyc_key
+    # alias for backwards compatibility
+    set_kycKey = set_kyc_key
 
     def set_freeze_key(self, freeze_key: PublicKey):
         """Set the freeze key."""
         self.freeze_key = freeze_key
+    # alias for backwards compatibility
+    set_freezeKey = set_freeze_key
 
     def set_wipe_key(self, wipe_key: PublicKey):
         """Set the wipe key."""
         self.wipe_key = wipe_key
+    # alias for backwards compatibility
+    set_wipeKey = set_wipe_key
 
     def set_supply_key(self, supply_key: PublicKey):
         """Set the supply key."""
         self.supply_key = supply_key
+    # alias for backwards compatibility
+    set_supplyKey = set_supply_key
 
     def set_metadata_key(self, metadata_key: PublicKey):
         """Set the metadata key."""
@@ -149,18 +159,26 @@ class TokenInfo(_DeprecatedAliasesMixin):
     def set_default_freeze_status(self, freeze_status: TokenFreezeStatus):
         """Set the default freeze status."""
         self.default_freeze_status = freeze_status
+    # alias for backwards compatibility
+    set_defaultFreezeStatus = set_default_freeze_status
 
     def set_default_kyc_status(self, kyc_status: TokenKycStatus):
         """Set the default KYC status."""
         self.default_kyc_status = kyc_status
+    # alias for backwards compatibility
+    set_defaultKycStatus = set_default_kyc_status
 
     def set_auto_renew_account(self, account: AccountId):
         """Set the auto-renew account."""
         self.auto_renew_account = account
+    # alias for backwards compatibility
+    set_autoRenewAccount = set_auto_renew_account
 
     def set_auto_renew_period(self, period: Duration):
         """Set the auto-renew period."""
         self.auto_renew_period = period
+    # alias for backwards compatibility
+    set_autoRenewPeriod = set_auto_renew_period
 
     def set_expiry(self, expiry: Timestamp):
         """Set the token expiry."""
@@ -173,6 +191,8 @@ class TokenInfo(_DeprecatedAliasesMixin):
     def set_pause_status(self, pause_status: TokenPauseStatus):
         """Set the pause status."""
         self.pause_status = pause_status
+    # alias for backwards compatibility
+    set_pauseStatus = set_pause_status
 
     def set_supply_type(self, supply_type: SupplyType | int):
         """Set the supply type."""
@@ -181,6 +201,8 @@ class TokenInfo(_DeprecatedAliasesMixin):
             if isinstance(supply_type, SupplyType)
             else SupplyType(supply_type)
         )
+    # alias for backwards compatibility
+    set_supplyType = set_supply_type
 
     def set_metadata(self, metadata: bytes):
         """Set the token metadata."""
