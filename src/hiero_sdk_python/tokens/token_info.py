@@ -9,7 +9,7 @@ statuses, supply details, and timing), with conversion to and from protobuf mess
 """
 
 import warnings
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, MISSING
 from typing import Optional, ClassVar, Dict, Any, Callable
 
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -100,10 +100,19 @@ class TokenInfo(_DeprecatedAliasesMixin):
                 else:
                     kwargs.pop(legacy)
 
-        # 2) Assign every dataclass field from kwargs (only override defaults when provided)
+        # 2) for *every* field, pick either the passed‑in value or the field’s own default/default_factory
         for f in fields(self):
             if f.name in kwargs:
-                setattr(self, f.name, kwargs[f.name])
+                value = kwargs[f.name]
+            else:
+                # dataclass default_factory lives in f.default_factory, default in f.default
+                if getattr(f, "default_factory", MISSING) is not MISSING:
+                    value = f.default_factory()
+                elif f.default is not MISSING:
+                    value = f.default
+                else:
+                    value = None
+            setattr(self, f.name, value)
 
     # === setter methods ===
     def set_admin_key(self, admin_key: PublicKey):
