@@ -40,8 +40,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fileId → file_id
 
 ### Deprecated Additions
-- logger.warn is deprecated and will be removed in a future release. Please use logger.warning instead.
-- get_logger method passing (name, level) will be removed in preference of (level, name) in a future release.
+- logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
+- get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
 
 ## [0.1.3] - 2025-07-03
 ### Added
