@@ -105,19 +105,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
             if f.name in kwargs:
                 setattr(self, f.name, kwargs[f.name])
 
-    @staticmethod
-    def _apply_key(
-        instance: "TokenInfo",
-        proto_obj: proto_TokenInfo,
-        proto_field: str,
-        setter: Callable[[PublicKey], None],
-    ) -> None:
-        """Helper to extract a PublicKey from the proto and call the right setter."""
-        key_proto = getattr(proto_obj, proto_field)
-        if key_proto.WhichOneof("key"):
-            setter(PublicKey._from_proto(key_proto))
-
-    
     # === setter methods ===
     def set_admin_key(self, admin_key: PublicKey):
         """Set the admin key."""
