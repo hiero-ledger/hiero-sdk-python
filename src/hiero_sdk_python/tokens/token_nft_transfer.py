@@ -49,16 +49,25 @@ class TokenNftTransfer:
         )
     
     @classmethod
-    def _from_proto(cls, proto: basic_types_pb2.NftTransfer):
+    def _from_proto(cls, proto: basic_types_pb2.TokenTransferList):
         """
         Creates a TokenNftTransfer from a protobuf representation.
         """
-        return cls(
-            sender_id=AccountId._from_proto(proto.senderAccountID),
-            receiver_id=AccountId._from_proto(proto.receiverAccountID),
-            serial_number=proto.serialNumber,
-            is_approved=proto.is_approval
-        )
+        nftTransfers: list[TokenNftTransfer] = []
+
+        token_id = TokenId._from_proto(proto.token)
+        for nftTransfer in proto.nftTransfers:
+            nftTransfers.append(
+                cls(
+                    token_id = token_id,
+                    sender_id=AccountId._from_proto(nftTransfer.senderAccountID),
+                    receiver_id=AccountId._from_proto(nftTransfer.receiverAccountID),
+                    serial_number=nftTransfer.serialNumber,
+                    is_approved=nftTransfer.is_approval
+                )
+            )
+            
+        return nftTransfers
 
     def __str__(self):
         """

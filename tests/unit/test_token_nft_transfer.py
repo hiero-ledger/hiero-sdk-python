@@ -1,3 +1,4 @@
+from hiero_sdk_python.tokens.token_id import TokenId
 import pytest
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
@@ -71,18 +72,23 @@ def test_to_proto(mock_account_ids):
     
 def test_from_proto(mock_account_ids):
     """Test converting a protobuf object to a TokenNftTransfer"""
-    sender_id, receiver_id, _, _, _ = mock_account_ids
+    sender_id, receiver_id, _, token_id, _ = mock_account_ids
     serial_number = 789
     is_approved = True
     
-    proto = basic_types_pb2.NftTransfer(
-        senderAccountID=sender_id._to_proto(),
-        receiverAccountID=receiver_id._to_proto(),
-        serialNumber=serial_number,
-        is_approval=is_approved
+    proto = basic_types_pb2.TokenTransferList(
+        token = TokenId._to_proto(token_id),
+        nftTransfers= [basic_types_pb2.NftTransfer(
+            senderAccountID=sender_id._to_proto(),
+            receiverAccountID=receiver_id._to_proto(),
+            serialNumber=serial_number,
+            is_approval=is_approved
+        )]
     )
     
     nft_transfer = TokenNftTransfer._from_proto(proto)
     
-    assert nft_transfer.sender_id == sender_id
-    assert nft_transfer.receiver_id == receiver_id
+    assert nft_transfer[0].token_id == token_id
+    assert nft_transfer[0].is_approved == is_approved
+    assert nft_transfer[0].sender_id == sender_id
+    assert nft_transfer[0].receiver_id == receiver_id

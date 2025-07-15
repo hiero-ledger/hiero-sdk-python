@@ -177,6 +177,7 @@ def test_proto_conversion_with_nft_transfers():
     record = TransactionRecord()
     token_id = TokenId(0, 0, 300)
     nft_transfer = TokenNftTransfer(
+        token_id=token_id,
         sender_id=AccountId(0, 0, 100),
         receiver_id=AccountId(0, 0, 200),
         serial_number=1,

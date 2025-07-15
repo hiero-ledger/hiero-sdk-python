@@ -59,8 +59,7 @@ class TransactionRecord:
         nft_transfers = defaultdict(list[TokenNftTransfer])
         for token_transfer_list in proto.tokenTransferLists:
             token_id = TokenId._from_proto(token_transfer_list.token)
-            for nft_transfer in token_transfer_list.nftTransfers:
-                nft_transfers[token_id].append(TokenNftTransfer._from_proto(nft_transfer))
+            nft_transfers[token_id] = TokenNftTransfer._from_proto(token_transfer_list)
         
         transfers = defaultdict(int)
         for transfer in proto.transferList.accountAmounts:
