@@ -30,7 +30,8 @@ class _DeprecatedAliasesMixin:  # pylint: disable=too-few-public-methods
         "serialNumber": "serial_number",
 
         "topicId": "topic_id",
-        "accountId": "account_id"
+        "accountId": "account_id",
+        "fileId": "file_id"
     }
 
     def __getattr__(self, name):

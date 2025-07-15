@@ -79,7 +79,7 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
         return self._receipt_proto.serialNumbers
 
     @property
-    def fileId(self):
+    def file_id(self):
         """
         Returns the file ID associated with this receipt.
         """

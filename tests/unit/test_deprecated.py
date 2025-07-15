@@ -65,3 +65,9 @@ def test_transactionreceipt_deprecated_alias_access():
         acc = tr.accountId
     assert acc is None
     assert "accountId" in str(record_acc[0].message)
+
+    # fileId -> file_id
+    with pytest.warns(FutureWarning) as record_file:
+        fileid = tr.fileId
+    assert fileid is None
+    assert "fileId" in str(record_file[0].message)

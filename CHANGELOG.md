@@ -37,6 +37,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - tokenId → token_id
 - topicId → topic_id  
 - accountId → account_id 
+- fileId → file_id
 
 ### Deprecated Additions
 - logger.warn is deprecated and will be removed in a future release. Please use logger.warning instead.
