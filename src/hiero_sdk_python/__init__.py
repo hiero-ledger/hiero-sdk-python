@@ -83,6 +83,7 @@ from .logger.log_level import LogLevel
 from .file.file_create_transaction import FileCreateTransaction
 from .file.file_info_query import FileInfoQuery
 from .file.file_info import FileInfo
+from .file.file_contents_query import FileContentsQuery
 from .file.file_delete_transaction import FileDeleteTransaction
 
 __all__ = [
@@ -167,5 +168,6 @@ __all__ = [
     "FileCreateTransaction",
     "FileInfoQuery",
     "FileInfo",
+    "FileContentsQuery",
     "FileDeleteTransaction",
 ]
