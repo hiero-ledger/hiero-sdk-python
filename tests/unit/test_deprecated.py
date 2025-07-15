@@ -85,7 +85,6 @@ class DummyProto:
     """Stand‑in for proto_TokenInfo; uses real TokenID/AccountID so ._from_proto accepts them."""
 
     def __init__(self):
-        # scalar fields
         self.name = "Foo"
         self.symbol = "F"
         self.decimals = 2
@@ -124,12 +123,14 @@ class DummyProto:
 
 
 def test_camelcase_init_and_snake_field_assignment():
+    tid = TokenId.from_string("0.0.123")
+
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always", FutureWarning)
-        ti = TokenInfo(tokenId="TID123", totalSupply=500, isDeleted=True)
+        ti = TokenInfo(tokenId=tid, totalSupply=500, isDeleted=True)
         assert any("tokenId" in str(wi.message) for wi in w)
         assert any("totalSupply" in str(wi.message) for wi in w)
-    assert ti.token_id == "TID123"
+    assert ti.token_id == tid
     assert ti.total_supply == 500
     assert ti.is_deleted is True
 
