@@ -21,17 +21,17 @@ class FileInfoQuery(Query):
         Initializes a new FileInfoQuery instance with an optional file_id.
 
         Args:
-            file_id (FileId, optional): The ID of the file to query.
+            file_id (Optional[FileId], optional): The ID of the file to query.
         """
         super().__init__()
         self.file_id : Optional[FileId] = file_id
 
-    def set_file_id(self, file_id: FileId) -> 'FileInfoQuery':
+    def set_file_id(self, file_id: Optional[FileId]) -> 'FileInfoQuery':
         """
         Sets the ID of the file to query. 
 
         Args: 
-            file_id (FileId): The ID of the file. 
+            file_id (Optional[FileId]): The ID of the file. 
 
         Returns:
             FileInfoQuery: Returns self for method chaining. 
