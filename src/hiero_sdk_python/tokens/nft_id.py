@@ -4,25 +4,68 @@ nft_id.py
 Defines NftId, a value object for representing and validating a unique
 Non-Fungible Token (NFT) identifier, including conversion to/from
 Protobuf and string serialization.
+Supports both snake_case and legacy camelCase keyword arguments for backward compatibility.
 """
 import re
-
-from dataclasses import dataclass
+import warnings
+from dataclasses import dataclass, field
 from typing import Optional
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 
-@dataclass(frozen=True)
-class NftId(_DeprecatedAliasesMixin):
+@dataclass(frozen=True, init=False)
+class NftId:
     """
     A unique identifier for Non-Fungible Tokens (NFTs).
     The NftId has a TokenId and a serial number.
-    Imports deprecated aliases for TokenId and SerialNumber.
-    """
 
-    token_id: TokenId
-    serial_number: int
+    Backward-compatible keyword arguments:
+        token_id      (new)
+        serial_number (new)
+        tokenId       (legacy, deprecated)
+        serialNumber  (legacy, deprecated)
+    """
+    token_id: TokenId      = field()
+    serial_number: int     = field()
+
+    def __init__(
+        self,
+        *,
+        token_id: Optional[TokenId]      = None,
+        tokenId:  Optional[TokenId]      = None,
+        serial_number: Optional[int]     = None,
+        serialNumber: Optional[int]      = None,
+    ) -> None:
+        # Map legacy tokenId -> token_id
+        if token_id is None and tokenId is not None:
+            warnings.warn(
+                "NftId(tokenId=…) is deprecated; use token_id",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            token_id = tokenId
+
+        # Map legacy serialNumber -> serial_number
+        if serial_number is None and serialNumber is not None:
+            warnings.warn(
+                "NftId(serialNumber=…) is deprecated; use serial_number",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            serial_number = serialNumber
+
+        # Validate presence
+        if token_id is None:
+            raise TypeError("token_id is required")
+        if serial_number is None:
+            raise TypeError("serial_number is required")
+
+        # Bypass frozen to set attributes
+        object.__setattr__(self, "token_id", token_id)
+        object.__setattr__(self, "serial_number", serial_number)
+
+        # Run validation logic
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         """Validate the NftId after initialization."""
