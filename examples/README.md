@@ -50,6 +50,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Creating a File](#creating-a-file)
   - [Querying File Info](#querying-file-info)
   - [Querying File Contents](#querying-file-contents)
+  - [Updating a File](#updating-a-file)
   - [Deleting a File](#deleting-a-file)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
@@ -186,8 +187,8 @@ transaction = TokenMintTransaction(
     amount=amount,  # lowest denomination, must be positive and not zero
 ).freeze_with(client)
 
-transaction.sign(operator_key)  
-transaction.sign(supply_key)  
+transaction.sign(operator_key)
+transaction.sign(supply_key)
 transaction.execute(client)
 ```
 #### Method Chaining:
@@ -198,8 +199,8 @@ transaction = (
     .set_amount(amount) # lowest denomination, must be positive and not zero
     .freeze_with(client)
 )
-transaction.sign(operator_key)  
-transaction.sign(admin_key)  
+transaction.sign(operator_key)
+transaction.sign(admin_key)
 transaction.execute(client)
 ```
 
@@ -212,8 +213,8 @@ transaction = TokenMintTransaction(
     metadata=metadata  # Bytes for non-fungible tokens (NFTs)
 ).freeze_with(client)
 
-transaction.sign(operator_key)  
-transaction.sign(supply_key)  
+transaction.sign(operator_key)
+transaction.sign(supply_key)
 transaction.execute(client)
 ```
 #### Method Chaining:
@@ -224,8 +225,8 @@ transaction = (
     .set_metadata(metadata)  # Bytes for non-fungible tokens (NFTs)
     .freeze_with(client)
 )
-transaction.sign(operator_key)  
-transaction.sign(admin_key)  
+transaction.sign(operator_key)
+transaction.sign(admin_key)
 transaction.execute(client)
 ```
 
@@ -286,8 +287,8 @@ transaction = (
 transaction = TransferTransaction(
     token_transfers={
         token_id: {
-            operator_id: -amount,  
-            recipient_id: amount   
+            operator_id: -amount,
+            recipient_id: amount
         }
     }
 ).freeze_with(client)
@@ -560,7 +561,7 @@ transaction.execute(client)
     transaction = (
         TokenUpdateNftsTransaction()
         .set_token_id(nft_token_id)
-        .set_serial_numbers(serial_numbers) 
+        .set_serial_numbers(serial_numbers)
         .set_metadata(new_metadata)
         .freeze_with(client)
         .sign(metadata_key)
@@ -628,7 +629,7 @@ transaction = TokenUpdateTransaction(
     token_id=token_id,
     token_params=TokenUpdateParams(
         token_name="UpdateToken",
-        token_symbol="UPD", 
+        token_symbol="UPD",
         token_memo="Updated memo",
         metadata="Updated metadata",
         treasury_account_id=new_account_id
@@ -751,7 +752,7 @@ transaction.execute(client)
     transaction = (
         TransferTransaction()
         .add_hbar_transfer(operator_id, -100000000)  # send 1 HBAR (in tinybars)
-        .add_hbar_transfer(recipient_id, 100000000)  
+        .add_hbar_transfer(recipient_id, 100000000)
         .freeze_with(client)
     )
 
@@ -776,7 +777,7 @@ transaction.execute(client)
     transaction.execute(client)
 ```
 #### Method Chaining:
-``` 
+```
 transaction = (
     TopicCreateTransaction()
     .set_memo("My Super Topic Memo")
@@ -904,10 +905,10 @@ query.subscribe(client)
 ```
 query = (
     TopicMessageQuery()
-    .set_topic_id(topic_id) 
-    .set_start_time(datetime.now(timezone.utc)) 
-    .set_chunking_enabled(True) 
-    .set_limit(0) 
+    .set_topic_id(topic_id)
+    .set_start_time(datetime.now(timezone.utc))
+    .set_chunking_enabled(True)
+    .set_limit(0)
     )
 
 query.subscribe(client)
@@ -981,6 +982,39 @@ file_contents = (
     .execute(client)
 )
 print(str(file_contents)) # decode bytes to string
+
+```
+
+### Updating a File
+
+#### Pythonic Syntax:
+```
+transaction = FileUpdateTransaction(
+    file_id=file_id,
+    keys=[new_file_public_key],
+    contents=b"New File Contents",
+    file_memo="Updated file memo"
+).freeze_with(client)
+
+transaction.sign(current_file_private_key)
+transaction.sign(new_file_private_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+    transaction = (
+        FileUpdateTransaction()
+        .set_file_id(file_id)
+        .set_keys([new_file_public_key])
+        .set_contents(b"New File Contents")
+        .set_file_memo("Updated file memo")
+        .freeze_with(client)
+        .sign(current_file_private_key)
+        .sign(new_file_private_key)
+    )
+
+    transaction.execute(client)
 
 ```
 
