@@ -41,7 +41,7 @@ class NftId(_DeprecatedAliasesMixin):
         if token_id is None and tokenId is not None:
             warnings.warn(
                 "NftId(tokenId=…) is deprecated; use token_id",
-                DeprecationWarning,
+                FutureWarning,
                 stacklevel=2,
             )
             token_id = tokenId
@@ -50,7 +50,7 @@ class NftId(_DeprecatedAliasesMixin):
         if serial_number is None and serialNumber is not None:
             warnings.warn(
                 "NftId(serialNumber=…) is deprecated; use serial_number",
-                DeprecationWarning,
+                FutureWarning,
                 stacklevel=2,
             )
             serial_number = serialNumber

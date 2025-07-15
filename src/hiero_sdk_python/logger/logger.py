@@ -110,7 +110,7 @@ class Logger:
         """Legacy warn method replaced by warning"""
         warnings.warn(
             "Logger.warn() is deprecated; use Logger.warning()",
-            category=DeprecationWarning,
+            category=FutureWarning,
             stacklevel=2,
         )
         # Redirects to activate the new method
