@@ -48,3 +48,15 @@ class _DeprecatedAliasesMixin:  # pylint: disable=too-few-public-methods
             stacklevel=2,
         )
         return getattr(self, snake)
+
+    def __setattr__(self, name, value):
+        # intercept legacy writes
+        if name in self._ALIASES:
+            snake = self._ALIASES[name]
+            warnings.warn(
+                f"{self.__class__.__name__}.{name}= is deprecated; use .{snake}=",
+                FutureWarning,
+                stacklevel=2,
+            )
+            name = snake
+        super().__setattr__(name, value)
