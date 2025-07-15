@@ -72,16 +72,18 @@ class TokenInfo(_DeprecatedAliasesMixin):
         "isDeleted":           "is_deleted",
         "tokenType":           "token_type",
         "maxSupply":           "max_supply",
-        "metadataKey":         "metadata_key",
-        "feeScheduleKey":      "fee_schedule_key",
+        "adminKey":            "admin_key",
+        "kycKey":              "kyc_key",
+        "freezeKey":           "freeze_key",
+        "wipeKey":             "wipe_key",
+        "supplyKey":           "supply_key",
         "defaultFreezeStatus": "default_freeze_status",
         "defaultKycStatus":    "default_kyc_status",
         "autoRenewAccount":    "auto_renew_account",
         "autoRenewPeriod":     "auto_renew_period",
-        "pauseKey":            "pause_key",
         "pauseStatus":         "pause_status",
         "supplyType":          "supply_type",
-    }
+    } 
 
     def __init__(self, **kwargs: Any):
         # 1) Translate deprecated camelCase names → snake_case, with warnings
