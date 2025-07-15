@@ -100,9 +100,10 @@ class TokenInfo(_DeprecatedAliasesMixin):
                 else:
                     kwargs.pop(legacy)
 
-        # 2) Assign every dataclass field from kwargs (default remains otherwise)
+        # 2) Assign every dataclass field from kwargs (only override defaults when provided)
         for f in fields(self):
-            setattr(self, f.name, kwargs.get(f.name))
+            if f.name in kwargs:
+                setattr(self, f.name, kwargs[f.name])
 
     @staticmethod
     def _apply_key(
