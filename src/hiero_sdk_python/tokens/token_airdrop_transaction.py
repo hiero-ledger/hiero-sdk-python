@@ -104,7 +104,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
             TokenAirdropTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        self._add_nft_transfer(nft_id.tokenId, sender, receiver, nft_id.serialNumber)
+        self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number)
         return self
     
     def add_approved_nft_transfer(self, nft_id: NftId, sender: AccountId, receiver: AccountId) -> 'TokenAirdropTransaction':
@@ -120,7 +120,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
             TokenAirdropTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        self._add_nft_transfer(nft_id.tokenId, sender, receiver, nft_id.serialNumber,True)
+        self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number,True)
         return self
     
     def build_transaction_body(self):
