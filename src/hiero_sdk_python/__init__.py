@@ -82,6 +82,7 @@ from .logger.log_level import LogLevel
 # File
 from .file.file_create_transaction import FileCreateTransaction
 from .file.file_info_query import FileInfoQuery
+from .file.file_info import FileInfo
 
 __all__ = [
     # Client
@@ -164,4 +165,5 @@ __all__ = [
     # File
     "FileCreateTransaction",
     "FileInfoQuery",
+    "FileInfo",
 ]
