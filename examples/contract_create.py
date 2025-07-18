@@ -1,0 +1,77 @@
+import os
+import sys
+from dotenv import load_dotenv
+
+from hiero_sdk_python import (
+    Client,
+    AccountId,
+    PrivateKey,
+    Network,
+)
+from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
+from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+from hiero_sdk_python.response_code import ResponseCode
+
+# This is the bytecode for a simple contract
+TEST_CONTRACT_BYTECODE = "608060405234801561001057600080fd5b506040516105b53803806105b58339810180604052602081101561003357600080fd5b81019080805164010000000081111561004b57600080fd5b8281019050602081018481111561006157600080fd5b815185600182028301116401000000008211171561007e57600080fd5b5050929190505050336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555080600190805190602001906100dc9291906100e3565b5050610188565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061012457805160ff1916838001178555610152565b82800160010185558215610152579182015b82811115610151578251825591602001919060010190610136565b5b50905061015f9190610163565b5090565b61018591905b80821115610181576000816000905550600101610169565b5090565b90565b61041e806101976000396000f3fe608060405260043610610051576000357c0100000000000000000000000000000000000000000000000000000000900480632e9826021461005657806332af2edb1461011e57806341c0e1b5146101ae575b600080fd5b34801561006257600080fd5b5061011c6004803603602081101561007957600080fd5b810190808035906020019064010000000081111561009657600080fd5b8201836020820111156100a857600080fd5b803590602001918460018302840111640100000000831117156100ca57600080fd5b91908080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f8201169050808301925050505050505091929192905050506101c5565b005b34801561012a57600080fd5b5061013361023b565b6040518080602001828103825283818151815260200191508051906020019080838360005b83811015610173578082015181840152602081019050610158565b50505050905090810190601f1680156101a05780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b3480156101ba57600080fd5b506101c36102dd565b005b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614151561022057610238565b806001908051906020019061023692919061034d565b505b50565b606060018054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156102d35780601f106102a8576101008083540402835291602001916102d3565b820191906000526020600020905b8154815290600101906020018083116102b657829003601f168201915b5050505050905090565b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff16141561034b573373ffffffffffffffffffffffffffffffffffffffff16ff5b565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061038e57805160ff19168380011785556103bc565b828001600101855582156103bc579182015b828111156103bb5782518255916020019190600101906103a0565b5b5090506103c991906103cd565b5090565b6103ef91905b808211156103eb5760008160009055506001016103d3565b5090565b9056fea165627a7a723058205bc51f3c02bca7abe02f8ee926f92193a831c738cbef2c9590fc6d0f1ff7807d0029"
+
+load_dotenv(override=True)
+
+def setup_client():
+    """Initialize and set up the client with operator account"""
+    network = Network(network='testnet')
+    client = Client(network)
+
+    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
+    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    client.set_operator(operator_id, operator_key)
+
+    return client
+
+def create_contract_file(client):
+    """Create a file containing the contract bytecode"""
+    file_receipt = (
+        FileCreateTransaction()
+        .set_keys(client.operator_private_key.public_key())
+        .set_contents(TEST_CONTRACT_BYTECODE)
+        .set_file_memo("Contract bytecode file")
+        .execute(client)
+    )
+
+    # Check if file creation was successful
+    if file_receipt.status != ResponseCode.SUCCESS:
+        print(f"File creation failed with status: {ResponseCode(file_receipt.status).name}")
+        sys.exit(1)
+
+    return file_receipt.file_id
+
+def contract_create():
+    """
+    Demonstrates creating a contract on the network by:
+    1. Setting up client with operator account
+    2. Creating a file containing contract bytecode
+    3. Creating a contract using the file
+    """
+    client = setup_client()
+
+    file_id = create_contract_file(client)
+
+    # Create contract using the file
+    receipt = (
+        ContractCreateTransaction()
+        .set_bytecode_file_id(file_id)
+        .set_gas(2000000)
+        .set_contract_memo("My first smart contract")
+        .execute(client)
+    )
+    
+    # Check if contract creation was successful
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"Contract creation failed with status: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
+
+    contract_id = receipt.contract_id
+    print(f"Contract created successfully with ID: {contract_id}")
+
+if __name__ == "__main__":
+    contract_create()

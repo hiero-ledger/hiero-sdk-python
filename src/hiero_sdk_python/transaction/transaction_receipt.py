@@ -1,4 +1,5 @@
 import warnings 
+from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.consensus.topic_id import TopicId
@@ -97,6 +98,19 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
             TransactionId: The transaction ID.
         """
         return self._transaction_id
+
+    @property
+    def contract_id(self):
+        """
+        Returns the contract ID associated with this receipt.
+
+        Returns:
+            ContractId or None: The ContractId if present; otherwise, None.
+        """
+        if self._receipt_proto.HasField('contractID') and self._receipt_proto.contractID.contractNum != 0:
+            return ContractId._from_proto(self._receipt_proto.contractID)
+        else:
+            return None
 
     def _to_proto(self):
         """
