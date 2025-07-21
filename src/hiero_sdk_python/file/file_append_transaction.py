@@ -19,7 +19,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.hapi.services import file_append_pb2
+from hiero_sdk_python.hapi.services import file_append_pb2, timestamp_pb2
 
 # pylint: disable=too-many-instance-attributes
 class FileAppendTransaction(Transaction):
@@ -177,7 +177,7 @@ class FileAppendTransaction(Transaction):
             chunk_contents = self.contents[start_index:end_index]
 
         file_append_body = file_append_pb2.FileAppendTransactionBody(
-            fileID=self.file_id.to_proto() if self.file_id else None,
+            fileID=self.file_id._to_proto() if self.file_id else None,
             contents=chunk_contents
         )
 
@@ -267,7 +267,11 @@ class FileAppendTransaction(Transaction):
                 chunk_transaction_id = self.transaction_id
             else:
                 # Subsequent chunks get incremented timestamps
-                chunk_valid_start = base_timestamp + i
+                # Add i nanoseconds to space out chunks
+                chunk_valid_start = timestamp_pb2.Timestamp(
+                    seconds=base_timestamp.seconds,
+                    nanos=base_timestamp.nanos + i
+                )
                 chunk_transaction_id = TransactionId(
                     account_id=self.transaction_id.account_id,
                     valid_start=chunk_valid_start
@@ -278,12 +282,12 @@ class FileAppendTransaction(Transaction):
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
         for node in client.network.nodes:
-            self.node_account_id = node.account_id
+            self.node_account_id = node._account_id
             transaction_body = self.build_transaction_body()
-            self._transaction_body_bytes[node.account_id] = transaction_body.SerializeToString()
+            self._transaction_body_bytes[node._account_id] = transaction_body.SerializeToString()
 
         # Set the node account id to the current node in the network
-        self.node_account_id = client.network.current_node.account_id
+        self.node_account_id = client.network.current_node._account_id
 
         return self
 
