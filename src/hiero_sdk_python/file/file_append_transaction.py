@@ -8,13 +8,7 @@ from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.hapi.services import timestamp_pb2
-
-# Import protobuf - this will be available after running generate_proto.sh
-try:
-    from hiero_sdk_python.hapi.services import file_append_pb2
-except ImportError:
-    # Fallback for when protobuf hasn't been generated yet
-    file_append_pb2 = None
+from hiero_sdk_python.hapi.services import file_append_pb2
 
 class FileAppendTransaction(Transaction):
     """
