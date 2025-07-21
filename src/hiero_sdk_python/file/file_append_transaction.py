@@ -36,16 +36,14 @@ class FileAppendTransaction(Transaction):
                 Strings will be automatically encoded as UTF-8 bytes.
             max_chunks (Optional[int], optional): Maximum number of chunks allowed. Defaults to 20.
             chunk_size (Optional[int], optional): Size of each chunk in bytes. Defaults to 4096.
-            chunk_interval (Optional[int], optional): Interval between chunks in nanoseconds. Defaults to 10.
         """
         super().__init__()
         self.file_id: Optional[FileId] = self._parse_file_id(file_id)
         self.contents: Optional[bytes] = self._encode_contents(contents)
         self.max_chunks: int = max_chunks if max_chunks is not None else 20
         self.chunk_size: int = chunk_size if chunk_size is not None else 4096
-        self.chunk_interval: int = chunk_interval if chunk_interval is not None else 10
         self._default_transaction_fee = Hbar(5).to_tinybars()
-        
+
         # Internal tracking for chunking
         self._current_chunk_index: int = 0
         self._total_chunks: int = self._calculate_total_chunks()
@@ -161,20 +159,6 @@ class FileAppendTransaction(Transaction):
         self._require_not_frozen()
         self.chunk_size = chunk_size
         self._total_chunks = self._calculate_total_chunks()
-        return self
-
-    def set_chunk_interval(self, chunk_interval: int) -> 'FileAppendTransaction':
-        """
-        Sets the chunk interval for this transaction.
-
-        Args:
-            chunk_interval (int): The interval between chunks in nanoseconds.
-
-        Returns:
-            FileAppendTransaction: This transaction instance.
-        """
-        self._require_not_frozen()
-        self.chunk_interval = chunk_interval
         return self
 
     def build_transaction_body(self):

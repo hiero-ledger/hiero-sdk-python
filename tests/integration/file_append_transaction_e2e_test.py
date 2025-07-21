@@ -210,13 +210,11 @@ def test_integration_file_append_transaction_custom_chunk_settings(env):
         .set_file_id(file_id) 
         .set_contents(test_content)
         .set_chunk_size(1000)  # 1KB chunks
-        .set_chunk_interval(50)  # 50ns interval
         .set_max_chunks(10)  # Max 10 chunks
     )
     
     # Verify settings are applied
     assert append_tx.chunk_size == 1000
-    assert append_tx.chunk_interval == 50
     assert append_tx.max_chunks == 10
     
     # Should require 5 chunks (5000 bytes / 1000 bytes per chunk)
@@ -309,7 +307,6 @@ def test_integration_file_append_transaction_method_chaining(env):
         .set_file_id(file_id)
         .set_contents(b"Method chaining test")
         .set_chunk_size(2048)
-        .set_chunk_interval(100)
         .set_max_chunks(15)
     )
     
@@ -317,7 +314,6 @@ def test_integration_file_append_transaction_method_chaining(env):
     assert append_tx.file_id == file_id
     assert append_tx.contents == b"Method chaining test"
     assert append_tx.chunk_size == 2048
-    assert append_tx.chunk_interval == 100
     assert append_tx.max_chunks == 15
     
     append_receipt = append_tx.execute(env.client)

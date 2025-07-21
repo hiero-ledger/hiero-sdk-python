@@ -26,14 +26,12 @@ def test_constructor_with_parameters():
         contents=contents,
         max_chunks=10,
         chunk_size=2048,
-        chunk_interval=5
     )
 
     assert file_tx.file_id == file_id
     assert file_tx.contents == contents
     assert file_tx.max_chunks == 10
     assert file_tx.chunk_size == 2048
-    assert file_tx.chunk_interval == 5
     assert file_tx._default_transaction_fee == Hbar(5).to_tinybars()
 
 def test_constructor_with_string_file_id():
@@ -56,7 +54,6 @@ def test_set_methods():
         ('set_contents', contents, 'contents'),
         ('set_max_chunks', 15, 'max_chunks'),
         ('set_chunk_size', 1024, 'chunk_size'),
-        ('set_chunk_interval', 20, 'chunk_interval')
     ]
 
     for method_name, value, attr_name in test_cases:
@@ -136,7 +133,7 @@ def test_freeze_with_generates_transaction_ids():
     
     # Subsequent transaction IDs should have incremented timestamps
     for i in range(1, len(file_tx._transaction_ids)):
-        expected_nanos = mock_transaction_id.valid_start.nanos + (i * file_tx.chunk_interval)
+        expected_nanos = mock_transaction_id.valid_start.nanos + i
         assert file_tx._transaction_ids[i].valid_start.nanos == expected_nanos
 
 def test_validate_chunking():
