@@ -23,10 +23,7 @@ class FileAppendTransaction(Transaction):
     Inherits from the base Transaction class and implements the required methods
     to build and execute a file append transaction.
     """
-    
-    def __init__(self, file_id: Optional[FileId | str] = None, contents: Optional[str | bytes] = None, 
-                 max_chunks: Optional[int] = None, chunk_size: Optional[int] = None, 
-                 chunk_interval: Optional[int] = None):
+    def __init__(self, file_id: Optional[FileId] = None, contents: Optional[str | bytes] = None,
         """
         Initializes a new FileAppendTransaction instance with the specified parameters.
 
@@ -38,7 +35,7 @@ class FileAppendTransaction(Transaction):
             chunk_size (Optional[int], optional): Size of each chunk in bytes. Defaults to 4096.
         """
         super().__init__()
-        self.file_id: Optional[FileId] = self._parse_file_id(file_id)
+        self.file_id: Optional[FileId] = file_id
         self.contents: Optional[bytes] = self._encode_contents(contents)
         self.max_chunks: int = max_chunks if max_chunks is not None else 20
         self.chunk_size: int = chunk_size if chunk_size is not None else 4096
@@ -49,22 +46,6 @@ class FileAppendTransaction(Transaction):
         self._total_chunks: int = self._calculate_total_chunks()
         self._transaction_ids: list[TransactionId] = []
         self._signing_keys: list = []  # Store all signing keys for multi-chunk transactions
-
-    def _parse_file_id(self, file_id: Optional[FileId | str]) -> Optional[FileId]:
-        """
-        Helper method to parse file_id from string or FileId object.
-        
-        Args:
-            file_id (Optional[FileId | str]): The file ID to parse.
-            
-        Returns:
-            Optional[FileId]: The parsed FileId object or None.
-        """
-        if file_id is None:
-            return None
-        if isinstance(file_id, str):
-            return FileId.from_string(file_id)
-        return file_id
 
     def _encode_contents(self, contents: Optional[str | bytes]) -> Optional[bytes]:
         """
@@ -102,7 +83,7 @@ class FileAppendTransaction(Transaction):
         """
         return self._calculate_total_chunks()
 
-    def set_file_id(self, file_id: FileId | str) -> 'FileAppendTransaction':
+    def set_file_id(self, file_id: FileId) -> 'FileAppendTransaction':
         """
         Sets the file ID for this file append transaction.
 
@@ -113,7 +94,7 @@ class FileAppendTransaction(Transaction):
             FileAppendTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        self.file_id = self._parse_file_id(file_id)
+        self.file_id = file_id
         return self
 
     def set_contents(self, contents: Optional[str | bytes]) -> 'FileAppendTransaction':
