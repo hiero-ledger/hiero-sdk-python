@@ -1,19 +1,25 @@
-from typing import Optional
+# pylint: disable=too-many-instance-attributes
+"""
+ContractCreateTransaction class.
+"""
+
 from dataclasses import dataclass
-from hiero_sdk_python.contract.contract_function_parameters import (
-    ContractFunctionParameters
-)
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.file.file_id import FileId
+from typing import Optional
+
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services.contract_create_pb2 import (
-    ContractCreateTransactionBody
+from hiero_sdk_python.contract.contract_function_parameters import (
+    ContractFunctionParameters,
 )
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hapi.services.contract_create_pb2 import (
+    ContractCreateTransactionBody,
+)
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.transaction.transaction import Transaction
 
 DEFAULT_AUTO_RENEW_PERIOD = 90 * 24 * 60 * 60  # 90 days in seconds
 
@@ -43,9 +49,10 @@ class ContractCreateParams:
         staked_node_id (optional): The node ID to stake to.
         decline_reward (optional): Whether to decline staking rewards.
     """
+
     bytecode_file_id: Optional[FileId] = None
     proxy_account_id: Optional[AccountId] = None
-    admin_key: Optional[PrivateKey] = None
+    admin_key: Optional[PublicKey] = None
     gas: Optional[int] = None
     initial_balance: Optional[int] = None
     auto_renew_period: Duration = Duration(DEFAULT_AUTO_RENEW_PERIOD)
@@ -57,6 +64,7 @@ class ContractCreateParams:
     staked_account_id: Optional[AccountId] = None
     staked_node_id: Optional[int] = None
     decline_reward: Optional[bool] = None
+
 
 class ContractCreateTransaction(Transaction):
     """
@@ -71,10 +79,7 @@ class ContractCreateTransaction(Transaction):
             contract creation.
     """
 
-    def __init__(
-        self,
-        contract_params: Optional[ContractCreateParams] = None
-    ):
+    def __init__(self, contract_params: Optional[ContractCreateParams] = None):
         """
         Initializes a new ContractCreateTransaction instance.
 
@@ -87,16 +92,14 @@ class ContractCreateTransaction(Transaction):
         params = contract_params or ContractCreateParams()
         self.bytecode_file_id: Optional[FileId] = params.bytecode_file_id
         self.proxy_account_id: Optional[AccountId] = params.proxy_account_id
-        self.admin_key: Optional[PrivateKey] = params.admin_key
+        self.admin_key: Optional[PublicKey] = params.admin_key
         self.gas: Optional[int] = params.gas
         self.initial_balance: Optional[int] = params.initial_balance
         self.auto_renew_period: Duration = params.auto_renew_period
         self.parameters: Optional[bytes] = params.parameters
         self.contract_memo: Optional[str] = params.contract_memo
         self.bytecode: Optional[bytes] = params.bytecode
-        self.auto_renew_account_id: Optional[AccountId] = (
-            params.auto_renew_account_id
-        )
+        self.auto_renew_account_id: Optional[AccountId] = params.auto_renew_account_id
         self.max_automatic_token_associations: Optional[int] = (
             params.max_automatic_token_associations
         )
@@ -107,9 +110,8 @@ class ContractCreateTransaction(Transaction):
         self._default_transaction_fee = Hbar(20).to_tinybars()
 
     def set_bytecode_file_id(
-        self,
-        bytecode_file_id: Optional[FileId]
-    ) -> 'ContractCreateTransaction':
+        self, bytecode_file_id: Optional[FileId]
+    ) -> "ContractCreateTransaction":
         """
         Sets the FileID of the file containing the contract bytecode.
 
@@ -124,10 +126,7 @@ class ContractCreateTransaction(Transaction):
         self.bytecode_file_id = bytecode_file_id
         return self
 
-    def set_bytecode(
-        self,
-        code: Optional[bytes]
-    ) -> 'ContractCreateTransaction':
+    def set_bytecode(self, code: Optional[bytes]) -> "ContractCreateTransaction":
         """
         Sets the bytecode for the contract.
 
@@ -146,9 +145,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_proxy_account_id(
-        self,
-        proxy_account_id: Optional[AccountId]
-    ) -> 'ContractCreateTransaction':
+        self, proxy_account_id: Optional[AccountId]
+    ) -> "ContractCreateTransaction":
         """
         Sets the proxy account ID for the contract.
 
@@ -163,14 +161,13 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_admin_key(
-        self,
-        admin_key: Optional[PrivateKey]
-    ) -> 'ContractCreateTransaction':
+        self, admin_key: Optional[PublicKey]
+    ) -> "ContractCreateTransaction":
         """
         Sets the admin key for the contract.
 
         Args:
-            admin_key (Optional[PrivateKey]): The admin key.
+            admin_key (Optional[PublicKey]): The admin key.
 
         Returns:
             ContractCreateTransaction: This transaction instance.
@@ -179,10 +176,7 @@ class ContractCreateTransaction(Transaction):
         self.admin_key = admin_key
         return self
 
-    def set_gas(
-        self,
-        gas: Optional[int]
-    ) -> 'ContractCreateTransaction':
+    def set_gas(self, gas: Optional[int]) -> "ContractCreateTransaction":
         """
         Sets the gas limit for contract creation.
 
@@ -197,9 +191,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_initial_balance(
-        self,
-        initial_balance: Optional[int]
-    ) -> 'ContractCreateTransaction':
+        self, initial_balance: Optional[int]
+    ) -> "ContractCreateTransaction":
         """
         Sets the initial balance for the contract in tinybars.
 
@@ -214,9 +207,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_auto_renew_period(
-        self,
-        auto_renew_period: Duration
-    ) -> 'ContractCreateTransaction':
+        self, auto_renew_period: Duration
+    ) -> "ContractCreateTransaction":
         """
         Sets the auto-renewal period for the contract.
 
@@ -231,9 +223,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_constructor_parameters(
-        self,
-        parameters: Optional[ContractFunctionParameters | bytes]
-    ) -> 'ContractCreateTransaction':
+        self, parameters: Optional[ContractFunctionParameters | bytes]
+    ) -> "ContractCreateTransaction":
         """
         Sets the constructor parameters for the contract.
 
@@ -252,9 +243,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_contract_memo(
-        self,
-        contract_memo: Optional[str]
-    ) -> 'ContractCreateTransaction':
+        self, contract_memo: Optional[str]
+    ) -> "ContractCreateTransaction":
         """
         Sets the contract_memo for the contract.
 
@@ -269,9 +259,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_auto_renew_account_id(
-        self,
-        auto_renew_account_id: Optional[AccountId]
-    ) -> 'ContractCreateTransaction':
+        self, auto_renew_account_id: Optional[AccountId]
+    ) -> "ContractCreateTransaction":
         """
         Sets the account ID that will pay for auto-renewal.
 
@@ -287,9 +276,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_max_automatic_token_associations(
-        self,
-        max_automatic_token_associations: Optional[int]
-    ) -> 'ContractCreateTransaction':
+        self, max_automatic_token_associations: Optional[int]
+    ) -> "ContractCreateTransaction":
         """
         Sets the maximum number of automatic token associations.
 
@@ -305,9 +293,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_staked_account_id(
-        self,
-        staked_account_id: Optional[AccountId]
-    ) -> 'ContractCreateTransaction':
+        self, staked_account_id: Optional[AccountId]
+    ) -> "ContractCreateTransaction":
         """
         Sets the account ID to stake to.
 
@@ -322,9 +309,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_staked_node_id(
-        self,
-        staked_node_id: Optional[int]
-    ) -> 'ContractCreateTransaction':
+        self, staked_node_id: Optional[int]
+    ) -> "ContractCreateTransaction":
         """
         Sets the node ID to stake to.
 
@@ -339,9 +325,8 @@ class ContractCreateTransaction(Transaction):
         return self
 
     def set_decline_reward(
-        self,
-        decline_reward: Optional[bool]
-    ) -> 'ContractCreateTransaction':
+        self, decline_reward: Optional[bool]
+    ) -> "ContractCreateTransaction":
         """
         Sets whether to decline staking rewards.
 
@@ -356,6 +341,16 @@ class ContractCreateTransaction(Transaction):
         self.decline_reward = decline_reward
         return self
 
+    def _validate_parameters(self):
+        """
+        Validates the parameters for the contract creation transaction.
+        """
+        if self.bytecode_file_id is None and self.bytecode is None:
+            raise ValueError("Either bytecode_file_id or bytecode must be provided")
+
+        if self.gas is None:
+            raise ValueError("Gas limit must be provided")
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for contract creation.
@@ -367,11 +362,7 @@ class ContractCreateTransaction(Transaction):
         Raises:
             ValueError: If required fields are missing.
         """
-        if self.bytecode_file_id is None and self.bytecode is None:
-            raise ValueError("Either bytecode_file_id or bytecode must be provided")
-
-        if self.gas is None:
-            raise ValueError("Gas limit must be provided")
+        self._validate_parameters()
 
         contract_create_body = ContractCreateTransactionBody(
             gas=self.gas,
@@ -379,13 +370,23 @@ class ContractCreateTransaction(Transaction):
             constructorParameters=self.parameters,
             memo=self.contract_memo,
             max_automatic_token_associations=self.max_automatic_token_associations,
-            decline_reward=self.decline_reward if self.decline_reward is not None else False,
-            auto_renew_account_id=self.auto_renew_account_id._to_proto() if self.auto_renew_account_id else None,
-            staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None,
+            decline_reward=(
+                self.decline_reward if self.decline_reward is not None else False
+            ),
+            auto_renew_account_id=(
+                self.auto_renew_account_id._to_proto()
+                if self.auto_renew_account_id
+                else None
+            ),
+            staked_account_id=(
+                self.staked_account_id._to_proto() if self.staked_account_id else None
+            ),
             staked_node_id=self.staked_node_id,
             autoRenewPeriod=self.auto_renew_period._to_proto(),
-            proxyAccountID=self.proxy_account_id._to_proto() if self.proxy_account_id else None,
-            adminKey=self.admin_key.public_key()._to_proto() if self.admin_key else None,
+            proxyAccountID=(
+                self.proxy_account_id._to_proto() if self.proxy_account_id else None
+            ),
+            adminKey=(self.admin_key._to_proto() if self.admin_key else None),
             fileID=self.bytecode_file_id._to_proto() if self.bytecode_file_id else None,
             initcode=self.bytecode,
         )
@@ -407,6 +408,5 @@ class ContractCreateTransaction(Transaction):
                 create contracts.
         """
         return _Method(
-            transaction_func=channel.smart_contract.createContract,
-            query_func=None
+            transaction_func=channel.smart_contract.createContract, query_func=None
         )

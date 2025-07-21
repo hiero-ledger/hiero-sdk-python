@@ -40,7 +40,7 @@ def test_integration_contract_create_transaction_can_execute(env):
 
     receipt = (
         ContractCreateTransaction()
-        .set_admin_key(env.operator_key)
+        .set_admin_key(env.operator_key.public_key())
         .set_gas(CONTRACT_DEPLOY_GAS)
         .set_bytecode_file_id(file_id)
         .set_contract_memo("some test contract create transaction memo")
@@ -79,7 +79,7 @@ def test_integration_contract_create_transaction_with_constructor(env):
 
     receipt = (
         ContractCreateTransaction()
-        .set_admin_key(env.operator_key)
+        .set_admin_key(env.operator_key.public_key())
         .set_gas(CONTRACT_DEPLOY_GAS)
         .set_bytecode_file_id(file_id)
         .set_constructor_parameters(params)
@@ -102,7 +102,7 @@ def test_integration_contract_create_transaction_set_bytecode(env):
 
     receipt = (
         ContractCreateTransaction()
-        .set_admin_key(env.operator_key)
+        .set_admin_key(env.operator_key.public_key())
         .set_gas(CONTRACT_DEPLOY_GAS)
         .set_bytecode(bytecode)
         .execute(env.client)
