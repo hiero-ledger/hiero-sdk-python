@@ -31,6 +31,17 @@ class FileId:
             file=file_id_proto.fileNum
         )
     
+    @classmethod
+    def from_proto(cls, file_id_proto: basic_types_pb2.FileID) -> 'FileId':
+        """
+        Creates a FileId instance from a protobuf FileID object.
+        """
+        return cls(
+            shard=file_id_proto.shardNum,
+            realm=file_id_proto.realmNum,
+            file=file_id_proto.fileNum
+        )
+
     def _to_proto(self) -> basic_types_pb2.FileID:
         """
         Converts the FileId instance to a protobuf FileID object.

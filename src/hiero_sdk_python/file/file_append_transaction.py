@@ -1,3 +1,16 @@
+"""
+Represents a file append transaction on the network.
+
+This transaction appends data to an existing file on the network. If a file has multiple keys,
+all keys must sign to modify its contents.
+
+The transaction supports chunking for large files, automatically breaking content into
+smaller chunks if the content exceeds the chunk size limit.
+
+Inherits from the base Transaction class and implements the required methods
+to build and execute a file append transaction.
+"""
+
 import math
 from typing import Optional
 from hiero_sdk_python.file.file_id import FileId
@@ -6,10 +19,9 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.hapi.services import file_append_pb2
 
+# pylint: disable=too-many-instance-attributes
 class FileAppendTransaction(Transaction):
     """
     Represents a file append transaction on the network.
@@ -24,13 +36,14 @@ class FileAppendTransaction(Transaction):
     to build and execute a file append transaction.
     """
     def __init__(self, file_id: Optional[FileId] = None, contents: Optional[str | bytes] = None,
+                 max_chunks: Optional[int] = None, chunk_size: Optional[int] = None):
         """
         Initializes a new FileAppendTransaction instance with the specified parameters.
 
         Args:
             file_id (Optional[FileId | str], optional): The ID of the file to append to.
-            contents (Optional[str | bytes], optional): The contents to append to the file. 
-                Strings will be automatically encoded as UTF-8 bytes.
+            contents (Optional[str | bytes], optional): The contents to append to the file.                 
+            Strings will be automatically encoded as UTF-8 bytes.
             max_chunks (Optional[int], optional): Maximum number of chunks allowed. Defaults to 20.
             chunk_size (Optional[int], optional): Size of each chunk in bytes. Defaults to 4096.
         """
@@ -154,7 +167,7 @@ class FileAppendTransaction(Transaction):
                 "file_append_pb2 module not found. Please run generate_proto.sh to generate "
                 "the required protobuf files."
             )
-        
+
         # Calculate the current chunk's content
         if self.contents is None:
             chunk_contents = b''
@@ -164,10 +177,10 @@ class FileAppendTransaction(Transaction):
             chunk_contents = self.contents[start_index:end_index]
 
         file_append_body = file_append_pb2.FileAppendTransactionBody(
-            fileID=self.file_id._to_proto() if self.file_id else None,
+            fileID=self.file_id.to_proto() if self.file_id else None,
             contents=chunk_contents
         )
-        
+
         transaction_body = self.build_base_transaction_body()
         transaction_body.fileAppend.CopyFrom(file_append_body)
         return transaction_body
@@ -205,8 +218,8 @@ class FileAppendTransaction(Transaction):
                 "file_append_pb2 module not found. Please run generate_proto.sh to generate "
                 "the required protobuf files."
             )
-        
-        self.file_id = FileId._from_proto(proto.fileID) if proto.fileID else None
+
+        self.file_id = FileId.from_proto(proto.fileID) if proto.fileID else None
         self.contents = proto.contents
         self._total_chunks = self._calculate_total_chunks()
         return self
@@ -240,41 +253,38 @@ class FileAppendTransaction(Transaction):
         """
         if self._transaction_body_bytes:
             return self
-        
+
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
-        
+
         # Generate transaction IDs for all chunks
         self._transaction_ids = []
         base_timestamp = self.transaction_id.valid_start
-        
+
         for i in range(self.get_required_chunks()):
             if i == 0:
                 # First chunk uses the original transaction ID
                 chunk_transaction_id = self.transaction_id
             else:
                 # Subsequent chunks get incremented timestamps
-                incremented_nanos = base_timestamp.nanos + (i * self.chunk_interval)
-                chunk_valid_start = timestamp_pb2.Timestamp(
-                    seconds=base_timestamp.seconds,
-                    nanos=incremented_nanos
-                )
+                chunk_valid_start = base_timestamp + i
                 chunk_transaction_id = TransactionId(
                     account_id=self.transaction_id.account_id,
                     valid_start=chunk_valid_start
                 )
             self._transaction_ids.append(chunk_transaction_id)
-        
+
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
         for node in client.network.nodes:
-            self.node_account_id = node._account_id
-            self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
-        
+            self.node_account_id = node.account_id
+            transaction_body = self.build_transaction_body()
+            self._transaction_body_bytes[node.account_id] = transaction_body.SerializeToString()
+
         # Set the node account id to the current node in the network
-        self.node_account_id = client.network.current_node._account_id
-        
+        self.node_account_id = client.network.current_node.account_id
+
         return self
 
 
@@ -291,35 +301,37 @@ class FileAppendTransaction(Transaction):
             TransactionReceipt: The receipt from the first chunk execution.
         """
         self._validate_chunking()
-        
+
         if self.get_required_chunks() == 1:
             # Single chunk transaction
             return super().execute(client)
-        else:
-            # Multi-chunk transaction - execute all chunks
-            responses = []
-            
-            for chunk_index in range(self.get_required_chunks()):
-                self._current_chunk_index = chunk_index
-                
-                # Set the transaction ID for this chunk
-                if self._transaction_ids and chunk_index < len(self._transaction_ids):
-                    self.transaction_id = self._transaction_ids[chunk_index]
-                # Clear the frozen state to allow rebuilding with new transaction ID
-                self._transaction_body_bytes.clear()
-                self._signature_map.clear()
 
-                # Freeze the transaction for this chunk if not already frozen
-                self.freeze_with(client)
-                
-                # Sign with all stored signing keys for this chunk
-                for signing_key in self._signing_keys:
-                    super().sign(signing_key)  # Call parent sign directly to avoid modifying _signing_keys
+        # Multi-chunk transaction - execute all chunks
+        responses = []
 
-                # Execute the chunk
-                response = super().execute(client)
-                responses.append(response)
-                
+        for chunk_index in range(self.get_required_chunks()):
+            self._current_chunk_index = chunk_index
+
+            # Set the transaction ID for this chunk
+            if self._transaction_ids and chunk_index < len(self._transaction_ids):
+                self.transaction_id = self._transaction_ids[chunk_index]
+            # Clear the frozen state to allow rebuilding with new transaction ID
+            self._transaction_body_bytes.clear()
+            self._signature_map.clear()
+
+            # Freeze the transaction for this chunk if not already frozen
+            self.freeze_with(client)
+
+            # Sign with all stored signing keys for this chunk
+            for signing_key in self._signing_keys:
+                # Call parent sign directly to avoid modifying _signing_keys
+                super().sign(signing_key)
+
+
+            # Execute the chunk
+            response = super().execute(client)
+            responses.append(response)
+
             # Return the first response (as per JavaScript implementation)
             return responses[0] if responses else None
 
