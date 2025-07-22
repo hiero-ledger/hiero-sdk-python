@@ -19,7 +19,23 @@ class FileId:
     shard: int = 0
     realm: int = 0
     file: int = 0
-    
+
+    def __post_init__(self):
+        """
+        Handles accidental initialization with a string like "0.0.123".
+        This is a common mistake, so we parse it automatically.
+        """
+        if isinstance(self.shard, str):
+            try:
+                parts = self.shard.strip().split('.')
+                if len(parts) == 3:
+                    self.shard, self.realm, self.file = map(int, parts)
+            except (ValueError, TypeError):
+                raise TypeError(
+                    f"FileId was initialized with a string '{self.shard}' that could not be parsed. "
+                    "Use FileId.from_string('shard.realm.file') or FileId(shard, realm, file) with integers."
+                )
+
     @classmethod
     def _from_proto(cls, file_id_proto: basic_types_pb2.FileID) -> 'FileId':
         """

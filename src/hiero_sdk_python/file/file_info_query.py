@@ -1,18 +1,16 @@
-"""
-Query to get information about a file on the network.
-"""
-
 import traceback
 from typing import Optional
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info import FileInfo
 from hiero_sdk_python.hapi.services import file_get_info_pb2, query_pb2, response_pb2
 from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
 from hiero_sdk_python.query.query import Query
+from hiero_sdk_python import ResponseCode as _Status 
 
 
 class FileInfoQuery(Query):
@@ -21,7 +19,6 @@ class FileInfoQuery(Query):
 
     This class constructs and executes a query to retrieve information
     about a file on the network, including the file's properties and settings.
-
     """
 
     def __init__(self, file_id: Optional[FileId] = None) -> None:
@@ -95,6 +92,15 @@ class FileInfoQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.file.getFileInfo)
 
+    def _get_response_header(self, response):
+        """
+        Gets the response header from the query response.
+
+        Returns:
+            The response header object.
+        """
+        return response.fileGetInfo.header
+
     def execute(self, client: Client) -> FileInfo:
         """
         Executes the file info query.
@@ -112,12 +118,21 @@ class FileInfoQuery(Query):
             FileInfo: The file info from the network
 
         Raises:
-            PrecheckError: If the query fails with a non-retryable error
-            MaxAttemptsError: If the query fails after the maximum number of attempts
-            ReceiptStatusError: If the query fails with a receipt status error
+            PrecheckError: If the query fails with a non-retryable error.
         """
         self._before_execute(client)
         response = self._execute(client)
+
+        # The get file info query returns INVALID_FILE_ID in the response
+        # body's header, not in the top-level precheck header.
+        response_header = self._get_response_header(response)
+
+        # Check the status from the inner header
+        if response_header.nodeTransactionPrecheckCode == _Status.INVALID_FILE_ID:
+            raise PrecheckError(
+                f"Query failed precheck with status: {_Status(response_header.nodeTransactionPrecheckCode).name}",
+                status=_Status(response_header.nodeTransactionPrecheckCode),
+            )
 
         return FileInfo._from_proto(response.fileGetInfo.fileInfo)
 
