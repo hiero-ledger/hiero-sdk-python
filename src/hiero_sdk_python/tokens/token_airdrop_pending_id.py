@@ -1,11 +1,16 @@
 """
 PendingAirdropId module.
 
-Defines the PendingAirdropId class used to uniquely identify a token that is pending airdrop.
+Defines the PendingAirdropId class used to uniquely identify a specific pending token airdrop.
 
-This class provides safe construction, validation, and protobuf serialization/deserialization
-for use in token airdrop claim transactions within the Hiero SDK.
+A PendingAirdropId acts as a reference to a single unclaimed token or NFT transfer, 
+typically created by an airdrop transaction. It is required when constructing a 
+TokenClaimAirdropTransaction to finalize and receive the associated asset.
+
+This class supports safe construction, validation, and conversion to/from protobuf 
+for use within the Hiero SDK.
 """
+
 from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
