@@ -12,12 +12,19 @@ from hiero_sdk_python.client.client import Client, Operator
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState, _Method
-from hiero_sdk_python.hapi.services import query_header_pb2, query_pb2
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    crypto_transfer_pb2,
+    duration_pb2,
+    query_header_pb2,
+    query_pb2,
+    transaction_body_pb2,
+    transaction_contents_pb2,
+    transaction_pb2,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 
 class Query(_Executable):
@@ -144,7 +151,6 @@ class Query(_Executable):
             self.operator is not None
             and self.node_account_id is not None
             and self.payment_amount is not None
-            and self.payment_amount.to_tinybars() > 0
         ):
             payment_tx = self._build_query_payment_transaction(
                 payer_account_id=self.operator.account_id,
@@ -162,11 +168,11 @@ class Query(_Executable):
         payer_private_key: PrivateKey,
         node_account_id: AccountId,
         amount: Hbar,
-    ) -> Transaction:
+    ) -> transaction_pb2.Transaction:
         """
-        Builds and signs a payment transaction for this query.
+        Builds and signs a payment transaction for this query using direct protobuf creation.
 
-        Uses TransferTransaction to create a payment from the payer to the node.
+        Creates the transaction directly at the service level without using TransferTransaction.
 
         Args:
             payer_account_id: The account ID of the payer
@@ -177,18 +183,56 @@ class Query(_Executable):
         Returns:
             Transaction: The protobuf Transaction object
         """
-        tx = TransferTransaction()
-        tx.add_hbar_transfer(payer_account_id, -amount.to_tinybars())
-        tx.add_hbar_transfer(node_account_id, amount.to_tinybars())
+        # Create account amounts for the transfer
+        account_amounts = [
+            basic_types_pb2.AccountAmount(
+                accountID=node_account_id._to_proto(),
+                amount=amount.to_tinybars(),
+            ),
+            basic_types_pb2.AccountAmount(
+                accountID=payer_account_id._to_proto(),
+                amount=-amount.to_tinybars(),
+            ),
+        ]
 
-        tx.node_account_id = node_account_id
-        tx.transaction_id = TransactionId.generate(payer_account_id)
+        # Generate transaction ID
+        transaction_id = TransactionId.generate(payer_account_id)
 
-        body_bytes = tx.build_transaction_body().SerializeToString()
-        tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
-        tx.sign(payer_private_key)
+        # Create transaction body directly
+        transaction_body = transaction_body_pb2.TransactionBody(
+            transactionID=transaction_id._to_proto(),
+            nodeAccountID=node_account_id._to_proto(),
+            transactionFee=100_000_000,  # 1 Hbar default fee
+            transactionValidDuration=duration_pb2.Duration(seconds=120),
+            cryptoTransfer=crypto_transfer_pb2.CryptoTransferTransactionBody(
+                transfers=basic_types_pb2.TransferList(accountAmounts=account_amounts)
+            ),
+        )
 
-        return tx._to_proto()
+        # Serialize transaction body
+        body_bytes = transaction_body.SerializeToString()
+
+        # Sign the transaction body
+        signature = payer_private_key.sign(body_bytes)
+        public_key_bytes = payer_private_key.public_key().to_bytes_raw()
+
+        # Create signature pair
+        sig_pair = basic_types_pb2.SignaturePair(
+            pubKeyPrefix=public_key_bytes, ed25519=signature
+        )
+
+        # Create signature map
+        signature_map = basic_types_pb2.SignatureMap(sigPair=[sig_pair])
+
+        # Create signed transaction
+        signed_transaction = transaction_contents_pb2.SignedTransaction(
+            bodyBytes=body_bytes, sigMap=signature_map
+        )
+
+        # Return final transaction
+        return transaction_pb2.Transaction(
+            signedTransactionBytes=signed_transaction.SerializeToString()
+        )
 
     def get_cost(self, client: Client) -> Hbar:
         """
