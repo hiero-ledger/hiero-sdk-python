@@ -61,24 +61,6 @@ def test_pending_airdrop_id_constructor(mock_account_ids):
     assert nft_pending_airdrop_id.token_id == None
     assert nft_pending_airdrop_id.nft_id == nft_id
 
-    # ❌ Test with both token_id and nft_id → should raise
-    with pytest.raises(ValueError, 
-                       match="Exactly one of 'token_id' or 'nft_id' must be required."):
-        PendingAirdropId(
-            sender_id=sender_id,
-            receiver_id=receiver_id,
-            token_id=token_id_1,
-            nft_id=nft_id
-        )
-
-    # ❌ Test with neither token_id nor nft_id → should raise
-    with pytest.raises(ValueError, 
-                       match="Exactly one of 'token_id' or 'nft_id' must be required."):
-        PendingAirdropId(
-            sender_id=sender_id,
-            receiver_id=receiver_id
-        )
-
 def test_pending_airdrop_id_constructor_for_invalid_param(mock_account_ids):
     """Test PendingAirdropId constructor for invalid params"""
     sender_id, receiver_id, _, token_id_1, token_id_2 = mock_account_ids
