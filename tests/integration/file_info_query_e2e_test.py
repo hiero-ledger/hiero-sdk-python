@@ -124,13 +124,18 @@ def test_integration_file_info_query_insufficient_payment(env):
         file_info.execute(env.client)
 
 
+
 @pytest.mark.integration
 def test_integration_file_info_query_fails_with_invalid_file_id(env):
     """Test that the FileInfoQuery fails with an invalid file ID."""
-    # Create a file ID that doesn't exist on the network
     file_id = FileId(0, 0, 999999999)
+
+    query = FileInfoQuery().set_file_id(file_id)
+
+    # bypass the cost-query precheck that fails early.
+    query.set_query_payment(Hbar(1))
 
     with pytest.raises(
         PrecheckError, match="failed precheck with status: INVALID_FILE_ID"
     ):
-        FileInfoQuery(file_id).execute(env.client)
+        query.execute(env.client)
