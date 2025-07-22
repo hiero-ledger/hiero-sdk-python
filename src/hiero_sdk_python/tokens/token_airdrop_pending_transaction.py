@@ -7,7 +7,7 @@ from typing import List, Optional
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import TokenClaimAirdropTransactionBody
-from hiero_sdk_python.executable import _Method, _ExecutionState
+from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
 
 class AirdropPendingTransaction(Transaction):
@@ -125,9 +125,8 @@ class AirdropPendingTransaction(Transaction):
         """
         return _Method(
             transaction_func=channel.token.claimAirdrop,
-            query_func=None
+            query_func= None
         )
 
     def __repr__(self) -> str:
         return f"<AirdropPendingTransaction(pending_airdrop_ids={self._pending_airdrop_ids})>"
-
