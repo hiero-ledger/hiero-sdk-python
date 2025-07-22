@@ -76,9 +76,7 @@ class Query(_Executable):
         Raises:
             NotImplementedError: Always, since subclasses must implement this method
         """
-        raise NotImplementedError(
-            "_get_query_response must be implemented by subclasses."
-        )
+        raise NotImplementedError("_get_query_response must be implemented by subclasses.")
 
     def set_query_payment(self, payment_amount: Hbar) -> "Query":
         """
@@ -170,9 +168,9 @@ class Query(_Executable):
         amount: Hbar,
     ) -> transaction_pb2.Transaction:
         """
-        Builds and signs a payment transaction for this query using direct protobuf creation.
+        Builds and signs a payment transaction for this query.
 
-        Creates the transaction directly at the service level without using TransferTransaction.
+        Creates the transaction directly at the service level.
 
         Args:
             payer_account_id: The account ID of the payer
@@ -238,7 +236,7 @@ class Query(_Executable):
         """
         Gets the cost of executing this query on the network.
 
-        This method executes a special cost query to determine how mtyping.Any Hbars
+        This method executes a special cost query to determine how many Hbars
         would be required to execute the actual query. The cost query uses
         ResponseType.COST_ANSWER instead of ResponseType.ANSWER_ONLY.
 
@@ -251,7 +249,7 @@ class Query(_Executable):
         Returns:
             Hbar: The cost in Hbars to execute this query.
                 - Returns 0 if no payment is required (_is_payment_required is False),
-                  regardless of typing.Any manually set payment.
+                  regardless of any manually set payment.
                 - Returns the manually set payment amount if one was provided for a paid query.
                 - Otherwise, fetches the cost from the network for a paid query.
 
