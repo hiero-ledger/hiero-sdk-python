@@ -135,7 +135,7 @@ def test_pending_airdrop_record_from_proto_for_fungible_token(mock_account_ids):
     assert record.pending_airdrop_id.nft_id == None
     assert record.amount == amount
 
-def test_pending_airdrop_record_from_proto_for_fungible_token(mock_account_ids):
+def test_pending_airdrop_record_from_proto_for_nft(mock_account_ids):
     """Test PendingAirdropRecord _from_proto() method for nft"""
     sender_id, receiver_id, _, token_id, _ = mock_account_ids
     nft_id = NftId(token_id=token_id, serial_number=10)
