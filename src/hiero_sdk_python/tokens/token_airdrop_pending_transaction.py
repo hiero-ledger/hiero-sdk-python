@@ -18,6 +18,18 @@ class AirdropPendingTransaction(Transaction):
         """
         super().__init__()
         self._pending_airdrop_ids: List[PendingAirdropId] = pending_airdrop_ids or []
+        self._validate_airdrop_ids()
+
+    def _validate_airdrop_ids(self):
+        """
+        Validates that pending_airdrop_ids follow spec rules:
+        - Between 1 and 10
+        - No duplicates
+        """
+        if not (1 <= len(self._pending_airdrop_ids) <= 10):
+            raise ValueError("The number of pending airdrops must be between 1 and 10.")
+        if len(set(self._pending_airdrop_ids)) != len(self._pending_airdrop_ids):
+            raise ValueError("Duplicate PendingAirdropId entries are not allowed.")
 
     @property
     def pending_airdrop_ids(self) -> List[PendingAirdropId]:
