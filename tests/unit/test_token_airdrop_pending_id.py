@@ -82,6 +82,23 @@ def test_pending_airdrop_id_constructor_for_invalid_param(mock_account_ids):
             nft_id=nft_id
         )
 
+def test_pending_airdrop_id_invalid_sender_or_receiver(mock_account_ids):
+    """
+    Test that PendingAirdropId raises TypeError when sender_id or receiver_id is None.
+
+    This ensures constructor input validation for required fields.
+    """
+    sender_id, receiver_id, _, token_id_1, token_id_2 = mock_account_ids
+    nft_id = NftId(token_id=token_id_2, serial_number=10)
+
+    # Case: sender_id is None
+    with pytest.raises(TypeError):
+        PendingAirdropId(sender_id=None, receiver_id=receiver_id, token_id=token_id_1)
+
+    # Case: receiver_id is None
+    with pytest.raises(TypeError):
+        PendingAirdropId(sender_id=sender_id, receiver_id=None, nft_id=nft_id)
+
 def test_convert_to_proto(mock_account_ids):
     """Test PendingAirdropId _to_proto() method"""
     sender_id, receiver_id, _, token_id_1, token_id_2 = mock_account_ids
