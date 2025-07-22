@@ -3,6 +3,7 @@
 from typing import List, Optional
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
+from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import TokenClaimAirdropTransactionBody
 
 class AirdropPendingTransaction(Transaction):
     """
@@ -70,3 +71,31 @@ class AirdropPendingTransaction(Transaction):
         self._pending_airdrop_ids = pending_airdrop_ids
         self._validate_airdrop_ids()
         return self
+ 
+    def _to_protobuf(self) -> TokenClaimAirdropTransactionBody:
+        """
+        Convert the current transaction to its protobuf representation.
+
+        Returns:
+            TokenClaimAirdropTransactionBody: The protobuf message representing the transaction.
+        """
+        return TokenClaimAirdropTransactionBody(
+            pending_airdrops=[airdrop._to_proto() for airdrop in self._pending_airdrop_ids]
+        )
+
+    @classmethod
+    def from_protobuf(cls, proto: TokenClaimAirdropTransactionBody) -> "AirdropPendingTransaction":
+        """
+        Create an AirdropPendingTransaction from a protobuf message.
+
+        Args:
+            proto (TokenClaimAirdropTransactionBody): The protobuf message.
+
+        Returns:
+            AirdropPendingTransaction: The corresponding transaction instance.
+        """
+        pending_airdrops = [
+            PendingAirdropId.from_proto(airdrop) for airdrop in proto.pending_airdrops
+        ]
+        return cls(pending_airdrop_ids=pending_airdrops)
+
