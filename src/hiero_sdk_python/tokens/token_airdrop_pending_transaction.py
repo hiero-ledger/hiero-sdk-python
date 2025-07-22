@@ -7,6 +7,8 @@ from typing import List, Optional
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import TokenClaimAirdropTransactionBody
+from hiero_sdk_python.executable import _Method, _ExecutionState
+from hiero_sdk_python.channels import _Channel
 
 class AirdropPendingTransaction(Transaction):
     """
@@ -110,6 +112,21 @@ class AirdropPendingTransaction(Transaction):
             PendingAirdropId._from_proto(airdrop) for airdrop in proto.pending_airdrops
         ]
         return cls(pending_airdrop_ids=pending_airdrops)
+
+    def _get_method(self, channel: _Channel) -> _Method:
+        """
+        Returns the gRPC method used to claim pending token airdrops.
+
+        Args:
+            channel (_Channel): The channel with service stubs.
+
+        Returns:
+            _Method: Wraps the gRPC method for TokenClaimAirdrop.
+        """
+        return _Method(
+            transaction_func=channel.token.claimAirdrop,
+            query_func=None
+        )
 
     def __repr__(self) -> str:
         return f"<AirdropPendingTransaction(pending_airdrop_ids={self._pending_airdrop_ids})>"
