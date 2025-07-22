@@ -39,6 +39,10 @@ class PendingAirdropId:
             token_id (Optional[TokenId]): The ID of the fungible token airdropped, default None.
             nft_id (Optional[NftId]): The ID of the non-fungible token airdropped, default None.
         """
+        if sender_id is None:
+            raise TypeError("sender_id must not be None")
+        if receiver_id is None:
+            raise TypeError("receiver_id must not be None")
         if (token_id is None) == (nft_id is None):
             raise ValueError("Exactly one of 'token_id' or 'nft_id' must be required.")
 
