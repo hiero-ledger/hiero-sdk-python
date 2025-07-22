@@ -1,4 +1,7 @@
-# SPDX-License-Identifier: Apache-2.0
+"""
+Defines AirdropPendingTransaction for claiming 1–10 unique pending airdrops 
+using Hedera's TokenClaimAirdropTransactionBody.
+"""
 
 from typing import List, Optional
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -7,7 +10,7 @@ from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import TokenClaimAir
 
 class AirdropPendingTransaction(Transaction):
     """
-    Represents a transaction that includes from 1 to 10 PendingAirdropId instances.
+    Represents a PendingAirdropId transaction.
     """
 
     def __init__(self, pending_airdrop_ids: Optional[List[PendingAirdropId]] = None) -> None:
@@ -15,19 +18,22 @@ class AirdropPendingTransaction(Transaction):
         Initialize the AirdropPendingTransaction.
 
         Args:
-            pending_airdrop_ids (Optional[List[PendingAirdropId]]): Optional list of pending airdrop IDs.
+            pending_airdrop_ids (Optional[List[PendingAirdropId]]): 
+            Optional list of pending airdrop IDs.
         """
         super().__init__()
-        self._pending_airdrop_ids: List[PendingAirdropId] = pending_airdrop_ids or []
+        self._pending_airdrop_ids: List[PendingAirdropId] = (
+            pending_airdrop_ids if pending_airdrop_ids is not None else []
+        )
         self._validate_airdrop_ids()
 
     def _validate_airdrop_ids(self):
         """
-        Validates that pending_airdrop_ids follow spec rules:
+        Validates that pending_airdrop_ids:
         - Between 1 and 10
         - No duplicates
         """
-        if not (1 <= len(self._pending_airdrop_ids) <= 10):
+        if not 1 <= len(self._pending_airdrop_ids) <= 10:
             raise ValueError("The number of pending airdrops must be between 1 and 10.")
         if len(set(self._pending_airdrop_ids)) != len(self._pending_airdrop_ids):
             raise ValueError("Duplicate PendingAirdropId entries are not allowed.")
@@ -42,7 +48,10 @@ class AirdropPendingTransaction(Transaction):
         """
         return self._pending_airdrop_ids
 
-    def add_pending_airdrop_id(self, pending_airdrop_id: PendingAirdropId) -> "AirdropPendingTransaction":
+    def add_pending_airdrop_id(
+            self,
+            pending_airdrop_id: PendingAirdropId
+            ) -> "AirdropPendingTransaction":
         """
         Add a single pending airdrop ID.
 
@@ -57,7 +66,10 @@ class AirdropPendingTransaction(Transaction):
         self._validate_airdrop_ids()
         return self
 
-    def set_pending_airdrop_ids(self, pending_airdrop_ids: List[PendingAirdropId]) -> "AirdropPendingTransaction":
+    def set_pending_airdrop_ids(
+            self,
+            pending_airdrop_ids: List[PendingAirdropId]
+            ) -> "AirdropPendingTransaction":
         """
         Replace the list of pending airdrop IDs.
 
@@ -71,7 +83,7 @@ class AirdropPendingTransaction(Transaction):
         self._pending_airdrop_ids = pending_airdrop_ids
         self._validate_airdrop_ids()
         return self
- 
+
     def _to_protobuf(self) -> TokenClaimAirdropTransactionBody:
         """
         Convert the current transaction to its protobuf representation.
@@ -98,4 +110,3 @@ class AirdropPendingTransaction(Transaction):
             PendingAirdropId.from_proto(airdrop) for airdrop in proto.pending_airdrops
         ]
         return cls(pending_airdrop_ids=pending_airdrops)
-
