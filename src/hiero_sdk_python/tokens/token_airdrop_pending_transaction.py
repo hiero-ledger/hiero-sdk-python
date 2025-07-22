@@ -53,6 +53,7 @@ class AirdropPendingTransaction(Transaction):
         """
         self._require_not_frozen()
         self._pending_airdrop_ids.append(pending_airdrop_id)
+        self._validate_airdrop_ids()
         return self
 
     def set_pending_airdrop_ids(self, pending_airdrop_ids: List[PendingAirdropId]) -> "AirdropPendingTransaction":
@@ -67,6 +68,7 @@ class AirdropPendingTransaction(Transaction):
         """
         self._require_not_frozen()
         self._pending_airdrop_ids = pending_airdrop_ids
+        self._validate_airdrop_ids()
         return self
 
 
