@@ -7,6 +7,7 @@ import pytest
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.hbar import Hbar
 from tests.integration.utils_for_test import env
@@ -121,3 +122,15 @@ def test_integration_file_info_query_insufficient_payment(env):
         PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"
     ):
         file_info.execute(env.client)
+
+
+@pytest.mark.integration
+def test_integration_file_info_query_fails_with_invalid_file_id(env):
+    """Test that the FileInfoQuery fails with an invalid file ID."""
+    # Create a file ID that doesn't exist on the network
+    file_id = FileId(0, 0, 999999999)
+
+    with pytest.raises(
+        PrecheckError, match="failed precheck with status: INVALID_FILE_ID"
+    ):
+        FileInfoQuery(file_id).execute(env.client)
