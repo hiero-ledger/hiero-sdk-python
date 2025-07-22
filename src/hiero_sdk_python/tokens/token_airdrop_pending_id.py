@@ -115,7 +115,6 @@ class PendingAirdropId:
             f"{token_type}={asset})"
         )
 
-    # Might not use this - adding for pylint:
     def __eq__(self, other) -> bool:
         """
         Checks equality between this PendingAirdropId and another.
@@ -138,7 +137,6 @@ class PendingAirdropId:
             self.nft_id == other.nft_id
         )
 
-    # Might not use this - adding for pylint:
     def __hash__(self) -> int:
         """
         Returns a hash value for this PendingAirdropId instance.
