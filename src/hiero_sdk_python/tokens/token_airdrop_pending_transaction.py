@@ -110,3 +110,7 @@ class AirdropPendingTransaction(Transaction):
             PendingAirdropId._from_proto(airdrop) for airdrop in proto.pending_airdrops
         ]
         return cls(pending_airdrop_ids=pending_airdrops)
+
+    def __repr__(self) -> str:
+        return f"<AirdropPendingTransaction(pending_airdrop_ids={self._pending_airdrop_ids})>"
+
