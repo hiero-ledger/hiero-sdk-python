@@ -107,6 +107,6 @@ class AirdropPendingTransaction(Transaction):
             AirdropPendingTransaction: The corresponding transaction instance.
         """
         pending_airdrops = [
-            PendingAirdropId.from_proto(airdrop) for airdrop in proto.pending_airdrops
+            PendingAirdropId._from_proto(airdrop) for airdrop in proto.pending_airdrops
         ]
         return cls(pending_airdrop_ids=pending_airdrops)
