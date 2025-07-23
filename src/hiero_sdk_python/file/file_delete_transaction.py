@@ -8,7 +8,10 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.file_delete_pb2 import FileDeleteTransactionBody
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
+
+DEFAULT_TRANSACTION_FEE = Hbar(2).to_tinybars()
 
 
 class FileDeleteTransaction(Transaction):
@@ -30,7 +33,7 @@ class FileDeleteTransaction(Transaction):
         """
         super().__init__()
         self.file_id = file_id
-        self._default_transaction_fee = 3_000_000_000
+        self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
     def set_file_id(self, file_id: FileId) -> "FileDeleteTransaction":
         """
