@@ -49,6 +49,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [File Transactions](#file-transactions)
   - [Creating a File](#creating-a-file)
   - [Querying File Info](#querying-file-info)
+  - [Querying File Contents](#querying-file-contents)
   - [Deleting a File](#deleting-a-file)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
@@ -960,6 +961,26 @@ file_info = (
     .execute(client)
 )
 print(file_info)
+
+```
+
+### Querying File Contents
+
+#### Pythonic Syntax:
+```
+file_contents_query = FileContentsQuery(file_id=file_id)
+file_contents = file_contents_query.execute(client)
+print(str(file_contents)) # decode bytes to string
+```
+
+#### Method Chaining:
+```
+file_contents = (
+    FileContentsQuery()
+    .set_file_id(file_id)
+    .execute(client)
+)
+print(str(file_contents)) # decode bytes to string
 
 ```
 
