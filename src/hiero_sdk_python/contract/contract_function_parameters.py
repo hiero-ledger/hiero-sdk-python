@@ -172,43 +172,6 @@ class ContractFunctionParameters:
         """
         return self._add_param("bytes32[]", value)
 
-    def add_function(
-        self, address: str, function_signature: str
-    ) -> "ContractFunctionParameters":
-        """
-        Add a function parameter.
-
-        Args:
-            address: The contract address as a hex string (with or without 0x prefix)
-            function_signature: The function signature (e.g., "transfer(address,uint256)")
-
-        Returns:
-            This instance for method chaining
-
-        Raises:
-            ValueError: If address is not valid or function_signature is invalid
-        """
-        # Process address
-        if address.startswith("0x"):
-            address = address[2:]
-
-        # Validate and convert address
-        if len(address) != 40:
-            raise ValueError("address is required to be 40 characters")
-
-        try:
-            address_bytes = bytes.fromhex(address)
-        except Exception as e:
-            raise e
-
-        # Generate function selector (4 bytes) from signature using eth_utils
-        selector_bytes = function_signature_to_4byte_selector(function_signature)
-
-        # In Ethereum ABI, a function type is encoded as (address, bytes4)
-        # So we pass a tuple with address bytes and selector bytes to match the ABI encoding
-        # eth-abi will handle the proper encoding internally
-        return self._add_param("(address,bytes4)", (address_bytes, selector_bytes))
-
     def _get_function_selector(self) -> bytes:
         """
         Get the function selector (first 4 bytes of the keccak256 hash of the function signature).
