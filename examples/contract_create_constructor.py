@@ -5,14 +5,19 @@ This module shows how to create a stateful smart contract by:
 1. Setting up a client with operator credentials
 2. Creating a file containing contract bytecode
 3. Creating a contract using the file and constructor parameters
+
+Usage:
+    # Due to the way the script is structured, it must be run as a module
+    # from the project root directory
+
+    # Run from the project root directory
+    python -m examples.contract_create_constructor
+
 """
 
 import os
 import sys
 
-# Import the bytecode for a stateful smart contract (StatefulContract.sol) that can be deployed
-# The contract bytecode is pre-compiled from Solidity source code
-from contracts import STATEFUL_CONTRACT_BYTECODE
 from dotenv import load_dotenv
 
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
@@ -25,7 +30,11 @@ from hiero_sdk_python.contract.contract_function_parameters import (
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 
-load_dotenv(override=True)
+# Import the bytecode for a stateful smart contract (StatefulContract.sol) that can be deployed
+# The contract bytecode is pre-compiled from Solidity source code
+from .contracts import STATEFUL_CONTRACT_BYTECODE
+
+load_dotenv()
 
 
 def setup_client():
@@ -76,22 +85,18 @@ def contract_create_constructor():
     # We need to:
     # 1. Convert our string message to UTF-8 bytes (encode)
     # 2. Pass those bytes to add_bytes32() to properly format for the contract
-    # NOTE: If message exceeds 32 bytes, it will be truncated.
+    # NOTE: If message exceeds 32 bytes, it will raise an error.
     # If message is less than 32 bytes, it will be padded with zeros.
     initial_message = "Initial message from constructor".encode("utf-8")
-    truncated_message = initial_message[:32]
-    initial_message_bytes32 = truncated_message.ljust(32, b"\0")
 
     # Create ContractFunctionParameters object and add the bytes32 parameter
     # This will be passed to setConstructorParameters() when creating the contract
-    constructor_params = ContractFunctionParameters().add_bytes32(
-        initial_message_bytes32
-    )
+    constructor_params = ContractFunctionParameters().add_bytes32(initial_message)
 
     # Create contract using the file with constructor parameters
     receipt = (
         ContractCreateTransaction()
-        .set_admin_key(client.operator_private_key)
+        .set_admin_key(client.operator_private_key.public_key())
         .set_gas(2000000)  # 2M gas
         .set_bytecode_file_id(file_id)
         .set_constructor_parameters(constructor_params)
@@ -108,9 +113,7 @@ def contract_create_constructor():
 
     contract_id = receipt.contract_id
     print(f"Stateful contract created successfully with ID: {contract_id}")
-    print(
-        f"Initial message set in constructor: '{initial_message_bytes32.decode('utf-8')}'"
-    )
+    print(f"Initial message set in constructor: '{initial_message.decode('utf-8')}'")
 
 
 if __name__ == "__main__":

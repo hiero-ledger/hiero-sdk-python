@@ -1,17 +1,23 @@
-"""Example demonstrating contract creation on the Hiero network.
+"""
+Example demonstrating contract creation on the network.
 
 This module shows how to create a smart contract by:
 1. Setting up a client with operator credentials
 2. Creating a file containing contract bytecode
 3. Creating a contract using the file
+
+Usage:
+    # Due to the way the script is structured, it must be run as a module
+    # from the project root directory
+
+    # Run from the project root directory
+    python -m examples.contract_create
+
 """
 
 import os
 import sys
 
-# Import the bytecode for a basic smart contract (SimpleContract.sol) that can be deployed
-# The contract bytecode is pre-compiled from Solidity source code
-from contracts import SIMPLE_CONTRACT_BYTECODE
 from dotenv import load_dotenv
 
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
@@ -21,7 +27,11 @@ from hiero_sdk_python.contract.contract_create_transaction import (
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 
-load_dotenv(override=True)
+# Import the bytecode for a basic smart contract (SimpleContract.sol) that can be deployed
+# The contract bytecode is pre-compiled from Solidity source code
+from .contracts import SIMPLE_CONTRACT_BYTECODE
+
+load_dotenv()
 
 
 def setup_client():
