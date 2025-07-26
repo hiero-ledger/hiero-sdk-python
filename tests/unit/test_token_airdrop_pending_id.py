@@ -35,7 +35,7 @@ def test_pending_airdrop_id_constructor(mock_account_ids):
     assert token_pending_airdrop_id.sender_id == sender_id
     assert token_pending_airdrop_id.receiver_id == receiver_id
     assert token_pending_airdrop_id.token_id == token_id_1
-    assert token_pending_airdrop_id.nft_id == None
+    assert token_pending_airdrop_id.nft_id is None
 
     #Test wit nft_id
     nft_pending_airdrop_id = PendingAirdropId(
@@ -46,23 +46,23 @@ def test_pending_airdrop_id_constructor(mock_account_ids):
 
     assert nft_pending_airdrop_id.sender_id == sender_id
     assert nft_pending_airdrop_id.receiver_id == receiver_id
-    assert nft_pending_airdrop_id.token_id == None
+    assert nft_pending_airdrop_id.token_id is None
     assert nft_pending_airdrop_id.nft_id == nft_id
 
-def test_pending_airdrop_id_constructor_for_invalid_param(mock_account_ids):
+def test_constructor_rejects_both_or_neither_token_types(mock_account_ids):
     """Test PendingAirdropId constructor for invalid params"""
     sender_id, receiver_id, _, token_id_1, token_id_2 = mock_account_ids
     nft_id = NftId(token_id=token_id_2, serial_number=10)
 
     #Both token_id and nft_id not provide:
-    with pytest.raises(ValueError, match="Exactly one of 'token_id' or 'nft_id' must be required."):
+    with pytest.raises(ValueError, match="Exactly one of token_id or nft_id must be set."):
         PendingAirdropId(
             sender_id=sender_id,
             receiver_id=receiver_id
         )
 
     #Bot token_id and nft is provided:
-    with pytest.raises(ValueError, match="Exactly one of 'token_id' or 'nft_id' must be required."):
+    with pytest.raises(ValueError, match="Exactly one of token_id or nft_id must be set."):
         PendingAirdropId(
             sender_id=sender_id,
             receiver_id=receiver_id,
@@ -109,7 +109,7 @@ def test_convert_to_proto(mock_account_ids):
     assert token_proto.fungible_token_type.shardNum == token_id_1.shard
     assert token_proto.fungible_token_type.realmNum == token_id_1.realm
     assert token_proto.fungible_token_type.tokenNum == token_id_1.num
-    assert token_proto.HasField("non_fungible_token") == False
+    assert not token_proto.HasField("non_fungible_token")
 
     # Test with nft_id
     nft_pending_airdrop_id = PendingAirdropId(
@@ -129,7 +129,7 @@ def test_convert_to_proto(mock_account_ids):
     assert nft_proto.non_fungible_token.token_ID.shardNum == token_id_2.shard
     assert nft_proto.non_fungible_token.token_ID.realmNum == token_id_2.realm
     assert nft_proto.non_fungible_token.token_ID.tokenNum == token_id_2.num
-    assert nft_proto.HasField("fungible_token_type") == False
+    assert not nft_proto.HasField("fungible_token_type")
 
 def test_from_proto(mock_account_ids):
     """Test PendingAirdropId _from_proto() method"""
@@ -155,7 +155,7 @@ def test_from_proto(mock_account_ids):
     assert token_pending_airdrop_id.token_id.shard == token_id_1.shard
     assert token_pending_airdrop_id.token_id.realm == token_id_1.realm
     assert token_pending_airdrop_id.token_id.num == token_id_1.num
-    assert token_pending_airdrop_id.nft_id == None
+    assert token_pending_airdrop_id.nft_id is None
 
     # Test with nft_id
     nft_pending_airdrop_proto = basic_types_pb2.PendingAirdropId(
@@ -177,4 +177,20 @@ def test_from_proto(mock_account_ids):
     assert nft_pending_airdrop_id.nft_id.token_id.shard == token_id_2.shard
     assert nft_pending_airdrop_id.nft_id.token_id.realm == token_id_2.realm
     assert nft_pending_airdrop_id.nft_id.token_id.num == token_id_2.num
-    assert nft_pending_airdrop_id.token_id == None
+    assert nft_pending_airdrop_id.token_id is None
+
+def test_pending_airdrop_id_proto_roundtrip(mock_account_ids):
+    sender_id, receiver_id, _, token_id_1, token_id_2 = mock_account_ids
+    nft_id = NftId(token_id=token_id_2, serial_number=42)
+
+    # Roundtrip for fungible
+    original = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, token_id=token_id_1)
+    proto = original._to_proto()
+    roundtrip = PendingAirdropId._from_proto(proto)
+    assert original == roundtrip
+
+    # Roundtrip for non-fungible
+    original_nft = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, nft_id=nft_id)
+    proto_nft = original_nft._to_proto()
+    roundtrip_nft = PendingAirdropId._from_proto(proto_nft)
+    assert original_nft == roundtrip_nft
