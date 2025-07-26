@@ -129,4 +129,11 @@ class AirdropPendingTransaction(Transaction):
         )
 
     def __repr__(self) -> str:
-        return f"<AirdropPendingTransaction(pending_airdrop_ids={self._pending_airdrop_ids})>"
+        """
+        Return a friendly string representation.
+
+        Returns:
+            str: Formatted string of the transaction.
+        """
+        id_strings = ", ".join(str(aid) for aid in self._pending_airdrop_ids)
+        return f"<AirdropPendingTransaction([{id_strings}])>"
