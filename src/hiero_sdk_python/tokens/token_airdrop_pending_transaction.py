@@ -24,20 +24,20 @@ class AirdropPendingTransaction(Transaction):
             Optional list of pending airdrop IDs.
         """
         super().__init__()
-        self._pending_airdrop_ids: List[PendingAirdropId] = (
-            pending_airdrop_ids if pending_airdrop_ids is not None else []
-        )
-        self._validate_airdrop_ids()
+        self._pending_airdrop_ids: List[PendingAirdropId] = []
+        if pending_airdrop_ids:
+            self.set_pending_airdrop_ids(pending_airdrop_ids)
 
-    def _validate_airdrop_ids(self):
+    @staticmethod
+    def _validate_airdrop_ids(ids: List[PendingAirdropId]) -> None:
         """
         Validates that pending_airdrop_ids:
         - Between 1 and 10
         - No duplicates
         """
-        if not 1 <= len(self._pending_airdrop_ids) <= 10:
+        if not 1 <= len(ids) <= 10:
             raise ValueError("The number of pending airdrops must be between 1 and 10.")
-        if len(set(self._pending_airdrop_ids)) != len(self._pending_airdrop_ids):
+        if len(set(ids)) != len(ids):
             raise ValueError("Duplicate PendingAirdropId entries are not allowed.")
 
     @property
@@ -64,8 +64,9 @@ class AirdropPendingTransaction(Transaction):
             AirdropPendingTransaction: self (for chaining)
         """
         self._require_not_frozen()
-        self._pending_airdrop_ids.append(pending_airdrop_id)
-        self._validate_airdrop_ids()
+        new_ids = self._pending_airdrop_ids + [pending_airdrop_id]
+        self._validate_airdrop_ids(new_ids)
+        self._pending_airdrop_ids = new_ids
         return self
 
     def set_pending_airdrop_ids(
@@ -82,8 +83,8 @@ class AirdropPendingTransaction(Transaction):
             AirdropPendingTransaction: self (for chaining)
         """
         self._require_not_frozen()
+        self._validate_airdrop_ids(pending_airdrop_ids)
         self._pending_airdrop_ids = pending_airdrop_ids
-        self._validate_airdrop_ids()
         return self
 
     def _to_protobuf(self) -> TokenClaimAirdropTransactionBody:
@@ -93,6 +94,8 @@ class AirdropPendingTransaction(Transaction):
         Returns:
             TokenClaimAirdropTransactionBody: The protobuf message representing the transaction.
         """
+        if not self._pending_airdrop_ids:
+            raise ValueError("Cannot serialize an empty list of pending airdrop IDs.")
         return TokenClaimAirdropTransactionBody(
             pending_airdrops=[airdrop._to_proto() for airdrop in self._pending_airdrop_ids]
         )
