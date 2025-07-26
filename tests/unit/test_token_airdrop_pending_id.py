@@ -1,15 +1,3 @@
-# def test_pending_airdrop_id_roundtrip():
-#     raw = b"test_airdrop_id_123"
-#     pending = PendingAirdropId(raw)
-#     assert pending.to_bytes() == raw
-
-#     from_bytes = PendingAirdropId.from_bytes(raw)
-#     assert from_bytes.to_bytes() == raw
-
-# def test_pending_airdrop_id_invalid_type():
-#     with pytest.raises(TypeError):
-#         PendingAirdropId(123)  # Not bytes
-
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
