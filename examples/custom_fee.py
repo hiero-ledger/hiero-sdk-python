@@ -20,7 +20,11 @@ def main():
     print(f"All Collectors Exempt: {fixed_fee.all_collectors_are_exempt}")
 
     # Convert to protobuf
+<<<<<<< HEAD
     fixed_fee_proto = fixed_fee._to_proto()
+=======
+    fixed_fee_proto = fixed_fee._to_protobuf()
+>>>>>>> 785d2a4 (Add example file for custom fee)
     print("Fixed Fee Protobuf:", fixed_fee_proto)
 
     # Create a CustomFractionalFee
@@ -43,7 +47,11 @@ def main():
     print(f"All Collectors Exempt: {fractional_fee.all_collectors_are_exempt}")
 
     # Convert to protobuf
+<<<<<<< HEAD
     fractional_fee_proto = fractional_fee._to_proto()
+=======
+    fractional_fee_proto = fractional_fee._to_protobuf()
+>>>>>>> 785d2a4 (Add example file for custom fee)
     print("Fractional Fee Protobuf:", fractional_fee_proto)
 
     # Create a CustomRoyaltyFee
@@ -67,7 +75,11 @@ def main():
     print(f"All Collectors Exempt: {royalty_fee.all_collectors_are_exempt}")
 
     # Convert to protobuf
+<<<<<<< HEAD
     royalty_fee_proto = royalty_fee._to_proto()
+=======
+    royalty_fee_proto = royalty_fee._to_protobuf()
+>>>>>>> 785d2a4 (Add example file for custom fee)
     print("Royalty Fee Protobuf:", royalty_fee_proto)
 
 if __name__ == "__main__":
