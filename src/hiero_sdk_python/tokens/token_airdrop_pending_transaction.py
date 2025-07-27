@@ -10,7 +10,7 @@ from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import TokenClaimAir
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
 
-class AirdropPendingTransaction(Transaction):
+class TokenClaimAirdropTransaction(Transaction):
     """
     Represents a PendingAirdropId transaction.
     """
@@ -53,7 +53,7 @@ class AirdropPendingTransaction(Transaction):
     def add_pending_airdrop_id(
             self,
             pending_airdrop_id: PendingAirdropId
-            ) -> "AirdropPendingTransaction":
+            ) -> "TokenClaimAirdropTransaction":
         """
         Add a single pending airdrop ID.
 
@@ -72,7 +72,7 @@ class AirdropPendingTransaction(Transaction):
     def set_pending_airdrop_ids(
             self,
             pending_airdrop_ids: List[PendingAirdropId]
-            ) -> "AirdropPendingTransaction":
+            ) -> "TokenClaimAirdropTransaction":
         """
         Replace the list of pending airdrop IDs.
 
@@ -101,7 +101,7 @@ class AirdropPendingTransaction(Transaction):
         )
 
     @classmethod
-    def from_protobuf(cls, proto: TokenClaimAirdropTransactionBody) -> "AirdropPendingTransaction":
+    def from_protobuf(cls, proto: TokenClaimAirdropTransactionBody) -> "TokenClaimAirdropTransaction":
         """
         Create an AirdropPendingTransaction from a protobuf message.
 
