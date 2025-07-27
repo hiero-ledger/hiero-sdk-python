@@ -3,6 +3,7 @@ import time
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.node import _Node
 from hiero_sdk_python.consensus.topic_id import TopicId
@@ -58,6 +59,11 @@ def nft_id():
 def token_id():
     """Fixture to provide a mock TokenId instance."""
     return TokenId(shard=0, realm=0, num=3)
+
+@pytest.fixture
+def file_id():
+    """Fixture to provide a mock FileId instance."""
+    return FileId(shard=0, realm=0, file=2)
 
 @pytest.fixture
 def mock_client():

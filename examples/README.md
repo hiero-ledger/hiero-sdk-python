@@ -48,6 +48,9 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Topic Message](#querying-topic-message)
 - [File Transactions](#file-transactions)
   - [Creating a File](#creating-a-file)
+  - [Querying File Info](#querying-file-info)
+  - [Querying File Contents](#querying-file-contents)
+  - [Deleting a File](#deleting-a-file)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -938,6 +941,73 @@ transaction.execute(client)
     )
 
     transaction.execute(client)
+
+```
+
+### Querying File Info
+
+#### Pythonic Syntax:
+```
+file_info_query = FileInfoQuery(file_id=file_id)
+file_info = file_info_query.execute(client)
+print(file_info)
+```
+
+#### Method Chaining:
+```
+file_info = (
+    FileInfoQuery()
+    .set_file_id(file_id)
+    .execute(client)
+)
+print(file_info)
+
+```
+
+### Querying File Contents
+
+#### Pythonic Syntax:
+```
+file_contents_query = FileContentsQuery(file_id=file_id)
+file_contents = file_contents_query.execute(client)
+print(str(file_contents)) # decode bytes to string
+```
+
+#### Method Chaining:
+```
+file_contents = (
+    FileContentsQuery()
+    .set_file_id(file_id)
+    .execute(client)
+)
+print(str(file_contents)) # decode bytes to string
+
+```
+
+### Deleting a File
+
+#### Pythonic Syntax:
+```
+transaction = FileDeleteTransaction(
+    file_id=file_id
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+    transaction = (
+        FileDeleteTransaction()
+        .set_file_id(file_id)
+        .freeze_with(client)
+    )
+
+    transaction.sign(operator_key)
+    transaction.execute(client)
+
+```
 
 ## Miscellaneous Queries
 

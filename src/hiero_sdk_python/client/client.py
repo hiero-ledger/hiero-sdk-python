@@ -1,24 +1,29 @@
-import grpc
+"""
+Client module for interacting with the Hedera network.
+"""
+
 from collections import namedtuple
 from typing import List, Union
+
+import grpc
 
 from hiero_sdk_python.logger.logger import Logger, LogLevel
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
 )
 
-from .network import Network
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+
+from .network import Network
 
 Operator = namedtuple('Operator', ['account_id', 'private_key'])
 
 class Client:
     """
-    Represents a client to interact with the Hedera network.
+    Client to interact with Hedera network services including mirror nodes and transactions.
     """
-
     def __init__(self, network: Network = None) -> None:
         """
         Initializes the Client with a given network configuration.
@@ -30,14 +35,14 @@ class Client:
         if network is None:
             network = Network()
         self.network: Network = network
-        
+
         self.mirror_channel: grpc.Channel = None
         self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
 
         self.max_attempts: int = 10
-        
+
         self._init_mirror_stub()
-        
+
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
     def _init_mirror_stub(self) -> None:
@@ -63,7 +68,9 @@ class Client:
         otherwise None.
         """
         if self.operator_account_id and self.operator_private_key:
-            return Operator(account_id=self.operator_account_id, private_key=self.operator_private_key)
+            return Operator(
+                account_id=self.operator_account_id, private_key=self.operator_private_key
+            )
         return None
 
     def generate_transaction_id(self) -> TransactionId:
@@ -79,16 +86,15 @@ class Client:
         Returns a list of node AccountIds that the client can use to send queries and transactions.
         """
         if self.network and self.network.nodes:
-            return [node._account_id for node in self.network.nodes]
-        else:
-            raise ValueError("No nodes available in the network configuration.")
+            return [node._account_id for node in self.network.nodes]  # pylint: disable=W0212
+        raise ValueError("No nodes available in the network configuration.")
 
     def close(self) -> None:
         """
         Closes any open gRPC channels and frees resources.
         Call this when you are done using the Client to ensure a clean shutdown.
         """
-        
+
         if self.mirror_channel is not None:
             self.mirror_channel.close()
             self.mirror_channel = None
