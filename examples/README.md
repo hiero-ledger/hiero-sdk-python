@@ -52,6 +52,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying File Contents](#querying-file-contents)
   - [Updating a File](#updating-a-file)
   - [Deleting a File](#deleting-a-file)
+- [Contract Transactions](#contract-transactions)
+  - [Creating a Contract](#creating-a-contract)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1041,6 +1043,106 @@ transaction.execute(client)
     transaction.sign(operator_key)
     transaction.execute(client)
 
+```
+
+```
+
+## Contract Transactions
+
+### Creating a Contract
+
+#### Pythonic Syntax:
+```
+# First, create a file with the contract bytecode
+transaction = FileCreateTransaction(
+    keys=[operator_key.public_key()],
+    contents=contract_bytecode,
+    file_memo="Contract bytecode file"
+).freeze_with(client)
+
+transaction.sign(operator_key)
+file_receipt = transaction.execute(client)
+
+file_id = file_receipt.file_id
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode from file
+transaction = ContractCreateTransaction(
+    contract_params=ContractCreateParams(
+        bytecode_file_id=file_id,
+        gas=200000,
+        admin_key=admin_key,
+        initial_balance=100000000,  # 1 HBAR in tinybars
+        parameters=constructor_params.to_bytes(),
+        contract_memo="My first smart contract"
+    )
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+# First, create a file with the contract bytecode
+file_receipt = (
+    FileCreateTransaction()
+    .set_keys(operator_key.public_key())
+    .set_contents(contract_bytecode)
+    .set_file_memo("Contract bytecode file")
+    .freeze_with(client)
+    .sign(operator_key)
+    .execute(client)
+)
+
+file_id = file_receipt.file_id
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode from file
+transaction = (
+    ContractCreateTransaction()
+    .set_bytecode_file_id(file_id)
+    .set_gas(200000)
+    .set_admin_key(admin_key)
+    .set_initial_balance(100000000)  # 1 HBAR in tinybars
+    .set_constructor_parameters(constructor_params)
+    .set_contract_memo("My first smart contract")
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
+```
+
+#### Creating a Contract with Direct Bytecode:
+```
+##### Convert hex bytecode to bytes
+bytecode = bytes.fromhex(contract_bytecode_hex)
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode directly
+transaction = (
+    ContractCreateTransaction()
+    .set_bytecode(bytecode)
+    .set_gas(200000)
+    .set_admin_key(admin_key)
+    .set_initial_balance(100000000)  # 1 HBAR in tinybars
+    .set_constructor_parameters(constructor_params)
+    .set_contract_memo("My first smart contract")
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
 ```
 
 ## Miscellaneous Queries
