@@ -32,6 +32,9 @@ from tests.unit.mock_server import mock_hedera_servers
 pytestmark = pytest.mark.unit
 
 
+TEST_EXPIRATION_TIME = Timestamp(1704067200, 0)
+
+
 def test_constructor_with_parameters(file_id):
     """Test creating a file update transaction with constructor parameters."""
     private_key = PrivateKey.generate()
@@ -39,7 +42,7 @@ def test_constructor_with_parameters(file_id):
     key_list = [public_key]
     contents = b"Updated file content"
     file_memo = "Updated memo"
-    expiration_time = Timestamp(1704067200, 0)
+    expiration_time = TEST_EXPIRATION_TIME
 
     file_tx = FileUpdateTransaction(
         file_id=file_id,
@@ -76,7 +79,7 @@ def test_set_methods():
     key_list = [public_key]
     contents = b"Test content"
     file_memo = "Test memo"
-    expiration_time = Timestamp(1704067200, 0)  # Jan 1, 2024
+    expiration_time = TEST_EXPIRATION_TIME
 
     file_tx = FileUpdateTransaction()
 
@@ -131,7 +134,7 @@ def test_set_methods_require_not_frozen(mock_client, file_id):
         ("set_keys", [public_key]),
         ("set_contents", b"new content"),
         ("set_file_memo", "new memo"),
-        ("set_expiration_time", Timestamp(1704067200, 0)),
+        ("set_expiration_time", TEST_EXPIRATION_TIME),
     ]
 
     for method_name, value in test_cases:
@@ -150,7 +153,7 @@ def test_build_transaction_body(mock_account_ids, file_id):
     key_list = [public_key]
     contents = b"Updated content"
     file_memo = "Updated memo"
-    expiration_time = Timestamp(1704067200, 0)
+    expiration_time = TEST_EXPIRATION_TIME
 
     file_tx = FileUpdateTransaction(
         file_id=file_id,
