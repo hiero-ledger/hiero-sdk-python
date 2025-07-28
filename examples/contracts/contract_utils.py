@@ -47,6 +47,7 @@ def _load_contract_bytecode(contract_name: str) -> str:
 # Contract bytecode constants
 SIMPLE_CONTRACT_BYTECODE = _load_contract_bytecode("SimpleContract")
 STATEFUL_CONTRACT_BYTECODE = _load_contract_bytecode("StatefulContract")
+CONSTRUCTOR_TEST_CONTRACT_BYTECODE = _load_contract_bytecode("ConstructorTestContract")
 
 # Contract deployment configuration
 CONTRACT_DEPLOY_GAS = 2_000_000
