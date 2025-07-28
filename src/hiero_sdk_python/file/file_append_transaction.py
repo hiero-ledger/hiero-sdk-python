@@ -101,7 +101,7 @@ class FileAppendTransaction(Transaction):
         Sets the file ID for this file append transaction.
 
         Args:
-            file_id (FileId | str): The file ID to append to.
+            file_id (FileId): The file ID to append to.
 
         Returns:
             FileAppendTransaction: This transaction instance.
@@ -163,6 +163,9 @@ class FileAppendTransaction(Transaction):
             TransactionBody: The built transaction body.
         """
         # Calculate the current chunk's content
+        if self.file_id is None:
+            raise ValueError("Missing required FileID")
+            
         if self.contents is None:
             chunk_contents = b''
         else:
