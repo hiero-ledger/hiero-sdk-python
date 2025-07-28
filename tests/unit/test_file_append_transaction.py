@@ -112,14 +112,6 @@ def test_validate_chunking():
     with pytest.raises(ValueError, match="Cannot execute FileAppendTransaction with more than 5 chunks"):
         file_tx._validate_chunking()
 
-@patch('hiero_sdk_python.file.file_append_transaction.file_append_pb2', None)
-def test_build_transaction_body_without_protobuf():
-    """Test that building transaction body without protobuf raises ImportError."""
-    file_tx = FileAppendTransaction()
-    
-    with pytest.raises(ImportError, match="file_append_pb2 module not found"):
-        file_tx.build_transaction_body()
-
 def test_multi_chunk_execution():
     """Test that multi-chunk execution works correctly."""
     # Create content that requires multiple chunks
@@ -144,3 +136,10 @@ def test_multi_chunk_execution():
         
         # Should have called execute 3 times (once per chunk)
         assert Transaction.execute.call_count == 1
+
+def test_build_transaction_body_missing_file_id():
+    """Test build_transaction_body raises error when file ID is missing."""
+    file_tx = FileAppendTransaction()
+
+    with pytest.raises(ValueError, match="Missing required FileID"):
+        file_tx.build_transaction_body()
