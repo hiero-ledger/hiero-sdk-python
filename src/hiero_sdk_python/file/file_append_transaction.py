@@ -41,7 +41,7 @@ class FileAppendTransaction(Transaction):
         Initializes a new FileAppendTransaction instance with the specified parameters.
 
         Args:
-            file_id (Optional[FileId | str], optional): The ID of the file to append to.
+            file_id (Optional[FileId], optional): The ID of the file to append to.
             contents (Optional[str | bytes], optional): The contents to append to the file.                 
             Strings will be automatically encoded as UTF-8 bytes.
             max_chunks (Optional[int], optional): Maximum number of chunks allowed. Defaults to 20.
@@ -162,12 +162,6 @@ class FileAppendTransaction(Transaction):
         Returns:
             TransactionBody: The built transaction body.
         """
-        if file_append_pb2 is None:
-            raise ImportError(
-                "file_append_pb2 module not found. Please run generate_proto.sh to generate "
-                "the required protobuf files."
-            )
-
         # Calculate the current chunk's content
         if self.contents is None:
             chunk_contents = b''
@@ -213,11 +207,6 @@ class FileAppendTransaction(Transaction):
         Returns:
             FileAppendTransaction: This transaction instance.
         """
-        if file_append_pb2 is None:
-            raise ImportError(
-                "file_append_pb2 module not found. Please run generate_proto.sh to generate "
-                "the required protobuf files."
-            )
 
         self.file_id = FileId.from_proto(proto.fileID) if proto.fileID else None
         self.contents = proto.contents
