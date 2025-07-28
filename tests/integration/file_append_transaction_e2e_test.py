@@ -19,7 +19,7 @@ def generate_uint8_array(length: int) -> bytes:
 
 @mark.integration
 def test_integration_file_append_transaction_can_execute(env):
-    """Test basic file append functionality."""
+    """Test basic file append functionality and verify content is properly appended."""
     operator_key = env.operator_key.public_key()
 
     # Create a file first
@@ -45,6 +45,11 @@ def test_integration_file_append_transaction_can_execute(env):
     )
     
     assert append_receipt.status == ResponseCode.SUCCESS, f"Append file failed with status: {ResponseCode(append_receipt.status).name}"
+    
+    # Verify the content was properly appended
+    file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
+    expected_content = b"[e2e::FileCreateTransaction][e2e::FileAppendTransaction]"
+    assert file_contents == expected_content, f"Expected {expected_content}, but got {file_contents}"
 
 @mark.integration
 def test_integration_file_append_transaction_chunk_contents(env):
@@ -299,35 +304,3 @@ def test_integration_file_append_transaction_method_chaining(env):
     
     append_receipt = append_tx.execute(env.client)
     assert append_receipt.status == ResponseCode.SUCCESS 
-
-@mark.integration
-def test_integration_file_append_transaction_and_view_content(env):
-    """Test that all FileAppendTransaction setter methods support method chaining."""
-    operator_key = env.operator_key.public_key()
-
-    # Create a file first
-    create_receipt = (
-        FileCreateTransaction()
-        .set_keys(operator_key)
-        .set_contents(b"")
-        .execute(env.client)
-    )
-    
-    assert create_receipt.status == ResponseCode.SUCCESS
-    file_id = create_receipt.fileId
-
-    # Test method chaining by setting all properties in one chain
-    append_tx = (
-        FileAppendTransaction()
-        .set_file_id(file_id)
-        .set_contents(b"Method chaining test")
-        .set_chunk_size(2048)
-        .set_max_chunks(15)
-    )
-
-    append_response = append_tx.execute(env.client)
-
-    assert append_response.status == ResponseCode.SUCCESS 
-    
-    file_info = FileContentsQuery().set_file_id(file_id).execute(env.client)
-    assert file_info == b"Method chaining test"
