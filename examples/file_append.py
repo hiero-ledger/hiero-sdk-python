@@ -21,7 +21,7 @@ from hiero_sdk_python import (
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network='solo')
+    network = Network(network='testnet')
     client = Client(network)
 
     print(os.getenv('OPERATOR_ID'))
@@ -61,7 +61,7 @@ def file_append():
         print(f"File creation failed with status: {ResponseCode(create_receipt.status).name}")
         sys.exit(1)
     
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
     print(f"File created successfully with ID: {file_id}")
     
     # Step 2: Append content to the file (single chunk)

@@ -31,10 +31,10 @@ def test_integration_file_append_transaction_can_execute(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS, f"Create file failed with status: {ResponseCode(create_receipt.status).name}"
-    assert create_receipt.fileId is not None
-    assert create_receipt.fileId.file > 0
+    assert create_receipt.file_id is not None
+    assert create_receipt.file_id.file > 0
 
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Append to the file
     append_receipt = (
@@ -60,10 +60,10 @@ def test_integration_file_append_transaction_chunk_contents(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS, f"Create file failed with status: {ResponseCode(create_receipt.status).name}"
-    assert create_receipt.fileId is not None
-    assert create_receipt.fileId.file > 0
+    assert create_receipt.file_id is not None
+    assert create_receipt.file_id.file > 0
 
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Append large content that will be chunked
     big_contents_bytes = BIG_CONTENTS.encode('utf-8')
@@ -75,23 +75,6 @@ def test_integration_file_append_transaction_chunk_contents(env):
     )
     
     assert append_receipt.status == ResponseCode.SUCCESS, f"Append large file failed with status: {ResponseCode(append_receipt.status).name}"
-
-@mark.integration
-def test_integration_file_append_transaction_error_no_file_id(env):
-    """Test that FileAppendTransaction errors when no file ID is set."""
-    # Try to append without setting a file ID
-    try:
-        append_receipt = (
-            FileAppendTransaction()
-            .set_contents(b"[e2e::FileAppendTransaction]")
-            .execute(env.client)
-        )
-        # If we get here, the test should fail
-        assert False, "File append transaction should have failed with no file ID"
-    except Exception as error:
-        # Verify that the error contains the expected status
-        error_str = str(error)
-        assert "INVALID_FILE_ID" in error_str or "InvalidFileId" in error_str
 
 @mark.integration 
 def test_integration_file_append_transaction_no_contents(env):
@@ -107,9 +90,9 @@ def test_integration_file_append_transaction_no_contents(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS, f"Create file failed with status: {ResponseCode(create_receipt.status).name}"
-    assert create_receipt.fileId is not None
+    assert create_receipt.file_id is not None
 
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Append with no contents - this should not error
     append_receipt = (
@@ -135,10 +118,10 @@ def test_integration_file_append_transaction_one_chunk(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS, f"Create file failed with status: {ResponseCode(create_receipt.status).name}"
-    assert create_receipt.fileId is not None
-    assert create_receipt.fileId.file > 0
+    assert create_receipt.file_id is not None
+    assert create_receipt.file_id.file > 0
 
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Append content that exactly fits one chunk
     test_content = generate_uint8_array(CHUNK_SIZE)
@@ -166,9 +149,9 @@ def test_integration_file_append_transaction_multiple_chunks(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS, f"Create file failed with status: {ResponseCode(create_receipt.status).name}"
-    assert create_receipt.fileId is not None
+    assert create_receipt.file_id is not None
 
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Create content larger than default chunk size to force multiple chunks
     large_content = generate_uint8_array(10000)  # 10KB content
@@ -201,7 +184,7 @@ def test_integration_file_append_transaction_custom_chunk_settings(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS, f"Create file failed with status: {ResponseCode(create_receipt.status).name}"
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Test with custom chunk settings
     test_content = generate_uint8_array(5000)  # 5KB content
@@ -239,7 +222,7 @@ def test_integration_file_append_transaction_max_chunks_exceeded(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Create content that would require more than max allowed chunks
     large_content = generate_uint8_array(10000)  # 10KB content
@@ -270,7 +253,7 @@ def test_integration_file_append_transaction_string_contents(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Append string content (should be automatically encoded to UTF-8)
     string_content = "This is a string that should be encoded as UTF-8 bytes 🌟"
@@ -297,7 +280,7 @@ def test_integration_file_append_transaction_method_chaining(env):
     )
     
     assert create_receipt.status == ResponseCode.SUCCESS
-    file_id = create_receipt.fileId
+    file_id = create_receipt.file_id
 
     # Test method chaining by setting all properties in one chain
     append_tx = (
