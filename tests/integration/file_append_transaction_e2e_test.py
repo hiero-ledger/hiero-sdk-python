@@ -3,6 +3,7 @@ from pytest import mark
 
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
+from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hbar import Hbar
@@ -250,13 +251,10 @@ def test_integration_file_append_transaction_max_chunks_exceeded(env):
         .set_chunk_size(100)  # Small chunks = 100 chunks needed
         .set_max_chunks(5)    # But only allow 5 chunks
     )
-    
+
     # Should fail with max chunks exceeded
-    try:
-        append_receipt = append_tx.execute(env.client)
-        assert False, "Expected ValueError for too many chunks"
-    except ValueError as e:
-        assert "more than" in str(e) and "chunks" in str(e)
+    with pytest.raises(ValueError, match="more than.*chunks"):
+        append_tx.execute(env.client)
 
 @mark.integration
 def test_integration_file_append_transaction_string_contents(env):
@@ -318,3 +316,35 @@ def test_integration_file_append_transaction_method_chaining(env):
     
     append_receipt = append_tx.execute(env.client)
     assert append_receipt.status == ResponseCode.SUCCESS 
+
+@mark.integration
+def test_integration_file_append_transaction_and_view_content(env):
+    """Test that all FileAppendTransaction setter methods support method chaining."""
+    operator_key = env.operator_key.public_key()
+
+    # Create a file first
+    create_receipt = (
+        FileCreateTransaction()
+        .set_keys(operator_key)
+        .set_contents(b"")
+        .execute(env.client)
+    )
+    
+    assert create_receipt.status == ResponseCode.SUCCESS
+    file_id = create_receipt.fileId
+
+    # Test method chaining by setting all properties in one chain
+    append_tx = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_contents(b"Method chaining test")
+        .set_chunk_size(2048)
+        .set_max_chunks(15)
+    )
+
+    append_response = append_tx.execute(env.client)
+
+    assert append_response.status == ResponseCode.SUCCESS 
+    
+    file_info = FileContentsQuery().set_file_id(file_id).execute(env.client)
+    assert file_info == b"Method chaining test"
