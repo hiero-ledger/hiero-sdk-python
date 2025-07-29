@@ -1,7 +1,9 @@
+from typing import Optional
 from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import query_pb2, token_get_info_pb2
+from hiero_sdk_python.hapi.services import query_pb2, token_get_info_pb2, response_pb2
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.client.client import Client
 
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_info import TokenInfo
@@ -15,7 +17,7 @@ class TokenInfoQuery(Query):
     including the token's properties and settings.
     
     """
-    def __init__(self, token_id=None):
+    def __init__(self, token_id: Optional[TokenId] = None) -> None:
         """
         Initializes a new TokenInfoQuery instance with an optional token_id.
 
@@ -23,9 +25,9 @@ class TokenInfoQuery(Query):
             token_id (TokenId, optional): The ID of the token to query.
         """
         super().__init__()
-        self.token_id : TokenId = token_id
+        self.token_id: Optional[TokenId] = token_id
 
-    def set_token_id(self, token_id: TokenId):
+    def set_token_id(self, token_id: TokenId) -> "TokenInfoQuery":
         """
         Sets the ID of the token to query. 
 
@@ -38,7 +40,7 @@ class TokenInfoQuery(Query):
         self.token_id = token_id
         return self
 
-    def _make_request(self):
+    def _make_request(self) -> query_pb2.Query:
         """
         Constructs the protobuf request for the query.
         
@@ -46,7 +48,7 @@ class TokenInfoQuery(Query):
         appropriate header and token ID.
 
         Returns:
-            Query: The protobuf query message.
+            query_pb2.Query: The protobuf query message.
 
         Raises:
             ValueError: If the token ID is not set.
@@ -88,7 +90,7 @@ class TokenInfoQuery(Query):
             query_func=channel.token.getTokenInfo
         )
 
-    def execute(self, client):
+    def execute(self, client: Client) -> TokenInfo:
         """
         Executes the token info query.
         
@@ -113,7 +115,7 @@ class TokenInfoQuery(Query):
 
         return TokenInfo._from_proto(response.tokenGetInfo.tokenInfo)
 
-    def _get_query_response(self, response):
+    def _get_query_response(self, response: response_pb2.Response) -> token_get_info_pb2.TokenGetInfoResponse:
         """
         Extracts the token info response from the full response.
         

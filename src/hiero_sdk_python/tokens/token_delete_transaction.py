@@ -1,3 +1,10 @@
+"""
+hiero_sdk_python.transaction.token_delete_transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provides TokenDeleteTransaction, a subclass of Transaction for deleting tokens
+on the Hedera network using the Hedera Token Service (HTS) API.
+"""
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_delete_pb2
 from hiero_sdk_python.channels import _Channel

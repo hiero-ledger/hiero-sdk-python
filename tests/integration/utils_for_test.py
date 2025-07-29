@@ -1,11 +1,9 @@
 import os
 from pytest import fixture
-
 from dotenv import load_dotenv
 from dataclasses import dataclass
-
+from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
-
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -35,16 +33,18 @@ class Account:
 
 class IntegrationTestEnv:
 
-    def __init__(self):
+    def __init__(self) -> None:
         network = Network(os.getenv('NETWORK'))
         self.client = Client(network)
+        self.operator_id: Optional[AccountId] = None
+        self.operator_key: Optional[PrivateKey] = None
         operator_id = os.getenv('OPERATOR_ID')
         operator_key = os.getenv('OPERATOR_KEY')
         if operator_id and operator_key:
             self.operator_id = AccountId.from_string(operator_id)
             self.operator_key = PrivateKey.from_string(operator_key)
             self.client.set_operator(self.operator_id, self.operator_key)
-        
+
         self.client.logger.set_level(LogLevel.ERROR)
         self.public_operator_key = self.operator_key.public_key()
         
@@ -64,7 +64,7 @@ class IntegrationTestEnv:
             raise AssertionError(
                 f"Account creation failed: {ResponseCode(receipt.status).name}"
             )
-        return Account(id=receipt.accountId, key=key)
+        return Account(id=receipt.account_id, key=key)
 
     def associate_and_transfer(self, receiver: AccountId, receiver_key: PrivateKey, token_id, amount: int):
         """
@@ -134,7 +134,7 @@ def create_fungible_token(env, opts=[]):
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
     
-    return token_receipt.tokenId
+    return token_receipt.token_id
 
 def create_nft_token(env, opts=[]):
     """
@@ -175,4 +175,4 @@ def create_nft_token(env, opts=[]):
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
     
-    return token_receipt.tokenId
+    return token_receipt.token_id

@@ -35,7 +35,7 @@ def create_account_and_transfer():
     ).freeze_with(client)
     transaction.sign(operator_key)
     receipt = transaction.execute(client)
-    new_account_id = receipt.accountId
+    new_account_id = receipt.account_id
 
     # Check balance
     balance_query = CryptoGetAccountBalanceQuery().set_account_id(new_account_id)

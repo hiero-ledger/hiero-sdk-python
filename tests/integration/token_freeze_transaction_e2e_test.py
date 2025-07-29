@@ -33,7 +33,7 @@ def test_integration_token_freeze_transaction_can_execute():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
-        account_id = receipt.accountId
+        account_id = receipt.account_id
         
         token_id = create_fungible_token(env)
         

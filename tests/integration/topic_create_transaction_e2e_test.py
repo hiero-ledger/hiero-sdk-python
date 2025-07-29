@@ -30,7 +30,7 @@ def test_integration_topic_create_transaction_can_execute():
         
         assert receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
         
-        topic_id = receipt.topicId
+        topic_id = receipt.topic_id
         assert topic_id is not None
         
         topic_info = TopicInfoQuery(topic_id=topic_id).execute(env.client)

@@ -22,7 +22,7 @@ def test_integration_topic_update_transaction_can_execute():
         create_receipt = create_transaction.execute(env.client)
         assert create_receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode(create_receipt.status).name}"
         
-        topic_id = create_receipt.topicId
+        topic_id = create_receipt.topic_id
         
         info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
 

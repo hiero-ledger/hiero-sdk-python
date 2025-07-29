@@ -6,54 +6,86 @@ from hiero_sdk_python import (
     Client,
     AccountId,
     PrivateKey,
-    TokenMintTransaction,
     Network,
-    TokenId,
+    TokenCreateTransaction,
+    TokenMintTransaction,
 )
 
+# Load environment variables from .env file
 load_dotenv()
 
-def fungible_token_mint():
+
+def token_mint_fungible():
     """
-    Mint fungible tokens to increase the total supply of the token.
-    The new supply must be lower than 2^63-1 (within the range that can be safely stored in a signed 64-bit integer).
-
-    Loads environment variables for OPERATOR_ID, OPERATOR_KEY, SUPPLY_KEY, TOKEN_ID.
-    Creates and signs a TokenMintTransaction for a fungible token.
-    Submits the transaction and prints the result.
+    Creates a mintable fungible token and then mints additional supply.
     """
+    # 1. Setup Client
+    # =================================================================
+    print("Connecting to Hedera testnet...")
+    client = Client(Network(network='testnet'))
 
-    network = Network(network='testnet')
-    client = Client(network)
-
-    payer_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    payer_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
-    supply_key = PrivateKey.from_string_ed25519(os.getenv('SUPPLY_KEY'))
-    token_id = TokenId.from_string(os.getenv('TOKEN_ID'))
-
-    client.set_operator(payer_id, payer_key)
-
-    # Example: If the token has 2 decimals, "20000" here means 200.00 tokens minted.
-    transaction = (
-        TokenMintTransaction()
-        .set_token_id(token_id)
-        .set_amount(20000) # Positive, non-zero amount to mint in lowest denomination
-        .freeze_with(client)
-        .sign(payer_key)
-        .sign(supply_key)
-    )
-    
     try:
-        receipt = transaction.execute(client)
-        if receipt and receipt.tokenId:
-            print(f"Fungible token minting successful")
-        else:
-            print(f"Fungible token minting failed")
-            sys.exit(1)
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
+        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        client.set_operator(operator_id, operator_key)
+    except (TypeError, ValueError):
+        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
+        sys.exit(1)
+
+    print(f"Using operator account: {operator_id}")
+
+    # 2. Generate a Supply Key
+    # =================================================================
+    print("\nSTEP 1: Generating a new supply key...")
+    supply_key = PrivateKey.generate("ed25519")
+    print("✅ Supply key generated.")
+
+    # 3. Create a token with the supply key
+    # =================================================================
+    print("\nSTEP 2: Creating a new mintable token...")
+    try:
+        tx = (
+            TokenCreateTransaction()
+            .set_token_name("Mintable Fungible Token")
+            .set_token_symbol("MFT")
+            .set_initial_supply(100)  # Start with 100 tokens
+            .set_decimals(2)
+            .set_treasury_account_id(operator_id)
+            .set_supply_key(supply_key)  # Assign the supply key
+        )
+        
+        # Freeze, sign with BOTH operator and the new supply key, then execute
+        receipt = (
+            tx.freeze_with(client)
+            .sign(operator_key)
+            .sign(supply_key)  # The new supply key must sign to give consent
+            .execute(client)
+        )
+        token_id = receipt.token_id
+        print(f"✅ Success! Created token with ID: {token_id}")
     except Exception as e:
-        print(f"Fungible token minting failed: {str(e)}")
+        print(f"❌ Error creating token: {e}")
+        sys.exit(1)
+
+    # 4. Mint more of the token
+    # =================================================================
+    mint_amount = 5000 # This is 50.00 tokens because decimals is 2
+    print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
+    try:
+        receipt = (
+            TokenMintTransaction()
+            .set_token_id(token_id)
+            .set_amount(mint_amount)
+            .freeze_with(client)
+            .sign(supply_key)  # Must be signed by the supply key
+            .execute(client)
+        )
+        # THE FIX: The receipt confirms status, it does not contain the new total supply.
+        print(f"✅ Success! Token minting complete.")
+    except Exception as e:
+        print(f"❌ Error minting tokens: {e}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    fungible_token_mint() 
+    token_mint_fungible()

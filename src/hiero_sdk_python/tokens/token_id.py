@@ -1,8 +1,16 @@
+"""
+hiero_sdk_python.tokens.token_id
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines TokenId, a frozen dataclass for representing Hedera token identifiers
+(shard, realm, num) with validation and protobuf conversion utilities.
+"""
 from dataclasses import dataclass
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 @dataclass(frozen=True, eq=True, init=True, repr=True)
 class TokenId:
+    """Immutable token identifier (shard, realm, num) with validation and protobuf conversion."""
     shard: int
     realm: int
     num: int
@@ -50,7 +58,7 @@ class TokenId:
         return token_id_proto
 
     @classmethod
-    def from_string(cls, token_id_str:str = ""):
+    def from_string(cls, token_id_str: str = ""):
         """
         Parses a string in the format 'shard.realm.num' to create a TokenId instance.
         """

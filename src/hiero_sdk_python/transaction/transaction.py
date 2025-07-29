@@ -315,7 +315,7 @@ class Transaction(_Executable):
         """
         raise NotImplementedError("Subclasses must implement build_transaction_body()")
     
-    def build_base_transaction_body(self):
+    def build_base_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds the base transaction body including common fields.
 

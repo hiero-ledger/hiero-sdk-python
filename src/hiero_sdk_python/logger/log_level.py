@@ -14,12 +14,15 @@ class LogLevel(IntEnum):
     TRACE = 5
     DEBUG = 10
     INFO = 20
-    WARN = 30
+    WARNING = 30
     ERROR = 40
     CRITICAL = 50
     DISABLED = 60
-    
-    def to_python_level(self):
+
+    #Old warn method will be depreciated
+    WARN = WARNING
+
+    def to_python_level(self) -> int:
         """Convert to Python's logging level
         
         Returns:
@@ -28,7 +31,7 @@ class LogLevel(IntEnum):
         return self.value
 
     @classmethod
-    def from_string(cls, level_str) -> 'LogLevel':
+    def from_string(cls, level_str: str) -> "LogLevel":
         """Convert a string to a LogLevel
         
         Args:
@@ -46,7 +49,7 @@ class LogLevel(IntEnum):
             raise ValueError(f"Invalid log level: {level_str}")
         
     @classmethod
-    def from_env(cls):
+    def from_env(cls) -> "LogLevel":
         """
         Get log level from environment variable
         

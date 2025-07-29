@@ -1,5 +1,9 @@
 # Hiero SDK in Python
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-python/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-sdk-python)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
+[![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
+
 This is a Python SDK for interacting with the Hedera Hashgraph platform. It allows developers to:
 
 - Manage Token Transactions like Create, Mint Fungible, Mint Non-Fungible, Associate, Dissociate, Transfer, Freeze, Unfreeze & Delete
@@ -55,7 +59,7 @@ Other installation methods can be found [here](https://docs.astral.sh/uv/getting
 2. Clone this repository:
 
 ```bash
-git clone https://github.com/hiero-ledger/hiero_sdk_python.git
+git clone https://github.com/hiero-ledger/hiero-sdk-python.git
 cd hiero-sdk-python
 ```
 
@@ -95,16 +99,20 @@ Create a .env file in the root of your project with the following (replace with 
 
 ```
 OPERATOR_ID=0.0.1234xx
-OPERATOR_KEY=302e020100300506032b657004220420...
-ADMIN_KEY=302a300506032b65700321009308ecfdf...
+OPERATOR_KEY=af20e47d590300506032b657004220420...
+NETWORK=testnet
+
+# optional:
+ADMIN_KEY=af20e47d59032b65700321009308ecfdf...
 SUPPLY_KEY =302a300506032b6570032100c5e4af5..."
 FREEZE_KEY=302a300306072b65700321009308ecfdf...
 RECIPIENT_ID=0.0.789xx
 TOKEN_ID=0.0.100xx
 TOPIC_ID=0.0.200xx
 FREEZE_ACCOUNT_ID=0.0.100
-NETWORK=testnet
 ```
+
+The only environment variables needed are OPERATOR_ID, OPERATOR_KEY and NETWORK. The rest is optional (if customisation of the example scripts is needed).
 
 A [sample .env](.env.example) file is provided in the root of this project. If you do not have an account on
 the Hedera testnet, you can easily get one from the [Hedera Portal](https://portal.hedera.com/). Learn more about
@@ -118,9 +126,9 @@ uv run pytest
 ```
 
 The test file in the root of this project will be automatically run when pushing onto a branch.
-This is done by running 'Hedera Solo'. Read more about it here:
+This is done by running 'Hiero Solo Action'. Read more about it here:
 
-- [Github Marketplace](https://github.com/marketplace/actions/hedera-solo)
+- [Github Marketplace](https://github.com/marketplace/actions/hiero-solo-action)
 - [Blog Post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
 
 #### Output:
