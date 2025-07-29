@@ -211,7 +211,7 @@ class FileAppendTransaction(Transaction):
             FileAppendTransaction: This transaction instance.
         """
 
-        self.file_id = FileId.from_proto(proto.fileID) if proto.fileID else None
+        self.file_id = FileId._from_proto(proto.fileID) if proto.fileID else None
         self.contents = proto.contents
         self._total_chunks = self._calculate_total_chunks()
         return self
