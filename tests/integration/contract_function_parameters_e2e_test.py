@@ -212,8 +212,8 @@ def test_constructor_test_contract_parameter_order_sensitivity(env):
         .add_int8(test_int8)
         .add_address(test_address)
         .add_bool(test_bool)
-        .add_uint8_array(test_uint8_array)
-        .add_bytes(test_bytes)
+        .add_uint8_array(test_uint8_array)  # Should be bytes here
+        .add_bytes(test_bytes)  # Should be uint8_array here
     )
 
     receipt = (
