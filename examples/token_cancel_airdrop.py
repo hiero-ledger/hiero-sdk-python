@@ -94,7 +94,7 @@ def token_cancel_airdrop():
     try:
         cancel_airdrop_tx = TokenCancelAirdropTransaction()
         for record in pending_airdrops_record:
-            cancel_airdrop_tx.add_pending_airdrop(record.get_pending_airdrop_id())
+            cancel_airdrop_tx.add_pending_airdrop(record.pending_airdrop_id)
 
         cancel_airdrop_tx.freeze_with(client)
         cancel_airdrop_tx.sign(operator_key)

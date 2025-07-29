@@ -185,42 +185,6 @@ def test_clear_pending_airdrops(mock_account_ids):
 
     cancel_airdrop_tx.clear_pending_airdrops()
     assert len(cancel_airdrop_tx.pending_airdrops) == 0
-
-def test_get_pending_airdrops(mock_account_ids):
-    """Test get_pending_airdrops() method"""
-    sender, receiver, _, token_id_1, token_id_2 = mock_account_ids
-    token_pending_airdrop = PendingAirdropId(sender_id=sender, receiver_id=receiver, token_id=token_id_1)
-    nft_id = NftId(token_id_2, 10)
-    token_pending_airdrop = PendingAirdropId(sender_id=sender, receiver_id=receiver, token_id=token_id_1)
-    nft_pending_airdrop = PendingAirdropId(sender_id=sender, receiver_id=receiver, nft_id=nft_id)
-
-    cancel_airdrop_tx = TokenCancelAirdropTransaction()
-    cancel_airdrop_tx.add_pending_airdrop(pending_airdrop=token_pending_airdrop)
-    cancel_airdrop_tx.add_pending_airdrop(pending_airdrop=nft_pending_airdrop)
-    pending_airdrops = cancel_airdrop_tx.get_pending_airdrops()
-
-    assert len(pending_airdrops) == 2
-    assert pending_airdrops[0].sender_id.shard == sender.shard
-    assert pending_airdrops[0].sender_id.realm == sender.realm
-    assert pending_airdrops[0].sender_id.num == sender.num
-    assert pending_airdrops[0].receiver_id.shard == receiver.shard
-    assert pending_airdrops[0].receiver_id.realm == receiver.realm
-    assert pending_airdrops[0].receiver_id.num == receiver.num
-    assert pending_airdrops[0].token_id.shard == token_id_1.shard
-    assert pending_airdrops[0].token_id.realm == token_id_1.realm
-    assert pending_airdrops[0].token_id.num == token_id_1.num
-    assert pending_airdrops[0].nft_id == None
-    assert pending_airdrops[1].sender_id.shard == sender.shard
-    assert pending_airdrops[1].sender_id.realm == sender.realm
-    assert pending_airdrops[1].sender_id.num == sender.num
-    assert pending_airdrops[1].receiver_id.shard == receiver.shard
-    assert pending_airdrops[1].receiver_id.realm == receiver.realm
-    assert pending_airdrops[1].receiver_id.num == receiver.num
-    assert pending_airdrops[1].nft_id.serial_number == 10
-    assert pending_airdrops[1].nft_id.token_id.shard == token_id_2.shard
-    assert pending_airdrops[1].nft_id.token_id.realm == token_id_2.realm
-    assert pending_airdrops[1].nft_id.token_id.num == token_id_2.num
-    assert pending_airdrops[1].token_id == None
     
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token cancel airdrop transaction with a private key."""

@@ -72,7 +72,7 @@ def test_integration_token_cancel_airdrop_transaction_can_execute():
 
         pending_airdrops = []
         for record in pending_airdrop_records:
-            pending_airdrops.append(record.get_pending_airdrop_id())
+            pending_airdrops.append(record.pending_airdrop_id)
 
         cancel_airdrop_tx = TokenCancelAirdropTransaction(pending_airdrops=pending_airdrops)
         cancel_airdrop_tx.freeze_with(env.client)

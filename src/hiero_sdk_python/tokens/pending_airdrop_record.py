@@ -16,9 +16,6 @@ class PendingAirdropRecord:
         """
         self.pending_airdrop_id = pending_airdrop_id
         self.amount = amount
-
-    def get_pending_airdrop_id(self) -> "PendingAirdropId":
-        return self.pending_airdrop_id
     
     @classmethod
     def _from_proto(cls, proto: transaction_record_pb2.PendingAirdropRecord) -> "PendingAirdropRecord":

@@ -17,7 +17,7 @@ class TokenCancelAirdropTransaction(Transaction):
             pending_airdrops (list[PendingAirdropId], optional): An initial list of pending airdrop IDs.
         """
         super().__init__()
-        self.pending_airdrops: list[PendingAirdropId] = []
+        self.pending_airdrops: list[PendingAirdropId] = pending_airdrops or []
         if (pending_airdrops is not None):
             self.set_pending_airdrops(pending_airdrops)
 
@@ -56,15 +56,6 @@ class TokenCancelAirdropTransaction(Transaction):
         """
         self.pending_airdrops.clear()
         return self
-    
-    def get_pending_airdrops(self) -> list[PendingAirdropId]:
-        """
-        Retrieves the current list of pending airdrop IDs.
-
-        Returns:
-            list[PendingAirdropId]: A list of PendingAirdropId instances.
-        """
-        return self.pending_airdrops
     
     def build_transaction_body(self):
         """

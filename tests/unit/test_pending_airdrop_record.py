@@ -166,37 +166,3 @@ def test_pending_airdrop_record_from_proto_for_nft(mock_account_ids):
     assert record.pending_airdrop_id.nft_id.token_id.realm == token_id.realm
     assert record.pending_airdrop_id.nft_id.token_id.num == token_id.num
     assert record.pending_airdrop_id.token_id == None
-
-def test_get_pending_airdrop_id(mock_account_ids):
-    """Test PendingAirdropRecord get_pending_airdrop_id() method"""
-    sender_id, receiver_id, _, token_id_1, token_id_2 = mock_account_ids
-    nft_id = NftId(token_id=token_id_2, serial_number=10)
-    amount = 1
-
-    token_pending_airdrop_id = PendingAirdropId(
-        sender_id=sender_id,
-        receiver_id=receiver_id,
-        token_id=token_id_1
-    )
-
-    nft_pending_airdrop_id = PendingAirdropId(
-        sender_id=sender_id,
-        receiver_id=receiver_id,
-        nft_id=nft_id
-    )
-
-    #Pending airdrop id with token
-    record_1 = PendingAirdropRecord(
-        pending_airdrop_id=token_pending_airdrop_id,
-        amount=amount
-    )
-
-    assert record_1.get_pending_airdrop_id() == token_pending_airdrop_id
-
-    #Pending airdrop id with nft
-    record_2 = PendingAirdropRecord(
-        pending_airdrop_id=nft_pending_airdrop_id,
-        amount=amount
-    )
-
-    assert record_2.get_pending_airdrop_id() == nft_pending_airdrop_id
