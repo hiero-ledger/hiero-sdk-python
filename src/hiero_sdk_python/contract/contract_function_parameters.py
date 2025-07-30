@@ -102,10 +102,6 @@ class ContractFunctionParameters:
 
         Returns:
             This instance for method chaining
-
-        Raises:
-            ValueError: If value is not exactly 32 bytes
-            TypeError: If value is not bytes type
         """
         return self._add_param("bytes32", value)
 
