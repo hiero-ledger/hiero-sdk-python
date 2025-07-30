@@ -30,24 +30,25 @@ class ContractCreateParams:
     Represents contract creation parameters.
 
     Attributes:
-        bytecode_file_id (optional): The FileID of the file containing the
-            contract bytecode.
-        proxy_account_id (optional): The AccountID of the proxy account.
-        admin_key (optional): The admin key for the contract.
-        gas (optional): The gas limit for contract creation.
-        initial_balance (optional): The initial balance for the contract
+        bytecode_file_id (Optional[FileId]): The FileId of the file containing
+            the contract bytecode.
+        proxy_account_id (Optional[AccountId]): The AccountId of the proxy account.
+        admin_key (Optional[PublicKey]): The admin key for the contract.
+        gas (Optional[int]): The gas limit for contract creation.
+        initial_balance (Optional[int]): The initial balance for the contract
             in tinybars.
-        auto_renew_period: The auto-renewal period for the contract.
-        parameters (optional): The constructor parameters for the contract.
-        contract_memo (optional): The memo for the contract.
-        bytecode (optional): The bytecode for the contract.
-        auto_renew_account_id (optional): The AccountID that will pay for
-            auto-renewal.
-        max_automatic_token_associations (optional): Maximum number of
+        auto_renew_period (Duration): The auto-renewal period for the contract.
+        parameters (Optional[bytes]): ABI-encoded constructor parameters to be
+            passed to the smart contract upon creation.
+        contract_memo (Optional[str]): The memo for the contract.
+        bytecode (Optional[bytes]): The bytecode for the contract.
+        auto_renew_account_id (Optional[AccountId]): The AccountId that will pay
+            for auto-renewal.
+        max_automatic_token_associations (Optional[int]): Maximum number of
             automatic token associations.
-        staked_account_id (optional): The AccountID to stake to.
-        staked_node_id (optional): The node ID to stake to.
-        decline_reward (optional): Whether to decline staking rewards.
+        staked_account_id (Optional[AccountId]): The AccountId to stake to.
+        staked_node_id (Optional[int]): The node ID to stake to.
+        decline_reward (Optional[bool]): Whether to decline staking rewards.
     """
 
     bytecode_file_id: Optional[FileId] = None
