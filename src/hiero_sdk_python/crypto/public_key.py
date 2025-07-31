@@ -4,8 +4,10 @@ from typing import Union
 
 from cryptography.hazmat.primitives.asymmetric import ed25519, ec
 from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.utils.crypto_utils import keccak256
 
 def _warn_ed25519_ambiguity(caller_name: str) -> None:
     warnings.warn(
@@ -485,7 +487,7 @@ class PublicKey:
         Verify an ECDSA (secp256k1) signature using SHA-256.
 
         Args:
-            signature: The DER-encoded signature bytes.
+            signature: DER-encoded signature bytes, or raw 64-byte signature (r + s concatenated, 32 bytes each)
             data:      The original message bytes.
 
         Raises:
@@ -493,7 +495,17 @@ class PublicKey:
         """
         if not isinstance(self._public_key, ec.EllipticCurvePublicKey):
             raise TypeError("Not an ECDSA key")
-        self._public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
+        
+        # Convert raw 64-byte signature to DER format
+        if len(signature) == 64:
+            r = int.from_bytes(signature[:32], "big")
+            s = int.from_bytes(signature[32:], "big")
+            signature_der = asym_utils.encode_dss_signature(r, s)
+        else:
+            signature_der = signature
+            
+        data_hash = keccak256(data)
+        self._public_key.verify(signature_der, data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
 
     def __repr__(self) -> str:
         """
