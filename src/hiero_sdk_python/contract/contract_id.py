@@ -1,8 +1,14 @@
+"""
+Contract ID class.
+"""
+
 from dataclasses import dataclass
+from typing import Optional
+
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 
-@dataclass
+@dataclass()
 class ContractId:
     """
     Represents a contract ID on the network.
@@ -14,16 +20,19 @@ class ContractId:
         shard (int): The shard number. Defaults to 0.
         realm (int): The realm number. Defaults to 0.
         contract (int): The contract number. Defaults to 0.
+        evm_address (bytes): The EVM address of the contract. Defaults to None.
     """
+
     shard: int = 0
     realm: int = 0
     contract: int = 0
+    evm_address: Optional[bytes] = None
 
     @classmethod
-    def _from_proto(cls, contract_id_proto: basic_types_pb2.ContractID) -> 'ContractId':
+    def _from_proto(cls, contract_id_proto: basic_types_pb2.ContractID) -> "ContractId":
         """
         Creates a ContractId instance from a protobuf ContractID object.
-        """        
+        """
         return cls(
             shard=contract_id_proto.shardNum,
             realm=contract_id_proto.realmNum,
@@ -38,16 +47,19 @@ class ContractId:
             shardNum=self.shard,
             realmNum=self.realm,
             contractNum=self.contract,
+            evm_address=self.evm_address,
         )
 
     @classmethod
-    def from_string(cls, contract_id_str: str) -> 'ContractId':
+    def from_string(cls, contract_id_str: str) -> "ContractId":
         """
         Parses a string in the format 'shard.realm.contract' to create a ContractId instance.
         """
-        parts = contract_id_str.strip().split('.')
+        parts = contract_id_str.strip().split(".")
         if len(parts) != 3:
-            raise ValueError("Invalid ContractId format. Expected 'shard.realm.contract'")
+            raise ValueError(
+                "Invalid ContractId format. Expected 'shard.realm.contract'"
+            )
         return cls(shard=int(parts[0]), realm=int(parts[1]), contract=int(parts[2]))
 
     def __str__(self):
@@ -55,3 +67,9 @@ class ContractId:
         Returns the string representation of the ContractId in the format 'shard.realm.contract'.
         """
         return f"{self.shard}.{self.realm}.{self.contract}"
+
+    def __hash__(self):
+        """
+        Returns the hash of the ContractId.
+        """
+        return hash((self.shard, self.realm, self.contract, self.evm_address))
