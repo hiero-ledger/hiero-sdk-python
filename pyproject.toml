@@ -18,7 +18,8 @@ dependencies = [
     "grpcio==1.68.1",
     "cryptography==44.0.0",
     "python-dotenv==1.0.1",
-    "requests==2.32.3"
+    "requests==2.32.3",
+    "pycryptodome==3.23.0",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
