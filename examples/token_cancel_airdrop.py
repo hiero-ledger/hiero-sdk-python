@@ -83,7 +83,7 @@ def token_cancel_airdrop():
             .execute(client)
         )
         print(f"Token airdrop complete: (status: {receipt.status}, transaction_id: {receipt.transaction_id})")
-        airdrop_record = TransactionRecordQuery(receipt.transaction_id()).execute(client)
+        airdrop_record = TransactionRecordQuery(receipt.transaction_id).execute(client)
         pending_airdrops_record = airdrop_record.new_pending_airdrops
     except Exception as e:
         print(f"Error airdroping tokens: {e}")

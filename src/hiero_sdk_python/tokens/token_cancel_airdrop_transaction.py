@@ -18,8 +18,6 @@ class TokenCancelAirdropTransaction(Transaction):
         """
         super().__init__()
         self.pending_airdrops: list[PendingAirdropId] = pending_airdrops or []
-        if (pending_airdrops is not None):
-            self.set_pending_airdrops(pending_airdrops)
 
     def set_pending_airdrops(self, pending_airdrops: list[PendingAirdropId]) -> "TokenCancelAirdropTransaction":
         """
