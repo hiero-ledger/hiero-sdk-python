@@ -17,6 +17,7 @@ def test_default_initialization():
     assert contract_id.shard == 0
     assert contract_id.realm == 0
     assert contract_id.contract == 0
+    assert contract_id.evm_address is None
 
 
 def test_custom_initialization():
@@ -26,6 +27,7 @@ def test_custom_initialization():
     assert contract_id.shard == 1
     assert contract_id.realm == 2
     assert contract_id.contract == 3
+    assert contract_id.evm_address is None
 
 
 def test_str_representation():
@@ -33,6 +35,7 @@ def test_str_representation():
     contract_id = ContractId(shard=1, realm=2, contract=3)
 
     assert str(contract_id) == "1.2.3"
+    assert contract_id.evm_address is None
 
 
 def test_str_representation_default():
@@ -40,6 +43,7 @@ def test_str_representation_default():
     contract_id = ContractId()
 
     assert str(contract_id) == "0.0.0"
+    assert contract_id.evm_address is None
 
 
 def test_from_string_valid():
@@ -49,6 +53,7 @@ def test_from_string_valid():
     assert contract_id.shard == 1
     assert contract_id.realm == 2
     assert contract_id.contract == 3
+    assert contract_id.evm_address is None
 
 
 def test_from_string_with_spaces():
@@ -58,6 +63,7 @@ def test_from_string_with_spaces():
     assert contract_id.shard == 1
     assert contract_id.realm == 2
     assert contract_id.contract == 3
+    assert contract_id.evm_address is None
 
 
 def test_from_string_zeros():
@@ -67,6 +73,7 @@ def test_from_string_zeros():
     assert contract_id.shard == 0
     assert contract_id.realm == 0
     assert contract_id.contract == 0
+    assert contract_id.evm_address is None
 
 
 def test_from_string_invalid_format_too_few_parts():
@@ -179,3 +186,75 @@ def test_equality():
 
     assert contract_id1 == contract_id2
     assert contract_id1 != contract_id3
+
+
+def test_evm_address_initialization():
+    """Test ContractId initialization with EVM address."""
+    evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    contract_id = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address)
+
+    assert contract_id.shard == 1
+    assert contract_id.realm == 2
+    assert contract_id.contract == 3
+    assert contract_id.evm_address == evm_address
+
+
+def test_evm_address_to_proto():
+    """Test converting ContractId with EVM address to protobuf format."""
+    evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    contract_id = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address)
+    proto = contract_id._to_proto()
+
+    assert isinstance(proto, basic_types_pb2.ContractID)
+    assert proto.shardNum == 1
+    assert proto.realmNum == 2
+    assert proto.contractNum == 0
+    assert proto.evm_address == evm_address
+
+
+def test_evm_address_to_proto_none():
+    """Test converting ContractId with None EVM address to protobuf format."""
+    contract_id = ContractId(shard=1, realm=2, contract=3, evm_address=None)
+    proto = contract_id._to_proto()
+
+    assert isinstance(proto, basic_types_pb2.ContractID)
+    assert proto.shardNum == 1
+    assert proto.realmNum == 2
+    assert proto.contractNum == 3
+    assert proto.evm_address == b""
+
+
+def test_evm_address_equality():
+    """Test ContractId equality with EVM addresses."""
+    evm_address1 = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    evm_address2 = bytes.fromhex("1234567890abcdef1234567890abcdef12345678")
+
+    contract_id1 = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address1)
+    contract_id2 = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address1)
+    contract_id3 = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address2)
+    contract_id4 = ContractId(shard=1, realm=2, contract=3, evm_address=None)
+
+    # Same EVM address should be equal
+    assert contract_id1 == contract_id2
+
+    # Different EVM addresses should not be equal
+    assert contract_id1 != contract_id3
+
+    # None EVM address should not be equal to one with EVM address
+    assert contract_id1 != contract_id4
+
+
+def test_evm_address_hash():
+    """Test ContractId hash with EVM addresses."""
+    evm_address1 = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    evm_address2 = bytes.fromhex("1234567890abcdef1234567890abcdef12345678")
+
+    contract_id1 = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address1)
+    contract_id2 = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address1)
+    contract_id3 = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address2)
+
+    # Same EVM address should have same hash
+    assert hash(contract_id1) == hash(contract_id2)
+
+    # Different EVM addresses should have different hashes
+    assert hash(contract_id1) != hash(contract_id3)
