@@ -8,8 +8,8 @@ This module includes:
 - TokenCreateTransaction: Handles token creation transactions on Hedera.
 """
 
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -19,6 +19,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.tokens.custom_fee import CustomFee
 
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
 
@@ -162,6 +163,7 @@ class TokenParams:
     max_supply: int = 0 # Since defaulting to infinite
     supply_type: SupplyType = SupplyType.INFINITE # Default to infinite
     freeze_default: bool = False
+    custom_fees: List[CustomFee] = field(default_factory=list)
 
 
 @dataclass
@@ -354,6 +356,11 @@ class TokenCreateTransaction(Transaction):
         self._keys.kyc_key = key
         return self
 
+    def set_custom_fees(self, custom_fees: List[CustomFee]):
+        """Set the Custom Fees."""
+        self._require_not_frozen()
+        self._token_params.custom_fees = custom_fees
+        return self
 
     def _to_proto_key(self, private_key):
         """
@@ -429,7 +436,8 @@ class TokenCreateTransaction(Transaction):
             wipeKey=wipe_key_proto,
             metadata_key=metadata_key_proto,
             pause_key=pause_key_proto,
-            kycKey=kyc_key_proto
+            kycKey=kyc_key_proto,
+            custom_fees=[fee._to_protobuf() for fee in self._token_params.custom_fees],
         )
         # Build the base transaction body and attach the token creation details
         transaction_body = self.build_base_transaction_body()
