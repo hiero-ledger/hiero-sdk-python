@@ -241,7 +241,6 @@ def test_to_proto(mock_client, file_id):
     assert len(proto.signedTransactionBytes) > 0
 
 
-@mock_hedera_servers
 def test_file_update_transaction_can_execute(file_id):
     """Test that a file update transaction can be executed successfully."""
     # Create test transaction responses
