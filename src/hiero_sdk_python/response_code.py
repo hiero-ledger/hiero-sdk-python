@@ -350,7 +350,7 @@ class ResponseCode(IntEnum):
     MAX_CUSTOM_FEES_IS_NOT_SUPPORTED = 387
 
     @classmethod
-    def _missing_(cls,value):
+    def _missing_(cls,value: int) -> "ResponseCode":
         """
         Handles cases where an integer value does not match any ResponseCode member
         and returns 'UNKNOWN_CODE_<value>'.
@@ -361,7 +361,7 @@ class ResponseCode(IntEnum):
         return unknown
     
     @classmethod
-    def get_name(cls,code):
+    def get_name(cls,code: int) -> str:
         """
         Returns the name of the response code.
         """

@@ -100,7 +100,7 @@ class TopicCreateTransaction(Transaction):
         self.auto_renew_account = account_id
         return self
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for topic creation.
 

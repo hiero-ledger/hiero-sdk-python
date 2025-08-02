@@ -22,7 +22,7 @@ class Transaction(_Executable):
     2. _get_method(channel) - Return the appropriate gRPC method to call
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes a new Transaction instance with default values.
         """
@@ -60,7 +60,11 @@ class Transaction(_Executable):
         """
         return self._to_proto()
 
-    def _map_response(self, response, node_id, proto_request):
+    def _map_response(
+            self, 
+            response, 
+            node_id, 
+            proto_request):
         """
         Implements the Executable._map_response method to create a TransactionResponse.
 

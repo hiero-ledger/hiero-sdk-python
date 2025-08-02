@@ -14,20 +14,11 @@ from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
-    response_header_pb2,
-    response_pb2,
     transaction_get_receipt_pb2,
 )
-from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import (
-    TransactionReceipt as TransactionReceiptProto,
-)
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
-    TransactionResponse as TransactionResponseProto,
-)
+
 from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
-from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
 
@@ -239,31 +230,30 @@ def test_to_proto(mock_client, file_id):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
-
-
-@mock_hedera_servers
 def test_file_update_transaction_can_execute(file_id):
     """Test that a file update transaction can be executed successfully."""
-    # Create test transaction responses
-    ok_response = TransactionResponseProto()
-    ok_response.nodeTransactionPrecheckCode = ResponseCode.OK
+    from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
+    from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+    from hiero_sdk_python.hapi.services import response_pb2, response_header_pb2
+    from hiero_sdk_python.response_code import ResponseCode
 
-    # Create a mock receipt for successful file update
-    mock_receipt_proto = TransactionReceiptProto(status=ResponseCode.SUCCESS)
-
-    # Create a response for the receipt query
+    # Create mock responses
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
+    receipt_proto = TransactionReceiptProto(status=ResponseCode.SUCCESS)
     receipt_query_response = response_pb2.Response(
-        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
             header=response_header_pb2.ResponseHeader(
                 nodeTransactionPrecheckCode=ResponseCode.OK
             ),
-            receipt=mock_receipt_proto,
+            receipt=receipt_proto,
         )
     )
 
-    response_sequences = [
-        [ok_response, receipt_query_response],
-    ]
+    response_sequences = [[ok_response, receipt_query_response]]
+
+    from tests.unit.mock_server import mock_hedera_servers
+    from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
+    from hiero_sdk_python.crypto.private_key import PrivateKey
 
     with mock_hedera_servers(response_sequences) as client:
         private_key = PrivateKey.generate()

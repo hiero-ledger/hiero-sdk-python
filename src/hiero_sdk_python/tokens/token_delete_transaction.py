@@ -5,8 +5,11 @@ hiero_sdk_python.transaction.token_delete_transaction
 Provides TokenDeleteTransaction, a subclass of Transaction for deleting tokens
 on the Hedera network using the Hedera Token Service (HTS) API.
 """
+from typing import Optional
+
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import token_delete_pb2
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.hapi.services import token_delete_pb2, transaction_body_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -20,7 +23,7 @@ class TokenDeleteTransaction(Transaction):
     to build and execute a token deletion transaction.
     """
 
-    def __init__(self, token_id=None):
+    def __init__(self, token_id: Optional[TokenId] = None) -> None:
         """
         Initializes a new TokenDeleteTransaction instance with optional token_id.
 
@@ -28,10 +31,10 @@ class TokenDeleteTransaction(Transaction):
             token_id (TokenId, optional): The ID of the token to be deleted.
         """
         super().__init__()
-        self.token_id = token_id
-        self._default_transaction_fee = 3_000_000_000
+        self.token_id: Optional[TokenId] = token_id
+        self._default_transaction_fee: int = 3_000_000_000
 
-    def set_token_id(self, token_id):
+    def set_token_id(self, token_id: TokenId) -> "TokenDeleteTransaction":
         """
         Sets the ID of the token to be deleted.
 
@@ -45,12 +48,12 @@ class TokenDeleteTransaction(Transaction):
         self.token_id = token_id
         return self
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token deletion.
 
         Returns:
-            TransactionBody: The protobuf transaction body containing the token deletion details.
+            transaction_body_pb2.TransactionBody: The protobuf transaction body containing the token deletion details.
 
         Raises:
             ValueError: If the token ID is missing.
@@ -62,7 +65,7 @@ class TokenDeleteTransaction(Transaction):
             token=self.token_id._to_proto()
         )
 
-        transaction_body = self.build_base_transaction_body()
+        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenDeletion.CopyFrom(token_delete_body)
 
         return transaction_body

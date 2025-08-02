@@ -1,10 +1,21 @@
 """
-Base class for all network queries.
+Base class for all network queries. 
 """
 
 import time
 from typing import Any, List, Optional, Union
 
+from typing import Any, List, Optional, Union
+
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.hapi.services import query_header_pb2, query_pb2
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client, Operator

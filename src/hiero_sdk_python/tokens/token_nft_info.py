@@ -79,10 +79,14 @@ class TokenNftInfo:
         )
 
     def __str__(self) -> str:
-        return (
-            "TokenNftInfo("
-            f"nft_id={self.nft_id}, account_id={self.account_id}, "
-            f"creation_time={self.creation_time}, metadata={self.metadata}, "
-            f"spender_id={self.spender_id}"
-            ")"
-        )
+        """
+        Get a string representation of this TokenNftInfo instance.
+        
+        Returns:
+            str: A string representation including all fields of this NFT information.
+        """
+        return (f"TokenNftInfo(nft_id={self.nft_id}, "
+                f"account_id={self.account_id}, "
+                f"creation_time={self.creation_time}, "
+                f"metadata={self.metadata!r}, "
+                f"spender_id={self.spender_id})")

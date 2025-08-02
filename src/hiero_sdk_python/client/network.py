@@ -4,6 +4,7 @@ from typing import Dict, List
 
 import requests
 
+from typing import Dict, List, Tuple
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.node import _Node
@@ -29,7 +30,7 @@ class Network:
         'solo': 'http://localhost:8080'
     }
 
-    DEFAULT_NODES: Dict[str,List[_Node]] = {
+    DEFAULT_NODES: Dict[str,List[Tuple[str,AccountId]]] = {
         'mainnet': [
             ("35.237.200.180:50211", AccountId(0, 0, 3)),
             ("35.186.191.247:50211", AccountId(0, 0, 4)),
@@ -66,7 +67,7 @@ class Network:
         network: str = 'testnet',
         nodes: list[_Node] = None,
         mirror_address: str = None,
-    ):
+    ) -> None:
         """
         Initializes the Network with the specified network name or custom config.
 
@@ -87,9 +88,9 @@ class Network:
         if nodes is not None:
             self.nodes: List[_Node] = nodes
         elif self.network in ('solo', 'localhost', 'local'):
-            self.nodes: List[_Node] = self._fetch_nodes_from_default_nodes()
+            self.nodes = self._fetch_nodes_from_default_nodes()
         else:
-            self.nodes: List[_Node] = self._fetch_nodes_from_mirror_node()
+            self.nodes = self._fetch_nodes_from_mirror_node()
             if not self.nodes and self.network in self.DEFAULT_NODES:
                 self.nodes = self._fetch_nodes_from_default_nodes()
             elif not self.nodes:

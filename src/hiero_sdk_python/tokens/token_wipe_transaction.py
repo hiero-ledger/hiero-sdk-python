@@ -9,8 +9,7 @@ from typing import Optional, List
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import token_wipe_account_pb2, transaction_body_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -108,7 +107,7 @@ class TokenWipeTransaction(Transaction):
         Returns:
             TransactionBody: The protobuf transaction body containing the token wipe details.
         """
-        token_wipe_body = TokenWipeAccountTransactionBody(
+        token_wipe_body = token_wipe_account_pb2.TokenWipeAccountTransactionBody(
             token=self.token_id and self.token_id._to_proto(),
             account=self.account_id and self.account_id._to_proto(),
             amount=self.amount,
@@ -123,8 +122,8 @@ class TokenWipeTransaction(Transaction):
             transaction_func=channel.token.wipeTokenAccount,
             query_func=None
         )
-
-    def _from_proto(self, proto: TokenWipeAccountTransactionBody) -> "TokenWipeTransaction":
+    
+    def _from_proto(self, proto: token_wipe_account_pb2.TokenWipeAccountTransactionBody) -> "TokenWipeTransaction":
         """
         Deserializes a TokenWipeAccountTransactionBody from a protobuf object.
 

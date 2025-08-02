@@ -5,8 +5,10 @@ hiero_sdk_python.transaction.token_mint_transaction
 Provides TokenMintTransaction, a subclass of Transaction for minting fungible and
 non-fungible tokens on the Hedera network via the Hedera Token Service (HTS) API.
 """
+from typing import List, Optional, Union
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import token_mint_pb2
+from hiero_sdk_python.hapi.services import token_mint_pb2, transaction_body_pb2
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -20,7 +22,12 @@ class TokenMintTransaction(Transaction):
     to build and execute a token minting transaction.
     """
 
-    def __init__(self, token_id=None, amount=None, metadata=None):
+    def __init__(
+        self, 
+        token_id: Optional[TokenId] = None, 
+        amount: Optional[int] = None, 
+        metadata: Optional[Union[bytes, List[bytes]]] = None
+    ) -> None:
         """
         Initializes a new TokenMintTransaction Custom instance with optional keyword arguments.
 
@@ -32,35 +39,54 @@ class TokenMintTransaction(Transaction):
         """
 
         super().__init__()
-        self.token_id = token_id
-        self.amount = amount
-        self.metadata = None
+        self.token_id: Optional[TokenId] = token_id
+        self.amount: Optional[int] = amount
+        self.metadata: Optional[Union[bytes,List[bytes]]] = None  
         if metadata is not None:
             self.set_metadata(metadata)
 
-        self._default_transaction_fee = 3_000_000_000
+        self._default_transaction_fee: int = 3_000_000_000
 
-    def set_token_id(self, token_id):
-        """Set the token ID for this mint transaction."""
+    def set_token_id(self, token_id: TokenId) -> "TokenMintTransaction":
+        """
+        Sets the ID of the token to be minted.
+        Args:
+            token_id (TokenId): The ID of the token to be minted.
+        Returns:
+            TokenMintTransaction: Returns self for method chaining.
+        """
         self._require_not_frozen()
         self.token_id = token_id
         return self
-
-    def set_amount(self, amount):
-        """Set the amount of fungible tokens to mint."""
+    
+    def set_amount(self, amount: int) -> "TokenMintTransaction":
+        """
+        Sets the amount of fungible tokens to mint.
+        Args:
+            amount (int): The amount of fungible tokens to mint.
+        Returns:
+            TokenMintTransaction: Returns self for method chaining.
+        """
         self._require_not_frozen()
         self.amount = amount
         return self
 
-    def set_metadata(self, metadata):
-        """Set metadata for non-fungible tokens (wraps single bytes into a list)."""
+    def set_metadata(self, metadata: Union[bytes, List[bytes]]) -> "TokenMintTransaction":
+        """
+        Sets the metadata for non-fungible tokens to mint.
+        Args:
+            metadata (Union[bytes, List[bytes]]): The metadata for non-fungible tokens to mint.
+            If a single bytes object is passed, it will be converted internally to [bytes].
+        Returns:
+            TokenMintTransaction: Returns self for method chaining.
+        """
         self._require_not_frozen()
         if isinstance(metadata, bytes):
             metadata = [metadata]
         self.metadata = metadata
         return self
-
-    def build_transaction_body(self):
+        
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token minting.
         
@@ -107,7 +133,7 @@ class TokenMintTransaction(Transaction):
         else:
             raise ValueError("Either amount or metadata must be provided for token minting.")
 
-        transaction_body = self.build_base_transaction_body()
+        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenMint.CopyFrom(token_mint_body)
 
         return transaction_body
