@@ -5,7 +5,7 @@ from hiero_sdk_python.transaction.transaction import TransactionId
 from hiero_sdk_python.hapi.services import timestamp_pb2
 
 pytestmark = pytest.mark.unit
-
+ 
 def generate_transaction_id(account_id_proto):
     """Generate a unique transaction ID based on the account ID and the current timestamp."""
     import time
