@@ -437,7 +437,7 @@ class TokenCreateTransaction(Transaction):
             metadata_key=metadata_key_proto,
             pause_key=pause_key_proto,
             kycKey=kyc_key_proto,
-            custom_fees=[fee._to_protobuf() for fee in self._token_params.custom_fees],
+            custom_fees=[fee._to_proto() for fee in self._token_params.custom_fees],
         )
         # Build the base transaction body and attach the token creation details
         transaction_body = self.build_base_transaction_body()
