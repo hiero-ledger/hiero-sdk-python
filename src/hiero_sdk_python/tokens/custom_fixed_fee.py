@@ -4,11 +4,11 @@ from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.hbar import Hbar
 
 if typing.TYPE_CHECKING:
-    from hiero_sdk_python.account.account_id import AccountId
     from hiero_sdk_python.client import Client
-    from hiero_sdk_python.tokens.token_id import TokenId
     from hiero_sdk_python.hapi.services import custom_fees_pb2
 
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.tokens.token_id import TokenId
 
 class CustomFixedFee(CustomFee):
     """
@@ -45,18 +45,6 @@ class CustomFixedFee(CustomFee):
         return self
 
     @staticmethod
-    def _from_protobuf(custom_fee: "custom_fees_pb2.CustomFee") -> CustomFixedFee:
-        from hiero_sdk_python.account.account_id import AccountId
-        
-        fee = CustomFixedFee._from_fixed_fee_proto(custom_fee.fixed_fee)
-        if custom_fee.HasField("fee_collector_account_id"):
-            fee.fee_collector_account_id = AccountId._from_proto(
-                custom_fee.fee_collector_account_id
-            )
-        fee.all_collectors_are_exempt = custom_fee.all_collectors_are_exempt
-        return fee
-
-    @staticmethod
     def _from_fixed_fee_proto(fixed_fee: "custom_fees_pb2.FixedFee") -> "CustomFixedFee":
         from hiero_sdk_python.tokens.token_id import TokenId
         fee = CustomFixedFee()
@@ -67,7 +55,7 @@ class CustomFixedFee(CustomFee):
             )
         return fee
 
-    def _to_protobuf(self) -> "custom_fees_pb2.CustomFee":
+    def _to_proto(self) -> "custom_fees_pb2.CustomFee":
         from hiero_sdk_python.hapi.services import custom_fees_pb2
 
         return custom_fees_pb2.CustomFee(
@@ -85,3 +73,24 @@ class CustomFixedFee(CustomFee):
         super()._validate_checksums(client)
         if self.denominating_token_id is not None:
             self.denominating_token_id.validate_checksum(client)
+
+    @classmethod
+    def _from_proto(cls, proto_fee) -> "CustomFixedFee":
+        """Create CustomFixedFee from protobuf CustomFee message."""
+        
+        fixed_fee_proto = proto_fee.fixed_fee
+        
+        denominating_token_id = None
+        if fixed_fee_proto.HasField("denominating_token_id"):
+            denominating_token_id = TokenId._from_proto(fixed_fee_proto.denominating_token_id)
+        
+        fee_collector_account_id = None
+        if proto_fee.HasField("fee_collector_account_id"):
+            fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
+        
+        return cls(
+            amount=fixed_fee_proto.amount,
+            denominating_token_id=denominating_token_id,
+            fee_collector_account_id=fee_collector_account_id,
+            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
+        )

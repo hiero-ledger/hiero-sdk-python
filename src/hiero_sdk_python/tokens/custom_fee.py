@@ -31,18 +31,18 @@ class CustomFee(ABC):
         return self
 
     @staticmethod
-    def _from_protobuf(custom_fee: "CustomFeeProto") -> "CustomFee":
+    def _from_proto(custom_fee: "CustomFeeProto") -> "CustomFee":  # Changed from _from_protobuf
         from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
         from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
         from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 
         fee_case = custom_fee.WhichOneof("fee")
         if fee_case == "fixed_fee":
-            return CustomFixedFee._from_protobuf(custom_fee)
+            return CustomFixedFee._from_proto(custom_fee)  # Changed from _from_protobuf
         if fee_case == "fractional_fee":
-            return CustomFractionalFee._from_protobuf(custom_fee)
+            return CustomFractionalFee._from_proto(custom_fee)  # Changed from _from_protobuf
         if fee_case == "royalty_fee":
-            return CustomRoyaltyFee._from_protobuf(custom_fee)
+            return CustomRoyaltyFee._from_proto(custom_fee)  # Changed from _from_protobuf
 
         raise ValueError(f"Unrecognized fee case: {fee_case}")
 
@@ -54,7 +54,7 @@ class CustomFee(ABC):
         )
 
     @abstractmethod
-    def _to_protobuf(self) -> "CustomFeeProto":
+    def _to_proto(self) -> "CustomFeeProto":  # Changed from _to_protobuf
         ...
 
     def _validate_checksums(self, client: Client) -> None:

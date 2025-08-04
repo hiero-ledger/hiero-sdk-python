@@ -50,27 +50,7 @@ class CustomFractionalFee(CustomFee):
         self.assessment_method = assessment_method
         return self
 
-    @staticmethod
-    def _from_protobuf(custom_fee: "custom_fees_pb2.CustomFee") -> CustomFractionalFee:
-        from hiero_sdk_python.account.account_id import AccountId
-        fractional_fee = custom_fee.fractional_fee
-
-        fee = CustomFractionalFee()
-        if custom_fee.HasField("fee_collector_account_id"):
-            fee.fee_collector_account_id = AccountId._from_proto(
-                custom_fee.fee_collector_account_id
-            )
-
-        fee.all_collectors_are_exempt = custom_fee.all_collectors_are_exempt
-        fee.numerator = fractional_fee.fractional_amount.numerator
-        fee.denominator = fractional_fee.fractional_amount.denominator
-        fee.min_amount = fractional_fee.minimum_amount
-        fee.max_amount = fractional_fee.maximum_amount
-        fee.assessment_method = FeeAssessmentMethod(fractional_fee.net_of_transfers)
-
-        return fee
-
-    def _to_protobuf(self) -> "custom_fees_pb2.CustomFee":
+    def _to_proto(self) -> "custom_fees_pb2.CustomFee":
         from hiero_sdk_python.hapi.services import custom_fees_pb2
         from hiero_sdk_python.hapi.services.basic_types_pb2 import Fraction
 
@@ -86,4 +66,25 @@ class CustomFractionalFee(CustomFee):
                 maximum_amount=self.max_amount,
                 net_of_transfers=self.assessment_method.value,
             ),
+        )
+
+    @classmethod
+    def _from_proto(cls, proto_fee) -> "CustomFractionalFee":
+        """Create CustomFractionalFee from protobuf CustomFee message."""
+        from hiero_sdk_python.account.account_id import AccountId
+        
+        fractional_fee_proto = proto_fee.fractional_fee
+        
+        fee_collector_account_id = None
+        if proto_fee.HasField("fee_collector_account_id"):  # Changed from WhichOneof
+            fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
+        
+        return cls(
+            numerator=fractional_fee_proto.fractional_amount.numerator,
+            denominator=fractional_fee_proto.fractional_amount.denominator,
+            min_amount=fractional_fee_proto.minimum_amount,
+            max_amount=fractional_fee_proto.maximum_amount,
+            assessment_method=FeeAssessmentMethod(fractional_fee_proto.net_of_transfers),
+            fee_collector_account_id=fee_collector_account_id,
+            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
         )

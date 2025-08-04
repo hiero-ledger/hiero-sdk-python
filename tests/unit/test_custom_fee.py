@@ -17,8 +17,8 @@ def test_custom_fixed_fee():
         all_collectors_are_exempt=True,
     )
 
-    proto = fee._to_protobuf()
-    new_fee = CustomFee._from_protobuf(proto)
+    proto = fee._to_proto()  # Changed from _to_protobuf
+    new_fee = CustomFixedFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomFixedFee)
     assert new_fee.amount == 100
@@ -37,8 +37,8 @@ def test_custom_fractional_fee():
         all_collectors_are_exempt=False,
     )
 
-    proto = fee._to_protobuf()
-    new_fee = CustomFee._from_protobuf(proto)
+    proto = fee._to_proto()  # Changed from _to_protobuf
+    new_fee = CustomFractionalFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomFractionalFee)
     assert new_fee.numerator == 1
@@ -62,8 +62,8 @@ def test_custom_royalty_fee():
         all_collectors_are_exempt=True,
     )
 
-    proto = fee._to_protobuf()
-    new_fee = CustomFee._from_protobuf(proto)
+    proto = fee._to_proto()  # Changed from _to_protobuf
+    new_fee = CustomRoyaltyFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomRoyaltyFee)
     assert new_fee.numerator == 5

@@ -38,36 +38,14 @@ class CustomRoyaltyFee(CustomFee):
         self.fallback_fee = fallback_fee
         return self
 
-    @staticmethod
-    def _from_protobuf(custom_fee: "custom_fees_pb2.CustomFee") -> CustomRoyaltyFee:
-        from hiero_sdk_python.account.account_id import AccountId
-        from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-        royalty_fee = custom_fee.royalty_fee
-
-        fee = CustomRoyaltyFee()
-        if custom_fee.HasField("fee_collector_account_id"):
-            fee.fee_collector_account_id = AccountId._from_proto(
-                custom_fee.fee_collector_account_id
-            )
-
-        fee.all_collectors_are_exempt = custom_fee.all_collectors_are_exempt
-        fee.numerator = royalty_fee.exchange_value_fraction.numerator
-        fee.denominator = royalty_fee.exchange_value_fraction.denominator
-
-        if royalty_fee.HasField("fallback_fee"):
-            fee.fallback_fee = CustomFixedFee._from_fixed_fee_proto(
-                royalty_fee.fallback_fee
-            )
-
-        return fee
-
-    def _to_protobuf(self) -> "custom_fees_pb2.CustomFee":
+    def _to_proto(self) -> "custom_fees_pb2.CustomFee":
         from hiero_sdk_python.hapi.services import custom_fees_pb2
         from hiero_sdk_python.hapi.services.basic_types_pb2 import Fraction
 
         fallback_fee_proto = None
         if self.fallback_fee:
-            fallback_fee_proto = self.fallback_fee._to_protobuf().fixed_fee
+            # Use _to_proto instead of _to_protobuf
+            fallback_fee_proto = self.fallback_fee._to_proto().fixed_fee
 
         return custom_fees_pb2.CustomFee(
             fee_collector_account_id=self._get_fee_collector_account_id_protobuf(),
@@ -79,4 +57,29 @@ class CustomRoyaltyFee(CustomFee):
                 ),
                 fallback_fee=fallback_fee_proto,
             ),
+        )
+    
+    @classmethod
+    def _from_proto(cls, proto_fee) -> "CustomRoyaltyFee":
+        """Create CustomRoyaltyFee from protobuf CustomFee message."""
+        from hiero_sdk_python.account.account_id import AccountId
+        from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+        
+        royalty_fee_proto = proto_fee.royalty_fee
+        
+        fallback_fee = None
+        if royalty_fee_proto.HasField("fallback_fee"):
+            # Use the existing _from_fixed_fee_proto method
+            fallback_fee = CustomFixedFee._from_fixed_fee_proto(royalty_fee_proto.fallback_fee)
+        
+        fee_collector_account_id = None
+        if proto_fee.HasField("fee_collector_account_id"):  # Changed from WhichOneof
+            fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
+        
+        return cls(
+            numerator=royalty_fee_proto.exchange_value_fraction.numerator,
+            denominator=royalty_fee_proto.exchange_value_fraction.denominator,
+            fallback_fee=fallback_fee,
+            fee_collector_account_id=fee_collector_account_id,
+            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
         )

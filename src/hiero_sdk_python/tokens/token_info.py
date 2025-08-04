@@ -10,7 +10,7 @@ statuses, supply details, and timing), with conversion to and from protobuf mess
 
 import warnings
 from dataclasses import dataclass, field, fields, MISSING
-from typing import Optional, ClassVar, Dict, Any, Callable
+from typing import Optional, ClassVar, Dict, Any, Callable, List
 
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
@@ -23,6 +23,9 @@ from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
+from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 
 @dataclass(init=False)
@@ -40,6 +43,7 @@ class TokenInfo(_DeprecatedAliasesMixin):
     max_supply: Optional[int]        = None
     ledger_id: Optional[bytes]       = None
     metadata:  Optional[bytes]       = None
+    custom_fees: List[Any]           = field(default_factory=list)
 
     admin_key: Optional[PublicKey]         = None
     kyc_key: Optional[PublicKey]           = None
@@ -83,6 +87,7 @@ class TokenInfo(_DeprecatedAliasesMixin):
         "autoRenewPeriod":     "auto_renew_period",
         "pauseStatus":         "pause_status",
         "supplyType":          "supply_type",
+        "customFees":          "custom_fees",
     } 
 
     def __init__(self, **kwargs: Any):
@@ -205,6 +210,12 @@ class TokenInfo(_DeprecatedAliasesMixin):
         """Set the token metadata."""
         self.metadata = metadata
 
+    def set_custom_fees(self, custom_fees: List[Any]):
+        """Set the custom fees."""
+        self.custom_fees = custom_fees
+    # alias for backwards compatibility
+    set_customFees = set_custom_fees
+
     @classmethod
     def _from_proto(cls, proto_obj: proto_TokenInfo) -> "TokenInfo":
         tokenInfoObject = TokenInfo(
@@ -221,6 +232,17 @@ class TokenInfo(_DeprecatedAliasesMixin):
             ledger_id=proto_obj.ledger_id,
             metadata=proto_obj.metadata,
         )
+
+        custom_fees = []
+        for fee_proto in proto_obj.custom_fees:
+            if fee_proto.HasField("fixed_fee"):
+                custom_fees.append(CustomFixedFee._from_proto(fee_proto))
+            elif fee_proto.HasField("fractional_fee"):
+                custom_fees.append(CustomFractionalFee._from_proto(fee_proto))
+            elif fee_proto.HasField("royalty_fee"):
+                custom_fees.append(CustomRoyaltyFee._from_proto(fee_proto))
+        tokenInfoObject.set_custom_fees(custom_fees)
+
         if proto_obj.adminKey.WhichOneof("key"):
             admin_key = PublicKey._from_proto(proto_obj.adminKey)
             tokenInfoObject.set_admin_key(admin_key)
@@ -299,6 +321,8 @@ class TokenInfo(_DeprecatedAliasesMixin):
             ledger_id=self.ledger_id,
             metadata=self.metadata
         )
+        for custom_fee in self.custom_fees:
+            proto.custom_fees.append(custom_fee._to_proto())
         if self.admin_key:
             proto.adminKey.CopyFrom(self.admin_key._to_proto())
         if self.kyc_key:
