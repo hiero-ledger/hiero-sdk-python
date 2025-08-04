@@ -190,7 +190,7 @@ def test_get_result_empty():
     """Test get_result method with empty result."""
     result = ContractFunctionResult()
 
-    assert result.get_result(["uint256", "bool"]) == []
+    assert not result.get_result(["uint256", "bool"])
 
 
 def test_get_result(contract_function_result):
@@ -297,54 +297,31 @@ def test_int256_values():
         assert result.get_int256(idx) == expected, f"Failed at idx={idx} for int256"
 
 
-def test_all_uint_getters():
+# Number sizes for uint and int types (in bits)
+UINT_INT_SIZES = list(range(8, 257, 8))
+
+
+def test_uint_getters():
     """Test all uint getters (uint8-uint256) with value 42."""
     test_value = 42
     encoded_bytes = test_value.to_bytes(32, byteorder="big", signed=False)
     result = ContractFunctionResult(contract_call_result=encoded_bytes)
 
-    # Test all uint getters
-    assert result.get_uint8(0) == test_value and result.get_uint16(0) == test_value
-    assert result.get_uint24(0) == test_value and result.get_uint32(0) == test_value
-    assert result.get_uint40(0) == test_value and result.get_uint48(0) == test_value
-    assert result.get_uint56(0) == test_value and result.get_uint64(0) == test_value
-    assert result.get_uint72(0) == test_value and result.get_uint80(0) == test_value
-    assert result.get_uint88(0) == test_value and result.get_uint96(0) == test_value
-    assert result.get_uint104(0) == test_value and result.get_uint112(0) == test_value
-    assert result.get_uint120(0) == test_value and result.get_uint128(0) == test_value
-    assert result.get_uint136(0) == test_value and result.get_uint144(0) == test_value
-    assert result.get_uint152(0) == test_value and result.get_uint160(0) == test_value
-    assert result.get_uint168(0) == test_value and result.get_uint176(0) == test_value
-    assert result.get_uint184(0) == test_value and result.get_uint192(0) == test_value
-    assert result.get_uint200(0) == test_value and result.get_uint208(0) == test_value
-    assert result.get_uint216(0) == test_value and result.get_uint224(0) == test_value
-    assert result.get_uint232(0) == test_value and result.get_uint240(0) == test_value
-    assert result.get_uint248(0) == test_value and result.get_uint256(0) == test_value
+    # Test all uint getters return the same value
+    for size in UINT_INT_SIZES:
+        getter = getattr(result, f"get_uint{size}")
+        assert getter(0) == test_value
 
 
-def test_all_int_getters():
+def test_int_getters():
     """Test all int getters (int8-int256) with value 42."""
     test_value = 42
     encoded_bytes = test_value.to_bytes(32, byteorder="big", signed=True)
     result = ContractFunctionResult(contract_call_result=encoded_bytes)
 
-    # Test all int getters
-    assert result.get_int8(0) == test_value and result.get_int16(0) == test_value
-    assert result.get_int24(0) == test_value and result.get_int32(0) == test_value
-    assert result.get_int40(0) == test_value and result.get_int48(0) == test_value
-    assert result.get_int56(0) == test_value and result.get_int64(0) == test_value
-    assert result.get_int72(0) == test_value and result.get_int80(0) == test_value
-    assert result.get_int88(0) == test_value and result.get_int96(0) == test_value
-    assert result.get_int104(0) == test_value and result.get_int112(0) == test_value
-    assert result.get_int120(0) == test_value and result.get_int128(0) == test_value
-    assert result.get_int136(0) == test_value and result.get_int144(0) == test_value
-    assert result.get_int152(0) == test_value and result.get_int160(0) == test_value
-    assert result.get_int168(0) == test_value and result.get_int176(0) == test_value
-    assert result.get_int184(0) == test_value and result.get_int192(0) == test_value
-    assert result.get_int200(0) == test_value and result.get_int208(0) == test_value
-    assert result.get_int216(0) == test_value and result.get_int224(0) == test_value
-    assert result.get_int232(0) == test_value and result.get_int240(0) == test_value
-    assert result.get_int248(0) == test_value and result.get_int256(0) == test_value
+    for size in UINT_INT_SIZES:
+        getter = getattr(result, f"get_int{size}")
+        assert getter(0) == test_value
 
 
 def test_edge_case_values():
@@ -444,38 +421,6 @@ def test_error_handling():
     )
     with pytest.raises(ValueError, match="Result index out of bounds"):
         invalid_offset_result.get_bytes(1)
-
-
-def test_integer_getters():
-    """Test all integer getters with real values."""
-    test_value_bytes = bytes.fromhex(
-        "000000000000000000000000000000000000000000000000000000000000002a"
-    )  # 42
-    test_result = ContractFunctionResult(contract_call_result=test_value_bytes)
-
-    # Test unsigned integer getters
-    assert (
-        test_result.get_uint8(0) == 42
-        and test_result.get_uint16(0) == 42
-        and test_result.get_uint32(0) == 42
-    )
-    assert (
-        test_result.get_uint64(0) == 42
-        and test_result.get_uint128(0) == 42
-        and test_result.get_uint256(0) == 42
-    )
-
-    # Test signed integer getters
-    assert (
-        test_result.get_int8(0) == 42
-        and test_result.get_int16(0) == 42
-        and test_result.get_int32(0) == 42
-    )
-    assert (
-        test_result.get_int64(0) == 42
-        and test_result.get_int128(0) == 42
-        and test_result.get_int256(0) == 42
-    )
 
 
 def test_from_proto(proto_contract_function_result):
