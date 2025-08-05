@@ -1154,7 +1154,7 @@ transaction.execute(client)
 result = ContractCallQuery(
     contract_id=contract_id,
     gas=2000000,
-    function=ContractFunctionParameters("getMessageAndOwner").to_bytes()  # Function name to call
+    function_parameters=ContractFunctionParameters("getMessageAndOwner").to_bytes()  # Function name to call
 ).execute(client)
 
 # Extract return values by their position in the Solidity return statement
