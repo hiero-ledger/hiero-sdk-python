@@ -108,7 +108,12 @@ class ContractCallQuery(Query):
         self, name: str, params: Optional[ContractFunctionParameters] = None
     ) -> "ContractCallQuery":
         """
-        Sets the function to call and the parameters to pass to it.
+        Sets the contract function to call and the parameters to pass to it.
+
+        Args:
+            name (str): The name of the contract function to call.
+            params (Optional[ContractFunctionParameters]): The parameters to pass to the function.
+                If not provided, the function is called with no parameters.
         """
         if params is None:
             params = ContractFunctionParameters()
