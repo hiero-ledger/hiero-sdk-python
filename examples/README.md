@@ -56,6 +56,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Creating a Contract](#creating-a-contract)
   - [Querying a Contract Call](#querying-a-contract-call)
   - [Querying Contract Info](#querying-contract-info)
+  - [Executing a Contract](#executing-a-contract)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1246,6 +1247,69 @@ contract_info = (
 )
 print(contract_info)
 ```
+
+### Querying Contract Info
+
+#### Pythonic Syntax:
+```
+contract_info_query = ContractInfoQuery(contract_id=contract_id)
+contract_info = contract_info_query.execute(client)
+print(contract_info)
+```
+
+#### Method Chaining:
+```
+contract_info = (
+    ContractInfoQuery()
+    .set_contract_id(contract_id)
+    .execute(client)
+)
+print(contract_info)
+```
+
+### Executing a Contract
+
+#### Pythonic Syntax:
+```python
+# Example: calling setMessage(bytes32) (StatefulContract.sol)
+# Prepare function parameters for setMessage(bytes32)
+func_params = ContractFunctionParameters("setMessage").add_bytes32(b"New message")
+
+transaction = ContractExecuteTransaction(
+    contract_id=contract_id,
+    gas=1000000,
+    function_parameters=func_params.to_bytes() # function to execute
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Execute a contract function using method chaining
+# Example: calling setMessage(bytes32) (StatefulContract.sol)
+transaction = (
+    ContractExecuteTransaction()
+    .set_contract_id(contract_id)
+    .set_gas(1000000)
+    .set_function("setMessage",ContractFunctionParameters().add_bytes32(b"New message"))
+    .freeze_with(client)
+)
+
+# Alternatively, you can use set_function_parameters() with ContractFunctionParameters:
+transaction = (
+    ContractExecuteTransaction()
+    .set_contract_id(contract_id)
+    .set_gas(1000000)
+    .set_function(ContractFunctionParameters("setMessage").add_bytes32(b"New message"))
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
 
 ## Miscellaneous Queries
 
