@@ -417,15 +417,24 @@ class TokenCreateTransaction(Transaction):
             maxSupply=self._token_params.max_supply,
             freezeDefault=self._token_params.freeze_default,
             treasury=self._token_params.treasury_account_id._to_proto(),
-
-            adminKey=admin_key_proto,
-            supplyKey=supply_key_proto,
-            freezeKey=freeze_key_proto,
-            wipeKey=wipe_key_proto,
-            metadata_key=metadata_key_proto,
-            pause_key=pause_key_proto,
-            kycKey=kyc_key_proto
         )
+
+        # 4) Conditionally attach each optional sub-message
+        if admin_key_proto is not None:
+            token_create_body.adminKey.CopyFrom(admin_key_proto)
+        if supply_key_proto is not None:
+            token_create_body.supplyKey.CopyFrom(supply_key_proto)
+        if freeze_key_proto is not None:
+            token_create_body.freezeKey.CopyFrom(freeze_key_proto)
+        if wipe_key_proto is not None:
+            token_create_body.wipeKey.CopyFrom(wipe_key_proto)
+        if metadata_key_proto is not None:
+            token_create_body.metadata_key.CopyFrom(metadata_key_proto)
+        if pause_key_proto is not None:
+            token_create_body.pause_key.CopyFrom(pause_key_proto)
+        if kyc_key_proto is not None:
+            token_create_body.kycKey.CopyFrom(kyc_key_proto)
+
         # Build the base transaction body and attach the token creation details
         transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenCreation.CopyFrom(token_create_body)
