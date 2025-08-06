@@ -12,7 +12,7 @@ This module includes:
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Any
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -104,7 +104,7 @@ class TokenCreateValidator:
         """
         Ensure all required fields are present and not empty.
         """
-        required_fields = {
+        required_fields: dict[str, Any] = {
             "Token name": token_params.token_name,
             "Token symbol": token_params.token_symbol,
             "Treasury account ID": token_params.treasury_account_id,
@@ -397,13 +397,13 @@ class TokenCreateTransaction(Transaction):
         # Validate freeze status
         TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
 
-        admin_key_proto:    basic_types_pb2.Key = self._to_proto_key(self._keys.admin_key)
-        supply_key_proto:   basic_types_pb2.Key = self._to_proto_key(self._keys.supply_key)
-        freeze_key_proto:   basic_types_pb2.Key = self._to_proto_key(self._keys.freeze_key)
-        wipe_key_proto:     basic_types_pb2.Key = self._to_proto_key(self._keys.wipe_key)
-        metadata_key_proto: basic_types_pb2.Key = self._to_proto_key(self._keys.metadata_key)
-        pause_key_proto:    basic_types_pb2.Key = self._to_proto_key(self._keys.pause_key)
-        kyc_key_proto:      basic_types_pb2.Key = self._to_proto_key(self._keys.kyc_key)
+        admin_key_proto:    Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.admin_key)
+        supply_key_proto:   Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.supply_key)
+        freeze_key_proto:   Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.freeze_key)
+        wipe_key_proto:     Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.wipe_key)
+        metadata_key_proto: Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.metadata_key)
+        pause_key_proto:    Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.pause_key)
+        kyc_key_proto:      Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.kyc_key)
 
         # Ensure token type is correctly set with default to fungible
         if self._token_params.token_type is None:
