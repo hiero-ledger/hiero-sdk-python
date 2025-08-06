@@ -42,11 +42,15 @@ class TokenRelationship:
     automatic_association: Optional[bool] = None
 
     @classmethod
-    def _from_proto(cls, proto: TokenRelationshipProto) -> 'TokenRelationship':
+    def _from_proto(cls, proto: Optional[TokenRelationshipProto]) -> 'TokenRelationship':
         if proto is None:
             raise ValueError("Token relationship proto is None")
 
-        token_id: TokenId = TokenId._from_proto(proto.tokenId) if proto.tokenId else None
+        token_id: Optional[TokenId] = (
+            TokenId._from_proto(proto.tokenId)
+            if proto.tokenId
+            else None
+        )
         kyc_status: TokenKycStatus = TokenKycStatus._from_proto(proto.kycStatus)
         freeze_status: TokenFreezeStatus = TokenFreezeStatus._from_proto(proto.freezeStatus)
 
