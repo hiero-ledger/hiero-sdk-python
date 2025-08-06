@@ -141,6 +141,6 @@ class TokenUpdateNftsTransaction(Transaction):
             TokenUpdateNftsTransaction: Returns self for method chaining.
         """
         self.token_id = TokenId._from_proto(proto.token)
-        self.serial_numbers = proto.serial_numbers
+        self.serial_numbers = list(proto.serial_numbers)
         self.metadata = proto.metadata.value
         return self
