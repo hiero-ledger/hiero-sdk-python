@@ -7,6 +7,7 @@ Defines TokenId, a frozen dataclass for representing Hedera token identifiers
 """
 from dataclasses import dataclass
 from typing import List, Optional
+
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 @dataclass(frozen=True, eq=True, init=True, repr=True)
@@ -17,12 +18,6 @@ class TokenId:
     num: int
 
     def __post_init__(self) -> None:
-        if not isinstance(self.shard, int):
-            raise TypeError('Shard must be an integer')
-        if not isinstance(self.realm, int):
-            raise TypeError('Realm must be an integer')
-        if not isinstance(self.num, int):
-            raise TypeError('Num must be an integer')
         if self.shard < 0:
             raise ValueError('Shard must be >= 0')
         if self.realm < 0:
@@ -37,8 +32,6 @@ class TokenId:
         """
         if token_id_proto is None:
             raise ValueError('TokenId is required')
-        if not isinstance(token_id_proto, basic_types_pb2.TokenID):
-            raise TypeError('TokenId must be an instance of TokenID')
 
         return cls(
             shard=token_id_proto.shardNum,
@@ -63,8 +56,6 @@ class TokenId:
         """
         if token_id_str == "":
             raise ValueError('TokenId cannot be empty')
-        if not isinstance(token_id_str, str):
-            raise TypeError('TokenId must be a string')
 
         parts: List[str] = token_id_str.strip().split('.')
         if len(parts) != 3:
