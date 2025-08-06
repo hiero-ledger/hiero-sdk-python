@@ -77,12 +77,18 @@ class TokenRelationship:
         elif self.kyc_status == TokenKycStatus.REVOKED:
             kyc_status = TokenKycStatusProto.Revoked
 
-        return TokenRelationshipProto(
-            tokenId=self.token_id._to_proto() if self.token_id else None,
+        proto = TokenRelationshipProto(
             symbol=self.symbol,
             balance=self.balance,
             kycStatus=kyc_status,
             freezeStatus=freeze_status,
             decimals=self.decimals,
-            automatic_association=self.automatic_association
-        )
+            )
+
+        if self.token_id:
+            proto.tokenId.CopyFrom(self.token_id._to_proto())
+
+        if self.automatic_association is not None:
+            proto.automatic_association = self.automatic_association
+
+        return proto
