@@ -139,5 +139,5 @@ class TokenWipeTransaction(Transaction):
         self.token_id = TokenId._from_proto(proto.token)
         self.account_id = AccountId._from_proto(proto.account)
         self.amount = proto.amount
-        self.serial = proto.serialNumbers
+        self.serial = list(proto.serialNumbers)
         return self
