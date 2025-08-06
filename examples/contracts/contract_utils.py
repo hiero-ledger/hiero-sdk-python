@@ -26,24 +26,25 @@ Notes:
 from pathlib import Path
 
 
-def _load_contract_bytecode(contract_name: str) -> str:
+def _load_contract_bytecode(contract_name: str, extension: str = "bin") -> str:
     """
     Load contract bytecode from file, with proper error handling.
 
     Args:
         contract_name: Name of the contract (e.g., 'SimpleContract', 'StatefulContract')
+        extension: Extension of the contract bytecode file (e.g., 'bin', 'bin-runtime')
 
     Returns:
         Contract bytecode as a string
 
     Raises:
-        FileNotFoundError: If the contract .bin file is not found
+        FileNotFoundError: If the contract .{extension} file is not found
         RuntimeError: If there's an error loading the bytecode
     """
     try:
         # Look for contract in the main contracts directory (relative to project root)
         contract_path = Path(__file__).parent.joinpath(
-            contract_name, f"{contract_name}.bin"
+            contract_name, f"{contract_name}.{extension}"
         )
 
         if not contract_path.exists():
