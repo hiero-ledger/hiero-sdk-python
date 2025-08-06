@@ -92,6 +92,14 @@ class TokenCreateValidator:
         TokenCreateValidator._validate_supply_max_and_type(token_params)
 
     @staticmethod
+    def _validate_token_freeze_status(keys: TokenKeys, token_params: TokenParams) -> None:
+        """Ensure account is not frozen for this token."""
+        if token_params.freeze_default:
+            if not keys.freeze_key:
+                raise ValueError("Token is permanently frozen. Unable to proceed.")
+            raise ValueError("Token frozen. Please complete a Token Unfreeze Transaction.")
+
+    @staticmethod
     def _validate_required_fields(token_params: TokenParams) -> None:
         """
         Ensure all required fields are present and not empty.
