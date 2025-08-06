@@ -8,7 +8,7 @@ from typing import Optional
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 
-@dataclass()
+@dataclass(frozen=True)
 class ContractId:
     """
     Represents a contract ID on the network.
@@ -67,9 +67,3 @@ class ContractId:
         Returns the string representation of the ContractId in the format 'shard.realm.contract'.
         """
         return f"{self.shard}.{self.realm}.{self.contract}"
-
-    def __hash__(self):
-        """
-        Returns the hash of the ContractId.
-        """
-        return hash((self.shard, self.realm, self.contract, self.evm_address))
