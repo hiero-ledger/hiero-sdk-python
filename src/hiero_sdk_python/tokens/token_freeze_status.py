@@ -22,9 +22,9 @@ class TokenFreezeStatus(Enum):
         """Converts a protobuf TokenFreezeStatus to a TokenFreezeStatus enum."""
         if proto_obj == proto_TokenFreezeStatus.FreezeNotApplicable:
             return TokenFreezeStatus.FREEZE_NOT_APPLICABLE
-        elif proto_obj == proto_TokenFreezeStatus.Frozen:
+        if proto_obj == proto_TokenFreezeStatus.Frozen:
             return TokenFreezeStatus.FROZEN
-        elif proto_obj == proto_TokenFreezeStatus.Unfrozen:
+        if proto_obj == proto_TokenFreezeStatus.Unfrozen:
             return TokenFreezeStatus.UNFROZEN
         raise ValueError(f"Unknown TokenFreezeStatus proto value: {proto_obj}")
 
@@ -32,6 +32,6 @@ class TokenFreezeStatus(Enum):
         """Checks equality with another TokenFreezeStatus or an integer."""
         if isinstance(other, TokenFreezeStatus):
             return self.value == other.value
-        elif isinstance(other, int):
+        if isinstance(other, int):
             return self.value == other
         return False
