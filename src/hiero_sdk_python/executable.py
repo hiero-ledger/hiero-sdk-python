@@ -248,17 +248,21 @@ def _execute_method(method, proto_request):
     Executes either a transaction or query method with the given protobuf request.
 
     Args:
-        method (_Method): The method wrapper containing either a transaction or query function
+        method (_Method or _UnaryUnaryMultiCallable): The method wrapper containing either a transaction or query function, or a raw gRPC callable
         proto_request: The protobuf request object to pass to the method
 
     Returns:
         The response from executing the method
 
     Raises:
-        Exception: If neither a transaction nor query method is available to execute
+        Exception: If neither a transaction nor query method is available to execute        
     """
-    if method.transaction is not None:
+    if hasattr(method, '__call__') and not hasattr(method, 'transaction'):
+        return method(proto_request)
+    
+    if hasattr(method, 'transaction') and method.transaction is not None:
         return method.transaction(proto_request)
-    elif method.query is not None:
+    elif hasattr(method, 'query') and method.query is not None:
         return method.query(proto_request)
-    raise Exception("No method to execute")
+    else:
+        raise Exception("No transaction or query method available to execute")
