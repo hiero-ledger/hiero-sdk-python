@@ -25,118 +25,6 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
 
-class TokenCreateValidator:
-    """Token, key and freeze checks for creating a token as per the proto"""
-
-    @staticmethod
-    def _validate_token_params(token_params):
-        """
-        Ensure valid values for the token characteristics.
-        """
-        TokenCreateValidator._validate_required_fields(token_params)
-        TokenCreateValidator._validate_name_and_symbol(token_params)
-        TokenCreateValidator._validate_initial_supply(token_params)
-        TokenCreateValidator._validate_decimals_and_token_type(token_params)
-        TokenCreateValidator._validate_supply_max_and_type(token_params)
-
-    @staticmethod
-    def _validate_required_fields(token_params):
-        """
-        Ensure all required fields are present and not empty.
-        """
-        required_fields = {
-            "Token name": token_params.token_name,
-            "Token symbol": token_params.token_symbol,
-            "Treasury account ID": token_params.treasury_account_id,
-        }
-        for field, value in required_fields.items():
-            if not value:
-                raise ValueError(f"{field} is required")
-
-    @staticmethod
-    def _validate_name_and_symbol(token_params):
-        """
-        Ensure the token name & symbol are valid in length and do not contain a NUL character.
-        """
-        if len(token_params.token_name.encode()) > 100:
-            raise ValueError("Token name must be between 1 and 100 bytes")
-        if len(token_params.token_symbol.encode()) > 100:
-            raise ValueError("Token symbol must be between 1 and 100 bytes")
-
-        # Ensure the token name and symbol do not contain a NUL character
-        for attr in ["token_name", "token_symbol"]:
-            if "\x00" in getattr(token_params, attr):
-                raise ValueError(
-                    f"{attr.replace('_', ' ').capitalize()} must not contain the Unicode NUL character"
-                )
-
-    @staticmethod
-    def _validate_initial_supply(token_params):
-        """
-        Ensure initial supply is a non-negative integer and does not exceed max supply.
-        """
-        MAXIMUM_SUPPLY = 9_223_372_036_854_775_807  # 2^63 - 1
-
-        if (
-            not isinstance(token_params.initial_supply, int)
-            or token_params.initial_supply < 0
-        ):
-            raise ValueError("Initial supply must be a non-negative integer")
-        if token_params.initial_supply > MAXIMUM_SUPPLY:
-            raise ValueError(f"Initial supply cannot exceed {MAXIMUM_SUPPLY}")
-        if token_params.max_supply > MAXIMUM_SUPPLY:
-            raise ValueError(f"Max supply cannot exceed {MAXIMUM_SUPPLY}")
-
-
-    @staticmethod
-    def _validate_decimals_and_token_type(token_params):
-        """
-        Ensure decimals and token_type align with either fungible or non-fungible constraints.
-        """
-        if not isinstance(token_params.decimals, int) or token_params.decimals < 0:
-            raise ValueError("Decimals must be a non-negative integer")
-
-        if token_params.token_type == TokenType.FUNGIBLE_COMMON:
-            # Fungible tokens must have an initial supply > 0
-            if token_params.initial_supply <= 0:
-                raise ValueError("A Fungible Token requires an initial supply greater than zero")
-
-        elif token_params.token_type == TokenType.NON_FUNGIBLE_UNIQUE:
-            # Non-fungible tokens must have zero decimals and zero initial supply
-            if token_params.decimals != 0:
-                raise ValueError("A Non-fungible Unique Token must have zero decimals")
-            if token_params.initial_supply != 0:
-                raise ValueError("A Non-fungible Unique Token requires an initial supply of zero")
-
-    @staticmethod
-    def _validate_token_freeze_status(keys, token_params):
-        """Ensure account is not frozen for this token."""
-        if token_params.freeze_default:
-            if not keys.freeze_key:
-                # Without a freeze key but a frozen account, it is immutable.
-                raise ValueError("Token is permanently frozen. Unable to proceed.")
-
-    @staticmethod
-    def _validate_supply_max_and_type(token_params):
-        """Ensure max supply and supply type constraints."""
-        # An infinite token must have max supply = 0.
-        # A finite token must have max supply > 0.
-        if token_params.max_supply != 0: # Setting a max supply is only approprite for a finite token.
-            if token_params.supply_type != SupplyType.FINITE: 
-                raise ValueError("Setting a max supply field requires setting a finite supply type")
-
-        # Finite tokens have the option to set a max supply >0.
-        # A finite token must have max supply > 0.
-        if token_params.supply_type == SupplyType.FINITE:
-            if token_params.max_supply <= 0:
-                raise ValueError("A finite supply token requires max_supply greater than zero 0")
-
-            # Ensure max supply is greater than initial supply
-            if token_params.initial_supply > token_params.max_supply:
-                raise ValueError(
-                    "Initial supply cannot exceed the defined max supply for a finite token"
-                )
-
 @dataclass
 class TokenParams:
     """
@@ -231,7 +119,8 @@ class TokenCreateValidator:
         for attr in ["token_name", "token_symbol"]:
             if "\x00" in getattr(token_params, attr):
                 raise ValueError(
-                    f"{attr.replace('_', ' ').capitalize()} must not contain the Unicode NUL character"
+                    f"{attr.replace('_', ' ').capitalize()} must not "
+                    "contain the Unicode NUL character"
                 )
 
     @staticmethod
@@ -273,24 +162,13 @@ class TokenCreateValidator:
                 raise ValueError("A Non-fungible Unique Token requires an initial supply of zero")
 
     @staticmethod
-    def _validate_token_freeze_status(keys: TokenKeys, token_params: TokenParams) -> None:
-        """Ensure account is not frozen for this token."""
-        if token_params.freeze_default:
-            if not keys.freeze_key:
-                # Without a freeze key but a frozen account, it is immutable.
-                raise ValueError("Token is permanently frozen. Unable to proceed.")
-            # With a freeze key but a frozen account, first unfreezing is required.
-            raise ValueError(
-                "Token frozen. Please complete a Token Unfreeze Transaction."
-            )
-
-    @staticmethod
     def _validate_supply_max_and_type(token_params: TokenParams) -> None:
         """Ensure max supply and supply type constraints."""
         # An infinite token must have max supply = 0.
         # A finite token must have max supply > 0.
-        if token_params.max_supply != 0: # Setting a max supply is only approprite for a finite token.
-            if token_params.supply_type != SupplyType.FINITE: 
+        # Setting a max supply is only approprite for a finite token.
+        if token_params.max_supply != 0:
+            if token_params.supply_type != SupplyType.FINITE:
                 raise ValueError("Setting a max supply field requires setting a finite supply type")
 
         # Finite tokens have the option to set a max supply >0.
@@ -316,7 +194,11 @@ class TokenCreateTransaction(Transaction):
     to build and execute a token creation transaction.
     """
 
-    def __init__(self, token_params: Optional[TokenParams] = None, keys: Optional[TokenKeys] = None) -> None:
+    def __init__(
+            self,
+            token_params: Optional[TokenParams] = None,
+            keys: Optional[TokenKeys] = None
+        ) -> None:
         """
         Initializes a new TokenCreateTransaction instance with token parameters and optional keys.
 
@@ -330,8 +212,9 @@ class TokenCreateTransaction(Transaction):
         token_params (TokenParams, Optional): The token parameters (name, symbol, decimals, etc.).
                                     If None, a default/blank TokenParams is created,
                                     expecting you to call setters later.
-        keys (TokenKeys, Optional): The token keys (admin, supply, freeze). If None, an empty TokenKeys
-                                    is created, expecting you to call setter methods if needed.
+        keys (TokenKeys, Optional): The token keys (admin, supply, freeze). 
+                                    If None, an empty TokenKeys is created, 
+                                    expecting you to call setter methods if needed.
         """
         super().__init__()
 
@@ -392,7 +275,7 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._token_params.treasury_account_id = account_id
         return self
-    
+
     def set_decimals(self, decimals: int) -> "TokenCreateTransaction":
         """ Sets the number of decimals for the token."""
         self._require_not_frozen()
@@ -410,9 +293,10 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._token_params.token_type = token_type
         return self
-    
+
     def set_max_supply(self, max_supply: int) -> "TokenCreateTransaction":
-        """ Sets the maximum supply of the token. For fungible tokens, this is the max number of tokens that can be created."""
+        """ Sets the maximum supply of the token. 
+        For fungible tokens, this is the max number of tokens that can be created."""
         self._require_not_frozen()
         self._token_params.max_supply = max_supply
         return self
@@ -422,7 +306,7 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._token_params.supply_type = supply_type
         return self
-    
+
     def set_freeze_default(self, freeze_default: bool) -> "TokenCreateTransaction":
         """ Sets the default freeze status for accounts associated with this token."""
         self._require_not_frozen()
@@ -446,13 +330,13 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._keys.freeze_key = key
         return self
-    
+
     def set_wipe_key(self, key: PrivateKey) -> "TokenCreateTransaction":
         """ Sets the wipe key for the token, which allows wiping tokens from an account."""
         self._require_not_frozen()
         self._keys.wipe_key = key
         return self
-    
+
     def set_metadata_key(self, key: PrivateKey) -> "TokenCreateTransaction":
         """ Sets the metadata key for the token, which allows updating NFT metadata."""
         self._require_not_frozen()
@@ -464,7 +348,7 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._keys.pause_key = key
         return self
-    
+
     def set_kyc_key(self, key: PrivateKey) -> "TokenCreateTransaction":
         """ Sets the KYC key for the token, which allows granting KYC to an account."""
         self._require_not_frozen()
@@ -492,7 +376,8 @@ class TokenCreateTransaction(Transaction):
         Builds and returns the protobuf transaction body for token creation.
 
         Returns:
-            transaction_body_pb2.TransactionBody: The protobuf transaction body containing the token creation details.
+            transaction_body_pb2.TransactionBody: 
+            The protobuf transaction body containing the token creation details.
 
         Raises:
             ValueError: If required fields are missing or invalid.
@@ -503,7 +388,7 @@ class TokenCreateTransaction(Transaction):
 
         # Validate freeze status
         TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
-        
+
         admin_key_proto:    basic_types_pb2.Key = self._to_proto_key(self._keys.admin_key)
         supply_key_proto:   basic_types_pb2.Key = self._to_proto_key(self._keys.supply_key)
         freeze_key_proto:   basic_types_pb2.Key = self._to_proto_key(self._keys.freeze_key)
