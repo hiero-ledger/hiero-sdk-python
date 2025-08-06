@@ -69,8 +69,8 @@ class ContractFunctionResult:
 
     def _validate_result_index(self, index: int) -> None:
         """Validate that the index is within bounds."""
-        if index > len(self.contract_call_result):
-            raise ValueError(f"Result index out of bounds")
+        if index < 0 or index > len(self.contract_call_result):
+            raise ValueError("Result index out of bounds")
 
     def _get_value_at_index(self, index: int, size: int, signed: bool = False) -> int:
         """
@@ -406,7 +406,7 @@ class ContractFunctionResult:
         self._validate_contract_call_result()
 
         # The value at the index is a 32-byte offset (big-endian) from the start of the result
-        offset = self.get_uint64(index)
+        offset = self.get_uint256(index)
 
         # Validate that the offset is within bounds
         self._validate_result_index(offset + 32)
