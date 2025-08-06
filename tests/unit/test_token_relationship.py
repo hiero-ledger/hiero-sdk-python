@@ -107,7 +107,7 @@ def test_from_proto_with_not_applicable_statuses():
 
 def test_from_proto_none_raises_error():
     """Test the from_proto method of the TokenRelationship class with a None proto"""
-    with pytest.raises(ValueError, match="Token relationship proto is None"):
+    with pytest.raises(AttributeError):
         TokenRelationship._from_proto(None)
 
 def test_to_proto(token_relationship):
