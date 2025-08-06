@@ -36,7 +36,7 @@ class TokenTransferList:
         self.token: TokenId = token
         self.transfers: list[TokenTransfer] = []
         self.nft_transfers: list[TokenNftTransfer] = []
-        self.expected_decimals: int = expected_decimals
+        self.expected_decimals: Optional[int] = expected_decimals
 
         if transfers:
             self.transfers = transfers
