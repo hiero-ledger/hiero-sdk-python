@@ -37,7 +37,7 @@ class TokenTransfer:
         self.token_id: TokenId = token_id
         self.account_id: AccountId = account_id
         self.amount: int = amount
-        self.expected_decimals: int = expected_decimals
+        self.expected_decimals: Optional[int] = expected_decimals
         self.is_approved: bool = is_approved
 
     def _to_proto(self) -> basic_types_pb2.AccountAmount:
