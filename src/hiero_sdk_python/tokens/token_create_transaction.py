@@ -419,7 +419,7 @@ class TokenCreateTransaction(Transaction):
             treasury=self._token_params.treasury_account_id._to_proto(),
         )
 
-        # 4) Conditionally attach each optional sub-message
+        # Conditionally attach each optional sub-message
         if admin_key_proto is not None:
             token_create_body.adminKey.CopyFrom(admin_key_proto)
         if supply_key_proto is not None:
