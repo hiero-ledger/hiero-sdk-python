@@ -397,6 +397,7 @@ class TokenCreateTransaction(Transaction):
         # Validate freeze status
         TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
 
+        # Prepare optional key protos
         admin_key_proto:    Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.admin_key)
         supply_key_proto:   Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.supply_key)
         freeze_key_proto:   Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.freeze_key)
@@ -405,30 +406,14 @@ class TokenCreateTransaction(Transaction):
         pause_key_proto:    Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.pause_key)
         kyc_key_proto:      Optional[basic_types_pb2.Key] = self._to_proto_key(self._keys.kyc_key)
 
-        # Ensure token type is correctly set with default to fungible
-        if self._token_params.token_type is None:
-            token_type_value = 0  # default FUNGIBLE_COMMON
-        elif isinstance(self._token_params.token_type, TokenType):
-            token_type_value = self._token_params.token_type.value
-        else:
-            token_type_value = self._token_params.token_type
-
-        # Ensure supply type is correctly set with default to infinite
-        if self._token_params.supply_type is None:
-            supply_type_value = 0  # default INFINITE
-        elif isinstance(self._token_params.supply_type, SupplyType):
-            supply_type_value = self._token_params.supply_type.value
-        else:
-            supply_type_value = self._token_params.supply_type
-
         # Construct the TokenCreateTransactionBody
         token_create_body = token_create_pb2.TokenCreateTransactionBody(
             name=self._token_params.token_name,
             symbol=self._token_params.token_symbol,
             decimals=self._token_params.decimals,
             initialSupply=self._token_params.initial_supply,
-            tokenType=token_type_value,
-            supplyType=supply_type_value,
+            tokenType=self._token_params.token_type.value,
+            supplyType=self._token_params.supply_type.value,
             maxSupply=self._token_params.max_supply,
             freezeDefault=self._token_params.freeze_default,
             treasury=self._token_params.treasury_account_id._to_proto(),
