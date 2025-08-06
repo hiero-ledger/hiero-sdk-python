@@ -120,7 +120,7 @@ def test_execute_topic_create_transaction():
         
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
-        assert isinstance(receipt.topicId, TopicId)
-        assert receipt.topicId.shard == 0
-        assert receipt.topicId.realm == 0
-        assert receipt.topicId.num == 123
+        assert isinstance(receipt.topic_id, TopicId)
+        assert receipt.topic_id.shard == 0
+        assert receipt.topic_id.realm == 0
+        assert receipt.topic_id.num == 123

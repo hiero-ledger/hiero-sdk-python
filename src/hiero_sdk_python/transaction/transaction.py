@@ -164,10 +164,16 @@ class Transaction(_Executable):
 
             public_key_bytes = private_key.public_key().to_bytes_raw()
 
-            sig_pair = basic_types_pb2.SignaturePair(
-                pubKeyPrefix=public_key_bytes,
-                ed25519=signature
-            )
+            if private_key.is_ed25519():
+                sig_pair = basic_types_pb2.SignaturePair(
+                    pubKeyPrefix=public_key_bytes,
+                    ed25519=signature
+                )
+            else:
+                sig_pair = basic_types_pb2.SignaturePair(
+                    pubKeyPrefix=public_key_bytes,
+                    ECDSA_secp256k1=signature
+                )
 
             # We initialize the signature map for this body_bytes if it doesn't exist yet
             self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap())
@@ -310,7 +316,7 @@ class Transaction(_Executable):
         """
         raise NotImplementedError("Subclasses must implement build_transaction_body()")
     
-    def build_base_transaction_body(self):
+    def build_base_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds the base transaction body including common fields.
 

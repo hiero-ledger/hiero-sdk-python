@@ -1,6 +1,7 @@
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import Mock
 
+from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import (
@@ -65,33 +66,56 @@ def test_execute_token_nft_info_query(nft_id):
         creationTime=timestamp_pb2.Timestamp(seconds=1623456789),
         metadata=b'metadata'
     )
-    
-    response = response_pb2.Response(
-        tokenGetNftInfo=token_get_nft_info_pb2.TokenGetNftInfoResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK,
-                responseType=2,
-                cost=0
-            ),
-            nft=nft_info_response
+    responses = [
+        response_pb2.Response(
+            tokenGetNftInfo=token_get_nft_info_pb2.TokenGetNftInfoResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2
+                )
+            )
+        ),
+        response_pb2.Response(
+            tokenGetNftInfo=token_get_nft_info_pb2.TokenGetNftInfoResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2
+                )
+            )
+        ),
+        response_pb2.Response(
+            tokenGetNftInfo=token_get_nft_info_pb2.TokenGetNftInfoResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.ANSWER_ONLY,
+                    cost=2
+                ),
+                nft=nft_info_response
+            )
         )
-    )
+    ]
     
-    response_sequences = [[response]]
+    response_sequences = [responses]
     
     with mock_hedera_servers(response_sequences) as client:
         query = TokenNftInfoQuery().set_nft_id(nft_id)
         
         try:
+            # Get the cost of executing the query - should be 2 tinybars based on the mock response
+            cost = query.get_cost(client)
+            assert cost.to_tinybars() == 2
+            
             result = query.execute(client)
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
         
         # Verify the result contains the expected values
-        assert result.nft_id.tokenId.shard == 0
-        assert result.nft_id.tokenId.realm == 0
-        assert result.nft_id.tokenId.num == 1
-        assert result.nft_id.serialNumber == 2
+        assert result.nft_id.token_id.shard == 0
+        assert result.nft_id.token_id.realm == 0
+        assert result.nft_id.token_id.num == 1
+        assert result.nft_id.serial_number == 2
         assert result.account_id.shard == 0
         assert result.account_id.realm == 0
         assert result.account_id.num == 3

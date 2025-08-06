@@ -1,6 +1,9 @@
+from typing import Optional,Union,Any
+
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import transaction_get_receipt_pb2, query_pb2, query_header_pb2
+from hiero_sdk_python.hapi.services import transaction_get_receipt_pb2, query_pb2, query_header_pb2, response_pb2
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -20,7 +23,7 @@ class TransactionGetReceiptQuery(Query):
     
     """
 
-    def __init__(self, transaction_id=None):
+    def __init__(self, transaction_id: Optional[TransactionId] = None) -> None:
         """
         Initializes a new instance of the TransactionGetReceiptQuery class.
 
@@ -28,10 +31,10 @@ class TransactionGetReceiptQuery(Query):
             transaction_id (TransactionId, optional): The ID of the transaction.
         """
         super().__init__()
-        self.transaction_id = transaction_id
-        self._frozen = False
+        self.transaction_id: Optional[TransactionId] = transaction_id
+        self._frozen: bool = False
 
-    def _require_not_frozen(self):
+    def _require_not_frozen(self) -> None:
         """
         Ensures the query is not frozen before making changes.
         
@@ -41,7 +44,7 @@ class TransactionGetReceiptQuery(Query):
         if self._frozen:
             raise ValueError("This query is frozen and cannot be modified.")
 
-    def set_transaction_id(self, transaction_id: TransactionId):
+    def set_transaction_id(self, transaction_id: TransactionId) -> "TransactionGetReceiptQuery":
         """
         Sets the transaction ID for which to retrieve the receipt.
 
@@ -58,7 +61,7 @@ class TransactionGetReceiptQuery(Query):
         self.transaction_id = transaction_id
         return self
 
-    def freeze(self):
+    def freeze(self) -> "TransactionGetReceiptQuery":
         """
         Marks the query as frozen, preventing further modification.
         
@@ -70,17 +73,8 @@ class TransactionGetReceiptQuery(Query):
         self._frozen = True
         return self
 
-    def _is_payment_required(self):
-        """
-        Override the default in the base Query class:
-        This particular query does NOT require a payment.
-        
-        Returns:
-            bool: Always False, as this query doesn't require payment.
-        """
-        return False
 
-    def _make_request(self):
+    def _make_request(self) -> query_pb2.Query:
         """
         Constructs the protobuf request for the transaction receipt query.
         
@@ -88,7 +82,7 @@ class TransactionGetReceiptQuery(Query):
         appropriate header and transaction ID.
 
         Returns:
-            Query: The protobuf Query object containing the transaction receipt query.
+            query_pb2.Query: The protobuf Query object containing the transaction receipt query.
 
         Raises:
             ValueError: If the transaction ID is not set.
@@ -135,7 +129,7 @@ class TransactionGetReceiptQuery(Query):
             query_func=channel.crypto.getTransactionReceipts
         )
 
-    def _should_retry(self, response):
+    def _should_retry(self, response: Any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
         
@@ -173,7 +167,7 @@ class TransactionGetReceiptQuery(Query):
         else:
             return _ExecutionState.FINISHED
         
-    def _map_status_error(self, response):
+    def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
         
@@ -202,7 +196,7 @@ class TransactionGetReceiptQuery(Query):
         
         return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt))
         
-    def execute(self, client):
+    def execute(self, client: Client) -> TransactionReceipt:
         """
         Executes the transaction receipt query.
         
@@ -225,9 +219,9 @@ class TransactionGetReceiptQuery(Query):
         self._before_execute(client)
         response = self._execute(client)
 
-        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt)
+        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id)
 
-    def _get_query_response(self, response):
+    def _get_query_response(self, response: response_pb2.Response) -> transaction_get_receipt_pb2.TransactionGetReceiptResponse:
         """
         Extracts the transaction receipt response from the full response.
         
@@ -241,3 +235,12 @@ class TransactionGetReceiptQuery(Query):
             The transaction get receipt response object
         """
         return response.transactionGetReceipt
+
+    def _is_payment_required(self) -> bool:
+        """
+        Transaction receipt query does not require payment.
+        
+        Returns:
+            bool: False
+        """
+        return False

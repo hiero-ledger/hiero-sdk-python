@@ -40,7 +40,7 @@ def test_build_transaction_body_nft(mock_account_ids, nft_id):
     account_id, _, node_account_id, _, _ = mock_account_ids
 
     # nft_id is NftId(tokenId=TokenId(...), serialNumber=...)
-    base_token_id = nft_id.tokenId
+    base_token_id = nft_id.token_id
 
     pause_tx = TokenPauseTransaction().set_token_id(base_token_id)
     pause_tx.operator_account_id = account_id

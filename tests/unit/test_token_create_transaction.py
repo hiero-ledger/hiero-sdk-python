@@ -113,6 +113,11 @@ def test_build_transaction_body(mock_account_ids):
     private_key_metadata = MagicMock()
     private_key_metadata.sign.return_value = b"metadata_signature"
     private_key_metadata.public_key().to_bytes_raw.return_value = b"metadata_public_key"
+    
+    # Mock kyc key
+    private_key_kyc = MagicMock()
+    private_key_kyc.sign.return_value = b"kyc_signature"
+    private_key_kyc.public_key().to_bytes_raw.return_value = b"kyc_public_key"
 
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
@@ -128,7 +133,7 @@ def test_build_transaction_body(mock_account_ids):
     token_tx.set_freeze_key(private_key_freeze)
     token_tx.set_wipe_key(private_key_wipe)
     token_tx.set_metadata_key(private_key_metadata)
-
+    token_tx.set_kyc_key(private_key_kyc)
     token_tx.node_account_id = node_account_id
 
     transaction_body = token_tx.build_transaction_body()
@@ -143,7 +148,7 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenCreation.freezeKey.ed25519 == b"freeze_public_key"
     assert transaction_body.tokenCreation.wipeKey.ed25519 == b"wipe_public_key"
     assert transaction_body.tokenCreation.metadata_key.ed25519 == b"metadata_public_key"
-
+    assert transaction_body.tokenCreation.kycKey.ed25519 == b"kyc_public_key"
 
 @pytest.mark.parametrize(
     "token_name, token_symbol, decimals, initial_supply, token_type, expected_error",
@@ -288,6 +293,10 @@ def test_sign_transaction(mock_account_ids, mock_client):
     private_key_pause.sign.return_value = b"pause_signature"
     private_key_pause.public_key().to_bytes_raw.return_value = b"pause_public_key"
 
+    private_key_kyc = MagicMock()
+    private_key_kyc.sign.return_value = b"kyc_signature"
+    private_key_kyc.public_key().to_bytes_raw.return_value = b"kyc_public_key"
+
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
     token_tx.set_token_symbol("MTK")
@@ -300,7 +309,8 @@ def test_sign_transaction(mock_account_ids, mock_client):
     token_tx.set_wipe_key(private_key_wipe)
     token_tx.set_metadata_key(private_key_metadata)
     token_tx.set_pause_key(private_key_pause)
-
+    token_tx.set_kyc_key(private_key_kyc)
+    
     token_tx.transaction_id = generate_transaction_id(treasury_account)
     
     token_tx.freeze_with(mock_client)
@@ -408,6 +418,10 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     private_key_metadata.sign.return_value = b"metadata_signature"
     private_key_metadata.public_key().to_bytes_raw.return_value = b"metadata_public_key"
     
+    private_key_kyc = MagicMock()
+    private_key_kyc.sign.return_value = b"kyc_signature"
+    private_key_kyc.public_key().to_bytes_raw.return_value = b"kyc_public_key"
+    
     # Build the transaction
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
@@ -420,7 +434,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     token_tx.set_freeze_key(private_key_freeze)
     token_tx.set_wipe_key(private_key_wipe)
     token_tx.set_metadata_key(private_key_metadata)
-
+    token_tx.set_kyc_key(private_key_kyc)
     token_tx.transaction_id = generate_transaction_id(treasury_account)
 
     token_tx.freeze_with(mock_client)
@@ -453,7 +467,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     assert tx_body.tokenCreation.freezeKey.ed25519 == b"freeze_public_key"
     assert tx_body.tokenCreation.wipeKey.ed25519 == b"wipe_public_key"
     assert tx_body.tokenCreation.metadata_key.ed25519 == b"metadata_public_key"
-
+    assert tx_body.tokenCreation.kycKey.ed25519 == b"kyc_public_key"
 # This test uses fixture mock_account_ids as parameter
 def test_freeze_status_without_freeze_key(mock_account_ids):
     """
@@ -678,6 +692,7 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("freezeKey")
     assert not transaction_body.tokenCreation.HasField("wipeKey")
     assert not transaction_body.tokenCreation.HasField("metadata_key")
+    assert not transaction_body.tokenCreation.HasField("kycKey")
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter
 def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
@@ -715,6 +730,10 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     private_key_pause = MagicMock()
     private_key_pause.sign.return_value = b"pause_signature"
     private_key_pause.public_key().to_bytes_raw.return_value = b"pause_public_key"
+    
+    private_key_kyc = MagicMock()
+    private_key_kyc.sign.return_value = b"kyc_signature"
+    private_key_kyc.public_key().to_bytes_raw.return_value = b"kyc_public_key"
 
     # Build the transaction
     token_tx = TokenCreateTransaction()
@@ -730,7 +749,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     token_tx.set_wipe_key(private_key_wipe)
     token_tx.set_metadata_key(private_key_metadata)
     token_tx.set_pause_key(private_key_pause)
-
+    token_tx.set_kyc_key(private_key_kyc)
     token_tx.transaction_id = generate_transaction_id(treasury_account)
 
     token_tx.freeze_with(mock_client)
@@ -768,7 +787,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     assert tx_body.tokenCreation.wipeKey.ed25519 == b"wipe_public_key"
     assert tx_body.tokenCreation.metadata_key.ed25519 == b"metadata_public_key"
     assert tx_body.tokenCreation.pause_key.ed25519  == b"pause_public_key"
-
+    assert tx_body.tokenCreation.kycKey.ed25519 == b"kyc_public_key"
 @pytest.mark.parametrize(
     "token_type, supply_type, max_supply, initial_supply, expected_error",
     [

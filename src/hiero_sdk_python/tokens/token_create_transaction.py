@@ -8,8 +8,8 @@ This module includes:
 - TokenCreateTransaction: Handles token creation transactions on Hedera.
 """
 
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -19,6 +19,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.tokens.custom_fee import CustomFee
 
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
 
@@ -62,10 +63,11 @@ class TokenCreateValidator:
             raise ValueError("Token symbol must be between 1 and 100 bytes")
 
         # Ensure the token name and symbol do not contain a NUL character
-        for attr in ["token_name", "token_symbol"]:
+        for attr in ("token_name", "token_symbol"):
             if "\x00" in getattr(token_params, attr):
+                name = attr.replace("_", " ").capitalize()
                 raise ValueError(
-                    f"{attr.replace('_', ' ').capitalize()} must not contain the Unicode NUL character"
+                    f"{name} must not contain the Unicode NUL character"
                 )
 
     @staticmethod
@@ -113,18 +115,14 @@ class TokenCreateValidator:
             if not keys.freeze_key:
                 # Without a freeze key but a frozen account, it is immutable.
                 raise ValueError("Token is permanently frozen. Unable to proceed.")
-            # With a freeze key but a frozen account, first unfreezing is required.
-            raise ValueError(
-                "Token frozen. Please complete a Token Unfreeze Transaction."
-            )
 
     @staticmethod
     def _validate_supply_max_and_type(token_params):
         """Ensure max supply and supply type constraints."""
         # An infinite token must have max supply = 0.
         # A finite token must have max supply > 0.
-        if token_params.max_supply != 0: # Setting a max supply is only approprite for a finite token.
-            if token_params.supply_type != SupplyType.FINITE: 
+        if token_params.max_supply != 0: # Finite tokens may have max supply
+            if token_params.supply_type != SupplyType.FINITE:
                 raise ValueError("Setting a max supply field requires setting a finite supply type")
 
         # Finite tokens have the option to set a max supply >0.
@@ -151,7 +149,7 @@ class TokenParams:
         decimals (optional): The number of decimals for the token. This must be zero for NFTs.
         initial_supply (optional): The initial supply of the token.
         token_type (optional): The type of the token, defaulting to fungible.
-        max_supply (optional): The maximum number of fungible tokens or NFT serial numbers that can be in circulation.
+        max_supply (optional): The max tokens or NFT serial numbers.
         supply_type (optional): The token supply status as finite or infinite.
         freeze_default (optional): An initial Freeze status for accounts associated to this token.
     """
@@ -165,6 +163,7 @@ class TokenParams:
     max_supply: int = 0 # Since defaulting to infinite
     supply_type: SupplyType = SupplyType.INFINITE # Default to infinite
     freeze_default: bool = False
+    custom_fees: List[CustomFee] = field(default_factory=list)
 
 
 @dataclass
@@ -180,6 +179,7 @@ class TokenKeys:
         wipe_key: The wipe key for the token to wipe tokens from an account.
         pause_key: The pause key for the token to be paused.
         metadata_key: The metadata key for the token to update NFT metadata.
+        kyc_key: The KYC key for the token to grant KYC to an account.
     """
 
     admin_key: Optional[PrivateKey] = None
@@ -188,13 +188,14 @@ class TokenKeys:
     wipe_key: Optional[PrivateKey] = None
     metadata_key: Optional[PrivateKey] = None
     pause_key: Optional[PrivateKey] = None
+    kyc_key: Optional[PrivateKey] = None
 
 class TokenCreateTransaction(Transaction):
     """
     Represents a token creation transaction on the Hedera network.
 
     This transaction creates a new token with specified properties, such as
-    name, symbol, decimals, initial supply, and treasury account, leveraging the token and key params.
+    name and symbol, leveraging the token and key params.
 
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token creation transaction.
@@ -206,8 +207,8 @@ class TokenCreateTransaction(Transaction):
 
         This transaction can be built in two ways to support flexibility:
         1) By passing a fully-formed TokenParams (and optionally TokenKeys) at construction time.
-        2) By passing `None` (or partially filled objects) and then using the various `set_*` methods
-            to set or override fields incrementally. Validation is deferred until build time (`build_transaction_body()`), so you won't fail
+        2) By passing `None` and then using the various `set_*` methods.
+            Validation is deferred until build time (`build_transaction_body()`), so you won't fail
             immediately if fields are missing at creation.
 
         Args:
@@ -219,7 +220,7 @@ class TokenCreateTransaction(Transaction):
         """
         super().__init__()
 
-        # If user didn't provide token_params, assign simple default placeholders. 
+        # If user didn't provide token_params, assign simple default placeholders.
         if token_params is None:
             # It is expected the user will set valid values later.
             token_params = TokenParams(
@@ -260,80 +261,123 @@ class TokenCreateTransaction(Transaction):
 
     # These allow setting of individual fields
     def set_token_name(self, name):
+        """Set the token name."""
         self._require_not_frozen()
         self._token_params.token_name = name
         return self
 
     def set_token_symbol(self, symbol):
+        """Set the token symbol."""
         self._require_not_frozen()
         self._token_params.token_symbol = symbol
         return self
 
     def set_treasury_account_id(self, account_id):
+        """Set the treasury account ID."""
         self._require_not_frozen()
         self._token_params.treasury_account_id = account_id
         return self
-    
+
     def set_decimals(self, decimals):
+        """Set the token decimals."""
         self._require_not_frozen()
         self._token_params.decimals = decimals
         return self
 
     def set_initial_supply(self, initial_supply):
+        """Set the initial token supply."""
         self._require_not_frozen()
         self._token_params.initial_supply = initial_supply
         return self
 
     def set_token_type(self, token_type):
+        """Set the token type."""
         self._require_not_frozen()
         self._token_params.token_type = token_type
         return self
-    
+
     def set_max_supply(self, max_supply):
+        """Set the maximum token supply."""
         self._require_not_frozen()
         self._token_params.max_supply = max_supply
         return self
 
     def set_supply_type(self, supply_type):
+        """Set the supply type."""
         self._require_not_frozen()
         self._token_params.supply_type = supply_type
         return self
-    
+
     def set_freeze_default(self, freeze_default):
+        """Set the default freeze status."""
         self._require_not_frozen()
         self._token_params.freeze_default = freeze_default
-        return self    
+        return self
 
     def set_admin_key(self, key):
+        """Set the admin key."""
         self._require_not_frozen()
         self._keys.admin_key = key
         return self
 
     def set_supply_key(self, key):
+        """Set the supply management key."""
         self._require_not_frozen()
         self._keys.supply_key = key
         return self
 
     def set_freeze_key(self, key):
+        """Set the freeze key."""
         self._require_not_frozen()
         self._keys.freeze_key = key
         return self
-    
+
     def set_wipe_key(self, key):
+        """Set the wipe key."""
         self._require_not_frozen()
         self._keys.wipe_key = key
         return self
-    
+
     def set_metadata_key(self, key):
+        """Set the metadata key."""
         self._require_not_frozen()
         self._keys.metadata_key = key
         return self
 
     def set_pause_key(self, key):
+        """Set the pause key."""
         self._require_not_frozen()
         self._keys.pause_key = key
         return self
-    
+
+    def set_kyc_key(self, key):
+        """Set the KYC key."""
+        self._require_not_frozen()
+        self._keys.kyc_key = key
+        return self
+
+    def set_custom_fees(self, custom_fees: List[CustomFee]):
+        """Set the Custom Fees."""
+        self._require_not_frozen()
+        self._token_params.custom_fees = custom_fees
+        return self
+
+    def _to_proto_key(self, private_key):
+        """
+        Helper method to convert a private key to protobuf Key format.
+        
+        Args:
+            private_key: The private key to convert, or None
+            
+        Returns:
+            basic_types_pb2.Key or None: The protobuf key or None if private_key is None
+        """
+        if not private_key:
+            return None
+
+        public_key_bytes = private_key.public_key().to_bytes_raw()
+        return basic_types_pb2.Key(ed25519=public_key_bytes)
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for token creation.
@@ -351,35 +395,13 @@ class TokenCreateTransaction(Transaction):
         # Validate freeze status
         TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
 
-        admin_key_proto = None
-        if self._keys.admin_key:
-            admin_public_key_bytes = self._keys.admin_key.public_key().to_bytes_raw()
-            admin_key_proto = basic_types_pb2.Key(ed25519=admin_public_key_bytes)
-
-        supply_key_proto = None
-        if self._keys.supply_key:
-            supply_public_key_bytes = self._keys.supply_key.public_key().to_bytes_raw()
-            supply_key_proto = basic_types_pb2.Key(ed25519=supply_public_key_bytes)
-
-        freeze_key_proto = None
-        if self._keys.freeze_key:
-            freeze_public_key_bytes = self._keys.freeze_key.public_key().to_bytes_raw()
-            freeze_key_proto = basic_types_pb2.Key(ed25519=freeze_public_key_bytes)
-            
-        wipe_key_proto = None
-        if self._keys.wipe_key:
-            wipe_public_key_bytes = self._keys.wipe_key.public_key().to_bytes_raw()
-            wipe_key_proto = basic_types_pb2.Key(ed25519=wipe_public_key_bytes)
-
-        metadata_key_proto = None
-        if self._keys.metadata_key:
-            metadata_public_key_bytes = self._keys.metadata_key.public_key().to_bytes_raw()
-            metadata_key_proto = basic_types_pb2.Key(ed25519=metadata_public_key_bytes)
-
-        pause_key_proto = None
-        if self._keys.pause_key:
-            pause_public_key_bytes = self._keys.pause_key.public_key().to_bytes_raw()
-            pause_key_proto = basic_types_pb2.Key(ed25519=pause_public_key_bytes)
+        admin_key_proto = self._to_proto_key(self._keys.admin_key)
+        supply_key_proto = self._to_proto_key(self._keys.supply_key)
+        freeze_key_proto = self._to_proto_key(self._keys.freeze_key)
+        wipe_key_proto = self._to_proto_key(self._keys.wipe_key)
+        metadata_key_proto = self._to_proto_key(self._keys.metadata_key)
+        pause_key_proto = self._to_proto_key(self._keys.pause_key)
+        kyc_key_proto = self._to_proto_key(self._keys.kyc_key)
 
         # Ensure token type is correctly set with default to fungible
         if self._token_params.token_type is None:
@@ -414,6 +436,8 @@ class TokenCreateTransaction(Transaction):
             wipeKey=wipe_key_proto,
             metadata_key=metadata_key_proto,
             pause_key=pause_key_proto,
+            kycKey=kyc_key_proto,
+            custom_fees=[fee._to_proto() for fee in self._token_params.custom_fees],
         )
         # Build the base transaction body and attach the token creation details
         transaction_body = self.build_base_transaction_body()

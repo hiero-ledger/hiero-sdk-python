@@ -1,3 +1,16 @@
+"""
+hiero_sdk_python.transaction.transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This module provides the `TokenDissociateTransaction` class, which models
+a Hedera network transaction to dissociate one or more tokens from an account.
+
+Classes:
+    TokenDissociateTransaction
+        Builds, signs, and executes a token dissociate transaction. Inherits
+        from the base `Transaction` class and encapsulates all necessary
+        fields and methods to perform a token dissociation on Hedera.
+"""
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_dissociate_pb2
 from hiero_sdk_python.channels import _Channel
@@ -25,11 +38,13 @@ class TokenDissociateTransaction(Transaction):
         self._default_transaction_fee = 500_000_000
 
     def set_account_id(self, account_id):
+        """Specify the account for token dissociation."""
         self._require_not_frozen()
         self.account_id = account_id
         return self
 
     def add_token_id(self, token_id):
+        """Add a token to dissociate."""
         self._require_not_frozen()
         self.token_ids.append(token_id)
         return self
@@ -39,7 +54,7 @@ class TokenDissociateTransaction(Transaction):
         Builds and returns the protobuf transaction body for token dissociation.
 
         Returns:
-            TransactionBody: The protobuf transaction body containing the token dissociation details.
+            TransactionBody: The protobuf transaction body with token dissociate details.
 
         Raises:
             ValueError: If account ID or token IDs are not set.

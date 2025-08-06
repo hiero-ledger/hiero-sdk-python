@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 try:
     from Crypto.Hash import keccak
@@ -60,6 +61,7 @@ def compress_with_cryptography(encoded: bytes) -> bytes:
     """
     pub = ec.EllipticCurvePublicKey.from_encoded_point(SECP256K1_CURVE, encoded)
     compressed = pub.public_bytes(
-        ec.Encoding.X962, ec.PublicFormat.CompressedPoint
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.CompressedPoint,
     )
     return compressed

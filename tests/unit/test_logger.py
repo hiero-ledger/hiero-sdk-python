@@ -46,7 +46,7 @@ def test_logger_output(capsys):
     logger.trace("trace message", "traceKey", "traceValue")
     logger.debug("debug message", "debugKey", "debugValue")
     logger.info("info message", "infoKey", "infoValue")
-    logger.warn("warn message", "warnKey", "warnValue")
+    logger.warning("warning message", "warningKey", "warningValue")
     logger.error("error message", "errorKey", "errorValue")
     
     # Get the captured output
@@ -56,7 +56,7 @@ def test_logger_output(capsys):
     assert "trace message: traceKey = traceValue" in captured.out
     assert "debug message: debugKey = debugValue" in captured.out
     assert "info message: infoKey = infoValue" in captured.out
-    assert "warn message: warnKey = warnValue" in captured.out
+    assert "warning message: warningKey = warningValue" in captured.out
     assert "error message: errorKey = errorValue" in captured.out
     # Test silent mode
     logger.set_silent(True)
@@ -87,7 +87,7 @@ def test_logger_respects_level(capsys):
     
     # These should be logged
     logger.info("info message")
-    logger.warn("warn message")
+    logger.warning("warning message")
     logger.error("error message")
     
     # Get the captured output
@@ -98,5 +98,5 @@ def test_logger_respects_level(capsys):
     assert "trace message" not in captured.out
     assert "debug message" not in captured.out
     assert "info message" in captured.out
-    assert "warn message" in captured.out
+    assert "warning message" in captured.out
     assert "error message" in captured.out

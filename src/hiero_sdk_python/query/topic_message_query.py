@@ -1,7 +1,7 @@
 import time
 import threading
 from datetime import datetime
-from typing import Optional, Callable, Union, Dict, List
+from typing import Optional, Callable, Union, Dict, List, Any
 
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
@@ -26,30 +26,39 @@ class TopicMessageQuery:
         end_time: Optional[datetime] = None,
         limit: Optional[int] = None,
         chunking_enabled: bool = False,
-    ):
-        self._topic_id = self._parse_topic_id(topic_id) if topic_id else None
-        self._start_time = self._parse_timestamp(start_time) if start_time else None
-        self._end_time = self._parse_timestamp(end_time) if end_time else None
-        self._limit = limit
-        self._chunking_enabled = chunking_enabled
+    ) -> None:
+        """
+        Initializes a TopicMessageQuery.
+        """
+        self._topic_id: Optional[TopicId] = self._parse_topic_id(topic_id) if topic_id else None
+        self._start_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(start_time) if start_time else None
+        self._end_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(end_time) if end_time else None
+        self._limit: Optional[int] = limit
+        self._chunking_enabled: bool = chunking_enabled
         self._completion_handler: Optional[Callable[[], None]] = None
 
-        self._max_attempts = 10
-        self._max_backoff = 8.0
+        self._max_attempts: int = 10
+        self._max_backoff: float = 8.0
 
-    def set_max_attempts(self, attempts: int):
+    def set_max_attempts(self, attempts: int) -> "TopicMessageQuery":
+        """Sets the maximum number of attempts to reconnect on failure."""
         self._max_attempts = attempts
         return self
 
-    def set_max_backoff(self, backoff: float):
+    def set_max_backoff(self, backoff: float) -> "TopicMessageQuery":
+        """Sets the maximum backoff time in seconds for reconnection attempts."""
         self._max_backoff = backoff
         return self
 
-    def set_completion_handler(self, handler: Callable[[], None]):
+    def set_completion_handler(self, handler: Callable[[], None]) -> "TopicMessageQuery":
+        """Sets a completion handler that is called when the subscription completes."""
         self._completion_handler = handler
         return self
 
-    def _parse_topic_id(self, topic_id: Union[str, TopicId]):
+    def _parse_topic_id(self, topic_id: Union[str, TopicId]) -> basic_types_pb2.TopicID:
+        """
+        Parses a topic ID from a string or TopicId object into a protobuf TopicID.
+        """
         if isinstance(topic_id, str):
             parts = topic_id.strip().split(".")
             if len(parts) != 3:
@@ -61,28 +70,34 @@ class TopicMessageQuery:
         else:
             raise TypeError("Invalid topic_id format. Must be a string or TopicId.")
 
-    def _parse_timestamp(self, dt: datetime):
+    def _parse_timestamp(self, dt: datetime) -> timestamp_pb2.Timestamp:
+        """Converts a datetime object to a protobuf Timestamp."""
         seconds = int(dt.timestamp())
         nanos = int((dt.timestamp() - seconds) * 1e9)
         return timestamp_pb2.Timestamp(seconds=seconds, nanos=nanos)
 
-    def set_topic_id(self, topic_id: Union[str, TopicId]):
+    def set_topic_id(self, topic_id: Union[str, TopicId]) -> "TopicMessageQuery":
+        """Sets the topic ID for the query."""
         self._topic_id = self._parse_topic_id(topic_id)
         return self
 
-    def set_start_time(self, dt: datetime):
+    def set_start_time(self, dt: datetime) -> "TopicMessageQuery":
+        """Sets the start time for the query."""
         self._start_time = self._parse_timestamp(dt)
         return self
 
-    def set_end_time(self, dt: datetime):
+    def set_end_time(self, dt: datetime) -> "TopicMessageQuery":
+        """Sets the end time for the query."""
         self._end_time = self._parse_timestamp(dt)
         return self
 
-    def set_limit(self, limit: int):
+    def set_limit(self, limit: int) -> "TopicMessageQuery":
+        """Sets the maximum number of messages to return in the query."""
         self._limit = limit
         return self
 
-    def set_chunking_enabled(self, enabled: bool):
+    def set_chunking_enabled(self, enabled: bool) -> "TopicMessageQuery":
+        """Enables or disables chunking for multi-chunk messages."""
         self._chunking_enabled = enabled
         return self
 
@@ -92,6 +107,7 @@ class TopicMessageQuery:
         on_message: Callable[[TopicMessage], None],
         on_error: Optional[Callable[[Exception], None]] = None,
     ) -> SubscriptionHandle:
+        """Subscribes to messages from the specified topic."""
 
         if not self._topic_id:
             raise ValueError("Topic ID must be set before subscribing.")

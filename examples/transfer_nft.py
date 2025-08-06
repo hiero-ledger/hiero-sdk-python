@@ -56,7 +56,7 @@ def create_test_account(client):
         sys.exit(1)
     
     # Get account ID from receipt
-    account_id = receipt.accountId
+    account_id = receipt.account_id
     print(f"New account created with ID: {account_id}")
     
     return account_id, new_account_private_key
@@ -87,7 +87,7 @@ def create_nft(client, operator_id, operator_key):
         sys.exit(1)
     
     # Get token ID from receipt
-    nft_token_id = receipt.tokenId
+    nft_token_id = receipt.token_id
     print(f"NFT created with ID: {nft_token_id}")
     
     return nft_token_id

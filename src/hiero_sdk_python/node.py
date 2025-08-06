@@ -1,5 +1,6 @@
 import time
 import grpc
+from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.address_book.node_address import NodeAddress
@@ -17,10 +18,10 @@ class _Node:
             min_backoff (int): The minimum backoff time in seconds.
         """
         
-        self._account_id : AccountId = account_id
-        self._channel : _Channel = None
-        self._address_book : NodeAddress = address_book
-        self._address = _ManagedNodeAddress._from_string(address)
+        self._account_id: AccountId = account_id
+        self._channel: Optional[_Channel] = None
+        self._address_book: NodeAddress = address_book
+        self._address: _ManagedNodeAddress = _ManagedNodeAddress._from_string(address)
     
     def _close(self):
         """

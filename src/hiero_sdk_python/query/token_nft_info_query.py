@@ -1,9 +1,11 @@
+from typing import Optional, Any
 from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import query_pb2, token_get_nft_info_pb2
+from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
 import traceback
 
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
 
@@ -15,7 +17,7 @@ class TokenNftInfoQuery(Query):
     on the Hedera network, including the NFT's properties and settings.
     
     """
-    def __init__(self, nft_id=None):
+    def __init__(self, nft_id: Optional[NftId] = None) -> None:
         """
         Initializes a new TokenNftInfoQuery instance with an optional nft_id.
 
@@ -23,9 +25,9 @@ class TokenNftInfoQuery(Query):
             nft_id (NftId, optional): The ID of the NFT to query.
         """
         super().__init__()
-        self.nft_id : NftId = nft_id
+        self.nft_id: Optional[NftId] = nft_id
 
-    def set_nft_id(self, nft_id: NftId):
+    def set_nft_id(self, nft_id: NftId) -> "TokenNftInfoQuery":
         """
         Sets the ID of the NFT to query.
 
@@ -35,7 +37,7 @@ class TokenNftInfoQuery(Query):
         self.nft_id = nft_id
         return self
 
-    def _make_request(self):
+    def _make_request(self) -> query_pb2.Query:
         """
         Constructs the protobuf request for the query.
         
@@ -86,7 +88,7 @@ class TokenNftInfoQuery(Query):
             query_func=channel.token.getTokenNftInfo
         )
 
-    def execute(self, client):
+    def execute(self, client: Client) -> TokenNftInfo:
         """
         Executes the nft info query.
         
@@ -111,7 +113,7 @@ class TokenNftInfoQuery(Query):
 
         return TokenNftInfo._from_proto(response.tokenGetNftInfo.nft)
 
-    def _get_query_response(self, response):
+    def _get_query_response(self, response: response_pb2.Response) -> token_get_nft_info_pb2.TokenGetNftInfoResponse:
         """
         Extracts the nft info response from the full response.
         

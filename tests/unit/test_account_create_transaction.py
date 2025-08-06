@@ -140,7 +140,7 @@ def test_account_create_transaction():
         
         # Verify the results
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
-        assert receipt.accountId.num == 1234, "Should have created account with ID 1234"
+        assert receipt.account_id.num == 1234, "Should have created account with ID 1234"
 
 def test_sign_account_create_without_freezing_raises_error(mock_account_ids):
     """Test that signing a transaction without freezing it first raises an error."""

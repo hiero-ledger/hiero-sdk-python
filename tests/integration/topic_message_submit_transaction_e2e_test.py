@@ -19,7 +19,7 @@ def test_integration_topic_message_submit_transaction_can_execute():
         
         create_transaction.freeze_with(env.client)
         create_receipt = create_transaction.execute(env.client)
-        topic_id = create_receipt.topicId
+        topic_id = create_receipt.topic_id
         
         message_transaction = TopicMessageSubmitTransaction(
             topic_id=topic_id,

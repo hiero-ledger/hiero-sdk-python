@@ -64,7 +64,26 @@ def test_token_info_query_execute(mock_account_ids, private_key):
         wipeKey=private_key.public_key()._to_proto(),
     )
 
-    response = response_pb2.Response(
+    responses = [
+        response_pb2.Response(
+            tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2
+                )
+            )
+        ),
+        response_pb2.Response(
+            tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2
+                )
+            )
+        ),
+        response_pb2.Response(
             tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
                 header=response_header_pb2.ResponseHeader(
                     nodeTransactionPrecheckCode=ResponseCode.OK,
@@ -74,29 +93,34 @@ def test_token_info_query_execute(mock_account_ids, private_key):
                 tokenInfo=token_info_response
             )
         )
+    ]
     
-    response_sequences = [[response]]
+    response_sequences = [responses]
     
     with mock_hedera_servers(response_sequences) as client:
         query = TokenInfoQuery(token_id)
         
         try:
+            # Get the cost of executing the query - should be 2 tinybars based on the mock response
+            cost = query.get_cost(client)
+            assert cost.to_tinybars() == 2
+            
             result = query.execute(client)
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
         
-        assert result.tokenId == token_id
+        assert result.token_id == token_id
         assert result.name == "Test Token"
         assert result.symbol == "TEST"
         assert result.decimals == 8
-        assert result.totalSupply == 100
-        assert result.maxSupply == 10000
+        assert result.total_supply == 100
+        assert result.max_supply == 10000
         assert result.treasury == account_id
-        assert result.autoRenewAccount == renew_account_id
-        assert result.defaultFreezeStatus == 0
-        assert result.defaultKycStatus == 0
-        assert result.adminKey.to_bytes_raw() == private_key.public_key().to_bytes_raw()
-        assert result.kycKey.to_bytes_raw() == private_key.public_key().to_bytes_raw()
-        assert result.wipeKey.to_bytes_raw() == private_key.public_key().to_bytes_raw()
-        assert result.supplyKey == None
-        assert result.freezeKey == None
+        assert result.auto_renew_account == renew_account_id
+        assert result.default_freeze_status == 0
+        assert result.default_freeze_status == 0
+        assert result.admin_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        assert result.kyc_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        assert result.wipe_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        assert result.supply_key == None
+        assert result.freeze_key == None

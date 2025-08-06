@@ -1,5 +1,4 @@
 import os
-import sys
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
@@ -8,9 +7,9 @@ from hiero_sdk_python import (
     PrivateKey,
     AccountCreateTransaction,
     Network,
+    Logger,
+    LogLevel,
 )
-from hiero_sdk_python.logger.logger import Logger
-from hiero_sdk_python.logger.log_level import LogLevel
 
 load_dotenv()
 
@@ -60,7 +59,7 @@ def show_logging_workflow():
     
     try:
         receipt = transaction.execute(client)
-        print(f"Account creation with client trace level logging successful. Account ID: {receipt.accountId}")
+        print(f"Account creation with client trace level logging successful. Account ID: {receipt.account_id}")
     except Exception as e:
         print(f"Account creation failed: {str(e)}")
     
@@ -78,7 +77,7 @@ def show_logging_workflow():
     
     try:
         receipt = transaction.execute(client)
-        print(f"Account creation with disabled logging successful. Account ID: {receipt.accountId}")
+        print(f"Account creation with disabled logging successful. Account ID: {receipt.account_id}")
     except Exception as e:
         print(f"Account creation failed: {str(e)}")
 

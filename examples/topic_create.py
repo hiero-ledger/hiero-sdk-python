@@ -32,8 +32,8 @@ def create_topic():
 
     try:
         receipt = transaction.execute(client)
-        if receipt and receipt.topicId:
-            print(f"Topic created with ID: {receipt.topicId}")
+        if receipt and receipt.topic_id:
+            print(f"Topic created with ID: {receipt.topic_id}")
         else:
             print("Topic creation failed: Topic ID not returned in receipt.")
             sys.exit(1)
