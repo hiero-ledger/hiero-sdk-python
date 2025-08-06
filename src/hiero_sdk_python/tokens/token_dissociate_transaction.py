@@ -79,7 +79,7 @@ class TokenDissociateTransaction(Transaction):
             tokens=[token_id._to_proto() for token_id in self.token_ids]
         )
 
-        transaction_body:transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenDissociate.CopyFrom(token_dissociate_body)
 
         return transaction_body
