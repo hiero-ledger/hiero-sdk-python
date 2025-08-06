@@ -138,10 +138,7 @@ class TokenCreateValidator:
         """
         MAXIMUM_SUPPLY = 9_223_372_036_854_775_807  # 2^63 - 1
 
-        if (
-            not isinstance(token_params.initial_supply, int)
-            or token_params.initial_supply < 0
-        ):
+        if token_params.initial_supply < 0:
             raise ValueError("Initial supply must be a non-negative integer")
         if token_params.initial_supply > MAXIMUM_SUPPLY:
             raise ValueError(f"Initial supply cannot exceed {MAXIMUM_SUPPLY}")
@@ -154,7 +151,7 @@ class TokenCreateValidator:
         """
         Ensure decimals and token_type align with either fungible or non-fungible constraints.
         """
-        if not isinstance(token_params.decimals, int) or token_params.decimals < 0:
+        if token_params.decimals < 0:
             raise ValueError("Decimals must be a non-negative integer")
 
         if token_params.token_type == TokenType.FUNGIBLE_COMMON:
