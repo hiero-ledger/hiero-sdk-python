@@ -116,95 +116,122 @@ class TokenInfo(_DeprecatedAliasesMixin):
             setattr(self, f.name, value)
 
     # === setter methods ===
-    def set_admin_key(self, admin_key: PublicKey) -> None:
+    def set_admin_key(self, admin_key: PublicKey) -> "TokenInfo":
         """Set the admin key."""
         self.admin_key = admin_key
+        return self
+
     # alias for backwards compatibility
     set_adminKey = set_admin_key
 
-    def set_kyc_key(self, kyc_key: PublicKey) -> None:
+    def set_kyc_key(self, kyc_key: PublicKey) -> "TokenInfo":
         """Set the KYC key."""
         self.kyc_key = kyc_key
+        return self
+    
     # alias for backwards compatibility
     set_kycKey = set_kyc_key
 
-    def set_freeze_key(self, freeze_key: PublicKey) -> None:
+    def set_freeze_key(self, freeze_key: PublicKey) -> "TokenInfo":
         """Set the freeze key."""
         self.freeze_key = freeze_key
+        return self
+
     # alias for backwards compatibility
     set_freezeKey = set_freeze_key
 
-    def set_wipe_key(self, wipe_key: PublicKey) -> None:
+    def set_wipe_key(self, wipe_key: PublicKey) -> "TokenInfo":
         """Set the wipe key."""
         self.wipe_key = wipe_key
+        return self
+
     # alias for backwards compatibility
     set_wipeKey = set_wipe_key
 
-    def set_supply_key(self, supply_key: PublicKey) -> None:
+    def set_supply_key(self, supply_key: PublicKey) -> "TokenInfo":
         """Set the supply key."""
         self.supply_key = supply_key
+        return self
+
     # alias for backwards compatibility
     set_supplyKey = set_supply_key
 
-    def set_metadata_key(self, metadata_key: PublicKey) -> None:
+    def set_metadata_key(self, metadata_key: PublicKey) -> "TokenInfo":
         """Set the metadata key."""
         self.metadata_key = metadata_key
+        return self
 
-    def set_fee_schedule_key(self, fee_schedule_key: PublicKey) -> None:
+    def set_fee_schedule_key(self, fee_schedule_key: PublicKey) -> "TokenInfo":
         """Set the fee schedule key."""
         self.fee_schedule_key = fee_schedule_key
+        return self
 
-    def set_default_freeze_status(self, freeze_status: TokenFreezeStatus) -> None:
+    def set_default_freeze_status(self, freeze_status: TokenFreezeStatus) -> "TokenInfo":
         """Set the default freeze status."""
         self.default_freeze_status = freeze_status
+        return self
+
     # alias for backwards compatibility
     set_defaultFreezeStatus = set_default_freeze_status
 
-    def set_default_kyc_status(self, kyc_status: TokenKycStatus) -> None:
+    def set_default_kyc_status(self, kyc_status: TokenKycStatus) -> "TokenInfo":
         """Set the default KYC status."""
         self.default_kyc_status = kyc_status
+        return self
+
     # alias for backwards compatibility
     set_defaultKycStatus = set_default_kyc_status
 
-    def set_auto_renew_account(self, account: AccountId) -> None:
+    def set_auto_renew_account(self, account: AccountId) -> "TokenInfo":
         """Set the auto-renew account."""
         self.auto_renew_account = account
+        return self
+
     # alias for backwards compatibility
     set_autoRenewAccount = set_auto_renew_account
 
-    def set_auto_renew_period(self, period: Duration) -> None:
+    def set_auto_renew_period(self, period: Duration) -> "TokenInfo":
         """Set the auto-renew period."""
         self.auto_renew_period = period
+        return self
+
     # alias for backwards compatibility
     set_autoRenewPeriod = set_auto_renew_period
 
-    def set_expiry(self, expiry: Timestamp) -> None:
+    def set_expiry(self, expiry: Timestamp) -> "TokenInfo":
         """Set the token expiry."""
         self.expiry = expiry
+        return self
 
-    def set_pause_key(self, pause_key: PublicKey) -> None:
+    def set_pause_key(self, pause_key: PublicKey) -> "TokenInfo":
         """Set the pause key."""
         self.pause_key = pause_key
+        return self
 
-    def set_pause_status(self, pause_status: TokenPauseStatus) -> None:
+    def set_pause_status(self, pause_status: TokenPauseStatus) -> "TokenInfo":
         """Set the pause status."""
         self.pause_status = pause_status
+        return self
+
     # alias for backwards compatibility
     set_pauseStatus = set_pause_status
 
-    def set_supply_type(self, supply_type: SupplyType | int) -> None:
+    def set_supply_type(self, supply_type: SupplyType | int) -> "TokenInfo":
         """Set the supply type."""
         self.supply_type = (
             supply_type
             if isinstance(supply_type, SupplyType)
             else SupplyType(supply_type)
         )
+        return self
+
     # alias for backwards compatibility
     set_supplyType = set_supply_type
 
-    def set_metadata(self, metadata: bytes) -> None:
+    def set_metadata(self, metadata: bytes) -> "TokenInfo":
         """Set the token metadata."""
         self.metadata = metadata
+        return self
 
     @classmethod
     def _from_proto(cls, proto_obj: token_get_info_pb2.TokenInfo) -> "TokenInfo":
