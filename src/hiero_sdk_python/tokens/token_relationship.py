@@ -8,9 +8,11 @@ including ID, symbol, balance, KYC status, freeze status, decimals, and auto-ass
 from dataclasses import dataclass
 from typing import Optional
 
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenRelationship as TokenRelationshipProto
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenFreezeStatus as TokenFreezeStatusProto
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKycStatus as TokenKycStatusProto
+from hiero_sdk_python.hapi.services.basic_types_pb2 import (
+    TokenRelationship    as TokenRelationshipProto,
+    TokenFreezeStatus    as TokenFreezeStatusProto,
+    TokenKycStatus       as TokenKycStatusProto,
+)
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
@@ -25,11 +27,13 @@ class TokenRelationship:
         symbol (Optional[str]): The symbol of the token.
         balance (Optional[int]): The balance of tokens held by the account.
         kyc_status (Optional[TokenKycStatus]): The KYC status of the account for this token.
-        freeze_status (Optional[TokenFreezeStatus]): The freeze status of the account for this token.
+        freeze_status (Optional[TokenFreezeStatus]): 
+            The freeze status of the account for this token.
         decimals (Optional[int]): The number of decimal places used by the token.
-        automatic_association (Optional[bool]): Whether the token was automatically associated with the account.
+        automatic_association (Optional[bool]): 
+            Whether the token was automatically associated with the account.
     """
-    token_id: Optional[TokenId] = None 
+    token_id: Optional[TokenId] = None
     symbol: Optional[str] = None
     balance: Optional[int] = None
     kyc_status: Optional[TokenKycStatus] = None
@@ -45,7 +49,7 @@ class TokenRelationship:
         token_id: TokenId = TokenId._from_proto(proto.tokenId) if proto.tokenId else None
         kyc_status: TokenKycStatus = TokenKycStatus._from_proto(proto.kycStatus)
         freeze_status: TokenFreezeStatus = TokenFreezeStatus._from_proto(proto.freezeStatus)
-        
+
         return cls(
             token_id=token_id,
             symbol=proto.symbol,
