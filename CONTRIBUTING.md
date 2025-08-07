@@ -18,6 +18,43 @@ This guide will explain how to contribute.
 
 ---
 
+## Code Contributions
+
+Code contributions are handled using [Pull Requests](../../pulls). Please ensure:
+
+1. You fork this repository
+2. You have an [Issue](../../issues) for any bug or feature you’re working on (to avoid duplicating effort).
+3. **All new code has tests** to prove it works as intended or fixes the issue.
+4. Follow our [Branching](#branching) and [Committing](#committing) guidelines.
+
+---
+
+## Branching
+
+We follow a trunk-based development approach. Typical branches:
+- `feature/...` for new features
+- `fix/...` for bug fixes
+
+The `main` branch should always be stable and production-ready.
+
+## Committing
+
+We use commit types like:
+- `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `style`
+
+Individual commit messages within PRs can be more descriptive and do not necessarily need the prefix, as long as they are clear and meaningful.
+
+
+## Merging
+
+- We recommend **squash and merge** to keep the commit history tidy.
+- Commits should be signed and verified if possible (e.g. `git commit -s -S -m "message"`).
+- Pull request titles should begin with types as appropriate (e.g. `feat: add some feature`).  
+
+All Pull Requests must be approved by at least one member of the SDK team before merging.
+
+---
+
 ## Feature Requests
 
 We welcome new functionality or feature suggestions for the Python SDK. You can submit a feature request on the issue page [Issue Page for Feature Requests](https://github.com/hiero-ledger/hiero-sdk-python/issues). When submitting a feature, please make sure to:
@@ -77,42 +114,7 @@ image = "/images/python/members/your_personal__or_github_image.png"
 10. **Check Hugo Preview**: preview your pull request is as expected using the Hugo preview link that shows up as a check in your pull reuqest. Ensure all tests pass.
 11. **Wait for Reviews**: the Hiero website community will review your new blog post and publish it once approved.
 
-## Code Contributions
 
-Code contributions are handled using [Pull Requests](../../pulls). Please ensure:
-
-1. You fork this repository
-2. You have an [Issue](../../issues) for any bug or feature you’re working on (to avoid duplicating effort).
-3. **All new code has tests** to prove it works as intended or fixes the issue.
-4. Follow our [Branching](#branching) and [Committing](#committing) guidelines.
-
----
-
-## Branching
-
-We follow a trunk-based development approach. Typical branches:
-- `feature/...` for new features
-- `fix/...` for bug fixes
-
-The `main` branch should always be stable and production-ready.
-
-## Committing
-
-We use commit types like:
-- `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `style`
-
-Individual commit messages within PRs can be more descriptive and do not necessarily need the prefix, as long as they are clear and meaningful.
-
-
-## Merging
-
-- We recommend **squash and merge** to keep the commit history tidy.
-- Commits should be signed and verified if possible (e.g. `git commit -s -S -m "message"`).
-- Pull request titles should begin with types as appropriate (e.g. `feat: add some feature`).  
-
-All Pull Requests must be approved by at least one member of the SDK team before merging.
-
----
 
 ## Getting in Contact
 
