@@ -35,8 +35,8 @@ Typical branches:
   - Example: "feat: TokenCreate unit test". Individual commit messages within PRs can be more descriptive and do not necessarily need the prefix, as long as they are clear and meaningful.
 - Signed appropriately `git commit -S -s -m "message"` [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/Commit_Signing.md). This is easiest using terminal but there are ways to apply global signing to commits.
 
-6. **Optionally type hint and lint your code**. 
-Add optional type hints and check with mypy for extra robustness (ensure any new commits are signed):
+6. **Type hint and lint your code**. 
+Add type hints and check with mypy for extra robustness (ensure any new commits are signed):
 ```python
 mypy hedera_sdk_python/src/hiero_sdk_python/your_file_location.py
 ```
