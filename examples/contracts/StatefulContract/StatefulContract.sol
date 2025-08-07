@@ -19,6 +19,10 @@ contract StatefulContract {
         message = _msg;
     }
 
+    function getMessageAndOwner() external view returns (bytes32, address) {
+        return (message, owner);
+    }
+
     function withdrawFunds() external {
         require(msg.sender == owner, "Only the owner can withdraw funds.");
         uint256 amount = address(this).balance;
