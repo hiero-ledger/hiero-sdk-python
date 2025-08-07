@@ -101,6 +101,7 @@ from .contract.contract_bytecode_query import ContractBytecodeQuery
 from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
 from .contract.contract_info import ContractInfo
+from .contract.contract_update_transaction import ContractUpdateTransaction
 
 __all__ = [
     # Client
@@ -201,5 +202,6 @@ __all__ = [
     "ContractBytecodeQuery",
     "ContractFunctionParameters",
     "ContractFunctionResult",
-    "ContractInfo"
+    "ContractInfo",
+    "ContractUpdateTransaction",
 ]
