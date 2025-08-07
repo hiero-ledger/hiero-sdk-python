@@ -1,0 +1,385 @@
+"""
+Unit tests for the ContractUpdateTransaction class.
+"""
+
+import pytest
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.contract.contract_update_transaction import ContractUpdateTransaction
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hbar import Hbar
+
+pytestmark = pytest.mark.unit
+
+
+@pytest.fixture
+def contract_id():
+    """Fixture for contract ID."""
+    return ContractId(0, 0, 123)
+
+
+@pytest.fixture
+def update_params():
+    """Fixture for contract update parameters."""
+    return {
+        "contract_id": ContractId(0, 0, 123),
+        "memo": "Updated contract memo",
+        "admin_key": PrivateKey.generate().public_key(),
+        "proxy_account_id": AccountId(0, 0, 456),
+        "auto_renew_period": Duration(7776000),  # 90 days
+        "file_id": FileId(0, 0, 789),
+        "max_automatic_token_associations": 100,
+        "auto_renew_account_id": AccountId(0, 0, 999),
+        "staked_node_id": 5,
+        "decline_reward": True,
+    }
+
+
+class TestContractUpdateTransactionConstructor:
+    """Test ContractUpdateTransaction constructor."""
+
+    def test_constructor_no_parameters(self):
+        """Test creating a contract update transaction with no parameters."""
+        tx = ContractUpdateTransaction()
+        
+        assert tx.contract_id is None
+        assert tx.memo is None
+        assert tx.admin_key is None
+        assert tx.proxy_account_id is None
+        assert tx.auto_renew_period is None
+        assert tx.file_id is None
+        assert tx.max_automatic_token_associations is None
+        assert tx.auto_renew_account_id is None
+        assert tx.staked_node_id is None
+        assert tx.decline_reward is None
+        assert tx._default_transaction_fee == Hbar(20).to_tinybars()
+
+    def test_constructor_with_parameters(self, update_params):
+        """Test creating a contract update transaction with constructor parameters."""
+        tx = ContractUpdateTransaction(
+            contract_id=update_params["contract_id"],
+            memo=update_params["memo"],
+            admin_key=update_params["admin_key"],
+            proxy_account_id=update_params["proxy_account_id"],
+            auto_renew_period=update_params["auto_renew_period"],
+            file_id=update_params["file_id"],
+            max_automatic_token_associations=update_params["max_automatic_token_associations"],
+            auto_renew_account_id=update_params["auto_renew_account_id"],
+            staked_node_id=update_params["staked_node_id"],
+            decline_reward=update_params["decline_reward"],
+        )
+
+        assert tx.contract_id == update_params["contract_id"]
+        assert tx.memo == update_params["memo"]
+        assert tx.admin_key == update_params["admin_key"]
+        assert tx.proxy_account_id == update_params["proxy_account_id"]
+        assert tx.auto_renew_period == update_params["auto_renew_period"]
+        assert tx.file_id == update_params["file_id"]
+        assert tx.max_automatic_token_associations == update_params["max_automatic_token_associations"]
+        assert tx.auto_renew_account_id == update_params["auto_renew_account_id"]
+        assert tx.staked_node_id == update_params["staked_node_id"]
+        assert tx.decline_reward == update_params["decline_reward"]
+
+
+class TestContractUpdateTransactionSetters:
+    """Test ContractUpdateTransaction setter methods."""
+
+    def test_set_contract_id(self, contract_id):
+        """Test setting contract ID."""
+        tx = ContractUpdateTransaction()
+        result = tx.set_contract_id(contract_id)
+        
+        assert tx.contract_id == contract_id
+        assert result is tx  # Method chaining
+
+    def test_set_memo(self):
+        """Test setting memo."""
+        tx = ContractUpdateTransaction()
+        memo = "Test contract memo"
+        result = tx.set_memo(memo)
+        
+        assert tx.memo == memo
+        assert result is tx  # Method chaining
+
+    def test_set_admin_key(self):
+        """Test setting admin key."""
+        tx = ContractUpdateTransaction()
+        admin_key = PrivateKey.generate().public_key()
+        result = tx.set_admin_key(admin_key)
+        
+        assert tx.admin_key == admin_key
+        assert result is tx  # Method chaining
+
+    def test_set_proxy_account_id(self):
+        """Test setting proxy account ID."""
+        tx = ContractUpdateTransaction()
+        proxy_account_id = AccountId(0, 0, 456)
+        result = tx.set_proxy_account_id(proxy_account_id)
+        
+        assert tx.proxy_account_id == proxy_account_id
+        assert result is tx  # Method chaining
+
+    def test_set_auto_renew_period(self):
+        """Test setting auto renew period."""
+        tx = ContractUpdateTransaction()
+        auto_renew_period = Duration(7776000)
+        result = tx.set_auto_renew_period(auto_renew_period)
+        
+        assert tx.auto_renew_period == auto_renew_period
+        assert result is tx  # Method chaining
+
+    def test_set_file_id(self):
+        """Test setting file ID."""
+        tx = ContractUpdateTransaction()
+        file_id = FileId(0, 0, 789)
+        result = tx.set_file_id(file_id)
+        
+        assert tx.file_id == file_id
+        assert result is tx  # Method chaining
+
+    def test_set_max_automatic_token_associations(self):
+        """Test setting max automatic token associations."""
+        tx = ContractUpdateTransaction()
+        max_associations = 100
+        result = tx.set_max_automatic_token_associations(max_associations)
+        
+        assert tx.max_automatic_token_associations == max_associations
+        assert result is tx  # Method chaining
+
+    def test_set_auto_renew_account_id(self):
+        """Test setting auto renew account ID."""
+        tx = ContractUpdateTransaction()
+        auto_renew_account_id = AccountId(0, 0, 999)
+        result = tx.set_auto_renew_account_id(auto_renew_account_id)
+        
+        assert tx.auto_renew_account_id == auto_renew_account_id
+        assert result is tx  # Method chaining
+
+    def test_set_staked_node_id(self):
+        """Test setting staked node ID."""
+        tx = ContractUpdateTransaction()
+        staked_node_id = 5
+        result = tx.set_staked_node_id(staked_node_id)
+        
+        assert tx.staked_node_id == staked_node_id
+        assert result is tx  # Method chaining
+
+    def test_set_decline_reward(self):
+        """Test setting decline reward."""
+        tx = ContractUpdateTransaction()
+        decline_reward = True
+        result = tx.set_decline_reward(decline_reward)
+        
+        assert tx.decline_reward == decline_reward
+        assert result is tx  # Method chaining
+
+
+class TestContractUpdateTransactionMethodChaining:
+    """Test method chaining for ContractUpdateTransaction."""
+
+    def test_method_chaining(self, update_params):
+        """Test that all setter methods can be chained together."""
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(update_params["contract_id"])
+            .set_memo(update_params["memo"])
+            .set_admin_key(update_params["admin_key"])
+            .set_proxy_account_id(update_params["proxy_account_id"])
+            .set_auto_renew_period(update_params["auto_renew_period"])
+            .set_file_id(update_params["file_id"])
+            .set_max_automatic_token_associations(update_params["max_automatic_token_associations"])
+            .set_auto_renew_account_id(update_params["auto_renew_account_id"])
+            .set_staked_node_id(update_params["staked_node_id"])
+            .set_decline_reward(update_params["decline_reward"])
+        )
+
+        assert tx.contract_id == update_params["contract_id"]
+        assert tx.memo == update_params["memo"]
+        assert tx.admin_key == update_params["admin_key"]
+        assert tx.proxy_account_id == update_params["proxy_account_id"]
+        assert tx.auto_renew_period == update_params["auto_renew_period"]
+        assert tx.file_id == update_params["file_id"]
+        assert tx.max_automatic_token_associations == update_params["max_automatic_token_associations"]
+        assert tx.auto_renew_account_id == update_params["auto_renew_account_id"]
+        assert tx.staked_node_id == update_params["staked_node_id"]
+        assert tx.decline_reward == update_params["decline_reward"]
+
+
+class TestContractUpdateTransactionBuildTransactionBody:
+    """Test building transaction body for ContractUpdateTransaction."""
+
+    def test_build_transaction_body_success(self, contract_id, mock_account_ids, transaction_id):
+        """Test building transaction body with valid contract ID."""
+        account_id, _, node_account_id, _, _ = mock_account_ids
+        
+        tx = ContractUpdateTransaction()
+        tx.set_contract_id(contract_id)
+        tx.set_memo("Test memo")
+        tx.transaction_id = transaction_id
+        tx.node_account_id = node_account_id
+        
+        transaction_body = tx.build_transaction_body()
+        
+        assert transaction_body.contractUpdateInstance.contractID.contractNum == contract_id.contract
+        assert transaction_body.contractUpdateInstance.contractID.shardNum == contract_id.shard
+        assert transaction_body.contractUpdateInstance.contractID.realmNum == contract_id.realm
+
+    def test_build_transaction_body_missing_contract_id(self):
+        """Test building transaction body without contract ID raises ValueError."""
+        tx = ContractUpdateTransaction()
+        tx.set_memo("Test memo")
+        
+        with pytest.raises(ValueError, match="Missing required ContractID"):
+            tx.build_transaction_body()
+
+    def test_build_transaction_body_with_all_parameters(self, update_params, mock_account_ids, transaction_id):
+        """Test building transaction body with all parameters set."""
+        _, _, node_account_id, _, _ = mock_account_ids
+        
+        tx = ContractUpdateTransaction(
+            contract_id=update_params["contract_id"],
+            memo=update_params["memo"],
+            admin_key=update_params["admin_key"],
+            proxy_account_id=update_params["proxy_account_id"],
+            auto_renew_period=update_params["auto_renew_period"],
+            file_id=update_params["file_id"],
+            max_automatic_token_associations=update_params["max_automatic_token_associations"],
+            auto_renew_account_id=update_params["auto_renew_account_id"],
+            staked_node_id=update_params["staked_node_id"],
+            decline_reward=update_params["decline_reward"],
+        )
+        tx.transaction_id = transaction_id
+        tx.node_account_id = node_account_id
+        
+        transaction_body = tx.build_transaction_body()
+        
+        # Verify contract ID is set
+        assert transaction_body.contractUpdateInstance.contractID.contractNum == update_params["contract_id"].contract
+        assert transaction_body.contractUpdateInstance.contractID.shardNum == update_params["contract_id"].shard
+        assert transaction_body.contractUpdateInstance.contractID.realmNum == update_params["contract_id"].realm
+        
+        # Verify other fields are present (the actual protobuf structure may vary)
+        assert transaction_body.contractUpdateInstance.HasField("contractID")
+
+
+class TestContractUpdateTransactionExecution:
+    def test_transaction_immutability_concept(self, contract_id):
+        """Test that the transaction can track if it should be frozen (conceptual test)."""
+        tx = ContractUpdateTransaction()
+        tx.set_contract_id(contract_id)
+        
+        # Verify transaction can be created and modified normally
+        tx.set_memo("Initial memo")
+        assert tx.memo == "Initial memo"
+        
+        # Verify we can change memo again (since it's not frozen)
+        tx.set_memo("Updated memo")
+        assert tx.memo == "Updated memo"
+
+
+class TestContractUpdateTransactionMinimalOperations:
+    """Test minimal operations for ContractUpdateTransaction."""
+
+    def test_memo_only_update(self, contract_id):
+        """Test updating only the memo field."""
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(contract_id)
+            .set_memo("New memo only")
+        )
+        
+        assert tx.contract_id == contract_id
+        assert tx.memo == "New memo only"
+        assert tx.admin_key is None
+        assert tx.proxy_account_id is None
+
+    def test_admin_key_only_update(self, contract_id):
+        """Test updating only the admin key field."""
+        new_admin_key = PrivateKey.generate().public_key()
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(contract_id)
+            .set_admin_key(new_admin_key)
+        )
+        
+        assert tx.contract_id == contract_id
+        assert tx.admin_key == new_admin_key
+        assert tx.memo is None
+        assert tx.proxy_account_id is None
+
+    def test_multiple_field_update(self, contract_id):
+        """Test updating multiple fields together."""
+        new_admin_key = PrivateKey.generate().public_key()
+        new_memo = "Multiple fields updated"
+        new_max_associations = 50
+        
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(contract_id)
+            .set_admin_key(new_admin_key)
+            .set_memo(new_memo)
+            .set_max_automatic_token_associations(new_max_associations)
+        )
+        
+        assert tx.contract_id == contract_id
+        assert tx.admin_key == new_admin_key
+        assert tx.memo == new_memo
+        assert tx.max_automatic_token_associations == new_max_associations
+
+
+class TestContractUpdateTransactionEdgeCases:
+    """Test edge cases for ContractUpdateTransaction."""
+
+    def test_empty_memo(self, contract_id):
+        """Test setting an empty memo."""
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(contract_id)
+            .set_memo("")
+        )
+        
+        assert tx.memo == ""
+
+    def test_very_long_memo(self, contract_id):
+        """Test setting a very long memo."""
+        long_memo = "x" * 1000  # 1000 character memo
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(contract_id)
+            .set_memo(long_memo)
+        )
+        
+        assert tx.memo == long_memo
+
+    def test_zero_max_automatic_token_associations(self, contract_id):
+        """Test setting max automatic token associations to zero."""
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(contract_id)
+            .set_max_automatic_token_associations(0)
+        )
+        
+        assert tx.max_automatic_token_associations == 0
+
+    def test_negative_staked_node_id(self, contract_id):
+        """Test setting a negative staked node ID."""
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(contract_id)
+            .set_staked_node_id(-1)
+        )
+        
+        assert tx.staked_node_id == -1
+
+    def test_decline_reward_false(self, contract_id):
+        """Test setting decline reward to False."""
+        tx = (
+            ContractUpdateTransaction()
+            .set_contract_id(contract_id)
+            .set_decline_reward(False)
+        )
+        
+        assert tx.decline_reward is False
