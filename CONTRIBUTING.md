@@ -31,7 +31,8 @@ Typical branches:
 - `fix/...` for bug fixes
 
 5. **Solve your issue on this branch**. Commit all your code to your branch, ensure all your commits are:
-- Prefixed by informative messaging `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `style`, for example: "feat: TokenCreate unit test". Individual commit messages within PRs can be more descriptive and do not necessarily need the prefix, as long as they are clear and meaningful.
+- Prefixed by informative messaging (`feat`, `fix`, `chore`, `docs`, `test`) in alignment with [conventional commit formatting](https://www.conventionalcommits.org/en/v1.0.0/). Individual commit messages within PRs can be more descriptive and do not necessarily need the prefix, as long as they are clear and meaningful.
+  - Example: "feat: TokenCreate unit test". Individual commit messages within PRs can be more descriptive and do not necessarily need the prefix, as long as they are clear and meaningful.
 - Signed appropriately `git commit -S -s -m "message"` [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/Commit_Signing.md). This is easiest using terminal but there are ways to apply global signing to commits.
 
 6. **Optionally type hint and lint your code**. 
