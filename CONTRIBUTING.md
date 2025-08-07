@@ -129,6 +129,11 @@ We strive to be a welcoming community with lots of activity, opportunities and s
 - Watch our Python SDK Community Calls at [LFDT Youtube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
 
 ### Documentation
+- Learn about Hedera Protobufs [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs/tree/8c27786cec93abab974309074feaef9b48a695b7) and [Service Probufs](https://github.com/hashgraph/hedera-protobufs/tree/8c27786cec93abab974309074feaef9b48a695b7/services)
+- Learn about the Hedera Token Service [Hedera Token Service](https://docs.hedera.com/hedera/sdks-and-apis/sdks/token-service)
+- Learn about the Hedera File Service [Hedera File Service](https://docs.hedera.com/hedera/sdks-and-apis/sdks/file-service)
+- Learn about the Hedera Smart Contract Service [Hedera Smart Contracts](https://docs.hedera.com/hedera/sdks-and-apis/sdks/smart-contracts)
+
 - Review our collection of first starter documentation: README.md, Contributing.md, Commit_Signing.md, README_linting.md, README_types.md.
 - View examples of our code at hiero/hedera_sdk_python/examples
 - View our codebase at hedera_sdk_python/src/hiero_sdk_python
