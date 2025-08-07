@@ -125,8 +125,10 @@ We strive to be a welcoming community with lots of activity, opportunities and s
 - Join us on [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563), add it to your favourites andchat with the Hiero Python SDK community and maintainers. Feel free to ask questions, propose ideas, or discuss your PR.
 - Discuss programming or issues with the Hedera community [Hedera Python Discord](https://discord.com/channels/373889138199494658/535491161289261096).
 - Check the [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues) page for ongoing discussions. Comment on an issue and see the conversation grow.
+
 - Learn about our recent activities at [Hiero Blog](https://hiero.org/blog/)
 - Watch our Python SDK Community Calls at [LFDT Youtube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
+- Attend our Python SDK Community Call fortnightly on Wednesdays at 2pm UTC [Hiero LFTD Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
 
 ### Documentation
 - Learn about Hedera Protobufs [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs/tree/8c27786cec93abab974309074feaef9b48a695b7) and [Service Probufs](https://github.com/hashgraph/hedera-protobufs/tree/8c27786cec93abab974309074feaef9b48a695b7/services)
@@ -137,5 +139,10 @@ We strive to be a welcoming community with lots of activity, opportunities and s
 - Review our collection of first starter documentation: README.md, Contributing.md, Commit_Signing.md, README_linting.md, README_types.md.
 - View examples of our code at hiero/hedera_sdk_python/examples
 - View our codebase at hedera_sdk_python/src/hiero_sdk_python
+
+- View examples from the Javascript SDK [Hiero JS SDK](https://github.com/hiero-ledger/hiero-sdk-js/tree/main/src)
+- View examples from the Java SDK [Hiero Java SDK](https://github.com/hiero-ledger/hiero-sdk-java)
+- View examples from the Go SDK [Hiero Go SDK](https://github.com/hiero-ledger/hiero-sdk-go
+)
 
 Thank you for contributing to the the Hiero Python SDK and its community!
