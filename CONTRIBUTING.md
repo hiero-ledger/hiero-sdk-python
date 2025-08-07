@@ -20,41 +20,40 @@ This guide will explain how to contribute.
 ---
 
 ## Code Contributions
+Code contributions are handled using [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls). Please ensure:
 
-Code contributions are handled using [Pull Requests](../../pulls). Please ensure:
-
-1. You fork this repository
-2. You have an [Issue](../../issues) for any bug or feature you’re working on (to avoid duplicating effort).
-3. **All new code has tests** to prove it works as intended or fixes the issue.
-4. Follow our [Branching](#branching) and [Committing](#committing) guidelines.
-
----
-
-## Branching
-
-We follow a trunk-based development approach. Typical branches:
+1. **Fork the Python SDK**. Fork this repository at [Python SDK](https://github.com/hiero-ledger/hiero-sdk-python), clicking the fork button on the top right.
+2. **Find or Create an Issue**. Identify or create an issue you'll be working on [Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues). You can create a new feature issue by clicking 'New issue' then feature or bug to resolve by clicking 'New issue' then bug.
+3. **Get Assigned**. Add a comment inside an issue and state you'd like to work on the issue. Wait until a maintainer assigns you to the issue (to avoid duplicating effort).
+4. **Create a branch** with your issue as a title. We follow a trunk-based development approach. Typical branches:
 - `feature/...` for new features
 - `fix/...` for bug fixes
 
 The `main` branch should always be stable and production-ready.
+5. **Solve your issue on this branch**. Commit all your code to your branch, ensure all your commits are:
+- prefixed by informative messaging `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `style`, for example: "feat: TokenCreate unit test". Individual commit messages within PRs can be more descriptive and do not necessarily need the prefix, as long as they are clear and meaningful.
+- signed appropriately `git commit -S -s -m "message"` [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/Commit_Signing.md). This is easiest using terminal but there are ways to apply global signing to commits.
+6. **Optionally type hint and lint your code**. 
+Add optional type hints and check with mypy for extra robustness (ensure any new commits are signed):
+```python
+mypy hedera_sdk_python/src/hiero_sdk_python/your_file_location.py
+```
+Optionally your code conforms to standard practices with pylint:
+```python
+pylint hedera_sdk_python/src/hiero_sdk_python/your_file_location.py
+```
+Read more at [README_types](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README_types.md)
+Read more at [README_linting](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README_linting.md)
+7. **Create unit and integration tests**. The functionality for your new feature must be tested locally (unit tests) and through the solo network (integration tests). See unit test examples at hedera_sdk_python/tests/unit. See integration test examples at hedera_sdk_python/tests/integration. You can run the unit tests having installed pytest:
 
-## Committing
+```python
+python3 pytest/hedera_sdk_python/tests/unit/your_test_name.py
+```
+To run the integration tests, you can either attach the solo action to your fork on github online which will run when you publish your changes, or you can wait until you submit a pull request and it will run automatically.
 
-We use commit types like:
-- `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `style`
-
-Individual commit messages within PRs can be more descriptive and do not necessarily need the prefix, as long as they are clear and meaningful.
-
-
-## Merging
-
-- We recommend **squash and merge** to keep the commit history tidy.
-- Commits should be signed and verified if possible (e.g. `git commit -s -S -m "message"`).
-- Pull request titles should begin with types as appropriate (e.g. `feat: add some feature`).  
-
-All Pull Requests must be approved by at least one member of the SDK team before merging.
-
----
+Review test feedback and refine code until they all pass. Ask for help if required.
+8. **Push All Changes** you've now completed your issue, ensure all commits are pushed to your repo.
+9. **Create a Pull Request** visit [Python SDK Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls). Your recent push should show at the top and click to create a pull request from that. For more advanced users, we recommend creating a draft pull request as soon as you are assigned to the issue and building on that to help us avoid conflicts. Our maintainers will be notified to review your pull request. All Pull Requests must be approved by at least one member of the SDK team before merging. It will be merged as a squashed pull request to keep the commit history tidy.
 
 ## Feature Requests
 
