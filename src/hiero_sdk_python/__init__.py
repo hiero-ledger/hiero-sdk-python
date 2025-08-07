@@ -93,6 +93,7 @@ from .contract.contract_create_transaction import ContractCreateTransaction
 from .contract.contract_call_query import ContractCallQuery
 from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
+from .contract.contract_update_transaction import ContractUpdateTransaction
 
 __all__ = [
     # Client
@@ -186,4 +187,5 @@ __all__ = [
     "ContractCallQuery",
     "ContractFunctionParameters",
     "ContractFunctionResult",
+    "ContractUpdateTransaction",
 ]
