@@ -52,7 +52,11 @@ Read more at [README_linting](https://github.com/hiero-ledger/hiero-sdk-python/b
 ```python
 python3 pytest/hedera_sdk_python/tests/unit/your_test_name.py
 ```
-To run the integration tests, you can either attach the solo action to your fork on github online which will run when you publish your changes, or you can wait until you submit a pull request and it will run automatically.
+To run the integration tests, you can either locally run solo on your fork on github online which will run when you publish your changes, or you can wait until you submit a pull request and it will run automatically.
+
+- To run solo locally follow the step-by-step guide [here](https://solo.hiero.org/v0.41.0/docs/step-by-step-guide/). The `quick-start` command can be run to configure a single node deployment:
+  `npm install -g @hashgraph/solo`
+  `solo quick-start single deploy`
 
 Review test feedback and refine code until they all pass. Ask for help if required.
 
