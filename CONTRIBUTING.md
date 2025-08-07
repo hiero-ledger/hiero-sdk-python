@@ -13,8 +13,9 @@ This guide will explain how to contribute.
 - [Feature Requests](#feature-requests)
 - [Bug Reports](#bug-reports)
 - [Blog Posts](#blog-posts)
-- [Find Support](#find-support)
-- [Getting in Contact](#getting-in-contact)
+- [Find Support and Get In Touch](#find-support-contact)
+    - [Socials](#socials)
+    - [Documentation](#documentation)
 
 ---
 
@@ -86,7 +87,7 @@ Detailed steps:
 3. **Fork the Hiero Website Repo**: clone or fork fork of the hiero website code. Click the fork button on the top right. Congratulations, you now have a copy of the codebase!
 4. **Create a New Branch**: do not create your blog post on the main brach, rather, create a new branch titled with your blog post.
 5. **Write Your Blog Post**: Locate /hiero-website/content/posts. Here, create a {blog_post_title}.md and inside it, write your blog post. The hiero blog requires blogs to be written in markdown, which is why it is .md. Ensure there is an easy-to-read structure such as headings and subheadings. Focus on the text content; will ensure correct formatting in the next step.
-6. **Transform to Markdown Format**: We will take your text blogpost.md and add correct markdown annotations to aspects such as headings, subheadings, bullet points, bold text so the blog post publishes with correct formatting on the hiero webpage. Markdown is simple, you can learn more about Markdown.md here [Introductory Markdown Guide](https://www.markdownguide.org/basic-syntax/). AI tooling can also assist.
+6. **Transform to Markdown Format**: We will take your text blogpost.md and add correct markdown annotations to aspects such as headings, subheadings, bullet points, bold text so the blog post publishes with correct formatting on the hiero webpage. Markdown is simple, you can learn more about Markdown.md here [Introductory Markdown Guide](https://www.markdownguide.org/basic-syntax/). AI tooling ctan also assist.
 7. **Preview Markdown**: Preview your blogpost.md and check and resolve any errors. If you have been writing on Visual Studio, this is command+shift+V or control+shift+V. You can also click "Open Preview to the Side" which is a small split screen icon with a magnifying glass on the top right. You must fix errors on the raw file, not the preview file.
 9. **Add Images**: at /hiero-website/public/images/python add a high-quality jpg featured image for your blog post in the Hiero style in /blog_titles and (if desired) a profile image in /members. You can also skip this step and comment that you need help from a maintainer to add a hiero featured image.
 8. **Add Hugo Requirements**: The hiero blog is built using Hugo [Introduction to Hugo](https://gohugo.io/documentation/). We need to add instructions at the top of the markdown file for it to render correctly.
@@ -114,11 +115,19 @@ image = "/images/python/members/your_personal__or_github_image.png"
 10. **Check Hugo Preview**: preview your pull request is as expected using the Hugo preview link that shows up as a check in your pull reuqest. Ensure all tests pass.
 11. **Wait for Reviews**: the Hiero website community will review your new blog post and publish it once approved.
 
+## Find Support and Get In Touch
+We strive to be a welcoming community with lots of activity, opportunities and support for all.
 
+### Socials
+- Join us on [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563), add it to your favourites andchat with the Hiero Python SDK community and maintainers. Feel free to ask questions, propose ideas, or discuss your PR.
+- Discuss programming or issues with the Hedera community [Hedera Python Discord](https://discord.com/channels/373889138199494658/535491161289261096).
+- Check the [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues) page for ongoing discussions. Comment on an issue and see the conversation grow.
+- Learn about our recent activities at [Hiero Blog](https://hiero.org/blog/)
+- Watch our Python SDK Community Calls at [LFDT Youtube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
 
-## Getting in Contact
+### Documentation
+- Review our collection of first starter documentation: README.md, Contributing.md, Commit_Signing.md, README_linting.md, README_types.md.
+- View examples of our code at hiero/hedera_sdk_python/examples
+- View our codebase at hedera_sdk_python/src/hiero_sdk_python
 
-- Join us on [Discord](discord.gg/hyperledger) to chat with the Hiero community and maintainers. Feel free to ask questions, propose ideas, or discuss your PR.
-- Check the [Issues](../../issues) page for ongoing discussions.
-
-Thank you for helping improve the Hiero Python SDK!
+Thank you for contributing to the the Hiero Python SDK and its community!
