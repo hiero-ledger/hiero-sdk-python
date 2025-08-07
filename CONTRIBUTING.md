@@ -74,11 +74,17 @@ We welcome new functionality or feature suggestions for the Python SDK. You can 
 
 ## Bug Reports
 
-We welcome bug reports. Please submit bug reports on our [Issues Page for Bug Reports](https://github.com/hiero-ledger/hiero-sdk-python/issues) page. When filing a bug report follow these steps:
+We welcome bug reports and appreciate your efforts. When filing a bug report, please follow these steps:
 
 1. **Search Existing Issues**: Check if the bug has already been reported. If there is no bug report, proceed.
 2. **Upgrade to the Latest Version**: Install the latest Python SDK release. The bug may have been fixed.
-3. **File The Bug Report**: Click on the top right: "new issue". Select the bug report option. Provide an informative title, clear description, steps for us to reproduce and logs or screenshots. Additional information such as: expected vs actual behavior and a minimal working example are not required but will be helpful. Click 'create'.
+```python
+pip install -U hiero-sdk-python
+```
+3. **Assess the Security Threat**: does the bug impact minor functionality or does it represent a security threat? Most bug reports should be filed directly to our [Issues Page for Bug Reports](https://github.com/hiero-ledger/hiero-sdk-python/issues) but security issues should be treated differently.
+3. **File The Bug Report**: depending on the type of bug, report the bug.
+- Bugs impacting functionality without a security threat. Click on the top right: "new issue". Select the bug report option. Provide an informative title, clear description, steps for us to reproduce and logs or screenshots. Additional information such as: expected vs actual behavior and a minimal working example are not required but will be helpful. Click 'create'.
+- Bugs impacting security. Ensure you have joined the [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563). After, contact [maintainers](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/MAINTAINERS.md) directly on discord stating there is an issue requiring immediate follow-up. Prepare sufficient documentation, such as logs, screenshots and information on how to replicate to share with the maintainer once asked.
 
 We will review your bug report shortly and comment as appropriate.
 
