@@ -1,3 +1,5 @@
+from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
+from hiero_sdk_python.tokens.pending_airdrop_record import PendingAirdropRecord
 import pytest
 from collections import defaultdict
 from hiero_sdk_python.account.account_id import AccountId
@@ -32,7 +34,8 @@ def transaction_record(transaction_id):
         receipt=receipt,
         token_transfers=defaultdict(lambda: defaultdict(int)),
         nft_transfers=defaultdict(list[TokenNftTransfer]),
-        transfers=defaultdict(int)
+        transfers=defaultdict(int),
+        new_pending_airdrops=[]
     )
 
 @pytest.fixture
@@ -69,6 +72,7 @@ def test_transaction_record_default_initialization():
     assert record.token_transfers == defaultdict(lambda: defaultdict(int))
     assert record.nft_transfers == defaultdict(list[TokenNftTransfer])
     assert record.transfers == defaultdict(int)
+    assert record.new_pending_airdrops == []
 
 def test_from_proto(proto_transaction_record, transaction_id):
     """Test the from_proto method of the TransactionRecord class"""
@@ -123,6 +127,25 @@ def test_from_proto_with_nft_transfers(transaction_id):
     assert transfer.receiver_id == AccountId(0, 0, 200)
     assert transfer.serial_number == 1
     assert transfer.is_approved == False
+
+def test_from_proto_with_new_pending_airdrops(transaction_id):
+    """Test from_proto with Pending Airdrops"""
+    sender = AccountId(0,0,100)
+    receiver = AccountId(0,0,200)
+    token_id = TokenId(0,0,1)
+    amount = 10
+
+    proto = transaction_record_pb2.TransactionRecord()
+    pending_airdrop_id = PendingAirdropId(sender, receiver, token_id)
+    proto.new_pending_airdrops.add().CopyFrom(PendingAirdropRecord(pending_airdrop_id, amount)._to_proto())
+    
+    record = TransactionRecord._from_proto(proto, transaction_id)
+    assert len(record.new_pending_airdrops) == 1
+    new_pending_airdrops = record.new_pending_airdrops[0]
+    assert new_pending_airdrops.pending_airdrop_id.sender_id == sender
+    assert new_pending_airdrops.pending_airdrop_id.receiver_id == receiver
+    assert new_pending_airdrops.pending_airdrop_id.token_id == token_id
+    assert new_pending_airdrops.amount == amount
 
 def test_to_proto(transaction_record, transaction_id):
     """Test the to_proto method of the TransactionRecord class"""
@@ -196,6 +219,27 @@ def test_proto_conversion_with_nft_transfers():
     assert transfer.serial_number == 1
     assert transfer.is_approved == False
 
+def test_proto_conversion_with_new_pending_airdrops():
+    """Test proto conversion preserves PendingAirdropsRecord"""
+    sender = AccountId(0,0,100)
+    receiver = AccountId(0,0,200)
+    token_id = TokenId(0,0,1)
+    amount = 10
+
+    record = TransactionRecord()
+    record.new_pending_airdrops = []
+    record.new_pending_airdrops.append(PendingAirdropRecord(PendingAirdropId(sender, receiver, token_id),amount))
+
+    proto = record._to_proto()
+    converted = TransactionRecord._from_proto(proto, None)
+
+    assert len(converted.new_pending_airdrops) == 1
+    new_pending_airdrops = converted.new_pending_airdrops[0]
+    assert new_pending_airdrops.pending_airdrop_id.sender_id == sender
+    assert new_pending_airdrops.pending_airdrop_id.receiver_id == receiver
+    assert new_pending_airdrops.pending_airdrop_id.token_id == token_id
+    assert new_pending_airdrops.amount == amount
+
 def test_repr_method(transaction_id):
     """Test the __repr__ method of TransactionRecord."""
     # Test with default values
@@ -207,7 +251,8 @@ def test_repr_method(transaction_id):
                            "receipt_status='None', "
                            "token_transfers={}, "
                            "nft_transfers={}, "
-                           "transfers={})")
+                           "transfers={}, "
+                           "new_pending_airdrops=[])")
     assert repr(record_default) == expected_repr_default
     
     # Test with receipt only
@@ -225,7 +270,8 @@ def test_repr_method(transaction_id):
                                 f"receipt_status='SUCCESS', "
                                 f"token_transfers={{}}, "
                                 f"nft_transfers={{}}, "
-                                f"transfers={{}})")
+                                f"transfers={{}}, "
+                                f"new_pending_airdrops={[]})")
     assert repr(record_with_receipt) == expected_repr_with_receipt
     
     # Test with all parameters set
@@ -243,7 +289,8 @@ def test_repr_method(transaction_id):
                          f"receipt_status='SUCCESS', "
                          f"token_transfers={{}}, "
                          f"nft_transfers={{}}, "
-                         f"transfers={{}})")
+                         f"transfers={{}}, "
+                         f"new_pending_airdrops={[]})")
     assert repr(record_full) == expected_repr_full
     
     # Test with transfers
@@ -261,5 +308,6 @@ def test_repr_method(transaction_id):
                                   f"receipt_status='SUCCESS', "
                                   f"token_transfers={{}}, "
                                   f"nft_transfers={{}}, "
-                                  f"transfers={{AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}})")
+                                  f"transfers={{AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}}, "
+                                  f"new_pending_airdrops={[]})")
     assert repr(record_with_transfers) == expected_repr_with_transfers
