@@ -1,4 +1,5 @@
 # pylint: disable=too-many-instance-attributes
+from dataclasses import dataclass
 from typing import Optional
 
 from hiero_sdk_python.Duration import Duration
