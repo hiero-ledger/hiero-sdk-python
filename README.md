@@ -27,7 +27,7 @@ This is a Python SDK for interacting with the Hedera Hashgraph platform. It allo
 
 The latest release of this SDK is published to PyPI. You can install it with:
 
-```
+```bash
 pip install --upgrade pip
 pip install hiero_sdk_python
 ```
@@ -82,7 +82,7 @@ and then rerun it.
 
 For active development, you can install the repo in editable mode. That way, changes in your local code are immediately reflected when you import:
 
-```
+```bash
 git clone https://github.com/hiero-ledger/hiero-sdk-python.git
 cd hiero-sdk-python
 pip install --upgrade pip
@@ -94,39 +94,51 @@ Now you can run example scripts like python `examples/account_create.py`, and it
 
 ## Environment Setup
 
-Before using the SDK, you need to configure your environment variables for the operator account and other credentials.
-Create a .env file in the root of your project with the following (replace with your environment variables):
+Before using the SDK, you need to configure your environment variables for the operator account and other credentials in order to run our /example scripts.
+
+1. Create a .env file in the root of your project. 
+We have a .gitignore which will exclude root .env files from being committed. 
+2. Create a Hedera Testnet account [Hedera Portal](https://portal.hedera.com/) and retrive your testnet account details.
+3. Add environment variables to your .env file and save but do not commit the result. We have an .env at hedera_sdk_python/.env.example to demonstrate. You'll need to add to .env as the SDK functionality calls for more environment variables. This should be sufficient to start:
 
 ```
 OPERATOR_ID=0.0.1234xx
 OPERATOR_KEY=af20e47d590300506032b657004220420...
 NETWORK=testnet
-
-# optional:
-ADMIN_KEY=af20e47d59032b65700321009308ecfdf...
-SUPPLY_KEY =302a300506032b6570032100c5e4af5..."
-FREEZE_KEY=302a300306072b65700321009308ecfdf...
-RECIPIENT_ID=0.0.789xx
-TOKEN_ID=0.0.100xx
-TOPIC_ID=0.0.200xx
-FREEZE_ACCOUNT_ID=0.0.100
 ```
+
+More advanced users may require additional variables depending on the files they are running, such as:
+```
+OPERATOR_PRIVATE_KEY_ECDSA_HEX=0xb7e550xx
+ADMIN_KEY=302a300306072b65700321009308ecfdf...
+TOPIC_ID=0.0.200xx
+```
+
+You must have a Hedera Testnet account [Hedera Portal](https://portal.hedera.com/) to retrieve the OPERATOR_ID (your testnet private key), OPERATOR_KEY (your testnet account id).
 
 The only environment variables needed are OPERATOR_ID, OPERATOR_KEY and NETWORK. The rest is optional (if customisation of the example scripts is needed).
 
-A [sample .env](.env.example) file is provided in the root of this project. If you do not have an account on
-the Hedera testnet, you can easily get one from the [Hedera Portal](https://portal.hedera.com/). Learn more about
-testnet [here](https://docs.hedera.com/guides/testnet).
+Learn more about testnet [here](https://docs.hedera.com/guides/testnet).
 
 ## Running Tests
+We have both unit at tests/unit and integration tests at tests/integration. Tests should be run inside the project virtualenv.
 
-To run the test suite for the SDK, use the following command:
-```
-uv run pytest 
+```bash
+uv venv                  # creates .venv if missing
+uv sync                  # installs dependencies from pyproject/lock
+sh generate_proto.sh     # generate protobuf/grpc code (required before tests)
 ```
 
-The test file in the root of this project will be automatically run when pushing onto a branch.
-This is done by running 'Hiero Solo Action'. Read more about it here:
+Unit tests can be run with commands such as:
+```bash
+uv run pytest #automatically runs all the tests at root
+uv run pytest tests/unit #runs all the unit tests
+uv run pytest tests/unit/test_name.py #runs this specific test
+```
+
+Unit tests will also run automatically when creating a pull request.
+
+Integration tests require a network. This is done automatically by running 'Hiero Solo Action' when creating a pull request or when pushing to your repository with this github action attached. Read more about it here:
 
 - [Github Marketplace](https://github.com/marketplace/actions/hiero-solo-action)
 - [Blog Post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
