@@ -18,7 +18,7 @@ def test_integration_file_create_transaction_can_execute(env):
     )
     assert receipt.status == ResponseCode.SUCCESS, f"Create file failed with status: {ResponseCode(receipt.status).name}"
     
-    file_id = receipt.fileId
+    file_id = receipt.file_id
     assert file_id is not None, "File ID is None"
 
 @mark.integration        
@@ -29,7 +29,7 @@ def test_integration_file_create_transaction_no_key(env):
     )
     assert receipt.status == ResponseCode.SUCCESS, f"Create file failed with status: {ResponseCode(receipt.status).name}"
     
-    file_id = receipt.fileId
+    file_id = receipt.file_id
     assert file_id is not None, "File ID is None"
 
 @mark.integration
