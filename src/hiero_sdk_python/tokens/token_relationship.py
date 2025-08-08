@@ -34,8 +34,8 @@ class TokenRelationship:
     token_id: Optional[TokenId] = None
     symbol: Optional[str] = None
     balance: Optional[int] = None
-    kyc_status: Optional[TokenFreezeStatusProto] = None
-    freeze_status: Optional[TokenFreezeStatusProto] = None
+    kyc_status: Optional["TokenFreezeStatusProto"] = None
+    freeze_status: Optional["TokenFreezeStatusProto"] = None
     decimals: Optional[int] = None
     automatic_association: Optional[bool] = None
 

@@ -48,7 +48,7 @@ def test_integration_token_airdrop_transaction_can_execute():
         
         account_transaction.freeze_with(env.client)
         account_receipt = account_transaction.execute(env.client)
-        new_account_id = account_receipt.accountId
+        new_account_id = account_receipt.account_id
 
         assert new_account_id is not None
 

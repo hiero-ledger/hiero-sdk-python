@@ -15,7 +15,10 @@ from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTr
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
-pause_key = PrivateKey.generate()
+@fixture
+def pause_key():
+    return PrivateKey.generate()
+
 
 @fixture
 def account(env):
@@ -26,7 +29,7 @@ def account(env):
 # Create a unique pause key to enable varied tests
 # Signing by the treasury account handled by the executable method in env
 @fixture
-def pausable_token(env):
+def pausable_token(env, pause_key):
     return create_fungible_token(env, opts=[lambda tx: tx.set_pause_key(pause_key)])
 
 # Fungible token in env has no pause key
@@ -122,7 +125,7 @@ def test_transfer_before_pause(env, account: Account, pausable_token):
     assert balance == 10
 
 @mark.integration
-def test_pause_sets_pause_status_to_paused(env, pausable_token):
+def test_pause_sets_pause_status_to_paused(env, pausable_token, pause_key):
     """
     Take a pausable token (UNPAUSED), submit a pause transaction signed
     with its pause key, then verify it ends up PAUSED.
@@ -148,7 +151,7 @@ def test_pause_sets_pause_status_to_paused(env, pausable_token):
     assert info2.pause_status.name == "PAUSED"
 
 @mark.integration
-def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
+def test_transfers_blocked_when_paused(env, account: Account, pausable_token, pause_key):
     """
     Pause a token.
     Now that the token is PAUSED, it cannot perform operations.
@@ -157,32 +160,33 @@ def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
     # first associate (this must succeed)
     assoc_receipt = (
         TokenAssociateTransaction()
-            .set_account_id(account.id)
-            .add_token_id(pausable_token)
-            .freeze_with(env.client)
-            .sign(account.key)
-            .execute(env.client)
+        .set_account_id(account.id)
+        .add_token_id(pausable_token)
+        .freeze_with(env.client)
+        .sign(account.key)
+        .execute(env.client)
     )
     assert assoc_receipt.status == ResponseCode.SUCCESS
 
     # pause the token
     pause_receipt = (
         TokenPauseTransaction()
-            .set_token_id(pausable_token)
-            .freeze_with(env.client)
-            .sign(pause_key)
-            .execute(env.client)
+        .set_token_id(pausable_token)
+        .freeze_with(env.client)
+        .sign(pause_key)
+        .execute(env.client)
     )
     assert pause_receipt.status == ResponseCode.SUCCESS
 
     # attempt to transfer 1 token
     transfer_receipt = (
         TransferTransaction()
-            .add_token_transfer(pausable_token, env.operator_id, -1)
-            .add_token_transfer(pausable_token, account.id,       1)
-            .execute(env.client)
+        .add_token_transfer(pausable_token, env.operator_id, -1)
+        .add_token_transfer(pausable_token, account.id,      1)
+        .execute(env.client)
     )
     assert transfer_receipt.status == ResponseCode.TOKEN_IS_PAUSED, (
         f"Expected TOKEN_IS_PAUSED but got "
         f"{ResponseCode(transfer_receipt.status).name}"
     )
+    

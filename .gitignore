@@ -34,3 +34,12 @@ src/hiero_sdk_python/hapi
 # Lock files
 uv.lock
 pdm.lock
+# Local virtual environments
+.venv*
+venv/
+myenv/
+.env
+.env.*
+
+# Local test / debug scripts
+verify_key.py

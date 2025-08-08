@@ -267,9 +267,10 @@ class TokenInfo(_DeprecatedAliasesMixin):
             metadata_key = PublicKey._from_proto(proto_obj.metadata_key)
             tokenInfoObject.set_metadata_key(metadata_key)
 
-        if proto_obj.fee_schedule_key.WhichOneof("key"):
+        if hasattr(proto_obj, "fee_schedule_key") and proto_obj.fee_schedule_key.WhichOneof("key"):
             fee_schedule_key = PublicKey._from_proto(proto_obj.fee_schedule_key)
             tokenInfoObject.set_fee_schedule_key(fee_schedule_key)
+
 
         if proto_obj.defaultFreezeStatus is not None:
             freeze_status = TokenFreezeStatus._from_proto(proto_obj.defaultFreezeStatus)
@@ -298,9 +299,8 @@ class TokenInfo(_DeprecatedAliasesMixin):
         if proto_obj.pause_status is not None:
             pause_status = TokenPauseStatus._from_proto(proto_obj.pause_status)
             tokenInfoObject.set_pause_status(pause_status)
-
-        if proto_obj.supplyType is not None:
-            supply_type = SupplyType(proto_obj.supplyType)
+        if proto_obj.supply_type is not None:
+            supply_type = SupplyType(proto_obj.supply_type)
             tokenInfoObject.set_supply_type(supply_type)
         return tokenInfoObject
 
@@ -369,4 +369,3 @@ class TokenInfo(_DeprecatedAliasesMixin):
             f"metadata={self.metadata!r}",
         ]
         return f"TokenInfo({', '.join(parts)})"
-

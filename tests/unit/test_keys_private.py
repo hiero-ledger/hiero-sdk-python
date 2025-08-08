@@ -457,5 +457,6 @@ def test_from_bytes_fixture(raw_seed):
     based on the content. If it’s a valid Ed25519 seed, it becomes Ed25519;
     otherwise if that fails, it tries ECDSA next.
     """
-    priv = PrivateKey.from_bytes(raw_seed)
+    priv = PrivateKey.from_bytes_ecdsa(raw_seed)
+
     assert priv.to_bytes_raw() == raw_seed

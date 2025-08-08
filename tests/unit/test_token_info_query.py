@@ -118,9 +118,11 @@ def test_token_info_query_execute(mock_account_ids, private_key):
         assert result.treasury == account_id
         assert result.auto_renew_account == renew_account_id
         assert result.default_freeze_status == 0
-        assert result.default_freeze_status == 0
+        assert result.default_kyc_status == 0
         assert result.admin_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
         assert result.kyc_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
         assert result.wipe_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
         assert result.supply_key == None
         assert result.freeze_key == None
+        assert result.wipe_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        assert result.metadata_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()

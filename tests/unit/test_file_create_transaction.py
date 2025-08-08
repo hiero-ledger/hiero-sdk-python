@@ -193,7 +193,7 @@ def test_file_create_transaction_can_execute():
         receipt = transaction.execute(client)
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
-        assert receipt.fileId.file == 5678
+        assert receipt.file_id.file == 5678
 
 def test_file_create_transaction_from_proto():
     """Test that a file create transaction can be created from a protobuf object."""

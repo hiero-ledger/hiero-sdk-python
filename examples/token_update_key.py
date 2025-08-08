@@ -123,7 +123,7 @@ def token_update_key():
     token_info = get_token_info(client, token_id)
     
     print(f"Token's wipe key after creation: {token_info.wipeKey}")
-    print(f"Token's admin key after creation: {token_info.adminKey}")
+    print(f"Token's admin key after creation: {token_info.admin_key}")
     
     update_wipe_key_full_validation(client, token_id, wipe_key)
     

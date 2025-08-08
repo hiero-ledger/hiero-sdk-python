@@ -142,6 +142,8 @@ def test_build_transaction_body_with_bytecode_file_id(
 
     transaction_body = contract_tx.build_transaction_body()
 
+    # The mock object needs to have the 'file_id' attribute for this assertion to work.
+    # So we're just updating the code to use the correct name.
     assert (
         transaction_body.contractCreateInstance.fileID
         == contract_params["bytecode_file_id"]._to_proto()
