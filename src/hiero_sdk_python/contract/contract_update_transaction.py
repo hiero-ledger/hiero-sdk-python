@@ -38,7 +38,7 @@ class ContractUpdateParams:
     staked_node_id: int
     decline_reward: bool
     """
-    contract_id: ContractId
+    contract_id: ContractId = None
     bytecode_file_id: Optional[FileId] = None
     proxy_account_id: Optional[AccountId] = None
     admin_key: Optional[PublicKey] = None
