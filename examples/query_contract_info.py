@@ -38,7 +38,7 @@ load_dotenv()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network="testnet")
+    network = Network(network="solo")
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
@@ -112,7 +112,7 @@ def query_contract_info():
     print(f"Contract ID: {info.contract_id}")
     print(f"Account ID: {info.account_id}")
     print(f"Contract Account ID: {info.contract_account_id}")
-    print(f"Admin Key: {info.admin_key.to_string()}")
+    print(f"Admin Key: {info.admin_key}")
     print(f"Auto Renew Account ID: {info.auto_renew_account_id}")
     print(f"Contract Memo: {info.contract_memo}")
     print(f"Balance: {info.balance}")
