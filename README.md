@@ -136,8 +136,9 @@ or:
 pytest tests/unit
 ```
 
-The test file in the root of this project will be automatically run when pushing onto a branch.
-This is done by running 'Hiero Solo Action'. Read more about it here:
+Unit tests will also run automatically when creating a pull request.
+
+Integration tests require a network. This is done automatically by running 'Hiero Solo Action' when creating a pull request or when pushing to your repository with this github action attached. Read more about it here:
 
 - [Github Marketplace](https://github.com/marketplace/actions/hiero-solo-action)
 - [Blog Post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
