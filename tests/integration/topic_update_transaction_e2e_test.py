@@ -28,8 +28,8 @@ def test_integration_topic_update_transaction_can_execute():
 
         assert info.memo == "Original memo"
         assert info.sequence_number == 0
-        assert env.client.operator.private_key.public_key().to_string() == info.admin_key.ed25519.hex()
-        
+        assert env.client.operator_private_key.public_key()._to_proto() == info.admin_key
+
         update_transaction = TopicUpdateTransaction(
             topic_id=topic_id,
             memo="Updated memo"
@@ -44,8 +44,8 @@ def test_integration_topic_update_transaction_can_execute():
         
         assert info.memo == "Updated memo"
         assert info.sequence_number == 0
-        assert env.client.operator.private_key.public_key().to_string() == info.admin_key.ed25519.hex()
-        
+        assert env.client.operator_private_key.public_key()._to_proto() == info.admin_key
+
         transaction = TopicDeleteTransaction(topic_id=topic_id)
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)

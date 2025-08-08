@@ -36,6 +36,8 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hapi.services import basic_types_pb2
 
 pytestmark = pytest.mark.unit
 
@@ -89,35 +91,13 @@ def test_build_transaction_body(mock_account_ids):
     """Test building a token creation transaction body with valid values and admin, supply and freeze keys."""
     treasury_account, _, node_account_id, _, _ = mock_account_ids
 
-    # Mock admin key
-    private_key_admin = MagicMock()
-    private_key_admin.sign.return_value = b"admin_signature"
-    private_key_admin.public_key().to_bytes_raw.return_value = b"admin_public_key"
-
-    # Mock supply key
-    private_key_supply = MagicMock()
-    private_key_supply.sign.return_value = b"supply_signature"
-    private_key_supply.public_key().to_bytes_raw.return_value = b"supply_public_key"
-
-    # Mock freeze key
-    private_key_freeze = MagicMock()
-    private_key_freeze.sign.return_value = b"freeze_signature"
-    private_key_freeze.public_key().to_bytes_raw.return_value = b"freeze_public_key"
-
-    # Mock wipe key
-    private_key_wipe = MagicMock()
-    private_key_wipe.sign.return_value = b"wipe_signature"
-    private_key_wipe.public_key().to_bytes_raw.return_value = b"wipe_public_key"
-    
-    # Mock metadata key
-    private_key_metadata = MagicMock()
-    private_key_metadata.sign.return_value = b"metadata_signature"
-    private_key_metadata.public_key().to_bytes_raw.return_value = b"metadata_public_key"
-    
-    # Mock kyc key
-    private_key_kyc = MagicMock()
-    private_key_kyc.sign.return_value = b"kyc_signature"
-    private_key_kyc.public_key().to_bytes_raw.return_value = b"kyc_public_key"
+    # Generate real private keys for all key types
+    private_key_admin = PrivateKey.generate_ed25519()
+    private_key_supply = PrivateKey.generate_ed25519()
+    private_key_freeze = PrivateKey.generate_ed25519()
+    private_key_wipe = PrivateKey.generate_ed25519()
+    private_key_metadata = PrivateKey.generate_ed25519()
+    private_key_kyc = PrivateKey.generate_ed25519()
 
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
@@ -143,12 +123,12 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenCreation.decimals == 2
     assert transaction_body.tokenCreation.initialSupply == 1000
 
-    assert transaction_body.tokenCreation.adminKey.ed25519 == b"admin_public_key"
-    assert transaction_body.tokenCreation.supplyKey.ed25519 == b"supply_public_key"
-    assert transaction_body.tokenCreation.freezeKey.ed25519 == b"freeze_public_key"
-    assert transaction_body.tokenCreation.wipeKey.ed25519 == b"wipe_public_key"
-    assert transaction_body.tokenCreation.metadata_key.ed25519 == b"metadata_public_key"
-    assert transaction_body.tokenCreation.kycKey.ed25519 == b"kyc_public_key"
+    assert transaction_body.tokenCreation.adminKey == private_key_admin.public_key()._to_proto()
+    assert transaction_body.tokenCreation.supplyKey == private_key_supply.public_key()._to_proto()
+    assert transaction_body.tokenCreation.freezeKey == private_key_freeze.public_key()._to_proto()
+    assert transaction_body.tokenCreation.wipeKey == private_key_wipe.public_key()._to_proto()
+    assert transaction_body.tokenCreation.metadata_key == private_key_metadata.public_key()._to_proto()
+    assert transaction_body.tokenCreation.kycKey == private_key_kyc.public_key()._to_proto()
 
 @pytest.mark.parametrize(
     "token_name, token_symbol, decimals, initial_supply, token_type, expected_error",
@@ -272,30 +252,31 @@ def test_sign_transaction(mock_account_ids, mock_client):
     private_key_admin = MagicMock()
     private_key_admin.sign.return_value = b"admin_signature"
     private_key_admin.public_key().to_bytes_raw.return_value = b"admin_public_key"
+    private_key_admin.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"admin_public_key")
 
     private_key_supply = MagicMock()
     private_key_supply.sign.return_value = b"supply_signature"
-    private_key_supply.public_key().to_bytes_raw.return_value = b"supply_public_key"
+    private_key_supply.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"supply_public_key")
 
     private_key_freeze = MagicMock()
     private_key_freeze.sign.return_value = b"freeze_signature"
-    private_key_freeze.public_key().to_bytes_raw.return_value = b"freeze_public_key"
-    
+    private_key_freeze.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"freeze_public_key")
+
     private_key_wipe = MagicMock()
     private_key_wipe.sign.return_value = b"wipe_signature"
-    private_key_wipe.public_key().to_bytes_raw.return_value = b"wipe_public_key"
+    private_key_wipe.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"wipe_public_key")
 
     private_key_metadata = MagicMock()
     private_key_metadata.sign.return_value = b"metadata_signature"
-    private_key_metadata.public_key().to_bytes_raw.return_value = b"metadata_public_key"
+    private_key_metadata.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"metadata_public_key")
 
     private_key_pause = MagicMock()
     private_key_pause.sign.return_value = b"pause_signature"
-    private_key_pause.public_key().to_bytes_raw.return_value = b"pause_public_key"
+    private_key_pause.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"pause_public_key")
 
     private_key_kyc = MagicMock()
     private_key_kyc.sign.return_value = b"kyc_signature"
-    private_key_kyc.public_key().to_bytes_raw.return_value = b"kyc_public_key"
+    private_key_kyc.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"kyc_public_key")
 
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
@@ -393,35 +374,15 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     """Test converting the token creation transaction to protobuf format after signing."""
     treasury_account, _, _, _, _ = mock_account_ids
 
-    # Mock keys
-    private_key = MagicMock()
-    private_key.sign.return_value = b"signature"
-    private_key.public_key().to_bytes_raw.return_value = b"public_key"
+    # Generate real private keys for all key types
+    private_key = PrivateKey.generate_ed25519()
+    private_key_admin = PrivateKey.generate_ed25519()
+    private_key_supply = PrivateKey.generate_ed25519()
+    private_key_freeze = PrivateKey.generate_ed25519()
+    private_key_wipe = PrivateKey.generate_ed25519()
+    private_key_metadata = PrivateKey.generate_ed25519()
+    private_key_kyc = PrivateKey.generate_ed25519()
 
-    private_key_admin = MagicMock()
-    private_key_admin.sign.return_value = b"admin_signature"
-    private_key_admin.public_key().to_bytes_raw.return_value = b"admin_public_key"
-
-    private_key_supply = MagicMock()
-    private_key_supply.sign.return_value = b"supply_signature"
-    private_key_supply.public_key().to_bytes_raw.return_value = b"supply_public_key"
-
-    private_key_freeze = MagicMock()
-    private_key_freeze.sign.return_value = b"freeze_signature"
-    private_key_freeze.public_key().to_bytes_raw.return_value = b"freeze_public_key"
-
-    private_key_wipe = MagicMock()
-    private_key_wipe.sign.return_value = b"wipe_signature"
-    private_key_wipe.public_key().to_bytes_raw.return_value = b"wipe_public_key"
-
-    private_key_metadata = MagicMock()
-    private_key_metadata.sign.return_value = b"metadata_signature"
-    private_key_metadata.public_key().to_bytes_raw.return_value = b"metadata_public_key"
-    
-    private_key_kyc = MagicMock()
-    private_key_kyc.sign.return_value = b"kyc_signature"
-    private_key_kyc.public_key().to_bytes_raw.return_value = b"kyc_public_key"
-    
     # Build the transaction
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
@@ -462,12 +423,13 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
 
     # Confirm fields set in the token creation portion of the TransactionBody
     assert tx_body.tokenCreation.name == "MyToken"
-    assert tx_body.tokenCreation.adminKey.ed25519 == b"admin_public_key"
-    assert tx_body.tokenCreation.supplyKey.ed25519 == b"supply_public_key"
-    assert tx_body.tokenCreation.freezeKey.ed25519 == b"freeze_public_key"
-    assert tx_body.tokenCreation.wipeKey.ed25519 == b"wipe_public_key"
-    assert tx_body.tokenCreation.metadata_key.ed25519 == b"metadata_public_key"
-    assert tx_body.tokenCreation.kycKey.ed25519 == b"kyc_public_key"
+    assert tx_body.tokenCreation.adminKey == private_key_admin.public_key()._to_proto()
+    assert tx_body.tokenCreation.supplyKey == private_key_supply.public_key()._to_proto()
+    assert tx_body.tokenCreation.freezeKey == private_key_freeze.public_key()._to_proto()
+    assert tx_body.tokenCreation.wipeKey == private_key_wipe.public_key()._to_proto()
+    assert tx_body.tokenCreation.metadata_key == private_key_metadata.public_key()._to_proto()
+    assert tx_body.tokenCreation.kycKey == private_key_kyc.public_key()._to_proto()
+
 # This test uses fixture mock_account_ids as parameter
 def test_freeze_status_without_freeze_key(mock_account_ids):
     """
@@ -710,30 +672,31 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     private_key_admin = MagicMock()
     private_key_admin.sign.return_value = b"admin_signature"
     private_key_admin.public_key().to_bytes_raw.return_value = b"admin_public_key"
+    private_key_admin.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"admin_public_key")
 
     private_key_supply = MagicMock()
     private_key_supply.sign.return_value = b"supply_signature"
-    private_key_supply.public_key().to_bytes_raw.return_value = b"supply_public_key"
+    private_key_supply.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"supply_public_key")
 
     private_key_freeze = MagicMock()
     private_key_freeze.sign.return_value = b"freeze_signature"
-    private_key_freeze.public_key().to_bytes_raw.return_value = b"freeze_public_key"
+    private_key_freeze.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"freeze_public_key")
 
     private_key_wipe = MagicMock()
     private_key_wipe.sign.return_value = b"wipe_signature"
-    private_key_wipe.public_key().to_bytes_raw.return_value = b"wipe_public_key"
+    private_key_wipe.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"wipe_public_key")
 
     private_key_metadata = MagicMock()
     private_key_metadata.sign.return_value = b"metadata_signature"
-    private_key_metadata.public_key().to_bytes_raw.return_value = b"metadata_public_key"
-    
+    private_key_metadata.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"metadata_public_key")
+
     private_key_pause = MagicMock()
     private_key_pause.sign.return_value = b"pause_signature"
-    private_key_pause.public_key().to_bytes_raw.return_value = b"pause_public_key"
-    
+    private_key_pause.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"pause_public_key")
+
     private_key_kyc = MagicMock()
     private_key_kyc.sign.return_value = b"kyc_signature"
-    private_key_kyc.public_key().to_bytes_raw.return_value = b"kyc_public_key"
+    private_key_kyc.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"kyc_public_key")
 
     # Build the transaction
     token_tx = TokenCreateTransaction()
