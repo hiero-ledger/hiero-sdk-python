@@ -27,7 +27,7 @@ This is a Python SDK for interacting with the Hedera Hashgraph platform. It allo
 
 The latest release of this SDK is published to PyPI. You can install it with:
 
-```
+```bash
 pip install --upgrade pip
 pip install hiero_sdk_python
 ```
@@ -82,7 +82,7 @@ and then rerun it.
 
 For active development, you can install the repo in editable mode. That way, changes in your local code are immediately reflected when you import:
 
-```
+```bash
 git clone https://github.com/hiero-ledger/hiero-sdk-python.git
 cd hiero-sdk-python
 pip install --upgrade pip
@@ -123,14 +123,14 @@ Learn more about testnet [here](https://docs.hedera.com/guides/testnet).
 ## Running Tests
 We have both unit at tests/unit and integration tests at tests/integration. Tests should be run inside the project virtualenv.
 
-```python
+```bash
 uv venv                  # creates .venv if missing
 uv sync                  # installs dependencies from pyproject/lock
 sh generate_proto.sh     # generate protobuf/grpc code (required before tests)
 ```
 
 Unit tests can be run with commands such as:
-```python
+```bash
 uv run pytest #automatically runs all the tests at root
 uv run pytest tests/unit #runs all the unit tests
 uv run pytest tests/unit/test_name.py #runs this specific test
