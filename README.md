@@ -121,19 +121,19 @@ The only environment variables needed are OPERATOR_ID, OPERATOR_KEY and NETWORK.
 Learn more about testnet [here](https://docs.hedera.com/guides/testnet).
 
 ## Running Tests
-We have both unit at tests/unit and integration tests at tests/integration.
+We have both unit at tests/unit and integration tests at tests/integration. Tests should be run inside the project virtualenv.
 
-Unit tests can be run with:
+```python
+uv venv                  # creates .venv if missing
+uv sync                  # installs dependencies from pyproject/lock
+sh generate_proto.sh     # generate protobuf/grpc code (required before tests)
 ```
-uv run pytest 
-```
-They can also be run more directly as:
-```
-pytest tests/unit/test_name.py
-```
-or:
-```
-pytest tests/unit
+
+Unit tests can be run with commands such as:
+```python
+uv run pytest #automatically runs all the tests at root
+uv run pytest tests/unit #runs all the unit tests
+uv run pytest tests/unit/test_name.py #runs this specific test
 ```
 
 Unit tests will also run automatically when creating a pull request.
