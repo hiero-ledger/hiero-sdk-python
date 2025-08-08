@@ -3,15 +3,12 @@
 """
 hiero_sdk_python.tokens.token_info
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Provides TokenInfo, a dataclass representing Hedera token metadata (IDs, keys,
 statuses, supply details, and timing), with conversion to and from protobuf messages.
 """
-
 import warnings
 from dataclasses import dataclass, field, fields, MISSING
 from typing import Optional, ClassVar, Dict, Any, Callable, List
-
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -44,7 +41,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
     ledger_id: Optional[bytes]       = None
     metadata:  Optional[bytes]       = None
     custom_fees: List[Any]           = field(default_factory=list)
-
     admin_key: Optional[PublicKey]         = None
     kyc_key: Optional[PublicKey]           = None
     freeze_key: Optional[PublicKey]        = None
@@ -68,7 +64,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
     supply_type: SupplyType = field(
         default_factory=lambda: SupplyType.FINITE
     )
-
     # map legacy camelCase → snake_case
     LEGACY_MAP: ClassVar[Dict[str, str]] = {
         "tokenId":             "token_id",
@@ -118,7 +113,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
                 else:
                     value = None
             setattr(self, f.name, value)
-
     # === setter methods ===
     def set_admin_key(self, admin_key: PublicKey):
         """Set the admin key."""
@@ -223,7 +217,7 @@ class TokenInfo(_DeprecatedAliasesMixin):
             name=proto_obj.name,
             symbol=proto_obj.symbol,
             decimals=proto_obj.decimals,
-            total_supply=proto_obj.totalSupply,
+            total_supply=proto_obj.total_supply,
             treasury=AccountId._from_proto(proto_obj.treasury),
             is_deleted=proto_obj.deleted,
             memo=proto_obj.memo,
@@ -242,25 +236,20 @@ class TokenInfo(_DeprecatedAliasesMixin):
             elif fee_proto.HasField("royalty_fee"):
                 custom_fees.append(CustomRoyaltyFee._from_proto(fee_proto))
         tokenInfoObject.set_custom_fees(custom_fees)
-
-        if proto_obj.adminKey.WhichOneof("key"):
-            admin_key = PublicKey._from_proto(proto_obj.adminKey)
+        if proto_obj.admin_key.WhichOneof("key"):
+            admin_key = PublicKey._from_proto(proto_obj.admin_key)
             tokenInfoObject.set_admin_key(admin_key)
-
-        if proto_obj.kycKey.WhichOneof("key"):
-            kyc_key = PublicKey._from_proto(proto_obj.kycKey)
+        if proto_obj.kyc_key.WhichOneof("key"):
+            kyc_key = PublicKey._from_proto(proto_obj.kyc_key)
             tokenInfoObject.set_kyc_key(kyc_key)
-
-        if proto_obj.freezeKey.WhichOneof("key"):
-            freeze_key = PublicKey._from_proto(proto_obj.freezeKey)
+        if proto_obj.freeze_key.WhichOneof("key"):
+            freeze_key = PublicKey._from_proto(proto_obj.freeze_key)
             tokenInfoObject.set_freeze_key(freeze_key)
-
-        if proto_obj.wipeKey.WhichOneof("key"):
-            wipe_key = PublicKey._from_proto(proto_obj.wipeKey)
+        if proto_obj.wipe_key.WhichOneof("key"):
+            wipe_key = PublicKey._from_proto(proto_obj.wipe_key)
             tokenInfoObject.set_wipe_key(wipe_key)
-
-        if proto_obj.supplyKey.WhichOneof("key"):
-            supply_key = PublicKey._from_proto(proto_obj.supplyKey)
+        if proto_obj.supply_key.WhichOneof("key"):
+            supply_key = PublicKey._from_proto(proto_obj.supply_key)
             tokenInfoObject.set_supply_key(supply_key)
 
         if proto_obj.metadata_key.WhichOneof("key"):
@@ -270,21 +259,17 @@ class TokenInfo(_DeprecatedAliasesMixin):
         if proto_obj.fee_schedule_key.WhichOneof("key"):
             fee_schedule_key = PublicKey._from_proto(proto_obj.fee_schedule_key)
             tokenInfoObject.set_fee_schedule_key(fee_schedule_key)
-
-        if proto_obj.defaultFreezeStatus is not None:
-            freeze_status = TokenFreezeStatus._from_proto(proto_obj.defaultFreezeStatus)
+        if proto_obj.default_freeze_status is not None:
+            freeze_status = TokenFreezeStatus._from_proto(proto_obj.default_freeze_status)
             tokenInfoObject.set_default_freeze_status(freeze_status)
-
-        if proto_obj.defaultKycStatus is not None:
-            kyc_status = TokenKycStatus._from_proto(proto_obj.defaultKycStatus)
+        if proto_obj.default_kyc_status is not None:
+            kyc_status = TokenKycStatus._from_proto(proto_obj.default_kyc_status)
             tokenInfoObject.set_default_kyc_status(kyc_status)
-
-        if proto_obj.autoRenewAccount is not None:
-            auto_renew_account = AccountId._from_proto(proto_obj.autoRenewAccount)
+        if proto_obj.auto_renew_account is not None:
+            auto_renew_account = AccountId._from_proto(proto_obj.auto_renew_account)
             tokenInfoObject.set_auto_renew_account(auto_renew_account)
-
-        if proto_obj.autoRenewPeriod is not None:
-            auto_renew_period = Duration._from_proto(proto_obj.autoRenewPeriod)
+        if proto_obj.auto_renew_period is not None:
+            auto_renew_period = Duration._from_proto(proto_obj.auto_renew_period)
             tokenInfoObject.set_auto_renew_period(auto_renew_period)
 
         if proto_obj.expiry is not None:
@@ -296,11 +281,10 @@ class TokenInfo(_DeprecatedAliasesMixin):
             tokenInfoObject.set_pause_key(pause_key_obj)
 
         if proto_obj.pause_status is not None:
-            pause_status = TokenPauseStatus._from_proto(proto_obj.pause_status)
+            pause_status = Token_pause_status._from_proto(proto_obj.pause_status)
             tokenInfoObject.set_pause_status(pause_status)
-
-        if proto_obj.supplyType is not None:
-            supply_type = SupplyType(proto_obj.supplyType)
+        if proto_obj.supply_type is not None:
+            supply_type = SupplyType(proto_obj.supply_type)
             tokenInfoObject.set_supply_type(supply_type)
         return tokenInfoObject
 
@@ -352,7 +336,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
         if self.pause_status:
             proto.pause_status = self.pause_status.value
         return proto
-
     def __str__(self) -> str:
         parts = [
             f"token_id={self.token_id}",
@@ -369,4 +352,3 @@ class TokenInfo(_DeprecatedAliasesMixin):
             f"metadata={self.metadata!r}",
         ]
         return f"TokenInfo({', '.join(parts)})"
-

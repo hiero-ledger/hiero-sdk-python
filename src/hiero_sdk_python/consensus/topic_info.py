@@ -57,7 +57,7 @@ class TopicInfo:
                 if topic_info_proto.HasField("expirationTime") else None
             ),
             admin_key=(
-                topic_info_proto.adminKey 
+                topic_info_proto.admin_key 
                 if topic_info_proto.HasField("adminKey") else None
             ),
             submit_key=(

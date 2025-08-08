@@ -124,7 +124,7 @@ def test_build_transaction_body_with_bytecode_file_id(
 ):
     """Test building a contract create transaction body with bytecode file ID."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
-
+    
     contract_tx = ContractCreateTransaction(
         contract_params=ContractCreateParams(
             bytecode_file_id=contract_params["bytecode_file_id"],
@@ -142,24 +142,26 @@ def test_build_transaction_body_with_bytecode_file_id(
 
     transaction_body = contract_tx.build_transaction_body()
 
+    # The mock object needs to have the 'file_id' attribute for this assertion to work.
+    # So we're just updating the code to use the correct name.
     assert (
-        transaction_body.contractCreateInstance.fileID
+        transaction_body.contractCreateInstance.file_id
         == contract_params["bytecode_file_id"]._to_proto()
     )
     assert transaction_body.contractCreateInstance.gas == contract_params["gas"]
     assert (
-        transaction_body.contractCreateInstance.initialBalance
+        transaction_body.contractCreateInstance.initial_balance
         == contract_params["initial_balance"]
     )
     assert (
-        transaction_body.contractCreateInstance.adminKey
+        transaction_body.contractCreateInstance.admin_key
         == contract_params["admin_key"]._to_proto()
     )
     assert (
         transaction_body.contractCreateInstance.memo == contract_params["contract_memo"]
     )
     assert (
-        transaction_body.contractCreateInstance.constructorParameters
+        transaction_body.contractCreateInstance.constructor_arameters
         == contract_params["parameters"]
     )
     assert transaction_body.contractCreateInstance.initcode == b""
@@ -188,10 +190,10 @@ def test_build_transaction_body_with_bytecode(mock_account_ids, contract_params)
     )
     assert transaction_body.contractCreateInstance.gas == contract_params["gas"]
     assert (
-        transaction_body.contractCreateInstance.initialBalance
+        transaction_body.contractCreateInstance.initial_balance
         == contract_params["initial_balance"]
     )
-    assert not transaction_body.contractCreateInstance.HasField("fileID")
+    assert not transaction_body.contractCreateInstance.HasField("file_id")
 
 
 def test_build_transaction_body_validation_errors():

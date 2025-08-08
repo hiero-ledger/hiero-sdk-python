@@ -59,6 +59,8 @@ class IntegrationTestEnv:
                 .set_key(key.public_key())
                 .set_initial_balance(Hbar(initial_hbar))
         )
+        tx.freeze_with(self.client)
+        tx.sign(key)
         receipt = tx.execute(self.client)
         if receipt.status != ResponseCode.SUCCESS:
             raise AssertionError(
@@ -130,6 +132,9 @@ def create_fungible_token(env, opts=[]):
     for opt in opts:
         opt(token_transaction)
     
+    token_transaction.freeze_with(env.client)
+    token_transaction.sign(env.operator_key)
+    
     token_receipt = token_transaction.execute(env.client)
     
     assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
@@ -170,6 +175,9 @@ def create_nft_token(env, opts=[]):
     # Apply optional functions to the token creation transaction
     for opt in opts:
         opt(transaction)
+
+    transaction.freeze_with(env.client)
+    transaction.sign(env.operator_key)
 
     token_receipt = transaction.execute(env.client)
     
