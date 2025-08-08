@@ -39,10 +39,10 @@ class ContractUpdateParams:
     decline_reward: bool
     """
     contract_id: ContractId = None
-    bytecode_file_id: Optional[FileId] = None
-    proxy_account_id: Optional[AccountId] = None
+    expiration_time: Timestamp = None
     admin_key: Optional[PublicKey] = None
-    auto_renew_period: Duration = Duration(1)
+    proxy_account_id: Optional[AccountId] = None
+    auto_renew_period: Duration = None
     file_id: Optional[FileId] = None
     memo: Optional[str] = None
     max_automatic_token_associations: Optional[int] = None
