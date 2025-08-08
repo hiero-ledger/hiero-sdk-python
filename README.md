@@ -94,8 +94,12 @@ Now you can run example scripts like python `examples/account_create.py`, and it
 
 ## Environment Setup
 
-Before using the SDK, you need to configure your environment variables for the operator account and other credentials.
-Create a .env file in the root of your project with the following (replace with your environment variables):
+Before using the SDK, you need to configure your environment variables for the operator account and other credentials in order to run our /example scripts.
+
+1. Create a .env file in the root of your project. 
+We have a .gitignore which will exclude root .env files from being committed. 
+2. Create a Hedera Testnet account [Hedera Portal](https://portal.hedera.com/) and retrive your testnet account details.
+3. Add environment variables to your .env file. You'll need to add to this as the SDK functionality calls for more environment variables.
 
 ```
 OPERATOR_ID=0.0.1234xx
@@ -112,11 +116,11 @@ TOPIC_ID=0.0.200xx
 FREEZE_ACCOUNT_ID=0.0.100
 ```
 
+You must have a Hedera Testnet account [Hedera Portal](https://portal.hedera.com/) to retrieve the OPERATOR_ID (your testnet private key), OPERATOR_KEY (your testnet account id).
+
 The only environment variables needed are OPERATOR_ID, OPERATOR_KEY and NETWORK. The rest is optional (if customisation of the example scripts is needed).
 
-A [sample .env](.env.example) file is provided in the root of this project. If you do not have an account on
-the Hedera testnet, you can easily get one from the [Hedera Portal](https://portal.hedera.com/). Learn more about
-testnet [here](https://docs.hedera.com/guides/testnet).
+Learn more about testnet [here](https://docs.hedera.com/guides/testnet).
 
 ## Running Tests
 
