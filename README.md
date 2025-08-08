@@ -99,21 +99,19 @@ Before using the SDK, you need to configure your environment variables for the o
 1. Create a .env file in the root of your project. 
 We have a .gitignore which will exclude root .env files from being committed. 
 2. Create a Hedera Testnet account [Hedera Portal](https://portal.hedera.com/) and retrive your testnet account details.
-3. Add environment variables to your .env file. You'll need to add to this as the SDK functionality calls for more environment variables.
+3. Add environment variables to your .env file and save but do not commit the result. You'll need to add to this or tweak names as the SDK functionality calls for more environment variables. To start with:
 
 ```
 OPERATOR_ID=0.0.1234xx
 OPERATOR_KEY=af20e47d590300506032b657004220420...
 NETWORK=testnet
+```
 
-# optional:
-ADMIN_KEY=af20e47d59032b65700321009308ecfdf...
-SUPPLY_KEY =302a300506032b6570032100c5e4af5..."
-FREEZE_KEY=302a300306072b65700321009308ecfdf...
-RECIPIENT_ID=0.0.789xx
-TOKEN_ID=0.0.100xx
+More advanced users may require additional variables depending on the files they are running, such as:
+```
+OPERATOR_PRIVATE_KEY_ECDSA_HEX=0xb7e550xx
+ADMIN_KEY=302a300306072b65700321009308ecfdf...
 TOPIC_ID=0.0.200xx
-FREEZE_ACCOUNT_ID=0.0.100
 ```
 
 You must have a Hedera Testnet account [Hedera Portal](https://portal.hedera.com/) to retrieve the OPERATOR_ID (your testnet private key), OPERATOR_KEY (your testnet account id).
