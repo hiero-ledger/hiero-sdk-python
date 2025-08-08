@@ -91,8 +91,10 @@ from .file.file_delete_transaction import FileDeleteTransaction
 # Contract
 from .contract.contract_create_transaction import ContractCreateTransaction
 from .contract.contract_call_query import ContractCallQuery
+from .contract.contract_info_query import ContractInfoQuery
 from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
+from .contract.contract_info import ContractInfo
 
 __all__ = [
     # Client
@@ -184,6 +186,8 @@ __all__ = [
     # Contract
     "ContractCreateTransaction",
     "ContractCallQuery",
+    "ContractInfoQuery",
     "ContractFunctionParameters",
     "ContractFunctionResult",
+    "ContractInfo"
 ]
