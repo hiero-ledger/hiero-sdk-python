@@ -99,7 +99,7 @@ Before using the SDK, you need to configure your environment variables for the o
 1. Create a .env file in the root of your project. 
 We have a .gitignore which will exclude root .env files from being committed. 
 2. Create a Hedera Testnet account [Hedera Portal](https://portal.hedera.com/) and retrive your testnet account details.
-3. Add environment variables to your .env file and save but do not commit the result. You'll need to add to this or tweak names as the SDK functionality calls for more environment variables. To start with:
+3. Add environment variables to your .env file and save but do not commit the result. We have an .env./at hedera_sdk_python/.env.example to demonstrate. You'll need to add to .env as the SDK functionality calls for more environment variables. This should be sufficient to start:
 
 ```
 OPERATOR_ID=0.0.1234xx
