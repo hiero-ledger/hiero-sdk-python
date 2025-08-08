@@ -6,7 +6,7 @@ import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.contract.contract_update_transaction import ContractUpdateTransaction
+from hiero_sdk_python.contract.contract_update_transaction import ContractUpdateParams, ContractUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
@@ -59,7 +59,7 @@ class TestContractUpdateTransactionConstructor:
 
     def test_constructor_with_parameters(self, update_params):
         """Test creating a contract update transaction with constructor parameters."""
-        tx = ContractUpdateTransaction(
+        constructor_params = ContractUpdateParams(
             contract_id=update_params["contract_id"],
             memo=update_params["memo"],
             admin_key=update_params["admin_key"],
@@ -69,7 +69,10 @@ class TestContractUpdateTransactionConstructor:
             max_automatic_token_associations=update_params["max_automatic_token_associations"],
             auto_renew_account_id=update_params["auto_renew_account_id"],
             staked_node_id=update_params["staked_node_id"],
-            decline_reward=update_params["decline_reward"],
+            decline_reward=update_params["decline_reward"]
+        )
+        tx = ContractUpdateTransaction(
+            contract_params=constructor_params
         )
 
         assert tx.contract_id == update_params["contract_id"]
@@ -239,7 +242,8 @@ class TestContractUpdateTransactionBuildTransactionBody:
         """Test building transaction body with all parameters set."""
         _, _, node_account_id, _, _ = mock_account_ids
         
-        tx = ContractUpdateTransaction(
+        
+        constructor_params = ContractUpdateParams(
             contract_id=update_params["contract_id"],
             memo=update_params["memo"],
             admin_key=update_params["admin_key"],
@@ -250,6 +254,9 @@ class TestContractUpdateTransactionBuildTransactionBody:
             auto_renew_account_id=update_params["auto_renew_account_id"],
             staked_node_id=update_params["staked_node_id"],
             decline_reward=update_params["decline_reward"],
+        )
+        tx = ContractUpdateTransaction(
+            contract_params=constructor_params
         )
         tx.transaction_id = transaction_id
         tx.node_account_id = node_account_id
