@@ -121,10 +121,19 @@ The only environment variables needed are OPERATOR_ID, OPERATOR_KEY and NETWORK.
 Learn more about testnet [here](https://docs.hedera.com/guides/testnet).
 
 ## Running Tests
+We have both unit at tests/unit and integration tests at tests/integration.
 
-To run the test suite for the SDK, use the following command:
+Unit tests can be run with:
 ```
 uv run pytest 
+```
+They can also be run more directly as:
+```
+pytest tests/unit/test_name.py
+```
+or:
+```
+pytest tests/unit
 ```
 
 The test file in the root of this project will be automatically run when pushing onto a branch.
