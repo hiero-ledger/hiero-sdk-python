@@ -90,9 +90,5 @@ STATEFUL_CONTRACT_BYTECODE = _load_contract_bytecode("StatefulContract")
 # typically for verifying ABI encoding and parameter passing logic.
 CONSTRUCTOR_TEST_CONTRACT_BYTECODE = _load_contract_bytecode("ConstructorTestContract")
 
-# ContractUpdateContract:
-# Used to test contract update parameters during deployment,
-CONTRACT_UPDATE_BYTECODE = _load_contract_bytecode("ContractUpdateContract")
-
 # Contract deployment configuration
 CONTRACT_DEPLOY_GAS = 2_000_000
