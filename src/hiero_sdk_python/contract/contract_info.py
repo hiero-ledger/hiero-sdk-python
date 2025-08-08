@@ -5,7 +5,7 @@ This module contains the ContractInfo class, which is used to store information 
 
 import datetime
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Callable, Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_id import ContractId
@@ -71,35 +71,23 @@ class ContractInfo:
 
         return cls(
             contract_id=(
-                ContractId._from_proto(proto.contractID)
-                if proto.HasField("contractID")
-                else None
+                cls._from_proto_field(proto, "contractID", ContractId._from_proto)
             ),
             account_id=(
-                AccountId._from_proto(proto.accountID)
-                if proto.HasField("accountID")
-                else None
+                cls._from_proto_field(proto, "accountID", AccountId._from_proto)
             ),
             contract_account_id=proto.contractAccountID,
-            admin_key=(
-                PublicKey._from_proto(proto.adminKey)
-                if proto.HasField("adminKey")
-                else None
-            ),
+            admin_key=(cls._from_proto_field(proto, "adminKey", PublicKey._from_proto)),
             expiration_time=(
-                Timestamp._from_protobuf(proto.expirationTime)
-                if proto.HasField("expirationTime")
-                else None
+                cls._from_proto_field(proto, "expirationTime", Timestamp._from_protobuf)
             ),
             auto_renew_period=(
-                Duration._from_proto(proto.autoRenewPeriod)
-                if proto.HasField("autoRenewPeriod")
-                else None
+                cls._from_proto_field(proto, "autoRenewPeriod", Duration._from_proto)
             ),
             auto_renew_account_id=(
-                AccountId._from_proto(proto.auto_renew_account_id)
-                if proto.HasField("auto_renew_account_id")
-                else None
+                cls._from_proto_field(
+                    proto, "auto_renew_account_id", AccountId._from_proto
+                )
             ),
             storage=proto.storage,
             contract_memo=proto.memo,
@@ -199,3 +187,27 @@ class ContractInfo:
             f"  max_automatic_token_associations={self.max_automatic_token_associations}\n"
             ")"
         )
+
+    @classmethod
+    def _from_proto_field(
+        cls,
+        proto: ContractGetInfoResponse.ContractInfo,
+        field_name: str,
+        from_proto: Callable,
+    ):
+        """
+        Helper to extract and convert proto fields to a python object.
+
+        Args:
+            proto: The protobuf object to extract the field from.
+            field_name: The name of the field to extract.
+            from_proto: A callable to convert the field from protobuf to a python object.
+
+        Returns:
+            The converted field value or None if the field doesn't exist.
+        """
+        if not proto.HasField(field_name):
+            return None
+
+        value = getattr(proto, field_name)
+        return from_proto(value)
