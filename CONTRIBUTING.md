@@ -50,21 +50,21 @@ To ensure high-quality reviewable code, ensure:
 
 9. **Ensure Branch is Updated**. Check if main has been updated since you started work and rebase. Follow these steps [Updating Your Branch]((https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README_upstream.md)):
 
-10. **Review Network Test Outcomes**. Once your issue is solved on your branch, publish your branch and visit your python sdk repository https://github.com/your_name/hiero_sdk_python. 
+10. **Review Network Test Outcomes**. Once your issue is solved on your branch, publish your branch and visit your python sdk repository https://github.com/your_name/hiero_sdk_python. Your push will trigger Hiero Solo Integration Tests which is our network test suite. Review outcome and fix any code.
 
-10. **Create a Ready to Review Pull Request**. Visit your pull request at [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls) and at the bottom, change it from draft to 'Ready for Review'. Before you do so, ensure:
-- [x] Review the pull request, checking:
-  - [x] All commits are marked as verified. If not, you'll need to back-sign [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/Commit_Signing.md).
-  - [x] Files changed are as expected and the issue is resolved, or a comment left that you require help to finish.
-  - [x] No sensitive information is revealed
+11. **Create a Ready to Review Pull Request**. Visit your pull request at [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls) and at the bottom, change it from draft to 'Ready for Review'. Before you do so, ensure:
+- [x] Hiero Solo Integration Tests pass.
+- [x] All commits are marked as verified. If not, you'll need to back-sign [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/Commit_Signing.md).
+- [x] Files changed are as expected and the issue is resolved, or a comment left that you require help to finish.
+- [x] No sensitive information is revealed.
+- [x] Your description of the pull request is updated to communicate the changes.
 
-10. **Wait for Reviews**. Our maintainers will be notified automatically of your pull request and provide feedback. 
+12. **Wait for Reviews**. Our maintainers will be notified automatically of your pull request and provide feedback. 
 
-11. **Update Code Given Feedback**. Create additional commits to resolve applicable feedback and ask for a review once completed.
+13. **Update Code Given Feedback**. Create additional commits to resolve applicable feedback and ask for a review once completed.
 
-12. **Wait for Pulling to Main**. When your pull request is approved, it will shortly be merged into main. Congratulations and thank you!
+14. **Wait for Merging to Main**. When your pull request is approved, it will shortly be merged into main. Congratulations and thank you!
 
-Your recent push should show at the top and click to create a pull request from that. For more advanced users, we recommend creating a draft pull request as soon as you are assigned to the issue and building on that to help us avoid conflicts. Our maintainers will be notified to review your pull request. All Pull Requests must be approved by at least one member of the SDK team before merging. It will be merged as a squashed pull request to keep the commit history tidy.
 
 ## Feature Requests
 
