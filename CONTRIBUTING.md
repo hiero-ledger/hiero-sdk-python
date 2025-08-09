@@ -77,8 +77,13 @@ To ensure high-quality-reviewable code, please ensure:
 We welcome new functionality or feature suggestions for the Python SDK. You can submit a feature request on the issue page [Issue Page for Feature Requests](https://github.com/hiero-ledger/hiero-sdk-python/issues). When submitting a feature, please make sure to:
 
 1. **Search Existing Requests**: If a request already exists, give it a thumbs-up or comment, adding more contextual information, instead of duplicating. Else proceed.
-2. **Create Your Feature**: Click the green new issue button on the top right of the issues page. A pop-up menu appears, click the second option: Feature. Add an informative title to describe your desired feature and a clear explanation of the problem this would solve (if applicable, else just detail how you envisage the feature to work). Next, scroll down and provide a proposed solution, such as how you roughly see the feature working or example code. Click 'create'.
-3. **Decide If You Want To Work On It**. If you are passionate about your new feature and would like to create it, add a comment after you have created the feature saying "I would like to work on this issue" and we will assign you.
+2. **Create Your Feature** following these steps:
+- [ ] Click the green new issue button on the top right of the issues page. 
+- [ ] A pop-up menu appears, click the second option: Feature. 
+- [ ] Add an informative title to describe your desired feature and a clear explanation of the problem this would solve (if applicable, else just detail how you envisage the feature to work). 
+- [ ] Scroll down and detail a proposed solution, such as how you roughly see the feature working or example code. 
+- [ ] Click 'create'.
+3. **Decide If You Want To Work On It**. Features can be left open for others to contribute or you can complete it yourself. If you want to complete it yourself, add "I would like to work on this issue" and we will assign you.
 
 ## Bug Reports
 
@@ -91,8 +96,15 @@ pip install -U hiero-sdk-python
 ```
 3. **Assess the Security Threat**: does the bug impact minor functionality or does it represent a security threat? Most bug reports should be filed directly to our [Issues Page for Bug Reports](https://github.com/hiero-ledger/hiero-sdk-python/issues) but security issues should be treated differently.
 3. **File The Bug Report**: depending on the type of bug, report the bug.
-- Bugs impacting functionality without a security threat. Click on the top right: "new issue". Select the bug report option. Provide an informative title, clear description, steps for us to reproduce and logs or screenshots. Additional information such as: expected vs actual behavior and a minimal working example are not required but will be helpful. Click 'create'.
-- Bugs impacting security. Ensure you have joined the [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563). After, contact [maintainers](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/MAINTAINERS.md) directly on discord stating there is an issue requiring immediate follow-up. Prepare sufficient documentation, such as logs, screenshots and information on how to replicate to share with the maintainer once asked.
+- Bugs impacting functionality without a security threat. Workflow:
+  - [ ] Click on the top right: "new issue". Select the bug report option. 
+  - [ ] Provide an informative title, clear description, steps for us to reproduce and logs or screenshots. 
+  - [ ] Additional information such as: expected vs actual behavior and a minimal working example are not required but will be helpful. 
+  - [ ] Click 'create'.
+- Bugs impacting security. Workflow:
+  - [ ] Ensure you have joined the [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563). 
+  - [ ] Contact [maintainers](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/MAINTAINERS.md) directly on discord stating there is an issue requiring immediate follow-up. 
+  - [ ] Prepare sufficient documentation, such as logs, screenshots and information on how to replicate to share with the maintainer once asked.
 
 We will review your bug report shortly and comment as appropriate.
 
