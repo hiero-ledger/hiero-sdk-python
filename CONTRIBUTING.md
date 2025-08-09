@@ -92,6 +92,7 @@ We welcome new functionality or feature suggestions for the Python SDK. You can 
 
 1. **Search Existing Requests**: If a request already exists, give it a thumbs-up or comment, adding more contextual information, instead of duplicating. Else proceed.
 2. **Create Your Feature** following these steps:
+- [ ] Define the feature so the pull-request would be small. If necessary, create multiple feature proposals. It is better to keep pull-requests specific and streamlined to keep development fast, requiring fewer rebases, and facilitate the review process.
 - [ ] Click the green new issue button on the top right of the issues page. 
 - [ ] A pop-up menu appears, click the second option: Feature. 
 - [ ] Add an informative title to describe your desired feature and a clear explanation of the problem this would solve (if applicable, else just detail how you envisage the feature to work). 
