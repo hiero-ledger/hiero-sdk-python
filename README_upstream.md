@@ -13,7 +13,9 @@ git remote add upstream https://github.com/hiero-ledger/hiero-sdk-python.git
 
 ## Update Your Main
 
-Run these commands every time you want to update your branch with the latest main.
+Update your main easily with the latest python sdk main by visiting your repository https://github.com/your_name/hiero_sdk_python and clicking the sync fork button which is a few lines from the top near the right.
+
+Alternatively run these commands every time you want to update your branch with the latest main.
 
 ### 1. Switch to your local main branch
 ```bash
