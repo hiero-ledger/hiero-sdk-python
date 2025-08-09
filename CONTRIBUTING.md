@@ -7,6 +7,7 @@ Please read this guide carefully.
 ## Table of Contents
 
 - [Code Contributions](#code-contributions)
+- [Breaking Changes](#breaking-changes)
 - [Feature Requests](#feature-requests)
 - [Bug Reports](#bug-reports)
 - [Blog Posts](#blog-posts)
@@ -71,6 +72,19 @@ To ensure high-quality-reviewable code, please ensure:
 
 14. **Wait for Merging to Main**. When your pull request is approved, it will shortly be merged into main. Congratulations and thank you!
 
+
+## Breaking Changes
+
+Occasionally when working on an issue, you'll come across breaking changes.
+
+As a general guide:
+1. Avoid breaking changes when solving an issue. These are defined as changes that when merged and the user updates to the lastest version, will cause existing SDK users' code to error because they use legacy methods. Changes vulnerable to creating breaking changes are aspects such as: changing file structures, return statements, function names and deletions.
+2. Breaking changes might be beneficial or/and necessary. If so, create a new issue and detail the benefits to the breaking change. Wait for approval to work on the issue.
+3. Proposed breaking changes are sensitive and best handled as its own pull request, complete with:
+- [] Reasons for breaking changes
+- [] Backwards compatability additions
+- [] Relevant unit and integration tests
+- [] Changelog documentation
 
 ## Feature Requests
 
