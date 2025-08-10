@@ -11,8 +11,8 @@ This module includes:
 - TokenCreateTransaction: Handles token creation transactions on Hedera.
 """
 
-from dataclasses import dataclass
-from typing import Optional, Any
+from dataclasses import dataclass, field
+from typing import Optional, List, Any
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -22,6 +22,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.tokens.custom_fee import CustomFee
 
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
 
@@ -51,6 +52,7 @@ class TokenParams:
     max_supply: int = 0 # Since defaulting to infinite
     supply_type: SupplyType = SupplyType.INFINITE # Default to infinite
     freeze_default: bool = False
+    custom_fees: List[CustomFee] = field(default_factory=list)
 
 
 @dataclass
@@ -360,7 +362,13 @@ class TokenCreateTransaction(Transaction):
         self._keys.kyc_key = key
         return self
 
-    def _to_proto_key(self, private_key: Optional[PrivateKey]) -> Optional[basic_types_pb2.Key]:
+    def set_custom_fees(self, custom_fees: List[CustomFee]):
+        """Set the Custom Fees."""
+        self._require_not_frozen()
+        self._token_params.custom_fees = custom_fees
+        return self
+
+    def _to_proto_key(self, private_key):
         """
         Helper method to convert a private key to protobuf Key format.
         
@@ -429,24 +437,15 @@ class TokenCreateTransaction(Transaction):
             maxSupply=self._token_params.max_supply,
             freezeDefault=self._token_params.freeze_default,
             treasury=self._token_params.treasury_account_id._to_proto(),
+            adminKey=admin_key_proto,
+            supplyKey=supply_key_proto,
+            freezeKey=freeze_key_proto,
+            wipeKey=wipe_key_proto,
+            metadata_key=metadata_key_proto,
+            pause_key=pause_key_proto,
+            kycKey=kyc_key_proto,
+            custom_fees=[fee._to_proto() for fee in self._token_params.custom_fees],
         )
-
-        # Conditionally attach each optional sub-message
-        if admin_key_proto is not None:
-            token_create_body.adminKey.CopyFrom(admin_key_proto)
-        if supply_key_proto is not None:
-            token_create_body.supplyKey.CopyFrom(supply_key_proto)
-        if freeze_key_proto is not None:
-            token_create_body.freezeKey.CopyFrom(freeze_key_proto)
-        if wipe_key_proto is not None:
-            token_create_body.wipeKey.CopyFrom(wipe_key_proto)
-        if metadata_key_proto is not None:
-            token_create_body.metadata_key.CopyFrom(metadata_key_proto)
-        if pause_key_proto is not None:
-            token_create_body.pause_key.CopyFrom(pause_key_proto)
-        if kyc_key_proto is not None:
-            token_create_body.kycKey.CopyFrom(kyc_key_proto)
-
         # Build the base transaction body and attach the token creation details
         transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenCreation.CopyFrom(token_create_body)

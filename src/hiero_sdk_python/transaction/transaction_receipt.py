@@ -13,6 +13,7 @@ Classes:
     - TransactionReceipt: Parses and exposes fields from a transaction receipt protobuf.
 """
 from typing import Optional, cast
+from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.consensus.topic_id import TopicId
@@ -118,6 +119,19 @@ class TransactionReceipt(_DeprecatedAliasesMixin):  # type: ignore[misc]
             TransactionId: The transaction ID.
         """
         return self._transaction_id
+
+    @property
+    def contract_id(self):
+        """
+        Returns the contract ID associated with this receipt.
+
+        Returns:
+            ContractId or None: The ContractId if present; otherwise, None.
+        """
+        if self._receipt_proto.HasField('contractID') and self._receipt_proto.contractID.contractNum != 0:
+            return ContractId._from_proto(self._receipt_proto.contractID)
+        else:
+            return None
 
     def _to_proto(self) -> transaction_receipt_pb2.TransactionReceipt:
         """

@@ -52,6 +52,9 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying File Contents](#querying-file-contents)
   - [Updating a File](#updating-a-file)
   - [Deleting a File](#deleting-a-file)
+- [Contract Transactions](#contract-transactions)
+  - [Creating a Contract](#creating-a-contract)
+  - [Querying a Contract Call](#querying-a-contract-call)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1041,6 +1044,187 @@ transaction.execute(client)
     transaction.sign(operator_key)
     transaction.execute(client)
 
+```
+
+
+## Contract Transactions
+
+### Creating a Contract
+
+#### Pythonic Syntax:
+```
+# First, create a file with the contract bytecode
+transaction = FileCreateTransaction(
+    keys=[operator_key.public_key()],
+    contents=contract_bytecode,
+    file_memo="Contract bytecode file"
+).freeze_with(client)
+
+transaction.sign(operator_key)
+file_receipt = transaction.execute(client)
+
+file_id = file_receipt.file_id
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode from file
+transaction = ContractCreateTransaction(
+    contract_params=ContractCreateParams(
+        bytecode_file_id=file_id,
+        gas=200000,
+        admin_key=admin_key,
+        initial_balance=100000000,  # 1 HBAR in tinybars
+        parameters=constructor_params.to_bytes(),
+        contract_memo="My first smart contract"
+    )
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+# First, create a file with the contract bytecode
+file_receipt = (
+    FileCreateTransaction()
+    .set_keys(operator_key.public_key())
+    .set_contents(contract_bytecode)
+    .set_file_memo("Contract bytecode file")
+    .freeze_with(client)
+    .sign(operator_key)
+    .execute(client)
+)
+
+file_id = file_receipt.file_id
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode from file
+transaction = (
+    ContractCreateTransaction()
+    .set_bytecode_file_id(file_id)
+    .set_gas(200000)
+    .set_admin_key(admin_key)
+    .set_initial_balance(100000000)  # 1 HBAR in tinybars
+    .set_constructor_parameters(constructor_params)
+    .set_contract_memo("My first smart contract")
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
+```
+
+#### Creating a Contract with Direct Bytecode:
+```
+##### Convert hex bytecode to bytes
+bytecode = bytes.fromhex(contract_bytecode_hex)
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode directly
+transaction = (
+    ContractCreateTransaction()
+    .set_bytecode(bytecode)
+    .set_gas(200000)
+    .set_admin_key(admin_key)
+    .set_initial_balance(100000000)  # 1 HBAR in tinybars
+    .set_constructor_parameters(constructor_params)
+    .set_contract_memo("My first smart contract")
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
+```
+
+### Querying a Contract Call
+
+#### Pythonic Syntax:
+```
+# Query a contract function that returns value(s)
+# Example: calling getMessageAndOwner() (StatefulContract.sol) which returns (bytes32 message, address owner)
+result = ContractCallQuery(
+    contract_id=contract_id,
+    gas=2000000,
+    function_parameters=ContractFunctionParameters("getMessageAndOwner").to_bytes()  # Function name to call
+).execute(client)
+
+# Extract return values by their position in the Solidity return statement
+# getMessageAndOwner() returns (bytes32, address), so:
+# - index 0: bytes32 message
+# - index 1: address owner
+message = result.get_bytes32(0)
+owner_address = result.get_address(1)
+
+print(f"Message: {message}")
+print(f"Owner: {owner_address}")
+
+# Alternative way using get_result with type specifications
+result_values = result.get_result(["bytes32", "address"])
+print(f"Message: {result_values[0]}")
+print(f"Owner: {result_values[1]}")
+```
+
+#### Method Chaining:
+```
+# Query a contract function using method chaining
+# Example: calling getMessageAndOwner() (StatefulContract.sol) which returns (bytes32 message, address owner)
+result = (
+    ContractCallQuery()
+    .set_contract_id(contract_id)
+    .set_gas(2000000)
+    .set_function("getMessageAndOwner")  # Function name to call
+    .execute(client)
+)
+
+# Alternatively, you can use set_function_parameters() with ContractFunctionParameters:
+result = (
+    ContractCallQuery()
+    .set_contract_id(contract_id)
+    .set_gas(2000000)
+    .set_function_parameters(ContractFunctionParameters("getMessageAndOwner"))
+    .execute(client)
+)
+
+
+# Extract return values by their position in the Solidity return statement
+# getMessageAndOwner() returns (bytes32, address), so:
+# - index 0: bytes32 message
+# - index 1: address owner
+message = result.get_bytes32(0)
+owner_address = result.get_address(1)
+
+print(f"Message: {message}")
+print(f"Owner: {owner_address}")
+
+# Alternative way using get_result with type specifications
+result_values = result.get_result(["bytes32", "address"])
+print(f"Message: {result_values[0]}")
+print(f"Owner: {result_values[1]}")
+
+# For different Solidity return types, use these methods:
+#
+# String values:     result.get_string(0)
+# Address values:    result.get_address(1)
+# Number values:     result.get_uint256(2)
+# Boolean values:    result.get_bool(3)
+# Bytes32 values:    result.get_bytes32(4)
+# Bytes values:      result.get_bytes(5)
+#
+# Note: The index number matches the position in your Solidity return statement
+# Example: function getData() returns (string, address, uint256, bool)
+# - result.get_string(0)    // first return value
+# - result.get_address(1)   // second return value
+# - result.get_uint256(2)   // third return value
+# - result.get_bool(3)      // fourth return value
 ```
 
 ## Miscellaneous Queries

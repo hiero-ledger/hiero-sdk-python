@@ -88,6 +88,12 @@ from .file.file_contents_query import FileContentsQuery
 from .file.file_update_transaction import FileUpdateTransaction
 from .file.file_delete_transaction import FileDeleteTransaction
 
+# Contract
+from .contract.contract_create_transaction import ContractCreateTransaction
+from .contract.contract_call_query import ContractCallQuery
+from .contract.contract_function_parameters import ContractFunctionParameters
+from .contract.contract_function_result import ContractFunctionResult
+
 __all__ = [
     # Client
     "Client",
@@ -174,4 +180,10 @@ __all__ = [
     "FileContentsQuery",
     "FileUpdateTransaction",
     "FileDeleteTransaction",
+
+    # Contract
+    "ContractCreateTransaction",
+    "ContractCallQuery",
+    "ContractFunctionParameters",
+    "ContractFunctionResult",
 ]
