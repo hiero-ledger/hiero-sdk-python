@@ -74,3 +74,8 @@ All Pull Requests must be approved by at least one member of the SDK team before
 - Check the [Issues](../../issues) page for ongoing discussions.
 
 Thank you for helping improve the Hiero Python SDK!
+
+
+## Pull Request Guidelines
+When creating a PR, please use the default template located at `.github/PULL_REQUEST_TEMPLATE.md`.
+This ensures all necessary details are included for faster review and smoother merges.
