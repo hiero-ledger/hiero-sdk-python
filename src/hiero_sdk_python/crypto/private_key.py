@@ -45,6 +45,10 @@ class PrivateKey:
         - Calls from_bytes to interpret raw or DER.
 
         Raises ValueError if the hex is invalid or the bytes are not a valid key.
+
+        NOTE: For 32-byte raw keys, this method defaults to Ed25519.
+        For explicit control, use from_string_ed25519(), from_string_ecdsa(),
+        or from_string_der() instead of this generic method.
         """
         key_str = key_str.removeprefix("0x")
 
