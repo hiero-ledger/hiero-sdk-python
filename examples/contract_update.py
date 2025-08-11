@@ -42,7 +42,7 @@ load_dotenv()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network="solo")
+    network = Network(network="testnet")
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
@@ -167,7 +167,7 @@ def contract_update():
     print("Setting up client connection...")
     
     client = setup_client()
-    print("✓ Client connected to solo network")
+    print("✓ Client connected to testnet network")
     print(f"✓ Operator account: {client.operator_account_id}")
 
     file_id = create_contract_file(client)
