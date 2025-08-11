@@ -46,6 +46,9 @@ def test_integration_contract_info_query_can_execute(env):
         ContractCreateTransaction()
         .set_admin_key(env.operator_key.public_key())
         .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_initial_balance(1000)
+        .set_auto_renew_account_id(env.operator_id)
+        .set_max_automatic_token_associations(10)
         .set_bytecode_file_id(file_id)
         .set_constructor_parameters(params)
         .set_contract_memo("contract create with constructor params")
@@ -68,13 +71,13 @@ def test_integration_contract_info_query_can_execute(env):
     assert (
         info.contract_memo == "contract create with constructor params"
     ), "Contract memo mismatch"
-    assert info.balance == 0, "Contract balance should be 0"
-    assert info.is_deleted == False, "Contract should not be deleted"
+    assert info.balance == 1000, "Contract balance should be 1000"
+    assert info.is_deleted is False, "Contract should not be deleted"
     assert (
-        info.max_automatic_token_associations == 0
-    ), "Max automatic token associations should be 0"
-    assert info.token_relationships == [], "Token relationships should be empty"
-    assert info.account_id.num == contract_id.contract, "Account ID mismatch"
+        info.max_automatic_token_associations == 10
+    ), "Max automatic token associations should be 10"
+    assert not info.token_relationships, "Token relationships should be empty"
+    assert info.auto_renew_account_id == env.operator_id, "Auto renew account ID mismatch"
 
 
 @pytest.mark.integration
@@ -182,3 +185,50 @@ def test_integration_contract_info_query_fails_with_invalid_contract_id(env):
         PrecheckError, match="failed precheck with status: INVALID_CONTRACT_ID"
     ):
         ContractInfoQuery(contract_id).execute(env.client)
+
+
+@pytest.mark.integration
+def test_integration_contract_info_query_can_execute_without_admin_key(env):
+    """Test that the ContractInfoQuery can be executed successfully."""
+    receipt = (
+        FileCreateTransaction()
+        .set_keys(env.operator_key.public_key())
+        .set_contents(STATEFUL_CONTRACT_BYTECODE)
+        .set_file_memo("file create with constructor params")
+        .execute(env.client)
+    )
+    assert (
+        receipt.status == ResponseCode.SUCCESS
+    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+
+    file_id = receipt.file_id
+    assert file_id is not None, "File ID should not be None"
+
+    # Convert the message string to bytes32 format for the contract constructor.
+    message = "Initial message from constructor".encode("utf-8")
+
+    params = ContractFunctionParameters().add_bytes32(message)
+
+    receipt = (
+        ContractCreateTransaction()
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_bytecode_file_id(file_id)
+        .set_constructor_parameters(params)
+        .set_contract_memo("contract create with constructor params")
+        .execute(env.client)
+    )
+
+    assert (
+        receipt.status == ResponseCode.SUCCESS
+    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+
+    contract_id = receipt.contract_id
+    assert contract_id is not None, "Contract ID should not be None"
+
+    info = ContractInfoQuery().set_contract_id(contract_id).execute(env.client)
+
+    assert str(info.contract_id) == str(contract_id), "Contract ID mismatch"
+    assert isinstance(info.admin_key, ContractId), "Admin key should be a ContractId"
+    assert str(info.admin_key) == str(
+        contract_id
+    ), "Admin key should be the contract ID"
