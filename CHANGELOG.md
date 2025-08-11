@@ -43,6 +43,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
 - get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
 
+### Added
+- PendingAirdropId Class
+- PendingAirdropRecord Class
+- TokenCancelAirdropTransaction Class
+
+### Changed
+- added new_pending_airdrops to TransactionRecord Class
+
 ## [0.1.3] - 2025-07-03
 ### Added
 - TokenType Class
