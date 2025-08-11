@@ -69,6 +69,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - README_types.md
 - TransactionRecordQuery Class
 - AccountInfoQuery Class
+- Legacy ECDSA DER parse support
+- added missing ECDSA support in query.py and contract_create_transaction.py
+- documented private key from_string method behavior
 
 
 ### Changed
