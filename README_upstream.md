@@ -49,13 +49,6 @@ git checkout mybranch
 git rebase main -S -s
 ```
 
-If You Prefer Merging Instead of Rebasing:
-# Merge = keeps history as-is, but adds a final merge commit.
-
-```bash
-git merge main -S -s
-```
-
 ## Handling Conflicts
 
 Conflicts are common if main has updates to the files you are working on and you have run a rebase or merge command.
