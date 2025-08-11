@@ -57,13 +57,15 @@ To ensure high-quality-reviewable code, please ensure:
 
 10. **Review Network Test Outcomes**. Once your issue is solved on your branch, publish your branch and visit your python sdk repository https://github.com/your_name/hiero_sdk_python. Your push will trigger Hiero Solo Integration Tests which is our network test suite. Review outcome and fix any code.
 
-11. **Create a Ready to Review Pull Request**. Visit your pull request at [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls) and at the bottom, change it from draft to 'Ready for Review'. Before you do so, ensure:
-- [ ] Your description of the pull request is updated to communicate the changes.
-- [ ] Feature is titled with a pre-fix.
+11. **Change Pull Request From Draft to 'Ready to Review'**. Visit your draft pull request at [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls). Convert it to 'Ready to Review' by clicking the button at the bottom of the page.
+
+Ensure:
+- [ ] You've explained the changes in your pull-request.
+- [ ] CHANGELOG.md is updated
+- [ ] Your pull request has a title with a pre-fix such as [conventional title formatting](https://www.conventionalcommits.org/en/v1.0.0/)
 - [ ] Local unit tests pass.
 - [ ] Hiero Solo Integration Tests pass.
 - [ ] All commits are marked as verified. If not, you'll need to back-sign [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/Commit_Signing.md).
-- [ ] Files changed are as expected and the issue is resolved, or add a comment left that you require help to finish.
 - [ ] No sensitive information is revealed.
 
 12. **Wait for Workflow Outcomes and Reviews**. Our maintainers will be notified automatically of your pull request and provide feedback. 
