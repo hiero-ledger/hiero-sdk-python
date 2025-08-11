@@ -5,7 +5,7 @@ contract StatefulContract {
 
     address public owner;
 
-    constructor(bytes32 _msg) {
+    constructor(bytes32 _msg) payable {
         message = _msg;
         owner = msg.sender;
     }
