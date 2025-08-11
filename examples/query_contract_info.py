@@ -21,7 +21,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python import AccountId, Client, Duration, Network, PrivateKey
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -73,9 +73,10 @@ def create_contract(client, file_id):
     receipt = (
         ContractCreateTransaction()
         .set_admin_key(client.operator_private_key.public_key())
-        .set_initial_balance(1000) # 1000 tinybars
+        .set_initial_balance(1000)  # 1000 tinybars
         .set_max_automatic_token_associations(10)
         .set_auto_renew_account_id(client.operator_account_id)
+        .set_auto_renew_period(Duration(seconds=5184000))  # 60 days in seconds
         .set_gas(1000000)  # 1M gas
         .set_bytecode_file_id(file_id)
         .set_contract_memo("Simple smart contract")

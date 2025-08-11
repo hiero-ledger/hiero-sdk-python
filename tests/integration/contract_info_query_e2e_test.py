@@ -13,6 +13,7 @@ from hiero_sdk_python.contract.contract_function_parameters import (
 )
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.hbar import Hbar
@@ -41,13 +42,14 @@ def test_integration_contract_info_query_can_execute(env):
     message = "Initial message from constructor".encode("utf-8")
 
     params = ContractFunctionParameters().add_bytes32(message)
-
+    auto_renew_period = Duration(seconds=5184000)  # 60 days in seconds
     receipt = (
         ContractCreateTransaction()
         .set_admin_key(env.operator_key.public_key())
         .set_gas(CONTRACT_DEPLOY_GAS)
         .set_initial_balance(1000)
         .set_auto_renew_account_id(env.operator_id)
+        .set_auto_renew_period(auto_renew_period)
         .set_max_automatic_token_associations(10)
         .set_bytecode_file_id(file_id)
         .set_constructor_parameters(params)
@@ -78,6 +80,7 @@ def test_integration_contract_info_query_can_execute(env):
     ), "Max automatic token associations should be 10"
     assert not info.token_relationships, "Token relationships should be empty"
     assert info.auto_renew_account_id == env.operator_id, "Auto renew account ID mismatch"
+    assert info.auto_renew_period == auto_renew_period, "Auto renew period mismatch"
 
 
 @pytest.mark.integration
