@@ -5,6 +5,7 @@ from typing import Union
 from cryptography.hazmat.primitives.asymmetric import ed25519, ec
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
+from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.crypto_utils import keccak256
@@ -297,6 +298,8 @@ class PublicKey:
             return cls.from_bytes_ed25519(proto.ed25519)
         if proto.ECDSA_secp256k1:
             return cls.from_bytes_ecdsa(proto.ECDSA_secp256k1)
+        if proto.contractID.ByteSize() > 0:
+            return ContractId._from_proto(proto.contractID)
         raise ValueError("Unsupported public key type in protobuf")
 
     #
