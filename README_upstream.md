@@ -51,7 +51,7 @@ git rebase main -S -s
 
 ## Handling Conflicts
 
-Conflicts are common if main has updates to the files you are working on and you have run a rebase or merge command.
+Conflicts are common if main has updates to the files you are working on. In which case, you'll have to run a rebase.
 
 If you are warned of a conflict:
 
@@ -59,22 +59,14 @@ If you are warned of a conflict:
 
 After fixing conflicts:
 
-For rebase: 
+Stage the files:
 ```bash
 git add .
 ```
-then 
+then continue rebasing: 
 ```bash
 git rebase --continue
 ```
-
-For merge: 
-```bash
-git add . 
-```
-then 
-```bash
-git commit -S -s
-```
+At each conflict instance, you'll have to repeat: fix the conflict, stage the files and continue rebasing.
 
 **Tip**: Always sync your branch before opening or updating a Pull Request to reduce review friction and avoid merge conflicts.
