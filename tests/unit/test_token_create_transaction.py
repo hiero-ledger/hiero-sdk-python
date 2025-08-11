@@ -12,13 +12,9 @@ Coverage includes:
 - Transaction execution error handling
 """
 
-import re
 import pytest
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
-from hiero_sdk_python.transaction.transaction import Transaction
 
-# Hiero SDK imports
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,

@@ -1,5 +1,6 @@
 """
-supply_type.py
+hiero_sdk_python.tokens.supply_type.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines SupplyType, an enumeration of possible token supply behaviors
 for Non-Fungible Tokens (NFTs).

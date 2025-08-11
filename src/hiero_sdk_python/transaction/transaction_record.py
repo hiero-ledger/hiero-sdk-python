@@ -71,7 +71,7 @@ class TransactionRecord:
             transaction_hash=proto.transactionHash,
             transaction_memo=proto.memo,
             transaction_fee=proto.transactionFee,
-            receipt=TransactionReceipt._from_proto(proto.receipt),
+            receipt=TransactionReceipt._from_proto(proto.receipt, transaction_id),
             token_transfers=token_transfers,
             nft_transfers=nft_transfers,
             transfers=transfers

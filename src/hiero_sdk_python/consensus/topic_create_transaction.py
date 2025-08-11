@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -10,9 +10,9 @@ from hiero_sdk_python.account.account_id import AccountId
 class TopicCreateTransaction(Transaction):
     def __init__(
         self,
-        memo: str = None,
-        admin_key: basic_types_pb2.Key = None,
-        submit_key: basic_types_pb2.Key = None,
+        memo: Optional[str] = None,
+        admin_key: Optional[basic_types_pb2.Key] = None,
+        submit_key: Optional[basic_types_pb2.Key] = None,
         auto_renew_period: Duration = None,
         auto_renew_account: AccountId = None
     ) -> None:
@@ -27,8 +27,8 @@ class TopicCreateTransaction(Transaction):
         """
         super().__init__()
         self.memo = memo or ""
-        self.admin_key: basic_types_pb2.Key = admin_key
-        self.submit_key: basic_types_pb2.Key = submit_key
+        self.admin_key: Optional[basic_types_pb2.Key] = admin_key
+        self.submit_key: Optional[basic_types_pb2.Key] = submit_key
         self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
         self.auto_renew_account: AccountId = auto_renew_account
         self.transaction_fee: int = 10_000_000
@@ -100,7 +100,7 @@ class TopicCreateTransaction(Transaction):
         self.auto_renew_account = account_id
         return self
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for topic creation.
 

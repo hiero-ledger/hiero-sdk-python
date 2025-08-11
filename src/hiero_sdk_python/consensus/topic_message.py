@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List, Union, Dict
 
-from hiero_sdk_python import Timestamp
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 
 
@@ -163,8 +163,11 @@ class TopicMessage:
             )
         return cls.of_single(response)
 
-    def __str__(self):
-        contents_str = self.contents.decode("utf-8", errors="replace")
+    def __str__(self) -> str:
+        if isinstance(self.contents, bytes):
+            contents_str = self.contents.decode("utf-8", errors="replace")
+        else:
+            contents_str = str(self.contents)
         return (
             f"TopicMessage("
             f"consensus_timestamp={self.consensus_timestamp}, "
