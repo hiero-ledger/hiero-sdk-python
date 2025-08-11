@@ -74,10 +74,10 @@ def token_cancel_airdrop():
     try:
         receipt = (
             TokenAirdropTransaction()
-            .add_approved_token_transfer(token_id=token_id_1, account_id=operator_id, amount=-1)
-            .add_approved_token_transfer(token_id=token_id_1, account_id=recipient_id, amount=1)
-            .add_approved_token_transfer(token_id=token_id_2, account_id=operator_id, amount=-1)
-            .add_approved_token_transfer(token_id=token_id_2, account_id=recipient_id, amount=1)
+            .add_token_transfer(token_id=token_id_1, account_id=operator_id, amount=-1)
+            .add_token_transfer(token_id=token_id_1, account_id=recipient_id, amount=1)
+            .add_token_transfer(token_id=token_id_2, account_id=operator_id, amount=-1)
+            .add_token_transfer(token_id=token_id_2, account_id=recipient_id, amount=1)
             .freeze_with(client)
             .sign(operator_key)
             .execute(client)
