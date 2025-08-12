@@ -12,6 +12,7 @@ You can choose either syntax or even mix both styles in your projects.
 
 - [Account Transactions](#account-transactions)
   - [Creating an Account](#creating-an-account)
+  - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
   - [Querying Account Info](#querying-account-info)
   - [Creating a Token](#creating-a-token)
@@ -88,6 +89,43 @@ transaction = (
     )
     transaction.sign(client.operator_private_key)
     transaction.execute(client)
+```
+
+### Updating an Account
+
+#### Pythonic Syntax:
+```python
+transaction = AccountUpdateTransaction(
+    account_params=AccountUpdateParams(
+        account_id=account_id,
+        key=new_public_key,
+        account_memo=memo,
+        receiver_signature_required=receiver_sig_required,
+        auto_renew_period=Duration(seconds),
+        expiration_time=future_expiration
+    )
+).freeze_with(client)
+
+transaction.sign(old_private_key)  # Sign with old key
+transaction.sign(new_private_key)  # Sign with new key
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    AccountUpdateTransaction()
+    .set_account_id(account_id)
+    .set_key(new_public_key)
+    .set_account_memo(memo)
+    .set_receiver_signature_required(receiver_sig_required)
+    .set_auto_renew_period(Duration(seconds))
+    .set_expiration_time(future_expiration)
+    .freeze_with(client)
+)
+transaction.sign(old_private_key)   # Sign with old key
+transaction.sign(new_private_key)   # Sign with new key
+transaction.execute(client)
 ```
 
 ### Querying Account Balance
