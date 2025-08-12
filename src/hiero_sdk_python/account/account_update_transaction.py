@@ -8,12 +8,13 @@ from typing import Optional
 
 from google.protobuf.wrappers_pb2 import BoolValue, StringValue
 
-from hiero_sdk_python import Duration, Timestamp
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.crypto_update_pb2 import CryptoUpdateTransactionBody
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
