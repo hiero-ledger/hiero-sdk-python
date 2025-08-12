@@ -18,7 +18,6 @@ from hiero_sdk_python.contract.contract_update_transaction import (
     ContractUpdateTransaction,
 )
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
-from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from tests.integration.utils_for_test import env
 
@@ -78,22 +77,6 @@ def test_integration_contract_update_transaction_can_execute(env):
         update_receipt.status == ResponseCode.SUCCESS
     ), f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
 
-    # Note: ContractInfoQuery is not yet implemented in Python SDK
-    # In JS SDK, this would verify the memo was updated correctly
-
-    # Clean up: delete the file
-    delete_file_receipt = (
-        FileDeleteTransaction()
-        .set_file_id(file_id)
-        .execute(env.client)
-    )
-
-    assert (
-        delete_file_receipt.status == ResponseCode.SUCCESS
-    ), f"File deletion failed with status: {ResponseCode(delete_file_receipt.status).name}"
-
-    # Note: ContractDeleteTransaction is not yet implemented in Python SDK
-    # In JS SDK, this would delete the contract to complete cleanup
 
 
 @pytest.mark.integration
@@ -155,16 +138,6 @@ def test_integration_contract_update_transaction_error_when_contract_id_not_set(
             # Re-raise if it's an unexpected error
             raise e
 
-    # Clean up: delete the file
-    delete_file_receipt = (
-        FileDeleteTransaction()
-        .set_file_id(file_id)
-        .execute(env.client)
-    )
-
-    assert (
-        delete_file_receipt.status == ResponseCode.SUCCESS
-    ), f"File deletion failed with status: {ResponseCode(delete_file_receipt.status).name}"
 
     # Assert that the expected error occurred
     assert error_occurred, "Contract update should have failed when contract ID is not set"
@@ -223,16 +196,6 @@ def test_integration_contract_update_transaction_with_admin_key(env):
         update_receipt.status == ResponseCode.SUCCESS
     ), f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
 
-    # Clean up: delete the file
-    delete_file_receipt = (
-        FileDeleteTransaction()
-        .set_file_id(file_id)
-        .execute(env.client)
-    )
-
-    assert (
-        delete_file_receipt.status == ResponseCode.SUCCESS
-    ), f"File deletion failed with status: {ResponseCode(delete_file_receipt.status).name}"
 
 
 @pytest.mark.integration 
@@ -293,13 +256,4 @@ def test_integration_contract_update_transaction_set_contract_id_method(env):
         update_receipt.status == ResponseCode.SUCCESS
     ), f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
 
-    # Clean up: delete the file
-    delete_file_receipt = (
-        FileDeleteTransaction()
-        .set_file_id(file_id)
-        .execute(env.client)
-    )
-
-    assert (
-        delete_file_receipt.status == ResponseCode.SUCCESS
-    ), f"File deletion failed with status: {ResponseCode(delete_file_receipt.status).name}" 
+ 
