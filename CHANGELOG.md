@@ -8,12 +8,23 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+<<<<<<< HEAD
 
 ### Fixed
 - TokenInfo.from_protobuf now fully maps all Hedera token fields (#222)
 
 
 ### Breaking API changes  
+=======
+### Added
+- Legacy ECDSA DER parse support
+- documented private key from_string method behavior
+
+### Fixed
+- missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
+
+### Breaking API changes
+>>>>>>> ce870f6 (fix: ECDSA key integration tests issues (#244))
 **We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
 
 #### In `token_info.py`
