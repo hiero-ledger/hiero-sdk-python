@@ -31,7 +31,6 @@ class ContractUpdateParams:
     contract_id: ContractId
     expiration_time: Timestamp
     admin_key: PublicKey
-    proxy_account_id: AccountId
     auto_renew_period: Duration
     file_id: FileId
     contract_memo: str
@@ -43,7 +42,6 @@ class ContractUpdateParams:
     contract_id: ContractId = None
     expiration_time: Timestamp = None
     admin_key: Optional[PublicKey] = None
-    proxy_account_id: Optional[AccountId] = None
     auto_renew_period: Duration = None
     file_id: Optional[FileId] = None
     contract_memo: Optional[str] = None
@@ -78,7 +76,6 @@ class ContractUpdateTransaction(Transaction):
         self.contract_id: Optional[ContractId] = params.contract_id
         self.expiration_time: Optional[Timestamp] = params.expiration_time
         self.admin_key: Optional[PublicKey] = params.admin_key
-        self.proxy_account_id: Optional[AccountId] = params.proxy_account_id
         self.auto_renew_period: Optional[Duration] = params.auto_renew_period
         self.file_id: Optional[FileId] = params.file_id
         self.contract_memo: Optional[str] = params.contract_memo
@@ -133,13 +130,6 @@ class ContractUpdateTransaction(Transaction):
         self.admin_key = key
         return self
 
-    def set_proxy_account_id(self, proxy_account_id: AccountId) -> "ContractUpdateTransaction":
-        """
-        Sets the proxy account ID for the contract.
-        """
-        self._require_not_frozen()
-        self.proxy_account_id = proxy_account_id
-        return self
     
     def set_auto_renew_period(self, auto_renew_period: Duration) -> "ContractUpdateTransaction":
         """
@@ -223,7 +213,6 @@ class ContractUpdateTransaction(Transaction):
             contractID=self.contract_id._to_proto(),
             expirationTime=self.expiration_time._to_proto() if self.expiration_time else None,
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
-            proxyAccountID=self.proxy_account_id._to_proto() if self.proxy_account_id else None,
             autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None,
             fileID=self.file_id._to_proto() if self.file_id else None,
             contractMemo=self.contract_memo,
