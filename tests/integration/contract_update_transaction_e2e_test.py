@@ -70,7 +70,7 @@ def test_integration_contract_update_transaction_can_execute(env):
     update_receipt = (
         ContractUpdateTransaction()
         .set_contract_id(contract_id)
-        .set_memo("[e2e::ContractUpdateTransaction]")
+        .set_contract_memo("[e2e::ContractUpdateTransaction]")
         .execute(env.client)
     )
 
@@ -141,7 +141,7 @@ def test_integration_contract_update_transaction_error_when_contract_id_not_set(
     try:
         update_receipt = (
             ContractUpdateTransaction()
-            .set_memo("[e2e::ContractUpdateTransaction] should fail")
+            .set_contract_memo("[e2e::ContractUpdateTransaction] should fail")
             .execute(env.client)
         )
         # If we reach here, the transaction didn't fail as expected
@@ -215,7 +215,7 @@ def test_integration_contract_update_transaction_with_admin_key(env):
         ContractUpdateTransaction()
         .set_contract_id(contract_id)
         .set_admin_key(env.operator_key.public_key())
-        .set_memo("[e2e::ContractUpdateTransaction] admin key updated")
+        .set_contract_memo("[e2e::ContractUpdateTransaction] admin key updated")
         .execute(env.client)
     )
 
@@ -285,7 +285,7 @@ def test_integration_contract_update_transaction_set_contract_id_method(env):
     # Execute the update
     update_receipt = (
         update_tx
-        .set_memo("[e2e::ContractUpdateTransaction] set_contract_id method test")
+        .set_contract_memo("[e2e::ContractUpdateTransaction] set_contract_id method test")
         .execute(env.client)
     )
 

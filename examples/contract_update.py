@@ -116,7 +116,7 @@ def update_contract_memo(client, contract_id):
     update_receipt = (
         ContractUpdateTransaction()
         .set_contract_id(contract_id)
-        .set_memo(new_memo)
+        .set_contract_memo(new_memo)
         .execute(client)
     )
 
@@ -139,7 +139,7 @@ def update_contract_admin_key(client, contract_id):
         ContractUpdateTransaction()
         .set_contract_id(contract_id)
         .set_admin_key(client.operator_private_key.public_key())
-        .set_memo("Admin key updated")
+        .set_contract_memo("Admin key updated")
         .execute(client)
     )
 
