@@ -228,11 +228,11 @@ class ContractUpdateTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
-        Returns the method for executing the contract update transaction.
+        Gets the method to execute the contract update transaction.
         Args:
-            channel (_Channel): The channel to use for the transaction.
+            channel (_Channel): The channel containing service stubs.
         Returns:
-            _Method: The method to execute the transaction.
+            _Method: An object containing the transaction function to update contracts.
         """
         return _Method(
             transaction_func=channel.smart_contract.updateContract,
