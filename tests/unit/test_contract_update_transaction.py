@@ -28,7 +28,6 @@ def update_params():
         "contract_id": ContractId(0, 0, 123),
         "memo": "Updated contract memo",
         "admin_key": PrivateKey.generate().public_key(),
-        "proxy_account_id": AccountId(0, 0, 456),
         "auto_renew_period": Duration(7776000),  # 90 days
         "file_id": FileId(0, 0, 789),
         "max_automatic_token_associations": 100,
@@ -48,7 +47,6 @@ class TestContractUpdateTransactionConstructor:
         assert tx.contract_id is None
         assert tx.memo is None
         assert tx.admin_key is None
-        assert tx.proxy_account_id is None
         assert tx.auto_renew_period is None
         assert tx.file_id is None
         assert tx.max_automatic_token_associations is None
@@ -63,7 +61,6 @@ class TestContractUpdateTransactionConstructor:
             contract_id=update_params["contract_id"],
             memo=update_params["memo"],
             admin_key=update_params["admin_key"],
-            proxy_account_id=update_params["proxy_account_id"],
             auto_renew_period=update_params["auto_renew_period"],
             file_id=update_params["file_id"],
             max_automatic_token_associations=update_params["max_automatic_token_associations"],
@@ -78,7 +75,6 @@ class TestContractUpdateTransactionConstructor:
         assert tx.contract_id == update_params["contract_id"]
         assert tx.memo == update_params["memo"]
         assert tx.admin_key == update_params["admin_key"]
-        assert tx.proxy_account_id == update_params["proxy_account_id"]
         assert tx.auto_renew_period == update_params["auto_renew_period"]
         assert tx.file_id == update_params["file_id"]
         assert tx.max_automatic_token_associations == update_params["max_automatic_token_associations"]
@@ -114,15 +110,6 @@ class TestContractUpdateTransactionSetters:
         result = tx.set_admin_key(admin_key)
         
         assert tx.admin_key == admin_key
-        assert result is tx  # Method chaining
-
-    def test_set_proxy_account_id(self):
-        """Test setting proxy account ID."""
-        tx = ContractUpdateTransaction()
-        proxy_account_id = AccountId(0, 0, 456)
-        result = tx.set_proxy_account_id(proxy_account_id)
-        
-        assert tx.proxy_account_id == proxy_account_id
         assert result is tx  # Method chaining
 
     def test_set_auto_renew_period(self):
@@ -190,7 +177,6 @@ class TestContractUpdateTransactionMethodChaining:
             .set_contract_id(update_params["contract_id"])
             .set_memo(update_params["memo"])
             .set_admin_key(update_params["admin_key"])
-            .set_proxy_account_id(update_params["proxy_account_id"])
             .set_auto_renew_period(update_params["auto_renew_period"])
             .set_file_id(update_params["file_id"])
             .set_max_automatic_token_associations(update_params["max_automatic_token_associations"])
@@ -202,7 +188,6 @@ class TestContractUpdateTransactionMethodChaining:
         assert tx.contract_id == update_params["contract_id"]
         assert tx.memo == update_params["memo"]
         assert tx.admin_key == update_params["admin_key"]
-        assert tx.proxy_account_id == update_params["proxy_account_id"]
         assert tx.auto_renew_period == update_params["auto_renew_period"]
         assert tx.file_id == update_params["file_id"]
         assert tx.max_automatic_token_associations == update_params["max_automatic_token_associations"]
@@ -247,7 +232,6 @@ class TestContractUpdateTransactionBuildTransactionBody:
             contract_id=update_params["contract_id"],
             memo=update_params["memo"],
             admin_key=update_params["admin_key"],
-            proxy_account_id=update_params["proxy_account_id"],
             auto_renew_period=update_params["auto_renew_period"],
             file_id=update_params["file_id"],
             max_automatic_token_associations=update_params["max_automatic_token_associations"],
@@ -301,7 +285,6 @@ class TestContractUpdateTransactionMinimalOperations:
         assert tx.contract_id == contract_id
         assert tx.memo == "New memo only"
         assert tx.admin_key is None
-        assert tx.proxy_account_id is None
 
     def test_admin_key_only_update(self, contract_id):
         """Test updating only the admin key field."""
@@ -315,7 +298,6 @@ class TestContractUpdateTransactionMinimalOperations:
         assert tx.contract_id == contract_id
         assert tx.admin_key == new_admin_key
         assert tx.memo is None
-        assert tx.proxy_account_id is None
 
     def test_multiple_field_update(self, contract_id):
         """Test updating multiple fields together."""
