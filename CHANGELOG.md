@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - PendingAirdropId Class
 - PendingAirdropRecord Class
 - TokenCancelAirdropTransaction Class
+- AccountUpdateTransaction class
 
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
