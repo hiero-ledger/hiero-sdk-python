@@ -32,7 +32,7 @@ class ContractUpdateParams:
     proxy_account_id: AccountId
     auto_renew_period: Duration
     file_id: FileId
-    memo: str
+    contract_memo: str
     max_automatic_token_associations: int
     auto_renew_account_id: AccountId
     staked_node_id: int
@@ -44,7 +44,7 @@ class ContractUpdateParams:
     proxy_account_id: Optional[AccountId] = None
     auto_renew_period: Duration = None
     file_id: Optional[FileId] = None
-    memo: Optional[str] = None
+    contract_memo: Optional[str] = None
     max_automatic_token_associations: Optional[int] = None
     auto_renew_account_id: Optional[AccountId] = None
     staked_node_id: Optional[int] = None
@@ -78,7 +78,7 @@ class ContractUpdateTransaction(Transaction):
         self.proxy_account_id: Optional[AccountId] = params.proxy_account_id
         self.auto_renew_period: Optional[Duration] = params.auto_renew_period
         self.file_id: Optional[FileId] = params.file_id
-        self.memo: Optional[str] = params.memo
+        self.contract_memo: Optional[str] = params.contract_memo
         self.max_automatic_token_associations: Optional[int] = (
             params.max_automatic_token_associations
         )
@@ -153,12 +153,12 @@ class ContractUpdateTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_memo(self, memo: str) -> "ContractUpdateTransaction":
+    def set_contract_memo(self, contract_memo: str) -> "ContractUpdateTransaction":
         """
-        Sets the memo for the contract.
+        Sets the contract memo for the contract.
         """
         self._require_not_frozen()
-        self.memo = memo
+        self.contract_memo = contract_memo
         return self
 
     def set_max_automatic_token_associations(self, max_automatic_token_associations: int) -> "ContractUpdateTransaction":
@@ -216,7 +216,7 @@ class ContractUpdateTransaction(Transaction):
             proxyAccountID=self.proxy_account_id._to_proto() if self.proxy_account_id else None,
             autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None,
             fileID=self.file_id._to_proto() if self.file_id else None,
-            memo= None,
+            contractMemo=self.contract_memo,
             
         ))
 
