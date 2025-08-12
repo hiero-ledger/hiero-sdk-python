@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from google.protobuf.wrappers_pb2 import StringValue
+
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hbar import Hbar
@@ -48,6 +50,7 @@ class ContractUpdateParams:
     max_automatic_token_associations: Optional[int] = None
     auto_renew_account_id: Optional[AccountId] = None
     staked_node_id: Optional[int] = None
+    staked_account_id: Optional[AccountId] = None
     decline_reward: Optional[bool] = None
 
 class ContractUpdateTransaction(Transaction):
@@ -84,6 +87,7 @@ class ContractUpdateTransaction(Transaction):
         )
         self.auto_renew_account_id: Optional[AccountId] = params.auto_renew_account_id
         self.staked_node_id: Optional[int] = params.staked_node_id
+        self.staked_account_id = params.staked_account_id
         self.decline_reward: Optional[bool] = params.decline_reward
         self._default_transaction_fee = Hbar(20).to_tinybars()
 
@@ -192,8 +196,14 @@ class ContractUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.decline_reward = decline_reward
         return self
-    
 
+    def set_staked_account_id(self, staked_account_id: AccountId) -> "ContractUpdateTransaction":
+        """
+        Sets the staked account ID for the contract.
+        """
+        self._require_not_frozen()
+        self.staked_account_id = staked_account_id
+        return self
 
     def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
@@ -217,7 +227,12 @@ class ContractUpdateTransaction(Transaction):
             autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None,
             fileID=self.file_id._to_proto() if self.file_id else None,
             contractMemo=self.contract_memo,
-            
+            stakedNodeId=self.staked_node_id,
+            memoWrapper=StringValue(value=self.contract_memo) if self.contract_memo else None,
+            max_automatic_token_associations=self.max_automatic_token_associations,
+            auto_renew_account_id=self.auto_renew_account_id._to_proto() if self.auto_renew_account_id else None,
+            staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None,
+            declineReward=self.decline_reward,
         ))
 
         return transaction_body
