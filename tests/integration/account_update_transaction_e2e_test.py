@@ -4,14 +4,15 @@ Integration tests for the AccountUpdateTransaction class.
 
 import pytest
 
-from hiero_sdk_python import Duration, Timestamp
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from tests.integration.utils_for_test import env
 
 
