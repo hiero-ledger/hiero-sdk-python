@@ -14,6 +14,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractInfo class
 - ContractInfoQuery class
 - ContractID check in PublicKey._from_proto() method
+- ContractExecuteTransaction class
+- setMessageAndPay() function in StatefulContract
 
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
