@@ -53,26 +53,23 @@ class ContractUpdateParams:
 
 class ContractUpdateTransaction(Transaction):
     """
-    Represents a contract update transaction on the network.
+    A transaction that updates a smart contract.
 
-    This transaction updates the metadata and/or properties of a smart contract. If a field is not set
-    in the transaction body, the corresponding contract attribute will be unchanged. This transaction
-    must be signed by the admin key of the contract being updated. If the admin key itself is being updated,
-    then the transaction must also be signed by the new admin key.
+    This transaction can be used to update a smart contract on the network.
+    The contract can be updated from bytecode stored in a file or from
+    bytecode provided directly.
 
-    Inherits from the base Transaction class and implements the required methods
-    to build and execute a contract update transaction.
+    Args:
+        contract_params: Optional[ContractUpdateParams] = None,
     """
     def __init__(
         self,
         contract_params: Optional[ContractUpdateParams] = None,
     ) -> None:
         """
-        Initializes a new ContractUpdateTransaction instance with the specified parameters.
-
+        Initializes a new instance of the ContractUpdateTransaction class.
         Args:
-            contract_params (Optional[ContractUpdateParams], optional): A dataclass containing
-                all the contract update parameters. If None, creates an empty params object.
+            contract_params: Optional[ContractUpdateParams] = None,
         """
         super().__init__()
         params = contract_params or ContractUpdateParams()
@@ -93,13 +90,13 @@ class ContractUpdateTransaction(Transaction):
 
     def set_contract_id(self, contract_id: ContractId) -> "ContractUpdateTransaction":
         """
-        Sets the ID of the contract to be updated.
+        Sets the contract ID for the transaction.
 
         Args:
-            contract_id (ContractId): The ID of the contract to update.
+            contract_id: The contract ID to update.
 
         Returns:
-            ContractUpdateTransaction: This transaction instance.
+            ContractUpdateTransaction: Returns the instance for method chaining.
         """
         self._require_not_frozen()
         self.contract_id = contract_id
@@ -107,13 +104,13 @@ class ContractUpdateTransaction(Transaction):
 
     def set_expiration_time(self, expiration_time: timestamp_pb2.Timestamp) -> "ContractUpdateTransaction":
         """
-        Sets the new expiry time for the contract.
+        Sets the expiration time for the contract.
 
         Args:
-            expiration_time (timestamp_pb2.Timestamp): The new expiration time for the contract.
+            expiration_time: The expiration time to set.
 
         Returns:
-            ContractUpdateTransaction: This transaction instance.
+            ContractUpdateTransaction: Returns the instance for method chaining.
         """
         self._require_not_frozen()
         self.expiration_time = expiration_time
@@ -121,13 +118,13 @@ class ContractUpdateTransaction(Transaction):
 
     def set_admin_key(self, key: basic_types_pb2.Key) -> "ContractUpdateTransaction":
         """
-        Sets the new admin key that can modify or delete the contract.
+        Sets the admin key for the contract.
 
         Args:
-            key (basic_types_pb2.Key): The new admin key to set for the contract.
+            key: The admin key to set.
 
         Returns:
-            ContractUpdateTransaction: This transaction instance.
+            ContractUpdateTransaction: Returns the instance for method chaining.
         """
         self._require_not_frozen()
         self.admin_key = key
@@ -136,13 +133,7 @@ class ContractUpdateTransaction(Transaction):
     
     def set_auto_renew_period(self, auto_renew_period: Duration) -> "ContractUpdateTransaction":
         """
-        Sets the new auto-renew period for the contract.
-
-        Args:
-            auto_renew_period (Duration): The new auto-renew period for the contract.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
+        Sets the auto-renew period for the contract.
         """
         self._require_not_frozen()
         self.auto_renew_period = auto_renew_period
@@ -150,13 +141,7 @@ class ContractUpdateTransaction(Transaction):
     
     def set_file_id(self, file_id: FileId) -> "ContractUpdateTransaction":
         """
-        Sets the file ID containing the new bytecode for the contract.
-
-        Args:
-            file_id (FileId): The ID of the file containing the new contract bytecode.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
+        Sets the file ID for the contract.
         """
         self._require_not_frozen()
         self.file_id = file_id
@@ -164,13 +149,7 @@ class ContractUpdateTransaction(Transaction):
 
     def set_contract_memo(self, contract_memo: str) -> "ContractUpdateTransaction":
         """
-        Sets the new memo to be associated with the contract (UTF-8 encoding max 100 bytes).
-
-        Args:
-            contract_memo (str): The new memo for the contract.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
+        Sets the contract memo for the contract.
         """
         self._require_not_frozen()
         self.contract_memo = contract_memo
@@ -178,13 +157,7 @@ class ContractUpdateTransaction(Transaction):
 
     def set_max_automatic_token_associations(self, max_automatic_token_associations: int) -> "ContractUpdateTransaction":
         """
-        Sets the new maximum number of tokens that this contract can be automatically associated with.
-
-        Args:
-            max_automatic_token_associations (int): The new maximum automatic token associations.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
+        Sets the maximum automatic token associations for the contract.
         """
         self._require_not_frozen()
         self.max_automatic_token_associations = max_automatic_token_associations
@@ -192,13 +165,7 @@ class ContractUpdateTransaction(Transaction):
     
     def set_auto_renew_account_id(self, auto_renew_account_id: AccountId) -> "ContractUpdateTransaction":
         """
-        Sets the new account to charge for auto-renewal of the contract.
-
-        Args:
-            auto_renew_account_id (AccountId): The new auto-renew account ID for the contract.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
+        Sets the auto-renew account ID for the contract.
         """
         self._require_not_frozen()
         self.auto_renew_account_id = auto_renew_account_id
@@ -206,13 +173,7 @@ class ContractUpdateTransaction(Transaction):
 
     def set_staked_node_id(self, staked_node_id: int) -> "ContractUpdateTransaction":
         """
-        Sets the new node ID to which this contract should stake.
-
-        Args:
-            staked_node_id (int): The new staked node ID for the contract.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
+        Sets the staked node ID for the contract.
         """
         self._require_not_frozen()
         self.staked_node_id = staked_node_id
@@ -220,13 +181,7 @@ class ContractUpdateTransaction(Transaction):
 
     def set_decline_reward(self, decline_reward: bool) -> "ContractUpdateTransaction":
         """
-        Sets whether the contract should decline staking rewards.
-
-        Args:
-            decline_reward (bool): True if the contract should decline staking rewards.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
+        Sets the decline reward flag for the contract.
         """
         self._require_not_frozen()
         self.decline_reward = decline_reward
@@ -234,13 +189,7 @@ class ContractUpdateTransaction(Transaction):
 
     def set_staked_account_id(self, staked_account_id: AccountId) -> "ContractUpdateTransaction":
         """
-        Sets the new account ID to which this contract should stake.
-
-        Args:
-            staked_account_id (AccountId): The new staked account ID for the contract.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
+        Sets the staked account ID for the contract.
         """
         self._require_not_frozen()
         self.staked_account_id = staked_account_id
@@ -248,13 +197,13 @@ class ContractUpdateTransaction(Transaction):
 
     def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
-        Builds the transaction body for this contract update transaction.
+        Builds and returns the protobuf transaction body for contract update.
 
         Returns:
-            TransactionBody: The built transaction body.
+            TransactionBody: The protobuf transaction body containing the contract update details.
 
         Raises:
-            ValueError: If contract_id is not set.
+            ValueError: If required fields are missing.
         """
         if self.contract_id is None:
             raise ValueError("Missing required ContractID")
@@ -279,15 +228,10 @@ class ContractUpdateTransaction(Transaction):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the contract update transaction.
-
-        This internal method returns a _Method object containing the appropriate gRPC
-        function to call when executing this transaction on the Hedera network.
-
         Args:
-            channel (_Channel): The channel containing service stubs
-
+            channel (_Channel): The channel containing service stubs.
         Returns:
-            _Method: An object containing the transaction function to update a contract.
+            _Method: An object containing the transaction function to update contracts.
         """
         return _Method(
             transaction_func=channel.smart_contract.updateContract,
