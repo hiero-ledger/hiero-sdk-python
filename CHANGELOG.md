@@ -8,6 +8,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+- PendingAirdropId Class
+- PendingAirdropRecord Class
+- TokenCancelAirdropTransaction Class
+
+### Changed
+- added new_pending_airdrops to TransactionRecord Class
+
 ### Breaking API changes  
 **We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
 
@@ -43,13 +51,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
 - get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
 
-### Added
-- PendingAirdropId Class
-- PendingAirdropRecord Class
-- TokenCancelAirdropTransaction Class
-
-### Changed
-- added new_pending_airdrops to TransactionRecord Class
 
 ## [0.1.3] - 2025-07-03
 ### Added
