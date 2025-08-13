@@ -19,9 +19,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 - Legacy ECDSA DER parse support
 - documented private key from_string method behavior
+- ContractInfo class
+- ContractInfoQuery class
+- ContractID check in PublicKey._from_proto() method
 
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
+
+### Changed
+- SimpleContract and StatefulContract constructors to be payable
 
 ### Breaking API changes
 >>>>>>> ce870f6 (fix: ECDSA key integration tests issues (#244))

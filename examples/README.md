@@ -55,6 +55,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [Contract Transactions](#contract-transactions)
   - [Creating a Contract](#creating-a-contract)
   - [Querying a Contract Call](#querying-a-contract-call)
+  - [Querying Contract Info](#querying-contract-info)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1225,6 +1226,25 @@ print(f"Owner: {result_values[1]}")
 # - result.get_address(1)   // second return value
 # - result.get_uint256(2)   // third return value
 # - result.get_bool(3)      // fourth return value
+```
+
+### Querying Contract Info
+
+#### Pythonic Syntax:
+```
+contract_info_query = ContractInfoQuery(contract_id=contract_id)
+contract_info = contract_info_query.execute(client)
+print(contract_info)
+```
+
+#### Method Chaining:
+```
+contract_info = (
+    ContractInfoQuery()
+    .set_contract_id(contract_id)
+    .execute(client)
+)
+print(contract_info)
 ```
 
 ## Miscellaneous Queries
