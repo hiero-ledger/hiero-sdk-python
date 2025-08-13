@@ -54,7 +54,7 @@ def test_constructor_no_parameters():
     tx = ContractUpdateTransaction()
     
     assert tx.contract_id is None
-    assert tx.memo is None
+    assert tx.contract_memo is None
     assert tx.admin_key is None
     assert tx.auto_renew_period is None
     assert tx.file_id is None
@@ -69,7 +69,7 @@ def test_constructor_with_parameters(update_params):
     """Test creating a contract update transaction with constructor parameters."""
     constructor_params = ContractUpdateParams(
         contract_id=update_params["contract_id"],
-        memo=update_params["memo"],
+        contract_memo=update_params["memo"],
         admin_key=update_params["admin_key"],
         auto_renew_period=update_params["auto_renew_period"],
         file_id=update_params["file_id"],
@@ -83,7 +83,7 @@ def test_constructor_with_parameters(update_params):
     )
 
     assert tx.contract_id == update_params["contract_id"]
-    assert tx.memo == update_params["memo"]
+    assert tx.contract_memo == update_params["memo"]
     assert tx.admin_key == update_params["admin_key"]
     assert tx.auto_renew_period == update_params["auto_renew_period"]
     assert tx.file_id == update_params["file_id"]
@@ -108,9 +108,9 @@ def test_set_memo():
     """Test setting memo."""
     tx = ContractUpdateTransaction()
     memo = "Test contract memo"
-    result = tx.set_memo(memo)
+    result = tx.set_contract_memo(memo)
     
-    assert tx.memo == memo
+    assert tx.contract_memo == memo
     assert result is tx  # Method chaining
 
 
@@ -191,7 +191,7 @@ def test_method_chaining(update_params):
     tx = (
         ContractUpdateTransaction()
         .set_contract_id(update_params["contract_id"])
-        .set_memo(update_params["memo"])
+        .set_contract_memo(update_params["memo"])
         .set_admin_key(update_params["admin_key"])
         .set_auto_renew_period(update_params["auto_renew_period"])
         .set_file_id(update_params["file_id"])
@@ -202,7 +202,7 @@ def test_method_chaining(update_params):
     )
 
     assert tx.contract_id == update_params["contract_id"]
-    assert tx.memo == update_params["memo"]
+    assert tx.contract_memo == update_params["memo"]
     assert tx.admin_key == update_params["admin_key"]
     assert tx.auto_renew_period == update_params["auto_renew_period"]
     assert tx.file_id == update_params["file_id"]
@@ -220,7 +220,7 @@ def test_build_transaction_body_success(contract_id, mock_account_ids, transacti
     
     tx = ContractUpdateTransaction()
     tx.set_contract_id(contract_id)
-    tx.set_memo("Test memo")
+    tx.set_contract_memo("Test memo")
     tx.transaction_id = transaction_id
     tx.node_account_id = node_account_id
     
@@ -234,7 +234,7 @@ def test_build_transaction_body_success(contract_id, mock_account_ids, transacti
 def test_build_transaction_body_missing_contract_id():
     """Test building transaction body without contract ID raises ValueError."""
     tx = ContractUpdateTransaction()
-    tx.set_memo("Test memo")
+    tx.set_contract_memo("Test memo")
     
     with pytest.raises(ValueError, match="Missing required ContractID"):
         tx.build_transaction_body()
@@ -244,9 +244,10 @@ def test_build_transaction_body_with_all_parameters(update_params, mock_account_
     """Test building transaction body with all parameters set."""
     _, _, node_account_id, _, _ = mock_account_ids
     
+    # Create transaction with basic parameters to avoid protobuf constructor issues
     constructor_params = ContractUpdateParams(
         contract_id=update_params["contract_id"],
-        memo=update_params["memo"],
+        contract_memo=update_params["memo"],
         admin_key=update_params["admin_key"],
         auto_renew_period=update_params["auto_renew_period"],
         file_id=update_params["file_id"],
@@ -280,12 +281,12 @@ def test_transaction_immutability_concept(contract_id):
     tx.set_contract_id(contract_id)
     
     # Verify transaction can be created and modified normally
-    tx.set_memo("Initial memo")
-    assert tx.memo == "Initial memo"
+    tx.set_contract_memo("Initial memo")
+    assert tx.contract_memo == "Initial memo"
     
     # Verify we can change memo again (since it's not frozen)
-    tx.set_memo("Updated memo")
-    assert tx.memo == "Updated memo"
+    tx.set_contract_memo("Updated memo")
+    assert tx.contract_memo == "Updated memo"
 
 
 ########### Minimal Operations Tests ###########
@@ -295,11 +296,11 @@ def test_memo_only_update(contract_id):
     tx = (
         ContractUpdateTransaction()
         .set_contract_id(contract_id)
-        .set_memo("New memo only")
+        .set_contract_memo("New memo only")
     )
     
     assert tx.contract_id == contract_id
-    assert tx.memo == "New memo only"
+    assert tx.contract_memo == "New memo only"
     assert tx.admin_key is None
 
 
@@ -313,8 +314,8 @@ def test_admin_key_only_update(contract_id):
     )
     
     assert tx.contract_id == contract_id
-    assert tx.admin_key == new_admin_key
-    assert tx.memo is None
+    assert tx.admin_key.to_string() == new_admin_key.to_string()
+    assert tx.contract_memo is None
 
 
 def test_multiple_field_update(contract_id):
@@ -327,13 +328,13 @@ def test_multiple_field_update(contract_id):
         ContractUpdateTransaction()
         .set_contract_id(contract_id)
         .set_admin_key(new_admin_key)
-        .set_memo(new_memo)
+        .set_contract_memo(new_memo)
         .set_max_automatic_token_associations(new_max_associations)
     )
     
     assert tx.contract_id == contract_id
     assert tx.admin_key == new_admin_key
-    assert tx.memo == new_memo
+    assert tx.contract_memo == new_memo
     assert tx.max_automatic_token_associations == new_max_associations
 
 
@@ -344,10 +345,10 @@ def test_empty_memo(contract_id):
     tx = (
         ContractUpdateTransaction()
         .set_contract_id(contract_id)
-        .set_memo("")
+        .set_contract_memo("")
     )
     
-    assert tx.memo == ""
+    assert tx.contract_memo == ""
 
 
 def test_very_long_memo(contract_id):
@@ -356,10 +357,10 @@ def test_very_long_memo(contract_id):
     tx = (
         ContractUpdateTransaction()
         .set_contract_id(contract_id)
-        .set_memo(long_memo)
+        .set_contract_memo(long_memo)
     )
     
-    assert tx.memo == long_memo
+    assert tx.contract_memo == long_memo
 
 
 def test_zero_max_automatic_token_associations(contract_id):
