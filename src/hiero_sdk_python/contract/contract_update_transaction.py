@@ -215,13 +215,12 @@ class ContractUpdateTransaction(Transaction):
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
             autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None,
             fileID=self.file_id._to_proto() if self.file_id else None,
-            contractMemo=self.contract_memo,
-            stakedNodeId=self.staked_node_id,
+            staked_node_id=self.staked_node_id,
             memoWrapper=StringValue(value=self.contract_memo) if self.contract_memo else None,
             max_automatic_token_associations=self.max_automatic_token_associations,
             auto_renew_account_id=self.auto_renew_account_id._to_proto() if self.auto_renew_account_id else None,
             staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None,
-            declineReward=self.decline_reward,
+            decline_reward=self.decline_reward,
         ))
 
         return transaction_body
