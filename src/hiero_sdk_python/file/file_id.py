@@ -30,7 +30,7 @@ class FileId:
             realm=file_id_proto.realmNum,
             file=file_id_proto.fileNum
         )
-    
+
     def _to_proto(self) -> basic_types_pb2.FileID:
         """
         Converts the FileId instance to a protobuf FileID object.

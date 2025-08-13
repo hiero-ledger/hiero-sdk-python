@@ -1,9 +1,15 @@
+"""This module handles private key operations for ECDSA and Ed25519."""
 import warnings
 from typing import Optional, Union
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519, ec
+from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.utils.crypto_utils import keccak256
+
+_LEGACY_ECDSA_PRIVATE_KEY_PREFIX = "3030020100300706052b8104000a04220420"
+
 
 class PrivateKey:
     """
@@ -13,13 +19,15 @@ class PrivateKey:
     """
 
     def __init__(
-        self, 
+        self,
         private_key: Union[ec.EllipticCurvePrivateKey, ed25519.Ed25519PrivateKey]
     ) -> None:
         """
         Initializes a PrivateKey from a cryptography PrivateKey object.
         """
-        self._private_key: Union[ec.EllipticCurvePrivateKey, ed25519.Ed25519PrivateKey] = private_key
+        self._private_key: Union[
+            ec.EllipticCurvePrivateKey, ed25519.Ed25519PrivateKey
+        ] = private_key
 
     #
     # ---------------------------------
@@ -37,14 +45,17 @@ class PrivateKey:
         - Calls from_bytes to interpret raw or DER.
 
         Raises ValueError if the hex is invalid or the bytes are not a valid key.
+
+        NOTE: For 32-byte raw keys, this method defaults to Ed25519.
+        For explicit control, use from_string_ed25519(), from_string_ecdsa(),
+        or from_string_der() instead of this generic method.
         """
         key_str = key_str.removeprefix("0x")
 
         try:
             key_bytes = bytes.fromhex(key_str)
-        except ValueError:
-            raise ValueError(f"Invalid hex string for private key: {key_str}")
-
+        except ValueError as exc:
+            raise ValueError(f"Invalid hex string for private key: {key_str}") from exc
         return cls.from_bytes(key_bytes)
 
     @classmethod
@@ -56,8 +67,8 @@ class PrivateKey:
         hex_str = hex_str.removeprefix("0x")
         try:
             key_bytes = bytes.fromhex(hex_str)
-        except ValueError:
-            raise ValueError(f"Invalid hex string for Ed25519 private key: {hex_str}")
+        except ValueError as exc:
+            raise ValueError(f"Invalid hex string for Ed25519 private key: {hex_str}") from exc
         return cls.from_bytes_ed25519(key_bytes)
 
     @classmethod
@@ -69,8 +80,8 @@ class PrivateKey:
         hex_str = hex_str.removeprefix("0x")
         try:
             key_bytes = bytes.fromhex(hex_str)
-        except ValueError:
-            raise ValueError(f"Invalid hex string for ECDSA private key: {hex_str}")
+        except ValueError as exc:
+            raise ValueError(f"Invalid hex string for ECDSA private key: {hex_str}") from exc
         return cls.from_bytes_ecdsa(key_bytes)
 
     @classmethod
@@ -82,15 +93,15 @@ class PrivateKey:
         hex_str = hex_str.removeprefix("0x")
         try:
             der_data = bytes.fromhex(hex_str)
-        except ValueError:
-            raise ValueError(f"Invalid hex string for DER private key: {hex_str}")
+        except ValueError as exc:
+            raise ValueError(f"Invalid hex string for DER private key: {hex_str}") from exc
         return cls.from_der(der_data)
-    
+
     #
     # ---------------------------------
     # Generation
     # ---------------------------------
-    #    
+    #
 
     @classmethod
     def generate(cls, key_type: str = "ed25519") -> "PrivateKey":
@@ -99,10 +110,9 @@ class PrivateKey:
         """
         if key_type.lower() == "ed25519":
             return cls.generate_ed25519()
-        elif key_type.lower() == "ecdsa":
+        if key_type.lower() == "ecdsa":
             return cls.generate_ecdsa()
-        else:
-            raise ValueError("Invalid key_type. Use 'ed25519' or 'ecdsa'.")
+        raise ValueError("Invalid key_type. Use 'ed25519' or 'ecdsa'.")
 
     @classmethod
     def generate_ed25519(cls) -> "PrivateKey":
@@ -157,7 +167,9 @@ class PrivateKey:
             return cls(der_key)
 
         # If all attempts failed, raise an error
-        raise ValueError("Failed to load private key from bytes (not Ed25519 seed, ECDSA scalar, or valid DER).")
+        raise ValueError(
+            "Failed to load private key from bytes (not Ed25519 seed, ECDSA scalar, or valid DER)."
+        )
 
     @staticmethod
     def _try_load_ed25519(key_bytes: bytes) -> Optional[ed25519.Ed25519PrivateKey]:
@@ -185,11 +197,19 @@ class PrivateKey:
             return None
 
     @staticmethod
-    def _try_load_der(key_bytes: bytes) -> Optional[Union[ed25519.Ed25519PrivateKey, ec.EllipticCurvePrivateKey]]:
+    def _try_load_der(key_bytes: bytes) -> Optional[Union[
+        ed25519.Ed25519PrivateKey, ec.EllipticCurvePrivateKey
+    ]]:
         """
         Attempt to parse the bytes as a DER-encoded private key.
         Auto-detect Ed25519 vs. ECDSA(secp256k1). Return None on failure.
         """
+        # Try to parse the key as a legacy ECDSA key first
+        try:
+            return PrivateKey._parse_legacy_ecdsa_der_key(key_bytes)
+        except Exception:
+            pass
+
         try:
             private_key = serialization.load_der_private_key(key_bytes, password=None)
             # Check Ed25519
@@ -213,7 +233,7 @@ class PrivateKey:
         try:
             return cls(ed25519.Ed25519PrivateKey.from_private_bytes(seed_32))
         except Exception as e:
-            raise ValueError(f"Could not load Ed25519 private key from seed: {e}")
+            raise ValueError(f"Could not load Ed25519 private key from seed: {e}") from e
 
     @classmethod
     def from_bytes_ecdsa(cls, scalar_32: bytes) -> "PrivateKey":
@@ -230,7 +250,7 @@ class PrivateKey:
             ec_priv = ec.derive_private_key(private_int, ec.SECP256K1())
             return cls(ec_priv)
         except Exception as e:
-            raise ValueError(f"Could not load ECDSA private key from scalar: {e}")
+            raise ValueError(f"Could not load ECDSA private key from scalar: {e}") from e
 
     @classmethod
     def from_der(cls, der_data: bytes) -> "PrivateKey":
@@ -238,10 +258,17 @@ class PrivateKey:
         Interpret bytes as a DER-encoded private key.
         Auto-detect Ed25519 vs. ECDSA(secp256k1).
         """
+        # Try to parse the key as a legacy ECDSA key first
+        try:
+            private_key = PrivateKey._parse_legacy_ecdsa_der_key(der_data)
+            return cls(private_key)
+        except Exception:
+            pass
+
         try:
             private_key = serialization.load_der_private_key(der_data, password=None)
         except Exception as e:
-            raise ValueError(f"Could not parse DER private key: {e}")
+            raise ValueError(f"Could not parse DER private key: {e}") from e
 
         if isinstance(private_key, ed25519.Ed25519PrivateKey):
             return cls(private_key)
@@ -268,9 +295,12 @@ class PrivateKey:
         if isinstance(self._private_key, ed25519.Ed25519PrivateKey):
             # Ed25519 automatically handles the hashing internally
             return self._private_key.sign(data)
-        else:
-            # ECDSA requires specifying a hash algorithm
-            return self._private_key.sign(data, ec.ECDSA(hashes.SHA256()))
+        
+        data_hash = keccak256(data)
+        signature_der = self._private_key.sign(data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
+        r, s = asym_utils.decode_dss_signature(signature_der)
+        signature = r.to_bytes(32, "big") + s.to_bytes(32, "big")
+        return signature
 
     def public_key(self) -> PublicKey:
         """
@@ -278,7 +308,7 @@ class PrivateKey:
         """
         return PublicKey(self._private_key.public_key())
 
- 
+
     #
     # ---------------------------------
     # Serialization
@@ -291,10 +321,9 @@ class PrivateKey:
         """
         if self.is_ed25519():
             return self.to_bytes_ed25519_raw()
-        elif self.is_ecdsa():
+        if self.is_ecdsa():
             return self.to_bytes_ecdsa_raw()
-        else:
-            raise ValueError("Unknown key type; cannot extract raw bytes.")
+        raise ValueError("Unknown key type; cannot extract raw bytes.")
 
     def to_bytes_ed25519_raw(self) -> bytes:
         """
@@ -329,12 +358,11 @@ class PrivateKey:
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
             )
-        else:
-            # ECDSA can be exported in Traditional OpenSSL or PKCS#8
-            return self._private_key.private_bytes(
-                encoding=serialization.Encoding.DER,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption()
+        # ECDSA can be exported in Traditional OpenSSL or PKCS#8
+        return self._private_key.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
             )
 
     def to_string_raw(self) -> str:
@@ -354,7 +382,7 @@ class PrivateKey:
         Returns the ECDSA private key as a hex string (raw).
         """
         return self.to_bytes_ecdsa_raw().hex()
-        
+
     def to_string_der(self) -> str:
         """
         Returns the DER-encoded private key as a hex string.
@@ -372,7 +400,7 @@ class PrivateKey:
     # is_ed25519 / is_ecdsa checks
     # ---------------------------------
     #
-    
+
     def is_ed25519(self) -> bool:
         """
         Check if this private key is Ed25519.
@@ -391,3 +419,53 @@ class PrivateKey:
         if self.is_ed25519():
             return f"<PrivateKey (Ed25519) hex={self.to_string_raw()}>"
         return f"<PrivateKey (ECDSA) hex={self.to_string_raw()}>"
+
+    #
+    # ---------------------------------
+    # Helper methods
+    # ---------------------------------
+    #
+    @staticmethod
+    def _parse_legacy_ecdsa_der_key(key_bytes: bytes) -> "ec.EllipticCurvePrivateKey":
+        """
+        Parse a legacy ECDSA private key from DER-encoded bytes.
+
+        Legacy keys have a specific prefix that needs to be removed before parsing.
+
+        Args:
+            key_bytes: DER-encoded bytes containing the legacy ECDSA private key
+
+        Returns:
+            EllipticCurvePrivateKey: The parsed ECDSA private key
+
+        Raises:
+            ValueError: If the key format is invalid or parsing fails
+        """
+        if not key_bytes.hex().startswith(_LEGACY_ECDSA_PRIVATE_KEY_PREFIX):
+            raise ValueError("Missing legacy ECDSA prefix")
+
+        # Remove the legacy prefix
+        hex_without_prefix = key_bytes.hex().removeprefix(
+            _LEGACY_ECDSA_PRIVATE_KEY_PREFIX
+        )
+
+        try:
+            raw_key_bytes = bytes.fromhex(hex_without_prefix)
+        except ValueError as exc:
+            raise ValueError("Invalid hex data after prefix removal") from exc
+
+        # ECDSA private keys must be exactly 32 bytes
+        if len(raw_key_bytes) != 32:
+            raise ValueError(
+                f"Invalid key length: {len(raw_key_bytes)} bytes (expected 32)"
+            )
+
+        private_int = int.from_bytes(raw_key_bytes, "big")
+
+        if private_int == 0:
+            raise ValueError("ECDSA private key scalar cannot be zero")
+
+        try:
+            return ec.derive_private_key(private_int, ec.SECP256K1())
+        except Exception as exc:
+            raise ValueError(f"Failed to derive ECDSA private key: {exc}") from exc

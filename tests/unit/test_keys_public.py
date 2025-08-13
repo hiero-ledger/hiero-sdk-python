@@ -2,9 +2,11 @@ import pytest
 import warnings
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519
 from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.utils.crypto_utils import keccak256
 
 pytestmark = pytest.mark.unit
 
@@ -529,7 +531,8 @@ def test_verify_ecdsa_success(ecdsa_keypair):
     pk = PublicKey(pub)
 
     msg = b"some message"
-    signature = priv.sign(msg, ec.ECDSA(hashes.SHA256()))
+    msg_hash = keccak256(msg)
+    signature = priv.sign(msg_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
     # If the signature is correct, verify() returns None and raises no error.
     pk.verify(signature, msg)
 

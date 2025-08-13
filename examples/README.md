@@ -49,6 +49,14 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Topic Message](#querying-topic-message)
 - [File Transactions](#file-transactions)
   - [Creating a File](#creating-a-file)
+  - [Querying File Info](#querying-file-info)
+  - [Querying File Contents](#querying-file-contents)
+  - [Updating a File](#updating-a-file)
+  - [Deleting a File](#deleting-a-file)
+- [Contract Transactions](#contract-transactions)
+  - [Creating a Contract](#creating-a-contract)
+  - [Querying a Contract Call](#querying-a-contract-call)
+  - [Querying Contract Info](#querying-contract-info)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -184,8 +192,8 @@ transaction = TokenMintTransaction(
     amount=amount,  # lowest denomination, must be positive and not zero
 ).freeze_with(client)
 
-transaction.sign(operator_key)  
-transaction.sign(supply_key)  
+transaction.sign(operator_key)
+transaction.sign(supply_key)
 transaction.execute(client)
 ```
 #### Method Chaining:
@@ -196,8 +204,8 @@ transaction = (
     .set_amount(amount) # lowest denomination, must be positive and not zero
     .freeze_with(client)
 )
-transaction.sign(operator_key)  
-transaction.sign(admin_key)  
+transaction.sign(operator_key)
+transaction.sign(admin_key)
 transaction.execute(client)
 ```
 
@@ -210,8 +218,8 @@ transaction = TokenMintTransaction(
     metadata=metadata  # Bytes for non-fungible tokens (NFTs)
 ).freeze_with(client)
 
-transaction.sign(operator_key)  
-transaction.sign(supply_key)  
+transaction.sign(operator_key)
+transaction.sign(supply_key)
 transaction.execute(client)
 ```
 #### Method Chaining:
@@ -222,8 +230,8 @@ transaction = (
     .set_metadata(metadata)  # Bytes for non-fungible tokens (NFTs)
     .freeze_with(client)
 )
-transaction.sign(operator_key)  
-transaction.sign(admin_key)  
+transaction.sign(operator_key)
+transaction.sign(admin_key)
 transaction.execute(client)
 ```
 
@@ -284,8 +292,8 @@ transaction = (
 transaction = TransferTransaction(
     token_transfers={
         token_id: {
-            operator_id: -amount,  
-            recipient_id: amount   
+            operator_id: -amount,
+            recipient_id: amount
         }
     }
 ).freeze_with(client)
@@ -558,7 +566,7 @@ transaction.execute(client)
     transaction = (
         TokenUpdateNftsTransaction()
         .set_token_id(nft_token_id)
-        .set_serial_numbers(serial_numbers) 
+        .set_serial_numbers(serial_numbers)
         .set_metadata(new_metadata)
         .freeze_with(client)
         .sign(metadata_key)
@@ -626,7 +634,7 @@ transaction = TokenUpdateTransaction(
     token_id=token_id,
     token_params=TokenUpdateParams(
         token_name="UpdateToken",
-        token_symbol="UPD", 
+        token_symbol="UPD",
         token_memo="Updated memo",
         metadata="Updated metadata",
         treasury_account_id=new_account_id
@@ -773,7 +781,7 @@ transaction.execute(client)
     transaction = (
         TransferTransaction()
         .add_hbar_transfer(operator_id, -100000000)  # send 1 HBAR (in tinybars)
-        .add_hbar_transfer(recipient_id, 100000000)  
+        .add_hbar_transfer(recipient_id, 100000000)
         .freeze_with(client)
     )
 
@@ -798,7 +806,7 @@ transaction.execute(client)
     transaction.execute(client)
 ```
 #### Method Chaining:
-``` 
+```
 transaction = (
     TopicCreateTransaction()
     .set_memo("My Super Topic Memo")
@@ -926,10 +934,10 @@ query.subscribe(client)
 ```
 query = (
     TopicMessageQuery()
-    .set_topic_id(topic_id) 
-    .set_start_time(datetime.now(timezone.utc)) 
-    .set_chunking_enabled(True) 
-    .set_limit(0) 
+    .set_topic_id(topic_id)
+    .set_start_time(datetime.now(timezone.utc))
+    .set_chunking_enabled(True)
+    .set_limit(0)
     )
 
 query.subscribe(client)
@@ -963,6 +971,306 @@ transaction.execute(client)
     )
 
     transaction.execute(client)
+
+```
+
+### Querying File Info
+
+#### Pythonic Syntax:
+```
+file_info_query = FileInfoQuery(file_id=file_id)
+file_info = file_info_query.execute(client)
+print(file_info)
+```
+
+#### Method Chaining:
+```
+file_info = (
+    FileInfoQuery()
+    .set_file_id(file_id)
+    .execute(client)
+)
+print(file_info)
+
+```
+
+### Querying File Contents
+
+#### Pythonic Syntax:
+```
+file_contents_query = FileContentsQuery(file_id=file_id)
+file_contents = file_contents_query.execute(client)
+print(str(file_contents)) # decode bytes to string
+```
+
+#### Method Chaining:
+```
+file_contents = (
+    FileContentsQuery()
+    .set_file_id(file_id)
+    .execute(client)
+)
+print(str(file_contents)) # decode bytes to string
+
+```
+
+### Updating a File
+
+#### Pythonic Syntax:
+```
+transaction = FileUpdateTransaction(
+    file_id=file_id,
+    keys=[new_file_public_key],
+    contents=b"New File Contents",
+    file_memo="Updated file memo"
+).freeze_with(client)
+
+transaction.sign(current_file_private_key)
+transaction.sign(new_file_private_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+    transaction = (
+        FileUpdateTransaction()
+        .set_file_id(file_id)
+        .set_keys([new_file_public_key])
+        .set_contents(b"New File Contents")
+        .set_file_memo("Updated file memo")
+        .freeze_with(client)
+        .sign(current_file_private_key)
+        .sign(new_file_private_key)
+    )
+
+    transaction.execute(client)
+
+```
+
+### Deleting a File
+
+#### Pythonic Syntax:
+```
+transaction = FileDeleteTransaction(
+    file_id=file_id
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+    transaction = (
+        FileDeleteTransaction()
+        .set_file_id(file_id)
+        .freeze_with(client)
+    )
+
+    transaction.sign(operator_key)
+    transaction.execute(client)
+
+```
+
+
+## Contract Transactions
+
+### Creating a Contract
+
+#### Pythonic Syntax:
+```
+# First, create a file with the contract bytecode
+transaction = FileCreateTransaction(
+    keys=[operator_key.public_key()],
+    contents=contract_bytecode,
+    file_memo="Contract bytecode file"
+).freeze_with(client)
+
+transaction.sign(operator_key)
+file_receipt = transaction.execute(client)
+
+file_id = file_receipt.file_id
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode from file
+transaction = ContractCreateTransaction(
+    contract_params=ContractCreateParams(
+        bytecode_file_id=file_id,
+        gas=200000,
+        admin_key=admin_key,
+        initial_balance=100000000,  # 1 HBAR in tinybars
+        parameters=constructor_params.to_bytes(),
+        contract_memo="My first smart contract"
+    )
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+# First, create a file with the contract bytecode
+file_receipt = (
+    FileCreateTransaction()
+    .set_keys(operator_key.public_key())
+    .set_contents(contract_bytecode)
+    .set_file_memo("Contract bytecode file")
+    .freeze_with(client)
+    .sign(operator_key)
+    .execute(client)
+)
+
+file_id = file_receipt.file_id
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode from file
+transaction = (
+    ContractCreateTransaction()
+    .set_bytecode_file_id(file_id)
+    .set_gas(200000)
+    .set_admin_key(admin_key)
+    .set_initial_balance(100000000)  # 1 HBAR in tinybars
+    .set_constructor_parameters(constructor_params)
+    .set_contract_memo("My first smart contract")
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
+```
+
+#### Creating a Contract with Direct Bytecode:
+```
+##### Convert hex bytecode to bytes
+bytecode = bytes.fromhex(contract_bytecode_hex)
+
+# Create constructor parameters if needed
+constructor_params = ContractFunctionParameters().add_string("Hello, World!")
+
+# Create the contract using bytecode directly
+transaction = (
+    ContractCreateTransaction()
+    .set_bytecode(bytecode)
+    .set_gas(200000)
+    .set_admin_key(admin_key)
+    .set_initial_balance(100000000)  # 1 HBAR in tinybars
+    .set_constructor_parameters(constructor_params)
+    .set_contract_memo("My first smart contract")
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.sign(admin_key)
+transaction.execute(client)
+```
+
+### Querying a Contract Call
+
+#### Pythonic Syntax:
+```
+# Query a contract function that returns value(s)
+# Example: calling getMessageAndOwner() (StatefulContract.sol) which returns (bytes32 message, address owner)
+result = ContractCallQuery(
+    contract_id=contract_id,
+    gas=2000000,
+    function_parameters=ContractFunctionParameters("getMessageAndOwner").to_bytes()  # Function name to call
+).execute(client)
+
+# Extract return values by their position in the Solidity return statement
+# getMessageAndOwner() returns (bytes32, address), so:
+# - index 0: bytes32 message
+# - index 1: address owner
+message = result.get_bytes32(0)
+owner_address = result.get_address(1)
+
+print(f"Message: {message}")
+print(f"Owner: {owner_address}")
+
+# Alternative way using get_result with type specifications
+result_values = result.get_result(["bytes32", "address"])
+print(f"Message: {result_values[0]}")
+print(f"Owner: {result_values[1]}")
+```
+
+#### Method Chaining:
+```
+# Query a contract function using method chaining
+# Example: calling getMessageAndOwner() (StatefulContract.sol) which returns (bytes32 message, address owner)
+result = (
+    ContractCallQuery()
+    .set_contract_id(contract_id)
+    .set_gas(2000000)
+    .set_function("getMessageAndOwner")  # Function name to call
+    .execute(client)
+)
+
+# Alternatively, you can use set_function_parameters() with ContractFunctionParameters:
+result = (
+    ContractCallQuery()
+    .set_contract_id(contract_id)
+    .set_gas(2000000)
+    .set_function_parameters(ContractFunctionParameters("getMessageAndOwner"))
+    .execute(client)
+)
+
+
+# Extract return values by their position in the Solidity return statement
+# getMessageAndOwner() returns (bytes32, address), so:
+# - index 0: bytes32 message
+# - index 1: address owner
+message = result.get_bytes32(0)
+owner_address = result.get_address(1)
+
+print(f"Message: {message}")
+print(f"Owner: {owner_address}")
+
+# Alternative way using get_result with type specifications
+result_values = result.get_result(["bytes32", "address"])
+print(f"Message: {result_values[0]}")
+print(f"Owner: {result_values[1]}")
+
+# For different Solidity return types, use these methods:
+#
+# String values:     result.get_string(0)
+# Address values:    result.get_address(1)
+# Number values:     result.get_uint256(2)
+# Boolean values:    result.get_bool(3)
+# Bytes32 values:    result.get_bytes32(4)
+# Bytes values:      result.get_bytes(5)
+#
+# Note: The index number matches the position in your Solidity return statement
+# Example: function getData() returns (string, address, uint256, bool)
+# - result.get_string(0)    // first return value
+# - result.get_address(1)   // second return value
+# - result.get_uint256(2)   // third return value
+# - result.get_bool(3)      // fourth return value
+```
+
+### Querying Contract Info
+
+#### Pythonic Syntax:
+```
+contract_info_query = ContractInfoQuery(contract_id=contract_id)
+contract_info = contract_info_query.execute(client)
+print(contract_info)
+```
+
+#### Method Chaining:
+```
+contract_info = (
+    ContractInfoQuery()
+    .set_contract_id(contract_id)
+    .execute(client)
+)
+print(contract_info)
+```
 
 ## Miscellaneous Queries
 

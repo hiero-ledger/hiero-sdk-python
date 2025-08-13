@@ -9,14 +9,23 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Legacy ECDSA DER parse support
+- documented private key from_string method behavior
+- ContractInfo class
+- ContractInfoQuery class
+- ContractID check in PublicKey._from_proto() method
 - PendingAirdropId Class
 - PendingAirdropRecord Class
 - TokenCancelAirdropTransaction Class
 
+### Fixed
+- missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
+
 ### Changed
+- SimpleContract and StatefulContract constructors to be payable
 - added new_pending_airdrops to TransactionRecord Class
 
-### Breaking API changes  
+### Breaking API changes
 **We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
 
 #### In `token_info.py`

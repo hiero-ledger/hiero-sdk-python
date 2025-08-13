@@ -31,7 +31,7 @@ jobs:
       statuses: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
         with:
           egress-policy: audit
 
@@ -39,3 +39,59 @@ jobs:
         uses: step-security/conventional-pr-title-action@8a8989588c2547f23167c4c42f0fb2356479e81b # v3.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  changelog-check:
+    name: Changelog Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Validate CHANGELOG.md has changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" != "pull_request_target" && "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "Not a pull request event. Skipping."
+            exit 0
+          fi
+
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          if [[ -z "${PR_NUMBER}" ]]; then
+            echo "Unable to determine PR number."
+            exit 1
+          fi
+
+          echo "Checking files changed in PR #${PR_NUMBER}..."
+
+          # List files in the PR and check for CHANGELOG.md (root or any path ending with /CHANGELOG.md)
+          FILES_JSON="$(gh api repos/${{ github.repository }}/pulls/${PR_NUMBER}/files --paginate)"
+          if ! echo "${FILES_JSON}" | jq -e '.[] | select(.filename | test("(^|/)CHANGELOG\\.md$"; "i"))' >/dev/null; then
+            echo "FAIL: CHANGELOG.md was not changed in this PR."
+            exit 1
+          fi
+
+          # Ensure there is at least one line-level change (+ or -) in the patch for CHANGELOG.md
+          PATCH_CONTENT="$(echo "${FILES_JSON}" \
+            | jq -r '.[] | select(.filename | test("(^|/)CHANGELOG\\.md$"; "i")) | .patch // empty')"
+
+          # If no patch is returned (very large file or API omission), treat presence as sufficient
+          if [[ -z "${PATCH_CONTENT}" ]]; then
+            echo "CHANGELOG.md modified (no patch provided by API). Passing."
+            exit 0
+          fi
+
+          # Look for actual line changes (exclude diff headers +++/---)
+          if echo "${PATCH_CONTENT}" | awk '{print $0}' | grep -E '^[+-]' | grep -vE '^\+\+\+|^\-\-\-' >/dev/null; then
+            echo "PASS: CHANGELOG.md contains line-level changes."
+            exit 0
+          else
+            echo "FAIL: No line-level changes detected in CHANGELOG.md."
+            exit 1
+          fi

@@ -12,6 +12,7 @@ from hiero_sdk_python.hapi.services import (
     schedule_service_pb2_grpc,
     network_service_pb2_grpc,
     file_service_pb2_grpc,
+    smart_contract_service_pb2_grpc,
 )
 from hiero_sdk_python.logger.log_level import LogLevel
 
@@ -50,6 +51,8 @@ class MockServer:
              network_service_pb2_grpc.add_NetworkServiceServicer_to_server),
             (file_service_pb2_grpc.FileServiceServicer,
              file_service_pb2_grpc.add_FileServiceServicer_to_server),
+            (smart_contract_service_pb2_grpc.SmartContractServiceServicer,
+             smart_contract_service_pb2_grpc.add_SmartContractServiceServicer_to_server),
             (schedule_service_pb2_grpc.ScheduleServiceServicer,
              schedule_service_pb2_grpc.add_ScheduleServiceServicer_to_server),
         ]

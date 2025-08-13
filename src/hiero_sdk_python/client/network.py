@@ -1,10 +1,13 @@
+"""Network module for managing Hedera SDK connections."""
 import secrets
+from typing import Dict, List
+
 import requests
 
-from typing import Dict, List
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.node import _Node
+
 
 
 class Network:
@@ -68,13 +71,18 @@ class Network:
         Initializes the Network with the specified network name or custom config.
 
         Args:
-            network (str): One of 'mainnet', 'testnet', 'previewnet', 'solo', or a custom name if you prefer.
-            nodes (list, optional): A list of (node_address, AccountId) pairs. If provided, we skip fetching from the mirror.
+            network (str): One of 'mainnet', 'testnet', 'previewnet', 'solo',
+            or a custom name if you prefer.
+            nodes (list, optional): A list of (node_address, AccountId) pairs. 
+            If provided, we skip fetching from the mirror.
             mirror_address (str, optional): A mirror node address (host:port) for topic queries.
-                                            If not provided, we'll use a default from MIRROR_ADDRESS_DEFAULT[network].
+                            If not provided,
+                            we'll use a default from MIRROR_ADDRESS_DEFAULT[network].
         """
         self.network: str = network or 'testnet'
-        self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, 'localhost:5600')
+        self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(
+            network, 'localhost:5600'
+        )
 
         if nodes is not None:
             self.nodes: List[_Node] = nodes
@@ -86,7 +94,7 @@ class Network:
                 self.nodes = self._fetch_nodes_from_default_nodes()
             elif not self.nodes:
                 raise ValueError(f"No default nodes for network='{self.network}'")
-        
+
         self._node_index: int = secrets.randbelow(len(self.nodes))
         self.current_node: _Node = self.nodes[self._node_index]
 
@@ -114,14 +122,14 @@ class Network:
                 address_book: NodeAddress = NodeAddress._from_dict(node)
                 account_id: AccountId = address_book._account_id
                 address: str = str(address_book._addresses[0])
-                
+
                 nodes.append(_Node(account_id, address, address_book))
-            
+
             return nodes
         except requests.RequestException as e:
             print(f"Error fetching nodes from mirror node API: {e}")
             return []
-        
+
     def _fetch_nodes_from_default_nodes(self) -> List[_Node]:
         """
         Fetches the list of nodes from the default nodes for the network.

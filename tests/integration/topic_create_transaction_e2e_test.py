@@ -38,8 +38,8 @@ def test_integration_topic_create_transaction_can_execute():
         
         assert topic_info.memo == topic_memo
         assert topic_info.sequence_number == 0
-        assert env.client.operator_private_key.public_key().to_string() == topic_info.admin_key.ed25519.hex()
-        
+        assert env.client.operator_private_key.public_key()._to_proto() == topic_info.admin_key
+
         delete_transaction = TopicDeleteTransaction(topic_id=topic_id)
         
         delete_transaction.freeze_with(env.client)

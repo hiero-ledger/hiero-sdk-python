@@ -85,6 +85,20 @@ from .logger.log_level import LogLevel
 
 # File
 from .file.file_create_transaction import FileCreateTransaction
+from .file.file_append_transaction import FileAppendTransaction
+from .file.file_info_query import FileInfoQuery
+from .file.file_info import FileInfo
+from .file.file_contents_query import FileContentsQuery
+from .file.file_update_transaction import FileUpdateTransaction
+from .file.file_delete_transaction import FileDeleteTransaction
+
+# Contract
+from .contract.contract_create_transaction import ContractCreateTransaction
+from .contract.contract_call_query import ContractCallQuery
+from .contract.contract_info_query import ContractInfoQuery
+from .contract.contract_function_parameters import ContractFunctionParameters
+from .contract.contract_function_result import ContractFunctionResult
+from .contract.contract_info import ContractInfo
 
 __all__ = [
     # Client
@@ -153,11 +167,11 @@ __all__ = [
     "TokenNftInfoQuery",
     "TokenInfoQuery",
     "AccountInfoQuery",
-    
+
     # Address book
     "Endpoint",
     "NodeAddress",
-    
+
     # Logger
     "Logger",
     "LogLevel",
@@ -167,7 +181,21 @@ __all__ = [
     "ResponseCode",
     "Timestamp",
     "Duration",
-    
+
     # File
     "FileCreateTransaction",
+    "FileAppendTransaction",
+    "FileInfoQuery",
+    "FileInfo",
+    "FileContentsQuery",
+    "FileUpdateTransaction",
+    "FileDeleteTransaction",
+
+    # Contract
+    "ContractCreateTransaction",
+    "ContractCallQuery",
+    "ContractInfoQuery",
+    "ContractFunctionParameters",
+    "ContractFunctionResult",
+    "ContractInfo"
 ]
