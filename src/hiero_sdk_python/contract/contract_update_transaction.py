@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from google.protobuf.wrappers_pb2 import StringValue
+from google.protobuf import wrappers_pb2
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -215,12 +215,12 @@ class ContractUpdateTransaction(Transaction):
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
             autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None,
             fileID=self.file_id._to_proto() if self.file_id else None,
-            staked_node_id=self.staked_node_id,
-            memoWrapper=StringValue(value=self.contract_memo) if self.contract_memo else None,
-            max_automatic_token_associations=self.max_automatic_token_associations,
-            auto_renew_account_id=self.auto_renew_account_id._to_proto() if self.auto_renew_account_id else None,
+            staked_node_id=self.staked_node_id if self.staked_node_id is not None else None,
+            memoWrapper=wrappers_pb2.StringValue(value=self.contract_memo) if self.contract_memo else None,
+            max_automatic_token_associations=wrappers_pb2.Int32Value(value=self.max_automatic_token_associations) if self.max_automatic_token_associations is not None else None,
             staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None,
-            decline_reward=self.decline_reward,
+            auto_renew_account_id=self.auto_renew_account_id._to_proto() if self.auto_renew_account_id else None,
+            decline_reward=wrappers_pb2.BoolValue(value=self.decline_reward) if self.decline_reward is not None else None,
         ))
 
         return transaction_body
