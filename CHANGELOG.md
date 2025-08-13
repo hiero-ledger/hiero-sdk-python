@@ -20,6 +20,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - PendingAirdropId Class
 - PendingAirdropRecord Class
 - TokenCancelAirdropTransaction Class
+- ContractBytecodeQuery class
+- SimpleStorage.bin-runtime
+- Support for both .bin and .bin-runtime contract bytecode extensions in contract_utils.py
 
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
