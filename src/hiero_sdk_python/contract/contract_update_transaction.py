@@ -28,16 +28,26 @@ class ContractUpdateParams:
     Represents contract update parameters.
 
     Attributes
-    contract_id: ContractId
-    expiration_time: Timestamp
-    admin_key: PublicKey
-    auto_renew_period: Duration
-    file_id: FileId
-    contract_memo: str
-    max_automatic_token_associations: int
-    auto_renew_account_id: AccountId
-    staked_node_id: int
-    decline_reward: bool
+        contract_id (ContractId): The ID of the contract to update.
+        expiration_time (Timestamp): The new expiration time for the contract. If not set, 
+            the current expiration time remains unchanged.
+        admin_key (PublicKey): The new admin key for the contract. This key can update or 
+            delete the contract. If not set, the current admin key remains unchanged.
+        auto_renew_period (Duration): The new auto-renewal period for the contract. The 
+            contract will be automatically renewed for this duration upon expiration.
+        file_id (FileId): The new file ID containing the contract's bytecode. If not set, 
+            the current bytecode remains unchanged.
+        contract_memo (str): The new memo associated with the contract. If not set, the 
+            current memo remains unchanged.
+        max_automatic_token_associations (int): The new maximum number of tokens that can 
+            be automatically associated with the contract. If not set, the current limit 
+            remains unchanged.
+        auto_renew_account_id (AccountId): The new account ID that will be charged for the 
+            contract's auto-renewal. If not set, the current auto-renew account remains unchanged.
+        staked_node_id (int): The new node ID to which the contract stakes. If not set, 
+            the current staking configuration remains unchanged.
+        decline_reward (bool): Whether the contract declines staking rewards. If not set, 
+            the current reward decline setting remains unchanged.
     """
     contract_id: ContractId = None
     expiration_time: Timestamp = None
