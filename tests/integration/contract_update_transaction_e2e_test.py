@@ -75,16 +75,18 @@ def test_integration_contract_update_transaction_can_execute(env):
         .execute(env.client)
     )
 
-    contract_info = ContractInfoQuery(env.client).set_contract_id(contract_id).execute(env.client)
+    contract_info = (
+        ContractInfoQuery(env.client).set_contract_id(contract_id).execute(env.client)
+    )
 
-    assert contract_info.contract_memo == "[e2e::ContractUpdateTransaction]", "Contract memo should be updated"
+    assert (
+        contract_info.contract_memo == "[e2e::ContractUpdateTransaction]"
+    ), "Contract memo should be updated"
     assert (
         update_receipt.status == ResponseCode.SUCCESS
     ), f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
 
 
-
-@pytest.mark.integration
 @pytest.mark.integration
 def test_integration_contract_update_transaction_fails_with_invalid_contract_id(env):
     """Test that contract update fails when contract ID is invalid."""
@@ -149,11 +151,17 @@ def test_integration_contract_update_transaction_with_admin_key(env):
         .execute(env.client)
     )
 
-    contract_info = ContractInfoQuery(env.client).set_contract_id(contract_id).execute(env.client)
-    assert contract_info.contract_memo == "[e2e::ContractUpdateTransaction] admin key updated", "Contract memo should be updated"
-    assert contract_info.admin_key.to_string() == env.operator_key.public_key().to_string(), "Admin key should be updated"
+    contract_info = (
+        ContractInfoQuery(env.client).set_contract_id(contract_id).execute(env.client)
+    )
+    assert (
+        contract_info.contract_memo
+        == "[e2e::ContractUpdateTransaction] admin key updated"
+    ), "Contract memo should be updated"
+    assert (
+        contract_info.admin_key.to_string() == env.operator_key.public_key().to_string()
+    ), "Admin key should be updated"
 
     assert (
         update_receipt.status == ResponseCode.SUCCESS
     ), f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
-
