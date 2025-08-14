@@ -99,7 +99,7 @@ class ContractUpdateTransaction(Transaction):
         )
         self.auto_renew_account_id: Optional[AccountId] = params.auto_renew_account_id
         self.staked_node_id: Optional[int] = params.staked_node_id
-        self.staked_account_id = params.staked_account_id
+        self.staked_account_id: Optional[AccountId] = params.staked_account_id
         self.decline_reward: Optional[bool] = params.decline_reward
         self._default_transaction_fee = Hbar(20).to_tinybars()
 
