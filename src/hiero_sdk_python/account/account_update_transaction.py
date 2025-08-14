@@ -178,7 +178,11 @@ class AccountUpdateTransaction(Transaction):
         crypto_update_body = CryptoUpdateTransactionBody(
             accountIDToUpdate=self.account_id._to_proto(),
             key=self.key._to_proto() if self.key else None,
-            memo=StringValue(value=self.account_memo) if self.account_memo else None,
+            memo=(
+                StringValue(value=self.account_memo)
+                if self.account_memo is not None
+                else None
+            ),
             autoRenewPeriod=(
                 self.auto_renew_period._to_proto() if self.auto_renew_period else None
             ),
@@ -187,7 +191,7 @@ class AccountUpdateTransaction(Transaction):
             ),
             receiverSigRequiredWrapper=(
                 BoolValue(value=self.receiver_signature_required)
-                if self.receiver_signature_required
+                if self.receiver_signature_required is not None
                 else None
             ),
         )
