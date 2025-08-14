@@ -22,12 +22,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractInfo class
 - ContractInfoQuery class
 - ContractID check in PublicKey._from_proto() method
+- PendingAirdropId Class
+- PendingAirdropRecord Class
+- TokenCancelAirdropTransaction Class
 
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 
 ### Changed
 - SimpleContract and StatefulContract constructors to be payable
+- added new_pending_airdrops to TransactionRecord Class
 
 ### Breaking API changes
 >>>>>>> ce870f6 (fix: ECDSA key integration tests issues (#244))
@@ -64,6 +68,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Deprecated Additions
 - logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
 - get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
+
 
 ## [0.1.3] - 2025-07-03
 ### Added

@@ -2,6 +2,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.tokens.pending_airdrop_record import PendingAirdropRecord
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -22,6 +23,7 @@ class TransactionRecord:
     token_transfers: defaultdict[TokenId, defaultdict[AccountId, int]] = field(default_factory=lambda: defaultdict(lambda: defaultdict(int)))
     nft_transfers: defaultdict[TokenId, list[TokenNftTransfer]] = field(default_factory=lambda: defaultdict(list[TokenNftTransfer]))
     transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
+    new_pending_airdrops: list[PendingAirdropRecord] = field(default_factory=list)
 
     def __repr__(self) -> str:
         status = None
@@ -38,7 +40,8 @@ class TransactionRecord:
                 f"receipt_status='{status}', "
                 f"token_transfers={dict(self.token_transfers)}, "
                 f"nft_transfers={dict(self.nft_transfers)}, "
-                f"transfers={dict(self.transfers)})")
+                f"transfers={dict(self.transfers)}, "
+                f"new_pending_airdrops={list(self.new_pending_airdrops)})")
 
     @classmethod
     def _from_proto(cls, proto: transaction_record_pb2.TransactionRecord, transaction_id: Optional[TransactionId] = None) -> 'TransactionRecord':
@@ -66,6 +69,11 @@ class TransactionRecord:
             account_id = AccountId._from_proto(transfer.accountID)
             transfers[account_id] += transfer.amount
         
+        new_pending_airdrops: list[PendingAirdropRecord] = []
+        for pending_airdrop in proto.new_pending_airdrops:
+            new_pending_airdrops.append(PendingAirdropRecord._from_proto(pending_airdrop))
+        
+        
         return cls(
             transaction_id=transaction_id,
             transaction_hash=proto.transactionHash,
@@ -74,9 +82,10 @@ class TransactionRecord:
             receipt=TransactionReceipt._from_proto(proto.receipt),
             token_transfers=token_transfers,
             nft_transfers=nft_transfers,
-            transfers=transfers
+            transfers=transfers,
+            new_pending_airdrops=new_pending_airdrops
         )
-
+        
     def _to_proto(self) -> transaction_record_pb2.TransactionRecord:
         """
         Returns the underlying protobuf transaction record.
@@ -109,5 +118,8 @@ class TransactionRecord:
             transfer = record_proto.transferList.accountAmounts.add()
             transfer.accountID.CopyFrom(account_id._to_proto())
             transfer.amount = amount
+
+        for pending_airdrop in self.new_pending_airdrops:
+            record_proto.new_pending_airdrops.add().CopyFrom(pending_airdrop._to_proto())
         
         return record_proto
