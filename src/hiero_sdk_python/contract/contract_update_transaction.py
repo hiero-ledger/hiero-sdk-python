@@ -14,9 +14,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import (
-    basic_types_pb2,
     contract_update_pb2,
-    timestamp_pb2,
     transaction_body_pb2,
 )
 from hiero_sdk_python.channels import _Channel
@@ -299,27 +297,24 @@ class ContractUpdateTransaction(Transaction):
             contract_update_pb2.ContractUpdateTransactionBody(
                 contractID=self.contract_id._to_proto(),
                 expirationTime=(
-                    self.expiration_time._to_protobuf()
-                    if self.expiration_time
-                    else None
+                    self.expiration_time._to_proto() if self.expiration_time else None
                 ),
                 adminKey=self.admin_key._to_proto() if self.admin_key else None,
                 autoRenewPeriod=(
-                    self.auto_renew_period._to_protobuf()
+                    self.auto_renew_period._to_proto()
                     if self.auto_renew_period
                     else None
                 ),
                 fileID=self.file_id._to_proto() if self.file_id else None,
-                staked_node_id=self.staked_node_id,
+                staked_node_id=(self.staked_node_id if self.staked_node_id else None),
                 memoWrapper=(
                     StringValue(value=self.contract_memo)
-                    if self.contract_memo
+                    if self.contract_memo is not None
                     else None
                 ),
-                max_automatic_token_associations=self.max_automatic_token_associations,
-                auto_renew_account_id=(
-                    self.auto_renew_account_id._to_proto()
-                    if self.auto_renew_account_id
+                max_automatic_token_associations=(
+                    Int32Value(value=self.max_automatic_token_associations)
+                    if self.max_automatic_token_associations is not None
                     else None
                 ),
                 staked_account_id=(
@@ -327,7 +322,16 @@ class ContractUpdateTransaction(Transaction):
                     if self.staked_account_id
                     else None
                 ),
-                decline_reward=self.decline_reward,
+                auto_renew_account_id=(
+                    self.auto_renew_account_id._to_proto()
+                    if self.auto_renew_account_id
+                    else None
+                ),
+                decline_reward=(
+                    BoolValue(value=self.decline_reward)
+                    if self.decline_reward is not None
+                    else None
+                ),
             )
         )
 
