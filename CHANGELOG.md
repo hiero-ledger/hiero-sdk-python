@@ -84,7 +84,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - TokenUpdateTransaction Class
 - added Type hinting and initial methods to several modules
 - TokenRevoceKycTransaction Class
-- README_types.md
+- [Types Guide](hiero/hedera_sdk_python/documentation/sdk_developers/types.md)
+
 - TransactionRecordQuery Class
 - AccountInfoQuery Class
 
