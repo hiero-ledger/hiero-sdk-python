@@ -99,6 +99,7 @@ from .contract.contract_call_query import ContractCallQuery
 from .contract.contract_info_query import ContractInfoQuery
 from .contract.contract_bytecode_query import ContractBytecodeQuery
 from .contract.contract_execute_transaction import ContractExecuteTransaction
+from .contract.contract_delete_transaction import ContractDeleteTransaction
 from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
 from .contract.contract_info import ContractInfo
@@ -202,6 +203,7 @@ __all__ = [
     "ContractInfoQuery",
     "ContractBytecodeQuery",
     "ContractExecuteTransaction",
+    "ContractDeleteTransaction",
     "ContractFunctionParameters",
     "ContractFunctionResult",
     "ContractInfo",
