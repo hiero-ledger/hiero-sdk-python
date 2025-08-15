@@ -35,6 +35,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Grant KYC](#token-grant-kyc)
   - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
+  - [Cancel Token Airdop](#cancel-token-airdrop)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -55,6 +56,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [Contract Transactions](#contract-transactions)
   - [Creating a Contract](#creating-a-contract)
   - [Querying a Contract Call](#querying-a-contract-call)
+  - [Querying Contract Info](#querying-contract-info)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -671,6 +673,30 @@ transaction.sign(new_admin_key) # Updating the admin key requires the new admin 
 transaction.execute(client)
 ```
 
+### Cancel Token Airdrop
+
+#### Pythonic Syntax:
+```
+transaction = TokenCancelAirdropTransaction(
+    pending_airdrops=pending_airdops  # List of PendingAirdropId
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    TokenCancelAirdropTransaction()
+    .add_pending_airdrop(pending_airdrop) # PendingAirdropId
+    .freeze_with(client)
+    .sign(operator_key)
+)
+
+transaction.execute(client)
+```
+
 ### Token Revoke KYC
 
 #### Pythonic Syntax:
@@ -1225,6 +1251,25 @@ print(f"Owner: {result_values[1]}")
 # - result.get_address(1)   // second return value
 # - result.get_uint256(2)   // third return value
 # - result.get_bool(3)      // fourth return value
+```
+
+### Querying Contract Info
+
+#### Pythonic Syntax:
+```
+contract_info_query = ContractInfoQuery(contract_id=contract_id)
+contract_info = contract_info_query.execute(client)
+print(contract_info)
+```
+
+#### Method Chaining:
+```
+contract_info = (
+    ContractInfoQuery()
+    .set_contract_id(contract_id)
+    .execute(client)
+)
+print(contract_info)
 ```
 
 ## Miscellaneous Queries

@@ -365,18 +365,17 @@ class TokenCreateTransaction(Transaction):
     def _to_proto_key(self, private_key):
         """
         Helper method to convert a private key to protobuf Key format.
-        
+
         Args:
             private_key: The private key to convert, or None
-            
+
         Returns:
-            basic_types_pb2.Key or None: The protobuf key or None if private_key is None
+            Key or None: The protobuf key or None if private_key is None
         """
         if not private_key:
             return None
 
-        public_key_bytes = private_key.public_key().to_bytes_raw()
-        return basic_types_pb2.Key(ed25519=public_key_bytes)
+        return private_key.public_key()._to_proto()
 
     def build_transaction_body(self):
         """
