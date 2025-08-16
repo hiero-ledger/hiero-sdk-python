@@ -1,6 +1,23 @@
+"""
+This module defines the `TopicId` class, a utility for working with Hedera
+Consensus Service (HCS) topic identifiers.
+
+It provides methods for converting between protobuf `TopicID` objects and
+string representations, making it easier to work with topics in different
+formats within the Hiero SDK.
+"""
+
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 class TopicId:
+
+    """
+    Represents the unique identifier of a topic in the Hedera Consensus Service (HCS).
+
+    A `TopicId` consists of three components: shard, realm, and num.
+    This class provides convenient methods for converting between Python objects,
+    protobuf `TopicID` instances, and string formats.
+    """
     def __init__(self, shard: int = 0, realm: int = 0, num: int = 0) -> None:
         """
         Initializes a new instance of the TopicId class.
