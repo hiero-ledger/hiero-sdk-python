@@ -8,6 +8,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+
+### Fixed
+- TokenInfo.from_protobuf now fully maps all Hedera token fields (#222)
+
+
 ### Breaking API changes  
 **We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
 
