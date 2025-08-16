@@ -7,14 +7,33 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+### Added
+- CONTRIBUTING.md: expanded documentation detailing various contribution processes in a step-by-step way. Includes new sections: blog posts and support.
+- README_upstream.md: documentation explaining how to rebase to main.
 
+### Added
+- Legacy ECDSA DER parse support
+- documented private key from_string method behavior
+- ContractInfo class
+- ContractInfoQuery class
+- ContractID check in PublicKey._from_proto() method
+- PendingAirdropId Class
+- PendingAirdropRecord Class
+- TokenCancelAirdropTransaction Class
+
+### Fixed
+- missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
+
+### Changed
+- SimpleContract and StatefulContract constructors to be payable
+- added new_pending_airdrops to TransactionRecord Class
 
 ### Fixed
 - TokenInfo.from_protobuf now fully maps all Hedera token fields (#222)
 
-
-### Breaking API changes  
-**We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
+### Breaking API changes
+**We have several camelCase uses that will be deprecated → snake_case**  
+Original aliases will continue to function, with a warning, until the following release.
 
 #### In `token_info.py`
 - tokenId → token_id 
@@ -47,6 +66,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Deprecated Additions
 - logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
 - get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
+
 
 ## [0.1.3] - 2025-07-03
 ### Added

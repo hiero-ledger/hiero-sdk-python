@@ -214,9 +214,16 @@ class Query(_Executable):
         public_key_bytes = payer_private_key.public_key().to_bytes_raw()
 
         # Create signature pair
-        sig_pair = basic_types_pb2.SignaturePair(
-            pubKeyPrefix=public_key_bytes, ed25519=signature
-        )
+        if payer_private_key.is_ed25519():
+            sig_pair = basic_types_pb2.SignaturePair(
+                pubKeyPrefix=public_key_bytes,
+                ed25519=signature
+                )
+        else:
+            sig_pair = basic_types_pb2.SignaturePair(
+                pubKeyPrefix=public_key_bytes,
+                ECDSA_secp256k1=signature
+            )
 
         # Create signature map
         signature_map = basic_types_pb2.SignatureMap(sigPair=[sig_pair])

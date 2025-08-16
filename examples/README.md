@@ -35,6 +35,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Grant KYC](#token-grant-kyc)
   - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
+  - [Cancel Token Airdop](#cancel-token-airdrop)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -54,6 +55,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Deleting a File](#deleting-a-file)
 - [Contract Transactions](#contract-transactions)
   - [Creating a Contract](#creating-a-contract)
+  - [Querying a Contract Call](#querying-a-contract-call)
+  - [Querying Contract Info](#querying-contract-info)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -670,6 +673,30 @@ transaction.sign(new_admin_key) # Updating the admin key requires the new admin 
 transaction.execute(client)
 ```
 
+### Cancel Token Airdrop
+
+#### Pythonic Syntax:
+```
+transaction = TokenCancelAirdropTransaction(
+    pending_airdrops=pending_airdops  # List of PendingAirdropId
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    TokenCancelAirdropTransaction()
+    .add_pending_airdrop(pending_airdrop) # PendingAirdropId
+    .freeze_with(client)
+    .sign(operator_key)
+)
+
+transaction.execute(client)
+```
+
 ### Token Revoke KYC
 
 #### Pythonic Syntax:
@@ -1045,7 +1072,6 @@ transaction.execute(client)
 
 ```
 
-```
 
 ## Contract Transactions
 
@@ -1143,6 +1169,107 @@ transaction = (
 transaction.sign(operator_key)
 transaction.sign(admin_key)
 transaction.execute(client)
+```
+
+### Querying a Contract Call
+
+#### Pythonic Syntax:
+```
+# Query a contract function that returns value(s)
+# Example: calling getMessageAndOwner() (StatefulContract.sol) which returns (bytes32 message, address owner)
+result = ContractCallQuery(
+    contract_id=contract_id,
+    gas=2000000,
+    function_parameters=ContractFunctionParameters("getMessageAndOwner").to_bytes()  # Function name to call
+).execute(client)
+
+# Extract return values by their position in the Solidity return statement
+# getMessageAndOwner() returns (bytes32, address), so:
+# - index 0: bytes32 message
+# - index 1: address owner
+message = result.get_bytes32(0)
+owner_address = result.get_address(1)
+
+print(f"Message: {message}")
+print(f"Owner: {owner_address}")
+
+# Alternative way using get_result with type specifications
+result_values = result.get_result(["bytes32", "address"])
+print(f"Message: {result_values[0]}")
+print(f"Owner: {result_values[1]}")
+```
+
+#### Method Chaining:
+```
+# Query a contract function using method chaining
+# Example: calling getMessageAndOwner() (StatefulContract.sol) which returns (bytes32 message, address owner)
+result = (
+    ContractCallQuery()
+    .set_contract_id(contract_id)
+    .set_gas(2000000)
+    .set_function("getMessageAndOwner")  # Function name to call
+    .execute(client)
+)
+
+# Alternatively, you can use set_function_parameters() with ContractFunctionParameters:
+result = (
+    ContractCallQuery()
+    .set_contract_id(contract_id)
+    .set_gas(2000000)
+    .set_function_parameters(ContractFunctionParameters("getMessageAndOwner"))
+    .execute(client)
+)
+
+
+# Extract return values by their position in the Solidity return statement
+# getMessageAndOwner() returns (bytes32, address), so:
+# - index 0: bytes32 message
+# - index 1: address owner
+message = result.get_bytes32(0)
+owner_address = result.get_address(1)
+
+print(f"Message: {message}")
+print(f"Owner: {owner_address}")
+
+# Alternative way using get_result with type specifications
+result_values = result.get_result(["bytes32", "address"])
+print(f"Message: {result_values[0]}")
+print(f"Owner: {result_values[1]}")
+
+# For different Solidity return types, use these methods:
+#
+# String values:     result.get_string(0)
+# Address values:    result.get_address(1)
+# Number values:     result.get_uint256(2)
+# Boolean values:    result.get_bool(3)
+# Bytes32 values:    result.get_bytes32(4)
+# Bytes values:      result.get_bytes(5)
+#
+# Note: The index number matches the position in your Solidity return statement
+# Example: function getData() returns (string, address, uint256, bool)
+# - result.get_string(0)    // first return value
+# - result.get_address(1)   // second return value
+# - result.get_uint256(2)   // third return value
+# - result.get_bool(3)      // fourth return value
+```
+
+### Querying Contract Info
+
+#### Pythonic Syntax:
+```
+contract_info_query = ContractInfoQuery(contract_id=contract_id)
+contract_info = contract_info_query.execute(client)
+print(contract_info)
+```
+
+#### Method Chaining:
+```
+contract_info = (
+    ContractInfoQuery()
+    .set_contract_id(contract_id)
+    .execute(client)
+)
+print(contract_info)
 ```
 
 ## Miscellaneous Queries
