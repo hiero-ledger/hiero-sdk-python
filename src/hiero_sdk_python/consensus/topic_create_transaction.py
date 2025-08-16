@@ -4,7 +4,7 @@ on the Hedera Consensus Service (HCS) using the Hiero Python SDK.
 
 It provides methods to set properties such as memo, admin key, submit key,
 auto-renew period, and auto-renew account, and to build the protobuf
-transaction body for submission to the Hedera network.
+transaction body for submission to the Hedera network .
 """
 
 from typing import Union
