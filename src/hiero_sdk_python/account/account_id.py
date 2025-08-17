@@ -1,7 +1,9 @@
+from dataclasses import dataclass
 from typing import List
 
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 
 class AccountId:
@@ -82,7 +84,7 @@ class AccountId:
             return f"{self.shard}.{self.realm}.{self.alias_key.to_string()}"
         return f"{self.shard}.{self.realm}.{self.num}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns the repr representation of the AccountId.
         """
