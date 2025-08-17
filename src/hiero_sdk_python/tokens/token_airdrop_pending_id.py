@@ -97,6 +97,9 @@ class PendingAirdropId:
        """
        return f'PendingAirdropId(sender_id={self.sender_id}, receiver_id={self.receiver_id}, token_id={self.token_id}, nft_id={self.nft_id})'
 
+   def __repr__(self):
+       return self.__str__()
+
    def __eq__(self, other: object) -> bool:
        if not isinstance(other, PendingAirdropId):
            return NotImplemented
