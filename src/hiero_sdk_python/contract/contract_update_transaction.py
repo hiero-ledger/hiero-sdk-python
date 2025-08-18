@@ -1,52 +1,49 @@
+# pylint: disable=too-many-instance-attributes
 """
 Transaction to update a contract's properties, metadata, or keys on the network.
 """
 
-# pylint: disable=too-many-instance-attributes
 from dataclasses import dataclass
 from typing import Optional
 
-from google.protobuf.wrappers_pb2 import StringValue, Int32Value, BoolValue
+from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 
-from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import contract_update_pb2, transaction_body_pb2
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import (
-    contract_update_pb2,
-    transaction_body_pb2,
-)
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.file.file_id import FileId
 
 
 @dataclass
 class ContractUpdateParams:
     """
-    Represents contract update parameters.
+    Represents contract attributes that can be updated.
 
-    Attributes
-    contract_id: ContractId
-    expiration_time: Timestamp
-    admin_key: PublicKey
-    auto_renew_period: Duration
-    file_id: FileId
-    contract_memo: str
-    max_automatic_token_associations: int
-    auto_renew_account_id: AccountId
-    staked_node_id: int
-    decline_reward: bool
+    Attributes:
+        contract_id (Optional[ContractId]): The contract ID to update.
+        expiration_time (Optional[Timestamp]): The new expiration time for the contract.
+        admin_key (Optional[PublicKey]): The new admin key for the contract.
+        auto_renew_period (Optional[Duration]): The new auto-renew period for the contract.
+        contract_memo (Optional[str]): The new memo for the contract.
+        max_automatic_token_associations (Optional[int]): The new maximum number of
+            automatic token associations for the contract.
+        auto_renew_account_id (Optional[AccountId]): The new account to be charged for auto-renewal.
+        staked_node_id (Optional[int]): The node ID to which the contract will be staked.
+        staked_account_id (Optional[AccountId]): The account ID to which
+            the contract will be staked.
+        decline_reward (Optional[bool]): Whether the contract should decline staking rewards.
     """
 
-    contract_id: ContractId = None
-    expiration_time: Timestamp = None
+    contract_id: Optional[ContractId] = None
+    expiration_time: Optional[Timestamp] = None
     admin_key: Optional[PublicKey] = None
-    auto_renew_period: Duration = None
-    file_id: Optional[FileId] = None
+    auto_renew_period: Optional[Duration] = None
     contract_memo: Optional[str] = None
     max_automatic_token_associations: Optional[int] = None
     auto_renew_account_id: Optional[AccountId] = None
@@ -62,8 +59,7 @@ class ContractUpdateTransaction(Transaction):
     This transaction updates the metadata and/or properties of a smart contract. If a field is
     not set
     in the transaction body, the corresponding contract attribute will be unchanged. This
-    transaction
-    must be signed by the admin key of the contract being updated.
+    transaction must be signed by the admin key of the contract being updated.
     If the admin key itself is being updated, then the transaction must
     also be signed by the new admin key.
 
@@ -79,10 +75,9 @@ class ContractUpdateTransaction(Transaction):
         Initializes a new ContractUpdateTransaction instance with the specified parameters.
 
         Args:
-            contract_params (Optional[ContractUpdateParams], optional): The contract update
-                parameters
-                containing all the fields that can be updated. If not provided, defaults to an empty
-                ContractUpdateParams instance.
+            contract_params (Optional[ContractUpdateParams]): The contract update
+                parameters containing all the fields that can be updated.
+                If not provided, defaults to an empty ContractUpdateParams instance.
         """
         super().__init__()
         params = contract_params or ContractUpdateParams()
@@ -90,7 +85,6 @@ class ContractUpdateTransaction(Transaction):
         self.expiration_time: Optional[Timestamp] = params.expiration_time
         self.admin_key: Optional[PublicKey] = params.admin_key
         self.auto_renew_period: Optional[Duration] = params.auto_renew_period
-        self.file_id: Optional[FileId] = params.file_id
         self.contract_memo: Optional[str] = params.contract_memo
         self.max_automatic_token_associations: Optional[int] = (
             params.max_automatic_token_associations
@@ -163,20 +157,6 @@ class ContractUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.auto_renew_period = auto_renew_period
-        return self
-
-    def set_file_id(self, file_id: Optional[FileId]) -> "ContractUpdateTransaction":
-        """
-        Sets the new file ID containing the contract's bytecode.
-
-        Args:
-            file_id (Optional[FileId]): The new file ID containing the contract's bytecode.
-
-        Returns:
-            ContractUpdateTransaction: This transaction instance.
-        """
-        self._require_not_frozen()
-        self.file_id = file_id
         return self
 
     def set_contract_memo(
@@ -292,49 +272,43 @@ class ContractUpdateTransaction(Transaction):
         if self.contract_id is None:
             raise ValueError("Missing required ContractID")
 
-        transaction_body = self.build_base_transaction_body()
-        transaction_body.contractUpdateInstance.CopyFrom(
-            contract_update_pb2.ContractUpdateTransactionBody(
-                contractID=self.contract_id._to_proto(),
-                expirationTime=(
-                    self.expiration_time._to_proto() if self.expiration_time else None
-                ),
-                adminKey=self.admin_key._to_proto() if self.admin_key else None,
-                autoRenewPeriod=(
-                    self.auto_renew_period._to_proto()
-                    if self.auto_renew_period
-                    else None
-                ),
-                fileID=self.file_id._to_proto() if self.file_id else None,
-                staked_node_id=(self.staked_node_id if self.staked_node_id else None),
-                memoWrapper=(
-                    StringValue(value=self.contract_memo)
-                    if self.contract_memo is not None
-                    else None
-                ),
-                max_automatic_token_associations=(
-                    Int32Value(value=self.max_automatic_token_associations)
-                    if self.max_automatic_token_associations is not None
-                    else None
-                ),
-                staked_account_id=(
-                    self.staked_account_id._to_proto()
-                    if self.staked_account_id
-                    else None
-                ),
-                auto_renew_account_id=(
-                    self.auto_renew_account_id._to_proto()
-                    if self.auto_renew_account_id
-                    else None
-                ),
-                decline_reward=(
-                    BoolValue(value=self.decline_reward)
-                    if self.decline_reward is not None
-                    else None
-                ),
-            )
+        contract_update_body = contract_update_pb2.ContractUpdateTransactionBody(
+            contractID=self.contract_id._to_proto(),
+            expirationTime=(
+                self.expiration_time._to_protobuf() if self.expiration_time else None
+            ),
+            adminKey=self.admin_key._to_proto() if self.admin_key else None,
+            autoRenewPeriod=(
+                self.auto_renew_period._to_proto() if self.auto_renew_period else None
+            ),
+            staked_node_id=self.staked_node_id,
+            memoWrapper=(
+                StringValue(value=self.contract_memo)
+                if self.contract_memo is not None
+                else None
+            ),
+            max_automatic_token_associations=(
+                Int32Value(value=self.max_automatic_token_associations)
+                if self.max_automatic_token_associations is not None
+                else None
+            ),
+            staked_account_id=(
+                self.staked_account_id._to_proto() if self.staked_account_id else None
+            ),
+            auto_renew_account_id=(
+                self.auto_renew_account_id._to_proto()
+                if self.auto_renew_account_id
+                else None
+            ),
+            decline_reward=(
+                BoolValue(value=self.decline_reward)
+                if self.decline_reward is not None
+                else None
+            ),
         )
 
+        transaction_body = self.build_base_transaction_body()
+        transaction_body.contractUpdateInstance.CopyFrom(contract_update_body)
         return transaction_body
 
     def _get_method(self, channel: _Channel) -> _Method:
