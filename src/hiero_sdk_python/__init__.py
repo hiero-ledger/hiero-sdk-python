@@ -7,6 +7,7 @@ from .account.account_id import AccountId
 from .account.account_create_transaction import AccountCreateTransaction
 from .account.account_update_transaction import AccountUpdateTransaction
 from .account.account_info import AccountInfo
+from .account.account_delete_transaction import AccountDeleteTransaction
 
 # Crypto
 from .crypto.private_key import PrivateKey
@@ -115,6 +116,7 @@ __all__ = [
     "AccountCreateTransaction",
     "AccountUpdateTransaction",
     "AccountInfo",
+    "AccountDeleteTransaction",
 
     # Crypto
     "PrivateKey",
