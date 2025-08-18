@@ -23,6 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
+- fixed pip install hiero_sdk_python -> pip install hiero-sdk-python in README.md
 
 ### Changed
 - SimpleContract and StatefulContract constructors to be payable
