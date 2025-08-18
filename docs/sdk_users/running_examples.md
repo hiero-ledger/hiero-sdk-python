@@ -15,6 +15,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
   - [Querying Account Info](#querying-account-info)
+  - [Deleting an Account](#deleting-an-account)
   - [Creating a Token](#creating-a-token)
 - [Token Transactions](#token-transactions)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -170,6 +171,32 @@ print(f"Account Balance: {info.balance}")
 print(f"Account Memo: '{info.account_memo}'")
 print(f"Owned NFTs: {info.owned_nfts}")
 print(f"Token Relationships: {info.token_relationships}")
+```
+
+### Deleting an Account
+
+#### Pythonic Syntax:
+```
+transaction = AccountDeleteTransaction(
+    account_id=account_id,
+    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+).freeze_with(client)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    AccountDeleteTransaction()
+    .set_account_id(account_id)
+    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    .freeze_with(client)
+)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
 ```
 
 ## Token Transactions
