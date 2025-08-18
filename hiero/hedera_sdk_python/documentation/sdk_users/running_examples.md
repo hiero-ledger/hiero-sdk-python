@@ -59,6 +59,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying a Contract Call](#querying-a-contract-call)
   - [Querying Contract Info](#querying-contract-info)
   - [Querying Contract Bytecode](#querying-contract-bytecode)
+  - [Updating a Contract](#updating-a-contract)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1328,6 +1329,46 @@ contract_bytecode = (
     .execute(client)
 )
 print(contract_bytecode.hex()) # display bytecode as hex string
+```
+
+### Updating a Contract
+
+#### Pythonic Syntax:
+```python
+transaction = ContractUpdateTransaction(
+    contract_params=ContractUpdateParams(
+        contract_id=contract_id,
+        admin_key=new_admin_key,
+        contract_memo="Updated contract memo",
+        expiration_time=new_expiration_time,
+        auto_renew_period=Duration(seconds),
+        auto_renew_account_id=new_auto_renew_account,
+        max_automatic_token_associations=100,
+    )
+).freeze_with(client)
+
+transaction.sign(current_admin_key)  # Sign with current admin key
+transaction.sign(new_admin_key)      # Sign with new admin key
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    ContractUpdateTransaction()
+    .set_contract_id(contract_id)
+    .set_admin_key(new_admin_key)
+    .set_contract_memo("Updated contract memo")
+    .set_expiration_time(new_expiration_time)
+    .set_auto_renew_period(Duration(seconds))
+    .set_auto_renew_account_id(new_auto_renew_account)
+    .set_max_automatic_token_associations(100)
+    .freeze_with(client)
+)
+
+transaction.sign(current_admin_key)  # Sign with current admin key
+transaction.sign(new_admin_key)      # Sign with new admin key
+transaction.execute(client)
 ```
 
 ## Miscellaneous Queries
