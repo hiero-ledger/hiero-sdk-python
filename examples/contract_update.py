@@ -15,20 +15,21 @@ Usage:
 
 """
 
+import datetime
 import os
 import sys
-from datetime import datetime, timedelta, timezone
 
 from dotenv import load_dotenv
 
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
-from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
+from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
 from hiero_sdk_python.contract.contract_update_transaction import (
     ContractUpdateTransaction,
 )
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
@@ -72,26 +73,6 @@ def create_contract_file(client):
     return file_receipt.file_id
 
 
-def create_updated_contract_file(client):
-    """Create a second file for demonstrating file ID updates"""
-    file_receipt = (
-        FileCreateTransaction()
-        .set_keys(client.operator_private_key.public_key())
-        .set_contents(SIMPLE_CONTRACT_BYTECODE)
-        .set_file_memo("Updated contract bytecode file")
-        .execute(client)
-    )
-
-    # Check if file creation was successful
-    if file_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Updated file creation failed with status: {ResponseCode(file_receipt.status).name}"
-        )
-        sys.exit(1)
-
-    return file_receipt.file_id
-
-
 def create_initial_contract(client, file_id):
     """Create the initial contract that we'll update later"""
     receipt = (
@@ -113,41 +94,41 @@ def create_initial_contract(client, file_id):
     return receipt.contract_id
 
 
-def contract_update_comprehensive():
+def contract_update():
     """
     Demonstrates updating a contract with ALL available setters by:
     1. Setting up client with operator account
     2. Creating files containing contract bytecode
     3. Creating an initial contract
     4. Updating the contract using all available setters
+    5. Querying the contract info
     """
     client = setup_client()
 
     # Create files for bytecode
     file_id = create_contract_file(client)
-    updated_file_id = create_updated_contract_file(client)
 
     # Create initial contract
     contract_id = create_initial_contract(client, file_id)
     print(f"Contract created successfully with ID: {contract_id}")
 
     # Calculate future expiration time (1 year from now)
-    future_date = datetime.now(timezone.utc) + timedelta(days=365)
-    expiration_time = Timestamp.from_date(future_date)
+    current_time = datetime.datetime.now(datetime.timezone.utc)
+    future_expiration = Timestamp.from_date(current_time + datetime.timedelta(days=92))
+    auto_renew_period = Duration(90 * 24 * 60 * 60)
 
     # Update contract using ALL available setters
     receipt = (
         ContractUpdateTransaction()
-        .set_contract_id(contract_id)                                    # Required: Contract to update
-        .set_contract_memo("Updated with ALL setters!")                  # Update memo
-        .set_admin_key(client.operator_private_key.public_key())         # Update admin key
-        .set_expiration_time(expiration_time)                           # Set expiration to 1 year from now
-        .set_auto_renew_period(Duration(180 * 24 * 60 * 60))           # 180 days auto-renew
-        .set_file_id(updated_file_id)                                   # Update bytecode file
-        .set_max_automatic_token_associations(50)                       # Allow 50 token associations
-        .set_auto_renew_account_id(client.operator_account_id)          # Set auto-renew payer
-        .set_staked_node_id(0)                                          # Stake to node 0
-        .set_decline_reward(False)                                      # Accept staking rewards
+        .set_contract_id(contract_id)  # Required: Contract to update
+        .set_contract_memo("Updated with ALL setters!")  # Update memo
+        .set_admin_key(client.operator_private_key.public_key())  # Update admin key
+        .set_expiration_time(future_expiration)  # Set expiration to 1 year from now
+        .set_auto_renew_period(auto_renew_period)  # 90 days auto-renew
+        .set_max_automatic_token_associations(50)  # Allow 50 token associations
+        .set_auto_renew_account_id(client.operator_account_id)  # Set auto-renew payer
+        .set_staked_node_id(0)  # Stake to node 0
+        .set_decline_reward(False)  # Accept staking rewards
         .execute(client)
     )
 
@@ -158,18 +139,11 @@ def contract_update_comprehensive():
         )
         sys.exit(1)
 
-    print(f"Contract updated successfully! All setters used:")
-    print(f"  • Contract ID: {contract_id}")
-    print(f"  • New memo: 'Updated with ALL setters!'")
-    print(f"  • Admin key: Updated")
-    print(f"  • Expiration: {future_date.strftime('%Y-%m-%d')}")
-    print(f"  • Auto-renew period: 180 days")
-    print(f"  • Bytecode file: {updated_file_id}")
-    print(f"  • Max token associations: 50")
-    print(f"  • Auto-renew account: {client.operator_account_id}")
-    print(f"  • Staked to node: 0")
-    print(f"  • Decline rewards: False")
+    print(f"\nContract updated successfully with ID: {contract_id}")
+
+    contract_info = ContractInfoQuery().set_contract_id(contract_id).execute(client)
+    print(contract_info)
 
 
 if __name__ == "__main__":
-    contract_update_comprehensive()
+    contract_update()
