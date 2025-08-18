@@ -10,7 +10,7 @@ wheels/
 .venv
 venv/
 .env/
-myenv/
+
 
 # Local environment variables for testing
 .env

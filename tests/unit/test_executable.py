@@ -382,7 +382,7 @@ def test_topic_create_transaction_fails_on_nonretriable_error():
             tx.execute(client)
         
         # Verify the error contains the expected status
-        assert str(ResponseCode.INVALID_TRANSACTION_BODY) in str(exc_info.value)
+        assert ResponseCode.INVALID_TRANSACTION_BODY.name in str(exc_info.value)
         
 def test_transaction_node_switching_body_bytes():
     """Test that execution switches nodes after receiving a non-retriable error."""

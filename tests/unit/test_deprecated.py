@@ -79,7 +79,7 @@ class DummyProto:
         self.name = "Foo"
         self.symbol = "F"
         self.decimals = 2
-        self.total_supply = 1_000
+        self.totalSupply = 1_000
         self.deleted = False
         self.memo = "test"
         self.tokenType = TokenType.FUNGIBLE_COMMON.value
@@ -92,20 +92,20 @@ class DummyProto:
         self.tokenId = TokenID(shardNum=0, realmNum=0, tokenNum=42)
         self.treasury = AccountID(shardNum=0, realmNum=0, accountNum=99)
 
-        # empty key protos
-        self.admin_key = Key()
-        self.kyc_key = Key()
-        self.freeze_key = Key()
-        self.wipe_key = Key()
-        self.supply_key = Key()
-        self.metadata_key = Key()
-        self.fee_schedule_key = Key()
-        self.pause_key = Key()
+        # use camelCase to match production code
+        self.adminKey = Key()
+        self.kycKey = Key()
+        self.freezeKey = Key()
+        self.wipeKey = Key()
+        self.supplyKey = Key()
+        self.metadataKey = Key()
+        self.feeScheduleKey = Key()
+        self.pauseKey = Key()
 
         # statuses
         self.defaultFreezeStatus = TokenFreezeStatus.FREEZE_NOT_APPLICABLE.value
         self.defaultKycStatus = TokenKycStatus.KYC_NOT_APPLICABLE.value
-        self.pause_status = TokenPauseStatus.PAUSE_NOT_APPLICABLE.value
+        self.pauseStatus = TokenPauseStatus.PAUSE_NOT_APPLICABLE.value
         self.supplyType = SupplyType.FINITE.value
 
         # skip these branches

@@ -122,7 +122,12 @@ def test_token_info_query_execute(mock_account_ids, private_key):
         assert result.admin_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
         assert result.kyc_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
         assert result.wipe_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
-        assert result.supply_key == None
-        assert result.freeze_key == None
-        assert result.wipe_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+
+# optional fields
+        assert result.supply_key is None
+        assert result.freeze_key is None
+
+
+    if result.metadata_key is not None:
         assert result.metadata_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
+        

@@ -299,8 +299,8 @@ class TokenInfo(_DeprecatedAliasesMixin):
         if proto_obj.pause_status is not None:
             pause_status = TokenPauseStatus._from_proto(proto_obj.pause_status)
             tokenInfoObject.set_pause_status(pause_status)
-        if proto_obj.supply_type is not None:
-            supply_type = SupplyType(proto_obj.supply_type)
+        if proto_obj.supplyType is not None:
+            supply_type = SupplyType(proto_obj.supplyType)
             tokenInfoObject.set_supply_type(supply_type)
         return tokenInfoObject
 
