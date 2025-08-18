@@ -1,20 +1,39 @@
-from typing import Union
+"""
+This module defines the TopicCreateTransaction class for creating topics
+on the Hedera Consensus Service (HCS) using the Hiero Python SDK.
 
+It provides methods to set properties such as memo, admin key, submit key,
+auto-renew period, and auto-renew account, and to build the protobuf
+transaction body for submission to the Hedera network .
+"""
+
+from typing import Union
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import consensus_create_topic_pb2, transaction_body_pb2, basic_types_pb2
+from hiero_sdk_python.hapi.services import (
+    consensus_create_topic_pb2,
+    transaction_body_pb2,
+    basic_types_pb2)
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.account.account_id import AccountId
 
+
 class TopicCreateTransaction(Transaction):
+    """
+        Represents a transaction to create a new topic in the Hedera
+        Consensus Service (HCS).
+
+        This transaction can optionally define an admin key, submit key,
+        auto-renew period, auto-renew account, and memo.
+    """
     def __init__(
-        self,
-        memo: str = None,
-        admin_key: basic_types_pb2.Key = None,
-        submit_key: basic_types_pb2.Key = None,
-        auto_renew_period: Duration = None,
-        auto_renew_account: AccountId = None
+            self,
+            memo: str = None,
+            admin_key: basic_types_pb2.Key = None,
+            submit_key: basic_types_pb2.Key = None,
+            auto_renew_period: Duration = None,
+            auto_renew_account: AccountId = None
     ) -> None:
         """
         Initializes a new instance of the TopicCreateTransaction class.
@@ -69,7 +88,7 @@ class TopicCreateTransaction(Transaction):
         self.submit_key = key
         return self
 
-    def set_auto_renew_period(self, seconds: Union[Duration,int]) -> "TopicCreateTransaction":
+    def set_auto_renew_period(self, seconds: Union[Duration, int]) -> "TopicCreateTransaction":
         """
         Sets the auto-renew period for the topic creation transaction.
         Args:
@@ -110,14 +129,28 @@ class TopicCreateTransaction(Transaction):
         Raises:
             ValueError: If required fields are missing.
         """
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
-        transaction_body.consensusCreateTopic.CopyFrom(consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
-            adminKey=self.admin_key._to_proto() if self.admin_key is not None else None,
-            submitKey=self.submit_key._to_proto() if self.submit_key is not None else None,
-            autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period is not None else None,
-            autoRenewAccount=self.auto_renew_account._to_proto() if self.auto_renew_account is not None else None,
-            memo=self.memo
-        ))
+        transaction_body: transaction_body_pb2.TransactionBody = (
+            self.build_base_transaction_body())
+        transaction_body.consensusCreateTopic.CopyFrom(
+            consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
+                adminKey=(
+                    self.admin_key._to_proto()
+                    if self.admin_key is not None
+                    else None),
+                submitKey=(
+                    self.submit_key._to_proto()
+                    if self.submit_key is not None
+                    else None),
+                autoRenewPeriod=(
+                    self.auto_renew_period._to_proto()
+                    if self.auto_renew_period is not None
+                    else None),
+                autoRenewAccount=(
+                    self.auto_renew_account._to_proto()
+                    if self.auto_renew_account is not None
+                    else None),
+                memo=self.memo
+            ))
 
         return transaction_body
 

@@ -1,23 +1,39 @@
+"""
+This module provides the `TopicInfo` class for representing consensus topic
+metadata on the Hedera network using the Hiero SDK.
+
+It handles constructing the object from a protobuf message, formatting
+optional fields, and providing a readable string representation of the
+topic state.
+"""
 from datetime import datetime
+from typing import Optional
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key, AccountID
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
 from hiero_sdk_python.hapi.services import consensus_topic_info_pb2
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.utils.key_format import format_key
-from typing import Optional
+
 
 class TopicInfo:
+    """
+        Represents consensus topic information on the Hedera network.
+
+        It wraps the `ConsensusTopicInfo` protobuf message, exposing attributes
+        such as memo, running hash, sequence number, expiration time, admin key,
+        submit key, auto-renewal configuration, and ledger ID.
+    """
     def __init__(
-        self,
-        memo: str,
-        running_hash: bytes,
-        sequence_number: int,
-        expiration_time: Timestamp,
-        admin_key: Optional[Key],
-        submit_key: Optional[Key],
-        auto_renew_period: Optional[Duration],
-        auto_renew_account: Optional[AccountID],
-        ledger_id: Optional[bytes],
+            self,
+            memo: str,
+            running_hash: bytes,
+            sequence_number: int,
+            expiration_time: Timestamp,
+            admin_key: Optional[Key],
+            submit_key: Optional[Key],
+            auto_renew_period: Optional[Duration],
+            auto_renew_account: Optional[AccountID],
+            ledger_id: Optional[bytes],
 
     ) -> None:
         """
@@ -44,7 +60,10 @@ class TopicInfo:
         self.ledger_id: bytes = ledger_id
 
     @classmethod
-    def _from_proto(cls, topic_info_proto: consensus_topic_info_pb2.ConsensusTopicInfo) -> "TopicInfo":
+    def _from_proto(
+            cls,
+            topic_info_proto: consensus_topic_info_pb2.ConsensusTopicInfo
+    ) -> "TopicInfo":
         """
         Constructs a TopicInfo object from a protobuf ConsensusTopicInfo message.
         """
@@ -53,15 +72,19 @@ class TopicInfo:
             running_hash=topic_info_proto.runningHash,
             sequence_number=topic_info_proto.sequenceNumber,
             expiration_time=(
-                topic_info_proto.expirationTime 
+                topic_info_proto.expirationTime
                 if topic_info_proto.HasField("expirationTime") else None
             ),
             admin_key=(
+<<<<<<< HEAD
                 topic_info_proto.admin_key 
+=======
+                topic_info_proto.adminKey
+>>>>>>> fe788ce (chore: resolve pylint issues in /consensus module (#278))
                 if topic_info_proto.HasField("adminKey") else None
             ),
             submit_key=(
-                topic_info_proto.submitKey 
+                topic_info_proto.submitKey
                 if topic_info_proto.HasField("submitKey") else None
             ),
             auto_renew_period=(
@@ -69,10 +92,11 @@ class TopicInfo:
                 if topic_info_proto.HasField("autoRenewPeriod") else None
             ),
             auto_renew_account=(
-                topic_info_proto.autoRenewAccount 
+                topic_info_proto.autoRenewAccount
                 if topic_info_proto.HasField("autoRenewAccount") else None
             ),
-            ledger_id=getattr(topic_info_proto, "ledger_id", None),  # fallback if the field doesn't exist
+            ledger_id=getattr(topic_info_proto, "ledger_id", None),
+            # fallback if the field doesn't exist
         )
 
     def __repr__(self) -> str:
@@ -89,7 +113,7 @@ class TopicInfo:
         exp_dt: datetime = None
         if self.expiration_time and hasattr(self.expiration_time, "seconds"):
             exp_dt = datetime.fromtimestamp(self.expiration_time.seconds)
-            
+
         running_hash_hex: str = self.running_hash.hex() if self.running_hash else None
         ledger_id_hex: Optional[str] = (
             self.ledger_id.hex() if isinstance(self.ledger_id, (bytes, bytearray)) else None

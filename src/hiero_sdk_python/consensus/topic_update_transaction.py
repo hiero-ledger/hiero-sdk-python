@@ -1,20 +1,24 @@
+"""
+This module provides the `TopicUpdateTransaction` class for updating consensus topics
+on the Hedera network using the Hiero SDK.
+"""
 from typing import Union
-
-from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import (
-    basic_types_pb2, 
-    consensus_update_topic_pb2,
-    duration_pb2, 
-    timestamp_pb2, 
-    transaction_body_pb2
-)
 from google.protobuf import wrappers_pb2 as _wrappers_pb2
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    consensus_update_topic_pb2,
+    duration_pb2,
+    timestamp_pb2,
+    transaction_body_pb2
+)
 from hiero_sdk_python.account.account_id import AccountId
 
 class TopicUpdateTransaction(Transaction):
+    """Represents a transaction to update a consensus topic."""
     def __init__(
         self,
         topic_id: basic_types_pb2.TopicID =None,
@@ -135,7 +139,10 @@ class TopicUpdateTransaction(Transaction):
         self.auto_renew_account = account_id
         return self
 
-    def set_expiration_time(self, expiration_time: timestamp_pb2.Timestamp) -> "TopicUpdateTransaction":
+    def set_expiration_time(
+            self,
+            expiration_time: timestamp_pb2.Timestamp
+    ) -> "TopicUpdateTransaction":
         """
         Sets the expiration time for the topic.
 
@@ -163,12 +170,19 @@ class TopicUpdateTransaction(Transaction):
             raise ValueError("Missing required fields: topic_id")
 
         transaction_body = self.build_base_transaction_body()
-        transaction_body.consensusUpdateTopic.CopyFrom(consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
+        transaction_body.consensusUpdateTopic.CopyFrom(
+            consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
             topicID=self.topic_id._to_proto(),
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
             submitKey=self.submit_key._to_proto() if self.submit_key else None,
-            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds) if self.auto_renew_period else None,
-            autoRenewAccount=self.auto_renew_account._to_proto() if self.auto_renew_account else None,
+            autoRenewPeriod=(
+                duration_pb2.Duration(seconds=self.auto_renew_period.seconds)
+                if self.auto_renew_period else None
+            ),
+            autoRenewAccount=(
+                self.auto_renew_account._to_proto()
+                if self.auto_renew_account else None
+            ),
             expirationTime=self.expiration_time._to_proto() if self.expiration_time else None,
             memo=_wrappers_pb2.StringValue(value=self.memo) if self.memo else None
         ))
