@@ -32,9 +32,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 
-### Changed
-- SimpleContract and StatefulContract constructors to be payable
-- added new_pending_airdrops to TransactionRecord Class
 
 ### Breaking API changes
 >>>>>>> ce870f6 (fix: ECDSA key integration tests issues (#244))
@@ -96,7 +93,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - TokenUpdateTransaction Class
 - added Type hinting and initial methods to several modules
 - TokenRevoceKycTransaction Class
-- README_types.md
+- [Types Guide](hiero/hedera_sdk_python/documentation/sdk_developers/types.md)
+
 - TransactionRecordQuery Class
 - AccountInfoQuery Class
 
@@ -112,6 +110,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - README updated
 - added PublicKey.from_proto to PublicKey class
 - changed Query Class to have method get_cost
+- SimpleContract and StatefulContract constructors to be payable
+- added new_pending_airdrops to TransactionRecord Class
+- Reorganized SDK developer documentation:
+  - Renamed and moved `README_linting.md` to `linting.md`
+  - Renamed and moved `README_types.md` to `types.md`
+  - Renamed and moved `Commit_Signing.md` to `signing.md`
+- Created `sdk_users` docs folder and renamed `examples/README.md` to `running_examples.md`
+- Updated references and links accordingly
+
 
 ### Fixed
 - fixed INVALID_NODE_ACCOUNT during node switching
