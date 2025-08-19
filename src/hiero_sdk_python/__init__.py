@@ -5,6 +5,7 @@ from .client.network import Network
 # Account
 from .account.account_id import AccountId
 from .account.account_create_transaction import AccountCreateTransaction
+from .account.account_update_transaction import AccountUpdateTransaction
 from .account.account_info import AccountInfo
 
 # Crypto
@@ -109,6 +110,7 @@ __all__ = [
     # Account
     "AccountId",
     "AccountCreateTransaction",
+    "AccountUpdateTransaction",
     "AccountInfo",
 
     # Crypto
