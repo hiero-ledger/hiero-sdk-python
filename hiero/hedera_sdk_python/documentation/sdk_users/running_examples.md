@@ -57,6 +57,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Creating a Contract](#creating-a-contract)
   - [Querying a Contract Call](#querying-a-contract-call)
   - [Querying Contract Info](#querying-contract-info)
+  - [Querying Contract Bytecode](#querying-contract-bytecode)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1270,6 +1271,25 @@ contract_info = (
     .execute(client)
 )
 print(contract_info)
+```
+
+### Querying Contract Bytecode
+
+#### Pythonic Syntax:
+```
+contract_bytecode_query = ContractBytecodeQuery(contract_id=contract_id)
+contract_bytecode = contract_bytecode_query.execute(client)
+print(contract_bytecode.hex()) # display bytecode as hex string
+```
+
+#### Method Chaining:
+```
+contract_bytecode = (
+    ContractBytecodeQuery()
+    .set_contract_id(contract_id)
+    .execute(client)
+)
+print(contract_bytecode.hex()) # display bytecode as hex string
 ```
 
 ## Miscellaneous Queries
