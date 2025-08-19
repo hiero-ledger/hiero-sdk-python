@@ -26,5 +26,6 @@ jobs:
 
       - name: Run mypy
         run: |
-          mypy path/hedera_sdk_python/src/hiero_sdk_python/address_book
+          mypy path/hedera_sdk_python/src/hiero_sdk_python
+          
         continue-on-error: true
