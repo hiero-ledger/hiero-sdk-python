@@ -111,13 +111,7 @@ class TokenClaimAirdropTransaction(Transaction):
         self._pending_airdrop_ids = candidate
         return self
 
-    @property
     def get_pending_airdrop_ids(self) -> List[PendingAirdropId]:
-        """Get a copy of the current list of pending airdrop IDs.
-
-        Returns:
-            List[PendingAirdropId]: The list of pending airdrop IDs.
-        """
         return list(self._pending_airdrop_ids)
 
     def _pending_airdrop_ids_to_proto(self) -> List[Any]:
