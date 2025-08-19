@@ -76,7 +76,7 @@ def create_contract_file(client):
 
 def create_contract(client, file_id):
     """Create a contract using the file with constructor parameters"""
-    initial_message = "Initial message from constructor".encode("utf-8")
+    initial_message = "This is the initial message!".encode("utf-8")
     constructor_params = ContractFunctionParameters().add_bytes32(initial_message)
     receipt = (
         ContractCreateTransaction()
@@ -134,9 +134,9 @@ def execute_contract():
 
     # Get the current message from the contract
     current_message = get_contract_message(client, contract_id)
-    print(f"Current message in contract: {current_message}")
+    print(f"Initial contract message (from constructor): '{current_message}'")
 
-    new_message_bytes = b"New message to set"
+    new_message_bytes = b"This is the updated message!"
     new_message_string = new_message_bytes.decode("utf-8")  # For display
 
     # Set the new message from the contract
@@ -158,13 +158,14 @@ def execute_contract():
         sys.exit(1)
 
     print(
-        f"Successfully executed setMessage() on {contract_id} with: {new_message_string}"
+        f"Successfully executed setMessage() on {contract_id} with new message: "
+        f"'{new_message_string}'"
     )
 
     # Query the contract function to verify that the message was set
     updated_message = get_contract_message(client, contract_id)
 
-    print(f"Retrieved message from contract getMessage(): {updated_message}")
+    print(f"Retrieved message from contract getMessage(): '{updated_message}'")
 
 
 if __name__ == "__main__":
