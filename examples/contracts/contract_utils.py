@@ -7,11 +7,14 @@ File Structure:
         ContractName/
             ContractName.sol      # Original Solidity source code
             ContractName.bin      # Compiled bytecode (hex-encoded)
+            ContractName.bin-runtime # Compiled bytecode (hex-encoded)
 
 Generating Bytecode Files:
     1. Use the Solidity compiler (solc) to generate hex-encoded bytecode:
        # Make sure you are in the examples/contracts directory when running this command:
        solc --bin ContractName/ContractName.sol -o ContractName/
+       # To generate the runtime bytecode, run the following command (optional):
+       solc --bin-runtime ContractName/ContractName.sol -o ContractName/
 
     2. This creates a .bin file containing the contract's bytecode (no 0x prefix)
 
@@ -26,24 +29,25 @@ Notes:
 from pathlib import Path
 
 
-def _load_contract_bytecode(contract_name: str) -> str:
+def _load_contract_bytecode(contract_name: str, extension: str = "bin") -> str:
     """
     Load contract bytecode from file, with proper error handling.
 
     Args:
         contract_name: Name of the contract (e.g., 'SimpleContract', 'StatefulContract')
+        extension: Extension of the contract bytecode file (e.g., 'bin', 'bin-runtime')
 
     Returns:
         Contract bytecode as a string
 
     Raises:
-        FileNotFoundError: If the contract .bin file is not found
+        FileNotFoundError: If the contract .{extension} file is not found
         RuntimeError: If there's an error loading the bytecode
     """
     try:
         # Look for contract in the main contracts directory (relative to project root)
         contract_path = Path(__file__).parent.joinpath(
-            contract_name, f"{contract_name}.bin"
+            contract_name, f"{contract_name}.{extension}"
         )
 
         if not contract_path.exists():
@@ -70,6 +74,11 @@ def _load_contract_bytecode(contract_name: str) -> str:
 # A minimal contract with a static "Hello, world!" message,
 # and an owner-only function to withdraw funds.
 SIMPLE_CONTRACT_BYTECODE = _load_contract_bytecode("SimpleContract")
+
+# The deployed (runtime) bytecode for SimpleContract, loaded from its .bin-runtime file.
+SIMPLE_CONTRACT_RUNTIME_BYTECODE = _load_contract_bytecode(
+    "SimpleContract", "bin-runtime"
+)
 
 # StatefulContract:
 # Initializes a bytes32 message via constructor, stores it on-chain,
