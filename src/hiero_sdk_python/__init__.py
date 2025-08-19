@@ -5,6 +5,7 @@ from .client.network import Network
 # Account
 from .account.account_id import AccountId
 from .account.account_create_transaction import AccountCreateTransaction
+from .account.account_update_transaction import AccountUpdateTransaction
 from .account.account_info import AccountInfo
 
 # Crypto
@@ -100,6 +101,7 @@ from .contract.contract_bytecode_query import ContractBytecodeQuery
 from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
 from .contract.contract_info import ContractInfo
+from .contract.contract_update_transaction import ContractUpdateTransaction
 
 __all__ = [
     # Client
@@ -109,6 +111,7 @@ __all__ = [
     # Account
     "AccountId",
     "AccountCreateTransaction",
+    "AccountUpdateTransaction",
     "AccountInfo",
 
     # Crypto
@@ -199,5 +202,6 @@ __all__ = [
     "ContractBytecodeQuery",
     "ContractFunctionParameters",
     "ContractFunctionResult",
-    "ContractInfo"
+    "ContractInfo",
+    "ContractUpdateTransaction",
 ]
