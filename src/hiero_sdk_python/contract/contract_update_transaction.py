@@ -4,7 +4,7 @@ Transaction to update a contract's properties, metadata, or keys on the network.
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 
@@ -259,6 +259,10 @@ class ContractUpdateTransaction(Transaction):
         self.staked_account_id = staked_account_id
         return self
 
+    def _convert_to_proto(self, obj: Optional[Any]) -> Any:
+        """Convert object to proto if it exists, otherwise return None"""
+        return obj._to_proto() if obj else None
+
     def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for contract update.
@@ -277,10 +281,8 @@ class ContractUpdateTransaction(Transaction):
             expirationTime=(
                 self.expiration_time._to_protobuf() if self.expiration_time else None
             ),
-            adminKey=self.admin_key._to_proto() if self.admin_key else None,
-            autoRenewPeriod=(
-                self.auto_renew_period._to_proto() if self.auto_renew_period else None
-            ),
+            adminKey=self._convert_to_proto(self.admin_key),
+            autoRenewPeriod=self._convert_to_proto(self.auto_renew_period),
             staked_node_id=self.staked_node_id,
             memoWrapper=(
                 StringValue(value=self.contract_memo)
@@ -292,14 +294,8 @@ class ContractUpdateTransaction(Transaction):
                 if self.max_automatic_token_associations is not None
                 else None
             ),
-            staked_account_id=(
-                self.staked_account_id._to_proto() if self.staked_account_id else None
-            ),
-            auto_renew_account_id=(
-                self.auto_renew_account_id._to_proto()
-                if self.auto_renew_account_id
-                else None
-            ),
+            staked_account_id=self._convert_to_proto(self.staked_account_id),
+            auto_renew_account_id=self._convert_to_proto(self.auto_renew_account_id),
             decline_reward=(
                 BoolValue(value=self.decline_reward)
                 if self.decline_reward is not None
