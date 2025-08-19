@@ -244,7 +244,69 @@ def test_build_transaction_body_with_optional_fields(mock_account_ids):
         transaction_body.cryptoUpdateAccount.autoRenewPeriod
         == AUTO_RENEW_PERIOD._to_proto()
     )
-    # When receiver_signature_required is False, the wrapper should still be set
+
+
+def test_build_transaction_body_account_memo_variants(mock_account_ids):
+    """Test account_memo field variants in transaction body."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id = AccountId(0, 0, 456)
+
+    account_tx = AccountUpdateTransaction()
+    account_tx.set_account_id(account_id)
+
+    # Set operator and node account IDs needed for building transaction body
+    account_tx.operator_account_id = operator_id
+    account_tx.node_account_id = node_account_id
+
+    transaction_body = account_tx.build_transaction_body()
+
+    # When account_memo is None, the memo field should not be set in the protobuf
+    assert not transaction_body.cryptoUpdateAccount.HasField("memo")
+
+    account_tx.set_account_memo("Test memo")
+    transaction_body = account_tx.build_transaction_body()
+    # When account_memo is set to a non-empty string, the memo field should be set in the protobuf
+    assert transaction_body.cryptoUpdateAccount.HasField("memo")
+    assert transaction_body.cryptoUpdateAccount.memo == StringValue(value="Test memo")
+
+    account_tx.set_account_memo("")
+    transaction_body = account_tx.build_transaction_body()
+    # When account_memo is set to an empty string, the memo field should be set in the protobuf
+    assert transaction_body.cryptoUpdateAccount.HasField("memo")
+    assert transaction_body.cryptoUpdateAccount.memo == StringValue(value="")
+
+
+def test_build_transaction_body_receiver_sig_required_variants(mock_account_ids):
+    """Test receiver_signature_required field variants in transaction body."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id = AccountId(0, 0, 456)
+
+    account_tx = AccountUpdateTransaction()
+    account_tx.set_account_id(account_id)
+
+    # Set operator and node account IDs needed for building transaction body
+    account_tx.operator_account_id = operator_id
+    account_tx.node_account_id = node_account_id
+
+    transaction_body = account_tx.build_transaction_body()
+
+    # When receiver_signature_required is None, the field should not be set
+    assert not transaction_body.cryptoUpdateAccount.HasField(
+        "receiverSigRequiredWrapper"
+    )
+
+    account_tx.set_receiver_signature_required(True)
+    transaction_body = account_tx.build_transaction_body()
+    # When receiver_signature_required is set to True, the field should be set in the protobuf
+    assert transaction_body.cryptoUpdateAccount.HasField("receiverSigRequiredWrapper")
+    assert transaction_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(
+        value=True
+    )
+
+    account_tx.set_receiver_signature_required(False)
+    transaction_body = account_tx.build_transaction_body()
+    # When receiver_signature_required is set to False, the field should be set in the protobuf
+    assert transaction_body.cryptoUpdateAccount.HasField("receiverSigRequiredWrapper")
     assert transaction_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(
         value=False
     )
