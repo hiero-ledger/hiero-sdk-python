@@ -60,6 +60,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Contract Info](#querying-contract-info)
   - [Querying Contract Bytecode](#querying-contract-bytecode)
   - [Updating a Contract](#updating-a-contract)
+  - [Executing a Contract](#executing-a-contract)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1370,6 +1371,50 @@ transaction.sign(current_admin_key)  # Sign with current admin key
 transaction.sign(new_admin_key)      # Sign with new admin key
 transaction.execute(client)
 ```
+
+### Executing a Contract
+
+#### Pythonic Syntax:
+```python
+# Example: calling setMessage(bytes32) (StatefulContract.sol)
+# Prepare function parameters for setMessage(bytes32)
+func_params = ContractFunctionParameters("setMessage").add_bytes32(b"New message")
+
+transaction = ContractExecuteTransaction(
+    contract_id=contract_id,
+    gas=1000000,
+    function_parameters=func_params.to_bytes() # function to execute
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Execute a contract function using method chaining
+# Example: calling setMessage(bytes32) (StatefulContract.sol)
+transaction = (
+    ContractExecuteTransaction()
+    .set_contract_id(contract_id)
+    .set_gas(1000000)
+    .set_function("setMessage",ContractFunctionParameters().add_bytes32(b"New message"))
+    .freeze_with(client)
+)
+
+# Alternatively, you can use set_function_parameters() with ContractFunctionParameters:
+transaction = (
+    ContractExecuteTransaction()
+    .set_contract_id(contract_id)
+    .set_gas(1000000)
+    .set_function(ContractFunctionParameters("setMessage").add_bytes32(b"New message"))
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
 
 ## Miscellaneous Queries
 

@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).  
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+### Added
+- ContractExecuteTransaction class
+- setMessageAndPay() function in StatefulContract
+
+### Changed
+- Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
+
 ## [0.1.4] - 2025-08-19
 ### Added
 - CONTRIBUTING.md: expanded documentation detailing various contribution processes in a step-by-step way. Includes new sections: blog posts and support.

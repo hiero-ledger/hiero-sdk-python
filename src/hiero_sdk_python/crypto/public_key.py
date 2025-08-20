@@ -52,7 +52,7 @@ class PublicKey:
 
         # 1) 32-byte raw ⇒ Ed25519
         if len(pub) == 32:
-            return cls.from_bytes_ed25519(pub)
+            return cls._from_bytes_ed25519(pub)
 
         # 2) 33/65 bytes ⇒ ECDSA (secp256k1)
         if len(pub) in (33, 65):
@@ -80,6 +80,22 @@ class PublicKey:
         """
         _warn_ed25519_ambiguity("PublicKey.from_bytes_ed25519")
 
+        return cls._from_bytes_ed25519(pub)
+
+    @classmethod
+    def _from_bytes_ed25519(cls, pub: bytes) -> "PublicKey":
+        """
+        Load an Ed25519 public key from public raw bytes.
+
+        Args:
+            pub (bytes): 32-byte raw Ed25519 public key point.
+
+        Returns:
+            PublicKey: A new instance wrapping the validated public key.
+
+        Raises:
+            ValueError: If `pub` is not exactly 32 bytes or fails point validation.
+        """
         # 1) Enforce exact length for raw Ed25519 keys which are 32 bytes.
         if len(pub) != 32:
             raise ValueError(f"Ed25519 public key must be 32 bytes, got {len(pub)}.")
@@ -201,7 +217,7 @@ class PublicKey:
         except ValueError as exc:
             raise ValueError(f"Invalid hex string for Ed25519 public key: {hex_str!r}") from exc
         # 3) Delegate to the byte-level loader
-        return cls.from_bytes_ed25519(pub)
+        return cls._from_bytes_ed25519(pub)
 
     @classmethod
     def from_string_ecdsa(cls, hex_str: str) -> "PublicKey":
@@ -272,7 +288,7 @@ class PublicKey:
         if n == 32:
             # raw Ed25519
             # Warning! Incorrectly passed private ed25519 keys will be passed as public
-            return cls.from_bytes_ed25519(data)
+            return cls._from_bytes_ed25519(data)
         if n in (33, 65):
             # raw secp256k1
             return cls.from_bytes_ecdsa(data)
@@ -295,7 +311,7 @@ class PublicKey:
         Load a public key from a protobuf Key message.
         """
         if proto.ed25519:
-            return cls.from_bytes_ed25519(proto.ed25519)
+            return cls._from_bytes_ed25519(proto.ed25519)
         if proto.ECDSA_secp256k1:
             return cls.from_bytes_ecdsa(proto.ECDSA_secp256k1)
         if proto.contractID.ByteSize() > 0:
