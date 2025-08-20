@@ -1,4 +1,5 @@
 """Network module for managing Hedera SDK connections."""
+import os
 import secrets
 from typing import Dict, List
 
@@ -63,7 +64,7 @@ class Network:
 
     def __init__(
         self,
-        network: str = 'testnet',
+        network: str = None,
         nodes: list[_Node] = None,
         mirror_address: str = None,
     ):
@@ -79,7 +80,7 @@ class Network:
                             If not provided,
                             we'll use a default from MIRROR_ADDRESS_DEFAULT[network].
         """
-        self.network: str = network or 'testnet'
+        self.network: str = network or os.getenv("NETWORK", "testnet")
         self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(
             network, 'localhost:5600'
         )
