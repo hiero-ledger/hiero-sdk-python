@@ -3,6 +3,7 @@
 # Source the activate script to set up the PATH for this shell session
 source ./.venv/bin/activate
 
+
 hapi_version="v0.57.3"
 protos_dir=".protos"
 services_dir="src/hiero_sdk_python/hapi/services"

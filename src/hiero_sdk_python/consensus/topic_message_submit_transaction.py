@@ -1,9 +1,21 @@
+"""
+This module provides the `TopicMessageSubmitTransaction` class for submitting
+messages to Hedera Consensus Service topics using the Hiero SDK.
+"""
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2, transaction_body_pb2
+from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2
+from hiero_sdk_python.hapi.services import transaction_body_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
+
 class TopicMessageSubmitTransaction(Transaction):
+    """
+        Represents a transaction that submits a message to a Hedera Consensus Service topic.
+
+        Allows setting the target topic ID and message, building the transaction body,
+        and executing the submission through a network channel.
+    """
     def __init__(self, topic_id: basic_types_pb2.TopicID = None, message: str = None) -> None:
         """
         Initializes a new TopicMessageSubmitTransaction instance.
