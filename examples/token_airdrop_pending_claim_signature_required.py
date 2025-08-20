@@ -258,17 +258,17 @@ print(f"The sender will be {sender_id} and receiver {receiver_id} ")
 # Verifying the sender has the tokens which can be later airdropped (information purposes))
 sender_info = AccountInfoQuery(sender_id).execute(client)
 
-def bal(token_id):
+def bal_sender(token_id):
     for rel in sender_info.token_relationships:
         if str(rel.token_id) == str(token_id):
             return getattr(rel, "balance", 0)
     return 0
 
-assert bal(airdrop_fungible_token_id_1) >= 900, "Not enough FT1 to airdrop"
-assert bal(airdrop_fungible_token_id_2) >= 200, "Not enough FT2 to airdrop"
+assert bal_sender(airdrop_fungible_token_id_1) >= 900, "Not enough FT1 to airdrop"
+assert bal_sender(airdrop_fungible_token_id_2) >= 200, "Not enough FT2 to airdrop"
 
-print(f"Sender {sender_id} FT1 balance {bal(airdrop_fungible_token_id_1)}") # Should be 100
-print(f"Sender {sender_id} FT2 balance {bal(airdrop_fungible_token_id_2)}") # Should be 300
+print(f"Sender {sender_id} FT1 balance {bal_sender(airdrop_fungible_token_id_1)}") # Should be 100
+print(f"Sender {sender_id} FT2 balance {bal_sender(airdrop_fungible_token_id_2)}") # Should be 300
 
 def nft_owner(nft_id: NftId) -> str:
     info = TokenNftInfoQuery(nft_id).execute(client)
