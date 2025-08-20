@@ -14,7 +14,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.tokens.token_info import TokenId
 from hiero_sdk_python.tokens.nft_id import NftId
-from hiero_sdk_python.tokens.token_airdrop_pending_claim import TokenClaimAirdropTransaction
+from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
@@ -213,13 +213,13 @@ airdrop_fungible_token_id_2: TokenId = fungible_2_receipt.token_id
 
 ## NFT
 ### We only have the token id part of the NFT, we are missing the serial number. We need both for airdrops.
-airdrop_nft_1: TokenId = nft_receipt.token_id
+airdrop_nft_1_token: TokenId = nft_receipt.token_id
 
 # To airdrop an NFT, we airdrop a serial number. We mint a serial number of this nft token id:
 
 mint_tx = (
    TokenMintTransaction()
-       .set_token_id(airdrop_nft_1)
+       .set_token_id(airdrop_nft_1_token)
        .set_metadata(b"NFT1 Serial 1")
        .freeze_with(client)
        .sign(operator_key)
