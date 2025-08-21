@@ -10,6 +10,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
+- Added GitHub Action workflow `mypy.yml` to run Mypy type checking
+- Set `continue-on-error: true` so type errors are reported but do not block PR merges
 
 ### Changed
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
@@ -18,8 +20,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 - CONTRIBUTING.md: expanded documentation detailing various contribution processes in a step-by-step way. Includes new sections: blog posts and support.
 - README_upstream.md: documentation explaining how to rebase to main.
-- Added GitHub Action workflow `mypy.yml` to run Mypy type checking
-- Set `continue-on-error: true` so type errors are reported but do not block PR merges
+
+### Added
 - Legacy ECDSA DER parse support
 - documented private key from_string method behavior
 - ContractInfo class
