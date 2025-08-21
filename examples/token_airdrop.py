@@ -14,7 +14,8 @@ from hiero_sdk_python import (
  TokenMintTransaction,
  CryptoGetAccountBalanceQuery,
  TokenType,
- ResponseCode
+ ResponseCode,
+ NftId
 )
 
 load_dotenv()
@@ -101,7 +102,8 @@ def token_airdrop():
         mint_tx.sign(operator_key)
         mint_receipt = mint_tx.execute(client)
 
-        print(f"✅ Success! Nft minted serial: { mint_receipt.serial_numbers[0] }.")
+        serial_number = mint_receipt.serial_numbers[0]
+        print(f"✅ Success! Nft minted serial: { serial_number }.")
     except Exception as e:
         print(f"❌ Error minting nft: {e}")
 
@@ -127,6 +129,7 @@ def token_airdrop():
             TokenAirdropTransaction()
             .add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
             .add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
+            .add_nft_transfer(nft_id=NftId(token_id=nft_id, serial_number=serial_number), sender=operator_id, receiver=recipient_id)
             .freeze_with(client)
             .sign(operator_key)
             .execute(client)
