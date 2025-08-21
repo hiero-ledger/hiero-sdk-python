@@ -20,13 +20,7 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def token_airdrop():
-    """
-    A full example that creates an account, a token, associate token, and 
-    finally perform token airdrop.
-    """
-
-    # Setup Client
+def setup_client():
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -34,11 +28,13 @@ def token_airdrop():
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
+
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
 
-    # Create a new account
+def create_account(client, operator_key):
     print("\nCreating a new account...")
     recipient_key = PrivateKey.generate_ecdsa()
     
@@ -51,11 +47,13 @@ def token_airdrop():
         account_receipt = account_tx.freeze_with(client).sign(operator_key).execute(client)
         recipient_id = account_receipt.account_id
         print(f"✅ Success! Created a new account with ID: {recipient_id}")
+
+        return recipient_key, recipient_id
     except Exception as e:
         print(f"❌ Error creating new account: {e}")
         sys.exit(1)
 
-    # Create a tokens
+def create_token(client, operator_id, operator_key):
     print("\nCreating a token...")
     try:
         token_tx = (
@@ -70,11 +68,13 @@ def token_airdrop():
         token_id = token_receipt.token_id
 
         print(f"✅ Success! Created token: {token_id}")
+
+        return token_id
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
-    # Create a nft
+def create_nft(client, operator_key, operator_id):
     print("\nCreating a nft...")
     try:
         nft_tx = (
@@ -90,11 +90,12 @@ def token_airdrop():
         nft_id = nft_receipt.token_id
 
         print(f"✅ Success! Created nft: {nft_id}")
+        return nft_id
     except Exception as e:
         print(f"❌ Error creating nft: {e}")
         sys.exit(1)
 
-    #Mint nft
+def mint_nft(client, operator_key, nft_id):
     print("Minting a nft...")
     try:
         mint_tx = TokenMintTransaction(token_id=nft_id, metadata=[b"NFT data"])
@@ -104,15 +105,17 @@ def token_airdrop():
 
         serial_number = mint_receipt.serial_numbers[0]
         print(f"✅ Success! Nft minted serial: { serial_number }.")
+        return serial_number
     except Exception as e:
         print(f"❌ Error minting nft: {e}")
+        sys.exit(1)
 
-    # Associate tokens
+def associate_tokens(client, recipient_id, recipient_key, tokens):
     print("\nAssociating tokens to recipient...")
     try:
         assocciate_tx = TokenAssociateTransaction(
             account_id=recipient_id, 
-            token_ids=[token_id, nft_id]
+            token_ids=tokens
         )
         assocciate_tx.freeze_with(client)
         assocciate_tx.sign(recipient_key)
@@ -121,6 +124,31 @@ def token_airdrop():
 
     except Exception as e:
         print(f"❌ Error associating tokens: {e}")
+        sys.exit(1)
+
+
+def token_airdrop():
+    """
+    A full example that creates an account, a token, associate token, and 
+    finally perform token airdrop.
+    """
+    # Setup Client
+    client, operator_id, operator_key = setup_client()
+    
+    # Create a new account
+    recipient_key, recipient_id = create_account(client, operator_key)
+
+    # Create a tokens
+    token_id = create_token(client, operator_id, operator_key)
+
+    # Create a nft
+    nft_id = create_nft(client, operator_key, operator_id)
+
+    #Mint nft
+    serial_number = mint_nft(client, operator_key, nft_id)
+
+    # Associate tokens
+    associate_tokens(client, recipient_id, recipient_key, [token_id, nft_id])
 
     # Airdrop Tthe tokens
     print("\nAirdropping tokens...")
