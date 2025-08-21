@@ -37,6 +37,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Grant KYC](#token-grant-kyc)
   - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
+  - [Create Token Airdrop](#token-airdrop)
   - [Cancel Token Airdop](#cancel-token-airdrop)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
@@ -742,6 +743,33 @@ transaction = (
 
 transaction.sign(new_account_id_private_key) # If a new treasury account is set, the new treasury key is required to sign.
 transaction.sign(new_admin_key) # Updating the admin key requires the new admin key to sign.
+transaction.execute(client)
+```
+
+### Token Airdrop
+
+#### Pythonic Syntax:
+```
+transaction = TokenAirdropTransaction(
+    token_transfers=token_transfers, 
+    nft_transfers=nft_transfers
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Methode Chaining:
+```
+transaction = (
+    TokenAirdropTransaction()
+    .add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
+    .add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
+    .add_nft_transfer(nft_id=nft_id, serial_number=serial_number, sender=operator_id, receiver=recipient_id)
+    .freeze_with(client)
+    .sign(operator_key)
+)
+
 transaction.execute(client)
 ```
 
