@@ -10,7 +10,7 @@ from hiero_sdk_python.hapi.services.token_reject_pb2 import (
     TokenReference,
     TokenRejectTransactionBody,
 )
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
@@ -21,11 +21,11 @@ from hiero_sdk_python.executable import _Method
 class TokenRejectTransaction(Transaction):
     """
     Represents a token reject transaction on the Hedera network.
-    
+
     This transaction rejects a token transfer.
     Allows users to reject and return unwanted airdrops
     to the treasury account without incurring custom fees.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token reject transaction.
     """
@@ -66,7 +66,7 @@ class TokenRejectTransaction(Transaction):
         self.nft_ids = nft_ids
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token reject.
 
@@ -83,7 +83,7 @@ class TokenRejectTransaction(Transaction):
             owner=self.owner_id and self.owner_id._to_proto(),
             rejections=token_references
         )
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenReject.CopyFrom(token_reject_body)
         return transaction_body
 
@@ -96,7 +96,7 @@ class TokenRejectTransaction(Transaction):
 
         Args:
             channel (_Channel): The channel containing service stubs
-        
+
         Returns:
             _Method: An object containing the transaction function to reject tokens.
         """

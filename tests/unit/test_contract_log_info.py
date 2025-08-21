@@ -6,7 +6,7 @@ import pytest
 
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
-from hiero_sdk_python.hapi.services import basic_types_pb2, contract_call_local_pb2
+from hiero_sdk_python.hapi.services import basic_types_pb2, contract_types_pb2
 
 pytestmark = pytest.mark.unit
 
@@ -70,7 +70,7 @@ def test_to_proto():
 
     proto = log_info._to_proto()
 
-    assert isinstance(proto, contract_call_local_pb2.ContractLoginfo)
+    assert isinstance(proto, contract_types_pb2.ContractLoginfo)
     assert proto.contractID == contract_id._to_proto()
     assert proto.bloom == bloom
     assert proto.topic == topics
@@ -83,7 +83,7 @@ def test_from_proto():
         shardNum=1, realmNum=2, contractNum=3
     )
 
-    proto = contract_call_local_pb2.ContractLoginfo(
+    proto = contract_types_pb2.ContractLoginfo(
         contractID=contract_id_proto,
         bloom=bytes.fromhex("1234"),
         topic=[bytes.fromhex("abcd"), bytes.fromhex("ef01")],

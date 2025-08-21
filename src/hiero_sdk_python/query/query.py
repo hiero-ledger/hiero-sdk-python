@@ -17,7 +17,6 @@ from hiero_sdk_python.hapi.services import (
     duration_pb2,
     query_header_pb2,
     query_pb2,
-    transaction_body_pb2,
     transaction_contents_pb2,
     transaction_pb2,
 )
@@ -196,7 +195,7 @@ class Query(_Executable):
         transaction_id = TransactionId.generate(payer_account_id)
 
         # Create transaction body directly
-        transaction_body = transaction_body_pb2.TransactionBody(
+        transaction_body = transaction_pb2.TransactionBody(
             transactionID=transaction_id._to_proto(),
             nodeAccountID=node_account_id._to_proto(),
             transactionFee=100_000_000,  # 1 Hbar default fee

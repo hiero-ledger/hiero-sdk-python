@@ -13,22 +13,22 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
 from google.protobuf.wrappers_pb2 import BytesValue
 
 class TokenUpdateNftsTransaction(Transaction):
     """
     Represents a token update NFTs transaction on the Hedera network.
-    
+
     This transaction updates the metadata of NFTs.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token update NFTs transaction.
     """
     def __init__(
-        self, 
-        token_id: Optional[TokenId] = None, 
-        serial_numbers: List[int] = None, 
+        self,
+        token_id: Optional[TokenId] = None,
+        serial_numbers: List[int] = None,
         metadata: Optional[bytes] = None
     ) -> None:
         """
@@ -63,15 +63,15 @@ class TokenUpdateNftsTransaction(Transaction):
         self.metadata = metadata
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token update NFTs.
 
         Returns:
             TransactionBody: The protobuf transaction body containing the token update NFTs details.
-        
+
         Raises:
-            ValueError: If the token ID and serial numbers are not set 
+            ValueError: If the token ID and serial numbers are not set
             or metadata is greater than 100 bytes.
         """
         if not self.token_id:
@@ -89,7 +89,7 @@ class TokenUpdateNftsTransaction(Transaction):
             metadata=BytesValue(value=self.metadata)
         )
 
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.token_update_nfts.CopyFrom(token_update_body)
         return transaction_body
 
@@ -102,7 +102,7 @@ class TokenUpdateNftsTransaction(Transaction):
 
         Args:
             channel (_Channel): The channel containing service stubs
-        
+
         Returns:
             _Method: An object containing the transaction function to update NFTs.
         """

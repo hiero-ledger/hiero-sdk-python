@@ -10,7 +10,7 @@ defining the execution method required to perform the deletion transaction.
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import (
     consensus_delete_topic_pb2,
-    transaction_body_pb2,
+    transaction_pb2,
     basic_types_pb2
 )
 from hiero_sdk_python.channels import _Channel
@@ -31,7 +31,7 @@ class TopicDeleteTransaction(Transaction):
     def set_topic_id(self, topic_id: basic_types_pb2.TopicID ) -> "TopicDeleteTransaction":
         """
         Sets the topic ID for the transaction.
-        
+
         Args:
             topic_id: The topic ID to delete.
 
@@ -42,7 +42,7 @@ class TopicDeleteTransaction(Transaction):
         self.topic_id = topic_id
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for topic delete.
 
@@ -54,7 +54,7 @@ class TopicDeleteTransaction(Transaction):
         """
         if self.topic_id is None:
             raise ValueError("Missing required fields: topic_id")
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.consensusDeleteTopic.CopyFrom(
             consensus_delete_topic_pb2.ConsensusDeleteTopicTransactionBody(
             topicID=self.topic_id._to_proto()

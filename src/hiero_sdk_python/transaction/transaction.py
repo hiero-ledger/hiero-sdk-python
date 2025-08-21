@@ -3,7 +3,7 @@ import hashlib
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_body_pb2, transaction_contents_pb2, transaction_pb2)
+from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_contents_pb2, transaction_pb2)
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -31,7 +31,7 @@ class Transaction(_Executable):
 
         self.transaction_id = None
         self.transaction_fee = None
-        self.transaction_valid_duration = 120 
+        self.transaction_valid_duration = 120
         self.generate_record = False
         self.memo = ""
         # Maps each node's AccountId to its corresponding transaction body bytes
@@ -40,13 +40,13 @@ class Transaction(_Executable):
         # Each transaction body has the AccountId of the node it's being submitted to.
         # If these do not match `INVALID_NODE_ACCOUNT` error will occur.
         self._transaction_body_bytes: dict[AccountId, bytes] = {}
-        
+
         # Maps transaction body bytes to their associated signatures
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee = 2_000_000
-        self.operator_account_id = None  
+        self.operator_account_id = None
 
     def _make_request(self):
         """
@@ -139,7 +139,7 @@ class Transaction(_Executable):
         """
         error_code = response.nodeTransactionPrecheckCode
         tx_id = self.transaction_id
-        
+
         return PrecheckError(error_code, tx_id)
 
     def sign(self, private_key):
@@ -157,7 +157,7 @@ class Transaction(_Executable):
         """
         # We require the transaction to be frozen before signing
         self._require_frozen()
-        
+
         # We sign the bodies for each node in case we need to switch nodes during execution.
         for body_bytes in self._transaction_body_bytes.values():
             signature = private_key.sign(body_bytes)
@@ -180,7 +180,7 @@ class Transaction(_Executable):
 
             # Append the signature pair to the signature map for this transaction body
             self._signature_map[body_bytes].sigPair.append(sig_pair)
-        
+
         return self
 
     def _to_proto(self):
@@ -228,20 +228,20 @@ class Transaction(_Executable):
         """
         if self._transaction_body_bytes:
             return self
-        
+
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
-        
+
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
         for node in client.network.nodes:
             self.node_account_id = node._account_id
             self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
-        
+
         # Set the node account id to the current node in the network
         self.node_account_id = client.network.current_node._account_id
-        
+
         return self
 
     def execute(self, client):
@@ -290,12 +290,12 @@ class Transaction(_Executable):
             bool: True if signed by the given public key, False otherwise.
         """
         public_key_bytes = public_key.to_bytes_raw()
-        
+
         sig_map = self._signature_map.get(self._transaction_body_bytes.get(self.node_account_id))
-        
+
         if sig_map is None:
             return False
-        
+
         for sig_pair in sig_map.sigPair:
             if sig_pair.pubKeyPrefix == public_key_bytes:
                 return True
@@ -315,8 +315,8 @@ class Transaction(_Executable):
             NotImplementedError: Always, since subclasses must implement this method.
         """
         raise NotImplementedError("Subclasses must implement build_transaction_body()")
-    
-    def build_base_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+
+    def build_base_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds the base transaction body including common fields.
 
@@ -336,7 +336,7 @@ class Transaction(_Executable):
         if self.node_account_id is None:
             raise ValueError("Node account ID is not set.")
 
-        transaction_body = transaction_body_pb2.TransactionBody()
+        transaction_body = transaction_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
 
