@@ -759,7 +759,7 @@ transaction.sign(operator_key)
 transaction.execute(client)
 ```
 
-#### Methode Chaining:
+#### Method Chaining:
 ```
 transaction = (
     TokenAirdropTransaction()
