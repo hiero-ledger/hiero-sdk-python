@@ -8,6 +8,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 ### Added
+- ContractExecuteTransaction class
+- setMessageAndPay() function in StatefulContract
+
+### Changed
+- Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
+
+## [0.1.4] - 2025-08-19
+### Added
 - CONTRIBUTING.md: expanded documentation detailing various contribution processes in a step-by-step way. Includes new sections: blog posts and support.
 - README_upstream.md: documentation explaining how to rebase to main.
 
@@ -30,8 +38,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 - Applied linting and code formatting across the consensus module
 - fixed pip install hiero_sdk_python -> pip install hiero-sdk-python in README.md
-
-
 
 ### Breaking API changes
 **We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
