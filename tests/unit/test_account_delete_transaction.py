@@ -83,32 +83,19 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, delete_p
     )
 
 
-def test_build_transaction_body_with_required_params_only(
-    mock_account_ids, delete_params
-):
-    """Test building transaction body with only required parameters."""
-    operator_id, _, node_account_id, _, _ = mock_account_ids
-
-    delete_tx = AccountDeleteTransaction(account_id=delete_params["account_id"])
-
-    # Set operator and node account IDs needed for building transaction body
-    delete_tx.operator_account_id = operator_id
-    delete_tx.node_account_id = node_account_id
-
-    transaction_body = delete_tx.build_transaction_body()
-
-    assert (
-        transaction_body.cryptoDelete.deleteAccountID
-        == delete_params["account_id"]._to_proto()
-    )
-    assert not transaction_body.cryptoDelete.HasField("transferAccountID")
-
-
 def test_build_transaction_body_missing_account_id():
     """Test that build_transaction_body raises ValueError when account_id is missing."""
     delete_tx = AccountDeleteTransaction()
 
     with pytest.raises(ValueError, match="Missing required AccountID"):
+        delete_tx.build_transaction_body()
+
+
+def test_build_transaction_body_missing_transfer_account_id():
+    """Test that build_transaction_body raises ValueError when transfer_account_id is missing."""
+    delete_tx = AccountDeleteTransaction(account_id=AccountId(0, 0, 123))
+
+    with pytest.raises(ValueError, match="Missing AccountID for transfer"):
         delete_tx.build_transaction_body()
 
 
@@ -158,7 +145,10 @@ def test_method_chaining_partial_setters(delete_params):
 
 def test_set_methods_require_not_frozen(mock_client, delete_params):
     """Test that setter methods raise exception when transaction is frozen."""
-    delete_tx = AccountDeleteTransaction(account_id=delete_params["account_id"])
+    delete_tx = AccountDeleteTransaction(
+        account_id=delete_params["account_id"],
+        transfer_account_id=delete_params["transfer_account_id"],
+    )
     delete_tx.freeze_with(mock_client)
 
     test_cases = [
@@ -175,7 +165,10 @@ def test_set_methods_require_not_frozen(mock_client, delete_params):
 
 def test_sign_transaction(mock_client, delete_params):
     """Test signing the account delete transaction with a private key."""
-    delete_tx = AccountDeleteTransaction(account_id=delete_params["account_id"])
+    delete_tx = AccountDeleteTransaction(
+        account_id=delete_params["account_id"],
+        transfer_account_id=delete_params["transfer_account_id"],
+    )
 
     private_key = MagicMock()
     private_key.sign.return_value = b"signature"
@@ -195,7 +188,10 @@ def test_sign_transaction(mock_client, delete_params):
 
 def test_to_proto(mock_client, delete_params):
     """Test converting the account delete transaction to protobuf format after signing."""
-    delete_tx = AccountDeleteTransaction(account_id=delete_params["account_id"])
+    delete_tx = AccountDeleteTransaction(
+        account_id=delete_params["account_id"],
+        transfer_account_id=delete_params["transfer_account_id"],
+    )
 
     private_key = MagicMock()
     private_key.sign.return_value = b"signature"
@@ -277,29 +273,3 @@ def test_constructor_parameter_combinations():
     delete_tx = AccountDeleteTransaction()
     assert delete_tx.account_id is None
     assert delete_tx.transfer_account_id is None
-
-
-def test_build_transaction_body_with_transfer_account_id_only(
-    mock_account_ids, delete_params
-):
-    """Test building transaction body with transfer_account_id set."""
-    operator_id, _, node_account_id, _, _ = mock_account_ids
-
-    delete_tx = AccountDeleteTransaction(
-        account_id=delete_params["account_id"],
-        transfer_account_id=delete_params["transfer_account_id"],
-    )
-
-    delete_tx.operator_account_id = operator_id
-    delete_tx.node_account_id = node_account_id
-
-    transaction_body = delete_tx.build_transaction_body()
-
-    assert (
-        transaction_body.cryptoDelete.deleteAccountID
-        == delete_params["account_id"]._to_proto()
-    )
-    assert (
-        transaction_body.cryptoDelete.transferAccountID
-        == delete_params["transfer_account_id"]._to_proto()
-    )

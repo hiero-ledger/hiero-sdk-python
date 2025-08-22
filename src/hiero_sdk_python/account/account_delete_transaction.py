@@ -88,10 +88,13 @@ class AccountDeleteTransaction(Transaction):
             TransactionBody: The built transaction body.
 
         Raises:
-            ValueError: If account_id is not set.
+            ValueError: If account_id or transfer_account_id is not set.
         """
         if self.account_id is None:
             raise ValueError("Missing required AccountID")
+
+        if self.transfer_account_id is None:
+            raise ValueError("Missing AccountID for transfer")
 
         account_delete_body = CryptoDeleteTransactionBody(
             deleteAccountID=self.account_id._to_proto(),
