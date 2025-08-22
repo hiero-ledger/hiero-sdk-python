@@ -71,7 +71,7 @@ worry about managing multiple versions of python on your machine!
 
 ```bash
 uv sync
-sh generate_proto.sh
+uv run python generate_proto.py
 ```
 
 To update to a newer version of the protobuf libraries, edit the `generate_proto.py` file and change the version number
@@ -122,7 +122,7 @@ testnet [here](https://docs.hedera.com/guides/testnet).
 
 To run the test suite for the SDK, use the following command:
 ```
-uv run pytest 
+uv run pytest
 ```
 
 The test file in the root of this project will be automatically run when pushing onto a branch.
