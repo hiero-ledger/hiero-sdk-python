@@ -1,10 +1,14 @@
 """
-Example demonstrating contract creation on the network.
+Example demonstrating contract deletion on the network.
 
-This module shows how to create a smart contract by:
+This module shows how to delete a smart contract by:
 1. Setting up a client with operator credentials
 2. Creating a file containing contract bytecode
-3. Creating a contract using the file
+3. Creating 2 contracts using the file
+4. Deleting the first contract and transferring the hbars to the second contract
+5. Checking if the first contract is deleted and the second contract has the hbars
+6. Deleting the second contract and transferring the hbars to the operator account
+7. Checking if the second contract is deleted
 
 Usage:
     # Due to the way the script is structured, it must be run as a module
