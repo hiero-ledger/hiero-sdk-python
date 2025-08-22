@@ -12,7 +12,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - setMessageAndPay() function in StatefulContract
 
 ### Changed
+- Upgraded Hedera protobufs from v0.57.3 to v0.64.3
+- Replaced shell script with Python implementation for protobuf generation
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
+
+### Fixed
+- Fixed broken imports from protobuf version upgrade
 
 ## [0.1.4] - 2025-08-19
 ### Added
