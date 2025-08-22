@@ -31,7 +31,7 @@ from hiero_sdk_python.response_code import ResponseCode
 
 # Import the bytecode for a simple smart contract (SimpleContract.sol) that can be deployed
 # The contract bytecode is pre-compiled from Solidity source code
-from .contracts import SIMPLE_CONTRACT_BYTECODE
+from examples.contracts.contract_utils import SIMPLE_CONTRACT_BYTECODE
 
 load_dotenv()
 
