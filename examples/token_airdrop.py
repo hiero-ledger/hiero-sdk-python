@@ -21,12 +21,13 @@ from hiero_sdk_python import (
 load_dotenv()
 
 def setup_client():
+    """Initialize and set up the client with operator account"""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
 
         return client, operator_id, operator_key
@@ -35,9 +36,10 @@ def setup_client():
         sys.exit(1)
 
 def create_account(client, operator_key):
+    """Create a new recipient account"""
     print("\nCreating a new account...")
-    recipient_key = PrivateKey.generate_ecdsa()
-    
+    recipient_key = PrivateKey.generate()
+
     try:
         account_tx = (
             AccountCreateTransaction()
@@ -46,14 +48,15 @@ def create_account(client, operator_key):
         )
         account_receipt = account_tx.freeze_with(client).sign(operator_key).execute(client)
         recipient_id = account_receipt.account_id
-        print(f"✅ Success! Created a new account with ID: {recipient_id}")
+        print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
 
         return recipient_key, recipient_id
     except Exception as e:
-        print(f"❌ Error creating new account: {e}")
+        print(f"❌ Error creating new recipient account: {e}")
         sys.exit(1)
 
 def create_token(client, operator_id, operator_key):
+    """Create a fungible token"""
     print("\nCreating a token...")
     try:
         token_tx = (
@@ -75,6 +78,7 @@ def create_token(client, operator_id, operator_key):
         sys.exit(1)
 
 def create_nft(client, operator_key, operator_id):
+    """Create a NFT"""
     print("\nCreating a nft...")
     try:
         nft_tx = (
@@ -96,7 +100,8 @@ def create_nft(client, operator_key, operator_id):
         sys.exit(1)
 
 def mint_nft(client, operator_key, nft_id):
-    print("Minting a nft...")
+    """Mint the NFT with metadata"""
+    print("\nMinting a nft...")
     try:
         mint_tx = TokenMintTransaction(token_id=nft_id, metadata=[b"NFT data"])
         mint_tx.freeze_with(client)
@@ -111,16 +116,27 @@ def mint_nft(client, operator_key, nft_id):
         sys.exit(1)
 
 def associate_tokens(client, recipient_id, recipient_key, tokens):
+    """Associate the token and nft with the recipient"""
     print("\nAssociating tokens to recipient...")
     try:
         assocciate_tx = TokenAssociateTransaction(
-            account_id=recipient_id, 
+            account_id=recipient_id,
             token_ids=tokens
         )
         assocciate_tx.freeze_with(client)
         assocciate_tx.sign(recipient_key)
         assocciate_tx.execute(client)
-        print(f"✅ Success! Token association complete.")
+
+        balance_before = (
+            CryptoGetAccountBalanceQuery(account_id=recipient_id)
+            .execute(client)
+            .token_balances
+        )
+        print("Tokens associated with recipient:")
+        print(f"{tokens[0]}: {balance_before.get(tokens[0])}")
+        print(f"{tokens[1]}: {balance_before.get(tokens[1])}")
+
+        print("\n✅ Success! Token association complete.")
 
     except Exception as e:
         print(f"❌ Error associating tokens: {e}")
@@ -134,7 +150,7 @@ def token_airdrop():
     """
     # Setup Client
     client, operator_id, operator_key = setup_client()
-    
+
     # Create a new account
     recipient_key, recipient_id = create_account(client, operator_key)
 
@@ -157,20 +173,31 @@ def token_airdrop():
             TokenAirdropTransaction()
             .add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
             .add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
-            .add_nft_transfer(nft_id=NftId(token_id=nft_id, serial_number=serial_number), sender=operator_id, receiver=recipient_id)
+            .add_nft_transfer(
+                nft_id=NftId(token_id=nft_id, serial_number=serial_number),
+                sender=operator_id, receiver=recipient_id
+            )
             .freeze_with(client)
             .sign(operator_key)
             .execute(client)
         )
-        if (airdrop_receipt.status != ResponseCode.SUCCESS):
+
+        if airdrop_receipt.status != ResponseCode.SUCCESS:
             print(f"Fail to cancel airdrop: Status: {airdrop_receipt.status}")
             sys.exit(1)
 
         print(f"Token airdrop ID: {airdrop_receipt.transaction_id}")
-        
-        balance = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client)
-        print(f"Token balance after airdrop balance:{balance.token_balances}")
-        print("\n✅ Success! Token Airdrop transaction successfull")
+
+        after_balance = (
+            CryptoGetAccountBalanceQuery(account_id=recipient_id)
+            .execute(client)
+            .token_balances
+        )
+        print("Recipient balance after token airdrop:")
+        print(f"{token_id}: {after_balance.get(token_id)}")
+        print(f"{nft_id}: {after_balance.get(nft_id)}")
+
+        print("\n✅ Success! Token Airdrop transaction successful")
     except Exception as e:
         print(f"❌ Error airdropping tokens: {e}")
         sys.exit(1)
