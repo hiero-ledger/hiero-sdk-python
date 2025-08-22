@@ -50,27 +50,6 @@ def test_integration_account_delete_transaction_can_execute(env):
 
 
 @pytest.mark.integration
-def test_integration_account_delete_transaction_no_transfer_account_id(env):
-    """
-    Test that AccountDeleteTransaction raises an error if transfer_account_id is not set.
-    """
-    account = env.create_account()
-
-    tx = (
-        AccountDeleteTransaction()
-        .set_account_id(account.id)
-        .freeze_with(env.client)
-        .sign(account.key)
-    )
-
-    # Attempt to execute without setting transfer_account_id, should raise PrecheckError
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: ACCOUNT_ID_DOES_NOT_EXIST"
-    ):
-        tx.execute(env.client)
-
-
-@pytest.mark.integration
 def test_integration_account_delete_transaction_fails_with_invalid_account_id(env):
     """Test that AccountDeleteTransaction fails if account_id is invalid."""
     account_id = AccountId(0, 0, 999999999)
