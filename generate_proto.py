@@ -210,30 +210,32 @@ def process_proto_files(
         for filename, content in proto_files_data.items():
             (temp_path / filename).write_text(content, encoding="utf-8")
 
-        # Build protoc command
         cmd = [
             "python",
             "-m",
             "grpc_tools.protoc",
-            f"--proto_path={temp_path}",
-            f"--python_out={output_dir}",
-            f"--grpc_python_out={output_dir}",
+            "--proto_path",
+            str(temp_path),
+            "--python_out",
+            str(output_dir),
+            "--grpc_python_out",
+            str(output_dir),
         ]
 
         # Add .pyi generation for services
         if proto_type == "services":
-            cmd.append(f"--pyi_out={output_dir}")
+            cmd.extend(["--pyi_out", str(output_dir)])
 
         # Add additional proto paths for dependencies
         if additional_proto_paths:
             for path in additional_proto_paths:
-                cmd.append(f"--proto_path={path}")
+                cmd.extend(["--proto_path", str(path)])
 
         # Add all proto files
-        cmd.extend([str(temp_path / filename) for filename in proto_files_data.keys()])
+        cmd.extend(str(temp_path / filename) for filename in proto_files_data.keys())
 
         print(f"Generating {len(proto_files_data)} {proto_type} files...")
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
         if result.returncode != 0:
             print("STDERR:", result.stderr)
