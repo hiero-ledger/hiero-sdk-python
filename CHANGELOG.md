@@ -43,6 +43,23 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
 - get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
 
+### Added
+- TokenFeeScheduleUpdateTransaction
+  - Add support for updating a token’s custom fee schedule (requires the token’s fee schedule key).
+  - Supports fixed fees for all tokens; fractional fees for fungible tokens only; royalty fees for NFTs only.
+  - Pass an empty list to remove all custom fees from a token.
+  - API: set_token_id(TokenId), set_custom_fees(List[CustomFee]), corresponding getters, and checksum validation for all IDs and fees.
+  - Sets a default max transaction fee of 2 HBAR for this transaction type.
+  - gRPC: uses TokenService.updateTokenFeeSchedule.
+
+### Changed
+- __init__.py: Expose TokenFeeScheduleUpdateTransaction at the top-level package for convenient import.
+- executable.py:
+  - Add support for _get_method() returning a raw gRPC callable (in addition to the _Method wrapper).
+  - Improve retry/backoff behavior with exponential delays and per-request logging IDs.
+  - Enhance grpc.RpcError handling with node failover and persisted error context; raise MaxAttemptsError after exhausting attempts.
+  - Docstrings and typing cleanups.
+
 ## [0.1.3] - 2025-07-03
 ### Added
 - TokenType Class
