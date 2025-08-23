@@ -21,6 +21,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Incorrect naming in README for generate_proto.py to generate_proto.sh
 - Removed init.py content in /tokens
 
+## Corrected
+- Duplicate validation function in TokenCreate
+- kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
+- assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
+
 ### Breaking API changes 
 
 **Changed imports**
