@@ -158,8 +158,8 @@ class TransactionRecordQuery(Query):
         
         receipt = response.transactionGetRecord.transactionRecord.receipt
         
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt))
-     
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt, self.transaction_id))
+        
     def execute(self, client):
         """
         Executes the transaction record query.
