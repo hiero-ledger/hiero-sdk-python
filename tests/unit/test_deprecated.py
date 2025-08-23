@@ -95,6 +95,7 @@ class DummyProto:
         self.maxSupply = 10_000
         self.ledger_id = b"\x00"
         self.metadata = b"\x01"
+        self.custom_fees = []
 
         # real protobuf messages for tokenId and treasury
         self.tokenId = TokenID(shardNum=0, realmNum=0, tokenNum=42)

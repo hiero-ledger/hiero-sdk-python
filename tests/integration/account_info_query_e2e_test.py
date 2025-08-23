@@ -72,7 +72,9 @@ def test_integration_account_info_query_token_relationship_info():
         new_account = env.create_account()
         
         # Create token with kyc key and freeze default and associate it with the new account
-        token_id = create_fungible_token(env, [lambda tx: tx.set_kyc_key(env.operator_key), lambda tx: tx.set_freeze_default(True)])
+        token_id = create_fungible_token(env, 
+                                         [lambda tx: tx.set_kyc_key(env.operator_key), 
+                                          lambda tx: tx.set_freeze_default(False)]) #Must not be frozen for token operations
         
         receipt = (
             TokenAssociateTransaction()
@@ -90,7 +92,7 @@ def test_integration_account_info_query_token_relationship_info():
         assert len(info.token_relationships) == 1, f"Expected 1 token relationship, but got {len(info.token_relationships)}"
         relationship = info.token_relationships[0]
         assert relationship.token_id == token_id, f"Expected token ID {token_id}, but got {relationship.token_id}"
-        assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}"
+        assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
         assert relationship.kyc_status == TokenKycStatus.REVOKED, f"Expected KYC status to be REVOKED, but got {relationship.kyc_status}"
         assert relationship.balance == 0, f"Expected balance to be 0, but got {relationship.balance}"
         assert relationship.symbol == "PTT34", f"Expected symbol 'PTT34', but got {relationship.symbol}"
