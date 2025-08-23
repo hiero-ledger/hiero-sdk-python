@@ -77,6 +77,13 @@ contract_call_local_pb2.ContractFunctionResult -> contract_types_pb2.ContractFun
 contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - Removed init.py content in /tokens
 
+## Corrected
+- Duplicate validation function in TokenCreate
+- kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
+- assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
+
+### Breaking API changes 
+
 **Changed imports**
 - src/hiero_sdk_python/consensus/topic_message.py: from hiero_sdk_python import Timestamp → from hiero_sdk_python.timestamp import Timestamp
 - src/hiero_sdk_python/query/topic_message_query.py: from hiero_sdk_python import Client → from hiero_sdk_python.client.client import Client
