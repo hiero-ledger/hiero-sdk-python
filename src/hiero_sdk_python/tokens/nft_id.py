@@ -1,5 +1,6 @@
 """
-nft_id.py
+hiero_sdk_python.tokens.nft_id.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines NftId, a value object for representing and validating a unique
 Non-Fungible Token (NFT) identifier, including conversion to/from

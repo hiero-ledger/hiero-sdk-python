@@ -1,6 +1,6 @@
 """
-hiero_sdk_python.tokens.token_type
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_type.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines TokenType enum for distinguishing between fungible common tokens
 and non-fungible unique tokens on the Hedera network.

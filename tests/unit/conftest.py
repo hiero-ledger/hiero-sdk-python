@@ -12,6 +12,7 @@ from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.node import _Node
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
