@@ -40,6 +40,34 @@ def test_tokeninfo_correct_access():
     assert info.total_supply == 1000
     assert info.is_deleted is True
 
+def test_tokeninfo_deprecated_alias_access():
+    token = TokenId.from_string("0.0.456")
+    
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always", FutureWarning)
+        info = TokenInfo(tokenId=token, totalSupply=1000, isDeleted=True)
+        # Check that constructor warnings are raised
+        assert any("tokenId" in str(wi.message) for wi in w)
+        assert any("totalSupply" in str(wi.message) for wi in w)
+        assert any("isDeleted" in str(wi.message) for wi in w)
+
+    # Now check access warnings for deprecated attributes
+    with pytest.warns(FutureWarning) as record_total:
+        got = info.totalSupply
+    assert got == 1000
+    assert "totalSupply" in str(record_total[0].message)
+
+    with pytest.warns(FutureWarning) as record_deleted:
+        got = info.isDeleted
+    assert got is True
+    assert "isDeleted" in str(record_deleted[0].message)
+
+    with pytest.warns(FutureWarning) as record_token:
+        got = info.tokenId
+    assert got == token
+    assert "tokenId" in str(record_token[0].message)
+
+
 def test_transactionreceipt_deprecated_alias_access():
     proto = MagicMock()
     proto.status = "OK"
@@ -92,12 +120,20 @@ class DummyProto:
         self.tokenId = TokenID(shardNum=0, realmNum=0, tokenNum=42)
         self.treasury = AccountID(shardNum=0, realmNum=0, accountNum=99)
 
+
         # empty key protos
         self.admin_key = Key()
         self.kyc_key = Key()
         self.freeze_key = Key()
         self.wipe_key = Key()
         self.supply_key = Key()
+
+        # use camelCase to match production code
+        self.adminKey = Key()
+        self.kycKey = Key()
+        self.freezeKey = Key()
+        self.wipeKey = Key()
+        self.supplyKey = Key()
         self.metadata_key = Key()
         self.fee_schedule_key = Key()
         self.pause_key = Key()
