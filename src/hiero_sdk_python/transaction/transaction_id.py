@@ -21,7 +21,7 @@ class TransactionId:
         self, 
         account_id: Optional[AccountId] = None, 
         valid_start: Optional[timestamp_pb2.Timestamp] = None,
-        scheduled: Bool = False
+        scheduled: bool = False
     ) -> None:
         """
         Initializes a TransactionId with the given account ID and valid start timestamp.
