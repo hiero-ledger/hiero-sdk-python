@@ -12,6 +12,7 @@ You can choose either syntax or even mix both styles in your projects.
 
 - [Account Transactions](#account-transactions)
   - [Creating an Account](#creating-an-account)
+  - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
   - [Querying Account Info](#querying-account-info)
   - [Creating a Token](#creating-a-token)
@@ -57,6 +58,9 @@ You can choose either syntax or even mix both styles in your projects.
   - [Creating a Contract](#creating-a-contract)
   - [Querying a Contract Call](#querying-a-contract-call)
   - [Querying Contract Info](#querying-contract-info)
+  - [Querying Contract Bytecode](#querying-contract-bytecode)
+  - [Updating a Contract](#updating-a-contract)
+  - [Executing a Contract](#executing-a-contract)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -88,6 +92,43 @@ transaction = (
     )
     transaction.sign(client.operator_private_key)
     transaction.execute(client)
+```
+
+### Updating an Account
+
+#### Pythonic Syntax:
+```python
+transaction = AccountUpdateTransaction(
+    account_params=AccountUpdateParams(
+        account_id=account_id,
+        key=new_public_key,
+        account_memo=memo,
+        receiver_signature_required=receiver_sig_required,
+        auto_renew_period=Duration(seconds),
+        expiration_time=future_expiration
+    )
+).freeze_with(client)
+
+transaction.sign(old_private_key)  # Sign with old key
+transaction.sign(new_private_key)  # Sign with new key
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    AccountUpdateTransaction()
+    .set_account_id(account_id)
+    .set_key(new_public_key)
+    .set_account_memo(memo)
+    .set_receiver_signature_required(receiver_sig_required)
+    .set_auto_renew_period(Duration(seconds))
+    .set_expiration_time(future_expiration)
+    .freeze_with(client)
+)
+transaction.sign(old_private_key)   # Sign with old key
+transaction.sign(new_private_key)   # Sign with new key
+transaction.execute(client)
 ```
 
 ### Querying Account Balance
@@ -1271,6 +1312,109 @@ contract_info = (
 )
 print(contract_info)
 ```
+
+### Querying Contract Bytecode
+
+#### Pythonic Syntax:
+```
+contract_bytecode_query = ContractBytecodeQuery(contract_id=contract_id)
+contract_bytecode = contract_bytecode_query.execute(client)
+print(contract_bytecode.hex()) # display bytecode as hex string
+```
+
+#### Method Chaining:
+```
+contract_bytecode = (
+    ContractBytecodeQuery()
+    .set_contract_id(contract_id)
+    .execute(client)
+)
+print(contract_bytecode.hex()) # display bytecode as hex string
+```
+
+### Updating a Contract
+
+#### Pythonic Syntax:
+```python
+transaction = ContractUpdateTransaction(
+    contract_params=ContractUpdateParams(
+        contract_id=contract_id,
+        admin_key=new_admin_key,
+        contract_memo="Updated contract memo",
+        expiration_time=new_expiration_time,
+        auto_renew_period=Duration(seconds),
+        auto_renew_account_id=new_auto_renew_account,
+        max_automatic_token_associations=100,
+    )
+).freeze_with(client)
+
+transaction.sign(current_admin_key)  # Sign with current admin key
+transaction.sign(new_admin_key)      # Sign with new admin key
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    ContractUpdateTransaction()
+    .set_contract_id(contract_id)
+    .set_admin_key(new_admin_key)
+    .set_contract_memo("Updated contract memo")
+    .set_expiration_time(new_expiration_time)
+    .set_auto_renew_period(Duration(seconds))
+    .set_auto_renew_account_id(new_auto_renew_account)
+    .set_max_automatic_token_associations(100)
+    .freeze_with(client)
+)
+
+transaction.sign(current_admin_key)  # Sign with current admin key
+transaction.sign(new_admin_key)      # Sign with new admin key
+transaction.execute(client)
+```
+
+### Executing a Contract
+
+#### Pythonic Syntax:
+```python
+# Example: calling setMessage(bytes32) (StatefulContract.sol)
+# Prepare function parameters for setMessage(bytes32)
+func_params = ContractFunctionParameters("setMessage").add_bytes32(b"New message")
+
+transaction = ContractExecuteTransaction(
+    contract_id=contract_id,
+    gas=1000000,
+    function_parameters=func_params.to_bytes() # function to execute
+).freeze_with(client)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Execute a contract function using method chaining
+# Example: calling setMessage(bytes32) (StatefulContract.sol)
+transaction = (
+    ContractExecuteTransaction()
+    .set_contract_id(contract_id)
+    .set_gas(1000000)
+    .set_function("setMessage",ContractFunctionParameters().add_bytes32(b"New message"))
+    .freeze_with(client)
+)
+
+# Alternatively, you can use set_function_parameters() with ContractFunctionParameters:
+transaction = (
+    ContractExecuteTransaction()
+    .set_contract_id(contract_id)
+    .set_gas(1000000)
+    .set_function(ContractFunctionParameters("setMessage").add_bytes32(b"New message"))
+    .freeze_with(client)
+)
+
+transaction.sign(operator_key)
+transaction.execute(client)
+```
+
 
 ## Miscellaneous Queries
 

@@ -8,10 +8,17 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 ### Added
+- ContractExecuteTransaction class
+- setMessageAndPay() function in StatefulContract
+
+### Changed
+- Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
+
+## [0.1.4] - 2025-08-19
+### Added
 - CONTRIBUTING.md: expanded documentation detailing various contribution processes in a step-by-step way. Includes new sections: blog posts and support.
 - README_upstream.md: documentation explaining how to rebase to main.
 
-<<<<<<< HEAD
 ### Added
 - Legacy ECDSA DER parse support
 - documented private key from_string method behavior
@@ -21,26 +28,21 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - PendingAirdropId Class
 - PendingAirdropRecord Class
 - TokenCancelAirdropTransaction Class
+- AccountUpdateTransaction class
+- ContractBytecodeQuery class
+- SimpleStorage.bin-runtime
+- Support for both .bin and .bin-runtime contract bytecode extensions in contract_utils.py
+- ContractUpdateTransaction class
 
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 - Applied linting and code formatting across the consensus module
-
-=======
->>>>>>> 2557ef5 (docs(changelog): add entry for TokenInfo.from_protobuf fix)
-
-### Fixed
+- fixed `pip install hiero_sdk_python` → `pip install hiero-sdk-python` in README.md
 - TokenInfo.from_protobuf now fully maps all Hedera token fields (#222)
 
-<<<<<<< HEAD
-### Breaking API changes
+### Breaking API changes  
 **We have several camelCase uses that will be deprecated → snake_case**  
 Original aliases will continue to function, with a warning, until the following release.
-=======
-
-### Breaking API changes  
-**We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
->>>>>>> 2557ef5 (docs(changelog): add entry for TokenInfo.from_protobuf fix)
 
 #### In `token_info.py`
 - tokenId → token_id 
@@ -70,6 +72,7 @@ Original aliases will continue to function, with a warning, until the following 
 - accountId → account_id 
 - fileId → file_id
 
+
 ### Deprecated Additions
 - logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
 - get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
@@ -97,7 +100,7 @@ Original aliases will continue to function, with a warning, until the following 
 - TokenGrantKycTransaction Class
 - TokenUpdateTransaction Class
 - added Type hinting and initial methods to several modules
-- TokenRevoceKycTransaction Class
+- TokenRevokeKycTransaction Class
 - [Types Guide](hiero/hedera_sdk_python/documentation/sdk_developers/types.md)
 
 - TransactionRecordQuery Class
