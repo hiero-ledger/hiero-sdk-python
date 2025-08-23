@@ -1,6 +1,6 @@
 """
-hiero_sdk_python.transaction.token_reject_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_reject_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines TokenRejectTransaction for rejecting fungible token and NFT transfers on
 the Hedera network via the Hedera Token Service (HTS) API.
@@ -34,9 +34,9 @@ class TokenRejectTransaction(Transaction):
     """
     def __init__(
         self,
-        owner_id: Optional[AccountId] = None,
+        owner_id:  Optional[AccountId] = None,
         token_ids: Optional[List[TokenId]] = None,
-        nft_ids: Optional[List[NftId]] = None
+        nft_ids:   Optional[List[NftId]] = None
     ) -> None:
         """
         TokenRejectTransaction instance with optional owner_id, token_ids, and nft_ids.
@@ -47,9 +47,9 @@ class TokenRejectTransaction(Transaction):
             nft_ids (list[NftId], optional): The IDs of the non-fungible tokens (NFTs) to reject.
         """
         super().__init__()
-        self.owner_id: Optional[AccountId] = owner_id
+        self.owner_id:  Optional[AccountId] = owner_id
         self.token_ids: List[TokenId] = token_ids if token_ids else []
-        self.nft_ids: List[NftId] = nft_ids if nft_ids else []
+        self.nft_ids:   List[NftId] = nft_ids if nft_ids else []
 
     def set_owner_id(self, owner_id: AccountId) -> "TokenRejectTransaction":
         """Set the owner account ID for rejected tokens."""
@@ -76,7 +76,7 @@ class TokenRejectTransaction(Transaction):
         Returns:
             TokenRejectTransactionBody: The protobuf body for this transaction.
         """
-        token_references = []
+        token_references: List[TokenReference] = []
         for token_id in self.token_ids:
             token_references.append(TokenReference(fungible_token=token_id._to_proto()))
         for nft_id in self.nft_ids:
