@@ -29,7 +29,7 @@ The latest release of this SDK is published to PyPI. You can install it with:
 
 ```
 pip install --upgrade pip
-pip install hiero_sdk_python
+pip install hiero-sdk-python
 ```
 
 This will pull down a stable release along with the required dependencies.

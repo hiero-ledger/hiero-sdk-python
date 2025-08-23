@@ -23,6 +23,11 @@ contract StatefulContract {
         return (message, owner);
     }
 
+    function setMessageAndPay(bytes32 _msg) external payable {
+        require(msg.sender == owner, "Only the owner can update the message.");
+        message = _msg;
+    }
+
     function withdrawFunds() external {
         require(msg.sender == owner, "Only the owner can withdraw funds.");
         uint256 amount = address(this).balance;

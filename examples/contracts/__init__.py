@@ -8,6 +8,7 @@ from .contract_utils import (  # Bytecode constants; Configuration constants
     SIMPLE_CONTRACT_BYTECODE,
     STATEFUL_CONTRACT_BYTECODE,
     CONSTRUCTOR_TEST_CONTRACT_BYTECODE,
+    SIMPLE_CONTRACT_RUNTIME_BYTECODE,
 )
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
     "SIMPLE_CONTRACT_BYTECODE",
     "STATEFUL_CONTRACT_BYTECODE",
     "CONSTRUCTOR_TEST_CONTRACT_BYTECODE",
+    "SIMPLE_CONTRACT_RUNTIME_BYTECODE",
     # Configuration constants
     "CONTRACT_DEPLOY_GAS",
 ]
