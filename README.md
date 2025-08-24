@@ -120,7 +120,9 @@ testnet [here](https://docs.hedera.com/guides/testnet).
 
 ## Testing
 
-If you are Interested in Testing Please see [Testing Guide](README_testing.md) for the full Testing Guide.
+If you plan on contributing to this repo you must test your PR.
+
+Here is the [Testing Guide](README_testing.md) for the full explanation.
 
 ## Contributing
 
