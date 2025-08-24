@@ -2,20 +2,12 @@
 
 ## Pytest Installation
 
-Make sure to execute in the same Python environment as the project.
-
-If you are using `uv` run this:
+Make sure to execute in the same Virtual Environment as the Project.
 
 ```bash
-uv add pytest
+uv sync --group dev -v
 ``` 
-This adds pytest to your dependencies in pyproject.toml and installs it in the environment managed by uv.
-
-If you are using `pip` run this:
-
-```bash
-pip install pytest
-``` 
+This installs pytest in the environment managed by uv and prints verbose.
 
 ## Running Tests
 
@@ -23,18 +15,9 @@ Once pytest is installed you can run the test suite in several ways.
 
 ### Run All Tests
 
-If you are using `uv`:
-
 ```bash
 uv run pytest
 ```
-
-If you are using `pip`:
-
-```bash
-pytest
-```
-This will automatically discover and run all tests in the project that follow the naming convention `test_*.py` or `*_test.py`.
 
 ## Run Specific Test Types
 
@@ -49,8 +32,9 @@ uv run pytest tests/unit
 OR
 
 ```bash
-pytest tests/unit
+uv run pytest tests/unit/specific_name
 ```
+if you need to test one file.
 
 ### Integration tests only:
 
@@ -67,7 +51,7 @@ pytest tests/integration
 
 Unit tests check small, isolated parts of the SDK (e.g., one function or class) to ensure they behave correctly. They do not depend on external services.
 
-Integration tests check how multiple parts work together and often require network access or real interaction with the Hedera testnet.
+Integration tests check how multiple parts work together with interaction with the Hedera testnet. They are run automatically using a github action `Solo action` when pushing to your repo.
 
 #### Example:
 
@@ -131,23 +115,11 @@ FAILED tests/unit/test_account.py::test_transfer_token - AssertionError
 
 
 ## Continuous Integration (CI)
-When you push to a branch, the test suite runs automatically via Hiero Solo Action
-
-learn more:
-
-[GitHub Marketplace](https://github.com/marketplace/actions/hiero-solo-action)
-[Blog post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
-
-## Triggering Solo Action for Integration Tests
+When you push to a branch, both the unit and integration tests run automatically via Hiero Solo Action
 
 The Hiero Solo Action runs integration tests automatically when you push to a branch.
 
-If you only change code locally and don’t push, it won’t run — you’ll have to run integration tests manually:
-```bash
-uv run pytest tests/integration
-```
-
-To trigger Solo in CI:
+To trigger Solo Action in CI:
 
 1. Commit your changes.
 
@@ -155,7 +127,14 @@ To trigger Solo in CI:
 ```bash
 git push origin your-branch
 ```
+
 GitHub Actions will pick it up, run both unit and integration tests, and display results in the Actions tab of the repository.
+
+You must pass all tests for your PR to be merged.
+
+If you only change code locally and don’t push, it won’t run — you’ll have to run integration tests manually (Solo action is generally more robust simultor, better to just use that)
+
+If you have to run integration tests manually check [Integration tests](#integration-tests-only)
 
 ## Sample Test Output
 Example console output from a successful run:
@@ -176,3 +155,8 @@ Topic message submitted.
 Topic update successful.
 Topic deletion successful.
 ```
+
+learn more:
+
+[GitHub Marketplace](https://github.com/marketplace/actions/hiero-solo-action)
+[Blog post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
