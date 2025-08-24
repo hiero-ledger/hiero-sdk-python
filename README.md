@@ -122,7 +122,7 @@ testnet [here](https://docs.hedera.com/guides/testnet).
 
 If you plan on contributing to this repo you must test your PR.
 
-Here is the [Testing Guide](README_testing.md) for the full explanation.
+Here is the [Testing Guide](docs/testing.md) for the full explanation.
 
 ## Contributing
 
