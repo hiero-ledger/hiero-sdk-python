@@ -63,6 +63,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Updating a Contract](#updating-a-contract)
   - [Executing a Contract](#executing-a-contract)
   - [Deleting a Contract](#deleting-a-contract)
+  - [Executing Ethereum Transactions](#executing-ethereum-transactions)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1490,6 +1491,31 @@ transaction = (
 transaction.sign(admin_key)  # Admin key must have been set during contract creation
 transaction.execute(client)
 ```
+
+### Executing Ethereum Transactions
+
+#### Pythonic Syntax:
+```python
+# You must provide signed Ethereum transaction data (see how to generate this in examples/ethereum_transaction_execute.py)
+transaction = EthereumTransaction(
+    ethereum_data=ethereum_transaction_data
+).freeze_with(client)
+
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# You must provide signed Ethereum transaction data (see how to generate this in examples/ethereum_transaction_execute.py)
+transaction = (
+    EthereumTransaction()
+    .set_ethereum_data(ethereum_transaction_data)
+    .freeze_with(client)
+)
+
+transaction.execute(client)
+```
+
 
 ## Miscellaneous Queries
 
