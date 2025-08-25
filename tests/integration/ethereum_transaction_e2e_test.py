@@ -20,6 +20,7 @@ from hiero_sdk_python.contract.ethereum_transaction import EthereumTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from tests.integration.utils_for_test import env
@@ -81,6 +82,56 @@ def test_integration_ethereum_transaction_with_contract_execution(env):
     ), "Message should be updated"
 
 
+@pytest.mark.integration
+def test_integration_ethereum_transaction_with_contract_call(env):
+    """Test that a contract can be called with an Ethereum transaction."""
+    alias_private_key = _create_alias_account(env)
+
+    contract_id = _create_contract(env)
+
+    call_data_bytes = ContractFunctionParameters("getMessage").to_bytes()
+
+    # Ethereum transaction fields
+    chain_id_bytes = bytes.fromhex("012a")
+    max_priority_gas_bytes = bytes.fromhex("00")
+    nonce_bytes = bytes.fromhex("00")
+    max_gas_bytes = bytes.fromhex("d1385c7bf0")
+    gas_limit_bytes = bytes.fromhex("0249f0")  # 150k
+    value_bytes = bytes.fromhex("00")
+
+    # Convert ContractId to 20-byte EVM address for the Ethereum transaction 'to' field
+    contract_bytes = bytes.fromhex(contract_id.to_evm_address())
+
+    # Get the call data bytes
+    transaction_data = _get_call_data(
+        chain_id_bytes,
+        nonce_bytes,
+        max_priority_gas_bytes,
+        max_gas_bytes,
+        gas_limit_bytes,
+        contract_bytes,
+        value_bytes,
+        call_data_bytes,
+        alias_private_key,
+    )
+
+    receipt = (
+        EthereumTransaction().set_ethereum_data(transaction_data).execute(env.client)
+    )
+    assert (
+        receipt.status == ResponseCode.SUCCESS
+    ), f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
+
+    record = (
+        TransactionRecordQuery()
+        .set_transaction_id(receipt.transaction_id)
+        .execute(env.client)
+    )
+    assert (
+        record.call_result.contract_call_result == b"Initial message from constructor"
+    )
+
+
 def test_integration_ethereum_transaction_jumbo_transaction(env):
     """Test that a jumbo transaction can be executed."""
     alias_private_key = _create_alias_account(env)
@@ -124,7 +175,7 @@ def test_integration_ethereum_transaction_jumbo_transaction(env):
 
 
 # pylint: disable=too-many-arguments, too-many-positional-arguments
-def _get_call_data(  # noqa: PLR0913
+def _get_call_data(
     chain_id: bytes,
     nonce: bytes,
     max_priority_gas: bytes,
