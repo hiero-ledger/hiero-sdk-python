@@ -21,6 +21,8 @@ dependencies = [
     "requests==2.32.3",
     "pycryptodome==3.23.0",
     "eth-abi==5.2.0",
+    "rlp>=4.0.0",
+    "eth-keys==0.5.1",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

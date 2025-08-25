@@ -12,6 +12,8 @@ from hiero_sdk_python.hapi.services import (
     transaction_record_pb2,
     transaction_receipt_pb2,
 )
+from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
+from hiero_sdk_python.contract.contract_id import ContractId
 
 pytestmark = pytest.mark.unit
 
@@ -252,7 +254,8 @@ def test_repr_method(transaction_id):
                            "token_transfers={}, "
                            "nft_transfers={}, "
                            "transfers={}, "
-                           "new_pending_airdrops=[])")
+                           "new_pending_airdrops=[], "
+                           "call_result=None)")
     assert repr(record_default) == expected_repr_default
     
     # Test with receipt only
@@ -271,16 +274,17 @@ def test_repr_method(transaction_id):
                                 f"token_transfers={{}}, "
                                 f"nft_transfers={{}}, "
                                 f"transfers={{}}, "
-                                f"new_pending_airdrops={[]})")
+                                f"new_pending_airdrops={[]}, "
+                                f"call_result=None)")
     assert repr(record_with_receipt) == expected_repr_with_receipt
-    
+
     # Test with all parameters set
     record_full = TransactionRecord(
         transaction_id=transaction_id,
         transaction_hash=b'\x01\x02\x03\x04',
         transaction_memo="Test memo",
         transaction_fee=100000,
-        receipt=receipt
+        receipt=receipt,
     )
     expected_repr_full = (f"TransactionRecord(transaction_id='{transaction_id}', "
                          f"transaction_hash=b'\\x01\\x02\\x03\\x04', "
@@ -290,17 +294,17 @@ def test_repr_method(transaction_id):
                          f"token_transfers={{}}, "
                          f"nft_transfers={{}}, "
                          f"transfers={{}}, "
-                         f"new_pending_airdrops={[]})")
+                         f"new_pending_airdrops={[]}, "
+                         f"call_result=None)")
     assert repr(record_full) == expected_repr_full
-    
+
     # Test with transfers
     record_with_transfers = TransactionRecord(
-        transaction_id=transaction_id,
-        receipt=receipt
+        transaction_id=transaction_id, receipt=receipt
     )
     record_with_transfers.transfers[AccountId(0, 0, 100)] = -1000
     record_with_transfers.transfers[AccountId(0, 0, 200)] = 1000
-    
+
     expected_repr_with_transfers = (f"TransactionRecord(transaction_id='{transaction_id}', "
                                   f"transaction_hash=None, "
                                   f"transaction_memo='None', "
@@ -309,5 +313,32 @@ def test_repr_method(transaction_id):
                                   f"token_transfers={{}}, "
                                   f"nft_transfers={{}}, "
                                   f"transfers={{AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}}, "
-                                  f"new_pending_airdrops={[]})")
+                                  f"new_pending_airdrops={[]}, "
+                                  f"call_result=None)")
     assert repr(record_with_transfers) == expected_repr_with_transfers
+
+
+def test_proto_conversion_with_call_result():
+    """Test the call_result property of TransactionRecord."""
+    record = TransactionRecord()
+
+    record.call_result = ContractFunctionResult(
+        contract_id=ContractId(0, 0, 100),
+        contract_call_result=b"Hello, world!",
+        error_message="No errors",
+        bloom=bytes.fromhex("ffff"),
+        gas_used=100000,
+        gas_available=1000000,
+        amount=50,
+    )
+
+    proto = record._to_proto()
+    converted = TransactionRecord._from_proto(proto, None)
+
+    assert converted.call_result.contract_id == record.call_result.contract_id
+    assert converted.call_result.contract_call_result == record.call_result.contract_call_result
+    assert converted.call_result.error_message == record.call_result.error_message
+    assert converted.call_result.bloom == record.call_result.bloom
+    assert converted.call_result.gas_used == record.call_result.gas_used
+    assert converted.call_result.gas_available == record.call_result.gas_available
+    assert converted.call_result.amount == record.call_result.amount
