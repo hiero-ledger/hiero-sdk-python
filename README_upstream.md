@@ -46,7 +46,7 @@ git checkout mybranch
 ### 2. Rebase your branch on top of the updated main
 # Rebase = cleaner history, your commits appear on top of main.
 ```bash
-git rebase main -S --signoff
+git rebase main -S
 ```
 
 ## Handling Conflicts
