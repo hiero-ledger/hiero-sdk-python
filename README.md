@@ -156,4 +156,4 @@ We appreciate your interest in improving the Hiero Python SDK! Please see CONTRI
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the Apache License.
