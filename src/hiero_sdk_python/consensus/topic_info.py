@@ -92,7 +92,6 @@ class TopicInfo:
                 if topic_info_proto.HasField("autoRenewAccount") else None
             ),
             ledger_id=getattr(topic_info_proto, "ledger_id", None),
-            # fallback if the field doesn't exist
         )
 
     def __repr__(self) -> str:
@@ -123,7 +122,7 @@ class TopicInfo:
             f"  expiration_time={exp_dt},\n"
             f"  admin_key={format_key(self.admin_key)},\n"
             f"  submit_key={format_key(self.submit_key)},\n"
-            f"  auto_renew_period={self.auto_renew_period.seconds},\n"
+            f"  auto_renew_period={self.auto_renew_period.seconds if self.auto_renew_period else 'None'},\n"
             f"  auto_renew_account={self.auto_renew_account},\n"
             f"  ledger_id=0x{ledger_id_hex}\n"
             ")"

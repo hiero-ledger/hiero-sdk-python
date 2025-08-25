@@ -40,10 +40,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 - Applied linting and code formatting across the consensus module
+- fix: legacy camelcase to snakecase in integration tests
 - fixed pip install hiero_sdk_python -> pip install hiero-sdk-python in README.md
+- docs: add entry for TokenInfo.from_protobuf fix
+
+### Fixed
+- TokenInfo.from_protobuf now fully maps all Hedera token fields (#222)
 
 ### Breaking API changes
-**We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
+**We have several camelCase uses that will be deprecated → snake_case**  
+Original aliases will continue to function, with a warning, until the following release.
 
 #### In `token_info.py`
 - tokenId → token_id 

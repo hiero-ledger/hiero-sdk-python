@@ -32,21 +32,40 @@ def test_nftid_deprecated_alias_access():
     assert "tokenId" in str(record_tokenid[0].message)
 
 
-def test_tokeninfo_deprecated_alias_access():
+def test_tokeninfo_correct_access():
     token = TokenId.from_string("0.0.456")
     info = TokenInfo(token_id=token, total_supply=1000, is_deleted=True)
 
-    # totalSupply -> total_supply
-    with pytest.warns(FutureWarning) as record_supply:
+    # Check that new names work as expected
+    assert info.total_supply == 1000
+    assert info.is_deleted is True
+
+def test_tokeninfo_deprecated_alias_access():
+    token = TokenId.from_string("0.0.456")
+    
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always", FutureWarning)
+        info = TokenInfo(tokenId=token, totalSupply=1000, isDeleted=True)
+        # Check that constructor warnings are raised
+        assert any("tokenId" in str(wi.message) for wi in w)
+        assert any("totalSupply" in str(wi.message) for wi in w)
+        assert any("isDeleted" in str(wi.message) for wi in w)
+
+    # Now check access warnings for deprecated attributes
+    with pytest.warns(FutureWarning) as record_total:
         got = info.totalSupply
     assert got == 1000
-    assert "totalSupply" in str(record_supply[0].message)
+    assert "totalSupply" in str(record_total[0].message)
 
-    # isDeleted -> is_deleted
-    with pytest.warns(FutureWarning) as record_delete:
+    with pytest.warns(FutureWarning) as record_deleted:
         got = info.isDeleted
     assert got is True
-    assert "isDeleted" in str(record_delete[0].message)
+    assert "isDeleted" in str(record_deleted[0].message)
+
+    with pytest.warns(FutureWarning) as record_token:
+        got = info.tokenId
+    assert got == token
+    assert "tokenId" in str(record_token[0].message)
 
 
 def test_transactionreceipt_deprecated_alias_access():
@@ -93,6 +112,7 @@ class DummyProto:
         self.memo = "test"
         self.tokenType = TokenType.FUNGIBLE_COMMON.value
         self.maxSupply = 10_000
+        self.custom_fees = []
         self.ledger_id = b"\x00"
         self.metadata = b"\x01"
 
@@ -100,7 +120,7 @@ class DummyProto:
         self.tokenId = TokenID(shardNum=0, realmNum=0, tokenNum=42)
         self.treasury = AccountID(shardNum=0, realmNum=0, accountNum=99)
 
-        # empty key protos
+        # use camelCase to match production code
         self.adminKey = Key()
         self.kycKey = Key()
         self.freezeKey = Key()

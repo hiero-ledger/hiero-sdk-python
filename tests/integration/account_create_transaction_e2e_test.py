@@ -13,21 +13,21 @@ def test_integration_account_create_transaction_can_execute():
         new_account_private_key = PrivateKey.generate()
         new_account_public_key = new_account_private_key.public_key()
         initial_balance = Hbar(2)
-        
+
         assert initial_balance.to_tinybars() == 200000000
-        
+
         transaction = AccountCreateTransaction(
             key=new_account_public_key,
             initial_balance=initial_balance,
             memo="Recipient Account"
         )
-        
+
         transaction.freeze_with(env.client)
+        transaction.sign(new_account_private_key)
+        
         receipt = transaction.execute(env.client)
         
         assert receipt.account_id is not None, "AccountID not found in receipt. Account may not have been created."
+
     finally:
         env.close()
-    
-    
-    
