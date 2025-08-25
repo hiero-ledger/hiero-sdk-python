@@ -11,9 +11,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
+- README_testing.md
 
 ### Changed
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
+- Testing Guide link in CONTRIBUTING.md
+- Removed Testing Section in README.md and Added a link to README_testing.md
 
 ## [0.1.4] - 2025-08-19
 ### Added
