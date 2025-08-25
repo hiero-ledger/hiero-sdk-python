@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Removed
 - Removed the old `/documentation` folder.
+- Rebase command in README_upstream changed to just -S
 
 ## [0.1.4] - 2025-08-19
 ### Added
