@@ -29,7 +29,6 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import (
     transaction_pb2,
-    transaction_body_pb2,
     transaction_contents_pb2,
     timestamp_pb2,
 )
@@ -213,7 +212,7 @@ def test_token_creation_validation(
             )
             # Building triggers validation
             tx = TokenCreateTransaction(params)
-            tx.build_transaction_body() 
+            tx.build_transaction_body()
     else:
         # Valid scenario; no error expected
         params = TokenParams(
@@ -291,15 +290,15 @@ def test_sign_transaction(mock_account_ids, mock_client):
     token_tx.set_metadata_key(private_key_metadata)
     token_tx.set_pause_key(private_key_pause)
     token_tx.set_kyc_key(private_key_kyc)
-    
+
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    
+
     token_tx.freeze_with(mock_client)
 
     # Sign with both sign keys
     token_tx.sign(private_key) # Necessary
     token_tx.sign(private_key_admin) # Since admin key exists
-    
+
     node_id = mock_client.network.current_node._account_id
     body_bytes = token_tx._transaction_body_bytes[node_id]
 
@@ -318,8 +317,8 @@ def test_sign_transaction(mock_account_ids, mock_client):
     for sig_pair in token_tx._signature_map[body_bytes].sigPair:
         assert sig_pair.pubKeyPrefix not in (
             b"supply_public_key",
-            b"freeze_public_key", 
-            b"wipe_public_key", 
+            b"freeze_public_key",
+            b"wipe_public_key",
             b"metadata_public_key",
             b"pause_public_key"
         )
@@ -359,7 +358,7 @@ def test_to_proto_without_keys(mock_account_ids, mock_client):
     )
     assert len(signed_tx.bodyBytes) > 0
 
-    transaction_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    transaction_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Verify the transaction built was correctly serialized to and from proto.
     assert transaction_body.tokenCreation.name == "MyToken"
@@ -419,7 +418,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     assert len(signed_tx.bodyBytes) > 0
 
     # 3) Finally parse the TransactionBody
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Confirm fields set in the token creation portion of the TransactionBody
     assert tx_body.tokenCreation.name == "MyToken"
@@ -472,19 +471,19 @@ def test_transaction_execution_failure(mock_account_ids):
     )
     token_tx.node_account_id = node_account_id
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    
+
     # Set the transaction body bytes to avoid calling build_transaction_body
     token_tx._transaction_body_bytes = b"mock_body_bytes"
-    
+
     # Mock the client and its operator_private_key
     token_tx.client = MagicMock()
     mock_public_key = MagicMock()
     mock_public_key.to_bytes_raw.return_value = b"mock_public_key"
-    
+
     token_tx.client.operator_private_key = MagicMock()
     token_tx.client.operator_private_key.sign.return_value = b"mock_signature"
     token_tx.client.operator_private_key.public_key.return_value = mock_public_key
-    
+
     # Skip the actual sign method by mocking is_signed_by to return True
     token_tx.is_signed_by = MagicMock(return_value=True)
 
@@ -493,7 +492,7 @@ def test_transaction_execution_failure(mock_account_ids):
         precheck_error = PrecheckError(ResponseCode.INVALID_SIGNATURE, token_tx.transaction_id)
         # Make _execute raise this error when called
         mock_execute.side_effect = precheck_error
-        
+
         # The expected message pattern should match the PrecheckError message format
         expected_pattern = r"Transaction failed precheck with status: INVALID_SIGNATURE \(7\)"
 
@@ -561,7 +560,7 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
 
     # Parse the TransactionBody from SignedTransaction.bodyBytes
     # bodyBytes: A byte array containing a serialized `TransactionBody`.
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Check that updated values made it into tokenCreation
     assert tx_body.tokenCreation.name == "MyUpdatedToken"
@@ -591,7 +590,7 @@ def test_transaction_freeze_prevents_modification(mock_account_ids, mock_client)
 
     transaction.node_account_id = node_account_id
     transaction.transaction_id = generate_transaction_id(treasury_account)
-    
+
     # Freeze the transaction
     transaction.freeze_with(mock_client)
 
@@ -613,7 +612,7 @@ def test_transaction_freeze_prevents_modification(mock_account_ids, mock_client)
 
     # Confirm that values remain unchanged after freeze attempt
     assert transaction._token_params.token_name == "TestName"
-    assert transaction._token_params.token_symbol == "TEST"    
+    assert transaction._token_params.token_symbol == "TEST"
     assert transaction._token_params.initial_supply == 1000
     assert transaction._token_params.decimals == 2
     assert transaction._token_params.treasury_account_id == treasury_account
@@ -659,7 +658,7 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
 # This test uses fixture (mock_account_ids, mock_client) as parameter
 def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     """
-    Test building, signing, and protobuf serialization of 
+    Test building, signing, and protobuf serialization of
     a valid Non-Fungible Unique token creation transaction.
     """
     treasury_account, _, _, _, _ = mock_account_ids
@@ -734,7 +733,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     assert len(signed_tx.bodyBytes) > 0
 
     # Finally parse the TransactionBody
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Verify the NFT-specific fields
     assert tx_body.tokenCreation.name == "MyNFTToken"
@@ -801,8 +800,8 @@ def test_supply_type_and_max_supply_validation(
     initial_supply,
     expected_error
 ):
-    """ 
-    Verifies the combination of token_type, supply_type, max_supply, and initial_supply 
+    """
+    Verifies the combination of token_type, supply_type, max_supply, and initial_supply
     either passes validation or raises the correct ValueError
     """
     treasury_account, _, node_account_id, _, _ = mock_account_ids

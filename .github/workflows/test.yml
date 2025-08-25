@@ -32,7 +32,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Generate Proto Files
-        run: bash ./generate_proto.sh
+        run: uv run python generate_proto.py
 
       - name: Prepare Hiero Solo
         id: solo

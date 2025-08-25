@@ -12,7 +12,7 @@ from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import (
     consensus_create_topic_pb2,
-    transaction_body_pb2,
+    transaction_pb2,
     basic_types_pb2)
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -129,8 +129,9 @@ class TopicCreateTransaction(Transaction):
         Raises:
             ValueError: If required fields are missing.
         """
-        transaction_body: transaction_body_pb2.TransactionBody = (
-            self.build_base_transaction_body())
+        transaction_body: transaction_pb2.TransactionBody = (
+            self.build_base_transaction_body()
+        )
         transaction_body.consensusCreateTopic.CopyFrom(
             consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
                 adminKey=(

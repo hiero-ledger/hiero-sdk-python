@@ -14,7 +14,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import contract_update_pb2, transaction_body_pb2
+from hiero_sdk_python.hapi.services import contract_update_pb2, transaction_pb2
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -263,7 +263,7 @@ class ContractUpdateTransaction(Transaction):
         """Convert object to proto if it exists, otherwise return None"""
         return obj._to_proto() if obj else None
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for contract update.
 

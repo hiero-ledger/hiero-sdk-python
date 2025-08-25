@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.hapi.services import contract_call_local_pb2
+from hiero_sdk_python.hapi.services import contract_types_pb2
 
 
 @dataclass
@@ -29,13 +29,13 @@ class ContractLogInfo:
 
     @classmethod
     def _from_proto(
-        cls, proto: contract_call_local_pb2.ContractLoginfo
+        cls, proto: contract_types_pb2.ContractLoginfo
     ) -> "ContractLogInfo":
         """
         Creates a ContractLogInfo instance from its protobuf representation.
 
         Args:
-            proto (contract_call_local_pb2.ContractLoginfo): The protobuf object to convert.
+            proto (contract_types_pb2.ContractLoginfo): The protobuf object to convert.
 
         Returns:
             ContractLogInfo: The corresponding ContractLogInfo instance.
@@ -55,14 +55,14 @@ class ContractLogInfo:
             data=proto.data,
         )
 
-    def _to_proto(self) -> contract_call_local_pb2.ContractLoginfo:
+    def _to_proto(self) -> contract_types_pb2.ContractLoginfo:
         """
         Converts this ContractLogInfo instance to its protobuf representation.
 
         Returns:
-            contract_call_local_pb2.ContractLoginfo: The protobuf object representing this instance.
+            contract_types_pb2.ContractLoginfo: The protobuf object representing this instance.
         """
-        return contract_call_local_pb2.ContractLoginfo(
+        return contract_types_pb2.ContractLoginfo(
             contractID=self.contract_id._to_proto() if self.contract_id else None,
             bloom=self.bloom,
             topic=self.topics,

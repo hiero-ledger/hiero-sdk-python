@@ -35,7 +35,7 @@ jobs:
         run: pip install build pdm-backend "grpcio-tools==1.68.1"
 
       - name: Generate Protobuf
-        run: bash ./generate_proto.sh
+        run: python generate_proto.py
 
       - name: Build wheel and sdist
         run: python -m build

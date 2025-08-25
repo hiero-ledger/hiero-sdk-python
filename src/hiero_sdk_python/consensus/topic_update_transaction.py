@@ -13,7 +13,7 @@ from hiero_sdk_python.hapi.services import (
     consensus_update_topic_pb2,
     duration_pb2,
     timestamp_pb2,
-    transaction_body_pb2
+    transaction_pb2,
 )
 from hiero_sdk_python.account.account_id import AccountId
 
@@ -156,7 +156,7 @@ class TopicUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for topic update.
 
