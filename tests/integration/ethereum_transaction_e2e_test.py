@@ -53,9 +53,7 @@ def test_integration_ethereum_transaction_with_contract_execution(env):
     transaction_data = _get_call_data(
         chain_id_bytes,
         nonce_bytes,
-        max_priority_gas_bytes,
-        max_gas_bytes,
-        gas_limit_bytes,
+        (max_priority_gas_bytes, max_gas_bytes, gas_limit_bytes),
         contract_bytes,
         value_bytes,
         call_data_bytes,
@@ -106,9 +104,7 @@ def test_integration_ethereum_transaction_with_contract_call(env):
     transaction_data = _get_call_data(
         chain_id_bytes,
         nonce_bytes,
-        max_priority_gas_bytes,
-        max_gas_bytes,
-        gas_limit_bytes,
+        (max_priority_gas_bytes, max_gas_bytes, gas_limit_bytes),
         contract_bytes,
         value_bytes,
         call_data_bytes,
@@ -157,9 +153,7 @@ def test_integration_ethereum_transaction_jumbo_transaction(env):
     transaction_data = _get_call_data(
         chain_id_bytes,
         nonce_bytes,
-        max_priority_gas_bytes,
-        max_gas_bytes,
-        gas_limit_bytes,
+        (max_priority_gas_bytes, max_gas_bytes, gas_limit_bytes),
         contract_bytes,
         value_bytes,
         call_data_bytes,
@@ -178,9 +172,7 @@ def test_integration_ethereum_transaction_jumbo_transaction(env):
 def _get_call_data(
     chain_id: bytes,
     nonce: bytes,
-    max_priority_gas: bytes,
-    max_gas: bytes,
-    gas_limit_bytes: bytes,
+    gas_params: tuple[bytes, bytes, bytes],
     contract_bytes: bytes,
     value: bytes,
     call_data_bytes: bytes,
@@ -195,9 +187,7 @@ def _get_call_data(
     Args:
         chain_id: Chain ID as bytes
         nonce: Transaction nonce as bytes
-        max_priority_gas: Max priority fee per gas as bytes
-        max_gas: Max fee per gas as bytes
-        gas_limit_bytes: Gas limit as bytes
+        gas_params: Tuple of max priority fee per gas, max fee per gas, and gas limit as bytes
         contract_bytes: Contract address as bytes
         value: Transaction value as bytes
         call_data_bytes: Contract call data as bytes
@@ -210,12 +200,14 @@ def _get_call_data(
     # Create the transaction list without signature components
     # EIP-1559 transaction format:
     # [chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList]
+    max_priority_gas, max_gas, gas_limit = gas_params
+
     transaction_list = [
         chain_id,
         nonce if nonce != b"\x00" else b"",
         max_priority_gas if max_priority_gas != b"\x00" else b"",
         max_gas if max_gas != b"\x00" else b"",
-        gas_limit_bytes if gas_limit_bytes != b"\x00" else b"",
+        gas_limit if gas_limit != b"\x00" else b"",
         contract_bytes if contract_bytes != b"\x00" else b"",
         value if value != b"\x00" else b"",
         call_data_bytes if call_data_bytes != b"\x00" else b"",
