@@ -32,7 +32,7 @@ uv run pytest tests/unit
 OR
 
 ```bash
-uv run pytest tests/unit/specific_name
+uv run pytest tests/unit/specific_name.py
 ```
 if you need to test one file.
 
