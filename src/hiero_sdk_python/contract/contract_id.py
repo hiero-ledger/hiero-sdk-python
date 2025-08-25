@@ -67,3 +67,19 @@ class ContractId:
         Returns the string representation of the ContractId in the format 'shard.realm.contract'.
         """
         return f"{self.shard}.{self.realm}.{self.contract}"
+
+    def to_evm_address(self) -> str:
+        """
+        Converts the ContractId to an EVM address.
+        """
+        if self.evm_address is not None:
+            return self.evm_address.hex()
+
+        # If evm_address is not set, compute the EVM address from shard, realm, and contract.
+        # The EVM address is a 20-byte value: [4 bytes shard][8 bytes realm][8 bytes contract], all big-endian.
+        shard_bytes = self.shard.to_bytes(4, "big")
+        realm_bytes = self.realm.to_bytes(8, "big")
+        contract_bytes = self.contract.to_bytes(8, "big")
+        evm_bytes = shard_bytes + realm_bytes + contract_bytes
+
+        return evm_bytes.hex()
