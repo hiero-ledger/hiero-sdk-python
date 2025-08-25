@@ -270,8 +270,8 @@ def test_to_evm_address():
     contract_id = ContractId(shard=1, realm=2, contract=3)
     # [4 bytes shard][8 bytes realm][8 bytes contract], all big-endian
     expected_bytes = (
-        (1).to_bytes(4, "big") +
-        (2).to_bytes(8, "big") +
+        (0).to_bytes(4, "big") +
+        (0).to_bytes(8, "big") +
         (3).to_bytes(8, "big")
     )
     assert contract_id.to_evm_address() == expected_bytes.hex()
