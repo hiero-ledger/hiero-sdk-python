@@ -124,7 +124,7 @@ def test_integration_ethereum_transaction_jumbo_transaction(env):
 
 
 # pylint: disable=too-many-arguments, too-many-positional-arguments
-def _get_call_data(
+def _get_call_data(  # noqa: PLR0913
     chain_id: bytes,
     nonce: bytes,
     max_priority_gas: bytes,
@@ -160,7 +160,7 @@ def _get_call_data(
     # EIP-1559 transaction format:
     # [chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList]
     transaction_list = [
-        chain_id if chain_id != b"\x00" else b"",
+        chain_id,
         nonce if nonce != b"\x00" else b"",
         max_priority_gas if max_priority_gas != b"\x00" else b"",
         max_gas if max_gas != b"\x00" else b"",
