@@ -5,7 +5,7 @@
 Make sure to execute in the same Virtual Environment as the Project.
 
 ```bash
-uv sync --group dev -v
+uv sync --group dev --group lint -v 
 ``` 
 This installs pytest in the environment managed by uv and prints verbose.
 
