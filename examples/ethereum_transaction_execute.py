@@ -188,7 +188,7 @@ def create_ethereum_transaction_data(contract_id, new_message, alias_private_key
     # EIP-1559 transaction format:
     # [chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList]
     transaction_list = [
-        chain_id_bytes if chain_id_bytes != b"\x00" else b"",
+        chain_id_bytes,
         nonce_bytes if nonce_bytes != b"\x00" else b"",
         max_priority_gas_bytes if max_priority_gas_bytes != b"\x00" else b"",
         max_gas_bytes if max_gas_bytes != b"\x00" else b"",
