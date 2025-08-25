@@ -24,9 +24,11 @@ class AccountId:
         """
         Creates an AccountId instance from a string in the format 'shard.realm.num'.
         """
-        parts: List[str] = account_id_str.strip().split('.')
+        parts: List[str] = account_id_str.strip().split(".")
         if len(parts) != 3:
-            raise ValueError("Invalid account ID string format. Expected 'shard.realm.num'")
+            raise ValueError(
+                "Invalid account ID string format. Expected 'shard.realm.num'"
+            )
         shard, realm, num = map(int, parts)
         return cls(shard, realm, num)
 
@@ -82,7 +84,11 @@ class AccountId:
         """
         if not isinstance(other, AccountId):
             return False
-        return (self.shard, self.realm, self.num) == (other.shard, other.realm, other.num)
+        return (self.shard, self.realm, self.num) == (
+            other.shard,
+            other.realm,
+            other.num,
+        )
 
     def __hash__(self) -> int:
         """Returns a hash value for the AccountId instance."""
