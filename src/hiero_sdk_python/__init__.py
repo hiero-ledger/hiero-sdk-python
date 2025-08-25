@@ -105,6 +105,7 @@ from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
 from .contract.contract_info import ContractInfo
 from .contract.contract_update_transaction import ContractUpdateTransaction
+from .contract.ethereum_transaction import EthereumTransaction
 
 __all__ = [
     # Client
@@ -210,4 +211,5 @@ __all__ = [
     "ContractFunctionResult",
     "ContractInfo",
     "ContractUpdateTransaction",
+    "EthereumTransaction",
 ]
