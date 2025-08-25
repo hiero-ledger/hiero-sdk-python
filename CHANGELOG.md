@@ -14,8 +14,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - AccountDeleteTransaction Class
 - generate_proto.py
 - Bumped Hedera proto version from v0.57.3 to v0.64.3
+- EthereumTransaction class
+- AccountId support for ECDSA alias accounts
+- ContractId.to_evm_address() method for EVM compatibility
+- consumeLargeData() function in StatefulContract
 
 ### Changed
+- StatefulContract's setMessage() function designed with no access restrictions, allowing calls from any address
 - bump solo version to `v0.12`
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
 - Incorrect naming in README for generate_proto.py to generate_proto.sh
