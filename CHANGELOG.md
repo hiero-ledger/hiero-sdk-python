@@ -11,8 +11,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
+- EthereumTransaction class
+- AccountId support for ECDSA alias accounts
+- ContractId.to_evm_address() method for EVM compatibility
+- consumeLargeData() function in StatefulContract
 
 ### Changed
+- StatefulContract's setMessage() function designed with no access restrictions, allowing calls from any address
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
 - Incorrect naming in README for generate_proto.py to generate_proto.sh
 
