@@ -11,6 +11,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
+- Added `mypy.ini` configuration file for static type checking
 
 ### Changed
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
