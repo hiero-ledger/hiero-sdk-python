@@ -1,20 +1,18 @@
 """
-hiero_sdk_python.transaction.token_update_nfts_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_update_nfts_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Provides TokenUpdateNftsTransaction, a subclass of Transaction for updating
 metadata of non-fungible tokens (NFTs) on the Hedera network via HTS.
 """
-from operator import le
 from typing import List, Optional
+from google.protobuf.wrappers_pb2 import BytesValue
 
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody
-from hiero_sdk_python.hapi.services import transaction_body_pb2
-from google.protobuf.wrappers_pb2 import BytesValue
+from hiero_sdk_python.hapi.services import token_update_nfts_pb2,transaction_body_pb2
 
 class TokenUpdateNftsTransaction(Transaction):
     """
@@ -26,9 +24,9 @@ class TokenUpdateNftsTransaction(Transaction):
     to build and execute a token update NFTs transaction.
     """
     def __init__(
-        self, 
-        token_id: Optional[TokenId] = None, 
-        serial_numbers: List[int] = None, 
+        self,
+        token_id: Optional[TokenId] = None,
+        serial_numbers: Optional[List[int]] = None,
         metadata: Optional[bytes] = None
     ) -> None:
         """
@@ -46,19 +44,37 @@ class TokenUpdateNftsTransaction(Transaction):
         self.metadata: Optional[bytes] = metadata
 
     def set_token_id(self, token_id: TokenId) -> "TokenUpdateNftsTransaction":
-        """Set the token ID for the NFT update transaction."""
+        """
+        Sets the token ID for this update NFTs transaction.
+        Args:
+            token_id (TokenId): The ID of the token whose NFTs will be updated.
+        Returns:
+            TokenUpdateNftsTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.token_id = token_id
         return self
 
     def set_serial_numbers(self, serial_numbers: List[int]) -> "TokenUpdateNftsTransaction":
-        """Set the list of NFT serial numbers to update."""
+        """
+            Sets the serial numbers of the NFTs to update.
+        Args:
+            serial_numbers (list[int]): A list of serial numbers for the NFTs to update.
+        Returns:
+            TokenUpdateNftsTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.serial_numbers = serial_numbers
         return self
 
     def set_metadata(self, metadata: bytes) -> "TokenUpdateNftsTransaction":
-        """Set the new metadata for the specified NFTs."""
+        """
+        Sets the metadata for the NFTs to update.
+        Args:
+            metadata (bytes): The new metadata for the NFTs.
+        Returns:
+            TokenUpdateNftsTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.metadata = metadata
         return self
@@ -83,7 +99,7 @@ class TokenUpdateNftsTransaction(Transaction):
         if self.metadata and len(self.metadata) > 100:
             raise ValueError("Metadata must be less than 100 bytes")
 
-        token_update_body = TokenUpdateNftsTransactionBody(
+        token_update_body = token_update_nfts_pb2.TokenUpdateNftsTransactionBody(
             token=self.token_id._to_proto(),
             serial_numbers=self.serial_numbers,
             metadata=BytesValue(value=self.metadata)
@@ -111,7 +127,10 @@ class TokenUpdateNftsTransaction(Transaction):
             query_func=None
         )
 
-    def _from_proto(self, proto: TokenUpdateNftsTransactionBody) -> "TokenUpdateNftsTransaction":
+    def _from_proto(
+            self,
+            proto: token_update_nfts_pb2.TokenUpdateNftsTransactionBody
+        ) -> "TokenUpdateNftsTransaction":
         """
         Deserializes a TokenUpdateNftsTransactionBody from a protobuf object.
 
@@ -122,6 +141,6 @@ class TokenUpdateNftsTransaction(Transaction):
             TokenUpdateNftsTransaction: Returns self for method chaining.
         """
         self.token_id = TokenId._from_proto(proto.token)
-        self.serial_numbers = proto.serial_numbers
+        self.serial_numbers = list(proto.serial_numbers)
         self.metadata = proto.metadata.value
         return self
