@@ -267,7 +267,8 @@ class TokenInfo(_DeprecatedAliasesMixin):
             metadata_key = PublicKey._from_proto(proto_obj.metadata_key)
             tokenInfoObject.set_metadata_key(metadata_key)
 
-        if hasattr(proto_obj, "fee_schedule_key") and proto_obj.fee_schedule_key.WhichOneof("key"):
+        
+        if proto_obj.fee_schedule_key.WhichOneof("key"):
             fee_schedule_key = PublicKey._from_proto(proto_obj.fee_schedule_key)
             tokenInfoObject.set_fee_schedule_key(fee_schedule_key)
 
