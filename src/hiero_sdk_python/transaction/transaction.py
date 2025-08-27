@@ -3,7 +3,7 @@ import hashlib
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_body_pb2, transaction_contents_pb2, transaction_pb2)
+from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2, transaction_pb2)
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -316,7 +316,7 @@ class Transaction(_Executable):
         """
         raise NotImplementedError("Subclasses must implement build_transaction_body()")
     
-    def build_base_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_base_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds the base transaction body including common fields.
 
@@ -336,7 +336,7 @@ class Transaction(_Executable):
         if self.node_account_id is None:
             raise ValueError("Node account ID is not set.")
 
-        transaction_body = transaction_body_pb2.TransactionBody()
+        transaction_body = transaction_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
 

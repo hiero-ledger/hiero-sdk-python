@@ -13,7 +13,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
 from google.protobuf.wrappers_pb2 import BytesValue
 
 class TokenUpdateNftsTransaction(Transaction):
@@ -63,7 +63,7 @@ class TokenUpdateNftsTransaction(Transaction):
         self.metadata = metadata
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token update NFTs.
 
@@ -89,7 +89,7 @@ class TokenUpdateNftsTransaction(Transaction):
             metadata=BytesValue(value=self.metadata)
         )
 
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.token_update_nfts.CopyFrom(token_update_body)
         return transaction_body
 

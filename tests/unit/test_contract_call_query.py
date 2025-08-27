@@ -15,7 +15,7 @@ from hiero_sdk_python.contract.contract_function_parameters import (
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import (
-    contract_call_local_pb2,
+    contract_types_pb2,
     response_header_pb2,
     response_pb2,
 )
@@ -123,7 +123,7 @@ def test_contract_call_query_execute(contract_id):
     account_id = AccountId(0, 0, 1)
 
     # Create contract function result with test data
-    function_result = contract_call_local_pb2.ContractFunctionResult(
+    function_result = contract_types_pb2.ContractFunctionResult(
         contractID=contract_id._to_proto(),
         contractCallResult=b"test_result",
         errorMessage="",
@@ -169,7 +169,7 @@ def test_contract_call_query_with_function_setup(contract_id):
     account_id = AccountId(0, 0, 1)
 
     # Create contract function result with test data
-    function_result = contract_call_local_pb2.ContractFunctionResult(
+    function_result = contract_types_pb2.ContractFunctionResult(
         contractID=contract_id._to_proto(),
         contractCallResult=b"test_result",
         errorMessage="",
@@ -210,7 +210,7 @@ def get_contract_call_responses(function_result):
     return [
         [
             response_pb2.Response(
-                contractCallLocal=contract_call_local_pb2.ContractCallLocalResponse(
+                contractCallLocal=contract_types_pb2=.ContractCallLocalResponse(
                     header=response_header_pb2.ResponseHeader(
                         nodeTransactionPrecheckCode=ResponseCode.OK,
                         responseType=ResponseType.COST_ANSWER,
@@ -219,7 +219,7 @@ def get_contract_call_responses(function_result):
                 )
             ),
             response_pb2.Response(
-                contractCallLocal=contract_call_local_pb2.ContractCallLocalResponse(
+                contractCallLocal=contract_types_pb2.ContractCallLocalResponse(
                     header=response_header_pb2.ResponseHeader(
                         nodeTransactionPrecheckCode=ResponseCode.OK,
                         responseType=ResponseType.COST_ANSWER,
