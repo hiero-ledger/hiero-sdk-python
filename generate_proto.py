@@ -372,6 +372,8 @@ def service_and_platform_files(protos_root: Path) -> List[Path]:
         (services / "auxiliary" / "tss").glob("*.proto"),
         (services / "auxiliary" / "hints").glob("*.proto"),
         (services / "auxiliary" / "history").glob("*.proto"),
+        (services / "state" / "hints").glob("*.proto"),
+        (services / "state" / "history").glob("*.proto"),
         (platform / "event").glob("*.proto"),
     ]
 
@@ -425,49 +427,112 @@ def compile_mirror(protos_root: Path, mirror_out: Path) -> None:
 
 
 # -------------------- Post-generation Python import fixups --------------------
-
-
 def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
-    """
-    Make generated imports package-safe, mirroring the bash sed logic:
-      - Services tree:
-          "import X_pb2 as" -> "from . import X_pb2 as"
-          "from auxiliary.tss" -> "from .auxiliary.tss"
-          "from event" -> "from .event"
-      - Mirror tree:
-          imports of mirror modules -> "from . import"
-          imports of services modules -> "from ..services import"
-    """
-    # Services tree
+    service_root_modules = {f.stem for f in services_dir.glob("*_pb2.py")}
+
+    # --- Services tree ---
     for py in services_dir.rglob("*.py"):
         if py.name == "__init__.py":
             continue
         content = py.read_text(encoding="utf-8")
-        content = re.sub(r"^import (\w+_pb2) as", r"from . import \1 as",
+
+        content = re.sub(r"^\s*import (\w+_pb2) as", r"from . import \1 as",
                          content, flags=re.MULTILINE)
-        content = re.sub(r"^from\s+auxiliary\.tss", r"from .auxiliary.tss",
-                         content, flags=re.MULTILINE)
-        content = re.sub(r"^from\s+event", r"from .event",
-                         content, flags=re.MULTILINE)
+
+        content = re.sub(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as",
+                         r"from . import \1 as", content, flags=re.MULTILINE)
+        content = re.sub(r"^\s*from\s+services\s+import\s+(\w+_pb2)\b",
+                         r"from . import \1", content, flags=re.MULTILINE)
+
+        content = re.sub(
+            r"^\s*from\s+services\.((?:\w+\.)*\w+)\s+import\s+(\w+_pb2)(\s+as\b)?",
+            r"from .\1 import \2\3", content, flags=re.MULTILINE,
+        )
+        content = re.sub(
+            r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\s+as",
+            r"from .\1 import \2 as", content, flags=re.MULTILINE,
+        )
+        content = re.sub(
+            r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\b",
+            r"from .\1 import \2", content, flags=re.MULTILINE,
+        )
+
+        content = re.sub(r"^\s*from\s+auxiliary\.tss",     r"from .auxiliary.tss",     content, flags=re.MULTILINE)
+        content = re.sub(r"^\s*from\s+auxiliary\.hints",   r"from .auxiliary.hints",   content, flags=re.MULTILINE)
+        content = re.sub(r"^\s*from\s+auxiliary\.history", r"from .auxiliary.history", content, flags=re.MULTILINE)
+
+        content = re.sub(r"^\s*from\s+event\s+import\s+(\w+_pb2)(\s+as\b)?",
+                         r"from ..platform.event import \1\2", content, flags=re.MULTILINE)
+        content = re.sub(r"^\s*from\s+platform\.event\s+import\s+(\w+_pb2)(\s+as\b)?",
+                         r"from ..platform.event import \1\2", content, flags=re.MULTILINE)
+
+        rel   = py.relative_to(services_dir)
+        depth = len(rel.parent.parts)  
+        dots  = "." * (depth + 1) 
+
+        def repl_dot_state(m: re.Match) -> str:
+            tail  = m.group(1) or ""
+            mod   = m.group(2)
+            alias = m.group(3) or ""
+            return f"from {dots}state{tail} import {mod}{alias}"
+        content = re.sub(r"^\s*from\s+\.\s*state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?",
+                         repl_dot_state, content, flags=re.MULTILINE)
+
+        def repl_abs_state(m: re.Match) -> str:
+            tail  = m.group(1) or ""
+            mod   = m.group(2)
+            alias = m.group(3) or ""
+            return f"from {dots}state{tail} import {mod}{alias}"
+        content = re.sub(r"^\s*from\s+services\.state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?",
+                         repl_abs_state, content, flags=re.MULTILINE)
+
+        def repl_from_dot_local(m: re.Match) -> str:
+            mod   = m.group(1)
+            alias = m.group(2) or ""
+            if mod in service_root_modules:
+                return f"from {dots} import {mod}{alias}"
+            return m.group(0)
+        content = re.sub(r"^\s*from\s+\.\s+import\s+(\w+_pb2)(\s+as\s+\w+)?\s*$",
+                         repl_from_dot_local, content, flags=re.MULTILINE)
+
         py.write_text(content, encoding="utf-8")
 
-    # Mirror tree
-    mirror_modules = {f.stem for f in mirror_dir.glob("*_pb2.py")}
-    service_modules = {f.stem for f in services_dir.glob("*_pb2.py")}
-
-    def repl(match: re.Match) -> str:
-        mod = match.group(1)
-        if mod in mirror_modules:
-            return f"from . import {mod} as"
-        if mod in service_modules:
-            return f"from ..services import {mod} as"
-        return match.group(0)
+    # --- Mirror tree ---
+    mirror_modules  = {f.stem for f in mirror_dir.rglob("*_pb2.py")}
+    service_modules = {f.stem for f in services_dir.rglob("*_pb2.py")}
 
     for py in mirror_dir.rglob("*.py"):
         if py.name == "__init__.py":
             continue
         content = py.read_text(encoding="utf-8")
-        content = re.sub(r"^import (\w+_pb2) as", repl, content, flags=re.MULTILINE)
+
+        def repl_import(m: re.Match) -> str:
+            mod = m.group(1)
+            if mod in mirror_modules:
+                return f"from . import {mod} as"
+            if mod in service_modules:
+                return f"from ..services import {mod} as"
+            return m.group(0)
+        content = re.sub(r"^\s*import (\w+_pb2) as", repl_import, content, flags=re.MULTILINE)
+
+        def repl_from_mirror(m: re.Match) -> str:
+            mod = m.group(1)
+            return f"from . import {mod} as" if mod in mirror_modules else m.group(0)
+        content = re.sub(r"^\s*from\s+mirror\s+import\s+(\w+_pb2)\s+as",
+                         repl_from_mirror, content, flags=re.MULTILINE)
+
+        def repl_from_services(m: re.Match) -> str:
+            mod = m.group(1)
+            return f"from ..services import {mod} as" if mod in service_modules else m.group(0)
+        content = re.sub(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as",
+                         repl_from_services, content, flags=re.MULTILINE)
+
+        def repl_from_dot(m: re.Match) -> str:
+            mod = m.group(1)
+            return f"from ..services import {mod} as" if (mod in service_modules and mod not in mirror_modules) else m.group(0)
+        content = re.sub(r"^\s*from\s+\.\s+import\s+(\w+_pb2)\s+as",
+                         repl_from_dot, content, flags=re.MULTILINE)
+
         py.write_text(content, encoding="utf-8")
 
 
@@ -494,14 +559,18 @@ def main() -> None:
     # Clean outputs & pre-create subpackages
     clean_and_prepare_output_dirs(cfg.services_out, cfg.mirror_out)
     ensure_subpackages(
-        cfg.services_out, [
-            Path("auxiliary/tss"),
-            Path("auxiliary/hints"),
-            Path("auxiliary/history"),
-            Path("event"),
-        ]
+        cfg.services_out,
+        [
+            Path("services"),
+            Path("services/auxiliary/tss"),
+            Path("services/auxiliary/hints"),
+            Path("services/auxiliary/history"),
+            Path("services/state/hints"),
+            Path("services/state/history"),
+            Path("platform/event"),
+        ],
     )
-    ensure_subpackages(cfg.mirror_out, [Path(".")])
+    ensure_subpackages(cfg.mirror_out, [Path("mirror")])
 
     # Compile groups
     compile_services_and_platform(cfg.protos_dir, cfg.services_out, cfg.pyi_out)
@@ -509,7 +578,8 @@ def main() -> None:
     log_generated_files(cfg.mirror_out)
 
     # Fix imports and make packages importable
-    adjust_python_imports(cfg.services_out, cfg.mirror_out)
+    adjust_python_imports(cfg.services_out / Path("services"),
+                      cfg.mirror_out / Path("mirror"))
     create_init_files(cfg.services_out, cfg.mirror_out)
 
     print("✅ All protobuf files have been generated and adjusted successfully!")
