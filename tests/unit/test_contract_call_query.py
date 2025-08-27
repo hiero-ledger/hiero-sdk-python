@@ -17,7 +17,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import (
     contract_types_pb2,
     response_header_pb2,
-    response_pb2,
+    response_pb2, contract_call_local_pb2
 )
 from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.response_code import ResponseCode
@@ -210,7 +210,7 @@ def get_contract_call_responses(function_result):
     return [
         [
             response_pb2.Response(
-                contractCallLocal=contract_types_pb2=.ContractCallLocalResponse(
+                contractCallLocal=contract_call_local_pb2.ContractCallLocalResponse(
                     header=response_header_pb2.ResponseHeader(
                         nodeTransactionPrecheckCode=ResponseCode.OK,
                         responseType=ResponseType.COST_ANSWER,
@@ -219,7 +219,7 @@ def get_contract_call_responses(function_result):
                 )
             ),
             response_pb2.Response(
-                contractCallLocal=contract_types_pb2.ContractCallLocalResponse(
+                contractCallLocal=contract_call_local_pb2.ContractCallLocalResponse(
                     header=response_header_pb2.ResponseHeader(
                         nodeTransactionPrecheckCode=ResponseCode.OK,
                         responseType=ResponseType.COST_ANSWER,
