@@ -36,8 +36,7 @@ from grpc_tools import protoc
 
 DEFAULT_HAPI_VERSION = "v0.64.3"
 DEFAULT_PROTOS_DIR = ".protos"
-DEFAULT_SERVICES_OUTPUT = "src/hiero_sdk_python/hapi/services"
-DEFAULT_MIRROR_OUTPUT = "src/hiero_sdk_python/hapi/mirror"
+DEFAULT_OUTPUT = "src/hiero_sdk_python/hapi"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
@@ -72,12 +71,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--services-output",
-        default=DEFAULT_SERVICES_OUTPUT,
+        default=DEFAULT_OUTPUT,
         help="Output directory for services (default: %(default)s)",
     )
     parser.add_argument(
         "--mirror-output",
-        default=DEFAULT_MIRROR_OUTPUT,
+        default=DEFAULT_OUTPUT,
         help="Output directory for mirror (default: %(default)s)",
     )
     parser.add_argument(
@@ -215,8 +214,8 @@ def create_init_files(*roots: Path) -> None:
                 (p / "__init__.py").touch(exist_ok=True)
 
 
-def log_generated_files(output_dir: Path, label: str) -> None:
-    print(f"\n📂 Generated {label} files in {output_dir}:")
+def log_generated_files(output_dir: Path) -> None:
+    print(f"\n📂 Generated compiled proto files in {output_dir}:")
     cwd = Path.cwd()
     for f in sorted(output_dir.rglob("*.py")):
         try:
@@ -506,10 +505,8 @@ def main() -> None:
 
     # Compile groups
     compile_services_and_platform(cfg.protos_dir, cfg.services_out, cfg.pyi_out)
-    log_generated_files(cfg.services_out, "services")
-
     compile_mirror(cfg.protos_dir, cfg.mirror_out)
-    log_generated_files(cfg.mirror_out, "mirror")
+    log_generated_files(cfg.mirror_out)
 
     # Fix imports and make packages importable
     adjust_python_imports(cfg.services_out, cfg.mirror_out)
