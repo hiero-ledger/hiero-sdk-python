@@ -11,6 +11,9 @@ from hiero_sdk_python.contract.contract_function_parameters import (
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.contract_call_pb2 import ContractCallTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -125,6 +128,26 @@ class ContractExecuteTransaction(Transaction):
         self.function_parameters = params.to_bytes()
         return self
 
+    def _build_proto_body(self):
+        """
+        Returns the protobuf body for the contract execute transaction.
+
+        Returns:
+            ContractCallTransactionBody: The protobuf body for this transaction.
+
+        Raises:
+            ValueError: If contract_id is not set.
+        """
+        if self.contract_id is None:
+            raise ValueError("Missing required ContractID")
+
+        return ContractCallTransactionBody(
+            contractID=self.contract_id._to_proto(),
+            gas=self.gas,
+            amount=self.amount,
+            functionParameters=self.function_parameters,
+        )
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for contract execution.
@@ -132,23 +155,23 @@ class ContractExecuteTransaction(Transaction):
         Returns:
             TransactionBody: The protobuf transaction body containing the
                 contract execution details.
-
-        Raises:
-            ValueError: If the contract ID is not set.
         """
-        if self.contract_id is None:
-            raise ValueError("Missing required ContractID")
-
-        contract_execute_body = ContractCallTransactionBody(
-            contractID=self.contract_id._to_proto(),
-            gas=self.gas,
-            amount=self.amount,
-            functionParameters=self.function_parameters,
-        )
-
+        contract_execute_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.contractCall.CopyFrom(contract_execute_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this contract execute transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        contract_execute_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.contractCall.CopyFrom(contract_execute_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

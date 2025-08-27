@@ -15,6 +15,9 @@ from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import contract_update_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -263,20 +266,20 @@ class ContractUpdateTransaction(Transaction):
         """Convert object to proto if it exists, otherwise return None"""
         return obj._to_proto() if obj else None
 
-    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for contract update.
+        Returns the protobuf body for the contract update transaction.
 
         Returns:
-            TransactionBody: The protobuf transaction body containing the contract update details.
+            ContractUpdateTransactionBody: The protobuf body for this transaction.
 
         Raises:
-            ValueError: If required fields are missing.
+            ValueError: If contract_id is not set.
         """
         if self.contract_id is None:
             raise ValueError("Missing required ContractID")
 
-        contract_update_body = contract_update_pb2.ContractUpdateTransactionBody(
+        return contract_update_pb2.ContractUpdateTransactionBody(
             contractID=self.contract_id._to_proto(),
             expirationTime=(
                 self.expiration_time._to_protobuf() if self.expiration_time else None
@@ -303,9 +306,29 @@ class ContractUpdateTransaction(Transaction):
             ),
         )
 
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for contract update.
+
+        Returns:
+            TransactionBody: The protobuf transaction body containing the contract update details.
+        """
+        contract_update_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.contractUpdateInstance.CopyFrom(contract_update_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this contract update transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        contract_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.contractUpdateInstance.CopyFrom(contract_update_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
