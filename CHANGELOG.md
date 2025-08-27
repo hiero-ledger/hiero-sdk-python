@@ -8,26 +8,26 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 ### Added
+- ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
+- AccountDeleteTransaction Class
 
 ### Changed
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
+- Incorrect naming in README for generate_proto.py to generate_proto.sh
+- Changed README MIT license to Apache
+- Documentation structure updated: contents moved from `/documentation` to `/docs`.
+- fix: convert camelCase to snake_case in token burn integration test (#300)
+
+### Removed
+- Removed the old `/documentation` folder.
+- Rebase command in README_upstream changed to just -S
 
 ## [0.1.4] - 2025-08-19
 ### Added
 - CONTRIBUTING.md: expanded documentation detailing various contribution processes in a step-by-step way. Includes new sections: blog posts and support.
 - README_upstream.md: documentation explaining how to rebase to main.
-
-<<<<<<< HEAD
-
-### Fixed
-- TokenInfo.from_protobuf now fully maps all Hedera token fields (#222)
-
-
-### Breaking API changes  
-=======
-### Added
 - Legacy ECDSA DER parse support
 - documented private key from_string method behavior
 - ContractInfo class
@@ -43,13 +43,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractUpdateTransaction class
 
 ### Fixed
+- TokenInfo.from_protobuf now fully maps all Hedera token fields (#222)
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 - Applied linting and code formatting across the consensus module
 - fixed pip install hiero_sdk_python -> pip install hiero-sdk-python in README.md
 
-### Breaking API changes
->>>>>>> ce870f6 (fix: ECDSA key integration tests issues (#244))
-**We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
+### Breaking API changes  
+**We have several camelCase uses that will be deprecated → snake_case**  
+Original aliases will continue to function, with a warning, until the following release.
 
 #### In `token_info.py`
 - tokenId → token_id 
@@ -83,7 +84,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
 - get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
 
-
 ## [0.1.3] - 2025-07-03
 ### Added
 - TokenType Class
@@ -108,10 +108,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - added Type hinting and initial methods to several modules
 - TokenRevoceKycTransaction Class
 - [Types Guide](hiero/hedera_sdk_python/documentation/sdk_developers/types.md)
-
 - TransactionRecordQuery Class
 - AccountInfoQuery Class
-
 
 ### Changed
 - replace datetime.utcnow() with datetime.now(timezone.utc) for Python 3.10
@@ -133,14 +131,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Created `sdk_users` docs folder and renamed `examples/README.md` to `running_examples.md`
 - Updated references and links accordingly
 
-
 ### Fixed
 - fixed INVALID_NODE_ACCOUNT during node switching
 - fixed ed25519 key ambiguity (PrivateKey.from_string -> PrivateKey.from_string_ed25519 in examples)
 
 ### Removed
 - Redundant test.py file
-
 
 ## [0.1.2] - 2025-03-12
 ### Added
@@ -156,7 +152,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Removed
 - .DS_store file
 
-
 ## [0.1.1] – 2025-02-25
 ### Added
 - RELEASE.md
@@ -168,7 +163,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Removed
 - pdm.lock & uv.lock file
-
 
 ## [0.1.0] - 2025-02-19
 ### Added

@@ -76,11 +76,7 @@ class TopicInfo:
                 if topic_info_proto.HasField("expirationTime") else None
             ),
             admin_key=(
-<<<<<<< HEAD
-                topic_info_proto.admin_key 
-=======
-                topic_info_proto.adminKey
->>>>>>> fe788ce (chore: resolve pylint issues in /consensus module (#278))
+                topic_info_proto.admin_key
                 if topic_info_proto.HasField("adminKey") else None
             ),
             submit_key=(

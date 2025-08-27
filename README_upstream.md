@@ -47,6 +47,7 @@ git checkout mybranch
 # Rebase = cleaner history, your commits appear on top of main.
 ```bash
 git rebase main -S --signoff
+git rebase main -S
 ```
 
 ## Handling Conflicts
