@@ -15,6 +15,9 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_create_pb2, basic_types_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
@@ -377,17 +380,16 @@ class TokenCreateTransaction(Transaction):
 
         return private_key.public_key()._to_proto()
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token creation.
-
+        Returns the protobuf body for the token create transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the token creation details.
-
+            TokenCreateTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If required fields are missing or invalid.
         """
-
         # Validate all token params
         TokenCreateValidator._validate_token_params(self._token_params)
 
@@ -419,7 +421,7 @@ class TokenCreateTransaction(Transaction):
             supply_type_value = self._token_params.supply_type
 
         # Construct the TokenCreateTransactionBody
-        token_create_body = token_create_pb2.TokenCreateTransactionBody(
+        return token_create_pb2.TokenCreateTransactionBody(
             name=self._token_params.token_name,
             symbol=self._token_params.token_symbol,
             decimals=self._token_params.decimals,
@@ -438,11 +440,30 @@ class TokenCreateTransaction(Transaction):
             kycKey=kyc_key_proto,
             custom_fees=[fee._to_proto() for fee in self._token_params.custom_fees],
         )
-        # Build the base transaction body and attach the token creation details
+        
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for token creation.
+
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token creation details.
+        """
+        token_create_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenCreation.CopyFrom(token_create_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token create transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_create_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenCreation.CopyFrom(token_create_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
