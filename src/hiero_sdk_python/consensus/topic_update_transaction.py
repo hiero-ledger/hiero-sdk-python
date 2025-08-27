@@ -15,6 +15,9 @@ from hiero_sdk_python.hapi.services import (
     timestamp_pb2,
     transaction_pb2
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.account.account_id import AccountId
 
 class TopicUpdateTransaction(Transaction):
@@ -156,22 +159,20 @@ class TopicUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for topic update.
-
+        Returns the protobuf body for the topic update transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the topic update details.
-
+            ConsensusUpdateTopicTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If required fields are missing.
         """
         if self.topic_id is None:
             raise ValueError("Missing required fields: topic_id")
-
-        transaction_body = self.build_base_transaction_body()
-        transaction_body.consensusUpdateTopic.CopyFrom(
-            consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
+            
+        return consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
             topicID=self.topic_id._to_proto(),
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
             submitKey=self.submit_key._to_proto() if self.submit_key else None,
@@ -185,9 +186,31 @@ class TopicUpdateTransaction(Transaction):
             ),
             expirationTime=self.expiration_time._to_proto() if self.expiration_time else None,
             memo=_wrappers_pb2.StringValue(value=self.memo) if self.memo else None
-        ))
+        )
+    
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for topic update.
 
+        Returns:
+            TransactionBody: The protobuf transaction body containing the topic update details.
+        """
+        consensus_update_body = self._build_proto_body()
+        transaction_body = self.build_base_transaction_body()
+        transaction_body.consensusUpdateTopic.CopyFrom(consensus_update_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this topic update transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        consensus_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.consensusUpdateTopic.CopyFrom(consensus_update_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

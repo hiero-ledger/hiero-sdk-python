@@ -14,6 +14,9 @@ from hiero_sdk_python.hapi.services import (
     consensus_create_topic_pb2,
     transaction_pb2,
     basic_types_pb2)
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.account.account_id import AccountId
@@ -119,40 +122,56 @@ class TopicCreateTransaction(Transaction):
         self.auto_renew_account = account_id
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
+        """
+        Returns the protobuf body for the topic create transaction.
+        
+        Returns:
+            ConsensusCreateTopicTransactionBody: The protobuf body for this transaction.
+        """
+        return consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
+            adminKey=(
+                self.admin_key._to_proto()
+                if self.admin_key is not None
+                else None),
+            submitKey=(
+                self.submit_key._to_proto()
+                if self.submit_key is not None
+                else None),
+            autoRenewPeriod=(
+                self.auto_renew_period._to_proto()
+                if self.auto_renew_period is not None
+                else None),
+            autoRenewAccount=(
+                self.auto_renew_account._to_proto()
+                if self.auto_renew_account is not None
+                else None),
+            memo=self.memo
+        )
+
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for topic creation.
 
         Returns:
             TransactionBody: The protobuf transaction body containing the topic creation details.
-
-        Raises:
-            ValueError: If required fields are missing.
         """
-        transaction_body: transaction_pb2.TransactionBody = (
-            self.build_base_transaction_body())
-        transaction_body.consensusCreateTopic.CopyFrom(
-            consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
-                adminKey=(
-                    self.admin_key._to_proto()
-                    if self.admin_key is not None
-                    else None),
-                submitKey=(
-                    self.submit_key._to_proto()
-                    if self.submit_key is not None
-                    else None),
-                autoRenewPeriod=(
-                    self.auto_renew_period._to_proto()
-                    if self.auto_renew_period is not None
-                    else None),
-                autoRenewAccount=(
-                    self.auto_renew_account._to_proto()
-                    if self.auto_renew_account is not None
-                    else None),
-                memo=self.memo
-            ))
-
+        consensus_create_body = self._build_proto_body()
+        transaction_body = self.build_base_transaction_body()
+        transaction_body.consensusCreateTopic.CopyFrom(consensus_create_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this topic create transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        consensus_create_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.consensusCreateTopic.CopyFrom(consensus_create_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
