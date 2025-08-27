@@ -15,6 +15,9 @@ from hiero_sdk_python.hapi.services import (
     transaction_response_pb2,
     transaction_receipt_pb2
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -36,6 +39,38 @@ def test_build_topic_create_transaction_body(mock_account_ids):
 
     assert transaction_body.consensusCreateTopic.memo == "Hello Topic"
     assert transaction_body.consensusCreateTopic.adminKey.ed25519
+    
+def test_build_scheduled_body(mock_account_ids):
+    """
+    Test building a scheduled body for TopicCreateTransaction with valid properties.
+    """
+    _, _, node_account_id, _, _ = mock_account_ids
+    
+    # Create private key for the admin key
+    admin_key = PrivateKey.generate().public_key()
+    submit_key = PrivateKey.generate().public_key()
+    
+    # Create a transaction with all fields set
+    tx = TopicCreateTransaction()
+    tx.set_memo("Scheduled Topic")
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_account(AccountId(0, 0, 5))
+    
+    # Build the scheduled transaction body
+    schedulable_body = tx.build_scheduled_body()
+    
+    # Verify it's the right type
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    
+    # Verify the transaction was built with the topic create type
+    assert schedulable_body.HasField("consensusCreateTopic")
+    
+    # Verify fields in the scheduled body
+    assert schedulable_body.consensusCreateTopic.memo == "Scheduled Topic"
+    assert schedulable_body.consensusCreateTopic.adminKey.ed25519 == admin_key.to_bytes_raw()
+    assert schedulable_body.consensusCreateTopic.submitKey.ed25519 == submit_key.to_bytes_raw()
+    assert schedulable_body.consensusCreateTopic.autoRenewAccount.accountNum == 5
 
 # This test uses fixture mock_account_ids as parameter
 def test_missing_operator_in_topic_create(mock_account_ids):
