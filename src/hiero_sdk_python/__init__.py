@@ -7,6 +7,7 @@ from .account.account_id import AccountId
 from .account.account_create_transaction import AccountCreateTransaction
 from .account.account_update_transaction import AccountUpdateTransaction
 from .account.account_info import AccountInfo
+from .account.account_delete_transaction import AccountDeleteTransaction
 
 # Crypto
 from .crypto.private_key import PrivateKey
@@ -99,6 +100,7 @@ from .contract.contract_call_query import ContractCallQuery
 from .contract.contract_info_query import ContractInfoQuery
 from .contract.contract_bytecode_query import ContractBytecodeQuery
 from .contract.contract_execute_transaction import ContractExecuteTransaction
+from .contract.contract_delete_transaction import ContractDeleteTransaction
 from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
 from .contract.contract_info import ContractInfo
@@ -114,6 +116,7 @@ __all__ = [
     "AccountCreateTransaction",
     "AccountUpdateTransaction",
     "AccountInfo",
+    "AccountDeleteTransaction",
 
     # Crypto
     "PrivateKey",
@@ -202,6 +205,7 @@ __all__ = [
     "ContractInfoQuery",
     "ContractBytecodeQuery",
     "ContractExecuteTransaction",
+    "ContractDeleteTransaction",
     "ContractFunctionParameters",
     "ContractFunctionResult",
     "ContractInfo",

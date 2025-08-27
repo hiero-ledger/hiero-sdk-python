@@ -8,11 +8,20 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 ### Added
+- ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
+- AccountDeleteTransaction Class
 
 ### Changed
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
+- Incorrect naming in README for generate_proto.py to generate_proto.sh
+- Changed README MIT license to Apache
+- Documentation structure updated: contents moved from `/documentation` to `/docs`.
+
+### Removed
+- Removed the old `/documentation` folder.
+- Rebase command in README_upstream changed to just -S
 
 ## [0.1.4] - 2025-08-19
 ### Added
