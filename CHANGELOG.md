@@ -10,6 +10,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Convert camelCase to snake_case in integration tests (#318)
 
 ### Added
+- ScheduleId() class
+- ScheduleCreateTransaction() class
+- build_scheduled_body() in every transaction
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
@@ -22,6 +25,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - consumeLargeData() function in StatefulContract
 
 ### Changed
+- Extract _build_proto_body() from build_transaction_body() in every transaction
 - StatefulContract's setMessage() function designed with no access restrictions, allowing calls from any address
 - bump solo version to `v0.12`
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
