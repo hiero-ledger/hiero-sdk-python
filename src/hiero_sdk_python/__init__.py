@@ -107,6 +107,10 @@ from .contract.contract_info import ContractInfo
 from .contract.contract_update_transaction import ContractUpdateTransaction
 from .contract.ethereum_transaction import EthereumTransaction
 
+# Schedule
+from .schedule.schedule_create_transaction import ScheduleCreateTransaction
+from .schedule.schedule_id import ScheduleId
+
 __all__ = [
     # Client
     "Client",
@@ -212,4 +216,8 @@ __all__ = [
     "ContractInfo",
     "ContractUpdateTransaction",
     "EthereumTransaction",
+
+    # Schedule
+    "ScheduleCreateTransaction",
+    "ScheduleId",
 ]
