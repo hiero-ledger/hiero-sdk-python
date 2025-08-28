@@ -21,7 +21,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Changed README MIT license to Apache
 - Documentation structure updated: contents moved from `/documentation` to `/docs`.
 - Switched Mirror Node endpoints used by SDK to secure ones instead of deprecated insecure endpoints (shut down on Aug 20th, see [Hedera blogpost](https://hedera.com/blog/updated-deprecation-of-the-insecure-hedera-consensus-service-hcs-mirror-node-endpoints))
-- Updated README_upstream.md with detailed rebase instructions.
 
 ### Removed
 - Removed the old `/documentation` folder.
