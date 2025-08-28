@@ -6,7 +6,7 @@ Provides TokenRelationship, a dataclass modeling an account’s relationship to 
 including ID, symbol, balance, KYC status, freeze status, decimals, and auto-association flag.
 """
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union, Any
 
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (
     TokenRelationship as TokenRelationshipProto,
@@ -34,8 +34,8 @@ class TokenRelationship:
     token_id: Optional[TokenId] = None
     symbol: Optional[str] = None
     balance: Optional[int] = None
-    kyc_status: Optional[TokenFreezeStatusProto] = None
-    freeze_status: Optional[TokenFreezeStatusProto] = None
+    kyc_status: Any = None       # <- FIX: protobuf enum wrapper, use Any
+    freeze_status: Any = None
     decimals: Optional[int] = None
     automatic_association: Optional[bool] = None
 
@@ -72,7 +72,7 @@ class TokenRelationship:
             kyc_status = TokenKycStatusProto.Revoked
 
         return TokenRelationshipProto(
-            tokenId=self.token_id._to_proto(),
+            tokenId=self.token_id._to_proto() if self.token_id else None,
             symbol=self.symbol,
             balance=self.balance,
             kycStatus=kyc_status,
