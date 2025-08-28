@@ -63,6 +63,19 @@ class TokenMintTransaction(Transaction):
         self.metadata = metadata
         return self
 
+    def _validate_parameters(self):
+        """
+        Validates the parameters for the token mint transaction.
+        """
+        if self.token_id is None:
+            raise ValueError("Token ID is required for minting.")
+
+        if (self.amount is not None) and (self.metadata is not None):
+            raise ValueError(
+                "Specify either amount for fungible tokens or metadata "
+                "for NFTs, not both."
+            )
+
     def _build_proto_body(self):
         """
         Returns the protobuf body for the token mint transaction.
@@ -73,14 +86,7 @@ class TokenMintTransaction(Transaction):
         Raises:
             ValueError: If required fields are missing or conflicting.
         """
-        if not self.token_id:
-            raise ValueError("Token ID is required for minting.")
-
-        if (self.amount is not None) and (self.metadata is not None):
-            raise ValueError(
-                "Specify either amount for fungible tokens or metadata "
-                "for NFTs, not both."
-            )
+        self._validate_parameters()
 
         if self.amount is not None:
             # Minting fungible tokens
