@@ -24,7 +24,6 @@ Features:
 Run: python generate_proto.py -vv or with trace logs: python generate_proto.py -vvv
 """
 from __future__ import annotations
-
 import argparse
 import logging
 import re
@@ -448,95 +447,95 @@ def _iter_py_like(root: Path):
     for pat in ("*.py", "*.pyi"):
         yield from root.rglob(pat)
 
-def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
-    service_root_modules = {f.stem for f in services_dir.glob("*_pb2.py")}
+# -------------------- Import-rewrite helpers (precompiled regexes) --------------------
+# Keep these at module scope so they don't count against function complexity and are compiled once.
+_RX_IMPORT_AS                = re.compile(r"^\s*import (\w+_pb2) as", re.MULTILINE)
+_RX_FROM_SERVICES_AS         = re.compile(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
+_RX_FROM_SERVICES            = re.compile(r"^\s*from\s+services\s+import\s+(\w+_pb2)\b", re.MULTILINE)
+_RX_FROM_SERVICES_SUBPKG     = re.compile(r"^\s*from\s+services\.((?:\w+\.)*\w+)\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
+_RX_IMPORT_SERVICES_AS       = re.compile(r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\s+as", re.MULTILINE)
+_RX_IMPORT_SERVICES          = re.compile(r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\b", re.MULTILINE)
+_RX_FROM_AUX_TSS             = re.compile(r"^\s*from\s+auxiliary\.tss", re.MULTILINE)
+_RX_FROM_AUX_HINTS           = re.compile(r"^\s*from\s+auxiliary\.hints", re.MULTILINE)
+_RX_FROM_AUX_HISTORY         = re.compile(r"^\s*from\s+auxiliary\.history", re.MULTILINE)
+_RX_FROM_EVENT               = re.compile(r"^\s*from\s+event\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
+_RX_FROM_PLATFORM_EVENT      = re.compile(r"^\s*from\s+platform\.event\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
+_RX_FROM_DOT_STATE           = re.compile(r"^\s*from\s+\.\s*state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
+_RX_FROM_ABS_STATE           = re.compile(r"^\s*from\s+services\.state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
+_RX_FROM_DOT_IMPORT_LOCAL    = re.compile(r"^\s*from\s+\.\s+import\s+(\w+_pb2)(\s+as\s+\w+)?\s*$", re.MULTILINE)
 
-    # --- Services tree ---
-    logging.info("Adjusting imports in services under %s", services_dir)
-    svc_total = svc_changed = 0
-    for py in _iter_py_like(services_dir):
+_RX_MIRROR_IMPORT_AS         = re.compile(r"^\s*import (\w+_pb2) as", re.MULTILINE)
+_RX_FROM_MIRROR_AS           = re.compile(r"^\s*from\s+mirror\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
+_RX_FROM_SERVICES_AS_MIR     = re.compile(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
+_RX_FROM_DOT_AS_MIR          = re.compile(r"^\s*from\s+\.\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
+
+
+def _walk_and_rewrite(root: Path, rewriter) -> tuple[int, int]:
+    """Walk .py and .pyi under root, rewrite with `rewriter(text, path) -> new_text|None`."""
+    total = changed = 0
+    for py in root.rglob("*"):
+        if not py.is_file():
+            continue
+        if py.suffix not in (".py", ".pyi"):
+            continue
         if py.name in {"__init__.py", "__init__.pyi"}:
             continue
-        svc_total += 1
-        content = orig = py.read_text(encoding="utf-8")
+        total += 1
+        orig = py.read_text(encoding="utf-8")
+        new = rewriter(orig, py)
+        if new is not None and new != orig:
+            py.write_text(new, encoding="utf-8")
+            changed += 1
+            logging.trace("Rewrote imports in %s", py)
+    return changed, total
 
-        content = re.sub(r"^\s*import (\w+_pb2) as", r"from . import \1 as",
-                         content, flags=re.MULTILINE)
 
-        content = re.sub(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as",
-                         r"from . import \1 as", content, flags=re.MULTILINE)
-        content = re.sub(r"^\s*from\s+services\s+import\s+(\w+_pb2)\b",
-                         r"from . import \1", content, flags=re.MULTILINE)
+def _rewrite_services_factory(services_dir: Path, service_root_modules: set[str]):
+    """Returns a rewriter function closed over path depth and service module set."""
+    def rewriter(text: str, path: Path) -> str | None:
+        rel = path.relative_to(services_dir)
+        dots = "." * (len(rel.parent.parts) + 1)
 
-        content = re.sub(
-            r"^\s*from\s+services\.((?:\w+\.)*\w+)\s+import\s+(\w+_pb2)(\s+as\b)?",
-            r"from .\1 import \2\3", content, flags=re.MULTILINE,
-        )
-        content = re.sub(
-            r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\s+as",
-            r"from .\1 import \2 as", content, flags=re.MULTILINE,
-        )
-        content = re.sub(
-            r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\b",
-            r"from .\1 import \2", content, flags=re.MULTILINE,
-        )
+        # Straight substitutions
+        s = text
+        s = _RX_IMPORT_AS.sub(r"from . import \1 as", s)
+        s = _RX_FROM_SERVICES_AS.sub(r"from . import \1 as", s)
+        s = _RX_FROM_SERVICES.sub(r"from . import \1", s)
+        s = _RX_FROM_SERVICES_SUBPKG.sub(r"from .\1 import \2\3", s)
+        s = _RX_IMPORT_SERVICES_AS.sub(r"from .\1 import \2 as", s)
+        s = _RX_IMPORT_SERVICES.sub(r"from .\1 import \2", s)
 
-        content = re.sub(r"^\s*from\s+auxiliary\.tss",     r"from .auxiliary.tss",     content, flags=re.MULTILINE)
-        content = re.sub(r"^\s*from\s+auxiliary\.hints",   r"from .auxiliary.hints",   content, flags=re.MULTILINE)
-        content = re.sub(r"^\s*from\s+auxiliary\.history", r"from .auxiliary.history", content, flags=re.MULTILINE)
+        s = _RX_FROM_AUX_TSS.sub(r"from .auxiliary.tss", s)
+        s = _RX_FROM_AUX_HINTS.sub(r"from .auxiliary.hints", s)
+        s = _RX_FROM_AUX_HISTORY.sub(r"from .auxiliary.history", s)
 
-        content = re.sub(r"^\s*from\s+event\s+import\s+(\w+_pb2)(\s+as\b)?",
-                         r"from ..platform.event import \1\2", content, flags=re.MULTILINE)
-        content = re.sub(r"^\s*from\s+platform\.event\s+import\s+(\w+_pb2)(\s+as\b)?",
-                         r"from ..platform.event import \1\2", content, flags=re.MULTILINE)
+        s = _RX_FROM_EVENT.sub(r"from ..platform.event import \1\2", s)
+        s = _RX_FROM_PLATFORM_EVENT.sub(r"from ..platform.event import \1\2", s)
 
-        rel   = py.relative_to(services_dir)
-        depth = len(rel.parent.parts)
-        dots  = "." * (depth + 1)
-
+        # State imports need dynamic dots
         def repl_dot_state(m: re.Match) -> str:
-            tail  = m.group(1) or ""
-            mod   = m.group(2)
-            alias = m.group(3) or ""
+            tail, mod, alias = m.group(1) or "", m.group(2), m.group(3) or ""
             return f"from {dots}state{tail} import {mod}{alias}"
-        content = re.sub(r"^\s*from\s+\.\s*state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?",
-                         repl_dot_state, content, flags=re.MULTILINE)
+        s = _RX_FROM_DOT_STATE.sub(repl_dot_state, s)
 
         def repl_abs_state(m: re.Match) -> str:
-            tail  = m.group(1) or ""
-            mod   = m.group(2)
-            alias = m.group(3) or ""
+            tail, mod, alias = m.group(1) or "", m.group(2), m.group(3) or ""
             return f"from {dots}state{tail} import {mod}{alias}"
-        content = re.sub(r"^\s*from\s+services\.state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?",
-                         repl_abs_state, content, flags=re.MULTILINE)
+        s = _RX_FROM_ABS_STATE.sub(repl_abs_state, s)
 
+        # from . import foo_pb2 -> from {dots} import foo_pb2 (only for root-level modules)
         def repl_from_dot_local(m: re.Match) -> str:
-            mod   = m.group(1)
-            alias = m.group(2) or ""
-            if mod in service_root_modules:
-                return f"from {dots} import {mod}{alias}"
-            return m.group(0)
-        content = re.sub(r"^\s*from\s+\.\s+import\s+(\w+_pb2)(\s+as\s+\w+)?\s*$",
-                         repl_from_dot_local, content, flags=re.MULTILINE)
+            mod, alias = m.group(1), m.group(2) or ""
+            return f"from {dots} import {mod}{alias}" if mod in service_root_modules else m.group(0)
+        s = _RX_FROM_DOT_IMPORT_LOCAL.sub(repl_from_dot_local, s)
 
-        if content != orig:
-            py.write_text(content, encoding="utf-8")
-            svc_changed += 1
-            logging.trace("Rewrote imports in %s", py)
+        return None if s == text else s
+    return rewriter
 
-    logging.info("Services: rewrote %d/%d files", svc_changed, svc_total)
 
-    # --- Mirror tree ---
-    mirror_modules  = {f.stem for f in mirror_dir.rglob("*_pb2.py")}
-    service_modules = {f.stem for f in services_dir.rglob("*_pb2.py")}
-
-    logging.info("Adjusting imports in mirror under %s", mirror_dir)
-    mir_total = mir_changed = 0
-    for py in _iter_py_like(mirror_dir):
-        if py.name in {"__init__.py", "__init__.pyi"}:
-            continue
-        mir_total += 1
-        content = orig = py.read_text(encoding="utf-8")
+def _rewrite_mirror_factory(mirror_modules: set[str], service_modules: set[str]):
+    def rewriter(text: str, _path: Path) -> str | None:
+        s = text
 
         def repl_import(m: re.Match) -> str:
             mod = m.group(1)
@@ -545,33 +544,42 @@ def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
             if mod in service_modules:
                 return f"from ..services import {mod} as"
             return m.group(0)
-        content = re.sub(r"^\s*import (\w+_pb2) as", repl_import, content, flags=re.MULTILINE)
+
+        s = _RX_MIRROR_IMPORT_AS.sub(repl_import, s)
 
         def repl_from_mirror(m: re.Match) -> str:
             mod = m.group(1)
             return f"from . import {mod} as" if mod in mirror_modules else m.group(0)
-        content = re.sub(r"^\s*from\s+mirror\s+import\s+(\w+_pb2)\s+as",
-                         repl_from_mirror, content, flags=re.MULTILINE)
+        s = _RX_FROM_MIRROR_AS.sub(repl_from_mirror, s)
 
         def repl_from_services(m: re.Match) -> str:
             mod = m.group(1)
             return f"from ..services import {mod} as" if mod in service_modules else m.group(0)
-        content = re.sub(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as",
-                         repl_from_services, content, flags=re.MULTILINE)
+        s = _RX_FROM_SERVICES_AS_MIR.sub(repl_from_services, s)
 
         def repl_from_dot(m: re.Match) -> str:
             mod = m.group(1)
             return f"from ..services import {mod} as" if (mod in service_modules and mod not in mirror_modules) else m.group(0)
-        content = re.sub(r"^\s*from\s+\.\s+import\s+(\w+_pb2)\s+as",
-                         repl_from_dot, content, flags=re.MULTILINE)
+        s = _RX_FROM_DOT_AS_MIR.sub(repl_from_dot, s)
 
-        if content != orig:
-            py.write_text(content, encoding="utf-8")
-            mir_changed += 1
-            logging.trace("Rewrote imports in %s", py)
+        return None if s == text else s
+    return rewriter
 
+def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
+    logging.info("Adjusting imports in services under %s", services_dir)
+    service_root_modules = {f.stem for f in services_dir.glob("*_pb2.py")}
+    svc_changed, svc_total = _walk_and_rewrite(
+        services_dir, _rewrite_services_factory(services_dir, service_root_modules)
+    )
+    logging.info("Services: rewrote %d/%d files", svc_changed, svc_total)
+
+    logging.info("Adjusting imports in mirror under %s", mirror_dir)
+    mirror_modules  = {f.stem for f in mirror_dir.rglob("*_pb2.py")}
+    service_modules = {f.stem for f in services_dir.rglob("*_pb2.py")}
+    mir_changed, mir_total = _walk_and_rewrite(
+        mirror_dir, _rewrite_mirror_factory(mirror_modules, service_modules)
+    )
     logging.info("Mirror: rewrote %d/%d files", mir_changed, mir_total)
-
 
 # -------------------- Main --------------------
 def main() -> None:
