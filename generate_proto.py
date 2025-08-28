@@ -469,7 +469,6 @@ _RX_FROM_MIRROR_AS           = re.compile(r"^\s*from\s+mirror\s+import\s+(\w+_pb
 _RX_FROM_SERVICES_AS_MIR     = re.compile(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
 _RX_FROM_DOT_AS_MIR          = re.compile(r"^\s*from\s+\.\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
 
-
 def _walk_and_rewrite(root: Path, rewriter) -> tuple[int, int]:
     """Walk .py and .pyi under root, rewrite with `rewriter(text, path) -> new_text|None`."""
     total = changed = 0
@@ -565,6 +564,23 @@ def _rewrite_mirror_factory(mirror_modules: set[str], service_modules: set[str])
         return None if s == text else s
     return rewriter
 
+def _rewrite_platform_event(text: str, _path: Path) -> str | None:
+    s = text
+    s2 = s
+    # from services import X_pb2 [as Y] -> from ...services import X_pb2 [as Y]
+    s2 = re.sub(r'(?m)^\s*from\s+services\s+import\s+(\w+_pb2)(\s+as\s+\w+)?',
+                r'from ...services import \1\2', s2)
+    # from services.foo.bar import X_pb2 [as Y] -> from ...services.foo.bar import X_pb2 [as Y]
+    s2 = re.sub(r'(?m)^\s*from\s+services\.((?:\w+\.)*\w+)\s+import\s+(\w+_pb2)(\s+as\s+\w+)?',
+                r'from ...services.\1 import \2\3', s2)
+    # from platform.event import X_pb2 [as Y] -> from . import X_pb2 [as Y]
+    s2 = re.sub(r'(?m)^\s*from\s+platform\.event\s+import\s+(\w+_pb2)(\s+as\s+\w+)?',
+                r'from . import \1\2', s2)
+    # (rare) from event import X_pb2 [as Y] -> from . import X_pb2 [as Y]
+    s2 = re.sub(r'(?m)^\s*from\s+event\s+import\s+(\w+_pb2)(\s+as\s+\w+)?',
+                r'from . import \1\2', s2)
+    return None if s2 == s else s2
+
 def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
     logging.info("Adjusting imports in services under %s", services_dir)
     service_root_modules = {f.stem for f in services_dir.glob("*_pb2.py")}
@@ -581,6 +597,12 @@ def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
     )
     logging.info("Mirror: rewrote %d/%d files", mir_changed, mir_total)
 
+    # --- Platform/event tree ---
+    pe_dir = services_dir.parent / "platform" / "event"
+    if pe_dir.exists():
+        logging.info("Adjusting imports in platform/event under %s", pe_dir)
+        pe_changed, pe_total = _walk_and_rewrite(pe_dir, _rewrite_platform_event)
+        logging.info("Platform/event: rewrote %d/%d files", pe_changed, pe_total)
 # -------------------- Main --------------------
 def main() -> None:
     args = parse_args()
