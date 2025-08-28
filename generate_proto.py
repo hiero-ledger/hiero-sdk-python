@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
 """
-Protobuf Generation Script (with graceful dependency check)
+Protobuf Generation Script
 
-- Downloads Hedera protobufs for a given HAPI version
-- Compiles the same proto sets as the original bash script, plus aux dirs:
+Features:
+- Downloads Hedera protobufs for a given HAPI version from GitHub.
+- Compiles the same proto sets as the original bash script, plus auxiliary dirs:
   * services/*.proto
   * services/auxiliary/tss/*.proto
   * services/auxiliary/hints/*.proto
   * services/auxiliary/history/*.proto
   * platform/event/*.proto
   * mirror/*.proto
-- Preserves directory structure in the generated Python packages
-- Normalizes mixed import styles into canonical paths to avoid duplicates
-- Adjusts generated imports to be package-safe on all OSes
-"""
+- Preserves the directory structure in generated Python packages.
+- Optionally emits type stubs (.pyi) and applies the same import adjustments.
+- Normalizes mixed import styles into canonical, package-safe relative imports.
+- Ensures generated packages are importable on all OSes (__init__.py injection).
+- Cleans output directories safely (deduplicated) before regeneration.
+- Logging:
+  * INFO for stage summaries and rewrite totals.
+  * DEBUG for useful counts.
+  * TRACE (custom) for verbose details such as per-file rewrites and protoc args.
 
+Run: python generate_proto.py -vv or with trace logs: python generate_proto.py -vvv
+"""
 from __future__ import annotations
 
 import argparse
@@ -30,7 +38,6 @@ from pathlib import Path
 from typing import Iterable, List, Set, Tuple
 from urllib.error import URLError
 from urllib.parse import urlparse
-from grpc_tools import protoc
 
 # -------------------- Defaults --------------------
 
@@ -41,7 +48,13 @@ DEFAULT_OUTPUT = "src/hiero_sdk_python/hapi"
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 # -------------------- Config --------------------
+TRACE_LEVEL = 5
+logging.addLevelName(TRACE_LEVEL, "TRACE")
 
+def trace(msg, *args, **kwargs):
+    logging.log(TRACE_LEVEL, msg, *args, **kwargs)
+
+logging.trace = trace
 
 @dataclass(frozen=True)
 class Config:
@@ -51,10 +64,21 @@ class Config:
     mirror_out: Path
     pyi_out: bool = True
 
+def setup_logging(verbosity: int) -> None:
+    level = logging.WARNING
+    if verbosity == 1:
+        level = logging.INFO
+    elif verbosity == 2:
+        level = logging.DEBUG
+    elif verbosity >= 3:
+        level = TRACE_LEVEL
+    logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
+
+def resolve_path(p: str) -> Path:
+    q = Path(p)
+    return q if q.is_absolute() else (SCRIPT_DIR / q)
 
 # -------------------- CLI --------------------
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate Python protobuf files from Hedera proto definitions."
@@ -92,27 +116,7 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-
-def setup_logging(verbosity: int) -> None:
-    level = logging.WARNING
-    if verbosity == 1:
-        level = logging.INFO
-    elif verbosity >= 2:
-        level = logging.DEBUG
-    logging.basicConfig(
-        level=level,
-        format="%(levelname)s: %(message)s",
-    )
-
-
-def resolve_path(p: str) -> Path:
-    q = Path(p)
-    return q if q.is_absolute() else (SCRIPT_DIR / q)
-
-
 # -------------------- Dependency check --------------------
-
-
 def ensure_grpc_tools() -> None:
     try:
         import grpc_tools  # noqa: F401
@@ -125,9 +129,7 @@ def ensure_grpc_tools() -> None:
         logging.error(msg)
         raise SystemExit(1) from exc
 
-
 # -------------------- Download & extract --------------------
-
 
 def is_safe_tar_member(member: tarfile.TarInfo, base: Path) -> bool:
     name = member.name
@@ -142,7 +144,6 @@ def is_safe_tar_member(member: tarfile.TarInfo, base: Path) -> bool:
     except ValueError:
         return False
     return True
-
 
 def safe_extract_tar_stream(response, dest: Path) -> None:
     """Stream-extract a GitHub tgz, stripping the top-level folder safely."""
@@ -194,18 +195,21 @@ def download_and_setup_protos(hapi_version: str, protos_dir: Path) -> None:
 
 # -------------------- Filesystem helpers --------------------
 
-
 def clean_and_prepare_output_dirs(*dirs: Path) -> None:
-    for d in dirs:
+    seen: set[Path] = set()
+    for d in (p.resolve() for p in dirs):
+        if d in seen:
+            continue
+        seen.add(d)
         if d.exists():
+            logging.info("Removing old output dir: %s", d)
             shutil.rmtree(d)
+        logging.info("Creating output dir: %s", d)
         d.mkdir(parents=True, exist_ok=True)
-
 
 def ensure_subpackages(base: Path, subdirs: Iterable[Path]) -> None:
     for p in subdirs:
         (base / p).mkdir(parents=True, exist_ok=True)
-
 
 def create_init_files(*roots: Path) -> None:
     for root in roots:
@@ -213,17 +217,31 @@ def create_init_files(*roots: Path) -> None:
             if p.is_dir():
                 (p / "__init__.py").touch(exist_ok=True)
 
-
 def log_generated_files(output_dir: Path) -> None:
+    py_files  = sorted(output_dir.rglob("*.py"))
+    pyi_files = sorted(output_dir.rglob("*.pyi"))
+
     print(f"\n📂 Generated compiled proto files in {output_dir}:")
+    print(f"   {len(py_files)} Python files, {len(pyi_files)} stub files")
+
     cwd = Path.cwd()
-    for f in sorted(output_dir.rglob("*.py")):
+
+    # List .py files (concise, since these are the runtime modules)
+    for f in py_files:
         try:
             rel = f.relative_to(cwd)
         except ValueError:
             rel = f
         print(f"  - {rel}")
 
+    # Only dump .pyi file paths at TRACE verbosity
+    if logging.getLogger().isEnabledFor(TRACE_LEVEL):
+        for f in pyi_files:
+            try:
+                rel = f.relative_to(cwd)
+            except ValueError:
+                rel = f
+            logging.trace("  - %s", rel)
 
 # -------------------- Protoc invocation --------------------
 def run_protoc(
@@ -259,14 +277,13 @@ def run_protoc(
         args += ["--pyi_out", str(out_py)]
     args += [str(f) for f in files]
 
-    logging.debug("protoc args: %s", " ".join(args))
+    logging.trace("protoc args: %s", " ".join(args))
     from grpc_tools import protoc
     code = protoc.main(args)
     if code != 0:
         raise RuntimeError(f"protoc failed with exit code {code}")
 
 # -------------------- Import normalization for .proto --------------------
-
 
 def rewrite_import_line(line: str, src_root: Path) -> str:
     """
@@ -294,7 +311,6 @@ def rewrite_import_line(line: str, src_root: Path) -> str:
             return line.replace(target, f"platform/{target}")
 
     return line
-
 
 def parse_import_line(line: str, src_root: Path) -> tuple[str, Path | None]:
     """Return (possibly rewritten) line and a dependency Path (or None)."""
@@ -362,7 +378,6 @@ def normalize_tree(src_root: Path, files: List[Path]) -> Tuple[Path, List[Path]]
 
 # -------------------- File list builders --------------------
 
-
 def service_and_platform_files(protos_root: Path) -> List[Path]:
     services = protos_root / "services"
     platform = protos_root / "platform"
@@ -394,10 +409,12 @@ def mirror_files(protos_root: Path) -> List[Path]:
 
 
 # -------------------- Compile groups --------------------
-
-
 def compile_services_and_platform(protos_root: Path, services_out: Path, pyi_out: bool) -> None:
+    logging.info("Compiling service and platform protos into %s", services_out)
     rel_files = service_and_platform_files(protos_root)
+    logging.trace("Service/platform proto files: %s", rel_files)
+    logging.debug("Found %d service/platform proto files", len(rel_files))
+
     temp_root, norm_rel_files = normalize_tree(protos_root, rel_files)
     try:
         run_protoc(
@@ -409,6 +426,7 @@ def compile_services_and_platform(protos_root: Path, services_out: Path, pyi_out
         )
     finally:
         shutil.rmtree(temp_root, ignore_errors=True)
+    logging.info("Finished compiling services and platform protos")
 
 
 def compile_mirror(protos_root: Path, mirror_out: Path) -> None:
@@ -425,16 +443,22 @@ def compile_mirror(protos_root: Path, mirror_out: Path) -> None:
     finally:
         shutil.rmtree(temp_root, ignore_errors=True)
 
-
 # -------------------- Post-generation Python import fixups --------------------
+def _iter_py_like(root: Path):
+    for pat in ("*.py", "*.pyi"):
+        yield from root.rglob(pat)
+
 def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
     service_root_modules = {f.stem for f in services_dir.glob("*_pb2.py")}
 
     # --- Services tree ---
-    for py in services_dir.rglob("*.py"):
-        if py.name == "__init__.py":
+    logging.info("Adjusting imports in services under %s", services_dir)
+    svc_total = svc_changed = 0
+    for py in _iter_py_like(services_dir):
+        if py.name in {"__init__.py", "__init__.pyi"}:
             continue
-        content = py.read_text(encoding="utf-8")
+        svc_total += 1
+        content = orig = py.read_text(encoding="utf-8")
 
         content = re.sub(r"^\s*import (\w+_pb2) as", r"from . import \1 as",
                          content, flags=re.MULTILINE)
@@ -467,8 +491,8 @@ def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
                          r"from ..platform.event import \1\2", content, flags=re.MULTILINE)
 
         rel   = py.relative_to(services_dir)
-        depth = len(rel.parent.parts)  
-        dots  = "." * (depth + 1) 
+        depth = len(rel.parent.parts)
+        dots  = "." * (depth + 1)
 
         def repl_dot_state(m: re.Match) -> str:
             tail  = m.group(1) or ""
@@ -495,16 +519,24 @@ def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
         content = re.sub(r"^\s*from\s+\.\s+import\s+(\w+_pb2)(\s+as\s+\w+)?\s*$",
                          repl_from_dot_local, content, flags=re.MULTILINE)
 
-        py.write_text(content, encoding="utf-8")
+        if content != orig:
+            py.write_text(content, encoding="utf-8")
+            svc_changed += 1
+            logging.trace("Rewrote imports in %s", py)
+
+    logging.info("Services: rewrote %d/%d files", svc_changed, svc_total)
 
     # --- Mirror tree ---
     mirror_modules  = {f.stem for f in mirror_dir.rglob("*_pb2.py")}
     service_modules = {f.stem for f in services_dir.rglob("*_pb2.py")}
 
-    for py in mirror_dir.rglob("*.py"):
-        if py.name == "__init__.py":
+    logging.info("Adjusting imports in mirror under %s", mirror_dir)
+    mir_total = mir_changed = 0
+    for py in _iter_py_like(mirror_dir):
+        if py.name in {"__init__.py", "__init__.pyi"}:
             continue
-        content = py.read_text(encoding="utf-8")
+        mir_total += 1
+        content = orig = py.read_text(encoding="utf-8")
 
         def repl_import(m: re.Match) -> str:
             mod = m.group(1)
@@ -533,12 +565,15 @@ def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
         content = re.sub(r"^\s*from\s+\.\s+import\s+(\w+_pb2)\s+as",
                          repl_from_dot, content, flags=re.MULTILINE)
 
-        py.write_text(content, encoding="utf-8")
+        if content != orig:
+            py.write_text(content, encoding="utf-8")
+            mir_changed += 1
+            logging.trace("Rewrote imports in %s", py)
+
+    logging.info("Mirror: rewrote %d/%d files", mir_changed, mir_total)
 
 
 # -------------------- Main --------------------
-
-
 def main() -> None:
     args = parse_args()
     setup_logging(args.verbose)
@@ -557,7 +592,8 @@ def main() -> None:
     download_and_setup_protos(cfg.hapi_version, cfg.protos_dir)
 
     # Clean outputs & pre-create subpackages
-    clean_and_prepare_output_dirs(cfg.services_out, cfg.mirror_out)
+    out_dirs = {cfg.services_out.resolve(), cfg.mirror_out.resolve()}
+    clean_and_prepare_output_dirs(*out_dirs)
     ensure_subpackages(
         cfg.services_out,
         [
