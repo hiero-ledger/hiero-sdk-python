@@ -14,6 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - AccountDeleteTransaction Class
 
 ### Changed
+- bump solo version to `v0.12`
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
 - Incorrect naming in README for generate_proto.py to generate_proto.sh
 - Changed README MIT license to Apache
