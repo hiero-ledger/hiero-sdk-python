@@ -12,6 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
 - AccountDeleteTransaction Class
+- Updated `README_upstream.md` with instructions for handling conflicts and rebasing during contribution workflow.
 
 ### Changed
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
