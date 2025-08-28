@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Run Pylint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies (Pylint)
+        run: |
+          pip install --upgrade pip
+          pip install pylint
+
+      - name: Linting the following files
+        continue-on-error: true
+        run: |
+          git fetch origin main
+          changed_files=$(git diff --name-only origin/main...HEAD | grep '\.py$' || true)
+          echo "$changed_files"
+          if [ -n "$changed_files" ]; then
+            pylint --disable=W0212,E0611,E0401 $changed_files
+          else
+            echo "No Python files changed. Skipping lint."
+          fi
+
+  test:
+    name: Build & Run Tests
+    needs: lint
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a # v4.2.0
+
+      - name: Set up Python 3.10
+        run: uv python install 3.10
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Generate Proto Files
+        run: bash ./generate_proto.sh
+
+      - name: Prepare Hiero Solo
+        id: solo
+        uses: hiero-ledger/hiero-solo-action@71219540ac7f578e6ea4fc3c17575c0295e56163 # v0.9
+        with:
+          installMirrorNode: true
+
+      - name: Set environment variables
+        run: |
+          echo "OPERATOR_ID=${{ steps.solo.outputs.accountId }}" >> $GITHUB_ENV
+          echo "OPERATOR_KEY=${{ steps.solo.outputs.privateKey }}" >> $GITHUB_ENV
+          echo "ADMIN_KEY=${{ steps.solo.outputs.privateKey }}" >> $GITHUB_ENV
+          echo "PUBLIC_KEY=${{ steps.solo.outputs.publicKey }}" >> $GITHUB_ENV
+          echo "NETWORK=solo" >> $GITHUB_ENV
+
+      - name: Install your package
+        run: uv pip install -e .
+
+      - name: Run integration tests
+        env:
+          OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
+          OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
+          ADMIN_KEY: ${{ steps.solo.outputs.privateKey }}
+          PUBLIC_KEY: ${{ steps.solo.outputs.publicKey }}
+          NETWORK: solo
+        run: |
+          uv run pytest -m integration
+
+      - name: Run unit tests
+        run: uv run pytest -m unit
