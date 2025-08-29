@@ -39,6 +39,9 @@ lint = [
     "ruff>=0.8.3",
 ]
 
+[tool.uv]
+default-groups = ["dev", "lint"]
+
 [build-system]
 requires = ["pdm-backend", "setuptools", "setuptools_scm"]
 build-backend = "pdm.backend"
