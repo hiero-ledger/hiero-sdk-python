@@ -10,7 +10,7 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -101,7 +101,7 @@ class TokenWipeTransaction(Transaction):
         self.serial = serial
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token wipe.
 
@@ -114,7 +114,7 @@ class TokenWipeTransaction(Transaction):
             amount=self.amount,
             serialNumbers=self.serial
         )
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenWipe.CopyFrom(token_wipe_body)
         return transaction_body
 

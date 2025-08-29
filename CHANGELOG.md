@@ -12,17 +12,29 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
 - AccountDeleteTransaction Class
-- Updated `README_upstream.md` with instructions for handling conflicts and rebasing during contribution workflow.
-
+- generate_proto.py
+- Bumped Hedera proto version from v0.57.3 to v0.64.3
 ### Changed
+- bump solo version to `v0.12`
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
 - Incorrect naming in README for generate_proto.py to generate_proto.sh
 - Changed README MIT license to Apache
 - Documentation structure updated: contents moved from `/documentation` to `/docs`.
+- Switched Mirror Node endpoints used by SDK to secure ones instead of deprecated insecure endpoints (shut down on Aug 20th, see [Hedera blogpost](https://hedera.com/blog/updated-deprecation-of-the-insecure-hedera-consensus-service-hcs-mirror-node-endpoints))
 
 ### Removed
 - Removed the old `/documentation` folder.
 - Rebase command in README_upstream changed to just -S
+- generate_proto.sh
+
+### Breaking API changes
+- We have some changed imports and returns to maintain compatability in the proto bump 
+
+transaction_body_pb2.TransactionBody -> transaction_pb2.TransactionBody
+
+contract_call_local_pb2.ContractFunctionResult -> contract_types_pb2.ContractFunctionResult
+
+contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ## [0.1.4] - 2025-08-19
 ### Added

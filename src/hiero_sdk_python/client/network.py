@@ -16,9 +16,9 @@ class Network:
     """
 
     MIRROR_ADDRESS_DEFAULT: Dict[str,str] = {
-        'mainnet': 'hcs.mainnet.mirrornode.hedera.com:5600',
-        'testnet': 'hcs.testnet.mirrornode.hedera.com:5600',
-        'previewnet': 'hcs.previewnet.mirrornode.hedera.com:5600',
+        'mainnet': 'mainnet.mirrornode.hedera.com:443',
+        'testnet': 'testnet.mirrornode.hedera.com:443',
+        'previewnet': 'previewnet.mirrornode.hedera.com:443',
         'solo': 'localhost:5600'
     }
 

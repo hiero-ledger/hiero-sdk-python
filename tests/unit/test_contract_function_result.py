@@ -9,7 +9,7 @@ from hiero_sdk_python.contract.contract_function_result import ContractFunctionR
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
 from hiero_sdk_python.contract.contract_nonce_info import ContractNonceInfo
-from hiero_sdk_python.hapi.services import contract_call_local_pb2
+from hiero_sdk_python.hapi.services import contract_types_pb2
 
 pytestmark = pytest.mark.unit
 
@@ -115,7 +115,7 @@ def proto_contract_function_result(contract_id, log_info):
     contract_nonce = ContractNonceInfo(ContractId(0, 0, 789), 5)
     contract_nonce_proto = contract_nonce._to_proto()
 
-    return contract_call_local_pb2.ContractFunctionResult(
+    return contract_types_pb2.ContractFunctionResult(
         contractID=contract_id._to_proto(),
         contractCallResult=bytes.fromhex("aabbcc"),
         errorMessage="No errors",
