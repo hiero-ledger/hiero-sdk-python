@@ -27,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Removed the old `/documentation` folder.
 - Rebase command in README_upstream changed to just -S
 - generate_proto.sh
+- pkg_resources dependency in generate_proto.py
 
 ### Breaking API changes
 - We have some changed imports and returns to maintain compatability in the proto bump 
