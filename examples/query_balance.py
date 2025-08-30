@@ -1,3 +1,6 @@
+"""
+uv run examples/query_balance.py
+"""
 import os
 import sys
 import time
