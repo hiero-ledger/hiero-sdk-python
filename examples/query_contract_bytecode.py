@@ -12,7 +12,6 @@ Usage:
     # from the project root directory
 
     # Run from the project root directory
-    python -m examples.query_contract_bytecode
     uv run -m examples.query_contract_bytecode
 
 """
