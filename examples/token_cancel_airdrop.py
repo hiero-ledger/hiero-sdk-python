@@ -31,7 +31,7 @@ def token_cancel_airdrop():
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
     except (TypeError, ValueError):
         print("Error: Creating client, Please check your .env file")
