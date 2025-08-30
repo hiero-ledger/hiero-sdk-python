@@ -28,7 +28,7 @@ def create_and_delete_token():
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         # NOTE: Assumes your operator key is a raw Ed25519 key
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
     except (TypeError, ValueError):
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
