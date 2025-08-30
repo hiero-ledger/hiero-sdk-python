@@ -65,7 +65,7 @@ def get_token_info(client, token_id):
         .execute(client)
     )
     
-    print(f"Token supply: {token_info.totalSupply}")
+    print(f"Token supply: {token_info.total_supply}")
 
 def token_burn_fungible():
     """
