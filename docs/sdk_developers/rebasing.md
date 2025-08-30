@@ -1,4 +1,4 @@
-# Keeping Your Branch Up to Date with Main (Hiero Python SDK)
+# Rebasing (Hiero Python SDK)
 
 If you have forked the Hiero Python SDK, created your own branch, and now need to sync it with the latest changes from main in the original repository, follow these steps.
 
