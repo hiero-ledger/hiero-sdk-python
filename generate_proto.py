@@ -265,16 +265,15 @@ def run_protoc(
         google_include = str(importlib_resources.files("grpc_tools").joinpath("_proto"))
 
     args: list[str] = ["protoc"]
-    # 1) our temp normalized include(s)
     for pp in proto_paths:
-        args += ["-I", str(pp)]
-    # 2) google well-known types include
+        args += ["-I", pp.as_posix()]
     args += ["-I", google_include]
 
     args += ["--python_out", str(out_py), "--grpc_python_out", str(out_grpc)]
     if pyi_out:
         args += ["--pyi_out", str(out_py)]
-    args += [str(f) for f in files]
+    # as_posix forces a return of the paths as / as required for protoc    
+    args += [f.as_posix() for f in files]
 
     logging.trace("protoc args: %s", " ".join(args))
     from grpc_tools import protoc
