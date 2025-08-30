@@ -29,6 +29,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unit test compatibility issues when running with UV package manager
 - Type annotations in TokenRelationship class (kyc_status and freeze_status)
 - Test assertions in test_executable.py using pytest match parameter
+- Moved and renamed README_upstream.md to docs/sdk_developers/rebasing.md
 
 ### Removed
 - Removed the old `/documentation` folder.
