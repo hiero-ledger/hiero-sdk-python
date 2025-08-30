@@ -52,6 +52,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Windows malformed path using uv run generate_proto.py using as_posix()
 - Changed README MIT license to Apache
 - running_examples.md in /docs/sdk_users renamed to examples.md
+- deprecated CamelCase instances in /examples such as TokenId and totalSupply to snake_case
 
 ### Removed
 - Removed the old `/documentation` folder.
