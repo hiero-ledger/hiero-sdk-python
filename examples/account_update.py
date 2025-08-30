@@ -1,5 +1,6 @@
 """
 Example demonstrating account update functionality.
+run with: uv run examples/account_update.py
 """
 
 import datetime

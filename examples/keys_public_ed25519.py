@@ -1,5 +1,6 @@
 """
 Example file: Working with an Ed25519 PublicKey using the PublicKey class
+uv run examples/keys_public_ed25519.py
 """
 
 from cryptography.hazmat.primitives.asymmetric import ed25519

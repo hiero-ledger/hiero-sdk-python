@@ -1,3 +1,6 @@
+"""
+uv run examples/token_mint_non_fungible.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

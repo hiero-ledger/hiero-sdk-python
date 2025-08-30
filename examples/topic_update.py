@@ -1,3 +1,6 @@
+"""
+uv run examples/topic_update.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

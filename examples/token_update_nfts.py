@@ -1,3 +1,6 @@
+"""
+uv run examples/token_update_nfts.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

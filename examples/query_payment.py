@@ -1,3 +1,6 @@
+"""
+uv run examples/query_payment.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

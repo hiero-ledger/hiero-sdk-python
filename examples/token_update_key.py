@@ -1,4 +1,7 @@
 
+"""
+uv run examples/token_update_key.py
+"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -102,7 +105,7 @@ def update_wipe_key_full_validation(client, token_id, old_wipe_key):
 
     # Query token info to verify wipe key update
     info = get_token_info(client, token_id)
-    print(f"Token's wipe key after update: {info.wipeKey}")
+    print(f"Token's wipe key after update: {info.wipe_key}")
 
 def token_update_key():
     """
@@ -122,8 +125,8 @@ def token_update_key():
     print("\nToken info before update:")
     token_info = get_token_info(client, token_id)
     
-    print(f"Token's wipe key after creation: {token_info.wipeKey}")
-    print(f"Token's admin key after creation: {token_info.adminKey}")
+    print(f"Token's wipe key after creation: {token_info.wipe_key}")
+    print(f"Token's admin key after creation: {token_info.admin_key}")
     
     update_wipe_key_full_validation(client, token_id, wipe_key)
     
