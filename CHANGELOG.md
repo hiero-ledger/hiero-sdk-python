@@ -33,6 +33,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Switched Mirror Node endpoints used by SDK to secure ones instead of deprecated insecure endpoints (shut down on Aug 20th, see [Hedera blogpost](https://hedera.com/blog/updated-deprecation-of-the-insecure-hedera-consensus-service-hcs-mirror-node-endpoints))
 - Update protobuf dependency from 5.28.1 to 5.29.1
 - Update grpcio dependency from 1.68.1 to 1.71.2
+- Calls in examples for PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY')) to PrivateKey.from_string(os.getenv('OPERATOR_KEY')) to enable general key types
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
