@@ -1,5 +1,5 @@
 """
-Run with: uv run examples/file_append.py
+Run with: uv run examples/file_create.py
 """
 import os
 import sys
