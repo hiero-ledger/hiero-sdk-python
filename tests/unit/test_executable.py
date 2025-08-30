@@ -382,6 +382,9 @@ def test_topic_create_transaction_fails_on_nonretriable_error():
             PrecheckError, match="failed precheck with status: INVALID_TRANSACTION_BODY"
         ):
             tx.execute(client)
+        
+        # Verify the error contains the expected status
+        assert f"{ResponseCode.INVALID_TRANSACTION_BODY.name} ({ResponseCode.INVALID_TRANSACTION_BODY.value})" in str(exc_info.value)
 
 def test_transaction_node_switching_body_bytes():
     """Test that execution switches nodes after receiving a non-retriable error."""
