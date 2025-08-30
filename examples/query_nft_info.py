@@ -1,3 +1,6 @@
+"""
+uv run examples/query_nft_info.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

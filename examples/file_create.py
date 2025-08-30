@@ -1,3 +1,6 @@
+"""
+Run with: uv run examples/file_append.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

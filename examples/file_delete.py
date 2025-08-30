@@ -1,7 +1,7 @@
 """
 This example demonstrates how to delete a file using the Python SDK.
+Run with: uv run examples/file_delete.py
 """
-
 import os
 import sys
 

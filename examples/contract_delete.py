@@ -15,8 +15,7 @@ Usage:
     # from the project root directory
 
     # Run from the project root directory
-    python -m examples.contract_delete
-
+    uv run -m examples.contract_delete
 """
 
 import os

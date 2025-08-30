@@ -1,3 +1,6 @@
+"""
+uv run examples/token_dissociate.py
+"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -65,12 +68,12 @@ def token_dissociate():
         # Create First Token
         tx1 = TokenCreateTransaction().set_token_name("First Token").set_token_symbol("TKA").set_initial_supply(1).set_treasury_account_id(operator_id)
         receipt1 = tx1.freeze_with(client).sign(operator_key).execute(client)
-        token_id_1 = receipt1.tokenId
+        token_id_1 = receipt1.token_id
 
         # Create Second Token
         tx2 = TokenCreateTransaction().set_token_name("Second Token").set_token_symbol("TKB").set_initial_supply(1).set_treasury_account_id(operator_id)
         receipt2 = tx2.freeze_with(client).sign(operator_key).execute(client)
-        token_id_2 = receipt2.tokenId
+        token_id_2 = receipt2.token_id
 
         print(f"✅ Success! Created tokens: {token_id_1} and {token_id_2}")
     except Exception as e:

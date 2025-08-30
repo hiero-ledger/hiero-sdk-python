@@ -1,3 +1,6 @@
+"""
+uv run examples/token_cancel_airdrop.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

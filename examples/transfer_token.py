@@ -1,3 +1,6 @@
+"""
+uv run examples/transfer_token.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

@@ -1,3 +1,6 @@
+"""
+uv run examples/token_create_nft_infinite.py
+"""
 import os
 import sys
 from dotenv import load_dotenv

@@ -12,8 +12,7 @@ Usage:
     # from the project root directory
 
     # Run from the project root directory
-    python -m examples.query_contract_info
-
+    uv run -m examples.query_contract_info
 """
 
 import os
