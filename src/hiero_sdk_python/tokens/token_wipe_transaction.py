@@ -152,7 +152,7 @@ class TokenWipeTransaction(Transaction):
 
     def _from_proto(
             self,
-            proto: token_wipe_account_pb2.TokenWipeAccountTransactionBody
+            proto: TokenWipeAccountTransactionBody
         ) -> "TokenWipeTransaction":
         """
         Deserializes a TokenWipeAccountTransactionBody from a protobuf object.
