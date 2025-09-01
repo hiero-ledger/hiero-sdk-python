@@ -69,6 +69,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Creating a Schedule](#creating-a-schedule)
 - [Node Transactions](#node-transactions)
   - [Creating a Node](#creating-a-node)
+  - [Updating a Node](#updating-a-node)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1668,6 +1669,62 @@ transaction = (
     .set_admin_key(admin_key.public_key())
     .set_grpc_web_proxy_endpoint(Endpoint(domain_name="grpc.example.com", port=50213))
     .set_decline_reward(True)
+    .freeze_with(client)
+)
+
+transaction.sign(admin_key)  # Sign with the admin key
+receipt = transaction.execute(client)
+```
+
+### Updating a Node
+
+> **IMPORTANT**: Node update is a privileged transaction only available on local development networks like "solo". Regular developers do not have permission to update nodes on testnet or mainnet as this operation requires special authorization.
+
+#### Pythonic Syntax:
+```python
+transaction = NodeUpdateTransaction(
+    node_update_params=NodeUpdateParams(
+        node_id=node_id,
+        account_id=account_id,
+        description="Updated node description",
+        gossip_endpoints=[
+            Endpoint(domain_name="updated-gossip1.example.com", port=50311),
+            Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+        ],
+        service_endpoints=[
+            Endpoint(domain_name="updated-service1.example.com", port=50311),
+            Endpoint(domain_name="updated-service2.example.com", port=50312)
+        ],
+        gossip_ca_certificate=updated_gossip_ca_cert,
+        admin_key=admin_key.public_key(),
+        decline_reward=False,
+        grpc_web_proxy_endpoint=Endpoint(domain_name="updated-grpc.example.com", port=50313)
+    )
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Sign with admin key
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    NodeUpdateTransaction()
+    .set_node_id(node_id)
+    .set_account_id(account_id)
+    .set_description("Updated node description")
+    .set_gossip_endpoints([
+        Endpoint(domain_name="updated-gossip1.example.com", port=50311),
+        Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+    ])
+    .set_service_endpoints([
+        Endpoint(domain_name="updated-service1.example.com", port=50311),
+        Endpoint(domain_name="updated-service2.example.com", port=50312)
+    ])
+    .set_gossip_ca_certificate(updated_gossip_ca_cert)
+    .set_admin_key(admin_key.public_key())
+    .set_grpc_web_proxy_endpoint(Endpoint(domain_name="updated-grpc.example.com", port=50313))
+    .set_decline_reward(False)
     .freeze_with(client)
 )
 
