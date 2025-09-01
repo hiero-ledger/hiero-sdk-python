@@ -76,7 +76,8 @@ class ContractId:
             return self.evm_address.hex()
 
         # If evm_address is not set, compute the EVM address from shard, realm, and contract.
-        # The EVM address is a 20-byte value: [4 bytes shard][8 bytes realm][8 bytes contract], all big-endian.
+        # The EVM address is a 20-byte value:
+        # [4 bytes shard][8 bytes realm][8 bytes contract], all big-endian.
         shard_bytes = (0).to_bytes(4, "big")
         realm_bytes = (0).to_bytes(8, "big")
         contract_bytes = self.contract.to_bytes(8, "big")

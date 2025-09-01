@@ -34,7 +34,8 @@ class EthereumTransaction(Transaction):
 
         Args:
             ethereum_data (Optional[bytes]): The Ethereum transaction data to execute.
-            call_data_file_id (Optional[FileId]): The FileId containing call data for the transaction.
+            call_data_file_id (Optional[FileId]):
+                The FileId containing call data for the transaction.
             max_gas_allowed (Optional[int]): The maximum gas allowed for the transaction execution.
         """
         super().__init__()

@@ -86,7 +86,10 @@ class AccountId:
         Returns the repr representation of the AccountId.
         """
         if self.alias_key:
-            return f"AccountId(shard={self.shard}, realm={self.realm}, alias_key={self.alias_key.to_string_raw()})"
+            return (
+                f"AccountId(shard={self.shard}, realm={self.realm}, "
+                f"alias_key={self.alias_key.to_string_raw()})"
+            )
         return f"AccountId(shard={self.shard}, realm={self.realm}, num={self.num})"
 
     def __eq__(self, other: object) -> bool:
