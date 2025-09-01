@@ -60,7 +60,7 @@ def create_alias_account(client):
     """
     Create an alias account for the ECDSA key by transferring HBAR to it.
 
-    This creates a "shallow" account controlled by the generated ECDSA key.
+    This creates a "hollow" account controlled by the generated ECDSA key.
 
     Returns:
         PrivateKey: The ECDSA private key controlling the alias account

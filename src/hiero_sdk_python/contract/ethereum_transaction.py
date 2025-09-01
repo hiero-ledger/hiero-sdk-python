@@ -26,7 +26,7 @@ class EthereumTransaction(Transaction):
     def __init__(
         self,
         ethereum_data: Optional[bytes] = None,
-        call_data: Optional[FileId] = None,
+        call_data_file_id: Optional[FileId] = None,
         max_gas_allowed: Optional[int] = None,
     ):
         """
@@ -34,18 +34,16 @@ class EthereumTransaction(Transaction):
 
         Args:
             ethereum_data (Optional[bytes]): The Ethereum transaction data to execute.
-            call_data (Optional[FileId]): The FileId containing call data for the transaction.
+            call_data_file_id (Optional[FileId]): The FileId containing call data for the transaction.
             max_gas_allowed (Optional[int]): The maximum gas allowed for the transaction execution.
         """
         super().__init__()
 
         self.ethereum_data: Optional[bytes] = ethereum_data
-        self.call_data: Optional[FileId] = call_data
+        self.call_data: Optional[FileId] = call_data_file_id
         self.max_gas_allowed: Optional[int] = max_gas_allowed
 
-    def set_ethereum_data(
-        self, ethereum_data: Optional[bytes]
-    ) -> "EthereumTransaction":
+    def set_ethereum_data(self, ethereum_data: Optional[bytes]) -> "EthereumTransaction":
         """
         Sets the Ethereum transaction data to execute.
 
@@ -59,18 +57,20 @@ class EthereumTransaction(Transaction):
         self.ethereum_data = ethereum_data
         return self
 
-    def set_call_data(self, call_data: Optional[FileId]) -> "EthereumTransaction":
+    def set_call_data_file_id(
+        self, call_data_file_id: Optional[FileId]
+    ) -> "EthereumTransaction":
         """
         Sets the call data for the transaction.
 
         Args:
-            call_data (Optional[FileId]): The FileId containing call data for the transaction.
+            call_data_file_id (Optional[FileId]): The FileId containing call data for the transaction.
 
         Returns:
             EthereumTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        self.call_data = call_data
+        self.call_data = call_data_file_id
         return self
 
     def set_max_gas_allowed(

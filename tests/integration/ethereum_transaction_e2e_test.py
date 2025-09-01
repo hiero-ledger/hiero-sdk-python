@@ -1,5 +1,5 @@
 """
-Integration tests for the ContractCreateTransaction class.
+Integration tests for the EthereumTransaction class.
 """
 
 import pytest
@@ -157,7 +157,7 @@ def test_integration_ethereum_transaction_jumbo_transaction(env):
         contract_bytes,
         value_bytes,
         call_data_bytes,
-        alias_private_key,  # Use the test environment's private key
+        alias_private_key,
     )
 
     receipt = (

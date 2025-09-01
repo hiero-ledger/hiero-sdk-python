@@ -35,7 +35,7 @@ def test_constructor_with_parameters(ethereum_params):
     """Test creating an ethereum transaction with constructor parameters."""
     ethereum_tx = EthereumTransaction(
         ethereum_data=ethereum_params["ethereum_data"],
-        call_data=ethereum_params["call_data"],
+        call_data_file_id=ethereum_params["call_data"],
         max_gas_allowed=ethereum_params["max_gas_allowed"],
     )
 
@@ -61,7 +61,7 @@ def test_build_transaction_body_with_valid_parameters(
 
     ethereum_tx = EthereumTransaction(
         ethereum_data=ethereum_params["ethereum_data"],
-        call_data=ethereum_params["call_data"],
+        call_data_file_id=ethereum_params["call_data"],
         max_gas_allowed=ethereum_params["max_gas_allowed"],
     )
 
@@ -113,11 +113,11 @@ def test_set_ethereum_data(ethereum_params):
     assert result is ethereum_tx  # Should return self for method chaining
 
 
-def test_set_call_data(ethereum_params):
+def test_set_call_data_file_id(ethereum_params):
     """Test setting call_data using the setter method."""
     ethereum_tx = EthereumTransaction()
 
-    result = ethereum_tx.set_call_data(ethereum_params["call_data"])
+    result = ethereum_tx.set_call_data_file_id(ethereum_params["call_data"])
 
     assert ethereum_tx.call_data == ethereum_params["call_data"]
     assert result is ethereum_tx
@@ -140,7 +140,7 @@ def test_set_methods_require_not_frozen(mock_client, ethereum_params):
 
     test_cases = [
         ("set_ethereum_data", ethereum_params["ethereum_data"]),
-        ("set_call_data", ethereum_params["call_data"]),
+        ("set_call_data_file_id", ethereum_params["call_data"]),
         ("set_max_gas_allowed", ethereum_params["max_gas_allowed"]),
     ]
 
