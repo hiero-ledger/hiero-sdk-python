@@ -162,6 +162,16 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
 
         return None
 
+    @property
+    def node_id(self):
+        """
+        Returns the node ID associated with this receipt.
+
+        Returns:
+            int: The node ID if present; otherwise, 0.
+        """
+        return self._receipt_proto.node_id
+
     def _to_proto(self):
         """
         Returns the underlying protobuf transaction receipt.
