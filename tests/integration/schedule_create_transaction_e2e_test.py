@@ -51,6 +51,7 @@ def test_integration_schedule_create_transaction_can_execute(env):
         receipt.status == ResponseCode.SUCCESS
     ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
     assert receipt.schedule_id is not None
+    assert receipt.scheduled_transaction_id is not None
 
     # TODO: When ScheduleInfoQuery is implemented, assert that everything is fine.
 
@@ -77,6 +78,7 @@ def test_integration_schedule_create_transaction_with_transfer_transaction(env):
         receipt.status == ResponseCode.SUCCESS
     ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
     assert receipt.schedule_id is not None
+    assert receipt.scheduled_transaction_id is not None
 
     account_info = AccountInfoQuery().set_account_id(account.id).execute(env.client)
     assert account_info.balance.to_tinybars() == 0
@@ -103,6 +105,7 @@ def test_integration_schedule_create_transaction_with_consensus_submit(env):
     )
     assert receipt.status == ResponseCode.SUCCESS
     assert receipt.schedule_id is not None
+    assert receipt.scheduled_transaction_id is not None
 
     # Confirm the message was submitted
     topic_info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
@@ -130,6 +133,7 @@ def test_integration_schedule_create_transaction_with_token_burn(env):
     receipt = scheduled_tx.execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS
     assert receipt.schedule_id is not None
+    assert receipt.scheduled_transaction_id is not None
 
     # Confirm the supply was reduced
     token_info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
@@ -157,6 +161,7 @@ def test_integration_schedule_create_transaction_with_token_mint(env):
     receipt = scheduled_tx.execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS
     assert receipt.schedule_id is not None
+    assert receipt.scheduled_transaction_id is not None
 
     # Confirm the supply was increased
     token_info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
