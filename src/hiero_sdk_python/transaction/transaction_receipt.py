@@ -9,6 +9,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 class TransactionReceipt(_DeprecatedAliasesMixin):
@@ -145,6 +146,19 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
             and self._receipt_proto.scheduleID.scheduleNum != 0
         ):
             return ScheduleId._from_proto(self._receipt_proto.scheduleID)
+
+        return None
+
+    @property
+    def scheduled_transaction_id(self):
+        """
+        Returns the schedule transaction ID associated with this receipt.
+
+        Returns:
+            TransactionId or None: The TransactionId if present; otherwise, None.
+        """
+        if self._receipt_proto.HasField("scheduledTransactionID"):
+            return TransactionId._from_proto(self._receipt_proto.scheduledTransactionID)
 
         return None
 
