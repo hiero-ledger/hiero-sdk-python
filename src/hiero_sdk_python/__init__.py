@@ -116,6 +116,9 @@ from .schedule.schedule_info_query import ScheduleInfoQuery
 # Nodes
 from .nodes.node_create_transaction import NodeCreateTransaction
 
+# PRNG
+from .prng_transaction import PrngTransaction
+
 __all__ = [
     # Client
     "Client",
@@ -230,4 +233,7 @@ __all__ = [
 
     # Nodes
     "NodeCreateTransaction",
+
+    # PRNG
+    "PrngTransaction",
 ]
