@@ -27,7 +27,8 @@ class Transaction(_Executable):
 
     Required implementations for subclasses:
     1. build_transaction_body() - Build the transaction-specific protobuf body
-    2. _get_method(channel) - Return the appropriate gRPC method to call
+    2. build_scheduled_body() - Build the schedulable transaction-specific protobuf body
+    3. _get_method(channel) - Return the appropriate gRPC method to call
     """
 
     def __init__(self):
@@ -369,6 +370,8 @@ class Transaction(_Executable):
         transaction_body.generateRecord = self.generate_record
         transaction_body.memo = self.memo
 
+        # TODO: implement CUSTOM FEE LIMITS
+
         return transaction_body
 
     def build_base_scheduled_body(self) -> SchedulableTransactionBody:
@@ -384,6 +387,9 @@ class Transaction(_Executable):
             self.transaction_fee or self._default_transaction_fee
         )
         schedulable_body.memo = self.memo
+
+        # TODO: implement CUSTOM FEE LIMITS
+
         return schedulable_body
 
     def schedule(self) -> "ScheduleCreateTransaction":
