@@ -13,6 +13,7 @@ Usage:
 
     # Run from the project root directory
     uv run -m examples.query_contract_bytecode
+    python -m examples.query_contract_bytecode
 
 """
 

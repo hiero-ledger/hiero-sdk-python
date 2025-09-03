@@ -12,6 +12,7 @@ Usage:
 
     # Run from the project root directory
     uv run -m examples.contract_update
+    python -m examples.contract_update
 """
 
 import datetime

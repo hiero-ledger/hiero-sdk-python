@@ -1,5 +1,7 @@
 """
 uv run examples/query_receipt.py
+python examples/query_receipt.py
+
 """
 import os
 import sys

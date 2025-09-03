@@ -1,5 +1,7 @@
 """
 uv run examples/query_record.py
+python examples/query_record.py
+
 """
 import os
 import sys

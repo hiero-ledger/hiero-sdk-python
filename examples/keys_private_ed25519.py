@@ -3,6 +3,8 @@ Example file: Working with Ed25519 PrivateKey using the PrivateKey class
 *WARNING* Ed25519 seeds should not be printed or exposed in a real‑world scenario
 
 uv run examples/keys_private_ed25519.py
+python examples/keys_private_ed25519.py
+
 """
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.private_key import PrivateKey

@@ -1,5 +1,7 @@
 """
 uv run examples/token_create_nft_finite.py
+python examples/token_create_nft_finite.py
+
 """
 import os
 import sys

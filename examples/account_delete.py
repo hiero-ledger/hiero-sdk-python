@@ -1,6 +1,9 @@
 """
 Example demonstrating account delete functionality.
-Run with uv run examples/account_delete.py
+Run:
+uv run examples/account_delete.py
+python examples/account_delete.py
+
 """
 import os
 import sys

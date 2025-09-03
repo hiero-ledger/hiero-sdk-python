@@ -1,5 +1,7 @@
 """
 uv run examples/token_mint_fungible.py
+python examples/token_mint_fungible.py
+
 """
 import os
 import sys

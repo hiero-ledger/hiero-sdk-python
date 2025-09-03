@@ -1,5 +1,7 @@
 """
 uv run examples/query_payment.py
+python examples/query_payment.py
+
 """
 import os
 import sys

@@ -1,5 +1,7 @@
 """
 uv run examples/query_account_info.py
+python examples/query_account_info.py
+
 """
 import os
 import sys

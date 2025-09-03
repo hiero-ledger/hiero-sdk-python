@@ -1,5 +1,7 @@
 """
 uv run examples/token_pause.py
+python examples/token_pause.py
+
 """
 import os
 import sys

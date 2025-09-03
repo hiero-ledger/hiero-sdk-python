@@ -1,5 +1,7 @@
 """
 uv run examples/logging_example.py
+python examples/logging_example.py
+
 """
 import os
 from dotenv import load_dotenv

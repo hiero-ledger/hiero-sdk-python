@@ -1,5 +1,7 @@
 """
 uv run examples/token_update_nfts.py
+python examples/token_update_nfts.py
+
 """
 import os
 import sys

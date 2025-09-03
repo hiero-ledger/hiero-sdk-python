@@ -12,6 +12,8 @@ Dependencies:
 - hiero_sdk_python
 
 uv run examples/token_create_fungible_finite.py
+python examples/token_create_fungible_finite.py
+
 """
 # Adapt imports and paths as appropriate
 import os

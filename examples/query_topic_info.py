@@ -1,5 +1,7 @@
 """
 uv run examples/query_topic_info.py
+python examples/query_topic_info.py
+
 """
 import os
 import sys

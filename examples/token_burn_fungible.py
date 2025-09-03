@@ -1,5 +1,7 @@
 """
 uv run examples/token_burn_fungible.py 
+python examples/token_burn_fungible.py
+
 """
 import os
 import sys

@@ -1,5 +1,7 @@
 """
-Run with uv run examples/account_create.py
+Run:
+uv run examples/account_create.py
+python examples/account_create.py
 """
 import os
 import sys

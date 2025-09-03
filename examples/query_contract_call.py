@@ -13,6 +13,8 @@ Usage:
 
     # Run from the project root directory
     uv run -m examples.query_contract_call
+    python -m examples.query_contract_call
+
 """
 
 import os

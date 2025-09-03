@@ -1,5 +1,7 @@
 """
 uv run examples/token_delete.py
+python examples/token_delete.py
+
 """
 import os
 import sys

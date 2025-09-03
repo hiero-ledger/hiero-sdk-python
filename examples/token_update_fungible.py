@@ -1,5 +1,7 @@
 """
 uv run examples/token_update_fungible.py
+python examples/token_update_fungible.py
+
 """
 import os
 import sys

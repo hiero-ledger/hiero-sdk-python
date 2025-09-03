@@ -1,5 +1,7 @@
 """
 uv run examples/token_grant_kyc.py
+python examples/token_grant_kyc.py
+
 """
 import os
 import sys
