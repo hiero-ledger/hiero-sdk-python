@@ -30,7 +30,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 - Windows malformed path using uv run generate_proto.py using as_posix()
-- Incorrect naming in README for generate_proto.py to generate_proto.sh
 - Changed README MIT license to Apache
 
 ### Removed
