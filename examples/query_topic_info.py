@@ -13,25 +13,24 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def query_topic_info():
-    """
-    A full example that create a topic and query topic info for that topic.
-    """
-    # Config Client
+def setup_client():
+    """Initialize and set up the client with operator account"""
     print("Connecting to Hedera testnet...")
-    network = Network(network='testnet')
-    client = Client(network)
+    client = Client(Network(network='testnet'))
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
+
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
 
-    # Create a new Topic
-    print("\nCreating a Topic...")
+def create_topic(client, operator_key):
+    """Create a new topic"""
+    print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
             TopicCreateTransaction(
@@ -44,12 +43,24 @@ def query_topic_info():
         topic_receipt = topic_tx.execute(client)
         topic_id = topic_receipt.topic_id
         print(f"✅ Success! Created topic: {topic_id}")
+
+        return topic_id
     except Exception as e:
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
 
+def query_topic_info():
+    """
+    A full example that create a topic and query topic info for that topic.
+    """
+    # Config Client
+    client, _, operator_key = setup_client()
+   
+    # Create a new Topic
+    topic_id = create_topic(client, operator_key)
+
     # Query Topic Info
-    print("\nQuerying Topic Info...")
+    print("\nSTEP 2: Querying Topic Info...")
     query = TopicInfoQuery().set_topic_id(topic_id)
     topic_info = query.execute(client)
     print("✅ Success! Topic Info:", topic_info)

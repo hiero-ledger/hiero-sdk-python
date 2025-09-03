@@ -16,24 +16,25 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def query_receipt():
-    """
-    A full example that include account creation, Hbar transfer, and receipt querying
-    """
-    # Config Client
+def setup_client():
+    """Initialize and set up the client with operator account"""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
+
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
 
-    # Create a new recipient account.
-    print("\nCreating a new recipient account...")
+
+def create_account(client, operator_key):
+    """Create a new recipient account"""
+    print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
         tx = (
@@ -44,12 +45,24 @@ def query_receipt():
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
+        return recipient_id, recipient_key
+    
     except Exception as e:
         print(f"Error creating new account: {e}")
         sys.exit(1)
 
+def query_receipt():
+    """
+    A full example that include account creation, Hbar transfer, and receipt querying
+    """
+    # Config Client
+    client, operator_id, operator_key = setup_client()
+
+    # Create a new recipient account.
+    recipient_id, _ = create_account(client, operator_key)
+
     # Transfer Hbar to recipient account
-    print("\nTransferring Hbar...")
+    print("\nSTEP 2: Transferring Hbar...")
     amount = 10
     transaction = (
         TransferTransaction()
@@ -65,7 +78,7 @@ def query_receipt():
     print(f"✅ Success! Transfer transaction status: {ResponseCode(receipt.status).name}")
 
     # Query Transaction Receipt
-    print("\nQuerying transaction receipt...")
+    print("\nSTEP 3: Querying transaction receipt...")
     receipt_query = TransactionGetReceiptQuery().set_transaction_id(transaction_id)
     queried_receipt = receipt_query.execute(client)
     print(f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}")

@@ -14,25 +14,24 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def submit_message(message):
-    """
-    A example to create a topic and then submit a message to it.
-    """
-    # Config Client
+def setup_client():
+    """Initialize and set up the client with operator account"""
     print("Connecting to Hedera testnet...")
-    network = Network(network='testnet')
-    client = Client(network)
+    client = Client(Network(network='testnet'))
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
+
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
 
-    # Create a new Topic
-    print("\nCreating a Topic...")
+def create_topic(client, operator_key):
+    """Create a new topic"""
+    print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
             TopicCreateTransaction(
@@ -45,12 +44,25 @@ def submit_message(message):
         topic_receipt = topic_tx.execute(client)
         topic_id = topic_receipt.topic_id
         print(f"✅ Success! Created topic: {topic_id}")
+
+        return topic_id
     except Exception as e:
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
 
+
+def submit_message(message):
+    """
+    A example to create a topic and then submit a message to it.
+    """
+    # Config Client
+    client, _, operator_key = setup_client()
+
+    # Create a new Topic
+    topic_id = create_topic(client, operator_key)
+
     # Submit message to topic
-    print("\nSubmitting message..")
+    print("\nSTEP 2: Submitting message...")
     transaction = (
         TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
         .freeze_with(client)

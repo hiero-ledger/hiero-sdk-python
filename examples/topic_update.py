@@ -14,25 +14,24 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def update_topic(new_memo):
-    """
-    A example to create a topic and then update it.
-    """
-    # Config Client
+def setup_client():
+    """Initialize and set up the client with operator account"""
     print("Connecting to Hedera testnet...")
-    network = Network(network='testnet')
-    client = Client(network)
+    client = Client(Network(network='testnet'))
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
+
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
 
-    # Create a new Topic
-    print("\nCreating a Topic...")
+def create_topic(client, operator_key):
+    """Create a new topic"""
+    print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
             TopicCreateTransaction(
@@ -45,12 +44,22 @@ def update_topic(new_memo):
         topic_receipt = topic_tx.execute(client)
         topic_id = topic_receipt.topic_id
         print(f"✅ Success! Created topic: {topic_id}")
+
+        return topic_id
     except Exception as e:
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
 
+def update_topic(new_memo):
+    """A example to create a topic and then update it"""
+    # Config Client
+    client, _, operator_key = setup_client()
+
+    # Create a new Topic
+    topic_id = create_topic(client, operator_key)
+
     # Update the Topic
-    print("\nUpdating Topic...")
+    print("\nSTEP 2: Updating Topic...")
     transaction = (
         TopicUpdateTransaction(topic_id=topic_id, memo=new_memo)
         .freeze_with(client)
@@ -64,7 +73,7 @@ def update_topic(new_memo):
               f"transaction_id: {receipt.transaction_id})")
         print(f"✅ Success! Topic {topic_id} updated with new memo: {new_memo}")
     except Exception as e:
-        print(f"❌ Error: Topic update failed: {str(e)}")
+        print(f"❌ Topic update failed: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
