@@ -71,7 +71,7 @@ worry about managing multiple versions of python on your machine!
 
 ```bash
 uv sync
-sh generate_proto.sh
+uv run python generate_proto.py
 ```
 
 To update to a newer version of the protobuf libraries, edit the `generate_proto.py` file and change the version number
@@ -156,4 +156,4 @@ We appreciate your interest in improving the Hiero Python SDK! Please see CONTRI
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the Apache License.

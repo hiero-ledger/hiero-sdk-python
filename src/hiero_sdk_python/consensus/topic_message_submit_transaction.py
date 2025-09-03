@@ -4,7 +4,7 @@ messages to Hedera Consensus Service topics using the Hiero SDK.
 """
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -56,7 +56,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self.message = message
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for message submission.
         Raises ValueError if required fields (topic_id, message) are missing.

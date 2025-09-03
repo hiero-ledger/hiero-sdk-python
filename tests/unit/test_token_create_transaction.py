@@ -29,7 +29,7 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import (
     transaction_pb2,
-    transaction_body_pb2,
+    transaction_pb2,
     transaction_contents_pb2,
     timestamp_pb2,
 )
@@ -359,7 +359,7 @@ def test_to_proto_without_keys(mock_account_ids, mock_client):
     )
     assert len(signed_tx.bodyBytes) > 0
 
-    transaction_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    transaction_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Verify the transaction built was correctly serialized to and from proto.
     assert transaction_body.tokenCreation.name == "MyToken"
@@ -419,7 +419,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     assert len(signed_tx.bodyBytes) > 0
 
     # 3) Finally parse the TransactionBody
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Confirm fields set in the token creation portion of the TransactionBody
     assert tx_body.tokenCreation.name == "MyToken"
@@ -561,7 +561,7 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
 
     # Parse the TransactionBody from SignedTransaction.bodyBytes
     # bodyBytes: A byte array containing a serialized `TransactionBody`.
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Check that updated values made it into tokenCreation
     assert tx_body.tokenCreation.name == "MyUpdatedToken"
@@ -734,7 +734,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     assert len(signed_tx.bodyBytes) > 0
 
     # Finally parse the TransactionBody
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Verify the NFT-specific fields
     assert tx_body.tokenCreation.name == "MyNFTToken"

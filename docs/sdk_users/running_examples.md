@@ -15,6 +15,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
   - [Querying Account Info](#querying-account-info)
+  - [Deleting an Account](#deleting-an-account)
   - [Creating a Token](#creating-a-token)
 - [Token Transactions](#token-transactions)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -61,6 +62,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Contract Bytecode](#querying-contract-bytecode)
   - [Updating a Contract](#updating-a-contract)
   - [Executing a Contract](#executing-a-contract)
+  - [Deleting a Contract](#deleting-a-contract)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -169,6 +171,32 @@ print(f"Account Balance: {info.balance}")
 print(f"Account Memo: '{info.account_memo}'")
 print(f"Owned NFTs: {info.owned_nfts}")
 print(f"Token Relationships: {info.token_relationships}")
+```
+
+### Deleting an Account
+
+#### Pythonic Syntax:
+```
+transaction = AccountDeleteTransaction(
+    account_id=account_id,
+    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+).freeze_with(client)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    AccountDeleteTransaction()
+    .set_account_id(account_id)
+    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    .freeze_with(client)
+)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
 ```
 
 ## Token Transactions
@@ -1415,6 +1443,53 @@ transaction.sign(operator_key)
 transaction.execute(client)
 ```
 
+### Deleting a Contract
+
+#### Pythonic Syntax:
+```python
+# Option 1: Transfer contract balance to an account
+transaction = ContractDeleteTransaction(
+    contract_id=contract_id,
+    transfer_account_id=recipient_account_id
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Admin key must have been set during contract creation
+transaction.execute(client)
+
+# Option 2: Transfer contract balance to another contract
+transaction = ContractDeleteTransaction(
+    contract_id=contract_id,
+    transfer_contract_id=transfer_contract_id
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Admin key must have been set during contract creation
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Option 1: Transfer contract balance to an account
+transaction = (
+    ContractDeleteTransaction()
+    .set_contract_id(contract_id)
+    .set_transfer_account_id(recipient_account_id)
+    .freeze_with(client)
+)
+
+transaction.sign(admin_key)  # Admin key must have been set during contract creation
+transaction.execute(client)
+
+# Option 2: Transfer contract balance to another contract
+transaction = (
+    ContractDeleteTransaction()
+    .set_contract_id(contract_id)
+    .set_transfer_contract_id(recipient_contract_id)
+    .freeze_with(client)
+)
+
+transaction.sign(admin_key)  # Admin key must have been set during contract creation
+transaction.execute(client)
+```
 
 ## Miscellaneous Queries
 
