@@ -86,6 +86,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 - Applied linting and code formatting across the consensus module
 - fixed pip install hiero_sdk_python -> pip install hiero-sdk-python in README.md
+-  Errors in query_receipt, query_topic_message, query_topic_info, topic_delete, topic_message_submit, topic_update, transfer_hbar, and transfer_token cause by hardcoded value in .env
 
 ### Breaking API changes
 **We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
