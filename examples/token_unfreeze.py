@@ -1,5 +1,7 @@
 """
 uv run examples/token_unfreeze.py
+python examples/token_unfreeze.py
+
 """
 import os
 import sys

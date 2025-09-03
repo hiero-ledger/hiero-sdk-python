@@ -1,5 +1,7 @@
 """
 uv run examples/token_burn_nft.py 
+python examples/token_burn_nft.py
+
 """
 import os
 import sys

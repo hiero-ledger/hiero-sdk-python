@@ -1,5 +1,6 @@
 """
 uv run examples/token_wipe.py
+python examples/token_wipe.py
 """
 import os
 import sys

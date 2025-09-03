@@ -32,6 +32,7 @@ Usage:
 
     # Run from the project root directory
     uv run -m examples.contract_execute_with_value
+    python -m examples.contract_execute_with_value
 
 Note:
     The example contract (StatefulContract) implements both methods:

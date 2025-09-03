@@ -1,6 +1,8 @@
 
 """
 uv run examples/token_update_key.py
+python examples/token_update_key.py
+
 """
 import os
 import sys

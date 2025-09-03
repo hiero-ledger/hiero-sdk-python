@@ -5,7 +5,9 @@ File Append Example
 
 This example demonstrates how to append content to an existing file on the network.
 It shows both single-chunk and multi-chunk append operations.
-Run with: uv run examples/file_append.py
+Run with: 
+uv run examples/file_append.py
+python examples/file_append.py
 """
 import sys
 import os

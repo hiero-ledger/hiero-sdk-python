@@ -1,5 +1,7 @@
 """
 uv run examples/topic_message_submit.py
+python examples/topic_message_submit.py
+
 """
 import os
 import sys

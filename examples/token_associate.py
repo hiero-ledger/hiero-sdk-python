@@ -1,5 +1,7 @@
 """
 uv run examples/token_associate.py 
+python examples/token_associate.py
+
 """
 import os
 import sys

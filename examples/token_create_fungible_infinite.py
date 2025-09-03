@@ -1,5 +1,7 @@
 """
 uv run examples/token_create_fungible_infinite.py
+python examples/token_create_fungible_infinite.py
+
 """
 
 import os

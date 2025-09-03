@@ -1,5 +1,7 @@
 """
 uv run examples/topic_update.py
+python examples/topic_update.py
+
 """
 import os
 import sys

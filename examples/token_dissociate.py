@@ -1,5 +1,7 @@
 """
 uv run examples/token_dissociate.py
+python examples/token_dissociate.py
+
 """
 import os
 import sys
