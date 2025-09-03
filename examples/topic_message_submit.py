@@ -6,23 +6,51 @@ from hiero_sdk_python import (
     Client,
     AccountId,
     PrivateKey,
-    TopicId,
     Network,
     TopicMessageSubmitTransaction,
+    TopicCreateTransaction,
+    ResponseCode
 )
 
 load_dotenv()
 
 def submit_message(message):
+    """
+    A example to create a topic and then submit a message to it.
+    """
+    # Config Client
+    print("Connecting to Hedera testnet...")
     network = Network(network='testnet')
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
-    topic_id = TopicId.from_string(os.getenv('TOPIC_ID'))
+    try:
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+        client.set_operator(operator_id, operator_key)
+    except (TypeError, ValueError):
+        print("❌ Error: Creating client, Please check your .env file")
+        sys.exit(1)
 
-    client.set_operator(operator_id, operator_key)
+    # Create a new Topic
+    print("\nCreating a Topic...")
+    try:
+        topic_tx = (
+            TopicCreateTransaction(
+                memo="Python SDK created topic",
+                admin_key=operator_key.public_key()
+            )
+            .freeze_with(client)
+            .sign(operator_key)
+        )
+        topic_receipt = topic_tx.execute(client)
+        topic_id = topic_receipt.topic_id
+        print(f"✅ Success! Created topic: {topic_id}")
+    except Exception as e:
+        print(f"❌ Error: Creating topic: {e}")
+        sys.exit(1)
 
+    # Submit message to topic
+    print("\nSubmitting message..")
     transaction = (
         TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
         .freeze_with(client)
@@ -31,10 +59,13 @@ def submit_message(message):
 
     try:
         receipt = transaction.execute(client)
-        print(f"Message submitted to topic {topic_id}: {message}")
+        print(f"Message Submit Transaction completed: "
+              f"(status: {ResponseCode(receipt.status).name}, "
+              f"transaction_id: {receipt.transaction_id})")
+        print(f"✅ Success! Message submitted to topic {topic_id}: {message}")
     except Exception as e:
-        print(f"Message submission failed: {str(e)}")
+        print(f"❌ Error: Message submission failed: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
-    submit_message("Hello, Hedera!")
+    submit_message("Hello, Hiero!")
