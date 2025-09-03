@@ -6,7 +6,7 @@ Provides TokenRelationship, a dataclass modeling an account’s relationship to 
 including ID, symbol, balance, KYC status, freeze status, decimals, and auto-association flag.
 """
 from dataclasses import dataclass
-from typing import Optional, Union, Any
+from typing import Optional
 
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (
     TokenRelationship as TokenRelationshipProto,
@@ -26,16 +26,16 @@ class TokenRelationship:
         token_id (Optional[TokenId]): The ID of the token.
         symbol (Optional[str]): The symbol of the token.
         balance (Optional[int]): The balance of tokens held by the account.
-        kyc_status (Optional[TokenFreezeStatusProto]): The KYC status of the account for this token.
-        freeze_status (Optional[TokenFreezeStatusProto]): The freeze status of the account.
+        kyc_status (Optional[TokenKycStatus]): The KYC status of the account for this token.
+        freeze_status (Optional[TokenFreezeStatus]): The freeze status of the account.
         decimals (Optional[int]): The number of decimal places used by the token.
         automatic_association (Optional[bool]): If token was auto-associated to the account.
     """
     token_id: Optional[TokenId] = None
     symbol: Optional[str] = None
     balance: Optional[int] = None
-    kyc_status: Any = None       # <- FIX: protobuf enum wrapper, use Any
-    freeze_status: Any = None
+    kyc_status: Optional[TokenKycStatus] = None
+    freeze_status: Optional[TokenFreezeStatus] = None
     decimals: Optional[int] = None
     automatic_association: Optional[bool] = None
 
@@ -72,7 +72,7 @@ class TokenRelationship:
             kyc_status = TokenKycStatusProto.Revoked
 
         return TokenRelationshipProto(
-            tokenId=self.token_id._to_proto() if self.token_id else None,
+            tokenId=self.token_id._to_proto(),
             symbol=self.symbol,
             balance=self.balance,
             kycStatus=kyc_status,
@@ -80,3 +80,4 @@ class TokenRelationship:
             decimals=self.decimals,
             automatic_association=self.automatic_association
         )
+        
