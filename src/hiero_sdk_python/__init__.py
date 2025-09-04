@@ -112,6 +112,7 @@ from .schedule.schedule_create_transaction import ScheduleCreateTransaction
 from .schedule.schedule_id import ScheduleId
 from .schedule.schedule_info import ScheduleInfo
 from .schedule.schedule_info_query import ScheduleInfoQuery
+from .schedule.schedule_delete_transaction import ScheduleDeleteTransaction
 
 # Nodes
 from .nodes.node_create_transaction import NodeCreateTransaction
@@ -230,6 +231,7 @@ __all__ = [
     "ScheduleId",
     "ScheduleInfoQuery",
     "ScheduleInfo",
+    "ScheduleDeleteTransaction",
 
     # Nodes
     "NodeCreateTransaction",
