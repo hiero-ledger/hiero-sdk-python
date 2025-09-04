@@ -10,6 +10,9 @@ from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.ethereum_transaction_pb2 import (
     EthereumTransactionBody,
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction import Transaction
 
 
@@ -90,6 +93,19 @@ class EthereumTransaction(Transaction):
         self.max_gas_allowed = max_gas_allowed
         return self
 
+    def _build_proto_body(self):
+        """
+        Returns the protobuf body for the ethereum transaction.
+
+        Returns:
+            EthereumTransactionBody: The protobuf body for this transaction.
+        """
+        return EthereumTransactionBody(
+            ethereum_data=self.ethereum_data,
+            call_data=self.call_data._to_proto() if self.call_data else None,
+            max_gas_allowance=self.max_gas_allowed,
+        )
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for ethereum transaction.
@@ -98,15 +114,19 @@ class EthereumTransaction(Transaction):
             TransactionBody: The protobuf transaction body containing the
                 ethereum transaction details.
         """
-        ethereum_transaction_body = EthereumTransactionBody(
-            ethereum_data=self.ethereum_data,
-            call_data=self.call_data._to_proto() if self.call_data else None,
-            max_gas_allowance=self.max_gas_allowed,
-        )
-
+        ethereum_transaction_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.ethereumTransaction.CopyFrom(ethereum_transaction_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this ethereum transaction.
+
+        Raises:
+            ValueError: EthereumTransaction cannot be scheduled.
+        """
+        raise ValueError("Cannot schedule an EthereumTransaction")
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
