@@ -68,6 +68,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [Schedule Transactions](#schedule-transactions)
   - [Creating a Schedule](#creating-a-schedule)
   - [Querying Schedule Info](#querying-schedule-info)
+  - [Deleting a Schedule](#deleting-a-schedule)
 - [Node Transactions](#node-transactions)
   - [Creating a Node](#creating-a-node)
 - [Miscellaneous Queries](#miscellaneous-queries)
@@ -1639,6 +1640,29 @@ schedule_info = (
     .execute(client)
 )
 print(schedule_info)
+```
+
+### Deleting a Schedule
+
+#### Pythonic Syntax:
+```python
+transaction = ScheduleDeleteTransaction(
+    schedule_id=schedule_id
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Admin key must have been set during schedule creation
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+receipt = (
+    ScheduleDeleteTransaction()
+    .set_schedule_id(schedule_id)
+    .freeze_with(client)
+    .sign(admin_key)  # Admin key must have been set during schedule creation
+    .execute(client)
+)
 ```
 
 ## Node Transactions
