@@ -46,12 +46,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Invalid DRE Hex representation in examples/keys_private_ecdsa.py
 - Windows malformed path using uv run generate_proto.py using as_posix()
 - Changed README MIT license to Apache
+- adding variables directly in the example script to reduce the need for users to supply extra environment variables.
 
 ### Removed
 - Removed the old `/documentation` folder.
 - Rebase command in README_upstream changed to just -S
 - generate_proto.sh
 - pkg_resources dependency in generate_proto.py
+
 
 ### Breaking API changes
 - We have some changed imports and returns to maintain compatability in the proto bump 
@@ -86,7 +88,6 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 - Applied linting and code formatting across the consensus module
 - fixed pip install hiero_sdk_python -> pip install hiero-sdk-python in README.md
--  Errors in query_receipt, query_topic_message, query_topic_info, topic_delete, topic_message_submit, topic_update, transfer_hbar, and transfer_token cause by hardcoded value in .env
 
 ### Breaking API changes
 **We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
