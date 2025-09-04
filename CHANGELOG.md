@@ -8,6 +8,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 ### Added
+- prng_number and prng_bytes properties in TransactionRecord
+- PrngTransaction class
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
