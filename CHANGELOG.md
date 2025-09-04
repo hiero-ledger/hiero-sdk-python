@@ -30,6 +30,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Type annotations in TokenRelationship class (kyc_status and freeze_status)
 - Test assertions in test_executable.py using pytest match parameter
 - Moved and renamed README_upstream.md to docs/sdk_developers/rebasing.md
+- Invalid DRE Hex representation in examples/keys_private_ecdsa.py
 
 ### Fixed
 - Windows malformed path using uv run generate_proto.py using as_posix()
