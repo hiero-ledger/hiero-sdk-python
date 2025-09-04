@@ -51,7 +51,8 @@ class AccountId:
             num=account_id_proto.accountNum,
         )
         if account_id_proto.alias:
-            result.alias_key = PublicKey.from_bytes(account_id_proto.alias)
+            alias = account_id_proto.alias[2:] # remove 0x prefix
+            result.alias_key = PublicKey.from_bytes(alias)
         return result
 
     def _to_proto(self) -> basic_types_pb2.AccountID:
@@ -102,12 +103,13 @@ class AccountId:
         """
         if not isinstance(other, AccountId):
             return False
-        return (self.shard, self.realm, self.num) == (
+        return (self.shard, self.realm, self.num, self.alias_key) == (
             other.shard,
             other.realm,
             other.num,
+            other.alias_key,
         )
 
     def __hash__(self) -> int:
         """Returns a hash value for the AccountId instance."""
-        return hash((self.shard, self.realm, self.num))
+        return hash((self.shard, self.realm, self.num, self.alias_key))
