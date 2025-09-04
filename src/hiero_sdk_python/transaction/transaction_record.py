@@ -25,6 +25,9 @@ class TransactionRecord:
     transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
     new_pending_airdrops: list[PendingAirdropRecord] = field(default_factory=list)
 
+    prng_number: Optional[int] = None
+    prng_bytes: Optional[bytes] = None
+
     def __repr__(self) -> str:
         status = None
         if self.receipt:
@@ -41,7 +44,9 @@ class TransactionRecord:
                 f"token_transfers={dict(self.token_transfers)}, "
                 f"nft_transfers={dict(self.nft_transfers)}, "
                 f"transfers={dict(self.transfers)}, "
-                f"new_pending_airdrops={list(self.new_pending_airdrops)})")
+                f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
+                f"prng_number={self.prng_number}, "
+                f"prng_bytes={self.prng_bytes})")
 
     @classmethod
     def _from_proto(cls, proto: transaction_record_pb2.TransactionRecord, transaction_id: Optional[TransactionId] = None) -> 'TransactionRecord':
@@ -83,7 +88,9 @@ class TransactionRecord:
             token_transfers=token_transfers,
             nft_transfers=nft_transfers,
             transfers=transfers,
-            new_pending_airdrops=new_pending_airdrops
+            new_pending_airdrops=new_pending_airdrops,
+            prng_number=proto.prng_number,
+            prng_bytes=proto.prng_bytes
         )
         
     def _to_proto(self) -> transaction_record_pb2.TransactionRecord:
@@ -94,7 +101,9 @@ class TransactionRecord:
             transactionHash=self.transaction_hash,
             memo=self.transaction_memo,
             transactionFee=self.transaction_fee,
-            receipt=self.receipt._to_proto() if self.receipt else None
+            receipt=self.receipt._to_proto() if self.receipt else None,
+            prng_number=self.prng_number,
+            prng_bytes=self.prng_bytes,
         )
         
         if self.transaction_id is not None:

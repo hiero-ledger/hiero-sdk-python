@@ -106,6 +106,9 @@ from .contract.contract_function_result import ContractFunctionResult
 from .contract.contract_info import ContractInfo
 from .contract.contract_update_transaction import ContractUpdateTransaction
 
+# PRNG
+from .prng_transaction import PrngTransaction
+
 __all__ = [
     # Client
     "Client",
@@ -210,4 +213,7 @@ __all__ = [
     "ContractFunctionResult",
     "ContractInfo",
     "ContractUpdateTransaction",
+
+    # PRNG
+    "PrngTransaction",
 ]
