@@ -10,6 +10,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Convert camelCase to snake_case in integration tests (#318)
 
 ### Added
+- prng_number and prng_bytes properties in TransactionRecord
+- PrngTransaction class
 - ScheduleInfoQuery class
 - ScheduleInfo class
 - Exposed node_id property in `TransactionReceipt`
