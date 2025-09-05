@@ -1,5 +1,8 @@
 """
 Example file: Working with an ECDSA (secp256k1) PublicKey using the PublicKey class.
+uv run examples/keys_public_ecdsa.py
+python examples/keys_public_ecdsa.py
+
 """
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes

@@ -2,6 +2,10 @@
 Example file: Demonstrating how to serialize a PrivateKey to DER (hex)
 and then load it back.
 *WARNING* DER‐encoded private keys should not be printed or exposed in a real-world scenario.
+
+uv run examples/keys_private_der.py
+python examples/keys_private_der.py
+
 """
 
 from cryptography.exceptions import InvalidSignature

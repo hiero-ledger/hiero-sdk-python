@@ -1,3 +1,9 @@
+"""
+Run with: 
+uv run examples/file_create.py
+python examples/file_create.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv

@@ -1,3 +1,8 @@
+"""
+uv run examples/transfer_nft.py
+python examples/transfer_nft.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv

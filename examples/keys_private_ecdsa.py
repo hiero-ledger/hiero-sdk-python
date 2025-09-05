@@ -1,6 +1,10 @@
 """
 Example file: Working with ECDSA (secp256k1) PrivateKey using the PrivateKey class
 *WARNING* ECDSA seeds should not be printed or exposed in a real‑world scenario
+
+uv run examples/keys_private_ecdsa.py
+python examples/keys_private_ecdsa.py
+
 """
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.private_key import PrivateKey

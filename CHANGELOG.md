@@ -23,6 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - AccountId support for ECDSA alias accounts
 - ContractId.to_evm_address() method for EVM compatibility
 - consumeLargeData() function in StatefulContract
+- examples.md in docs/sdk_developers
 
 ### Changed
 - Extract _build_proto_body() from build_transaction_body() in every transaction
@@ -33,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Switched Mirror Node endpoints used by SDK to secure ones instead of deprecated insecure endpoints (shut down on Aug 20th, see [Hedera blogpost](https://hedera.com/blog/updated-deprecation-of-the-insecure-hedera-consensus-service-hcs-mirror-node-endpoints))
 - Update protobuf dependency from 5.28.1 to 5.29.1
 - Update grpcio dependency from 1.68.1 to 1.71.2
+- Calls in examples for PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY')) to PrivateKey.from_string(os.getenv('OPERATOR_KEY')) to enable general key types
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
@@ -43,6 +45,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 - Windows malformed path using uv run generate_proto.py using as_posix()
 - Changed README MIT license to Apache
+- running_examples.md in /docs/sdk_users renamed to examples.md
+- deprecated CamelCase instances in /examples such as TokenId and totalSupply to snake_case
 
 ### Removed
 - Removed the old `/documentation` folder.
