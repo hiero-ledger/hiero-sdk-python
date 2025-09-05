@@ -134,13 +134,8 @@ def test_build_scheduled_body(node_params):
     # Verify the transaction was built with node update type
     assert schedulable_body.HasField("nodeUpdate")
 
-    transaction_body = node_tx.build_transaction_body()
-
-    # Verify the transaction body contains nodeUpdate field
-    assert transaction_body.HasField("nodeUpdate")
-
-    # Verify all fields are correctly set
-    node_update = transaction_body.nodeUpdate
+    # Verify fields in the schedulable body
+    node_update = schedulable_body.nodeUpdate
     assert node_update.node_id == node_params["node_id"]
     assert node_update.account_id == node_params["account_id"]._to_proto()
     assert node_update.description.value == node_params["description"]
