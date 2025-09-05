@@ -113,6 +113,7 @@ from .schedule.schedule_id import ScheduleId
 
 # Nodes
 from .nodes.node_create_transaction import NodeCreateTransaction
+from .nodes.node_delete_transaction import NodeDeleteTransaction
 
 __all__ = [
     # Client
@@ -226,4 +227,5 @@ __all__ = [
 
     # Nodes
     "NodeCreateTransaction",
+    "NodeDeleteTransaction",
 ]
