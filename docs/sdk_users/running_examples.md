@@ -67,6 +67,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Executing Ethereum Transactions](#executing-ethereum-transactions)
 - [Schedule Transactions](#schedule-transactions)
   - [Creating a Schedule](#creating-a-schedule)
+  - [Querying Schedule Info](#querying-schedule-info)
+  - [Signing a Schedule](#signing-a-schedule)
 - [Node Transactions](#node-transactions)
   - [Creating a Node](#creating-a-node)
 - [Miscellaneous Queries](#miscellaneous-queries)
@@ -1615,6 +1617,48 @@ receipt = (
     .sign(sender_private_key)  # Sign with the account being debited
     .sign(admin_key)  # Sign with the admin key
     .sign(payer_account_private_key) # Sign with the payer key
+    .execute(client)
+)
+```
+
+### Querying Schedule Info
+
+#### Pythonic Syntax:
+```python
+schedule_info_query = ScheduleInfoQuery(schedule_id=schedule_id)
+schedule_info = schedule_info_query.execute(client)
+print(schedule_info)
+```
+
+#### Method Chaining:
+```python
+schedule_info = (
+    ScheduleInfoQuery()
+    .set_schedule_id(schedule_id)
+    .execute(client)
+)
+print(schedule_info)
+```
+
+### Signing a Schedule
+
+#### Pythonic Syntax:
+```python
+# Sign a scheduled transaction to execute it
+schedule_sign_tx = ScheduleSignTransaction(schedule_id=schedule_id)
+schedule_sign_tx.freeze_with(client)
+schedule_sign_tx.sign(required_private_key)
+receipt = schedule_sign_tx.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Sign a scheduled transaction to execute it
+receipt = (
+    ScheduleSignTransaction()
+    .set_schedule_id(schedule_id)
+    .freeze_with(client)
+    .sign(required_private_key)
     .execute(client)
 )
 ```
