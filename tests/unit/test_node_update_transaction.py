@@ -9,6 +9,9 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.nodes.node_update_transaction import (
     NodeUpdateParams,
     NodeUpdateTransaction,
@@ -79,8 +82,8 @@ def test_constructor_default_values():
     assert node_tx.grpc_web_proxy_endpoint is None
 
 
-def test_build_transaction_body_with_valid_parameters(mock_account_ids, node_params):
-    """Test building a node update transaction body with valid parameters."""
+def test_build_transaction_body(mock_account_ids, node_params):
+    """Test building a node update transaction body."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
     node_update_params = NodeUpdateParams(**node_params)
@@ -108,6 +111,45 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, node_par
     assert (
         node_update.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
     )
+    assert node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
+    assert node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
+    assert node_update.admin_key == node_params["admin_key"]._to_proto()
+    assert node_update.decline_reward.value == node_params["decline_reward"]
+    assert (
+        node_update.grpc_proxy_endpoint
+        == node_params["grpc_web_proxy_endpoint"]._to_proto()
+    )
+
+
+def test_build_scheduled_body(node_params):
+    """Test building a schedulable node update transaction body."""
+    node_update_params = NodeUpdateParams(**node_params)
+    node_tx = NodeUpdateTransaction(node_update_params=node_update_params)
+
+    schedulable_body = node_tx.build_scheduled_body()
+
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with node update type
+    assert schedulable_body.HasField("nodeUpdate")
+
+    transaction_body = node_tx.build_transaction_body()
+
+    # Verify the transaction body contains nodeUpdate field
+    assert transaction_body.HasField("nodeUpdate")
+
+    # Verify all fields are correctly set
+    node_update = transaction_body.nodeUpdate
+    assert node_update.node_id == node_params["node_id"]
+    assert node_update.account_id == node_params["account_id"]._to_proto()
+    assert node_update.description.value == node_params["description"]
+    assert len(node_update.gossip_endpoint) == 1
+    assert (
+        node_update.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
+    )
+    assert len(node_update.service_endpoint) == 1
+    assert node_update.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
     assert node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
     assert node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
     assert node_update.admin_key == node_params["admin_key"]._to_proto()

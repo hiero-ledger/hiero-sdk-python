@@ -13,6 +13,9 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.node_update_pb2 import NodeUpdateTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -302,6 +305,18 @@ class NodeUpdateTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.nodeUpdate.CopyFrom(node_update_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for node update transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        node_update_body = self._build_proto_body()
+        scheduled_body = self.build_base_scheduled_body()
+        scheduled_body.nodeUpdate.CopyFrom(node_update_body)
+        return scheduled_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
