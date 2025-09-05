@@ -23,6 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - AccountId support for ECDSA alias accounts
 - ContractId.to_evm_address() method for EVM compatibility
 - consumeLargeData() function in StatefulContract
+- Added new `merge_conflicts.md` with detailed guidance on handling conflicts during rebase.
 
 ### Changed
 - Extract _build_proto_body() from build_transaction_body() in every transaction
@@ -33,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Switched Mirror Node endpoints used by SDK to secure ones instead of deprecated insecure endpoints (shut down on Aug 20th, see [Hedera blogpost](https://hedera.com/blog/updated-deprecation-of-the-insecure-hedera-consensus-service-hcs-mirror-node-endpoints))
 - Update protobuf dependency from 5.28.1 to 5.29.1
 - Update grpcio dependency from 1.68.1 to 1.71.2
+- Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
