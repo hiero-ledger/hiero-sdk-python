@@ -7,6 +7,10 @@ on the Hedera network via the Hedera Token Service (HTS) API.
 """
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_unfreeze_account_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
+
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -46,16 +50,15 @@ class TokenUnfreezeTransaction(Transaction):
         if self._is_frozen:
             raise ValueError("Transaction is already frozen and cannot be modified.")
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token unfreeze.
-
+        Returns the protobuf body for the token unfreeze transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the token unfreeze details.
-        
+            TokenUnfreezeAccountTransactionBody: The protobuf body for this transaction.
+            
         Raises:
-            ValueError: If account ID or token IDs are not set.
-        
+            ValueError: If account ID or token ID is not set.
         """
         if not self.token_id:
             raise ValueError("Missing required TokenID.")
@@ -63,15 +66,34 @@ class TokenUnfreezeTransaction(Transaction):
         if not self.account_id:
             raise ValueError("Missing required AccountID.")
 
-        token_unfreeze_body = token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody(
+        return token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody(
             account=self.account_id._to_proto(),
             token=self.token_id._to_proto()
         )
+        
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for token unfreeze.
 
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token unfreeze details.
+        """
+        token_unfreeze_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenUnfreeze.CopyFrom(token_unfreeze_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token unfreeze transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_unfreeze_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenUnfreeze.CopyFrom(token_unfreeze_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(

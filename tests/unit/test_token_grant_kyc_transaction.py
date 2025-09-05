@@ -6,6 +6,9 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 
@@ -150,3 +153,19 @@ def test_grant_kyc_transaction_from_proto(mock_account_ids):
     # Verify empty protobuf deserializes to empty/default values
     assert from_proto.token_id == TokenId(0,0,0)
     assert from_proto.account_id == AccountId()
+    
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token grant KYC transaction."""
+    account_id, _, _, token_id, _ = mock_account_ids
+    
+    grant_kyc_tx = TokenGrantKycTransaction()
+    grant_kyc_tx.set_token_id(token_id)
+    grant_kyc_tx.set_account_id(account_id)
+
+    schedulable_body = grant_kyc_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenGrantKyc")
+    assert schedulable_body.tokenGrantKyc.token == token_id._to_proto()
+    assert schedulable_body.tokenGrantKyc.account == account_id._to_proto()

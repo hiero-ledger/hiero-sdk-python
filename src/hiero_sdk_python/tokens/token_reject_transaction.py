@@ -10,7 +10,10 @@ from hiero_sdk_python.hapi.services.token_reject_pb2 import (
     TokenReference,
     TokenRejectTransactionBody,
 )
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
@@ -66,12 +69,12 @@ class TokenRejectTransaction(Transaction):
         self.nft_ids = nft_ids
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token reject.
-
+        Returns the protobuf body for the token reject transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the token reject details.
+            TokenRejectTransactionBody: The protobuf body for this transaction.
         """
         token_references = []
         for token_id in self.token_ids:
@@ -79,13 +82,34 @@ class TokenRejectTransaction(Transaction):
         for nft_id in self.nft_ids:
             token_references.append(TokenReference(nft=nft_id._to_proto()))
 
-        token_reject_body = TokenRejectTransactionBody(
+        return TokenRejectTransactionBody(
             owner=self.owner_id and self.owner_id._to_proto(),
             rejections=token_references
         )
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for token reject.
+
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token reject details.
+        """
+        token_reject_body = self._build_proto_body()
+        transaction_body = self.build_base_transaction_body()
         transaction_body.tokenReject.CopyFrom(token_reject_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token reject transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_reject_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenReject.CopyFrom(token_reject_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

@@ -15,6 +15,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
   - [Querying Account Info](#querying-account-info)
+  - [Deleting an Account](#deleting-an-account)
   - [Creating a Token](#creating-a-token)
 - [Token Transactions](#token-transactions)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -61,6 +62,10 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Contract Bytecode](#querying-contract-bytecode)
   - [Updating a Contract](#updating-a-contract)
   - [Executing a Contract](#executing-a-contract)
+  - [Deleting a Contract](#deleting-a-contract)
+  - [Executing Ethereum Transactions](#executing-ethereum-transactions)
+- [Schedule Transactions](#schedule-transactions)
+  - [Creating a Schedule](#creating-a-schedule)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -169,6 +174,32 @@ print(f"Account Balance: {info.balance}")
 print(f"Account Memo: '{info.account_memo}'")
 print(f"Owned NFTs: {info.owned_nfts}")
 print(f"Token Relationships: {info.token_relationships}")
+```
+
+### Deleting an Account
+
+#### Pythonic Syntax:
+```
+transaction = AccountDeleteTransaction(
+    account_id=account_id,
+    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+).freeze_with(client)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    AccountDeleteTransaction()
+    .set_account_id(account_id)
+    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    .freeze_with(client)
+)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
 ```
 
 ## Token Transactions
@@ -1412,6 +1443,220 @@ transaction = (
 )
 
 transaction.sign(operator_key)
+transaction.execute(client)
+```
+
+### Deleting a Contract
+
+#### Pythonic Syntax:
+```python
+# Option 1: Transfer contract balance to an account
+transaction = ContractDeleteTransaction(
+    contract_id=contract_id,
+    transfer_account_id=recipient_account_id
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Admin key must have been set during contract creation
+transaction.execute(client)
+
+# Option 2: Transfer contract balance to another contract
+transaction = ContractDeleteTransaction(
+    contract_id=contract_id,
+    transfer_contract_id=transfer_contract_id
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Admin key must have been set during contract creation
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Option 1: Transfer contract balance to an account
+transaction = (
+    ContractDeleteTransaction()
+    .set_contract_id(contract_id)
+    .set_transfer_account_id(recipient_account_id)
+    .freeze_with(client)
+)
+
+transaction.sign(admin_key)  # Admin key must have been set during contract creation
+transaction.execute(client)
+
+# Option 2: Transfer contract balance to another contract
+transaction = (
+    ContractDeleteTransaction()
+    .set_contract_id(contract_id)
+    .set_transfer_contract_id(recipient_contract_id)
+    .freeze_with(client)
+)
+
+transaction.sign(admin_key)  # Admin key must have been set during contract creation
+transaction.execute(client)
+```
+
+## Schedule Transactions
+
+### Creating a Schedule
+
+#### Pythonic Syntax:
+```python
+# First, create a transaction to be scheduled (e.g., a transfer transaction)
+transfer_tx = TransferTransaction(
+    hbar_transfers={
+        sender_id: -amount,  # Negative amount = debit
+        recipient_id: amount  # Positive amount = credit
+    }
+)
+
+# There are two equivalent approaches to creating scheduled transactions:
+
+# Approach 1: Use transaction.schedule() to generate a pre-configured ScheduleCreateTransaction
+# This internally creates a ScheduleCreateTransaction and sets the scheduled transaction
+schedule_tx1 = transfer_tx.schedule()
+# Then you can use the setter methods to configure additional parameters
+# schedule_tx1.set_payer_account_id(...).set_admin_key(...).etc
+
+# Approach 2: Create a ScheduleCreateTransaction with params directly
+schedule_tx = ScheduleCreateTransaction(
+    schedule_params=ScheduleCreateParams(
+        payer_account_id=client.operator_account_id,
+        admin_key=admin_key.public_key(),
+        expiration_time=expiration_time,  # Timestamp when the schedule expires
+        wait_for_expiry=True  # If true, executes only when expired even if all signatures present
+    )
+)
+# Set the transaction to be scheduled
+schedule_tx.set_scheduled_transaction(transfer_tx)
+schedule_tx.freeze_with(client)
+
+# Sign with required keys (any account being debited must sign)
+schedule_tx.sign(sender_private_key)
+schedule_tx.sign(admin_key)
+schedule_tx.sign(payer_account_private_key) # Sign with the payer key
+```
+
+#### Method Chaining:
+```python
+# First, create a transaction to be scheduled (e.g., a transfer transaction)
+transfer_tx = (
+    TransferTransaction()
+    .add_hbar_transfer(sender_id, -amount)  # Negative amount = debit
+    .add_hbar_transfer(recipient_id, amount)  # Positive amount = credit
+)
+
+# Convert it to a scheduled transaction
+# Using schedule() is equivalent to:
+# schedule_tx = ScheduleCreateTransaction()
+# schedule_tx.set_scheduled_transaction(transfer_tx)
+schedule_tx = transfer_tx.schedule()
+
+# Configure the scheduled transaction
+receipt = (
+    schedule_tx
+    .set_payer_account_id(payer_account_id)
+    .set_admin_key(admin_key.public_key())
+    .set_expiration_time(expiration_time)  # Timestamp when the schedule expires
+    .set_wait_for_expiry(True)  # If true, executes only when expired even if all signatures present
+    .freeze_with(client)
+    .sign(sender_private_key)  # Sign with the account being debited
+    .sign(admin_key)  # Sign with the admin key
+    .sign(payer_account_private_key) # Sign with the payer key
+    .execute(client)
+)
+```
+
+## Schedule Transactions
+
+### Creating a Schedule
+
+#### Pythonic Syntax:
+```python
+# First, create a transaction to be scheduled (e.g., a transfer transaction)
+transfer_tx = TransferTransaction(
+    hbar_transfers={
+        sender_id: -amount,  # Negative amount = debit
+        recipient_id: amount  # Positive amount = credit
+    }
+)
+
+# There are two equivalent approaches to creating scheduled transactions:
+
+# Approach 1: Use transaction.schedule() to generate a pre-configured ScheduleCreateTransaction
+# This internally creates a ScheduleCreateTransaction and sets the scheduled transaction
+schedule_tx1 = transfer_tx.schedule()
+# Then you can use the setter methods to configure additional parameters
+# schedule_tx1.set_payer_account_id(...).set_admin_key(...).etc
+
+# Approach 2: Create a ScheduleCreateTransaction with params directly
+schedule_tx = ScheduleCreateTransaction(
+    schedule_params=ScheduleCreateParams(
+        payer_account_id=client.operator_account_id,
+        admin_key=admin_key.public_key(),
+        expiration_time=expiration_time,  # Timestamp when the schedule expires
+        wait_for_expiry=True  # If true, executes only when expired even if all signatures present
+    )
+)
+# Set the transaction to be scheduled
+schedule_tx.set_scheduled_transaction(transfer_tx)
+schedule_tx.freeze_with(client)
+
+# Sign with required keys (any account being debited must sign)
+schedule_tx.sign(sender_private_key)
+schedule_tx.sign(admin_key)
+schedule_tx.sign(payer_account_private_key) # Sign with the payer key
+```
+
+#### Method Chaining:
+```python
+# First, create a transaction to be scheduled (e.g., a transfer transaction)
+transfer_tx = (
+    TransferTransaction()
+    .add_hbar_transfer(sender_id, -amount)  # Negative amount = debit
+    .add_hbar_transfer(recipient_id, amount)  # Positive amount = credit
+)
+
+# Convert it to a scheduled transaction
+# Using schedule() is equivalent to:
+# schedule_tx = ScheduleCreateTransaction()
+# schedule_tx.set_scheduled_transaction(transfer_tx)
+schedule_tx = transfer_tx.schedule()
+
+# Configure the scheduled transaction
+receipt = (
+    schedule_tx
+    .set_payer_account_id(payer_account_id)
+    .set_admin_key(admin_key.public_key())
+    .set_expiration_time(expiration_time)  # Timestamp when the schedule expires
+    .set_wait_for_expiry(True)  # If true, executes only when expired even if all signatures present
+    .freeze_with(client)
+    .sign(sender_private_key)  # Sign with the account being debited
+    .sign(admin_key)  # Sign with the admin key
+    .sign(payer_account_private_key) # Sign with the payer key
+    .execute(client)
+)
+```
+
+### Executing Ethereum Transactions
+
+#### Pythonic Syntax:
+```python
+# You must provide signed Ethereum transaction data (see how to generate this in examples/ethereum_transaction_execute.py)
+transaction = EthereumTransaction(
+    ethereum_data=ethereum_transaction_data
+).freeze_with(client)
+
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# You must provide signed Ethereum transaction data (see how to generate this in examples/ethereum_transaction_execute.py)
+transaction = (
+    EthereumTransaction()
+    .set_ethereum_data(ethereum_transaction_data)
+    .freeze_with(client)
+)
+
 transaction.execute(client)
 ```
 

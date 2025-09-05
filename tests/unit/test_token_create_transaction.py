@@ -29,7 +29,7 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import (
     transaction_pb2,
-    transaction_body_pb2,
+    transaction_pb2,
     transaction_contents_pb2,
     timestamp_pb2,
 )
@@ -38,6 +38,9 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -359,7 +362,7 @@ def test_to_proto_without_keys(mock_account_ids, mock_client):
     )
     assert len(signed_tx.bodyBytes) > 0
 
-    transaction_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    transaction_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Verify the transaction built was correctly serialized to and from proto.
     assert transaction_body.tokenCreation.name == "MyToken"
@@ -419,7 +422,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     assert len(signed_tx.bodyBytes) > 0
 
     # 3) Finally parse the TransactionBody
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Confirm fields set in the token creation portion of the TransactionBody
     assert tx_body.tokenCreation.name == "MyToken"
@@ -561,7 +564,7 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
 
     # Parse the TransactionBody from SignedTransaction.bodyBytes
     # bodyBytes: A byte array containing a serialized `TransactionBody`.
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Check that updated values made it into tokenCreation
     assert tx_body.tokenCreation.name == "MyUpdatedToken"
@@ -734,7 +737,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     assert len(signed_tx.bodyBytes) > 0
 
     # Finally parse the TransactionBody
-    tx_body = transaction_body_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
+    tx_body = transaction_pb2.TransactionBody.FromString(signed_tx.bodyBytes)
 
     # Verify the NFT-specific fields
     assert tx_body.tokenCreation.name == "MyNFTToken"
@@ -833,3 +836,81 @@ def test_supply_type_and_max_supply_validation(
         assert body.tokenCreation.supplyType == supply_type.value
         assert body.tokenCreation.maxSupply == max_supply
         assert body.tokenCreation.initialSupply == initial_supply
+
+def test_build_scheduled_body_fungible_token(mock_account_ids, private_key):
+    """Test building a scheduled transaction body for fungible token creation."""
+    treasury_account, _, _, _, _ = mock_account_ids
+    
+    # Prepare token parameters for a fungible token
+    params = TokenParams(
+        token_name="TestToken",
+        token_symbol="TTK",
+        treasury_account_id=treasury_account,
+        decimals=2,
+        initial_supply=1000,
+        token_type=TokenType.FUNGIBLE_COMMON,
+        supply_type=SupplyType.INFINITE,
+    )
+    
+    # Prepare token keys
+    keys = TokenKeys(
+        admin_key=private_key,
+        supply_key=private_key
+    )
+    
+    # Create the transaction
+    token_tx = TokenCreateTransaction(params, keys)
+
+    schedulable_body = token_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenCreation")
+    assert schedulable_body.tokenCreation.name == "TestToken"
+    assert schedulable_body.tokenCreation.symbol == "TTK"
+    assert schedulable_body.tokenCreation.treasury == treasury_account._to_proto()
+    assert schedulable_body.tokenCreation.decimals == 2
+    assert schedulable_body.tokenCreation.initialSupply == 1000
+    assert schedulable_body.tokenCreation.tokenType == TokenType.FUNGIBLE_COMMON.value
+    assert schedulable_body.tokenCreation.supplyType == SupplyType.INFINITE.value
+    assert schedulable_body.tokenCreation.adminKey.HasField("ed25519")
+    assert schedulable_body.tokenCreation.supplyKey.HasField("ed25519")
+    
+def test_build_scheduled_body_nft(mock_account_ids, private_key):
+    """Test building a scheduled transaction body for NFT token creation."""
+    treasury_account, _, _, _, _ = mock_account_ids
+    
+    # Prepare token parameters for an NFT
+    params = TokenParams(
+        token_name="TestNFT",
+        token_symbol="TNFT",
+        treasury_account_id=treasury_account,
+        token_type=TokenType.NON_FUNGIBLE_UNIQUE,
+        supply_type=SupplyType.FINITE,
+        max_supply=1000,
+    )
+    
+    # Prepare token keys
+    keys = TokenKeys(
+        admin_key=private_key,
+        supply_key=private_key,
+        wipe_key=private_key
+    )
+    
+    # Create the transaction
+    token_tx = TokenCreateTransaction(params, keys)
+    
+    schedulable_body = token_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenCreation")
+    assert schedulable_body.tokenCreation.name == "TestNFT"
+    assert schedulable_body.tokenCreation.symbol == "TNFT"
+    assert schedulable_body.tokenCreation.treasury == treasury_account._to_proto()
+    assert schedulable_body.tokenCreation.tokenType == TokenType.NON_FUNGIBLE_UNIQUE.value
+    assert schedulable_body.tokenCreation.supplyType == SupplyType.FINITE.value
+    assert schedulable_body.tokenCreation.maxSupply == 1000
+    assert schedulable_body.tokenCreation.adminKey.HasField("ed25519")
+    assert schedulable_body.tokenCreation.supplyKey.HasField("ed25519")
+    assert schedulable_body.tokenCreation.wipeKey.HasField("ed25519")

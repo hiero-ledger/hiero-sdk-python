@@ -21,6 +21,9 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
@@ -89,6 +92,41 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, execute_
     assert transaction_body.contractCall.amount == execute_params["amount"]
     assert (
         transaction_body.contractCall.functionParameters
+        == execute_params["function_parameters"]
+    )
+
+def test_build_scheduled_body_with_valid_parameters(mock_account_ids, execute_params):
+    """Test building a schedulable contract execute transaction body with valid parameters."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    execute_tx = ContractExecuteTransaction(
+        contract_id=execute_params["contract_id"],
+        gas=execute_params["gas"],
+        amount=execute_params["amount"],
+        function_parameters=execute_params["function_parameters"],
+    )
+
+    # Set operator and node account IDs needed for building transaction body
+    execute_tx.operator_account_id = operator_id
+    execute_tx.node_account_id = node_account_id
+
+    schedulable_body = execute_tx.build_scheduled_body()
+
+    # Verify correct return type
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with contract call type
+    assert schedulable_body.HasField("contractCall")
+
+    # Verify fields in the schedulable body
+    assert (
+        schedulable_body.contractCall.contractID
+        == execute_params["contract_id"]._to_proto()
+    )
+    assert schedulable_body.contractCall.gas == execute_params["gas"]
+    assert schedulable_body.contractCall.amount == execute_params["amount"]
+    assert (
+        schedulable_body.contractCall.functionParameters
         == execute_params["function_parameters"]
     )
 

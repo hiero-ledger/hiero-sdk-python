@@ -26,16 +26,16 @@ class TokenRelationship:
         token_id (Optional[TokenId]): The ID of the token.
         symbol (Optional[str]): The symbol of the token.
         balance (Optional[int]): The balance of tokens held by the account.
-        kyc_status (Optional[TokenFreezeStatusProto]): The KYC status of the account for this token.
-        freeze_status (Optional[TokenFreezeStatusProto]): The freeze status of the account.
+        kyc_status (Optional[TokenKycStatus]): The KYC status of the account for this token.
+        freeze_status (Optional[TokenFreezeStatus]): The freeze status of the account.
         decimals (Optional[int]): The number of decimal places used by the token.
         automatic_association (Optional[bool]): If token was auto-associated to the account.
     """
     token_id: Optional[TokenId] = None
     symbol: Optional[str] = None
     balance: Optional[int] = None
-    kyc_status: Optional[TokenFreezeStatusProto] = None
-    freeze_status: Optional[TokenFreezeStatusProto] = None
+    kyc_status: Optional[TokenKycStatus] = None
+    freeze_status: Optional[TokenFreezeStatus] = None
     decimals: Optional[int] = None
     automatic_association: Optional[bool] = None
 
@@ -80,3 +80,4 @@ class TokenRelationship:
             decimals=self.decimals,
             automatic_association=self.automatic_association
         )
+        

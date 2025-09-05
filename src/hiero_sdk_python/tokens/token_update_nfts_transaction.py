@@ -13,7 +13,10 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from google.protobuf.wrappers_pb2 import BytesValue
 
 class TokenUpdateNftsTransaction(Transaction):
@@ -63,13 +66,13 @@ class TokenUpdateNftsTransaction(Transaction):
         self.metadata = metadata
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token update NFTs.
-
-        Returns:
-            TransactionBody: The protobuf transaction body containing the token update NFTs details.
+        Returns the protobuf body for the token update NFTs transaction.
         
+        Returns:
+            TokenUpdateNftsTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If the token ID and serial numbers are not set 
             or metadata is greater than 100 bytes.
@@ -83,15 +86,35 @@ class TokenUpdateNftsTransaction(Transaction):
         if self.metadata and len(self.metadata) > 100:
             raise ValueError("Metadata must be less than 100 bytes")
 
-        token_update_body = TokenUpdateNftsTransactionBody(
+        return TokenUpdateNftsTransactionBody(
             token=self.token_id._to_proto(),
             serial_numbers=self.serial_numbers,
             metadata=BytesValue(value=self.metadata)
         )
+        
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for token update NFTs.
 
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token update NFTs details.
+        """
+        token_update_body = self._build_proto_body()
+        transaction_body = self.build_base_transaction_body()
         transaction_body.token_update_nfts.CopyFrom(token_update_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token update NFTs transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.token_update_nfts.CopyFrom(token_update_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

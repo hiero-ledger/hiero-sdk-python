@@ -15,7 +15,7 @@ from google.protobuf.wrappers_pb2 import BytesValue, Int64Value
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
 from hiero_sdk_python.contract.contract_nonce_info import ContractNonceInfo
-from hiero_sdk_python.hapi.services import contract_call_local_pb2
+from hiero_sdk_python.hapi.services import contract_types_pb2
 
 
 @dataclass
@@ -451,7 +451,7 @@ class ContractFunctionResult:
 
     @classmethod
     def _from_proto(
-        cls, proto: contract_call_local_pb2.ContractFunctionResult
+        cls, proto: contract_types_pb2.ContractFunctionResult
     ) -> "ContractFunctionResult":
         """
         Deserializes a ContractFunctionResult from a protobuf message.
@@ -499,14 +499,14 @@ class ContractFunctionResult:
             signer_nonce=proto.signer_nonce.value if proto.signer_nonce else None,
         )
 
-    def _to_proto(self) -> contract_call_local_pb2.ContractFunctionResult:
+    def _to_proto(self) -> contract_types_pb2.ContractFunctionResult:
         """
         Serializes a ContractFunctionResult to a protobuf message.
 
         Returns:
             A protobuf message representing the ContractFunctionResult.
         """
-        return contract_call_local_pb2.ContractFunctionResult(
+        return contract_types_pb2.ContractFunctionResult(
             contractID=self.contract_id._to_proto() if self.contract_id else None,
             contractCallResult=self.contract_call_result,
             errorMessage=self.error_message,

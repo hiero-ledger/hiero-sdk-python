@@ -51,7 +51,7 @@ def file_create():
         print(f"File creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
     
-    file_id = receipt.fileId
+    file_id = receipt.file_id
     print(f"File created successfully with ID: {file_id}")
 
 if __name__ == "__main__":
