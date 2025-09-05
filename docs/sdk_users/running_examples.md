@@ -66,6 +66,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Executing Ethereum Transactions](#executing-ethereum-transactions)
 - [Schedule Transactions](#schedule-transactions)
   - [Creating a Schedule](#creating-a-schedule)
+- [Node Transactions](#node-transactions)
+  - [Creating a Node](#creating-a-node)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 
@@ -1589,7 +1591,61 @@ receipt = (
 )
 ```
 
+## Node Transactions
 
+### Creating a Node
+
+> **IMPORTANT**: Node creation is a privileged transaction only available on local development networks like "solo". Regular developers do not have permission to create nodes on testnet or mainnet as this operation requires special authorization.
+
+#### Pythonic Syntax:
+```python
+transaction = NodeCreateTransaction(
+    node_create_params=NodeCreateParams(
+        account_id=account_id,
+        description="Example node",
+        gossip_endpoints=[
+            Endpoint(domain_name="gossip1.example.com", port=50211),
+            Endpoint(domain_name="gossip2.example.com", port=50212)
+        ],
+        service_endpoints=[
+            Endpoint(domain_name="service1.example.com", port=50211),
+            Endpoint(domain_name="service2.example.com", port=50212)
+        ],
+        gossip_ca_certificate=gossip_ca_cert,
+        admin_key=admin_key.public_key(),
+        decline_reward=True,
+        grpc_web_proxy_endpoint=Endpoint(domain_name="grpc.example.com", port=50213)
+    )
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Sign with admin key
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    NodeCreateTransaction()
+    .set_account_id(account_id)
+    .set_description("Example node")
+    .set_gossip_endpoints([
+        Endpoint(domain_name="gossip1.example.com", port=50211),
+        Endpoint(domain_name="gossip2.example.com", port=50212)
+    ])
+    .set_service_endpoints([
+        Endpoint(domain_name="service1.example.com", port=50211),
+        Endpoint(domain_name="service2.example.com", port=50212)
+    ])
+    .set_gossip_ca_certificate(gossip_ca_cert)
+    .set_admin_key(admin_key.public_key())
+    .set_grpc_web_proxy_endpoint(Endpoint(domain_name="grpc.example.com", port=50213))
+    .set_decline_reward(True)
+    .freeze_with(client)
+)
+
+transaction.sign(admin_key)  # Sign with the admin key
+receipt = transaction.execute(client)
+```
 
 ## Miscellaneous Queries
 
