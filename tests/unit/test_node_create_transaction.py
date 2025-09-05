@@ -9,6 +9,9 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.nodes.node_create_transaction import (
     NodeCreateParams,
     NodeCreateTransaction,
@@ -93,6 +96,41 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, node_par
 
     # Verify all fields are correctly set
     node_create = transaction_body.nodeCreate
+    assert node_create.account_id == node_params["account_id"]._to_proto()
+    assert node_create.description == node_params["description"]
+    assert len(node_create.gossip_endpoint) == 1
+    assert (
+        node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
+    )
+    assert len(node_create.service_endpoint) == 1
+    assert (
+        node_create.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
+    )
+    assert node_create.gossip_ca_certificate == node_params["gossip_ca_certificate"]
+    assert node_create.grpc_certificate_hash == node_params["grpc_certificate_hash"]
+    assert node_create.admin_key == node_params["admin_key"]._to_proto()
+    assert node_create.decline_reward == node_params["decline_reward"]
+    assert (
+        node_create.grpc_proxy_endpoint
+        == node_params["grpc_web_proxy_endpoint"]._to_proto()
+    )
+
+
+def test_build_scheduled_body(node_params):
+    """Test building a schedulable node create transaction body."""
+    node_create_params = NodeCreateParams(**node_params)
+    node_tx = NodeCreateTransaction(node_create_params=node_create_params)
+
+    schedulable_body = node_tx.build_scheduled_body()
+
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with node create type
+    assert schedulable_body.HasField("nodeCreate")
+
+    # Verify fields in the schedulable body
+    node_create = schedulable_body.nodeCreate
     assert node_create.account_id == node_params["account_id"]._to_proto()
     assert node_create.description == node_params["description"]
     assert len(node_create.gossip_endpoint) == 1
