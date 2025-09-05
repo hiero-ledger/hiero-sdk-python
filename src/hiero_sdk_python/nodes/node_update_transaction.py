@@ -3,7 +3,7 @@ NodeUpdateTransaction class.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from google.protobuf.wrappers_pb2 import BoolValue, BytesValue, StringValue
 
@@ -250,6 +250,14 @@ class NodeUpdateTransaction(Transaction):
         self.grpc_web_proxy_endpoint = grpc_web_proxy_endpoint
         return self
 
+    def _convert_to_proto(self, obj: Optional[Any]) -> Any:
+        """Convert object to proto if it exists, otherwise return None"""
+        return obj._to_proto() if obj else None
+
+    def _convert_to_proto_list(self, obj: Optional[List[Any]]) -> Any:
+        """Convert list of objects to proto if it exists, otherwise return empty list"""
+        return [obj._to_proto() for obj in obj or []]
+
     def _build_proto_body(self) -> NodeUpdateTransactionBody:
         """
         Returns the protobuf body for the node update transaction.
@@ -259,18 +267,14 @@ class NodeUpdateTransaction(Transaction):
         """
         return NodeUpdateTransactionBody(
             node_id=self.node_id,
-            account_id=self.account_id._to_proto() if self.account_id else None,
+            account_id=self._convert_to_proto(self.account_id),
             description=(
                 StringValue(value=self.description)
                 if self.description is not None
                 else None
             ),
-            gossip_endpoint=[
-                endpoint._to_proto() for endpoint in self.gossip_endpoints or []
-            ],
-            service_endpoint=[
-                endpoint._to_proto() for endpoint in self.service_endpoints or []
-            ],
+            gossip_endpoint=self._convert_to_proto_list(self.gossip_endpoints),
+            service_endpoint=self._convert_to_proto_list(self.service_endpoints),
             gossip_ca_certificate=(
                 BytesValue(value=self.gossip_ca_certificate)
                 if self.gossip_ca_certificate is not None
@@ -281,17 +285,13 @@ class NodeUpdateTransaction(Transaction):
                 if self.grpc_certificate_hash is not None
                 else None
             ),
-            admin_key=self.admin_key._to_proto() if self.admin_key else None,
+            admin_key=self._convert_to_proto(self.admin_key),
             decline_reward=(
                 BoolValue(value=self.decline_reward)
                 if self.decline_reward is not None
                 else None
             ),
-            grpc_proxy_endpoint=(
-                self.grpc_web_proxy_endpoint._to_proto()
-                if self.grpc_web_proxy_endpoint
-                else None
-            ),
+            grpc_proxy_endpoint=self._convert_to_proto(self.grpc_web_proxy_endpoint),
         )
 
     def build_transaction_body(self) -> TransactionBody:
