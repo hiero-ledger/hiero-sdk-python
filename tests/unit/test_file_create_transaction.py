@@ -12,6 +12,9 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services import transaction_get_receipt_pb2, response_header_pb2
 from hiero_sdk_python.hapi.services import file_create_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -80,6 +83,35 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.fileCreate.keys == expected_keys
     assert transaction_body.fileCreate.contents == b"Test content"
     assert transaction_body.fileCreate.memo == "Test memo"
+
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a schedulable file create transaction body with valid values."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    private_key = PrivateKey.generate()
+    public_key = private_key.public_key()
+    key_list = [public_key]
+
+    file_tx = FileCreateTransaction(
+        keys=key_list,
+        contents=b"Test schedulable content",
+        file_memo="Test schedulable memo"
+    )
+
+    # Set operator and node account IDs needed for building transaction body
+    file_tx.operator_account_id = operator_id
+    file_tx.node_account_id = node_account_id
+
+    schedulable_body = file_tx.build_scheduled_body()
+
+    # Verify correct return type
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify fields in the schedulable body
+    expected_keys = basic_types_pb2.KeyList(keys=[key._to_proto() for key in key_list])
+    assert schedulable_body.fileCreate.keys == expected_keys
+    assert schedulable_body.fileCreate.contents == b"Test schedulable content"
+    assert schedulable_body.fileCreate.memo == "Test schedulable memo"
 
 def test_set_methods():
     """Test the set methods of FileCreateTransaction."""
