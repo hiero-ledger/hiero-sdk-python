@@ -46,6 +46,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Renamed test_token_cancel_airdrop_transaction in unit tests to test_token_airdrop_transaction_cancel
 - Renamed test_pending_airdrop_record in unit tests to test_token_airdrop_pending_record
 - Renamed test_pending_airdrop_id in unit tests to test_token_airdrop_pending_id
+- Renamed token_cancel_airdrop_transaction_e2e in integration tests to token_airdrop_transaction_cancel_e2e_test
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
