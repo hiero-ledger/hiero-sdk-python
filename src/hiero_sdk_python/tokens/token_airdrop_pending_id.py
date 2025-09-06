@@ -45,21 +45,31 @@ class PendingAirdropId:
    @classmethod
    def _from_proto(cls, proto: basic_types_pb2.PendingAirdropId) -> "PendingAirdropId":
        """
-       Create a PendingAirdropId instance from protobuf message.
+       Create a PendingAirdropId instance from protobuf message or Python object.
 
        Args:
-           proto (basic_types_pb2.PendingAirdropId):
-           The protobuf message containing PendingAirdropId information.
+           proto (basic_types_pb2.PendingAirdropId or PendingAirdropId):
+           The protobuf message or Python PendingAirdropId object.
 
        Returns:
-           PendingAirdropId: A new PendingAirdropId instance populated with data from the protobuf message.
+           PendingAirdropId: A new PendingAirdropId instance populated with data.
        """
+       # If the object does not have HasField, assume it's already a Python PendingAirdropId
+       if not hasattr(proto, "HasField"):
+           return cls(
+              sender_id=proto.sender_id,
+              receiver_id=proto.receiver_id,
+              token_id=getattr(proto, "token_id", None),
+              nft_id=getattr(proto, "nft_id", None),
+           )
+
+       # Otherwise, treat it as a protobuf
        fungible_token_type = None
-       if (proto.HasField("fungible_token_type")):
+       if proto.HasField("fungible_token_type"):
            fungible_token_type = TokenId._from_proto(proto.fungible_token_type)
 
        non_fungible_token = None
-       if (proto.HasField("non_fungible_token")):
+       if proto.HasField("non_fungible_token"):
            non_fungible_token = NftId._from_proto(proto.non_fungible_token)
 
        return cls(
@@ -68,7 +78,7 @@ class PendingAirdropId:
            token_id=fungible_token_type,
            nft_id=non_fungible_token
        )
-  
+
    def _to_proto(self) -> basic_types_pb2.PendingAirdropId:
        """
        Converts this PendingAirdropId instance to its protobuf representation.
@@ -77,11 +87,11 @@ class PendingAirdropId:
            basic_types_pb2.PendingAirdropId: The protobuf representation of the PendingAirdropId.
        """
        fungible_token_type = None
-       if (self.token_id):
+       if self.token_id:
            fungible_token_type = self.token_id._to_proto()
 
        non_fungible_token = None
-       if (self.nft_id):
+       if self.nft_id:
            non_fungible_token = self.nft_id._to_proto()
 
        return basic_types_pb2.PendingAirdropId(
