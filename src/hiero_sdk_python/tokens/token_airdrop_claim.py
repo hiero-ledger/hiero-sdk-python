@@ -14,7 +14,7 @@ from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import ( # pylint: disable=no-name-in-module
     TokenClaimAirdropTransactionBody,
 )
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -149,7 +149,7 @@ class TokenClaimAirdropTransaction(Transaction):
         inst._validate_all(inst._pending_airdrop_ids)
         return inst
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody: # pylint: disable=no-member
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody: # pylint: disable=no-member
         """Build the TransactionBody for this claim.
 
         Returns:
@@ -164,7 +164,7 @@ class TokenClaimAirdropTransaction(Transaction):
         pending_airdrop_claim_body = TokenClaimAirdropTransactionBody(
             pending_airdrops=self._pending_airdrop_ids_to_proto()
         )
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body() # pylint: disable=no-member
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body() # pylint: disable=no-member
         transaction_body.tokenClaimAirdrop.CopyFrom(pending_airdrop_claim_body)
         return transaction_body
 
