@@ -27,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractId.to_evm_address() method for EVM compatibility
 - consumeLargeData() function in StatefulContract
 - example script for Token Airdrop
+- added variables directly in the example script to reduce the need for users to supply extra environment variables.
 
 ### Changed
 - Extract _build_proto_body() from build_transaction_body() in every transaction
@@ -46,7 +47,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Invalid DRE Hex representation in examples/keys_private_ecdsa.py
 - Windows malformed path using uv run generate_proto.py using as_posix()
 - Changed README MIT license to Apache
-- adding variables directly in the example script to reduce the need for users to supply extra environment variables.
 
 ### Removed
 - Removed the old `/documentation` folder.
