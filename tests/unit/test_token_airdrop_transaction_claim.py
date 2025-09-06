@@ -7,7 +7,7 @@ from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import ( # pylint: disable=no-name-in-module
     TokenClaimAirdropTransactionBody,
 )
@@ -188,7 +188,7 @@ def test_build_transaction_body_populates_proto():
     )
     tx_claim.node_account_id = AccountId(0, 0, 3)  # dummy node account
 
-    body: transaction_body_pb2.TransactionBody = tx_claim.build_transaction_body()
+    body: transaction_pb2.TransactionBody = tx_claim.build_transaction_body()
 
     claim = body.tokenClaimAirdrop
     assert isinstance(claim, TokenClaimAirdropTransactionBody)
