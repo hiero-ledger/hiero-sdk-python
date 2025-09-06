@@ -43,6 +43,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
 - Renamed cancel_token_airdrop to token_airdrop_cancel in examples
 - Renamed token_airdrop_cancel_transaction or token_airdrop_cancel in src
+- Renamed test_token_cancel_airdrop_transaction in unit tests to test_token_airdrop_transaction_cancel
+- Renamed test_pending_airdrop_record in unit tests to test_token_airdrop_pending_record
+- Renamed test_pending_airdrop_id in unit tests to test_token_airdrop_pending_id
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
