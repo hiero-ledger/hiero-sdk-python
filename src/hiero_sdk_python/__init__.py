@@ -40,6 +40,7 @@ from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
 from .tokens.token_nft_info import TokenNftInfo
 from .tokens.token_relationship import TokenRelationship
+from .tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -156,6 +157,7 @@ __all__ = [
     "PendingAirdropRecord",
     "TokenType",
     "SupplyType",
+    "TokenClaimAirdropTransaction",
 
     # Transaction
     "TransferTransaction",
