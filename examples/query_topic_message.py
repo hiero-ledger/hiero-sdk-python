@@ -3,7 +3,9 @@ import time
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
-from hiero_sdk_python import Network, Client, TopicMessageQuery
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
 
 load_dotenv()
 
