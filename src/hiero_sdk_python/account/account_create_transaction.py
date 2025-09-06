@@ -23,7 +23,8 @@ class AccountCreateTransaction(Transaction):
         initial_balance: Union[Hbar, int] = 0,
         receiver_signature_required: bool = False,
         auto_renew_period: Duration = Duration(7890000),  # 90 days in seconds
-        memo: str = ""
+        memo: str = "",
+        max_automatic_token_associations: int = 0 
      ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values or specified keyword arguments.
@@ -41,6 +42,7 @@ class AccountCreateTransaction(Transaction):
         self.receiver_signature_required = receiver_signature_required
         self.auto_renew_period = auto_renew_period
         self.account_memo = memo
+        self.max_automatic_token_associations = max_automatic_token_associations  # NEW ✅
         self._default_transaction_fee = 300_000_000
 
     def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
@@ -122,6 +124,14 @@ class AccountCreateTransaction(Transaction):
         self.account_memo = memo
         return self
 
+    def set_max_automatic_token_associations(self, max_assoc: int) -> "AccountCreateTransaction":
+        """Sets the maximum number of automatic token associations for the account."""
+        self._require_not_frozen()
+        if max_assoc < 0:
+            raise ValueError("max_automatic_token_associations must be a non-negative integer.")
+        self.max_automatic_token_associations = max_assoc
+        return self
+
     def _build_proto_body(self):
         """
         Returns the protobuf body for the account create transaction.
@@ -148,7 +158,8 @@ class AccountCreateTransaction(Transaction):
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
-            memo=self.account_memo
+            memo=self.account_memo,
+            max_automatic_token_associations=self.max_automatic_token_associations
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
