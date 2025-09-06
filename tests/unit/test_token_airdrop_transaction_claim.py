@@ -13,6 +13,7 @@ from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import ( # pylint: d
 )
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import TokenClaimAirdropTransactionBody
 
 pytestmark = pytest.mark.unit
 
@@ -277,3 +278,24 @@ def test_cannot_mutate_after_freeze_if_supported(mock_client):
             transaction_claim.add_pending_airdrop_id(
                 PendingAirdropId(sender_account, receiver_account, None, NftId(TokenId(0, 0, 9085), 1))
             )
+
+def test_reject_pending_airdrop_with_both_token_and_nft():
+    """A PendingAirdropId must not have both token_id and nft_id at the same time"""
+    sender = AccountId(0, 0, 9111)
+    receiver = AccountId(0, 0, 9112)
+
+    token_id = TokenId(0, 0, 5001)
+    nft_id = NftId(TokenId(0, 0, 5002), 1)
+
+    # Expect ValueError because both token_id and nft_id are provided
+    with pytest.raises(ValueError, match="Exactly one of 'token_id' or 'nft_id' must be required."):
+        PendingAirdropId(sender, receiver, token_id, nft_id)
+
+def test_from_proto_with_invalid_pending_airdrop():
+    """_from_proto should raise if proto contains a PendingAirdropId with neither token_id nor nft_id"""
+    sender = AccountId(0, 0, 9111)
+    receiver = AccountId(0, 0, 9112)
+
+    # Build an invalid PendingAirdropId (both token_id and nft_id are None)
+    with pytest.raises(ValueError):
+        PendingAirdropId(sender, receiver, token_id=None, nft_id=None)
