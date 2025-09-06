@@ -29,7 +29,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - example script for Token Airdrop
 - added variables directly in the example script to reduce the need for users to supply extra environment variables.
 - Added new `merge_conflicts.md` with detailed guidance on handling conflicts during rebase.
-- examples.md in docs/sdk_developers
 
 ### Changed
 - Extract _build_proto_body() from build_transaction_body() in every transaction
@@ -51,7 +50,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Invalid DRE Hex representation in examples/keys_private_ecdsa.py
 - Windows malformed path using uv run generate_proto.py using as_posix()
 - Changed README MIT license to Apache
-- running_examples.md in /docs/sdk_users renamed to examples.md
 - deprecated CamelCase instances in /examples such as TokenId and totalSupply to snake_case
 
 ### Removed
