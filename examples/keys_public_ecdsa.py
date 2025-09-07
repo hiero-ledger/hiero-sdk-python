@@ -1,10 +1,10 @@
 """
 Example file: Working with an ECDSA (secp256k1) PublicKey using the PublicKey class.
 """
-from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import ec, utils
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.public_key import PublicKey, keccak256
 
 def example_load_compressed_ecdsa() -> None:
     """
@@ -53,7 +53,7 @@ def example_verify_ecdsa_signature() -> None:
     
     # 2) Sign some data
     data = b"Hello ECDSA"
-    signature = private_key.sign(data, ec.ECDSA(hashes.SHA256()))
+    signature = private_key.sign(keccak256(data), ec.ECDSA(utils.Prehashed(hashes.SHA256())))
     
     # 3) Verify with pubk_obj
     try:
