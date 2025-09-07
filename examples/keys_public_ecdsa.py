@@ -28,8 +28,8 @@ def example_load_uncompressed_ecdsa_from_hex() -> None:
     # Uncompressed secp256k1 public keys start with 0x04 and are 65 bytes total.
     uncompressed_hex = (
         "04"
-        "18a5fcc2a9af70f6248efa1a2b0cc7d6cf973f43ae6c041ff35a1a3f7d947ba6"
-        "15ba91825331ad2ce55d44469d4e874a997e3888e20e2d50322d52c365cad7f3e"
+        "0abe0517fcf06e0c160ca821aa2909945752e08169f46c984cb6b02076a3b"
+        "29513f047e5c13770101c321f332157377d2862b7c7ed14eedca3978b3b9d007659"
     )
     
     # 1) Load directly from a hex string using the specialized from_string_ecdsa().
