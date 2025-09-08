@@ -32,6 +32,7 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
+from importlib.resources import files as pkg_files
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Set, Tuple
@@ -254,27 +255,18 @@ def run_protoc(
         logging.info("No .proto files to compile (skipping).")
         return
 
-    # Add grpc_tools' bundled google protos include path
-    try:
-        # setuptools/pkg_resources works with grpc_tools wheels
-        from pkg_resources import resource_filename
-        google_include = resource_filename("grpc_tools", "_proto")
-    except Exception as _:
-        # Fallback for environments without pkg_resources
-        import importlib_resources  # type: ignore
-        google_include = str(importlib_resources.files("grpc_tools").joinpath("_proto"))
+    google_include = str(pkg_files("grpc_tools").joinpath("_proto"))
 
     args: list[str] = ["protoc"]
-    # 1) our temp normalized include(s)
     for pp in proto_paths:
-        args += ["-I", str(pp)]
-    # 2) google well-known types include
+        args += ["-I", pp.as_posix()]
     args += ["-I", google_include]
 
     args += ["--python_out", str(out_py), "--grpc_python_out", str(out_grpc)]
     if pyi_out:
         args += ["--pyi_out", str(out_py)]
-    args += [str(f) for f in files]
+    # as_posix forces a return of the paths as / as required for protoc    
+    args += [f.as_posix() for f in files]
 
     logging.trace("protoc args: %s", " ".join(args))
     from grpc_tools import protoc

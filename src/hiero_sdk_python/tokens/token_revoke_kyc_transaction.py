@@ -7,6 +7,9 @@ Know-Your-Customer (KYC) status from an account for a specific token on the
 Hedera network via the Hedera Token Service (HTS) API.
 """
 from hiero_sdk_python.hapi.services.token_revoke_kyc_pb2 import TokenRevokeKycTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -62,12 +65,12 @@ class TokenRevokeKycTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds the transaction body for this token revoke KYC transaction.
-
+        Returns the protobuf body for the token revoke KYC transaction.
+        
         Returns:
-            TransactionBody: The built transaction body.
+            TokenRevokeKycTransactionBody: The protobuf body for this transaction.
             
         Raises:
             ValueError: If the token ID or account ID is not set.
@@ -78,13 +81,34 @@ class TokenRevokeKycTransaction(Transaction):
         if self.account_id is None:
             raise ValueError("Missing account ID")
 
-        token_revoke_kyc_body = TokenRevokeKycTransactionBody(
+        return TokenRevokeKycTransactionBody(
             token=self.token_id._to_proto(),
             account=self.account_id._to_proto()
         )
+        
+    def build_transaction_body(self):
+        """
+        Builds the transaction body for this token revoke KYC transaction.
+
+        Returns:
+            TransactionBody: The built transaction body.
+        """
+        token_revoke_kyc_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenRevokeKyc.CopyFrom(token_revoke_kyc_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token revoke KYC transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_revoke_kyc_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenRevokeKyc.CopyFrom(token_revoke_kyc_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
 from hiero_sdk_python.tokens.token_cancel_airdrop_transaction import TokenCancelAirdropTransaction
@@ -231,3 +234,35 @@ def test_to_proto(mock_account_ids, mock_client):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
+    
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token cancel airdrop transaction."""
+    sender_id, receiver_id, _, token_id, token_id_2 = mock_account_ids
+    
+    token_pending_airdrop = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, token_id=token_id)
+    nft_pending_airdrop = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, nft_id=NftId(token_id_2, 10))
+    
+    cancel_airdrop_tx = TokenCancelAirdropTransaction()
+    cancel_airdrop_tx.add_pending_airdrop(token_pending_airdrop)
+    cancel_airdrop_tx.add_pending_airdrop(nft_pending_airdrop)
+    
+    schedulable_body = cancel_airdrop_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenCancelAirdrop")
+    assert len(schedulable_body.tokenCancelAirdrop.pending_airdrops) == 2
+    
+    # Verify the pending airdrop fields
+    proto_pending_airdrop = schedulable_body.tokenCancelAirdrop.pending_airdrops[0]
+    assert proto_pending_airdrop.sender_id == sender_id._to_proto()
+    assert proto_pending_airdrop.receiver_id == receiver_id._to_proto()
+    assert proto_pending_airdrop.fungible_token_type == token_id._to_proto()
+    assert proto_pending_airdrop.HasField("non_fungible_token") == False
+
+    proto_pending_airdrop = schedulable_body.tokenCancelAirdrop.pending_airdrops[1]
+    assert proto_pending_airdrop.sender_id == sender_id._to_proto()
+    assert proto_pending_airdrop.receiver_id == receiver_id._to_proto()
+    assert proto_pending_airdrop.non_fungible_token.token_ID == token_id_2._to_proto()
+    assert proto_pending_airdrop.non_fungible_token.serial_number == 10
+    assert proto_pending_airdrop.HasField("fungible_token_type") == False

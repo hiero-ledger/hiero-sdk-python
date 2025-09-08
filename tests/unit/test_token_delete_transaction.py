@@ -2,6 +2,9 @@ import pytest
 from unittest.mock import MagicMock
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
@@ -88,3 +91,17 @@ def test_to_proto(mock_account_ids, mock_client):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
+    
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token delete transaction."""
+    _, _, _, token_id, _ = mock_account_ids
+    
+    delete_tx = TokenDeleteTransaction()
+    delete_tx.set_token_id(token_id)
+
+    schedulable_body = delete_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenDeletion")
+    assert schedulable_body.tokenDeletion.token == token_id._to_proto()

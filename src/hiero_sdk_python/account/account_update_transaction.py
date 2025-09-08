@@ -14,6 +14,9 @@ from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.crypto_update_pb2 import CryptoUpdateTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -162,20 +165,20 @@ class AccountUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds the transaction body for this account update transaction.
+        Returns the protobuf body for the account update transaction.
 
         Returns:
-            TransactionBody: The built protobuf `TransactionBody`.
+            CryptoUpdateTransactionBody: The protobuf body for this transaction.
 
         Raises:
-            ValueError: If `account_id` is not set.
+            ValueError: If account_id is not set.
         """
         if self.account_id is None:
             raise ValueError("Missing required AccountID to update")
 
-        crypto_update_body = CryptoUpdateTransactionBody(
+        return CryptoUpdateTransactionBody(
             accountIDToUpdate=self.account_id._to_proto(),
             key=self.key._to_proto() if self.key else None,
             memo=(
@@ -195,9 +198,30 @@ class AccountUpdateTransaction(Transaction):
                 else None
             ),
         )
+
+    def build_transaction_body(self):
+        """
+        Builds the transaction body for this account update transaction.
+
+        Returns:
+            TransactionBody: The built protobuf `TransactionBody`.
+        """
+        crypto_update_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.cryptoUpdateAccount.CopyFrom(crypto_update_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this account update transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        crypto_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.cryptoUpdateAccount.CopyFrom(crypto_update_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

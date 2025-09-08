@@ -5,6 +5,9 @@ messages to Hedera Consensus Service topics using the Hiero SDK.
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2
 from hiero_sdk_python.hapi.services import transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -56,24 +59,49 @@ class TopicMessageSubmitTransaction(Transaction):
         self.message = message
         return self
 
-    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for message submission.
-        Raises ValueError if required fields (topic_id, message) are missing.
+        Returns the protobuf body for the topic message submit transaction.
+        
+        Returns:
+            ConsensusSubmitMessageTransactionBody: The protobuf body for this transaction.
+            
+        Raises:
+            ValueError: If required fields (topic_id, message) are missing.
         """
         if self.topic_id is None:
             raise ValueError("Missing required fields: topic_id.")
         if self.message is None:
             raise ValueError("Missing required fields: message.")
-
-        transaction_body = self.build_base_transaction_body()
-        transaction_body.consensusSubmitMessage.CopyFrom(
-            consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
-                topicID=self.topic_id._to_proto(),
-                message=bytes(self.message, 'utf-8')
-            )
+            
+        return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+            topicID=self.topic_id._to_proto(),
+            message=bytes(self.message, 'utf-8')
         )
+    
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for message submission.
+
+        Returns:
+            TransactionBody: The protobuf transaction body containing the message submission details.
+        """
+        consensus_submit_message_body = self._build_proto_body()
+        transaction_body = self.build_base_transaction_body()
+        transaction_body.consensusSubmitMessage.CopyFrom(consensus_submit_message_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this topic message submit transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        consensus_submit_message_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.consensusSubmitMessage.CopyFrom(consensus_submit_message_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(

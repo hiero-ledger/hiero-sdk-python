@@ -15,7 +15,6 @@ contract StatefulContract {
     }
 
     function setMessage(bytes32 _msg) external {
-        require(msg.sender == owner, "Only the owner can update the message.");
         message = _msg;
     }
 
@@ -32,6 +31,10 @@ contract StatefulContract {
         require(msg.sender == owner, "Only the owner can withdraw funds.");
         uint256 amount = address(this).balance;
         payable(owner).transfer(amount);
+    }
+
+    function consumeLargeData(bytes calldata data) external {
+        // Do nothing
     }
 
     receive() external payable {}

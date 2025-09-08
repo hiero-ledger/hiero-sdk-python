@@ -5,6 +5,9 @@ from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -119,12 +122,12 @@ class AccountCreateTransaction(Transaction):
         self.account_memo = memo
         return self
 
-    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for account creation.
+        Returns the protobuf body for the account create transaction.
 
         Returns:
-            TransactionBody: The protobuf transaction body containing the account creation details.
+            CryptoCreateTransactionBody: The protobuf body for this transaction.
 
         Raises:
             ValueError: If required fields are missing.
@@ -140,7 +143,7 @@ class AccountCreateTransaction(Transaction):
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
 
-        crypto_create_body = crypto_create_pb2.CryptoCreateTransactionBody(
+        return crypto_create_pb2.CryptoCreateTransactionBody(
             key=self.key._to_proto(),
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
@@ -148,10 +151,29 @@ class AccountCreateTransaction(Transaction):
             memo=self.account_memo
         )
 
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for account creation.
+
+        Returns:
+            TransactionBody: The protobuf transaction body containing the account creation details.
+        """
+        crypto_create_body = self._build_proto_body()
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.cryptoCreateAccount.CopyFrom(crypto_create_body)
-
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this account create transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        crypto_create_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.cryptoCreateAccount.CopyFrom(crypto_create_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

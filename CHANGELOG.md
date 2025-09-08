@@ -7,33 +7,55 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+- Convert camelCase to snake_case in integration tests (#318)
+
 ### Added
+- Exposed node_id property in `TransactionReceipt`
+- NodeCreateTransaction class
+- ScheduleId() class
+- ScheduleCreateTransaction() class
+- build_scheduled_body() in every transaction
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
 - AccountDeleteTransaction Class
 - generate_proto.py
 - Bumped Hedera proto version from v0.57.3 to v0.64.3
+- Added `dev` and `lint` dependency groups as default in `pyproject.toml`
+- EthereumTransaction class
+- AccountId support for ECDSA alias accounts
+- ContractId.to_evm_address() method for EVM compatibility
+- consumeLargeData() function in StatefulContract
+- example script for Token Airdrop
+- added variables directly in the example script to reduce the need for users to supply extra environment variables.
+- Added new `merge_conflicts.md` with detailed guidance on handling conflicts during rebase.
 
 ### Changed
+- Extract _build_proto_body() from build_transaction_body() in every transaction
+- StatefulContract's setMessage() function designed with no access restrictions, allowing calls from any address
 - bump solo version to `v0.12`
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
-- Incorrect naming in README for generate_proto.py to generate_proto.sh
-- Changed README MIT license to Apache
 - Documentation structure updated: contents moved from `/documentation` to `/docs`.
 - Switched Mirror Node endpoints used by SDK to secure ones instead of deprecated insecure endpoints (shut down on Aug 20th, see [Hedera blogpost](https://hedera.com/blog/updated-deprecation-of-the-insecure-hedera-consensus-service-hcs-mirror-node-endpoints))
 - Update protobuf dependency from 5.28.1 to 5.29.1
 - Update grpcio dependency from 1.68.1 to 1.71.2
+- Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
 - Type annotations in TokenRelationship class (kyc_status and freeze_status)
 - Test assertions in test_executable.py using pytest match parameter
+- Moved and renamed README_upstream.md to docs/sdk_developers/rebasing.md
+- Invalid DRE Hex representation in examples/keys_private_ecdsa.py
+- Windows malformed path using uv run generate_proto.py using as_posix()
+- Changed README MIT license to Apache
 
 ### Removed
 - Removed the old `/documentation` folder.
 - Rebase command in README_upstream changed to just -S
 - generate_proto.sh
+- pkg_resources dependency in generate_proto.py
+
 
 ### Breaking API changes
 - We have some changed imports and returns to maintain compatability in the proto bump 

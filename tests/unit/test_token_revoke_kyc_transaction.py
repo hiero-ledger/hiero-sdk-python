@@ -3,6 +3,9 @@ import pytest
 from hiero_sdk_python.hapi.services.token_revoke_kyc_pb2 import TokenRevokeKycTransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
@@ -125,6 +128,24 @@ def test_revoke_kyc_transaction_can_execute(mock_account_ids):
         receipt = transaction.execute(client)
         
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token revoke KYC transaction."""
+    account_id, _, _, token_id, _ = mock_account_ids
+    
+    revoke_kyc_tx = (
+        TokenRevokeKycTransaction()
+        .set_token_id(token_id)
+        .set_account_id(account_id)
+    )
+    
+    schedulable_body = revoke_kyc_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenRevokeKyc")
+    assert schedulable_body.tokenRevokeKyc.token == token_id._to_proto()
+    assert schedulable_body.tokenRevokeKyc.account == account_id._to_proto()
 
 def test_revoke_kyc_transaction_from_proto(mock_account_ids):
     """Test that a revoke KYC transaction can be created from a protobuf object."""
