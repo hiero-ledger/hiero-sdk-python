@@ -1,5 +1,9 @@
 """
 Example file: Working with DER-encoded SubjectPublicKeyInfo (SPKI) public keys.
+
+uv run examples/keys_public_der.py
+python examples/keys_public_der.py
+
 """
 
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519, utils
