@@ -66,6 +66,8 @@ class Transaction(_Executable):
         self._default_transaction_fee = Hbar(0.02)
         self.operator_account_id = None  
         self.batch_key: Optional[PrivateKey] = None
+        self.node_account_ids: Optional[List[AccountId]] = None
+        self._used_node_account_id: Optional[AccountId] = None
 
     def _make_request(self):
         """
