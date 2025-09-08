@@ -485,3 +485,50 @@ class Transaction(_Executable):
         self._require_not_frozen()
         self.transaction_id = transaction_id
         return self
+
+    def set_node_account_ids(self, node_account_ids, List[AccountId]):
+        """
+        Sets the list of node account IDs the query can be sent to.
+
+        Args:
+            node_account_ids (List[AccountId]): The list of node account IDs.
+
+        Returns:
+            Self: Returns self for method chaining.
+        """
+
+        self.node_account_ids = node_account_ids
+        return self
+    
+    def set_node_account_id(self, node_account_id: AccountId):
+        """
+        Selects a node account ID to use for sending a query.
+
+        Args:
+            node_account_id (AccountId): The node account ID.
+
+        Returns:
+            Self: Returns self for method chaining.
+        """
+
+        return self.set_node_account_ids([node_account_id])
+
+    def _select_node_account_id(self) -> Optional[AccountId]:
+        """
+        Selects a node account ID to use for sending a query.
+
+        Picks the first unused node from `self.node_account_ids`.
+        Once used, stores it in `_used_node_account_id`.
+
+        Returns:
+            Optional[AccountId]: The selected node account ID, or None if no IDs are available.
+        """
+        if not self.node_account_ids:
+            return None
+        
+        if hasattr(self, '_last_used_index'):
+            self._last_used_index = (self._last_used_index + 1) % len(self.node_account_ids)
+        else:
+            self._last_used_index = 0
+        self._used_node_account_id = self.node_account_ids[self._last_used_index]
+        return self._used_node_account_id
