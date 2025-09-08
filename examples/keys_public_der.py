@@ -14,17 +14,17 @@ def example_load_ecdsa_der() -> None:
     # Generate a ECDSA key pair.
     private_key = ec.generate_private_key(ec.SECP256K1())
     public_key = private_key.public_key()
-    
+
     # Export public key to DER format (SubjectPublicKeyInfo)
     der_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    
+
     # 1) Create via from_der()
     pubk_obj = PublicKey.from_der(der_bytes)
     print("Loaded ECDSA secp256k1 from DER:", pubk_obj)
-    
+
     # 2) Convert back to DER hex:
     der_hex = pubk_obj.to_string_der()
     print("DER-encoded hex:", der_hex)
@@ -42,7 +42,7 @@ def example_load_ed25519_der() -> None:
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    
+
     # 1) Create via from_der
     pubk_obj = PublicKey.from_der(der_bytes)
     print("Loaded Ed25519 from DER:", pubk_obj)
