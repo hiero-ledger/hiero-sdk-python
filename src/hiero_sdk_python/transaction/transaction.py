@@ -59,7 +59,10 @@ class Transaction(_Executable):
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee = 2_000_000
-        self.operator_account_id = None  
+        self.operator_account_id = None
+
+        self.node_account_ids: Optional[List[AccountId]] = None
+        self._used_node_account_id: Optional[AccountId] = None
 
     def _make_request(self):
         """
