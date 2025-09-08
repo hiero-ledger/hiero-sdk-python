@@ -2,10 +2,10 @@
 Example file: Working with DER-encoded SubjectPublicKeyInfo (SPKI) public keys.
 """
 
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519, utils
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.exceptions import InvalidSignature
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.public_key import PublicKey, keccak256
 
 def example_load_ecdsa_der() -> None:
     """
@@ -68,7 +68,7 @@ def example_verify_der_signature() -> None:
 
     # Sign and verify, specifying hash algorithm for ECDSA
     data = b"Hello DER"
-    signature = private_key.sign(data, ec.ECDSA(hashes.SHA256()))
+    signature = private_key.sign(keccak256(data), ec.ECDSA(utils.Prehashed(hashes.SHA256())))
     try:
         pubk_obj.verify(signature, data)
         print("DER: ECDSA signature verified!")
