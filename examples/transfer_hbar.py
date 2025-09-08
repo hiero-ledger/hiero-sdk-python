@@ -1,3 +1,8 @@
+"""
+uv run examples/transfer_hbar.py
+python examples/transfer_hbar.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv

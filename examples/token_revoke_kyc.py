@@ -1,3 +1,8 @@
+"""
+uv run examples/token_revoke_kyc.py
+python examples/token_revoke_kyc.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv

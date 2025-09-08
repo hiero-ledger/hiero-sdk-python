@@ -40,6 +40,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update protobuf dependency from 5.28.1 to 5.29.1
 - Update grpcio dependency from 1.68.1 to 1.71.2
 - Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
+- Calls in examples for PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY')) to PrivateKey.from_string(os.getenv('OPERATOR_KEY')) to enable general key types
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
@@ -49,6 +50,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Invalid DRE Hex representation in examples/keys_private_ecdsa.py
 - Windows malformed path using uv run generate_proto.py using as_posix()
 - Changed README MIT license to Apache
+- deprecated CamelCase instances in /examples such as TokenId and totalSupply to snake_case
 - Invalid HEX representation and signature validation in keys_public_ecdsa.py
 
 ### Removed

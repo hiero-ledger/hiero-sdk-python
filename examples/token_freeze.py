@@ -1,3 +1,8 @@
+"""
+uv run examples/token_freeze.py
+python examples/token_freeze.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -28,7 +33,7 @@ def freeze_token():
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")

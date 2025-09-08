@@ -1,3 +1,8 @@
+"""
+uv run examples/token_reject_nft.py
+python examples/token_reject_nft.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv

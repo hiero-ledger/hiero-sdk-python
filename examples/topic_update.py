@@ -1,3 +1,8 @@
+"""
+uv run examples/topic_update.py
+python examples/topic_update.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -55,8 +60,9 @@ def update_topic(new_memo):
     # Config Client
     client, _, operator_key = setup_client()
 
-    # Create a new Topic
-    topic_id = create_topic(client, operator_key)
+    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
+    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+    topic_id = TopicId.from_string(os.getenv('TOPIC_ID'))
 
     # Update the Topic
     print("\nSTEP 2: Updating Topic...")
