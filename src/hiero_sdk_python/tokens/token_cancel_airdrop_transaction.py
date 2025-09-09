@@ -1,5 +1,8 @@
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import basic_types_pb2, token_cancel_airdrop_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -55,9 +58,15 @@ class TokenCancelAirdropTransaction(Transaction):
         self.pending_airdrops.clear()
         return self
     
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for canceling a token airdrop.
+        Returns the protobuf body for the token cancel airdrop transaction.
+        
+        Returns:
+            TokenCancelAirdropTransactionBody: The protobuf body for this transaction.
+            
+        Raises:
+            ValueError: If pending airdrops list is invalid.
         """
         pending_airdrops_proto: list[basic_types_pb2.PendingAirdropId] = []
 
@@ -67,13 +76,30 @@ class TokenCancelAirdropTransaction(Transaction):
         if (len(pending_airdrops_proto) < 1 or len(pending_airdrops_proto) > 10):
             raise ValueError("Pending airdrops list must contain mininum 1 and maximum 10 pendingAirdrop.") 
 
-        token_airdrop_cancel_body = token_cancel_airdrop_pb2.TokenCancelAirdropTransactionBody(
+        return token_cancel_airdrop_pb2.TokenCancelAirdropTransactionBody(
             pending_airdrops=pending_airdrops_proto
         )
+        
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for canceling a token airdrop.
+        """
+        token_airdrop_cancel_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenCancelAirdrop.CopyFrom(token_airdrop_cancel_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token cancel airdrop transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_airdrop_cancel_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenCancelAirdrop.CopyFrom(token_airdrop_cancel_body)
+        return schedulable_body
     
     def _get_method(self, channel):
         return _Method(

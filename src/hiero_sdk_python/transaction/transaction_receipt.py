@@ -1,10 +1,16 @@
-import warnings 
+"""
+TransactionReceipt class
+"""
+
+from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.consensus.topic_id import TopicId
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
+from hiero_sdk_python.transaction.transaction_id import TransactionId
+
 
 class TransactionReceipt(_DeprecatedAliasesMixin):
     """
@@ -38,10 +44,13 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
         Returns:
             TokenId or None: The TokenId if present; otherwise, None.
         """
-        if self._receipt_proto.HasField('tokenID') and self._receipt_proto.tokenID.tokenNum != 0:
+        if (
+            self._receipt_proto.HasField("tokenID")
+            and self._receipt_proto.tokenID.tokenNum != 0
+        ):
             return TokenId._from_proto(self._receipt_proto.tokenID)
-        else:
-            return None
+
+        return None
 
     @property
     def topic_id(self):
@@ -51,10 +60,13 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
         Returns:
             TopicId or None: The TopicId if present; otherwise, None.
         """
-        if self._receipt_proto.HasField('topicID') and self._receipt_proto.topicID.topicNum != 0:
+        if (
+            self._receipt_proto.HasField("topicID")
+            and self._receipt_proto.topicID.topicNum != 0
+        ):
             return TopicId._from_proto(self._receipt_proto.topicID)
-        else:
-            return None
+
+        return None
 
     @property
     def account_id(self):
@@ -64,16 +76,19 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
         Returns:
             AccountId or None: The AccountId if present; otherwise, None.
         """
-        if self._receipt_proto.HasField('accountID') and self._receipt_proto.accountID.accountNum != 0:
+        if (
+            self._receipt_proto.HasField("accountID")
+            and self._receipt_proto.accountID.accountNum != 0
+        ):
             return AccountId._from_proto(self._receipt_proto.accountID)
-        else:
-            return None
+
+        return None
 
     @property
     def serial_numbers(self):
         """
         Retrieves the serial numbers associated with the transaction receipt, if available.
-        
+
         Returns:
             list of int: The serial numbers if present; otherwise, an empty list.
         """
@@ -84,11 +99,14 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
         """
         Returns the file ID associated with this receipt.
         """
-        if self._receipt_proto.HasField('fileID') and self._receipt_proto.fileID.fileNum != 0:
+        if (
+            self._receipt_proto.HasField("fileID")
+            and self._receipt_proto.fileID.fileNum != 0
+        ):
             return FileId._from_proto(self._receipt_proto.fileID)
-        else:
-            return None
-          
+
+        return None
+
     @property
     def transaction_id(self):
         """
@@ -107,10 +125,52 @@ class TransactionReceipt(_DeprecatedAliasesMixin):
         Returns:
             ContractId or None: The ContractId if present; otherwise, None.
         """
-        if self._receipt_proto.HasField('contractID') and self._receipt_proto.contractID.contractNum != 0:
+        if (
+            self._receipt_proto.HasField("contractID")
+            and self._receipt_proto.contractID.contractNum != 0
+        ):
             return ContractId._from_proto(self._receipt_proto.contractID)
-        else:
-            return None
+
+        return None
+
+    @property
+    def schedule_id(self):
+        """
+        Returns the schedule ID associated with this receipt.
+
+        Returns:
+            ScheduleId or None: The ScheduleId if present; otherwise, None.
+        """
+        if (
+            self._receipt_proto.HasField("scheduleID")
+            and self._receipt_proto.scheduleID.scheduleNum != 0
+        ):
+            return ScheduleId._from_proto(self._receipt_proto.scheduleID)
+
+        return None
+
+    @property
+    def scheduled_transaction_id(self):
+        """
+        Returns the schedule transaction ID associated with this receipt.
+
+        Returns:
+            TransactionId or None: The TransactionId if present; otherwise, None.
+        """
+        if self._receipt_proto.HasField("scheduledTransactionID"):
+            return TransactionId._from_proto(self._receipt_proto.scheduledTransactionID)
+
+        return None
+
+    @property
+    def node_id(self):
+        """
+        Returns the node ID associated with this receipt.
+
+        Returns:
+            int: The node ID if present; otherwise, 0.
+        """
+        return self._receipt_proto.node_id
 
     def _to_proto(self):
         """

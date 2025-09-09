@@ -13,6 +13,9 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.response_code import ResponseCode
 
 from tests.unit.mock_server import mock_hedera_servers
@@ -31,6 +34,40 @@ def test_build_topic_update_transaction_body(mock_account_ids, topic_id):
     transaction_body = tx.build_transaction_body()
     assert transaction_body.consensusUpdateTopic.topicID.topicNum == 1234
     assert transaction_body.consensusUpdateTopic.memo.value == "Updated Memo"
+    
+# This test uses fixtures (topic_id) as parameters
+def test_build_scheduled_body(topic_id):
+    """Test building a schedulable TopicUpdateTransaction body with all fields."""
+    # Generate keys and create an account ID for testing
+    admin_key = PrivateKey.generate().public_key()
+    submit_key = PrivateKey.generate().public_key()
+    auto_renew_account = AccountId(0, 0, 9876)
+    
+    # Create transaction with all available fields
+    tx = TopicUpdateTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_memo("Scheduled Topic Update")
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_period(Duration(8000000))  # Custom duration
+    tx.set_auto_renew_account(auto_renew_account)
+    
+    # Build the scheduled body
+    schedulable_body = tx.build_scheduled_body()
+    
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    
+    # Verify the transaction was built with topic update type
+    assert schedulable_body.HasField("consensusUpdateTopic")
+    
+    # Verify all fields in the scheduled body
+    assert schedulable_body.consensusUpdateTopic.topicID.topicNum == 1234
+    assert schedulable_body.consensusUpdateTopic.memo.value == "Scheduled Topic Update"
+    assert schedulable_body.consensusUpdateTopic.adminKey.ed25519 == admin_key.to_bytes_raw()
+    assert schedulable_body.consensusUpdateTopic.submitKey.ed25519 == submit_key.to_bytes_raw()
+    assert schedulable_body.consensusUpdateTopic.autoRenewPeriod.seconds == 8000000
+    assert schedulable_body.consensusUpdateTopic.autoRenewAccount.accountNum == 9876
 
 
 # This test uses fixture mock_account_ids as parameter

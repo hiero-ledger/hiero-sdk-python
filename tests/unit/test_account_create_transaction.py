@@ -11,7 +11,9 @@ from hiero_sdk_python.hapi.services import basic_types_pb2, response_pb2
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services import transaction_get_receipt_pb2, response_header_pb2
-
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -54,6 +56,40 @@ def test_account_create_transaction_build(mock_account_ids):
     assert transaction_body.cryptoCreateAccount.key.ed25519 == expected_public_key_bytes
     assert transaction_body.cryptoCreateAccount.initialBalance == 100000000
     assert transaction_body.cryptoCreateAccount.memo == "Test account"
+
+# This test uses fixture mock_account_ids as parameter
+def test_account_create_transaction_build_scheduled_body(mock_account_ids):
+    """Test building a schedulable account create transaction body."""
+    operator_id, node_account_id = mock_account_ids
+
+    new_private_key = PrivateKey.generate()
+    new_public_key = new_private_key.public_key()
+
+    account_tx = (
+        AccountCreateTransaction()
+        .set_key(new_public_key)
+        .set_initial_balance(200000000)
+        .set_account_memo("Schedulable account")
+        .set_receiver_signature_required(True)
+    )
+    account_tx.transaction_id = generate_transaction_id(operator_id)
+    account_tx.node_account_id = node_account_id
+
+    # Build the scheduled transaction body
+    schedulable_body = account_tx.build_scheduled_body()
+
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with account create type
+    assert schedulable_body.HasField("cryptoCreateAccount")
+
+    # Verify fields in the schedulable body
+    expected_public_key_bytes = new_public_key.to_bytes_raw()
+    assert schedulable_body.cryptoCreateAccount.key.ed25519 == expected_public_key_bytes
+    assert schedulable_body.cryptoCreateAccount.initialBalance == 200000000
+    assert schedulable_body.cryptoCreateAccount.memo == "Schedulable account"
+    assert schedulable_body.cryptoCreateAccount.receiverSigRequired == True
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter
 def test_account_create_transaction_sign(mock_account_ids, mock_client):

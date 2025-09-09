@@ -2,6 +2,9 @@ import pytest
 from unittest.mock import MagicMock
 from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
 from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
@@ -118,3 +121,23 @@ def test_to_proto(mock_account_ids, mock_client):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
+    
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token dissociate transaction."""
+    account_id, _, _, token_id_1, token_id_2 = mock_account_ids
+    token_ids = [token_id_1, token_id_2]
+    
+    dissociate_tx = TokenDissociateTransaction()
+    dissociate_tx.set_account_id(account_id)
+    for token_id in token_ids:
+        dissociate_tx.add_token_id(token_id)
+    
+    schedulable_body = dissociate_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenDissociate")
+    assert schedulable_body.tokenDissociate.account == account_id._to_proto()
+    assert len(schedulable_body.tokenDissociate.tokens) == len(token_ids)
+    for i, token_id in enumerate(token_ids):
+        assert schedulable_body.tokenDissociate.tokens[i] == token_id._to_proto()

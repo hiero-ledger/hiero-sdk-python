@@ -4,6 +4,9 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.hapi.services.token_burn_pb2 import TokenBurnTransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
@@ -154,3 +157,38 @@ def test_burn_transaction_from_proto(mock_account_ids):
     assert from_proto.token_id == TokenId(0,0,0)
     assert from_proto.amount == 0
     assert from_proto.serials == []
+    
+def test_build_scheduled_body_fungible(mock_account_ids):
+    """Test building a scheduled transaction body for fungible token burn transaction."""
+    _, _, _, token_id, _ = mock_account_ids
+    
+    burn_tx = TokenBurnTransaction()
+    burn_tx.set_token_id(token_id)
+    burn_tx.set_amount(100)
+    
+    schedulable_body = burn_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenBurn")
+    assert schedulable_body.tokenBurn.token == token_id._to_proto()
+    assert schedulable_body.tokenBurn.amount == 100
+    assert len(schedulable_body.tokenBurn.serialNumbers) == 0
+    
+def test_build_scheduled_body_nft(mock_account_ids):
+    """Test building a scheduled transaction body for NFT burn transaction."""
+    _, _, _, token_id, _ = mock_account_ids
+    serials = [1, 2, 3]
+    
+    burn_tx = TokenBurnTransaction()
+    burn_tx.set_token_id(token_id)
+    burn_tx.set_serials(serials)
+    
+    schedulable_body = burn_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenBurn")
+    assert schedulable_body.tokenBurn.token == token_id._to_proto()
+    assert schedulable_body.tokenBurn.amount == 0
+    assert schedulable_body.tokenBurn.serialNumbers == serials

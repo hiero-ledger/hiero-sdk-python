@@ -1,6 +1,10 @@
 """
 Example file: Working with ECDSA (secp256k1) PrivateKey using the PrivateKey class
 *WARNING* ECDSA seeds should not be printed or exposed in a real‑world scenario
+
+uv run examples/keys_private_ecdsa.py
+python examples/keys_private_ecdsa.py
+
 """
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -14,7 +18,7 @@ def example_generate_ecdsa() -> None:
     # 1) Generate ECDSA
     privkey = PrivateKey.generate("ecdsa")
     print("Generated ECDSA PrivateKey (hex) =", privkey)
-    
+
     # 2) Get the public key
     pubkey = privkey.public_key()
     print("Derived public key =", pubkey)
@@ -66,7 +70,7 @@ def example_load_ecdsa_from_hex() -> None:
     print("=== ECDSA: Load from Hex ===")
     # 32-byte scalar in hex. Must not be zero; example:
     ecdsa_hex = "abcdef0000000000000000000000000000000000000000000000000000000001"
-    
+
     # 1) Generate ECDSA
     privkey = PrivateKey.from_string_ecdsa(ecdsa_hex)
     print("Loaded ECDSA PrivateKey from hex =", privkey)
@@ -93,10 +97,10 @@ def example_load_ecdsa_der() -> None:
     # Example TraditionalOpenSSL DER-encoded key (for scalar=1).
     # (Truncated for demonstration)
     der_hex = (
-        "304e02010104"
-        "200100000000000000000000000000000000000000000000000000000000000000"
-        "a00706052b8104000aa1440342000479be667ef9dcbbac55a06295ce870b07029bfcdb"
-        "2dce28d959f2815b16f8179842a2f1423fc2440aeddc92f8cd3dfff65d61b2334fa1dafc519e6b9f3"
+        "30740201010"
+        "4200000000000000000000000000000000000000000000000000000000000000001"
+        "a00706052b8104000aa1440342000479be667ef9dcbbac55a06295ce870b07029bfc"
+        "db2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
     )
     
     # 1) Generate DER

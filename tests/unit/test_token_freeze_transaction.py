@@ -2,6 +2,9 @@ import pytest
 from unittest.mock import MagicMock
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
 from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
@@ -108,3 +111,19 @@ def test_to_proto(mock_account_ids, mock_client):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
+    
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token freeze transaction."""
+    _, freeze_id, _, token_id, _ = mock_account_ids
+    
+    freeze_tx = TokenFreezeTransaction()
+    freeze_tx.set_token_id(token_id)
+    freeze_tx.set_account_id(freeze_id)
+
+    schedulable_body = freeze_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenFreeze")
+    assert schedulable_body.tokenFreeze.token == token_id._to_proto()
+    assert schedulable_body.tokenFreeze.account == freeze_id._to_proto()

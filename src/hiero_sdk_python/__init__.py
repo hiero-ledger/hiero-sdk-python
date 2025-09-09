@@ -105,6 +105,14 @@ from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
 from .contract.contract_info import ContractInfo
 from .contract.contract_update_transaction import ContractUpdateTransaction
+from .contract.ethereum_transaction import EthereumTransaction
+
+# Schedule
+from .schedule.schedule_create_transaction import ScheduleCreateTransaction
+from .schedule.schedule_id import ScheduleId
+
+# Nodes
+from .nodes.node_create_transaction import NodeCreateTransaction
 
 # PRNG
 from .prng_transaction import PrngTransaction
@@ -216,4 +224,12 @@ __all__ = [
 
     # PRNG
     "PrngTransaction",
+    "EthereumTransaction",
+
+    # Schedule
+    "ScheduleCreateTransaction",
+    "ScheduleId",
+
+    # Nodes
+    "NodeCreateTransaction",
 ]

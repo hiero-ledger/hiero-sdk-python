@@ -1,12 +1,12 @@
 from typing import List
+
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 class AccountId:
     def __init__(
-        self,
-        shard: int = 0, 
-        realm: int = 0, 
-        num: int = 0
+        self, shard: int = 0, realm: int = 0, num: int = 0, alias_key: PublicKey = None
     ) -> None:
         """
         Initialize a new AccountId instance.
@@ -14,19 +14,23 @@ class AccountId:
             shard (int): The shard number of the account.
             realm (int): The realm number of the account.
             num (int): The account number.
+            alias_key (PublicKey): The public key of the account.
         """
         self.shard = shard
         self.realm = realm
         self.num = num
+        self.alias_key = alias_key
 
     @classmethod
     def from_string(cls, account_id_str: str) -> "AccountId":
         """
         Creates an AccountId instance from a string in the format 'shard.realm.num'.
         """
-        parts: List[str] = account_id_str.strip().split('.')
+        parts: List[str] = account_id_str.strip().split(".")
         if len(parts) != 3:
-            raise ValueError("Invalid account ID string format. Expected 'shard.realm.num'")
+            raise ValueError(
+                "Invalid account ID string format. Expected 'shard.realm.num'"
+            )
         shard, realm, num = map(int, parts)
         return cls(shard, realm, num)
 
@@ -41,11 +45,15 @@ class AccountId:
         Returns:
             AccountId: An instance of AccountId.
         """
-        return cls(
+        result = cls(
             shard=account_id_proto.shardNum,
             realm=account_id_proto.realmNum,
-            num=account_id_proto.accountNum
+            num=account_id_proto.accountNum,
         )
+        if account_id_proto.alias:
+            alias = account_id_proto.alias[2:] # remove 0x prefix
+            result.alias_key = PublicKey.from_bytes(alias)
+        return result
 
     def _to_proto(self) -> basic_types_pb2.AccountID:
         """
@@ -54,22 +62,35 @@ class AccountId:
         Returns:
             AccountID: The protobuf AccountID object.
         """
-        return basic_types_pb2.AccountID(
+        account_id_proto = basic_types_pb2.AccountID(
             shardNum=self.shard,
             realmNum=self.realm,
-            accountNum=self.num
+            accountNum=self.num,
         )
+
+        if self.alias_key:
+            key = self.alias_key._to_proto().SerializeToString()
+            account_id_proto.alias = key
+
+        return account_id_proto
 
     def __str__(self) -> str:
         """
         Returns the string representation of the AccountId in 'shard.realm.num' format.
         """
+        if self.alias_key:
+            return f"{self.shard}.{self.realm}.{self.alias_key.to_string()}"
         return f"{self.shard}.{self.realm}.{self.num}"
 
     def __repr__(self):
         """
         Returns the repr representation of the AccountId.
         """
+        if self.alias_key:
+            return (
+                f"AccountId(shard={self.shard}, realm={self.realm}, "
+                f"alias_key={self.alias_key.to_string_raw()})"
+            )
         return f"AccountId(shard={self.shard}, realm={self.realm}, num={self.num})"
 
     def __eq__(self, other: object) -> bool:
@@ -82,8 +103,13 @@ class AccountId:
         """
         if not isinstance(other, AccountId):
             return False
-        return (self.shard, self.realm, self.num) == (other.shard, other.realm, other.num)
+        return (self.shard, self.realm, self.num, self.alias_key) == (
+            other.shard,
+            other.realm,
+            other.num,
+            other.alias_key,
+        )
 
     def __hash__(self) -> int:
         """Returns a hash value for the AccountId instance."""
-        return hash((self.shard, self.realm, self.num))
+        return hash((self.shard, self.realm, self.num, self.alias_key))

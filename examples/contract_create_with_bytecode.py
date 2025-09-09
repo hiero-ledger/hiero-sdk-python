@@ -10,6 +10,7 @@ Usage:
     # from the project root directory
 
     # Run from the project root directory
+    uv run -m examples.contract_create_with_bytecode
     python -m examples.contract_create_with_bytecode
 
 """

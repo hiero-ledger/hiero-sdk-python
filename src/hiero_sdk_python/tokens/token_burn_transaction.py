@@ -8,6 +8,9 @@ non-fungible tokens on the Hedera network using the Hedera Token Service (HTS) A
 from typing import Optional
 
 from hiero_sdk_python.hapi.services.token_burn_pb2 import TokenBurnTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -99,13 +102,13 @@ class TokenBurnTransaction(Transaction):
         self.serials.append(serial)
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds the transaction body for this token burn transaction.
-
-        Returns:
-            TransactionBody: The built transaction body.
+        Returns the protobuf body for the token burn transaction.
         
+        Returns:
+            TokenBurnTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If the token ID is not set or if both amount and serials are provided.
         """
@@ -115,14 +118,35 @@ class TokenBurnTransaction(Transaction):
         if self.amount and self.serials:
             raise ValueError("Cannot burn both amount and serial in the same transaction")
 
-        token_burn_body = TokenBurnTransactionBody(
+        return TokenBurnTransactionBody(
             token=self.token_id._to_proto(),
             amount=self.amount,
             serialNumbers=self.serials
         )
+        
+    def build_transaction_body(self):
+        """
+        Builds the transaction body for this token burn transaction.
+
+        Returns:
+            TransactionBody: The built transaction body.
+        """
+        token_burn_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenBurn.CopyFrom(token_burn_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token burn transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_burn_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenBurn.CopyFrom(token_burn_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

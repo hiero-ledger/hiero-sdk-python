@@ -18,6 +18,9 @@ from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.contract_create_pb2 import (
     ContractCreateTransactionBody,
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -352,20 +355,19 @@ class ContractCreateTransaction(Transaction):
         if self.gas is None:
             raise ValueError("Gas limit must be provided")
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for contract creation.
+        Returns the protobuf body for the contract create transaction.
 
         Returns:
-            TransactionBody: The protobuf transaction body containing the
-                contract creation details.
+            ContractCreateTransactionBody: The protobuf body for this transaction.
 
         Raises:
             ValueError: If required fields are missing.
         """
         self._validate_parameters()
 
-        contract_create_body = ContractCreateTransactionBody(
+        return ContractCreateTransactionBody(
             gas=self.gas,
             initialBalance=self.initial_balance,
             constructorParameters=self.parameters,
@@ -392,10 +394,32 @@ class ContractCreateTransaction(Transaction):
             initcode=self.bytecode,
         )
 
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for contract creation.
+
+        Returns:
+            TransactionBody: The protobuf transaction body containing the
+                contract creation details.
+        """
+        contract_create_body = self._build_proto_body()
+
         transaction_body = self.build_base_transaction_body()
         transaction_body.contractCreateInstance.CopyFrom(contract_create_body)
 
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this contract create transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        contract_create_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.contractCreateInstance.CopyFrom(contract_create_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

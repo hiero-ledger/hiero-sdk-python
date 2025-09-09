@@ -3,6 +3,9 @@ import pytest
 
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
@@ -143,3 +146,27 @@ def test_build_transaction_body_missing_file_id():
 
     with pytest.raises(ValueError, match="Missing required FileID"):
         file_tx.build_transaction_body()
+
+def test_build_scheduled_body():
+    """Test building a schedulable file append transaction body."""
+    file_id = FileId(0, 0, 12345)
+    contents = b"Test schedulable content"
+
+    file_tx = FileAppendTransaction(
+        file_id=file_id,
+        contents=contents,
+        chunk_size=100
+    )
+
+    # Build the scheduled body
+    schedulable_body = file_tx.build_scheduled_body()
+
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with file append type
+    assert schedulable_body.HasField("fileAppend")
+
+    # Verify fields in the schedulable body
+    assert schedulable_body.fileAppend.fileID == file_id._to_proto()
+    assert schedulable_body.fileAppend.contents == contents[:100]  # First chunk

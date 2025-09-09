@@ -1,3 +1,8 @@
+"""
+uv run examples/token_create_nft_finite.py
+python examples/token_create_nft_finite.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -27,7 +32,7 @@ def create_token_nft():
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
         print(f"Using operator account: {operator_id}")
     except (TypeError, ValueError):

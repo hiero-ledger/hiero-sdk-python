@@ -13,6 +13,9 @@ Classes:
 """
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_dissociate_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -49,28 +52,47 @@ class TokenDissociateTransaction(Transaction):
         self.token_ids.append(token_id)
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token dissociation.
-
+        Returns the protobuf body for the token dissociate transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body with token dissociate details.
-
+            TokenDissociateTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If account ID or token IDs are not set.
         """
         if not self.account_id or not self.token_ids:
             raise ValueError("Account ID and token IDs must be set.")
 
-        token_dissociate_body = token_dissociate_pb2.TokenDissociateTransactionBody(
+        return token_dissociate_pb2.TokenDissociateTransactionBody(
             account=self.account_id._to_proto(),
             tokens=[token_id._to_proto() for token_id in self.token_ids]
         )
+        
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for token dissociation.
 
+        Returns:
+            TransactionBody: The protobuf transaction body with token dissociate details.
+        """
+        token_dissociate_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenDissociate.CopyFrom(token_dissociate_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token dissociate transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_dissociate_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenDissociate.CopyFrom(token_dissociate_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(

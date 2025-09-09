@@ -20,6 +20,9 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.hapi.services import file_append_pb2, timestamp_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 
 # pylint: disable=too-many-instance-attributes
 class FileAppendTransaction(Transaction):
@@ -155,12 +158,15 @@ class FileAppendTransaction(Transaction):
         self._total_chunks = self._calculate_total_chunks()
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds the transaction body for this file append transaction.
+        Returns the protobuf body for the file append transaction.
 
         Returns:
-            TransactionBody: The built transaction body.
+            FileAppendTransactionBody: The protobuf body for this transaction.
+
+        Raises:
+            ValueError: If file_id is not set.
         """
         # Calculate the current chunk's content
         if self.file_id is None:
@@ -173,14 +179,34 @@ class FileAppendTransaction(Transaction):
             end_index = min(start_index + self.chunk_size, len(self.contents))
             chunk_contents = self.contents[start_index:end_index]
 
-        file_append_body = file_append_pb2.FileAppendTransactionBody(
+        return file_append_pb2.FileAppendTransactionBody(
             fileID=self.file_id._to_proto() if self.file_id else None,
             contents=chunk_contents
         )
 
+    def build_transaction_body(self):
+        """
+        Builds the transaction body for this file append transaction.
+
+        Returns:
+            TransactionBody: The built transaction body.
+        """
+        file_append_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.fileAppend.CopyFrom(file_append_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this file append transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        file_append_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.fileAppend.CopyFrom(file_append_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

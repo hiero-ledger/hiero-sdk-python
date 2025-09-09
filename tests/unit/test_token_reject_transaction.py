@@ -7,6 +7,9 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, timestamp_pb2, transaction_get_receipt_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.account.account_id import AccountId
 
@@ -214,3 +217,42 @@ def test_reject_transaction_from_proto(mock_account_ids):
     assert _from_proto.owner_id == AccountId()
     assert _from_proto.token_ids == []
     assert _from_proto.nft_ids == []
+    
+def test_build_scheduled_body_with_token_ids(mock_account_ids):
+    """Test building a scheduled transaction body for token reject transaction with token IDs."""
+    _, owner_account_id, _, token_id, _ = mock_account_ids
+    token_ids = [token_id]
+    
+    reject_tx = TokenRejectTransaction()
+    reject_tx.set_owner_id(owner_account_id)
+    reject_tx.set_token_ids(token_ids)
+    
+    schedulable_body = reject_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenReject")
+    assert schedulable_body.tokenReject.owner == owner_account_id._to_proto()
+    assert len(schedulable_body.tokenReject.rejections) == 1
+    assert schedulable_body.tokenReject.rejections[0].HasField("fungible_token")
+    assert schedulable_body.tokenReject.rejections[0].fungible_token == token_id._to_proto()
+
+def test_build_scheduled_body_with_nft_ids(mock_account_ids):
+    """Test building a scheduled transaction body for token reject transaction with NFT IDs."""
+    _, owner_account_id, _, token_id, _ = mock_account_ids
+    nft_ids = [NftId(token_id=token_id, serial_number=1)]
+    
+    reject_tx = TokenRejectTransaction()
+    reject_tx.set_owner_id(owner_account_id)
+    reject_tx.set_nft_ids(nft_ids)
+
+    schedulable_body = reject_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenReject")
+    assert schedulable_body.tokenReject.owner == owner_account_id._to_proto()
+    assert len(schedulable_body.tokenReject.rejections) == 1
+    assert schedulable_body.tokenReject.rejections[0].HasField("nft")
+    assert schedulable_body.tokenReject.rejections[0].nft.token_ID == token_id._to_proto()
+    assert schedulable_body.tokenReject.rejections[0].nft.serial_number == 1

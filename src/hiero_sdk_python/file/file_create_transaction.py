@@ -3,6 +3,9 @@ from typing import Optional
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import file_create_pb2
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -114,7 +117,21 @@ class FileCreateTransaction(Transaction):
         self._require_not_frozen()
         self.file_memo = file_memo
         return self
-        
+
+    def _build_proto_body(self):
+        """
+        Returns the protobuf body for the file create transaction.
+
+        Returns:
+            FileCreateTransactionBody: The protobuf body for this transaction.
+        """
+        return file_create_pb2.FileCreateTransactionBody(
+            keys=KeyListProto(keys=[key._to_proto() for key in self.keys or []]),
+            contents=self.contents if self.contents is not None else b'',
+            expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
+            memo=self.file_memo if self.file_memo is not None else ''
+        )
+
     def build_transaction_body(self):
         """
         Builds the transaction body for this file create transaction.
@@ -122,16 +139,23 @@ class FileCreateTransaction(Transaction):
         Returns:
             TransactionBody: The built transaction body.
         """
-        file_create_body = file_create_pb2.FileCreateTransactionBody(
-            keys=KeyListProto(keys=[key._to_proto() for key in self.keys or []]),
-            contents=self.contents if self.contents is not None else b'',
-            expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
-            memo=self.file_memo if self.file_memo is not None else ''
-        )
+        file_create_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.fileCreate.CopyFrom(file_create_body)
         return transaction_body
-    
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this file create transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        file_create_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.fileCreate.CopyFrom(file_create_body)
+        return schedulable_body
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the file create transaction.

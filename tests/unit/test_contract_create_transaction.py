@@ -22,6 +22,9 @@ from hiero_sdk_python.hapi.services import (
     response_pb2,
     transaction_get_receipt_pb2,
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import (
     TransactionReceipt as TransactionReceiptProto,
 )
@@ -193,6 +196,54 @@ def test_build_transaction_body_with_bytecode(mock_account_ids, contract_params)
     )
     assert not transaction_body.contractCreateInstance.HasField("fileID")
 
+
+def test_build_scheduled_body(mock_account_ids, contract_params):
+    """Test building a schedulable contract create transaction body."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    contract_tx = ContractCreateTransaction(
+        contract_params=ContractCreateParams(
+            bytecode_file_id=contract_params["bytecode_file_id"],
+            gas=contract_params["gas"],
+            initial_balance=contract_params["initial_balance"],
+            admin_key=contract_params["admin_key"],
+            contract_memo=contract_params["contract_memo"],
+            parameters=contract_params["parameters"],
+        )
+    )
+
+    # Set operator and node account IDs needed for building transaction body
+    contract_tx.operator_account_id = operator_id
+    contract_tx.node_account_id = node_account_id
+
+    # Build the scheduled body
+    schedulable_body = contract_tx.build_scheduled_body()
+
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify fields in the schedulable body
+    assert (
+        schedulable_body.contractCreateInstance.fileID
+        == contract_params["bytecode_file_id"]._to_proto()
+    )
+    assert schedulable_body.contractCreateInstance.gas == contract_params["gas"]
+    assert (
+        schedulable_body.contractCreateInstance.initialBalance
+        == contract_params["initial_balance"]
+    )
+    assert (
+        schedulable_body.contractCreateInstance.adminKey
+        == contract_params["admin_key"]._to_proto()
+    )
+    assert (
+        schedulable_body.contractCreateInstance.memo == contract_params["contract_memo"]
+    )
+    assert (
+        schedulable_body.contractCreateInstance.constructorParameters
+        == contract_params["parameters"]
+    )
+    assert schedulable_body.contractCreateInstance.initcode == b""
 
 def test_build_transaction_body_validation_errors():
     """Test that build_transaction_body raises appropriate validation errors."""

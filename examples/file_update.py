@@ -1,3 +1,9 @@
+"""
+Run: 
+uv run examples/file_update.py
+python examples/file_update.py
+
+"""
 import os
 import sys
 

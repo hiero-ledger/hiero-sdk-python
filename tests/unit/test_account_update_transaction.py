@@ -22,6 +22,9 @@ from hiero_sdk_python.hapi.services import (
     response_pb2,
     transaction_get_receipt_pb2,
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import (
     TransactionReceipt as TransactionReceiptProto,
 )
@@ -459,3 +462,56 @@ def test_build_transaction_body_with_none_auto_renew_period(mock_account_ids):
     )
     # When auto_renew_period is None, the field should not be set in the protobuf
     assert not transaction_body.cryptoUpdateAccount.HasField("autoRenewPeriod")
+
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a schedulable account update transaction body with valid values."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id = AccountId(0, 0, 123)
+
+    private_key = PrivateKey.generate()
+    public_key = private_key.public_key()
+    account_memo = "Scheduled memo"
+    receiver_sig_required = True
+    expiration_time = TEST_EXPIRATION_TIME
+    auto_renew_period = TEST_AUTO_RENEW_PERIOD
+
+    account_tx = AccountUpdateTransaction(
+        AccountUpdateParams(
+            account_id=account_id,
+            key=public_key,
+            auto_renew_period=auto_renew_period,
+            account_memo=account_memo,
+            receiver_signature_required=receiver_sig_required,
+            expiration_time=expiration_time,
+        )
+    )
+
+    # Set operator and node account IDs needed for building transaction body
+    account_tx.operator_account_id = operator_id
+    account_tx.node_account_id = node_account_id
+
+    # Build the scheduled body
+    schedulable_body = account_tx.build_scheduled_body()
+
+    # Verify correct return type
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with account update type
+    assert schedulable_body.HasField("cryptoUpdateAccount")
+
+    assert (
+        schedulable_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
+    )
+    assert schedulable_body.cryptoUpdateAccount.key == public_key._to_proto()
+    assert (
+        schedulable_body.cryptoUpdateAccount.autoRenewPeriod
+        == auto_renew_period._to_proto()
+    )
+    assert schedulable_body.cryptoUpdateAccount.memo == StringValue(value=account_memo)
+    assert schedulable_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(
+        value=receiver_sig_required
+    )
+    assert (
+        schedulable_body.cryptoUpdateAccount.expirationTime
+        == expiration_time._to_protobuf()
+    )

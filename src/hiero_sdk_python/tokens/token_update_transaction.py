@@ -16,6 +16,9 @@ from hiero_sdk_python.tokens.token_key_validation import TokenKeyValidation
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.token_update_pb2 import TokenUpdateTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from google.protobuf.wrappers_pb2 import BytesValue, StringValue
 
 @dataclass
@@ -304,13 +307,13 @@ class TokenUpdateTransaction(Transaction):
         self.token_key_verification_mode = key_verification_mode
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token update.
-
+        Returns the protobuf body for the token update transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the token update details.
-
+            TokenUpdateTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If token_id is not set.
         """
@@ -327,10 +330,31 @@ class TokenUpdateTransaction(Transaction):
             key_verification_mode=self.token_key_verification_mode._to_proto()
         )
         self._set_keys_to_proto(token_update_body)
+        return token_update_body
+        
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for token update.
+
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token update details.
+        """
+        token_update_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenUpdate.CopyFrom(token_update_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token update transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenUpdate.CopyFrom(token_update_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

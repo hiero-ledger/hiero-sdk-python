@@ -13,6 +13,9 @@ from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.file_update_pb2 import FileUpdateTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -157,12 +160,12 @@ class FileUpdateTransaction(Transaction):
         self.file_memo = file_memo
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds the transaction body for this file update transaction.
+        Returns the protobuf body for the file update transaction.
 
         Returns:
-            TransactionBody: The built transaction body.
+            FileUpdateTransactionBody: The protobuf body for this transaction.
 
         Raises:
             ValueError: If file_id is not set.
@@ -170,7 +173,7 @@ class FileUpdateTransaction(Transaction):
         if self.file_id is None:
             raise ValueError("Missing required FileID")
 
-        file_update_body = FileUpdateTransactionBody(
+        return FileUpdateTransactionBody(
             fileID=self.file_id._to_proto(),
             keys=(
                 KeyListProto(keys=[key._to_proto() for key in self.keys])
@@ -188,9 +191,29 @@ class FileUpdateTransaction(Transaction):
             ),
         )
 
+    def build_transaction_body(self):
+        """
+        Builds the transaction body for this file update transaction.
+
+        Returns:
+            TransactionBody: The built transaction body.
+        """
+        file_update_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.fileUpdate.CopyFrom(file_update_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this file update transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        file_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.fileUpdate.CopyFrom(file_update_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

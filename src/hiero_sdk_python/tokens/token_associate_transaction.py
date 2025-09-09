@@ -8,6 +8,9 @@ tokens with accounts on the Hedera network using the Hedera Token Service (HTS) 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import token_associate_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction import Transaction
 
 
@@ -48,28 +51,48 @@ class TokenAssociateTransaction(Transaction):
         self.token_ids.append(token_id)
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token association.
-
+        Returns the protobuf body for the token associate transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the token association details.
-
+            TokenAssociateTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If account ID or token IDs are not set.
         """
         if not self.account_id or not self.token_ids:
             raise ValueError("Account ID and token IDs must be set.")
 
-        token_associate_body = token_associate_pb2.TokenAssociateTransactionBody(
+        return token_associate_pb2.TokenAssociateTransactionBody(
             account=self.account_id._to_proto(),
             tokens=[token_id._to_proto() for token_id in self.token_ids]
         )
+        
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for token association.
 
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token association details.
+        """
+        token_associate_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenAssociate.CopyFrom(token_associate_body)
 
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token associate transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_associate_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenAssociate.CopyFrom(token_associate_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(

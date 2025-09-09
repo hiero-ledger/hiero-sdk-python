@@ -10,6 +10,9 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.response_code import ResponseCode
 
 from tests.unit.mock_server import mock_hedera_servers
@@ -20,6 +23,27 @@ pytestmark = pytest.mark.unit
 def message():
     """Fixture to provide a test message."""
     return "Hello from topic submit!"
+    
+# This test uses fixtures (topic_id, message) as parameters
+def test_build_scheduled_body(topic_id, message):
+    """Test building a schedulable TopicMessageSubmitTransaction body."""
+    # Create transaction with all required fields
+    tx = TopicMessageSubmitTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_message(message)
+    
+    # Build the scheduled body
+    schedulable_body = tx.build_scheduled_body()
+    
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    
+    # Verify the transaction was built with topic message submit type
+    assert schedulable_body.HasField("consensusSubmitMessage")
+    
+    # Verify fields in the schedulable body
+    assert schedulable_body.consensusSubmitMessage.topicID.topicNum == 1234
+    assert schedulable_body.consensusSubmitMessage.message == bytes(message, 'utf-8')
 
 # This test uses fixtures (topic_id, message) as parameters
 def test_execute_topic_message_submit_transaction(topic_id, message):

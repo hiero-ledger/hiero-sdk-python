@@ -7,6 +7,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -93,6 +96,25 @@ def test_to_proto(mock_client, file_id):
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
 
+
+def test_build_scheduled_body(mock_account_ids, file_id):
+    """Test building a schedulable file delete transaction body."""
+    account_id, _, node_account_id, _, _ = mock_account_ids
+    delete_tx = FileDeleteTransaction(file_id=file_id)
+    delete_tx.node_account_id = node_account_id
+    delete_tx.operator_account_id = account_id
+
+    # Build the scheduled body
+    schedulable_body = delete_tx.build_scheduled_body()
+
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with file delete type
+    assert schedulable_body.HasField("fileDelete")
+
+    # Verify fields in the schedulable body
+    assert schedulable_body.fileDelete.fileID == file_id._to_proto()
 
 def test_get_method():
     """Test retrieving the gRPC method for the transaction."""

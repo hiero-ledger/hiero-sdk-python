@@ -12,6 +12,7 @@ Usage:
 
     # Run from the project root directory
     python -m examples.contract_create_constructor
+    uv run -m examples.contract_create_constructor
 
 """
 

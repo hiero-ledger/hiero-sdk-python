@@ -11,6 +11,9 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.response_code import ResponseCode
 
 from tests.unit.mock_server import mock_hedera_servers
@@ -28,6 +31,27 @@ def test_build_topic_delete_transaction_body(mock_account_ids, topic_id):
 
     transaction_body = tx.build_transaction_body()
     assert transaction_body.consensusDeleteTopic.topicID.topicNum == 1234
+    
+# This test uses fixtures (mock_account_ids, topic_id) as parameters
+def test_build_scheduled_body(mock_account_ids, topic_id):
+    """Test building a schedulable TopicDeleteTransaction body with a valid topic ID."""
+    _, _, node_account_id, _, _ = mock_account_ids
+    
+    # Create transaction and set required fields
+    tx = TopicDeleteTransaction()
+    tx.set_topic_id(topic_id)
+    
+    # Build the scheduled body
+    schedulable_body = tx.build_scheduled_body()
+    
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    
+    # Verify the transaction was built with topic delete type
+    assert schedulable_body.HasField("consensusDeleteTopic")
+    
+    # Verify the topic ID was correctly set
+    assert schedulable_body.consensusDeleteTopic.topicID.topicNum == 1234
 
 # This test uses fixture mock_account_ids as parameter
 def test_missing_topic_id_in_delete(mock_account_ids):

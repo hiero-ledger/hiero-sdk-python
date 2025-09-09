@@ -7,6 +7,9 @@ from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from hiero_sdk_python.tokens.abstract_token_transfer_transaction import AbstractTokenTransferTransaction
 from hiero_sdk_python.hapi.services import token_airdrop_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 
 class TokenAirdropTransaction(AbstractTokenTransferTransaction):
     """
@@ -123,22 +126,48 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number,True)
         return self
     
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token airdrop.
+        Returns the protobuf body for the token airdrop transaction.
+        
+        Returns:
+            TokenAirdropTransactionBody: The protobuf body for this transaction.
+            
+        Raises:
+            ValueError: If transfer list is invalid.
         """
         token_transfers = self.build_token_transfers()
 
         if (len(token_transfers) < 1 or len(token_transfers) > 10):
             raise ValueError("Airdrop transfer list must contain mininum 1 and maximum 10 transfers.") 
 
-        token_airdrop_body = token_airdrop_pb2.TokenAirdropTransactionBody(
+        return token_airdrop_pb2.TokenAirdropTransactionBody(
             token_transfers=token_transfers
         )
+        
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for token airdrop.
+        
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token airdrop details.
+        """
+        token_airdrop_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenAirdrop.CopyFrom(token_airdrop_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token airdrop transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_airdrop_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenAirdrop.CopyFrom(token_airdrop_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(

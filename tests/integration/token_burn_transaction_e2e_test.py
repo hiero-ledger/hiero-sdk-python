@@ -16,7 +16,7 @@ def test_integration_token_burn_transaction_can_execute():
         assert token_id is not None
         
         info = TokenInfoQuery(token_id).execute(env.client)
-        assert info.totalSupply == 1000, f"Total supply is not 1000, but {info.totalSupply}"
+        assert info.total_supply == 1000, f"Total supply is not 1000, but {info.total_supply}"
         
         receipt = (
             TokenBurnTransaction()
@@ -28,7 +28,7 @@ def test_integration_token_burn_transaction_can_execute():
         assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode(receipt.status).name}"
         
         info = TokenInfoQuery(token_id).execute(env.client)
-        assert info.totalSupply == 990, f"Total supply is not 990, but {info.totalSupply}"
+        assert info.total_supply == 990, f"Total supply is not 990, but {info.total_supply}"
     finally:
         env.close()
 
@@ -50,7 +50,7 @@ def test_integration_token_burn_transaction_no_amount():
         assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode(receipt.status).name}"
         
         info = TokenInfoQuery(token_id).execute(env.client)
-        assert info.totalSupply == 1000, f"Total supply should remain 1000, but is {info.totalSupply}"
+        assert info.total_supply == 1000, f"Total supply should remain 1000, but is {info.total_supply}"
     finally:
         env.close()
 
@@ -82,7 +82,7 @@ def test_integration_token_burn_transaction_nft():
         assert receipt.status == ResponseCode.SUCCESS, f"Token burn failed with status: {ResponseCode(receipt.status).name}"
         
         info = TokenInfoQuery(token_id).execute(env.client)
-        assert info.totalSupply == 0, f"Total supply is not 0, but {info.totalSupply}"
+        assert info.total_supply == 0, f"Total supply is not 0, but {info.totalSupply}"
     finally:
         env.close()
 

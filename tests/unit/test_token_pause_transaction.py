@@ -10,7 +10,9 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hapi.services.token_pause_pb2 import TokenPauseTransactionBody
-
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -150,4 +152,15 @@ def test_pause_transaction_can_execute(token_id):
         
         receipt = transaction.execute(client)
         
-        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"        
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+def test_build_scheduled_body(token_id):
+    """Test building a scheduled transaction body for token pause transaction."""
+    pause_tx = TokenPauseTransaction().set_token_id(token_id)
+
+    schedulable_body = pause_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("token_pause")
+    assert schedulable_body.token_pause.token == token_id._to_proto()

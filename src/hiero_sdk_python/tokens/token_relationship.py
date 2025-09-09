@@ -80,3 +80,4 @@ class TokenRelationship:
             decimals=self.decimals,
             automatic_association=self.automatic_association
         )
+        

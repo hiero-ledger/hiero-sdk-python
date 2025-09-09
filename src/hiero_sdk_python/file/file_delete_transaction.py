@@ -8,6 +8,9 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.file_delete_pb2 import FileDeleteTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -49,6 +52,21 @@ class FileDeleteTransaction(Transaction):
         self.file_id = file_id
         return self
 
+    def _build_proto_body(self):
+        """
+        Returns the protobuf body for the file delete transaction.
+
+        Returns:
+            FileDeleteTransactionBody: The protobuf body for this transaction.
+
+        Raises:
+            ValueError: If file_id is not set.
+        """
+        if self.file_id is None:
+            raise ValueError("Missing required FileID")
+
+        return FileDeleteTransactionBody(fileID=self.file_id._to_proto())
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for file deletion.
@@ -56,14 +74,22 @@ class FileDeleteTransaction(Transaction):
         Returns:
             TransactionBody: The protobuf transaction body containing the file deletion details.
         """
-        if self.file_id is None:
-            raise ValueError("Missing required FileID")
-
-        file_delete_body = FileDeleteTransactionBody(fileID=self.file_id._to_proto())
-
+        file_delete_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.fileDelete.CopyFrom(file_delete_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this file delete transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        file_delete_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.fileDelete.CopyFrom(file_delete_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

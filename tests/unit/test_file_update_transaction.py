@@ -18,6 +18,9 @@ from hiero_sdk_python.hapi.services import (
     response_pb2,
     transaction_get_receipt_pb2,
 )
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import (
     TransactionReceipt as TransactionReceiptProto,
 )
@@ -196,6 +199,46 @@ def test_build_transaction_body_with_optional_fields(mock_account_ids, file_id):
     assert not transaction_body.fileUpdate.HasField("expirationTime")
     # When file_memo is None, the memo field should not be set in the protobuf
     assert not transaction_body.fileUpdate.HasField("memo")
+
+def test_build_scheduled_body(mock_account_ids, file_id):
+    """Test building a schedulable file update transaction body."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    private_key = PrivateKey.generate()
+    public_key = private_key.public_key()
+    key_list = [public_key]
+    contents = b"Updated schedulable content"
+    file_memo = "Updated schedulable memo"
+    expiration_time = TEST_EXPIRATION_TIME
+
+    file_tx = FileUpdateTransaction(
+        file_id=file_id,
+        keys=key_list,
+        contents=contents,
+        expiration_time=expiration_time,
+        file_memo=file_memo,
+    )
+
+    # Set operator and node account IDs needed for building transaction body
+    file_tx.operator_account_id = operator_id
+    file_tx.node_account_id = node_account_id
+
+    # Build the scheduled body
+    schedulable_body = file_tx.build_scheduled_body()
+
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with file update type
+    assert schedulable_body.HasField("fileUpdate")
+
+    # Verify fields in the schedulable body
+    assert schedulable_body.fileUpdate.fileID == file_id._to_proto()
+    expected_keys = basic_types_pb2.KeyList(keys=[key._to_proto() for key in key_list])
+    assert schedulable_body.fileUpdate.keys == expected_keys
+    assert schedulable_body.fileUpdate.contents == contents
+    assert schedulable_body.fileUpdate.expirationTime == expiration_time._to_protobuf()
+    assert schedulable_body.fileUpdate.memo == StringValue(value=file_memo)
 
 
 def test_missing_file_id():

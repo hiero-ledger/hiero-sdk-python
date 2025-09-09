@@ -8,6 +8,9 @@ import pytest
 
 from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -229,6 +232,32 @@ def test_parameter_validation_types(delete_params):
 
     delete_tx.set_transfer_account_id(delete_params["transfer_account_id"])
     assert isinstance(delete_tx.transfer_account_id, AccountId)
+
+
+def test_build_scheduled_body(delete_params):
+    """Test building a schedulable account delete transaction body."""
+    delete_tx = AccountDeleteTransaction(
+        account_id=delete_params["account_id"],
+        transfer_account_id=delete_params["transfer_account_id"],
+    )
+
+    schedulable_body = delete_tx.build_scheduled_body()
+
+    # Verify the correct type is returned
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with account delete type
+    assert schedulable_body.HasField("cryptoDelete")
+
+    # Verify fields in the schedulable body
+    assert (
+        schedulable_body.cryptoDelete.deleteAccountID
+        == delete_params["account_id"]._to_proto()
+    )
+    assert (
+        schedulable_body.cryptoDelete.transferAccountID
+        == delete_params["transfer_account_id"]._to_proto()
+    )
 
 
 def test_parameter_validation_none_values():

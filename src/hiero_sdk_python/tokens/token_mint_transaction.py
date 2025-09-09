@@ -7,6 +7,9 @@ non-fungible tokens on the Hedera network via the Hedera Token Service (HTS) API
 """
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_mint_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -60,17 +63,11 @@ class TokenMintTransaction(Transaction):
         self.metadata = metadata
         return self
 
-    def build_transaction_body(self):
+    def _validate_parameters(self):
         """
-        Builds and returns the protobuf transaction body for token minting.
-        
-        Returns:
-            TransactionBody: The protobuf transaction body containing the token minting details.
-
-        Raises:
-            ValueError: If required fields are missing or conflicting.
+        Validates the parameters for the token mint transaction.
         """
-        if not self.token_id:
+        if self.token_id is None:
             raise ValueError("Token ID is required for minting.")
 
         if (self.amount is not None) and (self.metadata is not None):
@@ -79,12 +76,24 @@ class TokenMintTransaction(Transaction):
                 "for NFTs, not both."
             )
 
+    def _build_proto_body(self):
+        """
+        Returns the protobuf body for the token mint transaction.
+        
+        Returns:
+            TokenMintTransactionBody: The protobuf body for this transaction.
+            
+        Raises:
+            ValueError: If required fields are missing or conflicting.
+        """
+        self._validate_parameters()
+
         if self.amount is not None:
             # Minting fungible tokens
             if self.amount <= 0:
                 raise ValueError("Amount to mint must be positive.")
 
-            token_mint_body = token_mint_pb2.TokenMintTransactionBody(
+            return token_mint_pb2.TokenMintTransactionBody(
                 token=self.token_id._to_proto(),
                 amount=self.amount,
                 metadata=[] # Must be empty for fungible tokens
@@ -98,7 +107,7 @@ class TokenMintTransaction(Transaction):
             if not self.metadata:
                 raise ValueError("Metadata list cannot be empty for NFTs.")
 
-            token_mint_body = token_mint_pb2.TokenMintTransactionBody(
+            return token_mint_pb2.TokenMintTransactionBody(
                 token=self.token_id._to_proto(),
                 amount=0,  # Must be zero for NFTs
                 metadata=self.metadata
@@ -106,11 +115,30 @@ class TokenMintTransaction(Transaction):
 
         else:
             raise ValueError("Either amount or metadata must be provided for token minting.")
-
+            
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for token minting.
+        
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token minting details.
+        """
+        token_mint_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenMint.CopyFrom(token_mint_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token mint transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_mint_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenMint.CopyFrom(token_mint_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(

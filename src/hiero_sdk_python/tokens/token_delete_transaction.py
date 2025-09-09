@@ -7,6 +7,9 @@ on the Hedera network using the Hedera Token Service (HTS) API.
 """
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import token_delete_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -45,27 +48,46 @@ class TokenDeleteTransaction(Transaction):
         self.token_id = token_id
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for token deletion.
-
+        Returns the protobuf body for the token delete transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the token deletion details.
-
+            TokenDeleteTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If the token ID is missing.
         """
         if not self.token_id:
             raise ValueError("Missing required TokenID.")
 
-        token_delete_body = token_delete_pb2.TokenDeleteTransactionBody(
+        return token_delete_pb2.TokenDeleteTransactionBody(
             token=self.token_id._to_proto()
         )
+        
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for token deletion.
 
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token deletion details.
+        """
+        token_delete_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenDeletion.CopyFrom(token_delete_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token delete transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_delete_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenDeletion.CopyFrom(token_delete_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(

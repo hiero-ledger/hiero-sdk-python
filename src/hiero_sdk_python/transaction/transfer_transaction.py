@@ -1,6 +1,9 @@
 from collections import defaultdict
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import crypto_transfer_pb2, basic_types_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.channels import _Channel
@@ -92,9 +95,9 @@ class TransferTransaction(Transaction):
         self.nft_transfers[nft_id.token_id].append(TokenNftTransfer(nft_id.token_id, sender_id, receiver_id, nft_id.serial_number, is_approved))
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds and returns the protobuf transaction body for a transfer transaction.
+        Returns the protobuf body for the transfer transaction.
         """
         crypto_transfer_tx_body = crypto_transfer_pb2.CryptoTransferTransactionBody()
 
@@ -134,10 +137,34 @@ class TransferTransaction(Transaction):
                 )
             crypto_transfer_tx_body.tokenTransfers.append(token_transfer_list)
 
+        return crypto_transfer_tx_body
+
+    def build_transaction_body(self):
+        """
+        Builds and returns the protobuf transaction body for a transfer transaction.
+
+        Returns:
+            TransactionBody: The built transaction body.
+        """
+        crypto_transfer_tx_body = self._build_proto_body()
+
         transaction_body = self.build_base_transaction_body()
         transaction_body.cryptoTransfer.CopyFrom(crypto_transfer_tx_body)
 
         return transaction_body
+
+    def build_scheduled_body(self) -> "SchedulableTransactionBody":
+        """
+        Builds the transaction body for this transfer transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        crypto_transfer_tx_body = self._build_proto_body()
+
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.cryptoTransfer.CopyFrom(crypto_transfer_tx_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(

@@ -1,5 +1,7 @@
 """
 This example demonstrates how to query file contents using the Python SDK.
+uv run examples/query_file_contents.py
+python examples/query_file_contents.py
 """
 
 import os

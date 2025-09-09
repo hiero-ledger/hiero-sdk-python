@@ -3,6 +3,9 @@ import pytest
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKeyValidation
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateKeys, TokenUpdateParams, TokenUpdateTransaction
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
@@ -187,3 +190,31 @@ def test_update_transaction_can_execute(mock_account_ids, new_token_data):
         receipt = transaction.execute(client)
         
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+def test_build_scheduled_body(mock_account_ids, private_key, new_token_data):
+    """Test building a scheduled transaction body for token update transaction."""
+    operator_id, _, _, token_id, _ = mock_account_ids
+    
+    update_tx = (
+        TokenUpdateTransaction()
+        .set_token_id(token_id)
+        .set_token_name(new_token_data["name"])
+        .set_token_symbol(new_token_data["symbol"])
+        .set_token_memo(new_token_data["memo"])
+        .set_metadata(new_token_data["metadata"])
+        .set_treasury_account_id(operator_id)
+        .set_admin_key(private_key)
+    )
+    
+    schedulable_body = update_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenUpdate")
+    assert schedulable_body.tokenUpdate.token == token_id._to_proto()
+    assert schedulable_body.tokenUpdate.name == new_token_data["name"]
+    assert schedulable_body.tokenUpdate.symbol == new_token_data["symbol"]
+    assert schedulable_body.tokenUpdate.memo.value == new_token_data["memo"]
+    assert schedulable_body.tokenUpdate.metadata.value == new_token_data["metadata"]
+    assert schedulable_body.tokenUpdate.treasury == operator_id._to_proto()
+    assert schedulable_body.tokenUpdate.adminKey.HasField("ed25519")

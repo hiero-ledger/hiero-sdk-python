@@ -7,6 +7,9 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, timestamp_pb2, transaction_get_receipt_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 from tests.unit.mock_server import mock_hedera_servers
@@ -185,3 +188,45 @@ def test_wipe_transaction_can_execute(mock_account_ids):
         receipt = transaction.execute(client)
         
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token wipe transaction."""
+    _, wipe_account_id, _, token_id, _ = mock_account_ids
+    amount = 1000
+    
+    wipe_tx = (
+        TokenWipeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(wipe_account_id)
+        .set_amount(amount)
+    )
+    
+    schedulable_body = wipe_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenWipe")
+    assert schedulable_body.tokenWipe.token == token_id._to_proto()
+    assert schedulable_body.tokenWipe.account == wipe_account_id._to_proto()
+    assert schedulable_body.tokenWipe.amount == amount
+    
+def test_build_scheduled_body_with_serial_numbers(mock_account_ids):
+    """Test building a scheduled transaction body for token wipe transaction with serial numbers."""
+    _, wipe_account_id, _, token_id, _ = mock_account_ids
+    serial_numbers = [1, 2, 3]
+    
+    wipe_tx = (
+        TokenWipeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(wipe_account_id)
+        .set_serial(serial_numbers)
+    )
+    
+    schedulable_body = wipe_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenWipe")
+    assert schedulable_body.tokenWipe.token == token_id._to_proto()
+    assert schedulable_body.tokenWipe.account == wipe_account_id._to_proto()
+    assert schedulable_body.tokenWipe.serialNumbers == serial_numbers

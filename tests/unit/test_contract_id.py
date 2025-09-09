@@ -258,3 +258,29 @@ def test_evm_address_hash():
 
     # Different EVM addresses should have different hashes
     assert hash(contract_id1) != hash(contract_id3)
+
+def test_to_evm_address():
+    """Test ContractId.to_evm_address() for both explicit and computed EVM addresses."""
+    # Explicit EVM address
+    evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    contract_id = ContractId(shard=1, realm=2, contract=3, evm_address=evm_address)
+    assert contract_id.to_evm_address() == evm_address.hex()
+
+    # Computed EVM address (no explicit evm_address)
+    contract_id = ContractId(shard=1, realm=2, contract=3)
+    # [4 bytes shard][8 bytes realm][8 bytes contract], all big-endian
+    expected_bytes = (
+        (0).to_bytes(4, "big") +
+        (0).to_bytes(8, "big") +
+        (3).to_bytes(8, "big")
+    )
+    assert contract_id.to_evm_address() == expected_bytes.hex()
+
+    # Default values
+    contract_id = ContractId()
+    expected_bytes = (
+        (0).to_bytes(4, "big") +
+        (0).to_bytes(8, "big") +
+        (0).to_bytes(8, "big")
+    )
+    assert contract_id.to_evm_address() == expected_bytes.hex()

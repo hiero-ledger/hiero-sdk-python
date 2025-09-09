@@ -2,6 +2,9 @@ import pytest
 from unittest.mock import MagicMock
 from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
 from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
@@ -87,6 +90,22 @@ def test_sign_transaction(mock_account_ids, mock_client):
 
     assert sig_pair.pubKeyPrefix == b'public_key'
     assert sig_pair.ed25519 == b'signature'
+
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token unfreeze transaction."""
+    _, freeze_id, _, token_id, _ = mock_account_ids
+    
+    unfreeze_tx = TokenUnfreezeTransaction()
+    unfreeze_tx.set_token_id(token_id)
+    unfreeze_tx.set_account_id(freeze_id)
+    
+    schedulable_body = unfreeze_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenUnfreeze")
+    assert schedulable_body.tokenUnfreeze.token == token_id._to_proto()
+    assert schedulable_body.tokenUnfreeze.account == freeze_id._to_proto()
 
 def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token unfreeze transaction to protobuf format after signing."""
