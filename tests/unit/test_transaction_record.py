@@ -316,7 +316,7 @@ def test_repr_method(transaction_id):
         f"prng_number=None, "
         f"prng_bytes=None, "
         f"call_result=None)")
-    )
+
     assert repr(record_with_receipt) == expected_repr_with_receipt
 
     # Test with all parameters set
