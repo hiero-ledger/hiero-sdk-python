@@ -313,8 +313,9 @@ def test_repr_method(transaction_id):
         f"nft_transfers={{}}, "
         f"transfers={{}}, "
         f"new_pending_airdrops={[]}, "
-        "prng_number=None, "
-        "prng_bytes=None)"
+        f"prng_number=None, "
+        f"prng_bytes=None, "
+        f"call_result=None)")
     )
     assert repr(record_with_receipt) == expected_repr_with_receipt
 
