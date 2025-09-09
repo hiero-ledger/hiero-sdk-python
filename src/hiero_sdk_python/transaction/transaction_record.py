@@ -52,7 +52,7 @@ class TransactionRecord:
                 f"transfers={dict(self.transfers)}, "
                 f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
                 f"prng_number={self.prng_number}, "
-                f"prng_bytes={self.prng_bytes} ,"
+                f"prng_bytes={self.prng_bytes}, "
                 f"call_result={self.call_result})")
 
     @classmethod
