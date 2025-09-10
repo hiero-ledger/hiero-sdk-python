@@ -1,0 +1,47 @@
+name: Run Examples
+
+on:
+  push:
+    branches: 
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  run-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Setup Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Generate Proto Files
+        run: uv run python generate_proto.py
+
+      - name: Prepare Hiero Solo
+        id: solo
+        uses: hiero-ledger/hiero-solo-action@97b1a5dfff3a18ae92ffb4c27f5ada95906f66bb
+        with:
+          installMirrorNode: true
+        
+      - name: Run Examples
+        env:
+          OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
+          OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
+          NETWORK: solo
+        run: |
+          files=$(ls examples/*.py)
+          for file in $files;
+          do
+            uv run -m examples.$(basename "$file" .py)
+          done
