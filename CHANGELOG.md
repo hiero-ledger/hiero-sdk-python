@@ -10,6 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Convert camelCase to snake_case in integration tests (#318)
 
 ### Added
+- NodeUpdateTransaction class
 - Exposed node_id property in `TransactionReceipt`
 - NodeCreateTransaction class
 - ScheduleId() class
