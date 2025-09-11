@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
       
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@d1a83c327fd1f6ef1d25fe6e94ddc7eb5d20d1b1
 
       - name: Setup Python
         run: uv python install
@@ -44,5 +44,6 @@ jobs:
           files=$(ls examples/*.py)
           for file in $files;
           do
+            echo -e "\n************ ${file} ************"
             uv run -m examples.$(basename "$file" .py)
           done
