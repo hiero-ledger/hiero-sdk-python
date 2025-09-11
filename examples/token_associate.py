@@ -39,7 +39,7 @@ def setup_client():
         SystemExit: If operator credentials are invalid or missing
     """
     print("Connecting to Hedera testnet...")
-    network = Network(network="testnet")
+    network = Network(os.getenv('NETWORK'))
     client = Client(network)
 
     try:

@@ -33,7 +33,7 @@ def setup_client():
     """Set up network and operator client."""
     load_dotenv()
     print("Connecting to Hedera testnet...")
-    network = Network(network='testnet')
+    network = Network(os.getenv('NETWORK'))
     client = Client(network)
 
     try:

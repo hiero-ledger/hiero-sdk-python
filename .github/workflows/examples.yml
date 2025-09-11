@@ -38,6 +38,7 @@ jobs:
         env:
           OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
           OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
+          CHAIN_ID: 012A
           NETWORK: solo
         run: |
           files=$(ls examples/*.py)
