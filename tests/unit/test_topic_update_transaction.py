@@ -51,6 +51,9 @@ def test_build_scheduled_body(topic_id):
     tx.set_submit_key(submit_key)
     tx.set_auto_renew_period(Duration(8000000))  # Custom duration
     tx.set_auto_renew_account(auto_renew_account)
+    tx.set_fee_exempt_keys([admin_key])
+    tx.set_fee_schedule_key(admin_key)
+    tx.set_custom_fees([CustomFixedFee(1000, fee_collector_account_id=AccountId(0, 0, 9876))])
     
     # Build the scheduled body
     schedulable_body = tx.build_scheduled_body()
@@ -68,6 +71,24 @@ def test_build_scheduled_body(topic_id):
     assert schedulable_body.consensusUpdateTopic.submitKey.ed25519 == submit_key.to_bytes_raw()
     assert schedulable_body.consensusUpdateTopic.autoRenewPeriod.seconds == 8000000
     assert schedulable_body.consensusUpdateTopic.autoRenewAccount.accountNum == 9876
+    assert (
+        schedulable_body.consensusUpdateTopic.fee_exempt_key_list.keys[0].ed25519
+        == admin_key.to_bytes_raw()
+    )
+    assert (
+        schedulable_body.consensusUpdateTopic.fee_schedule_key.ed25519
+        == admin_key.to_bytes_raw()
+    )
+    assert (
+        schedulable_body.consensusUpdateTopic.custom_fees.fees[0].fixed_fee.amount
+        == 1000
+    )
+    assert (
+        schedulable_body.consensusUpdateTopic.custom_fees.fees[
+            0
+        ].fee_collector_account_id.accountNum
+        == 9876
+    )
 
 
 # This test uses fixture mock_account_ids as parameter
