@@ -62,6 +62,7 @@ def test_build_transaction_body_without_range(mock_account_ids):
     """Test building a PRNG transaction body without range parameter."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
+    # Build a PRNG transaction with no range parameter (defaults to 0)
     prng_tx = PrngTransaction()
 
     # Set operator and node account IDs needed for building transaction body
@@ -126,10 +127,12 @@ def test_get_method():
     assert method.query is None
     assert method.transaction == mock_util_stub.prng
 
+
 def test_build_proto_body_with_negative_range_raises_error():
     """Test building the protobuf body with a negative range raises an error"""
     with pytest.raises(ValueError, match="Range can't be negative."):
         PrngTransaction().set_range(-1).build_transaction_body()
+
 
 def test_prng_transaction_can_execute():
     """Test that a PRNG transaction can be executed successfully."""
