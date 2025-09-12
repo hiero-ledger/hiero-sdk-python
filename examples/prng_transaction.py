@@ -88,6 +88,7 @@ def prng_transaction():
     receipt = PrngTransaction().execute(client)
     # Alternative way of doing it:
     # receipt = PrngTransaction().set_range(0).execute(client)
+    # receipt = PrngTransaction().set_range(None).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"PRNG transaction failed with status: {ResponseCode(receipt.status).name}")
