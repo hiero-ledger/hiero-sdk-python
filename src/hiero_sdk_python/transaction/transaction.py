@@ -1,5 +1,5 @@
 import hashlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, List
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError
@@ -55,7 +55,10 @@ class Transaction(_Executable):
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee = 2_000_000
-        self.operator_account_id = None  
+        self.operator_account_id = None
+
+        self.node_account_ids: Optional[List[AccountId]] = None
+        self._used_node_account_id: Optional[AccountId] = None
 
     def _make_request(self):
         """
@@ -457,3 +460,42 @@ class Transaction(_Executable):
         self._require_not_frozen()
         self.memo = memo
         return self
+    
+    def set_node_account_ids(self, node_account_ids: List[AccountId]): 
+        """
+        Sets the list of node account IDs the query can be sent to.
+
+        Args:
+            node_account_ids (List[AccountId]): The list of node account IDs.
+
+        Returns:
+            Self: Returns self for method chaining.
+        """
+        self.node_account_ids = node_account_ids
+        return self
+    def set_node_account_id(self, node_account_id: AccountId):
+        """
+        Sets a single node account ID the query will be sent to.
+
+        Args:
+            node_account_id (AccountId): The node account ID.
+
+        Returns:
+            Self: Returns self for method chaining.
+        """
+
+        return self.set_node_account_ids([node_account_id])
+    
+    def _select_node_account_id(self) -> Optional[AccountId]:
+        """
+        Internal method to select a node account ID to send the query to.
+        Defaults to the first in the list.
+
+        Returns:
+            Optional[AccountId]: The selected node account ID.
+        """
+        if self.node_account_ids:
+            selected = self.node_account_ids[0]
+            self._used_node_account_id = selected 
+            return selected 
+        return None
