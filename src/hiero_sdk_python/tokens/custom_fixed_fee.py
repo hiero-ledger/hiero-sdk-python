@@ -75,6 +75,19 @@ class CustomFixedFee(CustomFee):
         cf.all_collectors_are_exempt = self.all_collectors_are_exempt
         return cf
 
+    def _to_topic_fee_proto(self) -> "custom_fees_pb2.FixedCustomFee":
+        from hiero_sdk_python.hapi.services import custom_fees_pb2
+        
+        return custom_fees_pb2.FixedCustomFee(
+            fixed_fee=custom_fees_pb2.FixedFee(
+                amount=self.amount,
+                denominating_token_id=self.denominating_token_id._to_proto()
+                if self.denominating_token_id is not None
+                else None,
+            ),
+            fee_collector_account_id=self._get_fee_collector_account_id_protobuf(),
+        )
+
     def _validate_checksums(self, client: "Client") -> None:
         super()._validate_checksums(client)
         if self.denominating_token_id is not None:
