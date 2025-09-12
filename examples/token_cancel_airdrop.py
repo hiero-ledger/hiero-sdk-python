@@ -59,7 +59,7 @@ def token_cancel_airdrop():
         sys.exit(1)
 
     # Create two new tokens.
-    print("\nCreating two new tokens...")
+    print("\nStep 1: Creating two new fungible tokens...")
     try:
         tx1 = TokenCreateTransaction().set_token_name("First Token").set_token_symbol("TKA").set_initial_supply(1).set_treasury_account_id(operator_id)
         receipt1 = tx1.freeze_with(client).sign(operator_key).execute(client)
@@ -69,13 +69,31 @@ def token_cancel_airdrop():
         receipt2 = tx2.freeze_with(client).sign(operator_key).execute(client)
         token_id_2 = receipt2.token_id
 
-        print(f"Created tokens: {token_id_1} and {token_id_2}")
+        print(f"✅ Created tokens: {token_id_1} (TKA) and {token_id_2} (TKB)")
     except Exception as e:
         print(f"Error creating tokens: {e}")
         sys.exit(1)
 
+    # Log balances before airdrop
+    print("\nStep 2: Checking balances before airdrop...")
+    from hiero_sdk_python import CryptoGetAccountBalanceQuery
+    sender_balances_before = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
+
+    recipient_balances_before = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+    print(f"Sender ({operator_id}) balances before airdrop:")
+
+    print(f"  {str(token_id_1)}: {sender_balances_before.get(str(token_id_1), 0)}")
+
+    print(f"  {str(token_id_2)}: {sender_balances_before.get(str(token_id_2), 0)}")
+
+    print(f"Recipient ({recipient_id}) balances before airdrop:")
+
+    print(f"  {str(token_id_1)}: {recipient_balances_before.get(str(token_id_1), 0)}")
+
+    print(f"  {str(token_id_2)}: {recipient_balances_before.get(str(token_id_2), 0)}")
     # Airdrop the tokens.
-    print("\nAirdrop tokens...")
+    print(f"\nStep 3: Airdropping tokens TKA ({token_id_1}) and TKB ({token_id_2}) to recipient {recipient_id}...")
+
     try:
         receipt = (
             TokenAirdropTransaction()
@@ -90,6 +108,43 @@ def token_cancel_airdrop():
         print(f"Token airdrop complete: (status: {receipt.status}, transaction_id: {receipt.transaction_id})")
         airdrop_record = TransactionRecordQuery(receipt.transaction_id).execute(client)
         pending_airdrops_record = airdrop_record.new_pending_airdrops
+        # Log balances after airdrop
+        sender_balances_after = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
+
+        recipient_balances_after = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+
+        print("\nBalances after airdrop:")
+
+        print(f"Sender ({operator_id}):")
+
+        print(f"  {str(token_id_1)}: {sender_balances_after.get(str(token_id_1), 0)}")
+
+        print(f"  {str(token_id_2)}: {sender_balances_after.get(str(token_id_2), 0)}")
+
+        print(f"Recipient ({recipient_id}):")
+
+        print(f"  {str(token_id_1)}: {recipient_balances_after.get(str(token_id_1), 0)}")
+
+        print(f"  {str(token_id_2)}: {recipient_balances_after.get(str(token_id_2), 0)}")
+
+
+
+        # Summary table
+
+        print("\nSummary Table:")
+
+        print("+----------------+----------------------+----------------------+----------------------+\n"
+
+              "| Token Symbol   | Token ID             | Sender Balance       | Recipient Balance    |\n"
+
+              "+----------------+----------------------+----------------------+----------------------+")
+
+        print(f"| TKA            | {str(token_id_1):<20} | {str(sender_balances_after.get(str(token_id_1), 0)):<20} | {str(recipient_balances_after.get(str(token_id_1), 0)):<20} |")
+
+        print(f"| TKB            | {str(token_id_2):<20} | {str(sender_balances_after.get(str(token_id_2), 0)):<20} | {str(recipient_balances_after.get(str(token_id_2), 0)):<20} |")
+
+        print("+----------------+----------------------+----------------------+----------------------+")
+
     except Exception as e:
         print(f"Error airdroping tokens: {e}")
         sys.exit(1)
