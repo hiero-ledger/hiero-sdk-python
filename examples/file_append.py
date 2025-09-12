@@ -23,7 +23,7 @@ from hiero_sdk_python import (
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network='testnet')
+    network = Network(os.getenv('NETWORK'))
     client = Client(network)
 
     print(os.getenv('OPERATOR_ID'))
