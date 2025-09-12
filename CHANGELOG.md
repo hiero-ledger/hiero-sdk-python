@@ -51,6 +51,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Windows malformed path using uv run generate_proto.py using as_posix()
 - Changed README MIT license to Apache
 - deprecated CamelCase instances in /examples such as TokenId and totalSupply to snake_case
+- Invalid HEX representation and signature validation in keys_public_ecdsa.py
 - Invalid signature verification for examples/keys_public_der.py
 
 ### Removed
