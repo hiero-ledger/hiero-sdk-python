@@ -30,6 +30,9 @@ class TransactionRecord:
     transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
     new_pending_airdrops: list[PendingAirdropRecord] = field(default_factory=list)
 
+    prng_number: Optional[int] = None
+    prng_bytes: Optional[bytes] = None
+
     def __repr__(self) -> str:
         status = None
         if self.receipt:
@@ -48,6 +51,8 @@ class TransactionRecord:
                 f"nft_transfers={dict(self.nft_transfers)}, "
                 f"transfers={dict(self.transfers)}, "
                 f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
+                f"prng_number={self.prng_number}, "
+                f"prng_bytes={self.prng_bytes}, "
                 f"call_result={self.call_result})")
 
     @classmethod
@@ -91,6 +96,8 @@ class TransactionRecord:
             nft_transfers=nft_transfers,
             transfers=transfers,
             new_pending_airdrops=new_pending_airdrops,
+            prng_number=proto.prng_number,
+            prng_bytes=proto.prng_bytes,
             call_result=(
                 ContractFunctionResult._from_proto(proto.contractCallResult)
                 if proto.HasField("contractCallResult")
@@ -107,6 +114,8 @@ class TransactionRecord:
             memo=self.transaction_memo,
             transactionFee=self.transaction_fee,
             receipt=self.receipt._to_proto() if self.receipt else None,
+            prng_number=self.prng_number,
+            prng_bytes=self.prng_bytes,
             contractCallResult=(
                 self.call_result._to_proto() if self.call_result else None
             ),

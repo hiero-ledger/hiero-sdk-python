@@ -114,6 +114,9 @@ from .schedule.schedule_id import ScheduleId
 # Nodes
 from .nodes.node_create_transaction import NodeCreateTransaction
 
+# PRNG
+from .prng_transaction import PrngTransaction
+
 __all__ = [
     # Client
     "Client",
@@ -218,6 +221,9 @@ __all__ = [
     "ContractFunctionResult",
     "ContractInfo",
     "ContractUpdateTransaction",
+
+    # PRNG
+    "PrngTransaction",
     "EthereumTransaction",
 
     # Schedule
