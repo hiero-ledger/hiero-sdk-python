@@ -2,6 +2,11 @@
 Creates a freezeable token, freezes it for the treasury account,
 and then unfreezes it.
 """
+
+"""
+uv run examples/token_unfreeze.py
+python examples/token_unfreeze.py
+"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -26,7 +31,7 @@ def setup_client():
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")

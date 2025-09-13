@@ -1,4 +1,3 @@
-
 """
 A full example that creates an account, two tokens, associates them,
 and finally dissociates them.
@@ -7,7 +6,9 @@ and finally dissociates them.
 """
 uv run examples/token_dissociate.py
 python examples/token_dissociate.py
+=======
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -34,7 +35,7 @@ def setup_client():
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
         return client, operator_id, operator_key
 

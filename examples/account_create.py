@@ -1,3 +1,8 @@
+"""
+Run:
+uv run examples/account_create.py
+python examples/account_create.py
+"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -18,7 +23,7 @@ def create_new_account():
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
     client.set_operator(operator_id, operator_key)
 
     new_account_private_key = PrivateKey.generate("ed25519")

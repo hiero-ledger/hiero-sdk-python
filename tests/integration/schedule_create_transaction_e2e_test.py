@@ -15,6 +15,7 @@ from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
@@ -53,7 +54,67 @@ def test_integration_schedule_create_transaction_can_execute(env):
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
 
-    # TODO: When ScheduleInfoQuery is implemented, assert that everything is fine.
+    schedule_info = (
+        ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
+    )
+    assert schedule_info is not None
+    assert schedule_info.schedule_id == receipt.schedule_id
+    assert schedule_info.creator_account_id == env.operator_id
+    assert schedule_info.payer_account_id == account.id
+    assert schedule_info.schedule_memo == "test schedule create transaction"
+    assert schedule_info.expiration_time.seconds == future_expiration.seconds
+    assert schedule_info.wait_for_expiry is True
+    assert schedule_info.scheduled_transaction_id == receipt.scheduled_transaction_id
+    assert schedule_info.scheduled_transaction_body == schedule_create_tx.schedulable_body
+    assert len(schedule_info.signers) == 1
+    assert (
+        schedule_info.signers[0].to_bytes_raw() == account.key.public_key().to_bytes_raw()
+    )
+
+
+@pytest.mark.integration
+def test_integration_schedule_create_transaction_can_execute_without_waiting(env):
+    """Test that ScheduleCreateTransaction can execute without waiting for expiry."""
+    account = env.create_account()
+
+    schedule_create_tx = (
+        TransferTransaction()
+        .add_hbar_transfer(account.id, -1000)  # 1000 tinybars
+        .add_hbar_transfer(env.operator_id, 1000)
+        .schedule()
+    )
+
+    current_time = datetime.datetime.now()
+    future_expiration = Timestamp.from_date(current_time + datetime.timedelta(seconds=30))
+
+    receipt = (
+        schedule_create_tx.set_payer_account_id(account.id)
+        .set_schedule_memo("test schedule create transaction")
+        .set_expiration_time(future_expiration)
+        .freeze_with(env.client)
+        .sign(account.key)  # Sign with the account key to pay for the transaction
+        .execute(env.client)
+    )
+
+    assert (
+        receipt.status == ResponseCode.SUCCESS
+    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.schedule_id is not None
+    assert receipt.scheduled_transaction_id is not None
+
+    schedule_info = (
+        ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
+    )
+    assert schedule_info is not None
+    assert schedule_info.schedule_id == receipt.schedule_id
+    assert schedule_info.creator_account_id == env.operator_id
+    assert schedule_info.payer_account_id == account.id
+    assert schedule_info.schedule_memo == "test schedule create transaction"
+    assert schedule_info.expiration_time.seconds == future_expiration.seconds
+    assert schedule_info.wait_for_expiry is False
+    assert schedule_info.scheduled_transaction_id == receipt.scheduled_transaction_id
+    assert schedule_info.scheduled_transaction_body == schedule_create_tx.schedulable_body
+    assert schedule_info.executed_at is not None
 
 
 @pytest.mark.integration

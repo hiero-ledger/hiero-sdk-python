@@ -1,5 +1,6 @@
 """Create a Non-Fungible Token (NFT) Collection and Mint NFTs"""
 # Usage:
+
 """
 uv run examples/token_mint_non_fungible.py
 python examples/token_mint_non_fungible.py
@@ -29,7 +30,7 @@ def setup_client():
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
         print(f"Using operator account: {operator_id}")
         return client, operator_id, operator_key

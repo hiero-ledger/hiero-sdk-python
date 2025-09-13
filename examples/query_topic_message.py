@@ -1,3 +1,8 @@
+"""
+uv run examples/query_topic_message.py 
+python examples/query_topic_message.py
+
+"""
 import os
 import time
 import sys

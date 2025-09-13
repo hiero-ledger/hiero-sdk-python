@@ -5,6 +5,7 @@
 uv run examples/topic_create.py
 python examples/topic_create.py
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -33,8 +34,7 @@ def setup_client():
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
-
-
+        
 def create_topic():
     """ Create a new topic on Hedera """
     client, operator_id, operator_key = setup_client()
