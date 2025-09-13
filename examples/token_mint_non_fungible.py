@@ -1,6 +1,5 @@
 """Create a Non-Fungible Token (NFT) Collection and Mint NFTs"""
 # Usage:
-
 """
 uv run examples/token_mint_non_fungible.py
 python examples/token_mint_non_fungible.py
@@ -42,7 +41,7 @@ def setup_client():
 def generate_supply_key():
     """Generate a new supply key for the token."""
     print("\nSTEP 1: Generating a new supply key...")
-    supply_key = PrivateKey.generate("ed25519")
+    supply_key = PrivateKey.generate_ed25519()
     print("✅ Supply key generated.")
     return supply_key
 
@@ -75,9 +74,19 @@ def create_nft_collection():
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 def token_mint_non_fungible():
-    """Mint new NFTs with metadata."""
+    """
+    Mint new NFTs with metadata.
+
+    This function demonstrates how to mint unique NFTs (non-fungible tokens) in a collection.
+    The process requires a supply key, which authorizes minting new NFTs after the collection is created.
+    Each NFT is assigned unique metadata, which can be used to identify or describe the token.
+    """
+
+    # Create a new NFT collection (token) with a supply key
     client, token_id, supply_key = create_nft_collection()
 
+    # Prepare the metadata for each NFT to be minted
+    # Each entry in the list will become a unique NFT with its own metadata
     metadata_list = [
         b"METADATA_A",
         b"METADATA_B",
@@ -85,6 +94,8 @@ def token_mint_non_fungible():
     ]
     print(f"\nSTEP 3: Minting {len(metadata_list)} new NFTs for token {token_id}...")
     try:
+        # Mint the NFTs by submitting a TokenMintTransaction
+        # The transaction must be signed by the supply key to authorize minting
         receipt = (
             TokenMintTransaction()
             .set_token_id(token_id)
