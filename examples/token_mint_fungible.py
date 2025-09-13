@@ -1,4 +1,8 @@
 """
+Creates a mintable fungible token and then mints additional supply.
+"""
+
+"""
 uv run examples/token_mint_fungible.py
 python examples/token_mint_fungible.py
 
@@ -19,13 +23,8 @@ from hiero_sdk_python import (
 # Load environment variables from .env file
 load_dotenv()
 
-
-def token_mint_fungible():
-    """
-    Creates a mintable fungible token and then mints additional supply.
-    """
-    # 1. Setup Client
-    # =================================================================
+def setup_client():
+    """Setup Client"""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -33,20 +32,28 @@ def token_mint_fungible():
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
+        print(f"Using operator account: {operator_id}")
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-    print(f"Using operator account: {operator_id}")
 
-    # 2. Generate a Supply Key
-    # =================================================================
+
+def generate_supply_key():
+    """Generate a new supply key for the token."""
     print("\nSTEP 1: Generating a new supply key...")
-    supply_key = PrivateKey.generate("ed25519")
+    supply_key = PrivateKey.generate_ed25519()
     print("✅ Supply key generated.")
+    return supply_key
 
-    # 3. Create a token with the supply key
-    # =================================================================
+def create_new_token():
+    """
+    Create a fungible token that can have its supply changed (minted or burned).
+    This requires setting a supply key, which is a special key that authorizes supply changes.
+    """
+    client, operator_id, operator_key = setup_client()
+    supply_key = generate_supply_key()
     print("\nSTEP 2: Creating a new mintable token...")
     try:
         tx = (
@@ -56,10 +63,10 @@ def token_mint_fungible():
             .set_initial_supply(100)  # Start with 100 tokens
             .set_decimals(2)
             .set_treasury_account_id(operator_id)
-            .set_supply_key(supply_key)  # Assign the supply key
+            .set_supply_key(supply_key)  # Assign the supply key to enable mint/burn
         )
-        
-        # Freeze, sign with BOTH operator and the new supply key, then execute
+        # The transaction must be signed by both the treasury (operator) and the supply key
+        # to authorize creation and future supply changes.
         receipt = (
             tx.freeze_with(client)
             .sign(operator_key)
@@ -68,15 +75,29 @@ def token_mint_fungible():
         )
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
+        return client, token_id, supply_key
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
-    # 4. Mint more of the token
-    # =================================================================
+
+def token_mint_fungible():
+    """
+    Mint more of a fungible token.
+
+    This function demonstrates how to increase the supply of a fungible token after creation.
+    The token must have a supply key set during creation, which authorizes future minting or burning.
+    Only the holder of the supply key can perform these actions.
+    """
+
+    # Create a new token with a supply key so its supply can be changed later
+    client, token_id, supply_key = create_new_token()
+
     mint_amount = 5000 # This is 50.00 tokens because decimals is 2
     print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
     try:
+        # Minting requires a transaction signed by the supply key
+        # Without the supply key, the token supply is fixed and cannot be changed
         receipt = (
             TokenMintTransaction()
             .set_token_id(token_id)

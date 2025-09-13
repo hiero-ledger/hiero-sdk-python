@@ -1,3 +1,5 @@
+"""Create a Non-Fungible Token (NFT) Collection and Mint NFTs"""
+# Usage:
 """
 uv run examples/token_mint_non_fungible.py
 python examples/token_mint_non_fungible.py
@@ -20,13 +22,8 @@ from hiero_sdk_python import (
 # Load environment variables from .env file
 load_dotenv()
 
-
-def token_mint_non_fungible():
-    """
-    Creates an NFT collection and then mints new NFTs with metadata.
-    """
-    # 1. Setup Client
-    # =================================================================
+def setup_client():
+    """Setup and return a Hedera client."""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -34,20 +31,24 @@ def token_mint_non_fungible():
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
+        print(f"Using operator account: {operator_id}")
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-    print(f"Using operator account: {operator_id}")
 
-    # 2. Generate a Supply Key
-    # =================================================================
+def generate_supply_key():
+    """Generate a new supply key for the token."""
     print("\nSTEP 1: Generating a new supply key...")
-    supply_key = PrivateKey.generate("ed25519")
+    supply_key = PrivateKey.generate_ed25519()
     print("✅ Supply key generated.")
+    return supply_key
 
-    # 3. Create the NFT Collection (Token)
-    # =================================================================
+def create_nft_collection():
+    """ Create the NFT Collection (Token) """
+    client, operator_id, operator_key = setup_client()
+    supply_key = generate_supply_key()
     print("\nSTEP 2: Creating a new NFT collection...")
     try:
         tx = (
@@ -68,13 +69,24 @@ def token_mint_non_fungible():
         )
         token_id = receipt.token_id
         print(f"✅ Success! Created NFT collection with Token ID: {token_id}")
+        return client, token_id, supply_key
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
+def token_mint_non_fungible():
+    """
+    Mint new NFTs with metadata.
 
-    # 4. Mint new NFTs with metadata
-    # =================================================================
-    # Define metadata directly in the script instead of loading from a file
+    This function demonstrates how to mint unique NFTs (non-fungible tokens) in a collection.
+    The process requires a supply key, which authorizes minting new NFTs after the collection is created.
+    Each NFT is assigned unique metadata, which can be used to identify or describe the token.
+    """
+
+    # Create a new NFT collection (token) with a supply key
+    client, token_id, supply_key = create_nft_collection()
+
+    # Prepare the metadata for each NFT to be minted
+    # Each entry in the list will become a unique NFT with its own metadata
     metadata_list = [
         b"METADATA_A",
         b"METADATA_B",
@@ -82,6 +94,8 @@ def token_mint_non_fungible():
     ]
     print(f"\nSTEP 3: Minting {len(metadata_list)} new NFTs for token {token_id}...")
     try:
+        # Mint the NFTs by submitting a TokenMintTransaction
+        # The transaction must be signed by the supply key to authorize minting
         receipt = (
             TokenMintTransaction()
             .set_token_id(token_id)

@@ -1,4 +1,9 @@
 """
+Creates a freezeable token and demonstrates freezing and unfreezing
+the token for the operator (treasury) account.
+"""
+
+"""
 uv run examples/token_freeze.py
 python examples/token_freeze.py
 
@@ -20,14 +25,8 @@ from hiero_sdk_python import (
 # Load environment variables from .env file
 load_dotenv()
 
-
-def freeze_token():
-    """
-    Creates a freezeable token and demonstrates freezing and unfreezing
-    the token for the operator (treasury) account.
-    """
-    # 1. Setup Client
-    # =================================================================
+def setup_client():
+    """Setup Client"""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -35,20 +34,24 @@ def freeze_token():
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
+        print(f"Using operator account: {operator_id}")
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-    print(f"Using operator account: {operator_id}")
 
-    # 2. Generate a Freeze Key
-    # =================================================================
+def generate_freeze_key():
+    """Generate a Freeze Key"""
     print("\nSTEP 1: Generating a new freeze key...")
-    freeze_key = PrivateKey.generate("ed25519")
+    freeze_key = PrivateKey.generate_ed25519()
     print("✅ Freeze key generated.")
+    return freeze_key
 
-    # 3. Create a token with the freeze key
-    # =================================================================
+def create_freezeable_token():
+    """Create a token with the freeze key"""
+    client, operator_id, operator_key = setup_client()
+    freeze_key = generate_freeze_key()
     print("\nSTEP 2: Creating a new freezeable token...")
     try:
         tx = (
@@ -69,12 +72,22 @@ def freeze_token():
         )
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
+        return freeze_key, token_id, client, operator_id
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
-    # 4. Freeze the token for the operator account
-    # =================================================================
+
+def freeze_token():
+    """
+    Freeze the token for the operator account.
+
+    Freezing a token prevents the specified account from performing token-related transactions
+    (such as transfers, mints, or burns) until it is unfrozen. This is useful for enforcing
+    compliance, security, or business logic, ensuring that only authorized accounts can interact
+    with the token at certain times.
+    """
+    freeze_key, token_id, client, operator_id = create_freezeable_token()
     print(f"\nSTEP 3: Freezing token {token_id} for operator account {operator_id}...")
     try:
         receipt = (
@@ -86,12 +99,16 @@ def freeze_token():
             .execute(client)
         )
         print(f"✅ Success! Token freeze complete. Status: {receipt.status}")
+        return token_id, client, operator_id, freeze_key
     except Exception as e:
         print(f"❌ Error freezing token: {e}")
         sys.exit(1)
 
-    # 5. Unfreeze the token for the operator account
-    # =================================================================
+def unfreeze_token():
+    """
+    Unfreezes the token for the operator (treasury) account.
+    """
+    token_id, client, operator_id, freeze_key = freeze_token()
     print(f"\nSTEP 4: Unfreezing token {token_id} for operator account {operator_id}...")
     try:
         receipt = (
