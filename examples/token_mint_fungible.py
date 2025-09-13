@@ -43,12 +43,15 @@ def setup_client():
 def generate_supply_key():
     """Generate a new supply key for the token."""
     print("\nSTEP 1: Generating a new supply key...")
-    supply_key = PrivateKey.generate("ed25519")
+    supply_key = PrivateKey.generate_ed25519()
     print("✅ Supply key generated.")
     return supply_key
 
 def create_new_token():
-    """Create a token with the supply key"""
+    """
+    Create a fungible token that can have its supply changed (minted or burned).
+    This requires setting a supply key, which is a special key that authorizes supply changes.
+    """
     client, operator_id, operator_key = setup_client()
     supply_key = generate_supply_key()
     print("\nSTEP 2: Creating a new mintable token...")
@@ -60,10 +63,10 @@ def create_new_token():
             .set_initial_supply(100)  # Start with 100 tokens
             .set_decimals(2)
             .set_treasury_account_id(operator_id)
-            .set_supply_key(supply_key)  # Assign the supply key
+            .set_supply_key(supply_key)  # Assign the supply key to enable mint/burn
         )
-        
-        # Freeze, sign with BOTH operator and the new supply key, then execute
+        # The transaction must be signed by both the treasury (operator) and the supply key
+        # to authorize creation and future supply changes.
         receipt = (
             tx.freeze_with(client)
             .sign(operator_key)
@@ -79,12 +82,22 @@ def create_new_token():
 
 
 def token_mint_fungible():
-    """Mint more of a fungible token."""
+    """
+    Mint more of a fungible token.
 
+    This function demonstrates how to increase the supply of a fungible token after creation.
+    The token must have a supply key set during creation, which authorizes future minting or burning.
+    Only the holder of the supply key can perform these actions.
+    """
+
+    # Create a new token with a supply key so its supply can be changed later
     client, token_id, supply_key = create_new_token()
+
     mint_amount = 5000 # This is 50.00 tokens because decimals is 2
     print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
     try:
+        # Minting requires a transaction signed by the supply key
+        # Without the supply key, the token supply is fixed and cannot be changed
         receipt = (
             TokenMintTransaction()
             .set_token_id(token_id)
