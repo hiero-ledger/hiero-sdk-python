@@ -24,27 +24,27 @@ from hiero_sdk_python import (
 load_dotenv()
 
 def setup_client():
-    """Setup Client"""
+    """Setup Client """
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
     # Get the operator account from the .env file
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        # NOTE: Assumes your operator key is a raw Ed25519 key
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
-        
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    
     except (TypeError, ValueError):
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
-
+    # Set the operator (payer) account for the client
     client.set_operator(operator_id, operator_key)
     print(f"Using operator account: {operator_id}")
     return client, operator_id, operator_key
 
 def generate_admin_key():
-    """Generate a new admin key within the script"""
-
+    """Generate a new admin key within the script:
+    This key will be used to create the token with admin privileges
+    """
     print("\nGenerating a new admin key for the token...")
     admin_key = PrivateKey.generate_ed25519()
     print("Admin key generated successfully.")
@@ -52,8 +52,7 @@ def generate_admin_key():
     return admin_key, token_id_to_delete
 
 def create_new_token():
-    """ Create the Token
-    """
+    """ Create the Token"""
     client, operator_id, operator_key = setup_client()
     admin_key, token_id_to_delete = generate_admin_key()
     try:
@@ -82,7 +81,7 @@ def create_new_token():
 
 
 def delete_token():
-    """Delete the Token"""
+    """Delete the Token we just created"""
 
     admin_key, token_id_to_delete, client, operator_key = create_new_token()
 
