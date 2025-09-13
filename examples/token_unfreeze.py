@@ -2,11 +2,6 @@
 Creates a freezeable token, freezes it for the treasury account,
 and then unfreezes it.
 """
-
-"""
-uv run examples/token_unfreeze.py
-python examples/token_unfreeze.py
-"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -43,7 +38,7 @@ def setup_client():
 def generate_freeze_key():
     """Generate a Freeze Key on the fly"""
     print("\nSTEP 1: Generating a new freeze key...")
-    freeze_key = PrivateKey.generate("ed25519")
+    freeze_key = PrivateKey.generate_ed25519()
     print("✅ Freeze key generated.")
     return freeze_key
 
@@ -96,7 +91,13 @@ def freeze_token():
         sys.exit(1)
 
 def token_unfreeze():
-    """Unfreeze the token for the operator account"""
+    """
+    Unfreeze the token for the operator account.
+
+    This function demonstrates the process of unfreezing a token after it has been frozen.
+    Once unfrozen, the operator account can perform additional transactions with the token,
+    such as transfers, mints, or other operations that require the token to be unfrozen.
+    """
     token_id, client, operator_id, freeze_key = freeze_token()
     print(f"\nSTEP 4: Unfreezing token {token_id} for operator account {operator_id}...")
     try:
@@ -109,6 +110,8 @@ def token_unfreeze():
             .execute(client)
         )
         print(f"✅ Success! Token unfreeze complete.")
+        # At this point, the operator account can now perform additional transactions
+        # with the token, such as transfers, mints, or other operations.
     except Exception as e:
         print(f"❌ Error unfreezing token: {e}")
         sys.exit(1)
