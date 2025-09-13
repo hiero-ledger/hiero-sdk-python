@@ -44,7 +44,7 @@ def setup_client():
 def generate_freeze_key():
     """Generate a Freeze Key"""
     print("\nSTEP 1: Generating a new freeze key...")
-    freeze_key = PrivateKey.generate("ed25519")
+    freeze_key = PrivateKey.generate_ed25519()
     print("✅ Freeze key generated.")
     return freeze_key
 
@@ -79,7 +79,14 @@ def create_freezeable_token():
 
 
 def freeze_token():
-    """Freeze the token for the operator account"""
+    """
+    Freeze the token for the operator account.
+
+    Freezing a token prevents the specified account from performing token-related transactions
+    (such as transfers, mints, or burns) until it is unfrozen. This is useful for enforcing
+    compliance, security, or business logic, ensuring that only authorized accounts can interact
+    with the token at certain times.
+    """
     freeze_key, token_id, client, operator_id = create_freezeable_token()
     print(f"\nSTEP 3: Freezing token {token_id} for operator account {operator_id}...")
     try:
@@ -119,4 +126,4 @@ def unfreeze_token():
 
 
 if __name__ == "__main__":
-    unfreeze_token()
+    freeze_token()
