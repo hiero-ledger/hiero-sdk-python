@@ -7,11 +7,14 @@ optional fields, and providing a readable string representation of the
 topic state.
 """
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
+
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key, AccountID
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
 from hiero_sdk_python.hapi.services import consensus_topic_info_pb2
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.utils.key_format import format_key
 
 
@@ -35,7 +38,9 @@ class TopicInfo:
             auto_renew_period: Optional[Duration],
             auto_renew_account: Optional[AccountID],
             ledger_id: Optional[bytes],
-
+            fee_schedule_key: Optional[PublicKey],
+            fee_exempt_keys: Optional[List[PublicKey]],
+            custom_fees: Optional[List[CustomFixedFee]],
     ) -> None:
         """
         Initializes a new instance of the TopicInfo class.
@@ -49,6 +54,9 @@ class TopicInfo:
             auto_renew_period (Optional[Duration]): The auto-renew period for the topic.
             auto_renew_account (Optional[AccountID]): The account ID for auto-renewal.
             ledger_id (Optional[bytes]): The ledger ID associated with the topic.
+            fee_schedule_key (PublicKey): The fee schedule key for the topic.
+            fee_exempt_keys (List[PublicKey]): The fee exempt keys for the topic.
+            custom_fees (List[CustomFixedFee]): The custom fees for the topic.
         """
         self.memo: str = memo
         self.running_hash: bytes = running_hash
@@ -59,6 +67,13 @@ class TopicInfo:
         self.auto_renew_period: Optional[Duration] = auto_renew_period
         self.auto_renew_account: Optional[AccountID] = auto_renew_account
         self.ledger_id: Optional[bytes] = ledger_id
+        self.fee_schedule_key: PublicKey = fee_schedule_key
+        self.fee_exempt_keys: List[PublicKey] = (
+            list(fee_exempt_keys) if fee_exempt_keys is not None else []
+        )
+        self.custom_fees: List[CustomFixedFee] = (
+            list(custom_fees) if custom_fees is not None else []
+        )
 
     @classmethod
     def _from_proto(
@@ -99,7 +114,12 @@ class TopicInfo:
                 if topic_info_proto.HasField("autoRenewAccount") else None
             ),
             ledger_id=getattr(topic_info_proto, "ledger_id", None),
-            # fallback if the field doesn't exist
+            fee_schedule_key=(
+                PublicKey._from_proto(topic_info_proto.fee_schedule_key)
+                if topic_info_proto.HasField("fee_schedule_key") else None
+            ),
+            fee_exempt_keys=[PublicKey._from_proto(key) for key in topic_info_proto.fee_exempt_key_list],
+            custom_fees=[CustomFixedFee._from_proto(fee) for fee in topic_info_proto.custom_fees],
         )
 
     def __repr__(self) -> str:
@@ -141,6 +161,9 @@ class TopicInfo:
             f"  submit_key={format_key(self.submit_key)},\n"
             f"  auto_renew_period={self.auto_renew_period.seconds},\n"
             f"  auto_renew_account={self.auto_renew_account},\n"
-            f"  ledger_id=0x{ledger_id_hex}\n"
+            f"  ledger_id=0x{ledger_id_hex},\n"
+            f"  fee_schedule_key={format_key(self.fee_schedule_key)},\n"
+            f"  fee_exempt_keys={[format_key(key) for key in self.fee_exempt_keys]},\n"
+            f"  custom_fees={self.custom_fees},\n"
             ")"
         )
