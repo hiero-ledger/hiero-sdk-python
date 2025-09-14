@@ -8,7 +8,7 @@ MULTIPLIER = 1000003
 P3 = 26**3
 P5 = 26**5
 
-def parse_from_string(cls, address: str):
+def parse_from_string(address: str):
     """
     Parse an address string of the form: <shard>.<realm>.<num>[-<checksum>]
     Examples:
@@ -23,12 +23,8 @@ def parse_from_string(cls, address: str):
         raise ValueError("Invalid address format")
     
     shard, realm, num, checksum = match.groups()
-    return cls(
-        shard=int(shard), 
-        realm=int(realm), 
-        num=int(num), 
-        checksum=checksum or None
-    )
+    
+    return shard, realm, num, checksum
 
 def generate_checksum(ledger_id: bytes, address: str) -> str:
     """
