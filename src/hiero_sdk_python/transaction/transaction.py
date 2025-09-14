@@ -1,4 +1,6 @@
 import hashlib
+from typing import Optional
+
 from typing import TYPE_CHECKING
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -39,7 +41,7 @@ class Transaction(_Executable):
         super().__init__()
 
         self.transaction_id = None
-        self.transaction_fee = None
+        self.transaction_fee: int | None = None
         self.transaction_valid_duration = 120 
         self.generate_record = False
         self.memo = ""
@@ -422,7 +424,7 @@ class Transaction(_Executable):
         schedulable_body = self.build_scheduled_body()
         return ScheduleCreateTransaction()._set_schedulable_body(schedulable_body)
 
-    def _require_not_frozen(self):
+    def _require_not_frozen(self) -> None:
         """
         Ensures the transaction is not frozen before allowing modifications.
 
@@ -432,7 +434,7 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             raise Exception("Transaction is immutable; it has been frozen.")
 
-    def _require_frozen(self):
+    def _require_frozen(self) -> None:
         """
         Ensures the transaction is frozen before allowing operations that require a frozen transaction.
 

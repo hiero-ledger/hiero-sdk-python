@@ -53,7 +53,7 @@ class TopicCreateTransaction(Transaction):
         self.submit_key: Optional[PublicKey] = submit_key
         self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
         self.auto_renew_account: Optional[AccountId] = auto_renew_account
-        self.transaction_fee: int = 10_000_000
+        self.transaction_fee: Optional[int] = 10_000_000
 
     def set_memo(self, memo: str) -> "TopicCreateTransaction":
         """
