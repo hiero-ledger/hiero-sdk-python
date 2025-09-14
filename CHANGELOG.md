@@ -49,7 +49,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update grpcio dependency from 1.68.1 to 1.71.2
 - Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
 - Calls in examples for PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY')) to PrivateKey.from_string(os.getenv('OPERATOR_KEY')) to enable general key types
-- Add CI tests across Python 3.9–3.12
+- Add CI tests across Python 3.10–3.12.
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
