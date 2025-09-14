@@ -6,7 +6,7 @@ It handles setting the target topic ID, building the protobuf transaction body, 
 defining the execution method required to perform the deletion transaction.
 """
 
-
+from typing import Optional
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import (
     consensus_delete_topic_pb2,
@@ -26,9 +26,10 @@ class TopicDeleteTransaction(Transaction):
         Consensus Service (HCS).
 
     """
-    def __init__(self, topic_id: basic_types_pb2.TopicID = None):
+
+    def __init__(self, topic_id: Optional[basic_types_pb2.TopicID] = None) -> None:
         super().__init__()
-        self.topic_id: basic_types_pb2.TopicID = topic_id
+        self.topic_id: Optional[basic_types_pb2.TopicID] = topic_id
         self.transaction_fee: int = 10_000_000
 
     def set_topic_id(self, topic_id: basic_types_pb2.TopicID ) -> "TopicDeleteTransaction":
@@ -45,7 +46,7 @@ class TopicDeleteTransaction(Transaction):
         self.topic_id = topic_id
         return self
 
-    def _build_proto_body(self):
+    def _build_proto_body(self) -> consensus_delete_topic_pb2.ConsensusDeleteTopicTransactionBody:
         """
         Returns the protobuf body for the topic delete transaction.
         
