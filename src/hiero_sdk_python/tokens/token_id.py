@@ -13,6 +13,7 @@ from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
     validate_checksum,
+    format_to_string,
     format_to_string_with_checksum
 )
 
@@ -79,7 +80,9 @@ class TokenId:
         )
 
     def to_string_with_checksum(self, client:Client):
-        """Get string representation of TokenId with checksum"""
+        """
+        Returns the string representation of the TokenId with checksum in the format 'shard.realm.num-checksum'
+        """
         return format_to_string_with_checksum(
             shard=self.shard, 
             realm=self.realm, 
@@ -91,7 +94,7 @@ class TokenId:
         """
         Returns the string representation of the TokenId in the format 'shard.realm.num'.
         """
-        return f"{self.shard}.{self.realm}.{self.num}"
+        return format_to_string(self.shard, self.realm, self.realm)
 
     def __hash__(self) -> int:
         """ Returns a hash of the TokenId instance. """
