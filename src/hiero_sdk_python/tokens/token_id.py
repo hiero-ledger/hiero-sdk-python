@@ -94,7 +94,7 @@ class TokenId:
         """
         Returns the string representation of the TokenId in the format 'shard.realm.num'.
         """
-        return format_to_string(self.shard, self.realm, self.realm)
+        return format_to_string(self.shard, self.realm, self.num)
 
     def __hash__(self) -> int:
         """ Returns a hash of the TokenId instance. """
