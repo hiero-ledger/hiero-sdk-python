@@ -65,3 +65,13 @@ def test_nft_id():
     fail_str = "a.3.3/19"
     with pytest.raises(ValueError):
         NftId.from_string(fail_str)
+
+def test_get_nft_id_with_cehecksum(mock_client):
+    """Should return string with checksum when ledger id is provided."""
+    client = mock_client
+    client.network.ledger_id = bytes.fromhex("00")
+
+    token_id = TokenId.from_string("0.0.1")
+    nft_id = NftId(token_id, 1)
+
+    assert nft_id.to_string_with_checksum(client) == "0.0.1-dfkxr/1"
