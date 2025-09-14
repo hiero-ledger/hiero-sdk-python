@@ -2,7 +2,7 @@
 This module provides the `TopicUpdateTransaction` class for updating consensus topics
 on the Hedera network using the Hiero SDK.
 """
-from typing import Union
+from typing import Union, Optional
 from google.protobuf import wrappers_pb2 as _wrappers_pb2
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.channels import _Channel
@@ -25,13 +25,13 @@ class TopicUpdateTransaction(Transaction):
     """Represents a transaction to update a consensus topic."""
     def __init__(
         self,
-        topic_id: basic_types_pb2.TopicID =None,
-        memo: str = None,
-        admin_key: PublicKey = None,
-        submit_key: PublicKey = None,
-        auto_renew_period: Duration = Duration(7890000),
-        auto_renew_account: AccountId = None,
-        expiration_time: timestamp_pb2.Timestamp = None,
+        topic_id: Optional[basic_types_pb2.TopicID] = None,
+        memo: Optional[str] = None,
+        admin_key: Optional[PublicKey] = None,
+        submit_key: Optional[PublicKey] = None,
+        auto_renew_period: Optional[Duration] = Duration(7890000),
+        auto_renew_account: Optional[AccountId] = None,
+        expiration_time: Optional[timestamp_pb2.Timestamp] = None,
     ) -> None:
         """
         Initializes a new instance of the TopicUpdateTransaction class.
@@ -45,13 +45,13 @@ class TopicUpdateTransaction(Transaction):
             expiration_time (timestamp_pb2.Timestamp): The expiration time of the topic.
         """
         super().__init__()
-        self.topic_id: basic_types_pb2.TopicID = topic_id
+        self.topic_id: Optional[basic_types_pb2.TopicID] = topic_id
         self.memo: str = memo or ""
-        self.admin_key: PublicKey = admin_key
-        self.submit_key: PublicKey = submit_key
-        self.auto_renew_period: Duration = auto_renew_period
-        self.auto_renew_account: AccountId = auto_renew_account
-        self.expiration_time: timestamp_pb2.Timestamp = expiration_time
+        self.admin_key: Optional[PublicKey] = admin_key
+        self.submit_key: Optional[PublicKey] = submit_key
+        self.auto_renew_period: Optional[Duration] = auto_renew_period
+        self.auto_renew_account: Optional[AccountId] = auto_renew_account
+        self.expiration_time: Optional[timestamp_pb2.Timestamp] = expiration_time
         self.transaction_fee: int = 10_000_000
 
     def set_topic_id(self, topic_id: basic_types_pb2.TopicID) -> "TopicUpdateTransaction":
@@ -160,7 +160,7 @@ class TopicUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def _build_proto_body(self):
+    def _build_proto_body(self) -> consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody:
         """
         Returns the protobuf body for the topic update transaction.
         
