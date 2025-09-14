@@ -32,7 +32,7 @@ class TokenAssociateTransaction(Transaction):
     def __init__(
             self,
             account_id: Optional[AccountId] = None,
-            token_ids:Optional[List[TokenId]] = None
+            token_ids: Optional[List[TokenId]] = None
         ) -> None:
         """
         Initializes a new TokenAssociateTransaction instance with optional keyword arguments.
