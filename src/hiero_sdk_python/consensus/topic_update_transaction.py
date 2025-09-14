@@ -84,10 +84,10 @@ class TopicUpdateTransaction(Transaction):
 
     def set_admin_key(self, key: PublicKey) -> "TopicUpdateTransaction":
         """
-        Sets the admin key for the topic.
+        Sets the public admin key for the topic.
 
         Args:
-            key: The admin key to set.
+            Publickey: The admin key to set.
 
         Returns:
             TopicUpdateTransaction: Returns the instance for method chaining.
@@ -98,10 +98,10 @@ class TopicUpdateTransaction(Transaction):
 
     def set_submit_key(self, key: PublicKey) -> "TopicUpdateTransaction":
         """
-        Sets the submit key for the topic.
+        Sets the public submit key for the topic.
 
         Args:
-            key: The submit key to set.
+            Publickey: The submit key to set.
 
         Returns:
             TopicUpdateTransaction: Returns the instance for method chaining.
