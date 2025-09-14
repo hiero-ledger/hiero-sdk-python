@@ -9,6 +9,12 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.utils.entity_id_helper import (
+    parse_from_string,
+    validate_checksum,
+    format_to_string_with_checksum
+)
 
 @dataclass(frozen=True, eq=True, init=True, repr=True)
 class TokenId:
@@ -16,6 +22,7 @@ class TokenId:
     shard: int
     realm: int
     num: int
+    checksum: str|None = None
 
     def __post_init__(self) -> None:
         if self.shard < 0:
@@ -54,21 +61,30 @@ class TokenId:
         """
         Parses a string in the format 'shard.realm.num' to create a TokenId instance.
         """
-        if token_id_str is None:
-            raise ValueError("TokenId string must be provided")
+        if token_id_str == "":
+            raise ValueError('TokenId cannot be empty')
+        elif not isinstance(token_id_str, str):
+            raise TypeError('TokenId must be a string')
+        
+        return parse_from_string(cls, token_id_str)
+    
+    def validate_checksum(self, client: Client):
+        """Validate the checksum for the TokenId instance"""
+        validate_checksum(
+            shard=self.shard, 
+            realm=self.realm,
+            num=self.num, 
+            checksum=self.checksum, 
+            client=client
+        )
 
-        token_id_str = token_id_str.strip()
-        if not token_id_str:
-            raise ValueError("TokenId cannot be empty or whitespace")
-
-        parts: List[str] = token_id_str.split(".")
-        if len(parts) != 3:
-            raise ValueError("Invalid TokenId format. Expected 'shard.realm.num'")
-
-        return cls(
-            shard=int(parts[0]),
-            realm=int(parts[1]),
-            num=int(parts[2])
+    def to_string_with_checksum(self, client:Client):
+        """Get string representation of TokenId with checksum"""
+        return format_to_string_with_checksum(
+            shard=self.shard, 
+            realm=self.realm, 
+            num=self.num, 
+            client=client
         )
 
     def __str__(self) -> str:
