@@ -5,7 +5,7 @@ hiero_sdk_python.tokens.token_id.py
 Defines TokenId, a frozen dataclass for representing Hedera token identifiers
 (shard, realm, num) with validation and protobuf conversion utilities.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
@@ -23,7 +23,7 @@ class TokenId:
     shard: int
     realm: int
     num: int
-    checksum: str|None = None
+    checksum: str | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         if self.shard < 0:
@@ -67,13 +67,18 @@ class TokenId:
         elif not isinstance(token_id_str, str):
             raise TypeError('TokenId must be a string')
         
-        return parse_from_string(cls, token_id_str)
+        shard, realm, num, checksum = parse_from_string(token_id_str)
+
+        token_id = cls(int(shard), int(realm), int(num))
+        object.__setattr__(token_id, 'checksum', checksum)
+
+        return token_id
     
     def validate_checksum(self, client: Client):
         """Validate the checksum for the TokenId instance"""
         validate_checksum(
             shard=self.shard, 
-            realm=self.realm,
+            realm=self.realm, 
             num=self.num, 
             checksum=self.checksum, 
             client=client
