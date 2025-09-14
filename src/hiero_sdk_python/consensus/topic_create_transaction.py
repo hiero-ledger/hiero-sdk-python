@@ -12,8 +12,7 @@ from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import (
     consensus_create_topic_pb2,
-    transaction_pb2,
-    basic_types_pb2)
+    transaction_pb2)
 from hiero_sdk_python.hapi.services import consensus_create_topic_pb2_grpc
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -21,7 +20,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.account.account_id import AccountId
-
+from hiero_sdk_python.crypto.public_key import PublicKey
 
 class TopicCreateTransaction(Transaction):
     """
@@ -34,8 +33,8 @@ class TopicCreateTransaction(Transaction):
     def __init__(
         self,
         memo: Optional[str] = None,
-        admin_key: Optional[basic_types_pb2.Key] = None,
-        submit_key: Optional[basic_types_pb2.Key] = None,
+        admin_key: Optional[PublicKey] = None,
+        submit_key: Optional[PublicKey] = None,
         auto_renew_period: Duration = None,
         auto_renew_account: AccountId = None
     ) -> None:
@@ -50,8 +49,8 @@ class TopicCreateTransaction(Transaction):
         """
         super().__init__()
         self.memo = memo or ""
-        self.admin_key: Optional[basic_types_pb2.Key] = admin_key
-        self.submit_key: Optional[basic_types_pb2.Key] = submit_key
+        self.admin_key: Optional[PublicKey] = admin_key
+        self.submit_key: Optional[PublicKey] = submit_key
         self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
         self.auto_renew_account: AccountId = auto_renew_account
         self.transaction_fee: int = 10_000_000
@@ -68,11 +67,11 @@ class TopicCreateTransaction(Transaction):
         self.memo = memo
         return self
 
-    def set_admin_key(self, key: basic_types_pb2.Key) -> "TopicCreateTransaction":
+    def set_admin_key(self, key: PublicKey) -> "TopicCreateTransaction":
         """
         Sets the admin key for the topic creation transaction.
         Args:
-            key (basic_types_pb2.Key): The admin key to set for the topic.
+            key (PublicKey): The public admin key to set for the topic.
         Returns:
             TopicCreateTransaction: The current instance for method chaining.
         """
@@ -80,11 +79,11 @@ class TopicCreateTransaction(Transaction):
         self.admin_key = key
         return self
 
-    def set_submit_key(self, key: basic_types_pb2.Key) -> "TopicCreateTransaction":
+    def set_submit_key(self, key: PublicKey) -> "TopicCreateTransaction":
         """
         Sets the submit key for the topic creation transaction.
         Args:
-            key (basic_types_pb2.Key): The submit key to set for the topic.
+            key (PublicKey): The public submit key to set for the topic.
         Returns:
             TopicCreateTransaction: The current instance for method chaining.
         """

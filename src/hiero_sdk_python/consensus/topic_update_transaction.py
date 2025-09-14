@@ -19,6 +19,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.public_key import PublicKey
 
 class TopicUpdateTransaction(Transaction):
     """Represents a transaction to update a consensus topic."""
@@ -26,8 +27,8 @@ class TopicUpdateTransaction(Transaction):
         self,
         topic_id: basic_types_pb2.TopicID =None,
         memo: str = None,
-        admin_key: basic_types_pb2.Key = None,
-        submit_key: basic_types_pb2.Key = None,
+        admin_key: PublicKey = None,
+        submit_key: PublicKey = None,
         auto_renew_period: Duration = Duration(7890000),
         auto_renew_account: AccountId = None,
         expiration_time: timestamp_pb2.Timestamp = None,
@@ -37,8 +38,8 @@ class TopicUpdateTransaction(Transaction):
         Args:
             topic_id (basic_types_pb2.TopicID): The ID of the topic to update.
             memo (str): The memo associated with the topic.
-            admin_key (basic_types_pb2.Key): The admin key for the topic.
-            submit_key (basic_types_pb2.Key): The submit key for the topic.
+            admin_key (PublicKey): The admin key for the topic.
+            submit_key (PublicKey): The submit key for the topic.
             auto_renew_period (Duration): The auto-renew period for the topic.
             auto_renew_account (AccountId): The account ID for auto-renewal.
             expiration_time (timestamp_pb2.Timestamp): The expiration time of the topic.
@@ -46,8 +47,8 @@ class TopicUpdateTransaction(Transaction):
         super().__init__()
         self.topic_id: basic_types_pb2.TopicID = topic_id
         self.memo: str = memo or ""
-        self.admin_key: basic_types_pb2.Key = admin_key
-        self.submit_key: basic_types_pb2.Key = submit_key
+        self.admin_key: PublicKey = admin_key
+        self.submit_key: PublicKey = submit_key
         self.auto_renew_period: Duration = auto_renew_period
         self.auto_renew_account: AccountId = auto_renew_account
         self.expiration_time: timestamp_pb2.Timestamp = expiration_time
@@ -81,7 +82,7 @@ class TopicUpdateTransaction(Transaction):
         self.memo = memo
         return self
 
-    def set_admin_key(self, key: basic_types_pb2.Key) -> "TopicUpdateTransaction":
+    def set_admin_key(self, key: PublicKey) -> "TopicUpdateTransaction":
         """
         Sets the admin key for the topic.
 
@@ -95,7 +96,7 @@ class TopicUpdateTransaction(Transaction):
         self.admin_key = key
         return self
 
-    def set_submit_key(self, key: basic_types_pb2.Key) -> "TopicUpdateTransaction":
+    def set_submit_key(self, key: PublicKey) -> "TopicUpdateTransaction":
         """
         Sets the submit key for the topic.
 
