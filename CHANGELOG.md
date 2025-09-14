@@ -31,10 +31,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - example script for Token Airdrop
 - added variables directly in the example script to reduce the need for users to supply extra environment variables.
 - Added new `merge_conflicts.md` with detailed guidance on handling conflicts during rebase.
-- Type hinting to /tokens, /transaction, /query
-- Linting to /tokens, /transaction, /query
-- Module docstrings in /tokens, /transaction, /query
-- Function docstrings in /tokens, /transaction, /query
+- Type hinting to /tokens, /transaction, /query, /consensus
+- Linting to /tokens, /transaction, /query, /consensus
+- Module docstrings in /tokens, /transaction, /query, /consensus
+- Function docstrings in /tokens, /transaction, /query, /consensus
 
 ### Changed
 - Extract _build_proto_body() from build_transaction_body() in every transaction
