@@ -55,9 +55,16 @@ def test_parse_from_string_for_invalid_addresses():
 def test_generate_checksum():
     """Checksum generation"""
     ledger_id = bytes.fromhex("00") # mainnet ledger_id
-    
     assert generate_checksum(ledger_id, '0.0.1') == 'dfkxr'
-    assert generate_checksum(ledger_id, '0.0.4') == 'cjcuq'
+
+    ledger_id = bytes.fromhex("01") # testnet ledger_id
+    assert generate_checksum(ledger_id, '0.0.1') == 'mswfa'
+
+    ledger_id = bytes.fromhex("02") # previewnet ledger_id
+    assert generate_checksum(ledger_id, '0.0.1') == 'wghmj'
+
+    ledger_id = bytes.fromhex("03") # solo/local ledger_id
+    assert generate_checksum(ledger_id, '0.0.1') == 'ftsts'
 
 def test_validate_checksum():
     """Valid checksum should pass without error"""
