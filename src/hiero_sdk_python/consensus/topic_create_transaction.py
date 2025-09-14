@@ -13,7 +13,6 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import (
     consensus_create_topic_pb2,
     transaction_pb2)
-from hiero_sdk_python.hapi.services import consensus_create_topic_pb2_grpc
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -35,24 +34,25 @@ class TopicCreateTransaction(Transaction):
         memo: Optional[str] = None,
         admin_key: Optional[PublicKey] = None,
         submit_key: Optional[PublicKey] = None,
-        auto_renew_period: Duration = None,
-        auto_renew_account: AccountId = None
+        auto_renew_period: Optional[Duration] = None,
+        auto_renew_account: Optional[AccountId] = None,
     ) -> None:
         """
         Initializes a new instance of the TopicCreateTransaction class.
+
         Args:
-            memo (str): Optional memo for the topic.
-            admin_key (Key): Optional admin key for the topic.
-            submit_key (Key): Optional submit key for the topic.
-            auto_renew_period (Duration): Optional auto-renew period for the topic.
-            auto_renew_account (AccountId): Optional account ID for auto-renewal.
+            memo (Optional[str]): Optional memo for the topic.
+            admin_key (Optional[PublicKey]): Optional public admin key for the topic.
+            submit_key (Optional[PublicKey]): Optional public submit key for the topic.
+            auto_renew_period (Optional[Duration]): Optional auto-renew period for the topic.
+            auto_renew_account (Optional[AccountId]): Optional account ID for auto-renewal.
         """
         super().__init__()
-        self.memo = memo or ""
+        self.memo: str = memo or ""
         self.admin_key: Optional[PublicKey] = admin_key
         self.submit_key: Optional[PublicKey] = submit_key
         self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
-        self.auto_renew_account: AccountId = auto_renew_account
+        self.auto_renew_account: Optional[AccountId] = auto_renew_account
         self.transaction_fee: int = 10_000_000
 
     def set_memo(self, memo: str) -> "TopicCreateTransaction":
@@ -160,7 +160,6 @@ class TopicCreateTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusCreateTopic.CopyFrom(consensus_create_body)
         return transaction_body
-        
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this topic create transaction.
