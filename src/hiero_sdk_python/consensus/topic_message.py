@@ -96,7 +96,7 @@ class TopicMessage:
         """
         Reassemble multiple chunk responses into a single TopicMessage.
         """
-        sorted_responses: List[mirror_proto.ConsensusTopicResponse] = sorted( 
+        sorted_responses: List[mirror_proto.ConsensusTopicResponse] = sorted(
             responses, key=lambda r: r.chunkInfo.number
         )
 

@@ -83,7 +83,7 @@ class TopicMessageSubmitTransaction(Transaction):
             raise ValueError("Missing required fields: topic_id.")
         if self.message is None:
             raise ValueError("Missing required fields: message.")
-            
+
         return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
             topicID=self.topic_id._to_proto(),
             message=bytes(self.message, "utf-8"),
@@ -99,7 +99,7 @@ class TopicMessageSubmitTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusSubmitMessage.CopyFrom(consensus_submit_message_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this topic message submit transaction.

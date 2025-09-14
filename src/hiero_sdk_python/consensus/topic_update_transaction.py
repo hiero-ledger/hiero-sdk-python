@@ -172,7 +172,7 @@ class TopicUpdateTransaction(Transaction):
         """
         if self.topic_id is None:
             raise ValueError("Missing required fields: topic_id")
-            
+
         return consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
             topicID=self.topic_id._to_proto(),
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
@@ -188,7 +188,7 @@ class TopicUpdateTransaction(Transaction):
             expirationTime=self.expiration_time._to_proto() if self.expiration_time else None,
             memo=_wrappers_pb2.StringValue(value=self.memo) if self.memo else None
         )
-    
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for topic update.
@@ -200,7 +200,7 @@ class TopicUpdateTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusUpdateTopic.CopyFrom(consensus_update_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this topic update transaction.
