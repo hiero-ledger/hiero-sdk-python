@@ -131,7 +131,7 @@ def test_node_switching_after_multiple_grpc_errors():
     """Test that execution switches nodes after receiving multiple non-retriable errors."""
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
     error_response = RealRpcError(grpc.StatusCode.UNAVAILABLE, "Test error")
-    
+
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
             header=response_header_pb2.ResponseHeader(
@@ -249,7 +249,7 @@ def test_exponential_backoff_retry():
 
     # Use a mock for time.sleep to capture the delay values
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
-        client.max_attempts = 5 
+        client.max_attempts = 5
 
         transaction = (
             AccountCreateTransaction()
@@ -349,10 +349,10 @@ def test_topic_create_transaction_retry_on_busy():
         # Verify transaction succeeded after retry
         assert receipt.status == ResponseCode.SUCCESS
         assert receipt.topic_id.num == 456
-        
+
         # Verify we slept once for the retry
         assert mock_sleep.call_count == 1, "Should have retried once"
-        
+
         # Verify we didn't switch nodes (BUSY is retriable without node switch)
         assert client.network.current_node._account_id == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
 
@@ -362,11 +362,11 @@ def test_topic_create_transaction_fails_on_nonretriable_error():
     error_response = TransactionResponseProto(
         nodeTransactionPrecheckCode=ResponseCode.INVALID_TRANSACTION_BODY
     )
-    
+
     response_sequences = [
         [error_response],
     ]
-    
+
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
         tx = (
             TopicCreateTransaction()
@@ -383,7 +383,7 @@ def test_transaction_node_switching_body_bytes():
     """Test that execution switches nodes after receiving a non-retriable error."""
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
     error = RealRpcError(grpc.StatusCode.UNAVAILABLE, "Test error")
-    
+
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
             header=response_header_pb2.ResponseHeader(
@@ -399,12 +399,12 @@ def test_transaction_node_switching_body_bytes():
         [error],
         [ok_response, receipt_response],
     ]
-    
+
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
         # We set the current node to 0
         client.network._node_index = 0
         client.network.current_node = client.network.nodes[0]
-        
+
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -412,7 +412,7 @@ def test_transaction_node_switching_body_bytes():
             .freeze_with(client)
             .sign(client.operator_private_key)
         )
-        
+
         for node in client.network.nodes:
             assert transaction._transaction_body_bytes.get(node._account_id) is not None, "Transaction body bytes should be set for all nodes"
             sig_map = transaction._signature_map.get(transaction._transaction_body_bytes[node._account_id])
@@ -458,7 +458,7 @@ def test_query_retry_on_busy():
                 balance=100000000  # Balance in tinybars
             )
         )
-    
+
     # Set up response sequences for multiple nodes:
     # First node returns BUSY, forcing a retry
     # Second node returns OK with the balance
@@ -466,19 +466,19 @@ def test_query_retry_on_busy():
         [busy_response],
         [ok_response],
     ]
-    
+
     with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
         # We set the current node to the first node so we are sure it will return BUSY response
         client.network.current_node = client.network.nodes[0]
-        
+
         query = CryptoGetAccountBalanceQuery()
         query.set_account_id(AccountId(0, 0, 1234))
-        
+
         balance = query.execute(client)
-        
+
         # Verify we slept once for the retry
         assert mock_sleep.call_count == 1, "Should have retried once"
-        
+
         assert balance.hbars.to_tinybars() == 100000000
         # Verify we switched to the second node
         assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
