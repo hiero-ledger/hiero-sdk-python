@@ -45,6 +45,7 @@ def generate_admin_key():
     """Generate a new admin key within the script:
     This key will be used to create the token with admin privileges
     """
+
     print("\nGenerating a new admin key for the token...")
     admin_key = PrivateKey.generate_ed25519()
     print("Admin key generated successfully.")
@@ -81,7 +82,15 @@ def create_new_token():
 
 
 def delete_token():
-    """Delete the Token we just created"""
+    """
+     Delete the Token we just created:
+    1. Call create_new_token() to create a new token and get its admin key, token ID, client, and operator key.
+    2. Build a TokenDeleteTransaction using the token ID.
+    3. Freeze the transaction with the client.
+    4. Sign the transaction with both the operator key and the admin key.
+    5. Execute the transaction to delete the token.
+    6. Print the result or handle any errors.
+    """
 
     admin_key, token_id_to_delete, client, operator_key = create_new_token()
 
