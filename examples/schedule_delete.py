@@ -8,8 +8,12 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_delete_transaction import (
     ScheduleDeleteTransaction,
