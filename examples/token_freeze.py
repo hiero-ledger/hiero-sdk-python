@@ -117,11 +117,7 @@ def freeze_token():
             )
             # Handle status code 165 (ACCOUNT_FROZEN_FOR_TOKEN) and print a clear message
             status_code = transfer_receipt.status
-            # Try ResponseCode mapping if available
-            try:
-                status_name = ResponseCode(status_code).name
-            except Exception:
-                pass
+            status_name = ResponseCode(status_code).name
             if status_name in ["ACCOUNT_FROZEN_FOR_TOKEN", "ACCOUNT_FROZEN"]:
                 print(f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}")
             elif status_name == "SUCCESS":
