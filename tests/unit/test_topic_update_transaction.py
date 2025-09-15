@@ -18,6 +18,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -185,6 +186,8 @@ def test_topic_update_transaction_with_all_fields(topic_id):
         admin_key = PrivateKey.generate().public_key()
         submit_key = PrivateKey.generate().public_key()
         auto_renew_account = AccountId(0, 0, 5678)
+        fee_collector_account_id = AccountId(0, 0, 9876)
+        custom_fee = CustomFixedFee(1000, fee_collector_account_id=fee_collector_account_id)
         
         tx = (
             TopicUpdateTransaction()
@@ -194,6 +197,9 @@ def test_topic_update_transaction_with_all_fields(topic_id):
             .set_submit_key(submit_key)
             .set_auto_renew_period(Duration(7776000))  # 90 days
             .set_auto_renew_account(auto_renew_account)
+            .set_custom_fees([custom_fee])
+            .set_fee_schedule_key(admin_key)
+            .set_fee_exempt_keys([admin_key])
         )
         
         try:
