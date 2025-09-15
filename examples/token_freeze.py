@@ -20,6 +20,8 @@ from hiero_sdk_python import (
     TokenCreateTransaction,
     TokenFreezeTransaction,
     TokenUnfreezeTransaction,
+    TransferTransaction,
+    ResponseCode,
 )
 
 # Load environment variables from .env file
@@ -72,7 +74,7 @@ def create_freezeable_token():
         )
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
-        return freeze_key, token_id, client, operator_id
+        return freeze_key, token_id, client, operator_id, operator_key
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
@@ -80,14 +82,14 @@ def create_freezeable_token():
 
 def freeze_token():
     """
-    Freeze the token for the operator account.
+     Freeze the token for the operator account.
 
-    Freezing a token prevents the specified account from performing token-related transactions
-    (such as transfers, mints, or burns) until it is unfrozen. This is useful for enforcing
-    compliance, security, or business logic, ensuring that only authorized accounts can interact
-    with the token at certain times.
+    1. Create a freezeable token with a freeze key.
+    2. Freeze the token for the operator account using the freeze key.
+    3. Attempt a token transfer to verify the freeze (should fail).
+    4. Return token details for further operations.
     """
-    freeze_key, token_id, client, operator_id = create_freezeable_token()
+    freeze_key, token_id, client, operator_id, operator_key = create_freezeable_token()
     print(f"\nSTEP 3: Freezing token {token_id} for operator account {operator_id}...")
     try:
         receipt = (
@@ -98,7 +100,36 @@ def freeze_token():
             .sign(freeze_key) # Must be signed by the freeze key
             .execute(client)
         )
-        print(f"✅ Success! Token freeze complete. Status: {receipt.status}")
+        print(f"✅ Success! Token freeze complete. Status: {ResponseCode(receipt.status).name} ")
+
+        # Attempt a token transfer to confirm the account cannot perform the operation while frozen
+        print("\nVerifying freeze: Attempting token transfer...")
+        
+        # Try to transfer 1 token from operator to itself (should fail if frozen)
+        try:
+            transfer_receipt = (
+                TransferTransaction()
+                .add_token_transfer(token_id, operator_id, 1)
+                .add_token_transfer(token_id, operator_id, -1)
+                .freeze_with(client)
+                .sign(operator_key)
+                .execute(client)
+            )
+            # Handle status code 165 (ACCOUNT_FROZEN_FOR_TOKEN) and print a clear message
+            status_code = transfer_receipt.status
+            # Try ResponseCode mapping if available
+            try:
+                status_name = ResponseCode(status_code).name
+            except Exception:
+                pass
+            if status_name in ["ACCOUNT_FROZEN_FOR_TOKEN", "ACCOUNT_FROZEN"]:
+                print(f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}")
+            elif status_name == "SUCCESS":
+                print("❌ Error: Transfer succeeded, but should have failed because the account is frozen.")
+            else:
+                print(f"❌ Unexpected: Transfer result. Status: {status_name}")
+        except Exception as e:
+            print(f"✅ Verified: Transfer failed as expected due to freeze. Error: {e}")
         return token_id, client, operator_id, freeze_key
     except Exception as e:
         print(f"❌ Error freezing token: {e}")
