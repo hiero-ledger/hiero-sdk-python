@@ -17,6 +17,8 @@ from hiero_sdk_python import (
     TokenCreateTransaction,
     TokenMintTransaction,
     TokenType,
+    TokenInfoQuery,
+    ResponseCode,
 )
 
 # Load environment variables from .env file
@@ -75,10 +77,15 @@ def create_nft_collection():
         sys.exit(1)
 def token_mint_non_fungible():
     """
-    Mint new NFTs with metadata.
+    Mint new NFTs with metadata
 
-    This function demonstrates how to mint unique NFTs (non-fungible tokens) in a collection.
-    The process requires a supply key, which authorizes minting new NFTs after the collection is created.
+    1. Create a new NFT collection (token) with a supply key
+    2. Prepare metadata for each NFT to be minted
+    3. Confirm total supply before minting
+    4. Mint the NFTs by submitting a TokenMintTransaction (signed by the supply key)
+    5. Confirm total supply after minting
+
+    The supply key authorizes minting new NFTs after the collection is created.
     Each NFT is assigned unique metadata, which can be used to identify or describe the token.
     """
 
@@ -93,6 +100,9 @@ def token_mint_non_fungible():
         b"METADATA_C",
     ]
     print(f"\nSTEP 3: Minting {len(metadata_list)} new NFTs for token {token_id}...")
+    # Confirm total supply before minting
+    info_before = TokenInfoQuery().set_token_id(token_id).execute(client)
+    print(f"Total supply before minting: {info_before.total_supply}")
     try:
         # Mint the NFTs by submitting a TokenMintTransaction
         # The transaction must be signed by the supply key to authorize minting
@@ -107,7 +117,9 @@ def token_mint_non_fungible():
         
         # THE FIX: The receipt confirms status, it does not contain serial numbers.
         print(f"✅ Success! NFT minting complete.")
-
+        # Confirm total supply after minting
+        info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
+        print(f"Total supply after minting: {info_after.total_supply}")
     except Exception as e:
         print(f"❌ Error minting NFTs: {e}")
         sys.exit(1)
