@@ -14,6 +14,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
 
+### Changed
+- Network configuration now uses the NETWORK environment variable instead of a hardcoded "testnet" (defaults to "testnet" if not set).
+
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
 
