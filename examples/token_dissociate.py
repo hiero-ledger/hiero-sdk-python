@@ -10,7 +10,7 @@ python examples/token_dissociate.py
 import os
 import sys
 from dotenv import load_dotenv
-
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python import (
     Client,
     AccountId,
@@ -69,20 +69,29 @@ def create_new_account():
         print(f"❌ Error creating new account: {e}")
         sys.exit(1)
 def create_token():
-    """Create two new tokens"""
+    """
+    Create two new tokens (one NFT and one fungible) for demonstration purposes.
+
+    - This example shows how to associate and dissociate both types of tokens (NFT and fungible)
+      with an account, covering common use cases in Hedera.
+    - By creating both, you can see how the process works for each token type in a single run.
+    - The new account acts as the target for association and dissociation.
+    - This keeps the example self-contained and avoids affecting your operator account or other accounts.
+    - It demonstrates the full lifecycle: create account, create tokens, associate, dissociate.
+    """
     client, operator_key, recipient_id, recipient_key, operator_id = create_new_account()
     print("\nSTEP 2: Creating two new tokens...")
     try:
         # Generate supply key for NFT
         supply_key = PrivateKey.generate_ed25519()                            
-        # Create NFT Token
+        # Create NFT Token (non-fungible, unique)
         nft_tx = (
             TokenCreateTransaction().set_token_name("NFT Token").set_token_symbol("NFTK").set_token_type(TokenType.NON_FUNGIBLE_UNIQUE).set_initial_supply(0).set_treasury_account_id(operator_id).set_supply_key(supply_key)
         )
         nft_receipt = nft_tx.freeze_with(client).sign(operator_key).execute(client)
         nft_token_id = nft_receipt.token_id
 
-        # Create Fungible Token
+        # Create Fungible Token (standard token)
         fungible_tx = (
             TokenCreateTransaction().set_token_name("Fungible Token").set_token_symbol("FTK").set_initial_supply(1).set_treasury_account_id(operator_id)
         )
@@ -98,7 +107,12 @@ def create_token():
 
 def token_associate():
     """
-    Associate the tokens with the new account.
+    Demonstrate token association by:
+
+    1. Creating an account that will associate tokens
+    2. Creating a fungible and NFT token to associate
+    3. Associating both tokens to the account
+    4. Verifying the tokens are associated to the account
 
     Note: Tokens must be associated with an account before they can be used or dissociated.
     Association is a prerequisite for holding, transferring, or later dissociating tokens.
@@ -118,7 +132,18 @@ def token_associate():
             .sign(recipient_key)  # Recipient must sign to approve
             .execute(client)
         )
-        print(f"✅ Success! Token association complete. Status: {receipt.status}")
+        # Print a human-readable status name if available, otherwise print the number
+        print(f"✅ Success! Token association complete. Status: {ResponseCode(receipt.status).name}")
+
+        # Optional: Verify association
+        print("\nVerifying token association...")
+        info = AccountInfoQuery().set_account_id(recipient_id).execute(client)
+        associated_tokens = [rel.token_id for rel in getattr(info, 'token_relationships', [])]
+        if nft_token_id in associated_tokens and fungible_token_id in associated_tokens:
+            print("✅ Verified: Both tokens are associated with the account.")
+        else:
+            print("❌ Verification failed: Some tokens are not associated.")
+
         return client, nft_token_id, fungible_token_id, recipient_id, recipient_key
     except Exception as e:
         print(f"❌ Error associating tokens: {e}")
@@ -127,6 +152,10 @@ def token_associate():
 def token_dissociate():
     """
     Dissociate the tokens from the new account.
+    1. Call token_associate() to create account, tokens, and associate them.
+    4. Optionally verify that the tokens are no longer associated.
+    2. Build and execute a TokenDissociateTransaction for both tokens.
+    3. Print the result of the dissociation.
 
     Why dissociate?
     - To remove unwanted tokens from your account
@@ -135,9 +164,12 @@ def token_dissociate():
     - To comply with business or regulatory requirements
     """
 
+    # Step 1: Prepare by associating tokens first
     client, nft_token_id, fungible_token_id, recipient_id, recipient_key = token_associate()
     print(f"\nSTEP 4: Dissociating NFT and fungible tokens from account {recipient_id}...")
+
     try:
+        # Step 2: Build and execute the dissociation transaction
         receipt = (
             TokenDissociateTransaction()
             .set_account_id(recipient_id)
@@ -149,7 +181,7 @@ def token_dissociate():
         )
         print(f"✅ Success! Token dissociation complete for both NFT and fungible tokens.")
 
-        # Optional: Verify dissociation
+        # Step 3: Verify dissociation
         print("\nVerifying token dissociation...") 
         info = AccountInfoQuery().set_account_id(recipient_id).execute(client)
         associated_tokens = [rel.token_id for rel in getattr(info, 'token_relationships', [])]
