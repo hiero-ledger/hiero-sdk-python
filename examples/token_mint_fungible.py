@@ -18,6 +18,8 @@ from hiero_sdk_python import (
     Network,
     TokenCreateTransaction,
     TokenMintTransaction,
+    TokenInfoQuery
+    
 )
 
 # Load environment variables from .env file
@@ -75,6 +77,14 @@ def create_new_token():
         )
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
+
+        # Confirm the token has a supply key set
+        info = TokenInfoQuery().set_token_id(token_id).execute(client)
+        if getattr(info, 'supply_key', None):
+            print("✅ Verified: Token has a supply key set.")
+        else:
+            print("❌ Warning: Token does not have a supply key set.")
+
         return client, token_id, supply_key
     except Exception as e:
         print(f"❌ Error creating token: {e}")
@@ -83,9 +93,13 @@ def create_new_token():
 
 def token_mint_fungible():
     """
-    Mint more of a fungible token.
+    Mint more of a fungible token
 
-    This function demonstrates how to increase the supply of a fungible token after creation.
+    1. Create a new token with a supply key so its supply can be changed later
+    2. Confirm the token's total supply before minting
+    3. Mint more tokens by submitting a TokenMintTransaction (signed by the supply key)
+    4. Confirm the token's total supply after minting
+
     The token must have a supply key set during creation, which authorizes future minting or burning.
     Only the holder of the supply key can perform these actions.
     """
@@ -95,6 +109,11 @@ def token_mint_fungible():
 
     mint_amount = 5000 # This is 50.00 tokens because decimals is 2
     print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
+
+    # Confirm total supply before minting
+    info_before = TokenInfoQuery().set_token_id(token_id).execute(client)
+    print(f"Total supply before minting: {info_before.total_supply}")
+
     try:
         # Minting requires a transaction signed by the supply key
         # Without the supply key, the token supply is fixed and cannot be changed
@@ -106,8 +125,11 @@ def token_mint_fungible():
             .sign(supply_key)  # Must be signed by the supply key
             .execute(client)
         )
-        # THE FIX: The receipt confirms status, it does not contain the new total supply.
         print(f"✅ Success! Token minting complete.")
+
+        # Confirm total supply after minting
+        info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
+        print(f"Total supply after minting: {info_after.total_supply}")
     except Exception as e:
         print(f"❌ Error minting tokens: {e}")
         sys.exit(1)
