@@ -27,7 +27,7 @@ def create_and_delete_token():
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    client = Client(Network())
 
     # Get the operator account from the .env file
     try:

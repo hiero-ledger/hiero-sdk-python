@@ -102,11 +102,11 @@ Create a .env file in the root of your project with the following (replace with 
 ```
 OPERATOR_ID=0.0.1234xx
 OPERATOR_KEY=af20e47d590300506032b657004220420...
-NETWORK=testnet
+NETWORK=testnet  # optional, defaults to 'testnet' if not set
 
 # optional:
 ADMIN_KEY=af20e47d59032b65700321009308ecfdf...
-SUPPLY_KEY =302a300506032b6570032100c5e4af5..."
+SUPPLY_KEY=302a300506032b6570032100c5e4af5...
 FREEZE_KEY=302a300306072b65700321009308ecfdf...
 RECIPIENT_ID=0.0.789xx
 TOKEN_ID=0.0.100xx
@@ -114,7 +114,9 @@ TOPIC_ID=0.0.200xx
 FREEZE_ACCOUNT_ID=0.0.100
 ```
 
-The only environment variables needed are OPERATOR_ID, OPERATOR_KEY and NETWORK. The rest is optional (if customisation of the example scripts is needed).
+The only required environment variables are OPERATOR_ID and OPERATOR_KEY.  
+`NETWORK` is optional—if not set, the SDK will default to 'testnet'.  
+The rest are optional (for customizing example scripts).
 
 A [sample .env](.env.example) file is provided in the root of this project. If you do not have an account on
 the Hedera testnet, you can easily get one from the [Hedera Portal](https://portal.hedera.com/). Learn more about

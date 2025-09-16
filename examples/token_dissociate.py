@@ -31,7 +31,7 @@ def token_dissociate():
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    client = Client(Network())
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
