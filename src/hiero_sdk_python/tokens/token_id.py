@@ -62,11 +62,6 @@ class TokenId:
         """
         Parses a string in the format 'shard.realm.num' to create a TokenId instance.
         """
-        if token_id_str == "":
-            raise ValueError('TokenId cannot be empty')
-        elif not isinstance(token_id_str, str):
-            raise TypeError('TokenId must be a string')
-
         shard, realm, num, checksum = parse_from_string(token_id_str)
 
         token_id = cls(int(shard), int(realm), int(num))
@@ -74,7 +69,7 @@ class TokenId:
 
         return token_id
 
-    def validate_checksum(self, client: Client):
+    def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the TokenId instance"""
         validate_checksum(
             shard=self.shard,
@@ -84,7 +79,7 @@ class TokenId:
             client=client
         )
 
-    def to_string_with_checksum(self, client:Client):
+    def to_string_with_checksum(self, client:Client) -> str:
         """
         Returns the string representation of the TokenId with checksum 
         in the format 'shard.realm.num-checksum'
