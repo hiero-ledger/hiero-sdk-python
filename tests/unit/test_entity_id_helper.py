@@ -24,7 +24,7 @@ def test_parse_parse_entity_id_from_string():
     # With checksum
     address = "0.0.123-vfmkw"
     shard, realm, num, checksum= parse_from_string(address)
-    
+ 
     assert shard == '0'
     assert realm == '0'
     assert num == '123'

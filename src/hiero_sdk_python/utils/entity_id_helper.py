@@ -21,9 +21,9 @@ def parse_from_string(address: str):
     match = ID_REGEX.match(address)
     if not match:
         raise ValueError("Invalid address format")
-    
+
     shard, realm, num, checksum = match.groups()
-    
+
     return shard, realm, num, checksum
 
 def generate_checksum(ledger_id: bytes, address: str) -> str:
@@ -64,7 +64,7 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
 
     for i in range(len(h)):
         sh = (sh * 31 + h[i]) % P5
-    
+
     cp = ((((len(address) % 5) * 11 + sd0) * 11 + sd1) * P3 + sd + sh) % P5
     cp = (cp * MULTIPLIER) % P5
 
@@ -75,7 +75,7 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
         cp //= 26
 
     return "".join(reversed(letter))
-        
+
 def validate_checksum(shard: int, realm: int, num: int, checksum: str, client: Client):
     """
     Validate a Hiero entity ID checksum against the current client's ledger.
@@ -93,10 +93,10 @@ def validate_checksum(shard: int, realm: int, num: int, checksum: str, client: C
     ledger_id = client.network.ledger_id
     if not ledger_id:
         raise ValueError("Missing ledger ID in client")
-    
+
     address = format_to_string(shard, realm, num)
     expected_checksum = generate_checksum(ledger_id, address)
-    
+
     if expected_checksum != checksum:
         raise ValueError(f"Checksum mismatch for {address}")
 
@@ -114,5 +114,5 @@ def format_to_string_with_checksum(shard: int, realm: int, num: int,client: Clie
     if not ledger_id:
         raise ValueError("Missing ledger ID in client")
 
-    base_str = format_to_string(shard, realm, num) 
-    return (f"{base_str}-{generate_checksum(ledger_id, format_to_string(shard, realm, num))}")
+    base_str = format_to_string(shard, realm, num)
+    return f"{base_str}-{generate_checksum(ledger_id, format_to_string(shard, realm, num))}"

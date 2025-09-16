@@ -1,5 +1,6 @@
-from hiero_sdk_python.tokens.token_id import TokenId
 import pytest
+
+from hiero_sdk_python.tokens.token_id import TokenId
 
 pytestmark = pytest.mark.unit
 
@@ -24,11 +25,11 @@ def test_create_token_id_from_string():
 @pytest.mark.parametrize(
     'invalid_id', 
     [
-        '', 
-        123, 
-        None, 
-        '0.0.-1', 
-        'abc.def.ghi', 
+        '',
+        123,
+        None,
+        '0.0.-1',
+        'abc.def.ghi',
         '0.0.1-ad'
     ]
 )
