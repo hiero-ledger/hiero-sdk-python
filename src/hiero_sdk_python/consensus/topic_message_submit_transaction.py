@@ -2,6 +2,8 @@
 This module provides the `TopicMessageSubmitTransaction` class for submitting
 messages to Hedera Consensus Service topics using the Hiero SDK.
 """
+from typing import Optional
+
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2
 from hiero_sdk_python.hapi.services import transaction_pb2
@@ -19,24 +21,30 @@ class TopicMessageSubmitTransaction(Transaction):
         Allows setting the target topic ID and message, building the transaction body,
         and executing the submission through a network channel.
     """
-    def __init__(self, topic_id: basic_types_pb2.TopicID = None, message: str = None) -> None:
+
+    def __init__(
+        self,
+        topic_id: Optional[basic_types_pb2.TopicID] = None,
+        message: Optional[str] = None,
+    ) -> None:
         """
         Initializes a new TopicMessageSubmitTransaction instance.
-        
         Args:
-            topic_id (TopicId, optional): The ID of the topic.
-            message (str, optional): The message to submit.
+            topic_id (Optional[TopicID]): The ID of the topic.
+            message (Optional[str]): The message to submit.
         """
         super().__init__()
-        self.topic_id: basic_types_pb2.TopicID = topic_id
-        self.message: str = message
+        self.topic_id: Optional[basic_types_pb2.TopicID] = topic_id
+        self.message: Optional[str] = message
 
-    def set_topic_id(self, topic_id: basic_types_pb2.TopicID) -> "TopicMessageSubmitTransaction":
+    def set_topic_id(
+        self, topic_id: basic_types_pb2.TopicID
+    ) -> "TopicMessageSubmitTransaction":
         """
         Sets the topic ID for the message submission.
 
         Args:
-            topic_id (TopicId): The ID of the topic to which the message is submitted.
+            topic_id (TopicID): The ID of the topic to which the message is submitted.
 
         Returns:
             TopicMessageSubmitTransaction: This transaction instance (for chaining).
@@ -59,7 +67,9 @@ class TopicMessageSubmitTransaction(Transaction):
         self.message = message
         return self
 
-    def _build_proto_body(self):
+    def _build_proto_body(
+        self,
+    ) -> consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody:
         """
         Returns the protobuf body for the topic message submit transaction.
         
@@ -73,12 +83,11 @@ class TopicMessageSubmitTransaction(Transaction):
             raise ValueError("Missing required fields: topic_id.")
         if self.message is None:
             raise ValueError("Missing required fields: message.")
-            
+
         return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
             topicID=self.topic_id._to_proto(),
-            message=bytes(self.message, 'utf-8')
+            message=bytes(self.message, "utf-8"),
         )
-    
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for message submission.
@@ -90,7 +99,7 @@ class TopicMessageSubmitTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusSubmitMessage.CopyFrom(consensus_submit_message_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this topic message submit transaction.
@@ -104,6 +113,15 @@ class TopicMessageSubmitTransaction(Transaction):
         return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
+        """
+        Returns the gRPC method for executing this transaction.
+
+        Args:
+            channel (_Channel): The channel used to access the network.
+
+        Returns:
+            _Method: The method object with bound transaction execution.
+        """
         return _Method(
             transaction_func=channel.topic.submitMessage,
             query_func=None

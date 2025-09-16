@@ -1,12 +1,14 @@
 """
-hiero_sdk_python.transaction.token_revoke_kyc_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_revoke_kyc_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Provides TokenRevokeKycTransaction, a subclass of Transaction for revoking
 Know-Your-Customer (KYC) status from an account for a specific token on the
 Hedera network via the Hedera Token Service (HTS) API.
 """
+from typing import Optional
 from hiero_sdk_python.hapi.services.token_revoke_kyc_pb2 import TokenRevokeKycTransactionBody
+from hiero_sdk_python.hapi.services import token_revoke_kyc_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -25,7 +27,11 @@ class TokenRevokeKycTransaction(Transaction):
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token revoke KYC transaction.
     """
-    def __init__(self, token_id: TokenId = None, account_id: AccountId = None):
+    def __init__(
+            self,
+            token_id: Optional[TokenId] = None,
+            account_id: Optional[AccountId] = None
+        ) -> None:
         """
         Initializes a new TokenRevokeKycTransaction instance with the token ID and account ID.
 
@@ -34,10 +40,10 @@ class TokenRevokeKycTransaction(Transaction):
             account_id (AccountId, optional): The ID of the account to revoke KYC from.
         """
         super().__init__()
-        self.token_id: TokenId = token_id
-        self.account_id: AccountId = account_id
+        self.token_id: Optional[TokenId] = token_id
+        self.account_id: Optional[AccountId] = account_id
 
-    def set_token_id(self, token_id: TokenId):
+    def set_token_id(self, token_id: TokenId) -> "TokenRevokeKycTransaction":
         """
         Sets the token ID for this revoke KYC transaction.
 
@@ -51,7 +57,7 @@ class TokenRevokeKycTransaction(Transaction):
         self.token_id = token_id
         return self
 
-    def set_account_id(self, account_id: AccountId):
+    def set_account_id(self, account_id: AccountId) -> "TokenRevokeKycTransaction":
         """
         Sets the account ID for this revoke KYC transaction.
 
@@ -65,7 +71,7 @@ class TokenRevokeKycTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def _build_proto_body(self):
+    def _build_proto_body(self) -> token_revoke_kyc_pb2.TokenRevokeKycTransactionBody:
         """
         Returns the protobuf body for the token revoke KYC transaction.
         
@@ -86,7 +92,7 @@ class TokenRevokeKycTransaction(Transaction):
             account=self.account_id._to_proto()
         )
         
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_pb2.AtomicBatchTransactionBody:
         """
         Builds the transaction body for this token revoke KYC transaction.
 
@@ -128,7 +134,10 @@ class TokenRevokeKycTransaction(Transaction):
             query_func=None
         )
 
-    def _from_proto(self, proto: TokenRevokeKycTransactionBody):
+    def _from_proto(
+            self,
+            proto: token_revoke_kyc_pb2.TokenRevokeKycTransactionBody
+        ) -> "TokenRevokeKycTransaction":
         """
         Initializes a new TokenRevokeKycTransaction instance from a protobuf object.
 
