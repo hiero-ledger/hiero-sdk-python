@@ -66,32 +66,33 @@ class TokenId:
             raise ValueError('TokenId cannot be empty')
         elif not isinstance(token_id_str, str):
             raise TypeError('TokenId must be a string')
-        
+
         shard, realm, num, checksum = parse_from_string(token_id_str)
 
         token_id = cls(int(shard), int(realm), int(num))
         object.__setattr__(token_id, 'checksum', checksum)
 
         return token_id
-    
+
     def validate_checksum(self, client: Client):
         """Validate the checksum for the TokenId instance"""
         validate_checksum(
-            shard=self.shard, 
-            realm=self.realm, 
-            num=self.num, 
-            checksum=self.checksum, 
+            shard=self.shard,
+            realm=self.realm,
+            num=self.num,
+            checksum=self.checksum,
             client=client
         )
 
     def to_string_with_checksum(self, client:Client):
         """
-        Returns the string representation of the TokenId with checksum in the format 'shard.realm.num-checksum'
+        Returns the string representation of the TokenId with checksum 
+        in the format 'shard.realm.num-checksum'
         """
         return format_to_string_with_checksum(
-            shard=self.shard, 
-            realm=self.realm, 
-            num=self.num, 
+            shard=self.shard,
+            realm=self.realm,
+            num=self.num,
             client=client
         )
 

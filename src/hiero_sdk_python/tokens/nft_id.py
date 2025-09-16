@@ -120,10 +120,11 @@ class NftId(_DeprecatedAliasesMixin):
             token_id=TokenId.from_string(token_part),
             serial_number=int(serial_part),
         )
-    
+ 
     def to_string_with_checksum(self, client:Client) -> str:
         """
-        Returns the string representation of the NftId with checksum in the format 'shard.realm.num-checksum/serial'
+        Returns the string representation of the NftId with 
+        checksum in the format 'shard.realm.num-checksum/serial'
         """
         return f"{self.token_id.to_string_with_checksum(client)}/{self.serial_number}"
 
