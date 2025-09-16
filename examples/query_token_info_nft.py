@@ -1,3 +1,8 @@
+"""
+uv run examples/query_token_info_nft.py
+python examples/query_token_info_nft.py
+
+"""
 import os
 import sys
 

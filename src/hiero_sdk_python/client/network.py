@@ -1,6 +1,6 @@
 """Network module for managing Hedera SDK connections."""
 import secrets
-from typing import Dict, List
+from typing import Dict, List, Optional, Any
 
 import requests
 
@@ -64,9 +64,9 @@ class Network:
     def __init__(
         self,
         network: str = 'testnet',
-        nodes: list[_Node] = None,
-        mirror_address: str = None,
-    ):
+        nodes: Optional[List[_Node]] = None,
+        mirror_address: Optional[str] = None,
+    ) -> None:
         """
         Initializes the Network with the specified network name or custom config.
 
@@ -85,15 +85,19 @@ class Network:
         )
 
         if nodes is not None:
-            self.nodes: List[_Node] = nodes
+            final_nodes = nodes
         elif self.network in ('solo', 'localhost', 'local'):
-            self.nodes: List[_Node] = self._fetch_nodes_from_default_nodes()
+            final_nodes = self._fetch_nodes_from_default_nodes()
         else:
-            self.nodes: List[_Node] = self._fetch_nodes_from_mirror_node()
-            if not self.nodes and self.network in self.DEFAULT_NODES:
-                self.nodes = self._fetch_nodes_from_default_nodes()
-            elif not self.nodes:
+            fetched = self._fetch_nodes_from_mirror_node()
+            if not fetched and self.network in self.DEFAULT_NODES:
+                final_nodes = self._fetch_nodes_from_default_nodes()
+            elif fetched:
+                final_nodes = fetched
+            else:
                 raise ValueError(f"No default nodes for network='{self.network}'")
+
+        self.nodes: List[_Node] = final_nodes
 
         self._node_index: int = secrets.randbelow(len(self.nodes))
         self.current_node: _Node = self.nodes[self._node_index]
@@ -104,7 +108,7 @@ class Network:
         Returns:
             list: A list of _Node objects.
         """
-        base_url: str = self.MIRROR_NODE_URLS.get(self.network)
+        base_url: Optional[str] = self.MIRROR_NODE_URLS.get(self.network)
         if not base_url:
             print(f"No known mirror node URL for network='{self.network}'. Skipping fetch.")
             return []
@@ -114,7 +118,7 @@ class Network:
         try:
             response: requests.Response = requests.get(url, timeout=30) # Add 30 second timeout
             response.raise_for_status()
-            data: dict = response.json()
+            data: Dict[str, Any] = response.json()
 
             nodes: List[_Node] = []
             # Process each node from the mirror node API response

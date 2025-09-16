@@ -5,7 +5,8 @@ Hedera Consensus Service topic messages using the Hiero SDK.
 
 from datetime import datetime
 from typing import Optional, List, Union, Dict
-from hiero_sdk_python import Timestamp
+
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 
 
@@ -15,7 +16,7 @@ class TopicMessageChunk:
     Mirrors the Java 'TopicMessageChunk'.
     """
 
-    def __init__(self, response: mirror_proto.ConsensusTopicResponse) -> None:
+    def __init__(self, response: mirror_proto.ConsensusTopicResponse) -> None:  # type: ignore
         """
         Initializes a TopicMessageChunk from a ConsensusTopicResponse.
         Args:
@@ -43,15 +44,15 @@ class TopicMessage:
     ) -> None:
         """
         Args:
-            consensus_timestamp: The final consensus timestamp.
-            message_data: Dict with required fields:
+            consensus_timestamp (datetime): The final consensus timestamp.
+            message_data (Dict[str, Union[bytes, int]]): Dict with required fields:
                           {
                               "contents": bytes,
                               "running_hash": bytes,
                               "sequence_number": int
                           }
-            chunks: All individual chunks that form this message.
-            transaction_id: The transaction ID string if available.
+            chunks (List[TopicMessageChunk]): All individual chunks that form this message.
+            transaction_id (Optional[str]): The transaction ID string if available.
         """
         self.consensus_timestamp: datetime = consensus_timestamp
         self.contents: Union[bytes, int] = message_data["contents"]
@@ -61,7 +62,7 @@ class TopicMessage:
         self.transaction_id: Optional[str] = transaction_id
 
     @classmethod
-    def of_single(cls, response: mirror_proto.ConsensusTopicResponse) -> "TopicMessage":
+    def of_single(cls, response: mirror_proto.ConsensusTopicResponse) -> "TopicMessage":  # type: ignore
         """
         Build a TopicMessage from a single-chunk response.
         """
@@ -91,15 +92,17 @@ class TopicMessage:
         )
 
     @classmethod
-    def of_many(cls, responses: List[mirror_proto.ConsensusTopicResponse]) -> "TopicMessage":
+    def of_many(cls, responses: List[mirror_proto.ConsensusTopicResponse]) -> "TopicMessage":  # type: ignore
         """
         Reassemble multiple chunk responses into a single TopicMessage.
         """
-        sorted_responses = sorted(responses, key=lambda r: r.chunkInfo.number)
+        sorted_responses: List[mirror_proto.ConsensusTopicResponse] = sorted(
+            responses, key=lambda r: r.chunkInfo.number
+        )
 
-        chunks = []
-        total_size = 0
-        transaction_id = None
+        chunks: List[TopicMessageChunk] = []
+        total_size: int = 0
+        transaction_id: Optional[str] = None
 
         for r in sorted_responses:
             c = TopicMessageChunk(r)
@@ -118,16 +121,18 @@ class TopicMessage:
                 )
 
         contents = bytearray(total_size)
-        offset = 0
+        offset: int = 0
         for r in sorted_responses:
             end = offset + len(r.message)
             contents[offset:end] = r.message
             offset = end
 
-        last_r = sorted_responses[-1]
-        consensus_timestamp = Timestamp._from_protobuf(last_r.consensusTimestamp).to_date()
-        running_hash = last_r.runningHash
-        sequence_number = last_r.sequenceNumber
+        last_r: mirror_proto.ConsensusTopicResponse = sorted_responses[-1]
+        consensus_timestamp: datetime = Timestamp._from_protobuf(
+            last_r.consensusTimestamp
+        ).to_date()
+        running_hash: bytes = last_r.runningHash
+        sequence_number: int = last_r.sequenceNumber
 
         return cls(
             consensus_timestamp,
@@ -166,7 +171,7 @@ class TopicMessage:
 
             return cls.of_many(response_or_responses)
 
-        response = response_or_responses
+        response: mirror_proto.ConsensusTopicResponse = response_or_responses
         if chunking_enabled and response.HasField("chunkInfo") and response.chunkInfo.total > 1:
             raise ValueError(
                 "Cannot handle multi-chunk in a single response."
@@ -174,8 +179,12 @@ class TopicMessage:
             )
         return cls.of_single(response)
 
-    def __str__(self):
-        contents_str = self.contents.decode("utf-8", errors="replace")
+    def __str__(self) -> str:
+        contents_str: str
+        if isinstance(self.contents, bytes):
+            contents_str = self.contents.decode("utf-8", errors="replace")
+        else:
+            contents_str = str(self.contents)
         return (
             f"TopicMessage("
             f"consensus_timestamp={self.consensus_timestamp}, "

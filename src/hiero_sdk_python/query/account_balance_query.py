@@ -1,3 +1,4 @@
+import traceback
 from typing import Optional, Any
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
@@ -5,7 +6,6 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_balance import AccountBalance
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.channels import _Channel
-import traceback
 
 class CryptoGetAccountBalanceQuery(Query):
     """

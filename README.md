@@ -74,6 +74,8 @@ uv sync
 uv run python generate_proto.py
 ```
 
+**Note:** By default, `uv sync` will install the `dev` and `lint` dependency groups, which include tools like `pytest` and `ruff`. If you need to install only the project's core dependencies, use the `--no-default-groups flag`.
+
 To update to a newer version of the protobuf libraries, edit the `generate_proto.py` file and change the version number
 and then rerun it.
 
