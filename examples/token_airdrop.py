@@ -166,10 +166,10 @@ def token_airdrop():
     # Associate tokens
     associate_tokens(client, recipient_id, recipient_key, [token_id, nft_id])
 
-    # Airdrop Tthe tokens
+    # Airdrop the tokens
     print("\nAirdropping tokens...")
     try:
-        airdrop_receipt = (
+        airdrop_tx = (
             TokenAirdropTransaction()
             .add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
             .add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
@@ -177,6 +177,13 @@ def token_airdrop():
                 nft_id=NftId(token_id=nft_id, serial_number=serial_number),
                 sender=operator_id, receiver=recipient_id
             )
+        )
+
+        # Show planned airdrop contents before executing
+        print("Planned airdrop contents:", airdrop_tx.get_airdrop_contents())
+
+        airdrop_receipt = (
+            airdrop_tx
             .freeze_with(client)
             .sign(operator_key)
             .execute(client)

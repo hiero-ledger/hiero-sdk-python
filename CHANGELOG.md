@@ -51,6 +51,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Linting to /tokens, /transaction, /query, /consensus
 - Module docstrings in /tokens, /transaction, /query, /consensus
 - Function docstrings in /tokens, /transaction, /query, /consensus
+- Added `get_airdrop_contents()` method to `TokenAirdropTransaction` for inspecting planned airdrop transfers.
+- Updated `token_airdrop.py` example to print planned airdrop contents before executing the transaction.
 
 ### Changed
 - bump solo version to `v0.14`
