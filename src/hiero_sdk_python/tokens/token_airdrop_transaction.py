@@ -173,6 +173,34 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number,True)
         return self
     
+    def get_airdrop_contents(self):
+        """
+        Returns a list of planned airdrop transfers (fungible and NFT) for logging and inspection.
+        """
+        contents = []
+
+        for t in getattr(self, "_token_transfers", []):
+            contents.append({
+                "type": "fungible",
+                "token_id": str(t.token_id),
+                "account_id": str(t.account_id),
+                "amount": t.amount,
+                "is_approved": getattr(t, "is_approved", False),
+                "decimals": getattr(t, "expected_decimals", None),
+            })
+
+        for n in getattr(self, "_nft_transfers", []):
+            contents.append({
+                "type": "nft",
+                "token_id": str(n.token_id),
+                "serial_number": n.serial_number,
+                "sender": str(n.sender),
+                "receiver": str(n.receiver),
+                "is_approved": getattr(n, "is_approved", False),
+            })
+
+        return contents
+    
     def _build_proto_body(self) -> token_airdrop_pb2.TokenAirdropTransactionBody:
         """
         Returns the protobuf body for the token airdrop transaction.
