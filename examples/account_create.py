@@ -19,7 +19,7 @@ from hiero_sdk_python import (
 load_dotenv()
 
 def create_new_account():
-    network = Network(network='testnet')
+    network = Network()
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
