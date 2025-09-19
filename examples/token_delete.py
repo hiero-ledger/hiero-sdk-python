@@ -1,4 +1,8 @@
 """
+A full example that creates a token and then immediately deletes it.
+"""
+
+"""
 uv run examples/token_delete.py
 python examples/token_delete.py
 
@@ -19,37 +23,39 @@ from hiero_sdk_python import (
 # Load environment variables from .env file
 load_dotenv()
 
-
-def create_and_delete_token():
-    """
-    A full example that creates a token and then immediately deletes it.
-    """
-    # 1. Setup Client
-    # =================================================================
+def setup_client():
+    """Setup Client """
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
     # Get the operator account from the .env file
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        # NOTE: Assumes your operator key is a raw Ed25519 key
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    
     except (TypeError, ValueError):
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
-
+    # Set the operator (payer) account for the client
     client.set_operator(operator_id, operator_key)
     print(f"Using operator account: {operator_id}")
+    return client, operator_id, operator_key
 
-    # 2. Generate a new admin key within the script
-    # =================================================================
+def generate_admin_key():
+    """Generate a new admin key within the script:
+    This key will be used to create the token with admin privileges
+    """
+
     print("\nGenerating a new admin key for the token...")
     admin_key = PrivateKey.generate_ed25519()
     print("Admin key generated successfully.")
     token_id_to_delete = None
+    return admin_key, token_id_to_delete
 
-    # 3. Create the Token
-    # =================================================================
+def create_new_token():
+    """ Create the Token"""
+    client, operator_id, operator_key = setup_client()
+    admin_key, token_id_to_delete = generate_admin_key()
     try:
         print("\nSTEP 1: Creating a new token...")
         create_tx = (
@@ -67,14 +73,27 @@ def create_and_delete_token():
         create_receipt = create_tx.execute(client)
         token_id_to_delete = create_receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id_to_delete}")
+        return admin_key, token_id_to_delete, client, operator_key
 
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
 
-    # 4. Delete the Token
-    # =================================================================
+
+def delete_token():
+    """
+     Delete the Token we just created:
+    1. Call create_new_token() to create a new token and get its admin key, token ID, client, and operator key.
+    2. Build a TokenDeleteTransaction using the token ID.
+    3. Freeze the transaction with the client.
+    4. Sign the transaction with both the operator key and the admin key.
+    5. Execute the transaction to delete the token.
+    6. Print the result or handle any errors.
+    """
+
+    admin_key, token_id_to_delete, client, operator_key = create_new_token()
+
     try:
         print(f"\nSTEP 2: Deleting token {token_id_to_delete}...")
         delete_tx = (
@@ -94,4 +113,4 @@ def create_and_delete_token():
 
 
 if __name__ == "__main__":
-    create_and_delete_token()
+    delete_token()
