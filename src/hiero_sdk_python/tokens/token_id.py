@@ -5,10 +5,17 @@ hiero_sdk_python.tokens.token_id.py
 Defines TokenId, a frozen dataclass for representing Hedera token identifiers
 (shard, realm, num) with validation and protobuf conversion utilities.
 """
-from dataclasses import dataclass
-from typing import List, Optional
+from dataclasses import dataclass, field
+from typing import Optional
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.utils.entity_id_helper import (
+    parse_from_string,
+    validate_checksum,
+    format_to_string,
+    format_to_string_with_checksum
+)
 
 @dataclass(frozen=True, eq=True, init=True, repr=True)
 class TokenId:
@@ -16,6 +23,7 @@ class TokenId:
     shard: int
     realm: int
     num: int
+    checksum: str | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         if self.shard < 0:
@@ -54,28 +62,40 @@ class TokenId:
         """
         Parses a string in the format 'shard.realm.num' to create a TokenId instance.
         """
-        if token_id_str is None:
-            raise ValueError("TokenId string must be provided")
+        shard, realm, num, checksum = parse_from_string(token_id_str)
 
-        token_id_str = token_id_str.strip()
-        if not token_id_str:
-            raise ValueError("TokenId cannot be empty or whitespace")
+        token_id = cls(int(shard), int(realm), int(num))
+        object.__setattr__(token_id, 'checksum', checksum)
 
-        parts: List[str] = token_id_str.split(".")
-        if len(parts) != 3:
-            raise ValueError("Invalid TokenId format. Expected 'shard.realm.num'")
+        return token_id
 
-        return cls(
-            shard=int(parts[0]),
-            realm=int(parts[1]),
-            num=int(parts[2])
+    def validate_checksum(self, client: Client) -> None:
+        """Validate the checksum for the TokenId instance"""
+        validate_checksum(
+            shard=self.shard,
+            realm=self.realm,
+            num=self.num,
+            checksum=self.checksum,
+            client=client
+        )
+
+    def to_string_with_checksum(self, client:Client) -> str:
+        """
+        Returns the string representation of the TokenId with checksum 
+        in the format 'shard.realm.num-checksum'
+        """
+        return format_to_string_with_checksum(
+            shard=self.shard,
+            realm=self.realm,
+            num=self.num,
+            client=client
         )
 
     def __str__(self) -> str:
         """
         Returns the string representation of the TokenId in the format 'shard.realm.num'.
         """
-        return f"{self.shard}.{self.realm}.{self.num}"
+        return format_to_string(self.shard, self.realm, self.num)
 
     def __hash__(self) -> int:
         """ Returns a hash of the TokenId instance. """

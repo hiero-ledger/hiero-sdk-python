@@ -38,6 +38,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Linting to /tokens, /transaction, /query, /consensus
 - Module docstrings in /tokens, /transaction, /query, /consensus
 - Function docstrings in /tokens, /transaction, /query, /consensus
+- Added checksum validation for TokenId
 
 ### Changed
 - Extract _build_proto_body() from build_transaction_body() in every transaction

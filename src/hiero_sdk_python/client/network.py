@@ -61,11 +61,19 @@ class Network:
         ],
     }
 
+    LEDGER_ID: Dict[str, bytes] = {
+        'mainnet': bytes.fromhex('00'),
+        'testnet': bytes.fromhex('01'),
+        'previewnet': bytes.fromhex('02'),
+        'solo': bytes.fromhex('03')
+    }
+
     def __init__(
         self,
         network: str = 'testnet',
         nodes: Optional[List[_Node]] = None,
         mirror_address: Optional[str] = None,
+        ledger_id: bytes | None = None
     ) -> None:
         """
         Initializes the Network with the specified network name or custom config.
@@ -83,6 +91,8 @@ class Network:
         self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(
             network, 'localhost:5600'
         )
+
+        self.ledger_id = ledger_id or self.LEDGER_ID.get(network, bytes.fromhex('03'))
 
         if nodes is not None:
             final_nodes = nodes
