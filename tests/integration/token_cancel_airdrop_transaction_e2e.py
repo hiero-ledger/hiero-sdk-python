@@ -82,3 +82,43 @@ def test_integration_token_cancel_airdrop_transaction_can_execute():
         assert cancel_airdrop_receipt.status == ResponseCode.SUCCESS, f"Token airdrop failed with status: {ResponseCode(cancel_airdrop_receipt.status).name}"
     finally:
         env.close()
+
+@pytest.mark.integration
+def test_get_airdrop_contents_returns_correct_transfers():
+    env = IntegrationTestEnv()
+
+    try:
+        # Setup dummy token and account IDs
+        token_id = env.client.operator_account_id  # Using operator account as token owner for simplicity
+        nft_token_id = token_id  # For testing, reuse same token_id for nft token
+        account_sender = env.client.operator_account_id
+        account_receiver = AccountId.from_string("0.0.1001")
+        nft_id = NftId(token_id=nft_token_id, serial_number=1)
+
+        # Create TokenAirdropTransaction and add transfers
+        tx = TokenAirdropTransaction()
+        tx.add_token_transfer(token_id=token_id, account_id=account_sender, amount=-10)
+        tx.add_token_transfer(token_id=token_id, account_id=account_receiver, amount=10)
+        tx.add_nft_transfer(nft_id=nft_id, sender=account_sender, receiver=account_receiver)
+
+        # Get planned transfers
+        contents = tx.get_airdrop_contents()
+
+        fungible = [c for c in contents if c["type"] == "fungible"]
+        nft = [c for c in contents if c["type"] == "nft"]
+
+        # Assertions
+        assert len(fungible) == 2
+        assert len(nft) == 1
+
+        assert fungible[0]["token_id"] == str(token_id)
+        assert fungible[1]["account_id"] == str(account_receiver)
+        assert fungible[0]["amount"] == -10
+
+        assert nft[0]["token_id"] == str(nft_token_id)
+        assert nft[0]["serial_number"] == 1
+        assert nft[0]["sender"] == str(account_sender)
+        assert nft[0]["receiver"] == str(account_receiver)
+
+    finally:
+        env.close()
