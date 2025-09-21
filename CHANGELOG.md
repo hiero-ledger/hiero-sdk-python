@@ -38,8 +38,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Linting to /tokens, /transaction, /query, /consensus
 - Module docstrings in /tokens, /transaction, /query, /consensus
 - Function docstrings in /tokens, /transaction, /query, /consensus
-- Added `get_airdrop_contents()` method to `TokenAirdropTransaction` for inspecting planned airdrop transfers.
-- Updated `token_airdrop.py` example to print planned airdrop contents before executing the transaction
+- Added get_airdrop_contents() method to TokenAirdropTransaction, allowing inspection of planned airdrop transfers (both fungible and NFT) before execution.
+- Fungible token transfer inspection now includes sender and receiver fields for consistency with NFT airdrop outputs.
+- Docstring and explicit return type hint added to get_airdrop_contents() for improved code clarity and usability.
 
 ### Changed
 - Extract _build_proto_body() from build_transaction_body() in every transaction
@@ -53,6 +54,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
 - Calls in examples for PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY')) to PrivateKey.from_string(os.getenv('OPERATOR_KEY')) to enable general key types
 - Add CI tests across Python 3.10–3.12.
+- Updated token_airdrop.py example to print planned airdrop contents before executing the transaction.
+- Integration tests for airdrop transactions now mint tokens and NFTs instead of using static IDs, ensuring all test transfers are performed on valid, unique tokens/NFTs.
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager

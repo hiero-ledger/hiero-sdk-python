@@ -173,33 +173,67 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number,True)
         return self
     
-    def get_airdrop_contents(self):
+    def get_airdrop_contents(self)-> list[dict]:
         """
         Returns a list of planned airdrop transfers (fungible and NFT) for logging and inspection.
-        """
-        contents = []
+        Args:
+        self: The TokenAirdropTransaction instance on which the method is called.
 
-        for t in getattr(self, "_token_transfers", []):
+        Returns:
+            list[dict]: A list of dictionaries with planned transfers.
+                Each dict includes:
+                - For fungible tokens: 'type', 'token_id', 'amount', 'sender', 'receiver', 'is_approved', and 'decimals'
+                - For NFTs: 'type', 'token_id', 'serial_number', 'sender', 'receiver', and 'is_approved'
+            For fungibles, both 'sender' and 'receiver' fields are always populated.
+            For NFTs, 'serial_number' is present and 'sender'/'receiver' refer to the respective transfer parties.
+        """
+    
+    contents = []
+
+    # Group fungible transfers by token_id for pairing
+    transfer_map = {}
+    for t in getattr(self, "_token_transfers", []):
+        token_id = str(t.token_id)
+        if token_id not in transfer_map:
+            transfer_map[token_id] = {"senders": [], "receivers": []}
+        if t.amount < 0:
+            transfer_map[token_id]["senders"].append(t)
+        elif t.amount > 0:
+            transfer_map[token_id]["receivers"].append(t)
+        # Ignore zero amounts
+
+    # For each token_id, pair senders and receivers by order (assumes corresponding amounts are properly input)
+    for token_id, group in transfer_map.items():
+        senders = group["senders"]
+        receivers = group["receivers"]
+        # Pair by index, if unbalanced, leave unmatched entries as one-sided
+        max_pairs = max(len(senders), len(receivers))
+        for i in range(max_pairs):
+            sender = senders[i] if i < len(senders) else None
+            receiver = receivers[i] if i < len(receivers) else None
             contents.append({
                 "type": "fungible",
-                "token_id": str(t.token_id),
-                "account_id": str(t.account_id),
-                "amount": t.amount,
-                "is_approved": getattr(t, "is_approved", False),
-                "decimals": getattr(t, "expected_decimals", None),
+                "token_id": token_id,
+                "amount": sender.amount if sender else (receiver.amount if receiver else None),
+                "sender": str(sender.account_id) if sender else None,
+                "receiver": str(receiver.account_id) if receiver else None,
+                "is_approved": getattr(sender or receiver, "is_approved", False),
+                "decimals": getattr(sender or receiver, "expected_decimals", None),
             })
 
-        for n in getattr(self, "_nft_transfers", []):
-            contents.append({
-                "type": "nft",
-                "token_id": str(n.token_id),
-                "serial_number": n.serial_number,
-                "sender": str(n.sender),
-                "receiver": str(n.receiver),
-                "is_approved": getattr(n, "is_approved", False),
-            })
+    # NFTs: unchanged
+    for n in getattr(self, "_nft_transfers", []):
+        contents.append({
+            "type": "nft",
+            "token_id": str(n.token_id),
+            "serial_number": n.serial_number,
+            "sender": str(n.sender),
+            "receiver": str(n.receiver),
+            "is_approved": getattr(n, "is_approved", False),
+        })
 
-        return contents
+    return contents
+
     
     def _build_proto_body(self) -> token_airdrop_pb2.TokenAirdropTransactionBody:
         """
