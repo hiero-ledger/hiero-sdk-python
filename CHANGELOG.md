@@ -13,6 +13,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
+- Updated token_airdrop.py example to print planned airdrop contents before executing the transaction.
+- Integration tests for airdrop transactions now mint tokens and NFTs instead of using static IDs, ensuring all test transfers are performed on valid, unique tokens/NFTs.
 
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
@@ -51,8 +53,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Linting to /tokens, /transaction, /query, /consensus
 - Module docstrings in /tokens, /transaction, /query, /consensus
 - Function docstrings in /tokens, /transaction, /query, /consensus
-- Added `get_airdrop_contents()` method to `TokenAirdropTransaction` for inspecting planned airdrop transfers.
-- Updated `token_airdrop.py` example to print planned airdrop contents before executing the transaction
+- Added get_airdrop_contents() method to TokenAirdropTransaction, allowing inspection of planned airdrop transfers (both fungible and NFT) before execution.
+- Fungible token transfer inspection now includes sender and receiver fields for consistency with NFT airdrop outputs.
+- Docstring and explicit return type hint added to get_airdrop_contents() for improved code clarity and usability.
 
 ### Changed
 - bump solo version to `v0.14`
