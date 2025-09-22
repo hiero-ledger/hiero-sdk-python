@@ -1,3 +1,8 @@
+"""
+uv run examples/query_token_info_fungible.py
+python examples/query_token_info_fungible.py
+"""
+
 import os
 import sys
 

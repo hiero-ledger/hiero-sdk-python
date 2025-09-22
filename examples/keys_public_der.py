@@ -1,11 +1,15 @@
 """
 Example file: Working with DER-encoded SubjectPublicKeyInfo (SPKI) public keys.
+
+uv run examples/keys_public_der.py
+python examples/keys_public_der.py
+
 """
 
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519, utils
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.exceptions import InvalidSignature
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.public_key import PublicKey, keccak256
 
 def example_load_ecdsa_der() -> None:
     """
@@ -14,17 +18,17 @@ def example_load_ecdsa_der() -> None:
     # Generate a ECDSA key pair.
     private_key = ec.generate_private_key(ec.SECP256K1())
     public_key = private_key.public_key()
-    
+
     # Export public key to DER format (SubjectPublicKeyInfo)
     der_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    
+
     # 1) Create via from_der()
     pubk_obj = PublicKey.from_der(der_bytes)
     print("Loaded ECDSA secp256k1 from DER:", pubk_obj)
-    
+
     # 2) Convert back to DER hex:
     der_hex = pubk_obj.to_string_der()
     print("DER-encoded hex:", der_hex)
@@ -42,7 +46,7 @@ def example_load_ed25519_der() -> None:
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    
+
     # 1) Create via from_der
     pubk_obj = PublicKey.from_der(der_bytes)
     print("Loaded Ed25519 from DER:", pubk_obj)
@@ -68,7 +72,7 @@ def example_verify_der_signature() -> None:
 
     # Sign and verify, specifying hash algorithm for ECDSA
     data = b"Hello DER"
-    signature = private_key.sign(data, ec.ECDSA(hashes.SHA256()))
+    signature = private_key.sign(keccak256(data), ec.ECDSA(utils.Prehashed(hashes.SHA256())))
     try:
         pubk_obj.verify(signature, data)
         print("DER: ECDSA signature verified!")

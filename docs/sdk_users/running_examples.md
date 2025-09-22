@@ -69,10 +69,15 @@ You can choose either syntax or even mix both styles in your projects.
   - [Creating a Schedule](#creating-a-schedule)
   - [Querying Schedule Info](#querying-schedule-info)
   - [Signing a Schedule](#signing-a-schedule)
+  - [Deleting a Schedule](#deleting-a-schedule)
 - [Node Transactions](#node-transactions)
   - [Creating a Node](#creating-a-node)
+  - [Updating a Node](#updating-a-node)
+  - [Deleting a Node](#deleting-a-node)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
+- [Miscellaneous Transactions](#miscellaneous-transactions)
+  - [PRNG Transaction](#prng-transaction)
 
 
 ## Account Transactions
@@ -1651,6 +1656,18 @@ schedule_sign_tx.sign(required_private_key)
 receipt = schedule_sign_tx.execute(client)
 ```
 
+### Deleting a Schedule
+
+#### Pythonic Syntax:
+```python
+transaction = ScheduleDeleteTransaction(
+    schedule_id=schedule_id
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Admin key must have been set during schedule creation
+receipt = transaction.execute(client)
+```
+
 #### Method Chaining:
 ```python
 # Sign a scheduled transaction to execute it
@@ -1659,6 +1676,11 @@ receipt = (
     .set_schedule_id(schedule_id)
     .freeze_with(client)
     .sign(required_private_key)
+receipt = (
+    ScheduleDeleteTransaction()
+    .set_schedule_id(schedule_id)
+    .freeze_with(client)
+    .sign(admin_key)  # Admin key must have been set during schedule creation
     .execute(client)
 )
 ```
@@ -1719,6 +1741,77 @@ transaction.sign(admin_key)  # Sign with the admin key
 receipt = transaction.execute(client)
 ```
 
+### Updating a Node
+
+> **IMPORTANT**: Node update is a privileged transaction only available on local development networks like "solo". Regular developers do not have permission to update nodes on testnet or mainnet as this operation requires special authorization.
+
+#### Pythonic Syntax:
+```python
+transaction = NodeUpdateTransaction(
+    node_update_params=NodeUpdateParams(
+        node_id=node_id,
+        account_id=account_id,
+        description="Updated node description",
+        gossip_endpoints=[
+            Endpoint(domain_name="updated-gossip1.example.com", port=50311),
+            Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+        ],
+        service_endpoints=[
+            Endpoint(domain_name="updated-service1.example.com", port=50311),
+            Endpoint(domain_name="updated-service2.example.com", port=50312)
+        ],
+        gossip_ca_certificate=updated_gossip_ca_cert,
+        admin_key=admin_key.public_key(),
+        decline_reward=False,
+        grpc_web_proxy_endpoint=Endpoint(domain_name="updated-grpc.example.com", port=50313)
+    )
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Sign with admin key
+
+### Deleting a Node
+
+> **IMPORTANT**: Node deletion is a privileged transaction only available on local development networks like "solo". Regular developers do not have permission to delete nodes on testnet or mainnet as this operation requires special authorization.
+
+#### Pythonic Syntax:
+```python
+transaction = NodeDeleteTransaction(
+    node_id=node_id
+)
+
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    NodeUpdateTransaction()
+    .set_node_id(node_id)
+    .set_account_id(account_id)
+    .set_description("Updated node description")
+    .set_gossip_endpoints([
+        Endpoint(domain_name="updated-gossip1.example.com", port=50311),
+        Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+    ])
+    .set_service_endpoints([
+        Endpoint(domain_name="updated-service1.example.com", port=50311),
+        Endpoint(domain_name="updated-service2.example.com", port=50312)
+    ])
+    .set_gossip_ca_certificate(updated_gossip_ca_cert)
+    .set_admin_key(admin_key.public_key())
+    .set_grpc_web_proxy_endpoint(Endpoint(domain_name="updated-grpc.example.com", port=50313))
+    .set_decline_reward(False)
+    .freeze_with(client)
+)
+
+transaction.sign(admin_key)  # Sign with the admin key
+    NodeDeleteTransaction()
+    .set_node_id(node_id)
+)
+
+receipt = transaction.execute(client)
+```
+
 ## Miscellaneous Queries
 
 ### Querying Transaction Record
@@ -1750,4 +1843,52 @@ print(f"Transaction Fee: {record.transaction_fee}")
 print(f"Transaction Hash: {record.transaction_hash}")
 print(f"Transaction Memo: {record.transaction_memo}")
 print(f"Transaction Account ID: {record.receipt.account_id}")
+```
+
+## Miscellaneous Transactions
+
+### PRNG Transaction
+
+#### Pythonic Syntax:
+```python
+# Generate a random number within a range
+transaction = PrngTransaction(range=1000).execute(client)
+
+# Get the transaction record to see the generated number
+record = TransactionRecordQuery(transaction_id=transaction.transaction_id).execute(client)
+print(f"Generated PRNG number: {record.prng_number}")
+
+# Generate random bytes without a range
+transaction = PrngTransaction().execute(client)
+
+# Get the transaction record to see the generated bytes
+record = TransactionRecordQuery(transaction_id=transaction.transaction_id).execute(client)
+print(f"Generated PRNG bytes length: {len(record.prng_bytes)} bytes")
+print(f"PRNG bytes in hex: {record.prng_bytes.hex()}")
+```
+
+#### Method Chaining:
+```python
+# Generate a random number within a range
+transaction = PrngTransaction().set_range(1000).execute(client)
+
+# Get the transaction record to see the generated number
+record = (
+    TransactionRecordQuery()
+    .set_transaction_id(transaction.transaction_id)
+    .execute(client)
+)
+print(f"Generated PRNG number: {record.prng_number}")
+
+# Generate random bytes without a range
+transaction = PrngTransaction().execute(client)
+
+# Get the transaction record to see the generated bytes
+record = (
+    TransactionRecordQuery()
+    .set_transaction_id(transaction.transaction_id)
+    .execute(client)
+)
+print(f"Generated PRNG bytes length: {len(record.prng_bytes)} bytes")
+print(f"PRNG bytes in hex: {record.prng_bytes.hex()}")
 ```
