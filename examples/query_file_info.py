@@ -1,5 +1,7 @@
 """
 This example demonstrates how to query file info using the Python SDK.
+uv run examples/query_file_info.py
+python examples/query_file_info.py
 """
 
 import os

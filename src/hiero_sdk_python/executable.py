@@ -28,7 +28,7 @@ class _Method:
 
     def __init__(
         self,
-        query_func: Callable = None,
+        query_func: Optional[Callable[..., Any]] = None,
         transaction_func: Optional[Callable[..., Any]] = None,
     ):
         """

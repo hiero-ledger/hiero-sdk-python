@@ -34,6 +34,12 @@ class TopicId:
     def _from_proto(cls, topic_id_proto: basic_types_pb2.TopicID) -> "TopicId":
         """
         Creates a TopicId instance from a protobuf TopicID object.
+
+        Args:
+            topic_id_proto (basic_types_pb2.TopicID): The protobuf TopicID object.
+
+        Returns:
+            TopicId: A new TopicId instance.
         """
         return cls(
             shard=topic_id_proto.shardNum,
@@ -44,6 +50,9 @@ class TopicId:
     def _to_proto(self) -> basic_types_pb2.TopicID:
         """
         Converts the TopicId instance to a protobuf TopicID object.
+
+        Returns:
+            basic_types_pb2.TopicID: The protobuf TopicID representation.
         """
         topic_id_proto = basic_types_pb2.TopicID()
         topic_id_proto.shardNum = self.shard
@@ -54,15 +63,27 @@ class TopicId:
     def __str__(self) -> str:
         """
         Returns the string representation of the TopicId in the format 'shard.realm.num'.
+
+        Returns:
+            str: The string representation.
         """
         return f"{self.shard}.{self.realm}.{self.num}"
 
     @classmethod
-    def from_string(cls, topic_id_str) -> "TopicId":
+    def from_string(cls, topic_id_str: str) -> "TopicId":
         """
         Parses a string in the format 'shard.realm.num' to create a TopicId instance.
+
+        Args:
+            topic_id_str (str): The string representation of the TopicId.
+
+        Returns:
+            TopicId: A new TopicId instance parsed from the string.
+
+        Raises:
+            ValueError: If the string format is invalid.
         """
-        parts = topic_id_str.strip().split('.')
+        parts = topic_id_str.strip().split(".")
         if len(parts) != 3:
             raise ValueError("Invalid TopicId format. Expected 'shard.realm.num'")
         return cls(shard=int(parts[0]), realm=int(parts[1]), num=int(parts[2]))
