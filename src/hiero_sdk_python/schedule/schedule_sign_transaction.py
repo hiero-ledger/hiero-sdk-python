@@ -23,6 +23,14 @@ class ScheduleSignTransaction(Transaction):
 
     Inherits from the base Transaction class and implements the required methods
     to build and execute a schedule sign transaction.
+
+    Notes:
+    - The network executes the scheduled transaction once all signatures required
+    by the *inner* transaction are collected.
+    - The payer/scheduler signature is only for creating the schedule and does not
+    count toward execution unless that same key is required by the inner txn.
+    - The admin key (if set) is only for delete/modify and is NOT required to execute.
+
     """
 
     def __init__(self, schedule_id: Optional[ScheduleId] = None):
