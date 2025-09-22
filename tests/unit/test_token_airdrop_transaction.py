@@ -3,6 +3,9 @@ import pytest
 from unittest.mock import MagicMock
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
@@ -233,3 +236,45 @@ def test_to_proto(mock_account_ids, mock_client):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
+    
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token airdrop transaction."""
+    sender, receiver, _, token_id_1, token_id_2 = mock_account_ids
+    amount = 1
+    serial_number = 1
+    
+    nft_id = NftId(token_id_2, serial_number)
+    
+    airdrop_tx = TokenAirdropTransaction()
+    
+    # Add token and NFT transfers
+    airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=sender, amount=-amount)
+    airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
+    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender=sender, receiver=receiver)
+    
+    schedulable_body = airdrop_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("tokenAirdrop")
+    assert len(schedulable_body.tokenAirdrop.token_transfers) == 2
+    
+    token_transfer_1 = schedulable_body.tokenAirdrop.token_transfers[0]
+    assert token_transfer_1.token.tokenNum == token_id_1.num
+    assert token_transfer_1.expected_decimals.value == 0
+    assert len(token_transfer_1.transfers) == 2
+    assert token_transfer_1.transfers[0].accountID == sender._to_proto()
+    assert token_transfer_1.transfers[0].amount == -amount
+    assert token_transfer_1.transfers[0].is_approval == False
+    assert token_transfer_1.transfers[1].accountID == receiver._to_proto()
+    assert token_transfer_1.transfers[1].amount == amount
+    assert token_transfer_1.transfers[1].is_approval == False
+    
+    token_transfer_2 = schedulable_body.tokenAirdrop.token_transfers[1]
+    assert token_transfer_2.token.tokenNum == token_id_2.num
+    assert len(token_transfer_2.transfers) == 0
+    assert len(token_transfer_2.nftTransfers) == 1
+    assert token_transfer_2.nftTransfers[0].serialNumber == serial_number
+    assert token_transfer_2.nftTransfers[0].senderAccountID == sender._to_proto()
+    assert token_transfer_2.nftTransfers[0].receiverAccountID == receiver._to_proto()
+    assert token_transfer_2.nftTransfers[0].is_approval == False

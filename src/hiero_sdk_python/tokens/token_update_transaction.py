@@ -1,21 +1,28 @@
 """
-hiero_sdk_python.transaction.token_update_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_update_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines TokenUpdateParams, TokenUpdateKeys, and TokenUpdateTransaction for updating
 token properties (settings and keys) on the Hedera network via the HTS API.
 """
 from typing import Optional
 from dataclasses import dataclass
+from google.protobuf.wrappers_pb2 import BytesValue, StringValue
+
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_key_validation import TokenKeyValidation
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.tokens.token_key_validation import TokenKeyValidation
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.token_update_pb2 import TokenUpdateTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
+from hiero_sdk_python.hapi.services import token_update_pb2, transaction_pb2
+
 from google.protobuf.wrappers_pb2 import BytesValue, StringValue
 
 @dataclass
@@ -75,11 +82,11 @@ class TokenUpdateTransaction(Transaction):
     """
     def __init__(
         self,
-        token_id: TokenId = None,
+        token_id: Optional[TokenId] = None,
         token_params: Optional[TokenUpdateParams] = None,
         token_keys: Optional[TokenUpdateKeys] = None,
         token_key_verification_mode: TokenKeyValidation = TokenKeyValidation.FULL_VALIDATION
-    ):
+    ) -> None:
         """
         Initializes a new TokenUpdateTransaction instance with token parameters and optional keys.
 
@@ -98,10 +105,10 @@ class TokenUpdateTransaction(Transaction):
         """
         super().__init__()
 
-        self.token_id: TokenId = token_id
+        self.token_id: Optional[TokenId] = token_id
 
         # Initialize params attributes
-        params = token_params or TokenUpdateParams()
+        params: TokenUpdateParams = token_params or TokenUpdateParams()
         self.treasury_account_id: Optional[AccountId] = params.treasury_account_id
         self.token_name: Optional[str] = params.token_name
         self.token_symbol: Optional[str] = params.token_symbol
@@ -109,7 +116,7 @@ class TokenUpdateTransaction(Transaction):
         self.metadata: Optional[bytes] = params.metadata
 
         # Initialize keys attributes
-        keys = token_keys or TokenUpdateKeys()
+        keys: TokenUpdateKeys = token_keys or TokenUpdateKeys()
         self.admin_key: Optional[PrivateKey] = keys.admin_key
         self.freeze_key: Optional[PrivateKey] = keys.freeze_key
         self.wipe_key: Optional[PrivateKey] = keys.wipe_key
@@ -120,9 +127,12 @@ class TokenUpdateTransaction(Transaction):
         self.token_key_verification_mode: TokenKeyValidation = token_key_verification_mode
 
         # Set default transaction fee to 2 HBAR for token update transactions
-        self._default_transaction_fee = Hbar(2).to_tinybars()
+        self._default_transaction_fee: int = Hbar(2).to_tinybars()
 
-    def set_token_id(self, token_id):
+    def set_token_id(
+            self,
+            token_id: TokenId
+        ) -> "TokenUpdateTransaction":
         """
         Sets the token ID to update.
 
@@ -136,7 +146,10 @@ class TokenUpdateTransaction(Transaction):
         self.token_id = token_id
         return self
 
-    def set_treasury_account_id(self, treasury_account_id):
+    def set_treasury_account_id(
+            self,
+            treasury_account_id: AccountId
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new treasury account ID for the token.
 
@@ -150,7 +163,10 @@ class TokenUpdateTransaction(Transaction):
         self.treasury_account_id = treasury_account_id
         return self
 
-    def set_token_name(self, token_name):
+    def set_token_name(
+            self,
+            token_name: str
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new name for the token.
 
@@ -164,7 +180,10 @@ class TokenUpdateTransaction(Transaction):
         self.token_name = token_name
         return self
 
-    def set_token_symbol(self, token_symbol):
+    def set_token_symbol(
+            self,
+            token_symbol: str
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new symbol for the token.
 
@@ -178,7 +197,10 @@ class TokenUpdateTransaction(Transaction):
         self.token_symbol = token_symbol
         return self
 
-    def set_token_memo(self, token_memo):
+    def set_token_memo(
+            self,
+            token_memo: str
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new memo for the token.
 
@@ -192,7 +214,10 @@ class TokenUpdateTransaction(Transaction):
         self.token_memo = token_memo
         return self
 
-    def set_metadata(self, metadata):
+    def set_metadata(
+            self,
+            metadata: bytes
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new metadata for the token.
 
@@ -206,7 +231,10 @@ class TokenUpdateTransaction(Transaction):
         self.metadata = metadata
         return self
 
-    def set_admin_key(self, admin_key):
+    def set_admin_key(
+            self,
+            admin_key: PrivateKey
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new admin key for the token.
 
@@ -220,7 +248,10 @@ class TokenUpdateTransaction(Transaction):
         self.admin_key = admin_key
         return self
 
-    def set_freeze_key(self, freeze_key):
+    def set_freeze_key(
+            self,
+            freeze_key: PrivateKey
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new freeze key for the token.
 
@@ -234,7 +265,10 @@ class TokenUpdateTransaction(Transaction):
         self.freeze_key = freeze_key
         return self
 
-    def set_wipe_key(self, wipe_key):
+    def set_wipe_key(
+            self,
+            wipe_key: PrivateKey
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new wipe key for the token.
 
@@ -248,7 +282,10 @@ class TokenUpdateTransaction(Transaction):
         self.wipe_key = wipe_key
         return self
 
-    def set_supply_key(self, supply_key):
+    def set_supply_key(
+            self,
+            supply_key: PrivateKey
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new supply key for the token.
 
@@ -262,7 +299,10 @@ class TokenUpdateTransaction(Transaction):
         self.supply_key = supply_key
         return self
 
-    def set_pause_key(self, pause_key):
+    def set_pause_key(
+            self,
+            pause_key: PrivateKey
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new pause key for the token.
 
@@ -276,7 +316,10 @@ class TokenUpdateTransaction(Transaction):
         self.pause_key = pause_key
         return self
 
-    def set_metadata_key(self, metadata_key):
+    def set_metadata_key(
+            self,
+            metadata_key: PrivateKey
+        ) -> "TokenUpdateTransaction":
         """
         Sets the new metadata key for the token.
 
@@ -290,7 +333,10 @@ class TokenUpdateTransaction(Transaction):
         self.metadata_key = metadata_key
         return self
 
-    def set_key_verification_mode(self, key_verification_mode):
+    def set_key_verification_mode(
+            self,
+            key_verification_mode: TokenKeyValidation
+        ) -> "TokenUpdateTransaction":
         """
         Sets the key verification mode for the token.
 
@@ -304,20 +350,20 @@ class TokenUpdateTransaction(Transaction):
         self.token_key_verification_mode = key_verification_mode
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self) -> token_update_pb2.TokenUpdateTransactionBody:
         """
-        Builds and returns the protobuf transaction body for token update.
-
+        Returns the protobuf body for the token update transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the token update details.
-
+            TokenUpdateTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If token_id is not set.
         """
         if self.token_id is None:
             raise ValueError("Missing token ID")
 
-        token_update_body = TokenUpdateTransactionBody(
+        token_update_body = token_update_pb2.TokenUpdateTransactionBody(
             token=self.token_id._to_proto(),
             treasury=self.treasury_account_id._to_proto() if self.treasury_account_id else None,
             name=self.token_name,
@@ -327,10 +373,31 @@ class TokenUpdateTransaction(Transaction):
             key_verification_mode=self.token_key_verification_mode._to_proto()
         )
         self._set_keys_to_proto(token_update_body)
-        transaction_body = self.build_base_transaction_body()
-        transaction_body.tokenUpdate.CopyFrom(token_update_body)
+        return token_update_body
+        
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for token update.
 
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token update details.
+        """
+        token_update_body = self._build_proto_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body.tokenUpdate.CopyFrom(token_update_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token update transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenUpdate.CopyFrom(token_update_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
@@ -350,7 +417,10 @@ class TokenUpdateTransaction(Transaction):
             query_func=None
         )
 
-    def _set_keys_to_proto(self, token_update_body: TokenUpdateTransactionBody):
+    def _set_keys_to_proto(
+            self,
+            token_update_body: token_update_pb2.TokenUpdateTransactionBody
+        ) -> None:
         """
         Sets the keys to the protobuf transaction body.
         """

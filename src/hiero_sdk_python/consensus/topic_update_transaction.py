@@ -2,7 +2,7 @@
 This module provides the `TopicUpdateTransaction` class for updating consensus topics
 on the Hedera network using the Hiero SDK.
 """
-from typing import Union
+from typing import Union, Optional
 from google.protobuf import wrappers_pb2 as _wrappers_pb2
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.channels import _Channel
@@ -13,41 +13,45 @@ from hiero_sdk_python.hapi.services import (
     consensus_update_topic_pb2,
     duration_pb2,
     timestamp_pb2,
-    transaction_body_pb2
+    transaction_pb2
+)
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
 )
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.public_key import PublicKey
 
 class TopicUpdateTransaction(Transaction):
     """Represents a transaction to update a consensus topic."""
     def __init__(
         self,
-        topic_id: basic_types_pb2.TopicID =None,
-        memo: str = None,
-        admin_key: basic_types_pb2.Key = None,
-        submit_key: basic_types_pb2.Key = None,
-        auto_renew_period: Duration = Duration(7890000),
-        auto_renew_account: AccountId = None,
-        expiration_time: timestamp_pb2.Timestamp = None,
+        topic_id: Optional[basic_types_pb2.TopicID] = None,
+        memo: Optional[str] = None,
+        admin_key: Optional[PublicKey] = None,
+        submit_key: Optional[PublicKey] = None,
+        auto_renew_period: Optional[Duration] = Duration(7890000),
+        auto_renew_account: Optional[AccountId] = None,
+        expiration_time: Optional[timestamp_pb2.Timestamp] = None,
     ) -> None:
         """
         Initializes a new instance of the TopicUpdateTransaction class.
         Args:
             topic_id (basic_types_pb2.TopicID): The ID of the topic to update.
             memo (str): The memo associated with the topic.
-            admin_key (basic_types_pb2.Key): The admin key for the topic.
-            submit_key (basic_types_pb2.Key): The submit key for the topic.
+            admin_key (PublicKey): The admin key for the topic.
+            submit_key (PublicKey): The submit key for the topic.
             auto_renew_period (Duration): The auto-renew period for the topic.
             auto_renew_account (AccountId): The account ID for auto-renewal.
             expiration_time (timestamp_pb2.Timestamp): The expiration time of the topic.
         """
         super().__init__()
-        self.topic_id: basic_types_pb2.TopicID = topic_id
+        self.topic_id: Optional[basic_types_pb2.TopicID] = topic_id
         self.memo: str = memo or ""
-        self.admin_key: basic_types_pb2.Key = admin_key
-        self.submit_key: basic_types_pb2.Key = submit_key
-        self.auto_renew_period: Duration = auto_renew_period
-        self.auto_renew_account: AccountId = auto_renew_account
-        self.expiration_time: timestamp_pb2.Timestamp = expiration_time
+        self.admin_key: Optional[PublicKey] = admin_key
+        self.submit_key: Optional[PublicKey] = submit_key
+        self.auto_renew_period: Optional[Duration] = auto_renew_period
+        self.auto_renew_account: Optional[AccountId] = auto_renew_account
+        self.expiration_time: Optional[timestamp_pb2.Timestamp] = expiration_time
         self.transaction_fee: int = 10_000_000
 
     def set_topic_id(self, topic_id: basic_types_pb2.TopicID) -> "TopicUpdateTransaction":
@@ -78,12 +82,12 @@ class TopicUpdateTransaction(Transaction):
         self.memo = memo
         return self
 
-    def set_admin_key(self, key: basic_types_pb2.Key) -> "TopicUpdateTransaction":
+    def set_admin_key(self, key: PublicKey) -> "TopicUpdateTransaction":
         """
-        Sets the admin key for the topic.
+        Sets the public admin key for the topic.
 
         Args:
-            key: The admin key to set.
+            Publickey: The admin key to set.
 
         Returns:
             TopicUpdateTransaction: Returns the instance for method chaining.
@@ -92,12 +96,12 @@ class TopicUpdateTransaction(Transaction):
         self.admin_key = key
         return self
 
-    def set_submit_key(self, key: basic_types_pb2.Key) -> "TopicUpdateTransaction":
+    def set_submit_key(self, key: PublicKey) -> "TopicUpdateTransaction":
         """
-        Sets the submit key for the topic.
+        Sets the public submit key for the topic.
 
         Args:
-            key: The submit key to set.
+            Publickey: The submit key to set.
 
         Returns:
             TopicUpdateTransaction: Returns the instance for method chaining.
@@ -156,22 +160,20 @@ class TopicUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def _build_proto_body(self) -> consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody:
         """
-        Builds and returns the protobuf transaction body for topic update.
-
+        Returns the protobuf body for the topic update transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the topic update details.
-
+            ConsensusUpdateTopicTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If required fields are missing.
         """
         if self.topic_id is None:
             raise ValueError("Missing required fields: topic_id")
 
-        transaction_body = self.build_base_transaction_body()
-        transaction_body.consensusUpdateTopic.CopyFrom(
-            consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
+        return consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
             topicID=self.topic_id._to_proto(),
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
             submitKey=self.submit_key._to_proto() if self.submit_key else None,
@@ -185,9 +187,31 @@ class TopicUpdateTransaction(Transaction):
             ),
             expirationTime=self.expiration_time._to_proto() if self.expiration_time else None,
             memo=_wrappers_pb2.StringValue(value=self.memo) if self.memo else None
-        ))
+        )
 
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for topic update.
+
+        Returns:
+            TransactionBody: The protobuf transaction body containing the topic update details.
+        """
+        consensus_update_body = self._build_proto_body()
+        transaction_body = self.build_base_transaction_body()
+        transaction_body.consensusUpdateTopic.CopyFrom(consensus_update_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this topic update transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        consensus_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.consensusUpdateTopic.CopyFrom(consensus_update_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

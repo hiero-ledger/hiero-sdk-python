@@ -1,13 +1,23 @@
 import hashlib
+from typing import Optional
+
+from typing import TYPE_CHECKING
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_body_pb2, transaction_contents_pb2, transaction_pb2)
+from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2, transaction_pb2)
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.schedule.schedule_create_transaction import (
+        ScheduleCreateTransaction,
+    )
+
 
 class Transaction(_Executable):
     """
@@ -19,10 +29,11 @@ class Transaction(_Executable):
 
     Required implementations for subclasses:
     1. build_transaction_body() - Build the transaction-specific protobuf body
-    2. _get_method(channel) - Return the appropriate gRPC method to call
+    2. build_scheduled_body() - Build the schedulable transaction-specific protobuf body
+    3. _get_method(channel) - Return the appropriate gRPC method to call
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes a new Transaction instance with default values.
         """
@@ -30,7 +41,7 @@ class Transaction(_Executable):
         super().__init__()
 
         self.transaction_id = None
-        self.transaction_fee = None
+        self.transaction_fee: int | None = None
         self.transaction_valid_duration = 120 
         self.generate_record = False
         self.memo = ""
@@ -60,7 +71,11 @@ class Transaction(_Executable):
         """
         return self._to_proto()
 
-    def _map_response(self, response, node_id, proto_request):
+    def _map_response(
+            self, 
+            response, 
+            node_id, 
+            proto_request):
         """
         Implements the Executable._map_response method to create a TransactionResponse.
 
@@ -315,8 +330,23 @@ class Transaction(_Executable):
             NotImplementedError: Always, since subclasses must implement this method.
         """
         raise NotImplementedError("Subclasses must implement build_transaction_body()")
-    
-    def build_base_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Abstract method to build the schedulable transaction body.
+
+        Subclasses must implement this method to construct the transaction-specific
+        body and include it in the overall SchedulableTransactionBody.
+
+        Returns:
+            SchedulableTransactionBody: The protobuf SchedulableTransactionBody message.
+
+        Raises:
+            NotImplementedError: Always, since subclasses must implement this method.
+        """
+        raise NotImplementedError("Subclasses must implement build_scheduled_body()")
+
+    def build_base_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds the base transaction body including common fields.
 
@@ -336,7 +366,7 @@ class Transaction(_Executable):
         if self.node_account_id is None:
             raise ValueError("Node account ID is not set.")
 
-        transaction_body = transaction_body_pb2.TransactionBody()
+        transaction_body = transaction_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
 
@@ -346,9 +376,55 @@ class Transaction(_Executable):
         transaction_body.generateRecord = self.generate_record
         transaction_body.memo = self.memo
 
+        # TODO: implement CUSTOM FEE LIMITS
+
         return transaction_body
 
-    def _require_not_frozen(self):
+    def build_base_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the base scheduled transaction body including common fields.
+
+        Returns:
+            SchedulableTransactionBody:
+                The protobuf SchedulableTransactionBody message with common fields set.
+        """
+        schedulable_body = SchedulableTransactionBody()
+        schedulable_body.transactionFee = (
+            self.transaction_fee or self._default_transaction_fee
+        )
+        schedulable_body.memo = self.memo
+
+        # TODO: implement CUSTOM FEE LIMITS
+
+        return schedulable_body
+
+    def schedule(self) -> "ScheduleCreateTransaction":
+        """
+        Converts this transaction into a scheduled transaction.
+
+        This method prepares the current transaction to be scheduled for future execution
+        via the network's scheduling service. It returns a `ScheduleCreateTransaction`
+        instance with the transaction's details embedded as a schedulable transaction body.
+
+        Returns:
+            ScheduleCreateTransaction: A new instance representing the scheduled version
+                of this transaction, ready to be configured and submitted.
+
+        Raises:
+            Exception: If the transaction has already been frozen and cannot be scheduled.
+        """
+        self._require_not_frozen()
+
+        # The import is here to avoid circular dependency
+        # pylint: disable=import-outside-toplevel
+        from hiero_sdk_python.schedule.schedule_create_transaction import (
+            ScheduleCreateTransaction,
+        )
+
+        schedulable_body = self.build_scheduled_body()
+        return ScheduleCreateTransaction()._set_schedulable_body(schedulable_body)
+
+    def _require_not_frozen(self) -> None:
         """
         Ensures the transaction is not frozen before allowing modifications.
 
@@ -358,7 +434,7 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             raise Exception("Transaction is immutable; it has been frozen.")
 
-    def _require_frozen(self):
+    def _require_frozen(self) -> None:
         """
         Ensures the transaction is frozen before allowing operations that require a frozen transaction.
 

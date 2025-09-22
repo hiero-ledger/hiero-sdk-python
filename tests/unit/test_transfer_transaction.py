@@ -1,4 +1,7 @@
 import pytest
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody
+)
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.transaction.transaction import TransactionId
@@ -213,6 +216,61 @@ def test_build_transaction_body(mock_account_ids):
 
     # Verify the transaction was built correctly
     assert result.HasField("cryptoTransfer")
+
+    # Verify HBAR transfers
+    hbar_transfers = result.cryptoTransfer.transfers.accountAmounts
+    assert len(hbar_transfers) == 2
+
+    # Check sender and recipient HBAR transfers
+    for transfer in hbar_transfers:
+        if transfer.accountID.accountNum == account_id_sender.num:
+            assert transfer.amount == -500
+        elif transfer.accountID.accountNum == account_id_recipient.num:
+            assert transfer.amount == 500
+
+    # Verify token transfers
+    token_transfers = result.cryptoTransfer.tokenTransfers
+    assert len(token_transfers) == 2
+
+    # Check if token matches
+    assert token_transfers[0].token == token_id_1._to_proto()
+    assert token_transfers[1].token == token_id_1._to_proto()
+
+    # Check token amounts
+    token_amounts = token_transfers[1].transfers
+    assert len(token_amounts) == 2
+
+    for transfer in token_amounts:
+        if transfer.accountID.accountNum == account_id_sender.num:
+            assert transfer.amount == -100
+        elif transfer.accountID.accountNum == account_id_recipient.num:
+            assert transfer.amount == 100
+
+    # Verify NFT transfers
+    nft_transfers = result.cryptoTransfer.tokenTransfers[0].nftTransfers
+    assert len(nft_transfers) == 1
+    assert nft_transfers[0].senderAccountID.accountNum == account_id_sender.num
+    assert nft_transfers[0].receiverAccountID.accountNum == account_id_recipient.num
+    assert nft_transfers[0].serialNumber == 1
+
+def test_build_scheduled_body(mock_account_ids):
+    """Test building scheduled body with various transfers."""
+    account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    # Add various transfers
+    transfer_tx.add_hbar_transfer(account_id_sender, -500)
+    transfer_tx.add_hbar_transfer(account_id_recipient, 500)
+    transfer_tx.add_token_transfer(token_id_1, account_id_sender, -100)
+    transfer_tx.add_token_transfer(token_id_1, account_id_recipient, 100)
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
+
+    # Build the scheduled body
+    result = transfer_tx.build_scheduled_body()
+
+    # Verify the scheduled body was built correctly
+    assert result.HasField("cryptoTransfer")
+    assert isinstance(result, SchedulableTransactionBody)
 
     # Verify HBAR transfers
     hbar_transfers = result.cryptoTransfer.transfers.accountAmounts

@@ -10,6 +10,10 @@ Required environment variables:
 Dependencies:
 - dotenv
 - hiero_sdk_python
+
+uv run examples/token_create_fungible_finite.py
+python examples/token_create_fungible_finite.py
+
 """
 # Adapt imports and paths as appropriate
 import os
@@ -33,7 +37,7 @@ def create_token_fungible_finite():
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
 
     def parse_optional_key(key_str):
         if not key_str or key_str.startswith('<') or key_str.endswith('>'):

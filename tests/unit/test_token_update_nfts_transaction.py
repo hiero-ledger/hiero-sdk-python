@@ -1,5 +1,8 @@
 import pytest
 
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
@@ -162,6 +165,28 @@ def test_update_nfts_transaction_can_execute(mock_account_ids):
         receipt = transaction.execute(client)
         
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+def test_build_scheduled_body(mock_account_ids):
+    """Test building a scheduled transaction body for token update NFTs transaction."""
+    _, _, _, token_id, _ = mock_account_ids
+    serial_numbers = [1, 2, 3]
+    metadata = b'updated metadata'
+    
+    update_tx = (
+        TokenUpdateNftsTransaction()
+        .set_token_id(token_id)
+        .set_serial_numbers(serial_numbers)
+        .set_metadata(metadata)
+    )
+    
+    schedulable_body = update_tx.build_scheduled_body()
+    
+    # Verify the schedulable body has the correct structure and fields
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("token_update_nfts")
+    assert schedulable_body.token_update_nfts.token == token_id._to_proto()
+    assert schedulable_body.token_update_nfts.serial_numbers == serial_numbers
+    assert schedulable_body.token_update_nfts.metadata.value == metadata
 
 def test_update_nfts_transaction_from_proto(mock_account_ids):
     """Test that a token update NFTs transaction can be created from a protobuf object."""

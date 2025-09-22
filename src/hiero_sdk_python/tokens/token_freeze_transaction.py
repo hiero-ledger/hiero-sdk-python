@@ -1,12 +1,19 @@
 """
-hiero_sdk_python.transaction.token_freeze_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_freeze_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Provides TokenFreezeTransaction, a subclass of Transaction for freezing a specified token
 for an account on the Hedera network using the Hedera Token Service (HTS) API.
 """
+from typing import Optional
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import token_freeze_account_pb2
+from hiero_sdk_python.hapi.services import token_freeze_account_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 
@@ -20,7 +27,11 @@ class TokenFreezeTransaction(Transaction):
     to build and execute a token freeze transaction.
     """
 
-    def __init__(self, token_id=None, account_id=None):
+    def __init__(
+            self,
+            token_id: Optional[TokenId] = None,
+            account_id: Optional[AccountId]=None
+        ) -> None:
         """
         Initializes a new TokenFreezeTransaction instance with optional token_id and account_id.
 
@@ -29,11 +40,11 @@ class TokenFreezeTransaction(Transaction):
             account_id (AccountId, optional): The ID of the account to have their token frozen.
         """
         super().__init__()
-        self.token_id = token_id
-        self.account_id = account_id
-        self._default_transaction_fee = 3_000_000_000
+        self.token_id: Optional[TokenId] = token_id
+        self.account_id: Optional[AccountId] = account_id
+        self._default_transaction_fee: int = 3_000_000_000
 
-    def set_token_id(self, token_id):
+    def set_token_id(self, token_id: TokenId) -> "TokenFreezeTransaction":
         """
         Sets the ID of the token to be frozen.
 
@@ -47,7 +58,7 @@ class TokenFreezeTransaction(Transaction):
         self.token_id = token_id
         return self
 
-    def set_account_id(self, account_id):
+    def set_account_id(self, account_id: AccountId) -> "TokenFreezeTransaction":
         """
         Sets the ID of the account to be frozen.
 
@@ -61,33 +72,50 @@ class TokenFreezeTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self) -> token_freeze_account_pb2.TokenFreezeAccountTransactionBody:
         """
-        Builds and returns the protobuf transaction body for token freeze.
-
+        Returns the protobuf body for the token freeze transaction.
+        
         Returns:
-            TransactionBody: The protobuf transaction body containing the token freeze details.
-
+            TokenFreezeAccountTransactionBody: The protobuf body for this transaction.
+            
         Raises:
-            ValueError: If the token ID is missing.
-            ValueError: If the account ID is missing.
+            ValueError: If the token ID or account ID is missing.
         """
-
         if not self.token_id:
             raise ValueError("Missing required TokenID.")
 
         if not self.account_id:
             raise ValueError("Missing required AccountID.")
 
-        token_freeze_body = token_freeze_account_pb2.TokenFreezeAccountTransactionBody(
+        return token_freeze_account_pb2.TokenFreezeAccountTransactionBody(
             token=self.token_id._to_proto(),
             account=self.account_id._to_proto()
         )
+        
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for token freeze.
 
-        transaction_body = self.build_base_transaction_body()
+        Returns:
+            TransactionBody: The protobuf transaction body containing the token freeze details.
+        """
+        token_freeze_body = self._build_proto_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenFreeze.CopyFrom(token_freeze_body)
-
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token freeze transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_freeze_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenFreeze.CopyFrom(token_freeze_body)
+        return schedulable_body
 
 
     def _get_method(self, channel: _Channel) -> _Method:

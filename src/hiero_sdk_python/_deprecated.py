@@ -8,7 +8,7 @@ class _DeprecatedAliasesMixin:  # pylint: disable=too-few-public-methods
     emitting a FutureWarning at use.
     """
 
-    _ALIASES = {
+    _ALIASES: dict[str, str] = {
         "tokenId": "token_id",
         "totalSupply": "total_supply",
         "isDeleted": "is_deleted",
@@ -34,7 +34,7 @@ class _DeprecatedAliasesMixin:  # pylint: disable=too-few-public-methods
         "fileId": "file_id"
     }
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> object:
         try:
             snake = self._ALIASES[name]
         except KeyError as exc:
@@ -49,7 +49,7 @@ class _DeprecatedAliasesMixin:  # pylint: disable=too-few-public-methods
         )
         return getattr(self, snake)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: object) -> None:
         # intercept legacy writes
         if name in self._ALIASES:
             snake = self._ALIASES[name]

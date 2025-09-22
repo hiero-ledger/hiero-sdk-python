@@ -8,6 +8,9 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.crypto_delete_pb2 import CryptoDeleteTransactionBody
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -80,12 +83,12 @@ class AccountDeleteTransaction(Transaction):
         self.transfer_account_id = transfer_account_id
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self):
         """
-        Builds the transaction body for this account delete transaction.
+        Returns the protobuf body for the account delete transaction.
 
         Returns:
-            TransactionBody: The built transaction body.
+            CryptoDeleteTransactionBody: The protobuf body for this transaction.
 
         Raises:
             ValueError: If account_id or transfer_account_id is not set.
@@ -96,7 +99,7 @@ class AccountDeleteTransaction(Transaction):
         if self.transfer_account_id is None:
             raise ValueError("Missing AccountID for transfer")
 
-        account_delete_body = CryptoDeleteTransactionBody(
+        return CryptoDeleteTransactionBody(
             deleteAccountID=self.account_id._to_proto(),
             transferAccountID=(
                 self.transfer_account_id._to_proto()
@@ -105,9 +108,32 @@ class AccountDeleteTransaction(Transaction):
             ),
         )
 
+    def build_transaction_body(self):
+        """
+        Builds the transaction body for this account delete transaction.
+
+        Returns:
+            TransactionBody: The built transaction body.
+
+        Raises:
+            ValueError: If account_id or transfer_account_id is not set.
+        """
+        account_delete_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
         transaction_body.cryptoDelete.CopyFrom(account_delete_body)
         return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this account delete transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        account_delete_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.cryptoDelete.CopyFrom(account_delete_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

@@ -1,13 +1,17 @@
 """
-hiero_sdk_python.transaction.token_burn_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_burn_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Provides TokenBurnTransaction, a subclass of Transaction for burning fungible and
 non-fungible tokens on the Hedera network using the Hedera Token Service (HTS) API.
 """
-from typing import Optional
+from typing import List, Optional
 
 from hiero_sdk_python.hapi.services.token_burn_pb2 import TokenBurnTransactionBody
+from hiero_sdk_python.hapi.services import transaction_pb2, token_burn_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -25,10 +29,10 @@ class TokenBurnTransaction(Transaction):
     """
     def __init__(
         self,
-        token_id: TokenId | None = None,
+        token_id: Optional[TokenId] = None, 
         amount: Optional[int] = None,
-        serials: list[int] | None = None,
-    ):
+        serials: Optional[List[int]] = None
+    ) -> None:
         """
         Initializes a new TokenBurnTransaction instance with optional token_id, amount, and serials.
 
@@ -38,11 +42,11 @@ class TokenBurnTransaction(Transaction):
             serials (list[int], optional): The serial numbers of non-fungible tokens to burn.
         """
         super().__init__()
-        self.token_id: TokenId = token_id
+        self.token_id: Optional[TokenId] = token_id
         self.amount: Optional[int] = amount
-        self.serials: list[int] = serials if serials else []
+        self.serials: List[int] = serials if serials is not None else []
 
-    def set_token_id(self, token_id: TokenId):
+    def set_token_id(self, token_id: TokenId) -> "TokenBurnTransaction":
         """
         Sets the token ID for this burn transaction.
 
@@ -56,7 +60,7 @@ class TokenBurnTransaction(Transaction):
         self.token_id = token_id
         return self
 
-    def set_amount(self, amount: int):
+    def set_amount(self, amount: int) -> "TokenBurnTransaction":
         """
         Sets the amount of fungible tokens to burn.
 
@@ -70,7 +74,7 @@ class TokenBurnTransaction(Transaction):
         self.amount = amount
         return self
 
-    def set_serials(self, serials: list[int]):
+    def set_serials(self, serials: List[int]) -> "TokenBurnTransaction":
         """
         Sets the list of serial numbers of non-fungible tokens to burn.
 
@@ -84,7 +88,7 @@ class TokenBurnTransaction(Transaction):
         self.serials = serials
         return self
 
-    def add_serial(self, serial: int):
+    def add_serial(self, serial: int) -> "TokenBurnTransaction":
         """
         Adds a single serial number to the list of non-fungible tokens to burn.
 
@@ -99,13 +103,13 @@ class TokenBurnTransaction(Transaction):
         self.serials.append(serial)
         return self
 
-    def build_transaction_body(self):
+    def _build_proto_body(self) -> token_burn_pb2.TokenBurnTransactionBody:
         """
-        Builds the transaction body for this token burn transaction.
-
-        Returns:
-            TransactionBody: The built transaction body.
+        Returns the protobuf body for the token burn transaction.
         
+        Returns:
+            TokenBurnTransactionBody: The protobuf body for this transaction.
+            
         Raises:
             ValueError: If the token ID is not set or if both amount and serials are provided.
         """
@@ -115,14 +119,35 @@ class TokenBurnTransaction(Transaction):
         if self.amount and self.serials:
             raise ValueError("Cannot burn both amount and serial in the same transaction")
 
-        token_burn_body = TokenBurnTransactionBody(
+        return TokenBurnTransactionBody(
             token=self.token_id._to_proto(),
             amount=self.amount,
             serialNumbers=self.serials
         )
-        transaction_body = self.build_base_transaction_body()
+        
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds the transaction body for this token burn transaction.
+
+        Returns:
+            TransactionBody: The built transaction body.
+        """
+        token_burn_body = self._build_proto_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenBurn.CopyFrom(token_burn_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token burn transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_burn_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenBurn.CopyFrom(token_burn_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
@@ -142,7 +167,7 @@ class TokenBurnTransaction(Transaction):
             query_func=None
         )
 
-    def _from_proto(self, proto: TokenBurnTransactionBody):
+    def _from_proto(self, proto: TokenBurnTransactionBody) -> "TokenBurnTransaction":
         """
         Deserializes a TokenBurnTransactionBody from a protobuf object.
 
@@ -154,5 +179,5 @@ class TokenBurnTransaction(Transaction):
         """
         self.token_id = TokenId._from_proto(proto.token)
         self.amount = proto.amount
-        self.serials = proto.serialNumbers
+        self.serials = list(proto.serialNumbers)
         return self

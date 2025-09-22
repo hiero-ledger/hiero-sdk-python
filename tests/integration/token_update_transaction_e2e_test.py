@@ -74,10 +74,11 @@ def test_integration_token_update_preserves_fields_without_updating_parameters()
         assert info.memo == original_info.memo, "Token memo should not have changed"
         assert info.metadata == original_info.metadata, "Token metadata should not have changed"
         assert info.treasury == original_info.treasury, "Token treasury should not have changed"
-        assert info.admin_key.to_bytes_raw() == original_info.adminKey.to_bytes_raw(), "Admin key should not have changed"
-        assert info.freeze_key.to_bytes_raw() == original_info.freezeKey.to_bytes_raw(), "Freeze key should not have changed"
-        assert info.wipe_key.to_bytes_raw() == original_info.wipeKey.to_bytes_raw(), "Wipe key should not have changed"
-        assert info.supply_key.to_bytes_raw() == original_info.supplyKey.to_bytes_raw(), "Supply key should not have changed"
+        assert info.admin_key.to_bytes_raw() == original_info.admin_key.to_bytes_raw(), "Admin key should not have changed"
+        assert info.freeze_key.to_bytes_raw() == original_info.freeze_key.to_bytes_raw(), "Freeze key should not have changed"
+        assert info.wipe_key.to_bytes_raw() == original_info.wipe_key.to_bytes_raw(), "Wipe key should not have changed"
+        assert info.supply_key.to_bytes_raw() == original_info.supply_key.to_bytes_raw(), "Supply key should not have changed"
+
         assert info.pause_key is None, "Pause key should not have changed"
     finally:
         env.close()

@@ -1,3 +1,8 @@
+"""
+uv run examples/query_payment.py
+python examples/query_payment.py
+
+"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -51,7 +56,7 @@ def create_fungible_token(client, operator_id, operator_key):
         print(f"Fungible token creation failed with status: {ResponseCode.get_name(receipt.status)}")
         sys.exit(1)
     
-    token_id = receipt.tokenId
+    token_id = receipt.token_id
     print(f"Fungible token created with ID: {token_id}")
     
     return token_id

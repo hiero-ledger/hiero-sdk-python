@@ -1,6 +1,6 @@
 """
-hiero_sdk_python.transaction.token_reject_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_reject_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines TokenRejectTransaction for rejecting fungible token and NFT transfers on
 the Hedera network via the Hedera Token Service (HTS) API.
@@ -10,7 +10,10 @@ from hiero_sdk_python.hapi.services.token_reject_pb2 import (
     TokenReference,
     TokenRejectTransactionBody,
 )
-from hiero_sdk_python.hapi.services import transaction_body_pb2
+from hiero_sdk_python.hapi.services import transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
@@ -31,9 +34,9 @@ class TokenRejectTransaction(Transaction):
     """
     def __init__(
         self,
-        owner_id: Optional[AccountId] = None,
+        owner_id:  Optional[AccountId] = None,
         token_ids: Optional[List[TokenId]] = None,
-        nft_ids: Optional[List[NftId]] = None
+        nft_ids:   Optional[List[NftId]] = None
     ) -> None:
         """
         TokenRejectTransaction instance with optional owner_id, token_ids, and nft_ids.
@@ -44,9 +47,9 @@ class TokenRejectTransaction(Transaction):
             nft_ids (list[NftId], optional): The IDs of the non-fungible tokens (NFTs) to reject.
         """
         super().__init__()
-        self.owner_id: Optional[AccountId] = owner_id
+        self.owner_id:  Optional[AccountId] = owner_id
         self.token_ids: List[TokenId] = token_ids if token_ids else []
-        self.nft_ids: List[NftId] = nft_ids if nft_ids else []
+        self.nft_ids:   List[NftId] = nft_ids if nft_ids else []
 
     def set_owner_id(self, owner_id: AccountId) -> "TokenRejectTransaction":
         """Set the owner account ID for rejected tokens."""
@@ -66,26 +69,47 @@ class TokenRejectTransaction(Transaction):
         self.nft_ids = nft_ids
         return self
 
-    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
+    def _build_proto_body(self):
+        """
+        Returns the protobuf body for the token reject transaction.
+        
+        Returns:
+            TokenRejectTransactionBody: The protobuf body for this transaction.
+        """
+        token_references: List[TokenReference] = []
+        for token_id in self.token_ids:
+            token_references.append(TokenReference(fungible_token=token_id._to_proto()))
+        for nft_id in self.nft_ids:
+            token_references.append(TokenReference(nft=nft_id._to_proto()))
+
+        return TokenRejectTransactionBody(
+            owner=self.owner_id and self.owner_id._to_proto(),
+            rejections=token_references
+        )
+        
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token reject.
 
         Returns:
             TransactionBody: The protobuf transaction body containing the token reject details.
         """
-        token_references = []
-        for token_id in self.token_ids:
-            token_references.append(TokenReference(fungible_token=token_id._to_proto()))
-        for nft_id in self.nft_ids:
-            token_references.append(TokenReference(nft=nft_id._to_proto()))
-
-        token_reject_body = TokenRejectTransactionBody(
-            owner=self.owner_id and self.owner_id._to_proto(),
-            rejections=token_references
-        )
-        transaction_body: transaction_body_pb2.TransactionBody = self.build_base_transaction_body()
+        token_reject_body = self._build_proto_body()
+        transaction_body = self.build_base_transaction_body()
         transaction_body.tokenReject.CopyFrom(token_reject_body)
         return transaction_body
+        
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body for this token reject transaction.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_reject_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        schedulable_body.tokenReject.CopyFrom(token_reject_body)
+        return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

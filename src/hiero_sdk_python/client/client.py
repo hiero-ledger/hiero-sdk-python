@@ -51,7 +51,7 @@ class Client:
         We now use self.network.get_mirror_address() for a configurable mirror address.
         """
         mirror_address = self.network.get_mirror_address()
-        self.mirror_channel = grpc.insecure_channel(mirror_address)
+        self.mirror_channel = grpc.secure_channel(mirror_address, grpc.ssl_channel_credentials())
         self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
 
     def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:

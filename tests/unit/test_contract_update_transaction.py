@@ -12,6 +12,9 @@ from hiero_sdk_python.contract.contract_update_transaction import (
 )
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 from hiero_sdk_python.hbar import Hbar
 
 pytestmark = pytest.mark.unit
@@ -276,6 +279,51 @@ def test_build_transaction_body_with_all_parameters(
 
     # Verify other fields are present (the actual protobuf structure may vary)
     assert transaction_body.contractUpdateInstance.HasField("contractID")
+
+def test_build_scheduled_body_with_all_parameters(
+    update_params, mock_account_ids, transaction_id
+):
+    """Test building schedulable transaction body with all parameters set."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    # Create transaction with all parameters
+    constructor_params = ContractUpdateParams(
+        contract_id=update_params["contract_id"],
+        contract_memo=update_params["memo"],
+        admin_key=update_params["admin_key"],
+        auto_renew_period=update_params["auto_renew_period"],
+        max_automatic_token_associations=update_params[
+            "max_automatic_token_associations"
+        ],
+        auto_renew_account_id=update_params["auto_renew_account_id"],
+        staked_node_id=update_params["staked_node_id"],
+        decline_reward=update_params["decline_reward"],
+    )
+    tx = ContractUpdateTransaction(contract_params=constructor_params)
+    tx.transaction_id = transaction_id
+    tx.node_account_id = node_account_id
+
+    schedulable_body = tx.build_scheduled_body()
+
+    # Verify correct return type
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+
+    # Verify the transaction was built with contract update type
+    assert schedulable_body.HasField("contractUpdateInstance")
+
+    # Verify contract ID is set
+    assert (
+        schedulable_body.contractUpdateInstance.contractID.contractNum
+        == update_params["contract_id"].contract
+    )
+    assert (
+        schedulable_body.contractUpdateInstance.contractID.shardNum
+        == update_params["contract_id"].shard
+    )
+    assert (
+        schedulable_body.contractUpdateInstance.contractID.realmNum
+        == update_params["contract_id"].realm
+    )
 
 
 ########### Transaction Execution Tests ###########
