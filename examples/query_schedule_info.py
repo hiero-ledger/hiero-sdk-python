@@ -98,7 +98,7 @@ def query_schedule_info():
     """
     Demonstrates querying a schedule info by:
     1. Setting up client with operator account
-    2. Creating a test account
+    2. Creating a test account that will schedule the txn
     3. Creating a scheduled transaction
     4. Querying the schedule info
     """

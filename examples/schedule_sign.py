@@ -18,7 +18,6 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 load_dotenv()
 
-
 def setup_client():
     """Initialize and set up the client with operator account"""
     network = Network(network="testnet")
@@ -140,7 +139,8 @@ def schedule_sign():
     print("\nSchedule Info Before Signing:")
     query_schedule_info(client, schedule_id)
 
-    # Sign the scheduled transaction to execute it
+    # Sign the scheduled transaction to execute it. 
+    # To sign a scheduled transaction, we take the scheduled transaction id and add a signature from one of the required signers.
     print("\nSigning Schedule...")
     receipt = (
         ScheduleSignTransaction()
@@ -158,6 +158,7 @@ def schedule_sign():
 
     # Query schedule info after signing to verify execution
     print("\nSchedule Info After Signing:")
+    # Should return 2 signers, as we signed it above
     query_schedule_info(client, schedule_id)
 
 
