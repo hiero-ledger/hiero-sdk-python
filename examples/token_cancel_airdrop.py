@@ -1,3 +1,8 @@
+"""
+uv run examples/token_cancel_airdrop.py
+python examples/token_cancel_airdrop.py
+"""
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -31,7 +36,7 @@ def token_cancel_airdrop():
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
     except (TypeError, ValueError):
         print("Error: Creating client, Please check your .env file")
@@ -58,11 +63,11 @@ def token_cancel_airdrop():
     try:
         tx1 = TokenCreateTransaction().set_token_name("First Token").set_token_symbol("TKA").set_initial_supply(1).set_treasury_account_id(operator_id)
         receipt1 = tx1.freeze_with(client).sign(operator_key).execute(client)
-        token_id_1 = receipt1.tokenId
+        token_id_1 = receipt1.token_id
 
         tx2 = TokenCreateTransaction().set_token_name("Second Token").set_token_symbol("TKB").set_initial_supply(1).set_treasury_account_id(operator_id)
         receipt2 = tx2.freeze_with(client).sign(operator_key).execute(client)
-        token_id_2 = receipt2.tokenId
+        token_id_2 = receipt2.token_id
 
         print(f"Created tokens: {token_id_1} and {token_id_2}")
     except Exception as e:

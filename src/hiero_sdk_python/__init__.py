@@ -110,10 +110,16 @@ from .contract.ethereum_transaction import EthereumTransaction
 # Schedule
 from .schedule.schedule_create_transaction import ScheduleCreateTransaction
 from .schedule.schedule_id import ScheduleId
+from .schedule.schedule_info import ScheduleInfo
+from .schedule.schedule_info_query import ScheduleInfoQuery
+from .schedule.schedule_delete_transaction import ScheduleDeleteTransaction
 
 # Nodes
 from .nodes.node_create_transaction import NodeCreateTransaction
 from .nodes.node_delete_transaction import NodeDeleteTransaction
+
+# PRNG
+from .prng_transaction import PrngTransaction
 
 __all__ = [
     # Client
@@ -184,11 +190,11 @@ __all__ = [
     "TokenNftInfoQuery",
     "TokenInfoQuery",
     "AccountInfoQuery",
-
+    
     # Address book
     "Endpoint",
     "NodeAddress",
-
+    
     # Logger
     "Logger",
     "LogLevel",
@@ -224,8 +230,14 @@ __all__ = [
     # Schedule
     "ScheduleCreateTransaction",
     "ScheduleId",
+    "ScheduleInfoQuery",
+    "ScheduleInfo",
+    "ScheduleDeleteTransaction",
 
     # Nodes
     "NodeCreateTransaction",
     "NodeDeleteTransaction",
+
+    # PRNG
+    "PrngTransaction",
 ]

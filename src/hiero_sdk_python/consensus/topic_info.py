@@ -23,12 +23,13 @@ class TopicInfo:
         such as memo, running hash, sequence number, expiration time, admin key,
         submit key, auto-renewal configuration, and ledger ID.
     """
+
     def __init__(
             self,
             memo: str,
             running_hash: bytes,
             sequence_number: int,
-            expiration_time: Timestamp,
+            expiration_time: Optional[Timestamp],
             admin_key: Optional[Key],
             submit_key: Optional[Key],
             auto_renew_period: Optional[Duration],
@@ -42,22 +43,22 @@ class TopicInfo:
             memo (str): The memo associated with the topic.
             running_hash (bytes): The current running hash of the topic.
             sequence_number (int): The sequence number of the topic.
-            expiration_time (Timestamp): The expiration time of the topic.
-            admin_key (Key): The admin key for the topic.
-            submit_key (Key): The submit key for the topic.
-            auto_renew_period (Duration): The auto-renew period for the topic.
-            auto_renew_account (AccountID): The account ID for auto-renewal.
-            ledger_id (bytes): The ledger ID associated with the topic.
+            expiration_time (Optional[Timestamp]): The expiration time of the topic.
+            admin_key (Optional[Key]): The admin key for the topic.
+            submit_key (Optional[Key]): The submit key for the topic.
+            auto_renew_period (Optional[Duration]): The auto-renew period for the topic.
+            auto_renew_account (Optional[AccountID]): The account ID for auto-renewal.
+            ledger_id (Optional[bytes]): The ledger ID associated with the topic.
         """
         self.memo: str = memo
         self.running_hash: bytes = running_hash
         self.sequence_number: int = sequence_number
-        self.expiration_time: Timestamp = expiration_time
-        self.admin_key: Key = admin_key
-        self.submit_key: Key = submit_key
-        self.auto_renew_period: Duration = auto_renew_period
-        self.auto_renew_account: AccountID = auto_renew_account
-        self.ledger_id: bytes = ledger_id
+        self.expiration_time: Optional[Timestamp] = expiration_time
+        self.admin_key: Optional[Key] = admin_key
+        self.submit_key: Optional[Key] = submit_key
+        self.auto_renew_period: Optional[Duration] = auto_renew_period
+        self.auto_renew_account: Optional[AccountID] = auto_renew_account
+        self.ledger_id: Optional[bytes] = ledger_id
 
     @classmethod
     def _from_proto(
@@ -66,6 +67,12 @@ class TopicInfo:
     ) -> "TopicInfo":
         """
         Constructs a TopicInfo object from a protobuf ConsensusTopicInfo message.
+
+        Args:
+            topic_info_proto (ConsensusTopicInfo): The protobuf message.
+
+        Returns:
+            TopicInfo: The constructed TopicInfo object.
         """
         return cls(
             memo=topic_info_proto.memo,
@@ -98,21 +105,30 @@ class TopicInfo:
     def __repr__(self) -> str:
         """
         If you print the object with `repr(topic_info)`, you'll see this output.
+
+        Returns:
+            str: The string representation.
         """
         return self.__str__()
 
     def __str__(self) -> str:
         """
         Pretty-print the TopicInfo in a multi-line, user-friendly style.
-        """
 
-        exp_dt: datetime = None
+        Returns:
+            str: A nicely formatted string representation of the topic.
+        """
+        exp_dt: Optional[datetime] = None
         if self.expiration_time and hasattr(self.expiration_time, "seconds"):
             exp_dt = datetime.fromtimestamp(self.expiration_time.seconds)
 
-        running_hash_hex: str = self.running_hash.hex() if self.running_hash else None
+        running_hash_hex: Optional[str] = (
+            self.running_hash.hex() if self.running_hash else None
+        )
         ledger_id_hex: Optional[str] = (
-            self.ledger_id.hex() if isinstance(self.ledger_id, (bytes, bytearray)) else None
+            self.ledger_id.hex()
+            if isinstance(self.ledger_id, (bytes, bytearray))
+            else None
         )
 
         return (
