@@ -66,7 +66,7 @@ def test_nft_id():
     with pytest.raises(ValueError):
         NftId.from_string(fail_str)
 
-def test_get_nft_id_with_cehecksum(mock_client):
+def test_get_nft_id_with_checksum(mock_client):
     """Should return string with checksum when ledger id is provided."""
     client = mock_client
     client.network.ledger_id = bytes.fromhex("00")
