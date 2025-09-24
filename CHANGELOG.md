@@ -14,6 +14,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [0.1.5] - 2025-09-25
 
 ### Added
+- add revenue generating topic tests/example
+- add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
+- add CustomFeeLimit class
 - ScheduleSignTransaction class
 - NodeUpdateTransaction class
 - NodeDeleteTransaction class
