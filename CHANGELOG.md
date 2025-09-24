@@ -43,6 +43,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Function docstrings in /tokens, /transaction, /query, /consensus
 
 ### Changed
+- bump solo version to `v0.13`
 - Extract _build_proto_body() from build_transaction_body() in every transaction
 - StatefulContract's setMessage() function designed with no access restrictions, allowing calls from any address
 - bump solo version to `v0.12`
