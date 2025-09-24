@@ -10,6 +10,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Convert camelCase to snake_case in integration tests (#318)
 
 ### Added
+- add revenue generating topic tests/example
+- add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
+- add CustomFeeLimit class
 - ScheduleSignTransaction class
 - NodeUpdateTransaction class
 - NodeDeleteTransaction class
