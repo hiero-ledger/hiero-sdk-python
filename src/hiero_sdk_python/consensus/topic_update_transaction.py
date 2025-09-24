@@ -215,7 +215,8 @@ class TopicUpdateTransaction(Transaction):
 
     def clear_custom_fees(self) -> "TopicUpdateTransaction":
         """
-        Clears the custom fees for the topic update transaction.
+        Clears the custom fees for the topic update transaction and 
+        removes them from the network state.
         
         Returns:
             TopicUpdateTransaction: The current instance for method chaining.
@@ -226,7 +227,8 @@ class TopicUpdateTransaction(Transaction):
     
     def clear_fee_exempt_keys(self) -> "TopicUpdateTransaction":
         """
-        Clears the fee exempt keys for the topic update transaction.
+        Clears the fee exempt keys for the topic update transaction and 
+        removes them from the network state.
         
         Returns:
             TopicUpdateTransaction: The current instance for method chaining.
