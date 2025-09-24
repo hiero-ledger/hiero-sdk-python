@@ -41,6 +41,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Linting to /tokens, /transaction, /query, /consensus
 - Module docstrings in /tokens, /transaction, /query, /consensus
 - Function docstrings in /tokens, /transaction, /query, /consensus
+- Read permissions to the test.yml
 
 ### Changed
 - bump protobufs version to `v0.66.0`
