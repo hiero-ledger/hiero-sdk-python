@@ -27,7 +27,7 @@ def create_token_nft_infinite():
     # 1. Network and Operator Setup
     # =================================================================
     print("Connecting to Hedera testnet...")
-    network = Network(network='testnet')
+    network = Network()
     client = Client(network)
 
     try:
