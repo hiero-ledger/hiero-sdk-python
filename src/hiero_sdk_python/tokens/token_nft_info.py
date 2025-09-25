@@ -1,6 +1,6 @@
 """
-hiero_sdk_python.transaction.token_nft_info
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_nft_info.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines TokenNftInfo, a class representing Non-Fungible Token details (ID, owner,
 creation time, metadata, spender) on the Hedera network, with protobuf conversion.
@@ -71,18 +71,22 @@ class TokenNftInfo:
             The protobuf representation of this NFT information.
         """
         return token_get_nft_info_pb2.TokenNftInfo(
-            nftID=self.nft_id._to_proto(),
-            accountID=self.account_id._to_proto(),
+            nftID=self.nft_id._to_proto() if self.nft_id else None,
+            accountID=self.account_id._to_proto() if self.account_id else None,
             creationTime=timestamp_pb2.Timestamp(seconds=self.creation_time),
             metadata=self.metadata,
-            spender_id=self.spender_id._to_proto()
+            spender_id=self.spender_id._to_proto() if self.spender_id else None
         )
 
     def __str__(self) -> str:
-        return (
-            "TokenNftInfo("
-            f"nft_id={self.nft_id}, account_id={self.account_id}, "
-            f"creation_time={self.creation_time}, metadata={self.metadata}, "
-            f"spender_id={self.spender_id}"
-            ")"
-        )
+        """
+        Get a string representation of this TokenNftInfo instance.
+        
+        Returns:
+            str: A string representation including all fields of this NFT information.
+        """
+        return (f"TokenNftInfo(nft_id={self.nft_id}, "
+                f"account_id={self.account_id}, "
+                f"creation_time={self.creation_time}, "
+                f"metadata={self.metadata!r}, "
+                f"spender_id={self.spender_id})")

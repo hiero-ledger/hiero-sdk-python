@@ -194,7 +194,7 @@ class TransactionGetReceiptQuery(Query):
         
         status = response.transactionGetReceipt.receipt.status
         
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt))
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id))
         
     def execute(self, client: Client) -> TransactionReceipt:
         """

@@ -1,18 +1,21 @@
 """
-hiero_sdk_python.transaction.token_unfreeze_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_unfreeze_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Provides TokenUnfreezeTransaction, a subclass of Transaction for unfreezing tokens
-on the Hedera network via the Hedera Token Service (HTS) API.
+Provides TokenUnfreezeTransaction, a subclass of Transaction for un-freezing a specified token
+for an account on the Hedera network using the Hedera Token Service (HTS) API.
 """
+from typing import Optional
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import token_unfreeze_account_pb2
+from hiero_sdk_python.hapi.services import token_unfreeze_account_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.account.account_id import AccountId
 
 class TokenUnfreezeTransaction(Transaction):
     """
@@ -24,33 +27,57 @@ class TokenUnfreezeTransaction(Transaction):
     to build and execute a token unfreeze transaction.
     """
 
-    def __init__(self, account_id=None, token_id=None):
+    def __init__(
+        self,
+        account_id: Optional[AccountId] = None,
+        token_id: Optional[TokenId] = None
+    ) -> None:
         """
         Initializes a new TokenUnfreezeTransaction instance with default values.
+        Args:
+            account_id (AccountId, optional): The ID of the account to unfreeze tokens for.
+            token_id (TokenId, optional): The ID of the token to unfreeze.
         """
         super().__init__()
-        self.token_id = token_id
-        self.account_id = account_id
-        self._default_transaction_fee = 3_000_000_000
-        self._is_frozen = False
+        self.token_id: Optional[TokenId] = token_id
+        self.account_id: Optional[AccountId] = account_id
+        self._default_transaction_fee: int = 3_000_000_000
+        self._is_frozen: bool = False
 
-    def set_token_id(self, token_id):
-        """Set the token ID to unfreeze."""
+    def set_token_id(self, token_id: TokenId) -> "TokenUnfreezeTransaction":
+        """
+        Sets the token ID for this unfreeze transaction.
+        Args:
+            token_id (TokenId): The ID of the token to unfreeze.
+        Returns:
+            TokenUnfreezeTransaction: This transaction instance.
+        """
         self.__require_not_frozen()
         self.token_id = token_id
         return self
 
-    def set_account_id(self, account_id):
-        """Set the account ID whose token will be unfrozen."""
+    def set_account_id(self, account_id: AccountId) -> "TokenUnfreezeTransaction":
+        """
+        Sets the account ID for this unfreeze transaction.
+        Args:
+            account_id (AccountId): The ID of the account to unfreeze tokens for.
+        Returns:
+            TokenUnfreezeTransaction: This transaction instance.
+        """
         self.__require_not_frozen()
         self.account_id = account_id
         return self
 
-    def __require_not_frozen(self):
+    def __require_not_frozen(self) -> None:
+        """
+        Ensures that the transaction is not frozen before making modifications.
+        Raises:
+            ValueError: If the transaction is already frozen.
+        """
         if self._is_frozen:
             raise ValueError("Transaction is already frozen and cannot be modified.")
 
-    def _build_proto_body(self):
+    def _build_proto_body(self) -> token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody:
         """
         Returns the protobuf body for the token unfreeze transaction.
         
@@ -71,7 +98,7 @@ class TokenUnfreezeTransaction(Transaction):
             token=self.token_id._to_proto()
         )
         
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token unfreeze.
 
@@ -79,7 +106,7 @@ class TokenUnfreezeTransaction(Transaction):
             TransactionBody: The protobuf transaction body containing the token unfreeze details.
         """
         token_unfreeze_body = self._build_proto_body()
-        transaction_body = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenUnfreeze.CopyFrom(token_unfreeze_body)
         return transaction_body
         
