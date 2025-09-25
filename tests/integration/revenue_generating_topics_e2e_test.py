@@ -739,6 +739,63 @@ def test_integration_revenue_generating_topic_cannot_charge_tokens_with_lower_li
 
 
 @pytest.mark.integration
+def test_integration_scheduled_revenue_generating_topic_cannot_charge_tokens_with_lower_limit(
+    env,
+):
+    """Test that scheduled revenue topics cannot charge tokens with lower custom fee limit."""
+    token_id = create_fungible_token(env)
+
+    custom_fee = _create_custom_fee(env, token_id, 2)
+
+    # Create a revenue generating topic with token custom fee
+    receipt = (
+        TopicCreateTransaction()
+        .set_admin_key(env.public_operator_key)
+        .set_fee_schedule_key(env.public_operator_key)
+        .set_custom_fees([custom_fee])
+        .execute(env.client)
+    )
+
+    assert (
+        receipt.status == ResponseCode.SUCCESS
+    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+
+    topic_id = receipt.topic_id
+    assert topic_id is not None
+
+    payer_account = env.create_account(1)
+
+    env.associate_and_transfer(payer_account.id, payer_account.key, token_id, 2)
+
+    # Create custom fee limit with lower amount than the custom fee
+    custom_fee_limit = (
+        CustomFeeLimit()
+        .set_payer_id(payer_account.id)
+        .add_custom_fee(
+            CustomFixedFee().set_amount_in_tinybars(1).set_denominating_token_id(token_id)
+        )
+    )
+
+    # Submit a message to the revenue generating topic with custom fee limit
+    env.client.set_operator(payer_account.id, payer_account.key)
+
+    message_transaction = (
+        TopicMessageSubmitTransaction()
+        .set_message(MESSAGE)
+        .set_topic_id(topic_id)
+        .add_custom_fee_limit(custom_fee_limit)
+        .schedule()
+    )
+    message_transaction.transaction_fee = Hbar(2).to_tinybars()
+    message_receipt = message_transaction.execute(env.client)
+
+    assert message_receipt.status == ResponseCode.MAX_CUSTOM_FEE_LIMIT_EXCEEDED, (
+        f"Message submit should have failed with MAX_CUSTOM_FEE_LIMIT_EXCEEDED status but got: "
+        f"{ResponseCode(message_receipt.status).name}"
+    )
+
+
+@pytest.mark.integration
 def test_integration_revenue_generating_topic_cannot_execute_with_invalid_token_id(
     env,
 ):
