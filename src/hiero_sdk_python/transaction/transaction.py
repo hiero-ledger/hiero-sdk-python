@@ -395,6 +395,8 @@ class Transaction(_Executable):
             self.transaction_fee or self._default_transaction_fee
         )
         schedulable_body.memo = self.memo
+        custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
+        schedulable_body.max_custom_fees.extend(custom_fee_limits)
 
         return schedulable_body
 
