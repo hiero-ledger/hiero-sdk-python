@@ -739,15 +739,16 @@ def test_integration_revenue_generating_topic_cannot_charge_tokens_with_lower_li
 
 
 @pytest.mark.integration
-def test_integration_scheduled_revenue_generating_topic_cannot_charge_tokens_with_lower_limit(
-    env,
-):
-    """Test that scheduled revenue topics cannot charge tokens with lower custom fee limit."""
-    token_id = create_fungible_token(env)
+def test_integration_scheduled_revenue_topic_cannot_charge_hbars_with_lower_limit(env):
+    """Test that scheduled revenue topics cannot charge HBARs with lower custom fee limit."""
+    hbar_amount = 100_000_000  # 1 HBAR in tinybars
+    custom_fee = (
+        CustomFixedFee()
+        .set_hbar_amount(Hbar.from_tinybars(hbar_amount // 2))  # 0.5 HBAR fee
+        .set_fee_collector_account_id(env.operator_id)
+    )
 
-    custom_fee = _create_custom_fee(env, token_id, 2)
-
-    # Create a revenue generating topic with token custom fee
+    # Create a revenue generating topic with HBAR custom fee
     receipt = (
         TopicCreateTransaction()
         .set_admin_key(env.public_operator_key)
@@ -765,20 +766,18 @@ def test_integration_scheduled_revenue_generating_topic_cannot_charge_tokens_wit
 
     payer_account = env.create_account(1)
 
-    env.associate_and_transfer(payer_account.id, payer_account.key, token_id, 2)
-
     # Create custom fee limit with lower amount than the custom fee
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
         .add_custom_fee(
-            CustomFixedFee().set_amount_in_tinybars(1).set_denominating_token_id(token_id)
+            CustomFixedFee().set_hbar_amount(Hbar.from_tinybars((hbar_amount // 2) - 1))
         )
     )
 
-    # Submit a message to the revenue generating topic with custom fee limit
-    env.client.set_operator(payer_account.id, payer_account.key)
+    env.client.set_operator(payer_account.id, payer_account.key)  # Set operator to payer
 
+    # Submit a message to the revenue generating topic with custom fee limit
     message_transaction = (
         TopicMessageSubmitTransaction()
         .set_message(MESSAGE)
@@ -789,9 +788,18 @@ def test_integration_scheduled_revenue_generating_topic_cannot_charge_tokens_wit
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert message_receipt.status == ResponseCode.MAX_CUSTOM_FEE_LIMIT_EXCEEDED, (
-        f"Message submit should have failed with MAX_CUSTOM_FEE_LIMIT_EXCEEDED status but got: "
-        f"{ResponseCode(message_receipt.status).name}"
+    assert (
+        message_receipt.status == ResponseCode.SUCCESS
+    ), f"Message submit failed with status: {ResponseCode(message_receipt.status).name}"
+
+    env.client.set_operator(env.operator_id, env.operator_key)  # Reset operator to original
+
+    # Verify the custom fee did not charge
+    account_info = AccountInfoQuery().set_account_id(payer_account.id).execute(env.client)
+
+    assert account_info.balance.to_tinybars() > hbar_amount // 2, (
+        f"Expected balance to be greater than {hbar_amount // 2} tinybars, "
+        f"but got {account_info.balance.to_tinybars()}"
     )
 
 
