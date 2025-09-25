@@ -10,7 +10,33 @@ from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 
-def main():
+
+def pretty_key(attr: str) -> str:
+    """Convert snake_case to Capitalized Words (ID stays uppercase)."""
+    parts = attr.split("_")
+    return " ".join([p.upper() if p in ("id", "ids") else p.capitalize() for p in parts])
+
+
+def print_fee_details(fee, fee_type: str):
+    """Print attributes of a fee object in clean key-value style (flatten nested fees)."""
+    print(f"\n{fee_type}:")
+    for attr, value in vars(fee).items():
+        if value is None:
+            continue
+        key = pretty_key(attr)
+        if isinstance(value, (CustomFixedFee, CustomFractionalFee, CustomRoyaltyFee)):
+            # Flatten nested fee attributes with prefix
+            for sub_attr, sub_value in vars(value).items():
+                if sub_value is None:
+                    continue
+                sub_key = f"{key} {pretty_key(sub_attr)}"
+                print(f"{sub_key}: {sub_value}")
+        else:
+            print(f"{key}: {value}")
+    print(f"Protobuf: {fee._to_proto()}")
+
+
+def demo_fixed_fee():
     # Create a CustomFixedFee
     fixed_fee = CustomFixedFee(
         amount=100,
@@ -18,17 +44,10 @@ def main():
         fee_collector_account_id=AccountId(0, 0, 456),
         all_collectors_are_exempt=False,
     )
-    print("CustomFixedFee:")
-    print(f"Amount: {fixed_fee.amount}")
-    print(f"Denominating Token ID: {fixed_fee.denominating_token_id}")
-    print(f"Fee Collector Account ID: {fixed_fee.fee_collector_account_id}")
-    print(f"All Collectors Exempt: {fixed_fee.all_collectors_are_exempt}")
+    print_fee_details(fixed_fee, "CustomFixedFee")
 
-    # Convert to protobuf
-    fixed_fee_proto = fixed_fee._to_proto()
-    
-    print("Fixed Fee Protobuf:", fixed_fee_proto)
 
+def demo_fractional_fee():
     # Create a CustomFractionalFee
     fractional_fee = CustomFractionalFee(
         numerator=1,
@@ -39,20 +58,10 @@ def main():
         fee_collector_account_id=AccountId(0, 0, 456),
         all_collectors_are_exempt=False,
     )
-    print("\nCustomFractionalFee:")
-    print(f"Numerator: {fractional_fee.numerator}")
-    print(f"Denominator: {fractional_fee.denominator}")
-    print(f"Min Amount: {fractional_fee.min_amount}")
-    print(f"Max Amount: {fractional_fee.max_amount}")
-    print(f"Assessment Method: {fractional_fee.assessment_method}")
-    print(f"Fee Collector Account ID: {fractional_fee.fee_collector_account_id}")
-    print(f"All Collectors Exempt: {fractional_fee.all_collectors_are_exempt}")
+    print_fee_details(fractional_fee, "CustomFractionalFee")
 
-    # Convert to protobuf
-    fractional_fee_proto = fractional_fee._to_proto()
 
-    print("Fractional Fee Protobuf:", fractional_fee_proto)
-
+def demo_royalty_fee():
     # Create a CustomRoyaltyFee
     fallback_fee = CustomFixedFee(
         amount=50,
@@ -65,18 +74,14 @@ def main():
         fee_collector_account_id=AccountId(0, 0, 456),
         all_collectors_are_exempt=True,
     )
-    print("\nCustomRoyaltyFee:")
-    print(f"Numerator: {royalty_fee.numerator}")
-    print(f"Denominator: {royalty_fee.denominator}")
-    print(f"Fallback Fee Amount: {royalty_fee.fallback_fee.amount}")
-    print(f"Fallback Fee Denominating Token ID: {royalty_fee.fallback_fee.denominating_token_id}")
-    print(f"Fee Collector Account ID: {royalty_fee.fee_collector_account_id}")
-    print(f"All Collectors Exempt: {royalty_fee.all_collectors_are_exempt}")
+    print_fee_details(royalty_fee, "CustomRoyaltyFee")
 
-    # Convert to protobuf
-    royalty_fee_proto = royalty_fee._to_proto()
 
-    print("Royalty Fee Protobuf:", royalty_fee_proto)
+def main():
+    demo_fixed_fee()
+    demo_fractional_fee()
+    demo_royalty_fee()
+
 
 if __name__ == "__main__":
     main()
