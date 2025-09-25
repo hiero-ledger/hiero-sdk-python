@@ -6,8 +6,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).  
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
-- Convert camelCase to snake_case in integration tests (#318)
+## [0.1.5] - 2025-09-25
 
 ### Added
 - ScheduleSignTransaction class
@@ -56,6 +55,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
 - Calls in examples for PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY')) to PrivateKey.from_string(os.getenv('OPERATOR_KEY')) to enable general key types
 - Add CI tests across Python 3.10–3.12.
+- kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
+- assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
 
 ### Fixed
 - Unit test compatibility issues when running with UV package manager
@@ -68,6 +69,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - deprecated CamelCase instances in /examples such as TokenId and totalSupply to snake_case
 - Invalid HEX representation and signature validation in keys_public_ecdsa.py
 - Invalid signature verification for examples/keys_public_der.py
+- Duplicate validation function in TokenCreate
 
 ### Removed
 - Removed the old `/documentation` folder.
@@ -75,23 +77,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - generate_proto.sh
 - pkg_resources dependency in generate_proto.py
 
-
 ### Breaking API changes
 - We have some changed imports and returns to maintain compatability in the proto bump 
 
 transaction_body_pb2.TransactionBody -> transaction_pb2.TransactionBody
-
 contract_call_local_pb2.ContractFunctionResult -> contract_types_pb2.ContractFunctionResult
-
 contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - Removed init.py content in /tokens
-
-## Corrected
-- Duplicate validation function in TokenCreate
-- kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
-- assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
-
-### Breaking API changes 
 
 **Changed imports**
 - src/hiero_sdk_python/consensus/topic_message.py: from hiero_sdk_python import Timestamp → from hiero_sdk_python.timestamp import Timestamp
@@ -105,6 +97,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - from hiero_sdk_python.hapi.services.token_revoke_kyc_pb2 import TokenRevokeKycTransactionBody → from hiero_sdk_python.hapi.services import token_revoke_kyc_pb2, transaction_pb2
 - src/hiero_sdk_python/tokens/token_update_nfts_transaction.py: from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody → from hiero_sdk_python.hapi.services import token_update_nfts_pb2,transaction_pb2
 - src/hiero_sdk_python/tokens/token_wipe_transaction.py: from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody →  from hiero_sdk_python.hapi.services import token_wipe_account_pb2, transaction_pb2
+
 
 ## [0.1.4] - 2025-08-19
 ### Added
