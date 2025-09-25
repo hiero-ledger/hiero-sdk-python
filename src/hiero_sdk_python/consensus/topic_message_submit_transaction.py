@@ -5,6 +5,7 @@ messages to Hedera Consensus Service topics using the Hiero SDK.
 from typing import Optional
 
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2
 from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -65,6 +66,38 @@ class TopicMessageSubmitTransaction(Transaction):
         """
         self._require_not_frozen()
         self.message = message
+        return self
+
+    def set_custom_fee_limits(
+        self, custom_fee_limits: list["CustomFeeLimit"]
+    ) -> "TopicMessageSubmitTransaction":
+        """
+        Sets the maximum custom fees that the user is willing to pay for the message.
+
+        Args:
+            custom_fee_limits (List[CustomFeeLimit]): The list of custom fee limits to set.
+
+        Returns:
+            TopicMessageSubmitTransaction: This transaction instance (for chaining).
+        """
+        self._require_not_frozen()
+        self.custom_fee_limits = custom_fee_limits
+        return self
+
+    def add_custom_fee_limit(
+        self, custom_fee_limit: "CustomFeeLimit"
+    ) -> "TopicMessageSubmitTransaction":
+        """
+        Adds a maximum custom fee that the user is willing to pay for the message.
+
+        Args:
+            custom_fee_limit (CustomFeeLimit): The custom fee limit to add.
+
+        Returns:
+            TopicMessageSubmitTransaction: This transaction instance (for chaining).
+        """
+        self._require_not_frozen()
+        self.custom_fee_limits.append(custom_fee_limit)
         return self
 
     def _build_proto_body(
