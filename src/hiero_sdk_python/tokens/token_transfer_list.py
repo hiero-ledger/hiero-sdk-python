@@ -73,11 +73,11 @@ class TokenTransferList:
             expected_decimals={'value':self.expected_decimals} if self.expected_decimals else None
         )
 
-        for transfer in self.transfers:
-            proto.transfers.append(transfer._to_proto())
+        for fungible_transfer in self.transfers:
+            proto.transfers.append(fungible_transfer._to_proto())
 
-        for transfer in self.nft_transfers:
-            proto.nftTransfers.append(transfer._to_proto())
+        for nft_transfer in self.nft_transfers:
+            proto.nftTransfers.append(nft_transfer._to_proto())
 
         return proto
 
