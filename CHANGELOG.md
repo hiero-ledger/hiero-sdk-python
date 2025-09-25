@@ -7,9 +7,11 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
 - Convert camelCase to snake_case in integration tests (#318)
 
 ### Added
+
 - ScheduleSignTransaction class
 - NodeUpdateTransaction class
 - NodeDeleteTransaction class
@@ -34,10 +36,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - AccountId support for ECDSA alias accounts
 - ContractId.to_evm_address() method for EVM compatibility
 - consumeLargeData() function in StatefulContract
-- Added comprehensive example script for Token Airdrop (`token_airdrop.py`) that demonstrates:
-- Creating and airdropping both fungible tokens and NFTs with specific serial numbers
-- Verifying token transfers using transaction records and balance checks
-- Detailed transaction result reporting with visual summary tables
+- Added comprehensive Token Airdrop example script demonstrating token/NFT creation, airdrops, verification, and detailed logging
 - Added variables directly in the example script to reduce the need for users to supply extra environment variables.
 - Added new `merge_conflicts.md` with detailed guidance on handling conflicts during rebase.
 - Type hinting to /tokens, /transaction, /query, /consensus
@@ -46,9 +45,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Function docstrings in /tokens, /transaction, /query, /consensus
 
 ### Changed
+
 - bump protobufs version to `v0.66.0`
 - bump solo version to `v0.13`
-- Extract _build_proto_body() from build_transaction_body() in every transaction
+- Extract \_build_proto_body() from build_transaction_body() in every transaction
 - StatefulContract's setMessage() function designed with no access restrictions, allowing calls from any address
 - bump solo version to `v0.12`
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
@@ -61,6 +61,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add CI tests across Python 3.10–3.12.
 
 ### Fixed
+
 - Unit test compatibility issues when running with UV package manager
 - Type annotations in TokenRelationship class (kyc_status and freeze_status)
 - Test assertions in test_executable.py using pytest match parameter
@@ -73,33 +74,37 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Invalid signature verification for examples/keys_public_der.py
 
 ### Removed
+
 - Removed the old `/documentation` folder.
 - Rebase command in README_upstream changed to just -S
 - generate_proto.sh
 - pkg_resources dependency in generate_proto.py
 
-
 ### Breaking API changes
-- We have some changed imports and returns to maintain compatability in the proto bump 
+
+- We have some changed imports and returns to maintain compatability in the proto bump
 
 transaction_body_pb2.TransactionBody -> transaction_pb2.TransactionBody
 
 contract_call_local_pb2.ContractFunctionResult -> contract_types_pb2.ContractFunctionResult
 
 contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
+
 - Removed init.py content in /tokens
 
 ## Corrected
+
 - Duplicate validation function in TokenCreate
 - kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
 - assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
 
-### Breaking API changes 
+### Breaking API changes
 
 **Changed imports**
+
 - src/hiero_sdk_python/consensus/topic_message.py: from hiero_sdk_python import Timestamp → from hiero_sdk_python.timestamp import Timestamp
 - src/hiero_sdk_python/query/topic_message_query.py: from hiero_sdk_python import Client → from hiero_sdk_python.client.client import Client
-- src/hiero_sdk_python/tokens/__init__.py: content removed.
+- src/hiero_sdk_python/tokens/**init**.py: content removed.
 - src/hiero_sdk_python/tokens/token_info.py: from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo → from hiero_sdk_python.hapi.services import token_get_info_pb2
 - src/hiero_sdk_python/tokens/token_key_validation.py: from hiero_sdk_python.hapi.services → import basic_types_pb2
 - src/hiero_sdk_python/tokens/token_kyc_status.py: from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKycStatus as proto_TokenKycStatus → from hiero_sdk_python.hapi.services import basic_types_pb2
@@ -107,19 +112,22 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - src/hiero_sdk_python/tokens/token_pause_transaction.py: from hiero_sdk_python.hapi.services.token_pause_pb2 import TokenPauseTransactionBody → from hiero_sdk_python.hapi.services import token_pause_pb2, transaction_pb2
 - from hiero_sdk_python.hapi.services.token_revoke_kyc_pb2 import TokenRevokeKycTransactionBody → from hiero_sdk_python.hapi.services import token_revoke_kyc_pb2, transaction_pb2
 - src/hiero_sdk_python/tokens/token_update_nfts_transaction.py: from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody → from hiero_sdk_python.hapi.services import token_update_nfts_pb2,transaction_pb2
-- src/hiero_sdk_python/tokens/token_wipe_transaction.py: from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody →  from hiero_sdk_python.hapi.services import token_wipe_account_pb2, transaction_pb2
+- src/hiero_sdk_python/tokens/token_wipe_transaction.py: from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody → from hiero_sdk_python.hapi.services import token_wipe_account_pb2, transaction_pb2
 
 ## [0.1.4] - 2025-08-19
+
 ### Added
+
 - CONTRIBUTING.md: expanded documentation detailing various contribution processes in a step-by-step way. Includes new sections: blog posts and support.
 - README_upstream.md: documentation explaining how to rebase to main.
 
 ### Added
+
 - Legacy ECDSA DER parse support
 - documented private key from_string method behavior
 - ContractInfo class
 - ContractInfoQuery class
-- ContractID check in PublicKey._from_proto() method
+- ContractID check in PublicKey.\_from_proto() method
 - PendingAirdropId Class
 - PendingAirdropRecord Class
 - TokenCancelAirdropTransaction Class
@@ -130,48 +138,55 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - ContractUpdateTransaction class
 
 ### Fixed
+
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 - Applied linting and code formatting across the consensus module
 - fixed pip install hiero_sdk_python -> pip install hiero-sdk-python in README.md
 
-### Breaking API changes  
+### Breaking API changes
+
 **We have several camelCase uses that will be deprecated → snake_case** Original aliases will continue to function, with a warning, until the following release.
 
 #### In `token_info.py`
-- tokenId → token_id 
-- totalSupply → total_supply 
+
+- tokenId → token_id
+- totalSupply → total_supply
 - isDeleted → is_deleted
-- tokenType → token_type 
-- maxSupply → max_supply 
-- adminKey → admin_key 
+- tokenType → token_type
+- maxSupply → max_supply
+- adminKey → admin_key
 - kycKey → kyc_key
-- freezeKey → freeze_key 
+- freezeKey → freeze_key
 - wipeKey → wipe_key
 - supplyKey → supply_key
-- defaultFreezeStatus → default_freeze_status  
-- defaultKycStatus → default_kyc_status 
-- autoRenewAccount → auto_renew_account 
-- autoRenewPeriod → auto_renew_period 
-- pauseStatus → pause_status 
-- supplyType → supply_type  
+- defaultFreezeStatus → default_freeze_status
+- defaultKycStatus → default_kyc_status
+- autoRenewAccount → auto_renew_account
+- autoRenewPeriod → auto_renew_period
+- pauseStatus → pause_status
+- supplyType → supply_type
 
 #### In `nft_id.py`
-- tokenId → token_id 
-- serialNumber → serial_number 
+
+- tokenId → token_id
+- serialNumber → serial_number
 
 #### In `transaction_receipt.py`
+
 - tokenId → token_id
-- topicId → topic_id  
-- accountId → account_id 
+- topicId → topic_id
+- accountId → account_id
 - fileId → file_id
 
 ### Deprecated Additions
+
 - logger.warn will be deprecated in v0.1.4. Please use logger.warning instead.
 - get_logger method passing (name, level) will be deprecated in v0.1.4 for (level, name).
 
-
 ## [0.1.3] - 2025-07-03
+
 ### Added
+
 - TokenType Class
 - MAINTAINERS.md file
 - Duration Class
@@ -198,8 +213,8 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - TransactionRecordQuery Class
 - AccountInfoQuery Class
 
-
 ### Changed
+
 - replace datetime.utcnow() with datetime.now(timezone.utc) for Python 3.10
 - updated pr-checks.yml
 - added add_require_frozen() to Transaction Base Class
@@ -219,54 +234,66 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - Created `sdk_users` docs folder and renamed `examples/README.md` to `running_examples.md`
 - Updated references and links accordingly
 
-
 ### Fixed
+
 - fixed INVALID_NODE_ACCOUNT during node switching
 - fixed ed25519 key ambiguity (PrivateKey.from_string -> PrivateKey.from_string_ed25519 in examples)
 
 ### Removed
+
 - Redundant test.py file
 
-
 ## [0.1.2] - 2025-03-12
+
 ### Added
+
 - NFTId Class
 
 ### Changed
+
 - use SEC1 ECPrivateKey instead of PKCS#8
 
 ### Fixed
+
 - PR checks
 - misnamed parameter (ECDSASecp256k1=pub_bytes -> ECDSA_secp256k1=pub_bytes)
 
 ### Removed
+
 - .DS_store file
 
-
 ## [0.1.1] – 2025-02-25
+
 ### Added
+
 - RELEASE.md
 - CONTRIBUTING.md
 
 ### Changed
+
 - README now split into root README for project overview and /examples README for transaction types and syntax.
 - Python version incremented from 3.9 to 3.10
 
 ### Removed
+
 - pdm.lock & uv.lock file
 
-
 ## [0.1.0] - 2025-02-19
+
 ### Added
+
 - Initial release of the Python SDK core functionality.
 - Basic documentation on how to install and use the SDK.
 - Example scripts illustrating setup and usage.
 
 ### Changed
+
 - N/A
 
 ### Fixed
+
 - N/A
 
 ### Removed
+
 - N/A
