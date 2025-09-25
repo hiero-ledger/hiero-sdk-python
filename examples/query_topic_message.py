@@ -87,15 +87,17 @@ def query_topic_messages():
         on_error=on_error_handler
     )
 
-    print("Subscription started. Press Ctrl+C to cancel...")
+    print("Subscription started. Will auto-cancel after 10 seconds or on Ctrl+C...")
     try:
-        while True:
-            time.sleep(10)
+        startTime = time.time();
+        while time.time() - startTime < 10:
+            time.sleep(1);
     except KeyboardInterrupt:
-        print("Cancelling subscription...")
+        print("✋ Ctrl+C detected. Cancelling subscription...")
+    finally:
         handle.cancel()
         handle.join()
-        print("Subscription cancelled. Exiting.")
+        print("✅ Subscription cancelled. Exiting.")
 
 if __name__ == "__main__":
     query_topic_messages()
