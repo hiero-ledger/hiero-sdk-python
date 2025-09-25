@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 - Convert camelCase to snake_case in integration tests (#318)
+- Refactor `examples/custom_fee.py` to improve readability and reduce repetition (#364)
 
 ### Added
 - ScheduleDeleteTransaction class
