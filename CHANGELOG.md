@@ -58,6 +58,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add CI tests across Python 3.10–3.12.
 
 ### Fixed
+- Format account_create_transaction.py and add type hints
+- Format account_balance.py and fix pylint issues
+- Format account_delete_transaction.py and fix pylint issues
+- Format account_id.py and fix pylint issues
+- Format account_info.py and fix pylint issues
+- Format account_update_transaction.py and fix pylint issues
 - Unit test compatibility issues when running with UV package manager
 - Type annotations in TokenRelationship class (kyc_status and freeze_status)
 - Test assertions in test_executable.py using pytest match parameter
