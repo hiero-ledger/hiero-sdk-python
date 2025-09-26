@@ -1,65 +1,50 @@
+"""
+Unit tests for the TransferTransaction class
+"""
+
 import pytest
+
+from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
-    SchedulableTransactionBody
+    SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.nft_id import NftId
-from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.transaction.transaction import TransactionId
-from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 pytestmark = pytest.mark.unit
+
 
 def generate_transaction_id(account_id_proto):
     """Generate a unique transaction ID based on the account ID and the current timestamp."""
     import time
+
     current_time = time.time()
     timestamp_seconds = int(current_time)
     timestamp_nanos = int((current_time - timestamp_seconds) * 1e9)
 
     tx_timestamp = timestamp_pb2.Timestamp(seconds=timestamp_seconds, nanos=timestamp_nanos)
 
-    tx_id = TransactionId(
-        valid_start=tx_timestamp,
-        account_id=account_id_proto
-    )
+    tx_id = TransactionId(valid_start=tx_timestamp, account_id=account_id_proto)
     return tx_id
+
 
 def test_constructor_with_parameters(mock_account_ids):
     """Test constructor initialization with parameters."""
     account_id_sender, account_id_recipient, _, token_id_1, token_id_2 = mock_account_ids
 
-    hbar_transfers = {
-        account_id_sender: -1000,
-        account_id_recipient: 1000
-    }
+    hbar_transfers = {account_id_sender: -1000, account_id_recipient: 1000}
 
     token_transfers = {
-        token_id_1: {
-            account_id_sender: -50,
-            account_id_recipient: 50
-        },
-        token_id_2: {
-            account_id_sender: -25,
-            account_id_recipient: 25
-        }
+        token_id_1: {account_id_sender: -50, account_id_recipient: 50},
+        token_id_2: {account_id_sender: -25, account_id_recipient: 25},
     }
 
-    nft_transfers = {
-        token_id_1: [
-            (
-                account_id_sender,
-                account_id_recipient,
-                1,
-                True
-            )
-        ]
-    }
+    nft_transfers = {token_id_1: [(account_id_sender, account_id_recipient, 1, True)]}
 
     # Initialize with parameters
     transfer_tx = TransferTransaction(
-        hbar_transfers=hbar_transfers,
-        token_transfers=token_transfers,
-        nft_transfers=nft_transfers
+        hbar_transfers=hbar_transfers, token_transfers=token_transfers, nft_transfers=nft_transfers
     )
 
     # Verify all transfers were added correctly
@@ -90,6 +75,7 @@ def test_add_token_transfer(mock_account_ids):
     token_transfers = transfer_tx.token_transfers[token_id_1][account_id_recipient]
     assert token_transfers == 100
 
+
 # This test uses fixture mock_account_ids as parameter
 def test_add_hbar_transfer(mock_account_ids):
     """Test adding HBAR transfers and ensure amounts are correctly added."""
@@ -102,17 +88,21 @@ def test_add_hbar_transfer(mock_account_ids):
     assert transfer_tx.hbar_transfers[account_id_sender] == -500
     assert transfer_tx.hbar_transfers[account_id_recipient] == 500
 
+
 # This test uses fixture mock_account_ids as parameter
 def test_add_nft_transfer(mock_account_ids):
     """Test adding NFT transfers and ensure amounts are correctly added."""
     account_id_sender, account_id_recipient, _, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_nft_transfer(NftId(token_id_1, 0), account_id_sender, account_id_recipient, True)
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 0), account_id_sender, account_id_recipient, True
+    )
 
     assert transfer_tx.nft_transfers[token_id_1][0].sender_id == account_id_sender
     assert transfer_tx.nft_transfers[token_id_1][0].receiver_id == account_id_recipient
     assert transfer_tx.nft_transfers[token_id_1][0].is_approved == True
+
 
 # This test uses fixture mock_account_ids as parameter
 def test_add_invalid_transfer(mock_account_ids):
@@ -120,16 +110,17 @@ def test_add_invalid_transfer(mock_account_ids):
     transfer_tx = TransferTransaction()
 
     with pytest.raises(TypeError):
-        transfer_tx.add_hbar_transfer(12345, -500)  
+        transfer_tx.add_hbar_transfer(12345, -500)
 
     with pytest.raises(ValueError):
-        transfer_tx.add_hbar_transfer(mock_account_ids[0], 0)  
+        transfer_tx.add_hbar_transfer(mock_account_ids[0], 0)
 
     with pytest.raises(TypeError):
-        transfer_tx.add_token_transfer(12345, mock_account_ids[0], -100) 
+        transfer_tx.add_token_transfer(12345, mock_account_ids[0], -100)
 
     with pytest.raises(TypeError):
         transfer_tx.add_nft_transfer(12345, mock_account_ids[0], mock_account_ids[1], True)
+
 
 def test_accumulating_hbar_transfers(mock_account_ids):
     """Test accumulating multiple HBAR transfers for the same account."""
@@ -146,6 +137,7 @@ def test_accumulating_hbar_transfers(mock_account_ids):
     assert transfer_tx.hbar_transfers[account_id_sender] == -500
     assert transfer_tx.hbar_transfers[account_id_recipient] == 500
 
+
 def test_accumulating_token_transfers(mock_account_ids):
     """Test accumulating multiple token transfers for the same account and token."""
     account_id_sender, account_id_recipient, _, token_id_1, _ = mock_account_ids
@@ -161,14 +153,19 @@ def test_accumulating_token_transfers(mock_account_ids):
     assert transfer_tx.token_transfers[token_id_1][account_id_sender] == -100
     assert transfer_tx.token_transfers[token_id_1][account_id_recipient] == 100
 
+
 def test_multiple_nft_transfers(mock_account_ids):
     """Test adding multiple NFT transfers for the same token."""
     account_id_sender, account_id_recipient, _, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
     # Add multiple NFT transfers for the same token
-    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient, False)
-    transfer_tx.add_nft_transfer(NftId(token_id_1, 2), account_id_sender, account_id_recipient, True)
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 1), account_id_sender, account_id_recipient, False
+    )
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 2), account_id_sender, account_id_recipient, True
+    )
 
     # Verify all transfers were added correctly
     assert len(transfer_tx.nft_transfers[token_id_1]) == 2
@@ -176,6 +173,7 @@ def test_multiple_nft_transfers(mock_account_ids):
     assert transfer_tx.nft_transfers[token_id_1][0].is_approved is False
     assert transfer_tx.nft_transfers[token_id_1][1].serial_number == 2
     assert transfer_tx.nft_transfers[token_id_1][1].is_approved is True
+
 
 def test_frozen_transaction(mock_account_ids, mock_client):
     """Test that operations fail when transaction is frozen."""
@@ -195,6 +193,7 @@ def test_frozen_transaction(mock_account_ids, mock_client):
     with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
         transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
 
+
 def test_build_transaction_body(mock_account_ids):
     """Test building transaction body with various transfers."""
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
@@ -210,7 +209,7 @@ def test_build_transaction_body(mock_account_ids):
     # Set required fields for building transaction
     transfer_tx.transaction_id = generate_transaction_id(account_id_sender)
     transfer_tx.node_account_id = node_account_id
-    
+
     # Build the transaction body
     result = transfer_tx.build_transaction_body()
 
@@ -252,6 +251,7 @@ def test_build_transaction_body(mock_account_ids):
     assert nft_transfers[0].senderAccountID.accountNum == account_id_sender.num
     assert nft_transfers[0].receiverAccountID.accountNum == account_id_recipient.num
     assert nft_transfers[0].serialNumber == 1
+
 
 def test_build_scheduled_body(mock_account_ids):
     """Test building scheduled body with various transfers."""
