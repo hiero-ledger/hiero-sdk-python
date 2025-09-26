@@ -12,9 +12,11 @@ from hiero_sdk_python.hapi.services import basic_types_pb2, crypto_transfer_pb2,
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.tokens.hbar_transfer import HbarTransfer
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
+from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from hiero_sdk_python.transaction.transaction import Transaction
 
 
@@ -40,10 +42,8 @@ class TransferTransaction(Transaction):
                 Initial NFT transfers.
         """
         super().__init__()
-        self.hbar_transfers: Dict[AccountId, int] = defaultdict(int)
-        self.token_transfers: Dict[TokenId, Dict[AccountId, int]] = defaultdict(
-            lambda: defaultdict(int)
-        )
+        self.hbar_transfers: List[HbarTransfer] = []
+        self.token_transfers: Dict[TokenId, List[TokenTransfer]] = defaultdict(list)
         self.nft_transfers: Dict[TokenId, List[TokenNftTransfer]] = defaultdict(list)
         self._default_transaction_fee: int = 100_000_000
 
@@ -93,7 +93,12 @@ class TransferTransaction(Transaction):
         if not isinstance(amount, int) or amount == 0:
             raise ValueError("Amount must be a non-zero integer.")
 
-        self.hbar_transfers[account_id] += amount
+        for transfer in self.hbar_transfers:
+            if transfer.account_id == account_id:
+                transfer.amount += amount
+                return self
+
+        self.hbar_transfers.append(HbarTransfer(account_id, amount))
         return self
 
     def add_token_transfer(
@@ -110,7 +115,12 @@ class TransferTransaction(Transaction):
         if not isinstance(amount, int) or amount == 0:
             raise ValueError("Amount must be a non-zero integer.")
 
-        self.token_transfers[token_id][account_id] += amount
+        for transfer in self.token_transfers[token_id]:
+            if transfer.account_id == account_id:
+                transfer.amount += amount
+                return self
+
+        self.token_transfers[token_id].append(TokenTransfer(token_id, account_id, amount))
         return self
 
     def add_nft_transfer(
@@ -126,6 +136,8 @@ class TransferTransaction(Transaction):
             raise TypeError("sender_id must be an AccountId instance.")
         if not isinstance(receiver_id, AccountId):
             raise TypeError("receiver_id must be an AccountId instance.")
+        if not isinstance(is_approved, bool):
+            raise TypeError("is_approved must be a boolean.")
 
         self.nft_transfers[nft_id.token_id].append(
             TokenNftTransfer(
@@ -143,13 +155,9 @@ class TransferTransaction(Transaction):
         # HBAR
         if self.hbar_transfers:
             transfer_list = basic_types_pb2.TransferList()
-            for account_id, amount in self.hbar_transfers.items():
-                transfer_list.accountAmounts.append(
-                    basic_types_pb2.AccountAmount(
-                        accountID=account_id._to_proto(),
-                        amount=amount,
-                    )
-                )
+            for hbar_transfer in self.hbar_transfers:
+                transfer_list.accountAmounts.append(hbar_transfer._to_proto())
+
             crypto_transfer_tx_body.transfers.CopyFrom(transfer_list)
 
         # NFTs
@@ -163,13 +171,9 @@ class TransferTransaction(Transaction):
         # Tokens
         for token_id, token_transfers in self.token_transfers.items():
             token_transfer_list = basic_types_pb2.TokenTransferList(token=token_id._to_proto())
-            for account_id, amount in token_transfers.items():
-                token_transfer_list.transfers.append(
-                    basic_types_pb2.AccountAmount(
-                        accountID=account_id._to_proto(),
-                        amount=amount,
-                    )
-                )
+            for token_transfer in token_transfers:
+                token_transfer_list.transfers.append(token_transfer._to_proto())
+
             crypto_transfer_tx_body.tokenTransfers.append(token_transfer_list)
 
         return crypto_transfer_tx_body
