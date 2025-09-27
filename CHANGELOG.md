@@ -41,6 +41,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Linting to /tokens, /transaction, /query, /consensus
 - Module docstrings in /tokens, /transaction, /query, /consensus
 - Function docstrings in /tokens, /transaction, /query, /consensus
+- added workflow for running example scripts.
 
 ### Changed
 - bump protobufs version to `v0.66.0`

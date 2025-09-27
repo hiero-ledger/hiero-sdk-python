@@ -19,7 +19,7 @@ load_dotenv()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network="testnet")
+    network = Network(os.getenv('NETWORK'))
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
