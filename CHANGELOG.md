@@ -27,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
 - AccountDeleteTransaction Class
+- testing.md
 - generate_proto.py
 - Bumped Hedera proto version from v0.57.3 to v0.64.3
 - Added `dev` and `lint` dependency groups as default in `pyproject.toml`
@@ -78,6 +79,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Removed
 - Removed the old `/documentation` folder.
 - Rebase command in README_upstream changed to just -S
+- Testing Guide link in CONTRIBUTING.md
+- Removed Testing Section in README.md and Added a link to testing.md
 - generate_proto.sh
 - pkg_resources dependency in generate_proto.py
 
@@ -111,6 +114,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - from hiero_sdk_python.hapi.services.token_revoke_kyc_pb2 import TokenRevokeKycTransactionBody → from hiero_sdk_python.hapi.services import token_revoke_kyc_pb2, transaction_pb2
 - src/hiero_sdk_python/tokens/token_update_nfts_transaction.py: from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody → from hiero_sdk_python.hapi.services import token_update_nfts_pb2,transaction_pb2
 - src/hiero_sdk_python/tokens/token_wipe_transaction.py: from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody →  from hiero_sdk_python.hapi.services import token_wipe_account_pb2, transaction_pb2
+
 
 ## [0.1.4] - 2025-08-19
 ### Added
