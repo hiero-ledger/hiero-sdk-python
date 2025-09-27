@@ -34,8 +34,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - AccountId support for ECDSA alias accounts
 - ContractId.to_evm_address() method for EVM compatibility
 - consumeLargeData() function in StatefulContract
-- example script for Token Airdrop
-- added variables directly in the example script to reduce the need for users to supply extra environment variables.
+- Added comprehensive Token Airdrop example script demonstrating token/NFT creation, airdrops, verification, and detailed logging
+- Added variables directly in the example script to reduce the need for users to supply extra environment variables.
 - Added new `merge_conflicts.md` with detailed guidance on handling conflicts during rebase.
 - Type hinting to /tokens, /transaction, /query, /consensus
 - Linting to /tokens, /transaction, /query, /consensus
