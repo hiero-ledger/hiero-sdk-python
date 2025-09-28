@@ -1,5 +1,16 @@
 """
-Example demonstrating schedule sign transaction functionality.
+Example demonstrating Schedule Sign functionality.
+
+Execution rule:
+- The network executes the scheduled transaction once it has collected
+  all required signatures for the *inner* transaction.
+- The payer/scheduler signature is only for creating the Schedule itself.
+  It does NOT count toward the inner transaction’s required signers unless
+  that same key is also required by the inner transaction.
+- The admin key (if set) is only for delete/modify and is NOT required for execution.
+
+In this example we schedule a transfer FROM a newly created account TO the operator.
+Therefore, the only required signature for execution is the sender’s (new account) key.
 """
 
 import datetime
@@ -100,22 +111,49 @@ def create_schedule(client, account_id):
     return receipt.schedule_id
 
 
-def query_schedule_info(client, schedule_id):
-    """Query and display schedule information"""
+def _fmt_ts(ts):
+    """Return a human-friendly timestamp string (defensive)."""
+    if ts is None:
+        return "None"
+    try:
+        # If it's an SDK Timestamp
+        return ts.to_datetime().isoformat(sep=" ", timespec="seconds")
+    except AttributeError:
+        # If it's already a datetime or something else printable
+        try:
+            return ts.isoformat(sep=" ", timespec="seconds")
+        except Exception:
+            return str(ts)
+
+
+def query_schedule_info(client, schedule_id, required_inner_keys=None):
+    """Query and display schedule information (including missing signatures if known)"""
     info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(client)
 
     print("\nSchedule Info:")
     print(f"Schedule ID: {info.schedule_id}")
     print(f"Creator Account ID: {info.creator_account_id}")
     print(f"Payer Account ID: {info.payer_account_id}")
-    print(f"Executed At: {info.executed_at}")
-    print(f"Expiration Time: {info.expiration_time}")
+    print(f"Executed At: {_fmt_ts(info.executed_at)}")
+    print(f"Expiration Time: {_fmt_ts(info.expiration_time)}")
     print(f"Schedule Memo: {info.schedule_memo}")
     print(f"Admin Key: {info.admin_key}")
     print(f"Wait For Expiry: {info.wait_for_expiry}")
-    print(f"Signers: {len(info.signers)} signer(s)")
+    print(f"Collected Signers: {len(info.signers)}")
     for i, signer in enumerate(info.signers):
         print(f"  Signer {i+1}: {signer}")
+
+    # Show which signatures are still missing for the inner txn, if provided
+    if required_inner_keys:
+        collected_str = {str(s) for s in info.signers}
+        required_str = {str(k) for k in required_inner_keys}
+        missing = list(required_str - collected_str)
+        if missing:
+            print(f"Missing required signatures: {len(missing)}")
+            for m in missing:
+                print(f"  Missing: {m}")
+        else:
+            print("All required inner-txn signatures have been collected.")
 
 
 def schedule_sign():
@@ -132,13 +170,16 @@ def schedule_sign():
 
     # Create an account first
     account_id, account_private_key = create_account(client)
+    account_public_key = account_private_key.public_key()
 
     # Create a schedule
     schedule_id = create_schedule(client, account_id)
 
     # Query schedule info before signing
     print("\nSchedule Info Before Signing:")
-    query_schedule_info(client, schedule_id)
+    # Only the sender (new account) is required for execution in this example
+    required_inner_keys = [account_public_key]
+    query_schedule_info(client, schedule_id, required_inner_keys)
 
     # Sign the scheduled transaction to execute it
     print("\nSigning Schedule...")
@@ -158,7 +199,7 @@ def schedule_sign():
 
     # Query schedule info after signing to verify execution
     print("\nSchedule Info After Signing:")
-    query_schedule_info(client, schedule_id)
+    query_schedule_info(client, schedule_id, required_inner_keys)
 
 
 if __name__ == "__main__":

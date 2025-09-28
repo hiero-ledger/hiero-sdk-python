@@ -8,12 +8,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey
-from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
-from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey, AccountCreateTransaction, ResponseCode, ScheduleInfoQuery, Timestamp, TransferTransaction
 
 load_dotenv()
 
@@ -103,7 +98,7 @@ def query_schedule_info():
     """
     Demonstrates querying a schedule info by:
     1. Setting up client with operator account
-    2. Creating a test account
+    2. Creating a test account that will schedule the txn
     3. Creating a scheduled transaction
     4. Querying the schedule info
     """
