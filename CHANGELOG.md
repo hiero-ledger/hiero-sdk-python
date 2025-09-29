@@ -58,9 +58,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Linting to /tokens, /transaction, /query, /consensus
 - Module docstrings in /tokens, /transaction, /query, /consensus
 - Function docstrings in /tokens, /transaction, /query, /consensus
+- TokenNftAllowance class
+- TokenAllowance class
+- HbarAllowance class
+- HbarTransfer class
+- AccountAllowanceApproveTransaction class
+- AccountAllowanceDeleteTransaction class
+- Approved transfer support to TransferTransaction
+- set_transaction_id() API to Transaction class
+- Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
 
 ### Changed
 
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - bump solo version to `v0.14`
 - bump protobufs version to `v0.66.0`
 - bump solo version to `v0.13`
