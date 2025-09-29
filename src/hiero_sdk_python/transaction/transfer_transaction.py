@@ -5,6 +5,8 @@ Defines TransferTransaction for transferring HBAR or tokens between accounts.
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
+from google.protobuf.wrappers_pb2 import UInt32Value
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -83,29 +85,59 @@ class TransferTransaction(Transaction):
                     NftId(token_id, serial_number), sender_id, receiver_id, is_approved
                 )
 
-    def add_hbar_transfer(self, account_id: AccountId, amount: int) -> "TransferTransaction":
+    def _add_hbar_transfer(
+        self, account_id: AccountId, amount: int, is_approved: bool = False
+    ) -> "TransferTransaction":
         """
-        Adds a HBAR transfer to the transaction.
+        Internal method to add a HBAR transfer to the transaction.
+
+        Args:
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the HBAR to transfer.
+            is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
         if not isinstance(account_id, AccountId):
             raise TypeError("account_id must be an AccountId instance.")
         if not isinstance(amount, int) or amount == 0:
             raise ValueError("Amount must be a non-zero integer.")
+        if not isinstance(is_approved, bool):
+            raise TypeError("is_approved must be a boolean.")
 
         for transfer in self.hbar_transfers:
             if transfer.account_id == account_id:
                 transfer.amount += amount
                 return self
 
-        self.hbar_transfers.append(HbarTransfer(account_id, amount))
+        self.hbar_transfers.append(HbarTransfer(account_id, amount, is_approved))
         return self
 
-    def add_token_transfer(
-        self, token_id: TokenId, account_id: AccountId, amount: int
+    def _add_token_transfer(
+        self,
+        token_id: TokenId,
+        account_id: AccountId,
+        amount: int,
+        is_approved: bool = False,
+        expected_decimals: Optional[int] = None,
     ) -> "TransferTransaction":
         """
-        Adds a token transfer to the transaction.
+        Internal method to add a token transfer to the transaction.
+        When accumulating transfers for the same token and account, sets is_approved
+        for all transfers of that token and updates expected_decimals.
+
+        Args:
+            token_id (TokenId): The ID of the token being transferred.
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the token to transfer.
+            is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
+            expected_decimals (int, optional): The number specifying
+                the amount in the smallest denomination.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
         if not isinstance(token_id, TokenId):
@@ -114,20 +146,36 @@ class TransferTransaction(Transaction):
             raise TypeError("account_id must be an AccountId instance.")
         if not isinstance(amount, int) or amount == 0:
             raise ValueError("Amount must be a non-zero integer.")
+        if expected_decimals is not None and not isinstance(expected_decimals, int):
+            raise TypeError("expected_decimals must be an integer.")
+        if not isinstance(is_approved, bool):
+            raise TypeError("is_approved must be a boolean.")
 
         for transfer in self.token_transfers[token_id]:
             if transfer.account_id == account_id:
                 transfer.amount += amount
+                transfer.expected_decimals = expected_decimals
                 return self
 
-        self.token_transfers[token_id].append(TokenTransfer(token_id, account_id, amount))
+        self.token_transfers[token_id].append(
+            TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved)
+        )
         return self
 
-    def add_nft_transfer(
+    def _add_nft_transfer(
         self, nft_id: NftId, sender_id: AccountId, receiver_id: AccountId, is_approved: bool = False
     ) -> "TransferTransaction":
         """
-        Adds a NFT transfer to the transaction.
+        Internal method to add a NFT transfer to the transaction.
+
+        Args:
+            nft_id (NftId): The ID of the NFT being transferred.
+            sender_id (AccountId): The sender's account ID.
+            receiver_id (AccountId): The receiver's account ID.
+            is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
         if not isinstance(nft_id, NftId):
@@ -144,6 +192,149 @@ class TransferTransaction(Transaction):
                 nft_id.token_id, sender_id, receiver_id, nft_id.serial_number, is_approved
             )
         )
+        return self
+
+    def add_hbar_transfer(self, account_id: AccountId, amount: int) -> "TransferTransaction":
+        """
+        Adds a HBAR transfer to the transaction.
+
+        Args:
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the HBAR to transfer.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+        """
+        self._add_hbar_transfer(account_id, amount, False)
+        return self
+
+    def add_token_transfer(
+        self, token_id: TokenId, account_id: AccountId, amount: int
+    ) -> "TransferTransaction":
+        """
+        Adds a token transfer to the transaction.
+
+        Args:
+            token_id (TokenId): The ID of the token being transferred.
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the token to transfer.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+        """
+        self._add_token_transfer(token_id, account_id, amount, False, None)
+        return self
+
+    def add_nft_transfer(
+        self, nft_id: NftId, sender_id: AccountId, receiver_id: AccountId, is_approved: bool = False
+    ) -> "TransferTransaction":
+        """
+        Adds a NFT transfer to the transaction.
+
+        Args:
+            nft_id (NftId): The ID of the NFT being transferred.
+            sender_id (AccountId): The sender's account ID.
+            receiver_id (AccountId): The receiver's account ID.
+            is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+        """
+        self._add_nft_transfer(nft_id, sender_id, receiver_id, is_approved)
+        return self
+
+    def add_approved_hbar_transfer(
+        self, account_id: AccountId, amount: int
+    ) -> "TransferTransaction":
+        """
+        Adds a HBAR transfer with approval to the transaction.
+
+        Args:
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the HBAR to transfer.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+        """
+        self._add_hbar_transfer(account_id, amount, True)
+        return self
+
+    def add_approved_token_transfer(
+        self, token_id: TokenId, account_id: AccountId, amount: int
+    ) -> "TransferTransaction":
+        """
+        Adds a token transfer with approval to the transaction.
+
+        Args:
+            token_id (TokenId): The ID of the token being transferred.
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the token to transfer.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+        """
+        self._add_token_transfer(token_id, account_id, amount, True, None)
+        return self
+
+    def add_approved_nft_transfer(
+        self, nft_id: NftId, sender_id: AccountId, receiver_id: AccountId
+    ) -> "TransferTransaction":
+        """
+        Adds a NFT transfer with approval to the transaction.
+
+        Args:
+            nft_id (NftId): The ID of the NFT being transferred.
+            sender_id (AccountId): The sender's account ID.
+            receiver_id (AccountId): The receiver's account ID.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+        """
+        self._add_nft_transfer(nft_id, sender_id, receiver_id, True)
+        return self
+
+    def add_approved_token_transfer_with_decimals(
+        self,
+        token_id: TokenId,
+        account_id: AccountId,
+        amount: int,
+        expected_decimals: int,
+    ) -> "TransferTransaction":
+        """
+        Adds an approved token transfer with decimals to the transaction.
+
+        Args:
+            token_id (TokenId): The ID of the token being transferred.
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the token to transfer.
+            expected_decimals (int): The number specifying the amount in the smallest denomination.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+        """
+        self._add_token_transfer(token_id, account_id, amount, True, expected_decimals)
+        return self
+
+    def add_token_transfer_with_decimals(
+        self,
+        token_id: TokenId,
+        account_id: AccountId,
+        amount: int,
+        expected_decimals: int,
+    ) -> "TransferTransaction":
+        """
+        Adds a token transfer with decimals to the transaction.
+
+        Args:
+            token_id (TokenId): The ID of the token being transferred.
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the token to transfer.
+            expected_decimals (int): The number specifying the amount in the smallest denomination.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+        """
+        self._add_token_transfer(token_id, account_id, amount, False, expected_decimals)
         return self
 
     def _build_proto_body(self) -> crypto_transfer_pb2.CryptoTransferTransactionBody:
@@ -170,7 +361,14 @@ class TransferTransaction(Transaction):
 
         # Tokens
         for token_id, token_transfers in self.token_transfers.items():
-            token_transfer_list = basic_types_pb2.TokenTransferList(token=token_id._to_proto())
+            token_transfer_list = basic_types_pb2.TokenTransferList(
+                token=token_id._to_proto(),
+                expected_decimals=(
+                    UInt32Value(value=token_transfers[0].expected_decimals)
+                    if token_transfers[0].expected_decimals is not None
+                    else None
+                ),
+            )
             for token_transfer in token_transfers:
                 token_transfer_list.transfers.append(token_transfer._to_proto())
 
