@@ -445,3 +445,68 @@ def test_build_scheduled_body(mock_account_ids):
     assert nft_transfers[0].senderAccountID.accountNum == account_id_sender.num
     assert nft_transfers[0].receiverAccountID.accountNum == account_id_recipient.num
     assert nft_transfers[0].serialNumber == 1
+
+
+def test_approved_token_transfer_with_decimals(mock_account_ids):
+    """Test adding approved token transfers with decimals."""
+    account_id_1, _, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    # Add approved token transfer with decimals
+    transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 1000, 6)
+
+    # Verify the transfer was added correctly
+    transfer = transfer_tx.token_transfers[token_id_1][0]
+    assert transfer.account_id == account_id_1
+    assert transfer.amount == 1000
+    assert transfer.expected_decimals == 6
+    assert transfer.is_approved is True
+
+
+def test_approved_token_transfer_accumulation(mock_account_ids):
+    """Test that approved token transfers accumulate for the same account."""
+    account_id_1, account_id_2, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    # Add initial transfers
+    transfer_tx.add_token_transfer(token_id_1, account_id_1, 500)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, 300)
+
+    # Verify initial state
+    transfer_1 = transfer_tx.token_transfers[token_id_1][0]
+    transfer_2 = transfer_tx.token_transfers[token_id_1][1]
+    assert transfer_1.amount == 500
+    assert transfer_1.is_approved is False
+    assert transfer_1.expected_decimals is None
+    assert transfer_2.amount == 300
+    assert transfer_2.is_approved is False
+    assert transfer_2.expected_decimals is None
+
+    # Add approved transfer with decimals for account_1 (accumulates)
+    transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 200, 8)
+
+    # Verify accumulation
+    transfer_1 = transfer_tx.token_transfers[token_id_1][0]
+    transfer_2 = transfer_tx.token_transfers[token_id_1][1]
+    assert transfer_1.amount == 700  # 500 + 200
+    assert transfer_1.is_approved is False  # unchanged
+    assert transfer_1.expected_decimals == 8  # updated from the accumulation
+    assert transfer_2.amount == 300  # unchanged
+    assert transfer_2.is_approved is False  # unchanged
+    assert transfer_2.expected_decimals is None  # unchanged
+
+
+def test_approved_token_transfer_validation(mock_account_ids):
+    """Test validation for approved token transfers with decimals."""
+    account_id_1, _, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    # Test invalid expected_decimals type
+    with pytest.raises(TypeError, match="expected_decimals must be an integer"):
+        transfer_tx.add_approved_token_transfer_with_decimals(
+            token_id_1, account_id_1, 1000, "invalid"
+        )
+
+    # Test zero amount
+    with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
+        transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 0, 6)
