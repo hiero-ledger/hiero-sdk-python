@@ -180,7 +180,6 @@ __all__ = [
     "PendingAirdropRecord",
     "TokenType",
     "SupplyType",
-    "Token",
     "TokenAllowance",
     "TokenNftAllowance",
     "HbarAllowance",
