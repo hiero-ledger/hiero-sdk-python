@@ -85,6 +85,28 @@ class TransferTransaction(Transaction):
                     NftId(token_id, serial_number), sender_id, receiver_id, is_approved
                 )
 
+    def _validate_token_transfer(
+        self,
+        token_id: TokenId,
+        account_id: AccountId,
+        amount: int,
+        expected_decimals: Optional[int],
+        is_approved: bool,
+    ) -> None:
+        """
+        Validates a token transfer.
+        """
+        if not isinstance(token_id, TokenId):
+            raise TypeError("token_id must be a TokenId instance.")
+        if not isinstance(account_id, AccountId):
+            raise TypeError("account_id must be an AccountId instance.")
+        if not isinstance(amount, int) or amount == 0:
+            raise ValueError("Amount must be a non-zero integer.")
+        if expected_decimals is not None and not isinstance(expected_decimals, int):
+            raise TypeError("expected_decimals must be an integer.")
+        if not isinstance(is_approved, bool):
+            raise TypeError("is_approved must be a boolean.")
+
     def _add_hbar_transfer(
         self, account_id: AccountId, amount: int, is_approved: bool = False
     ) -> "TransferTransaction":
@@ -140,17 +162,7 @@ class TransferTransaction(Transaction):
             TransferTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        if not isinstance(token_id, TokenId):
-            raise TypeError("token_id must be a TokenId instance.")
-        if not isinstance(account_id, AccountId):
-            raise TypeError("account_id must be an AccountId instance.")
-        if not isinstance(amount, int) or amount == 0:
-            raise ValueError("Amount must be a non-zero integer.")
-        if expected_decimals is not None and not isinstance(expected_decimals, int):
-            raise TypeError("expected_decimals must be an integer.")
-        if not isinstance(is_approved, bool):
-            raise TypeError("is_approved must be a boolean.")
-
+        self._validate_token_transfer(token_id, account_id, amount, expected_decimals, is_approved)
         for transfer in self.token_transfers[token_id]:
             if transfer.account_id == account_id:
                 transfer.amount += amount
