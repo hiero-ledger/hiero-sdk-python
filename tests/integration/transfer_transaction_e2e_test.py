@@ -4,10 +4,12 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+from hiero_sdk_python.tokens.account_allowance_approve_transaction import AccountAllowanceApproveTransaction
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
@@ -354,5 +356,60 @@ def test_integration_token_transfer_transaction_fail_not_your_nft():
         receipt = transfer_transaction.execute(env.client)
         
         assert receipt.status == ResponseCode.SENDER_DOES_NOT_OWN_NFT_SERIAL_NO, f"NFT transfer should have failed with SENDER_DOES_NOT_OWN_NFT_SERIAL_NO status but got: {ResponseCode(receipt.status).name}"
+    finally:
+        env.close()
+
+@pytest.mark.integration
+def test_integration_transfer_transaction_approved_token_transfer():
+    env = IntegrationTestEnv()
+
+    try:
+        # Create new account
+        account = env.create_account()
+
+        # Create fungible token
+        token_id = create_fungible_token(env)
+        assert token_id is not None
+
+        # Associate token with new account
+        receipt = (
+            TokenAssociateTransaction()
+            .set_account_id(account.id)
+            .add_token_id(token_id)
+            .freeze_with(env.client)
+            .sign(account.key)
+            .execute(env.client)
+        )
+
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"Token association failed with status: {ResponseCode(receipt.status).name}"
+
+        # Test approved token transfer with decimals
+        receipt = (
+            AccountAllowanceApproveTransaction()
+            .approve_token_allowance(token_id, env.operator_id, account.id, 500)
+            .execute(env.client)
+        )
+        env.client.set_operator(account.id, account.key)
+
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"Token allowance approval failed with status: {ResponseCode(receipt.status).name}"
+
+        transfer_receipt = (
+            TransferTransaction()
+            .set_transaction_id(TransactionId.generate(account.id))
+            .add_approved_token_transfer_with_decimals(token_id, account.id, 500, 2)
+            .add_approved_token_transfer_with_decimals(token_id, env.operator_id, -499, 2)
+            .add_token_transfer_with_decimals(token_id, account.id, -1, 2)
+            .freeze_with(env.client)
+            .sign(account.key)
+            .execute(env.client)
+        )
+        assert (
+            transfer_receipt.status == ResponseCode.SUCCESS
+        ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+
     finally:
         env.close()
