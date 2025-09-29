@@ -4,14 +4,14 @@ Integration tests for Account Allowance functionality.
 
 import pytest
 
-from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.account_allowance_approve_transaction import (
+from hiero_sdk_python.account.account_allowance_approve_transaction import (
     AccountAllowanceApproveTransaction,
 )
-from hiero_sdk_python.tokens.account_allowance_delete_transaction import (
+from hiero_sdk_python.account.account_allowance_delete_transaction import (
     AccountAllowanceDeleteTransaction,
 )
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction

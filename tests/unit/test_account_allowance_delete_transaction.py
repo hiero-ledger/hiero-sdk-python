@@ -4,14 +4,14 @@ Unit tests for the AccountAllowanceDeleteTransaction class.
 
 import pytest
 
+from hiero_sdk_python.account.account_allowance_delete_transaction import (
+    AccountAllowanceDeleteTransaction,
+)
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.crypto_delete_allowance_pb2 import (
     CryptoDeleteAllowanceTransactionBody,
 )
 from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.tokens.account_allowance_delete_transaction import (
-    AccountAllowanceDeleteTransaction,
-)
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_allowance import TokenNftAllowance
