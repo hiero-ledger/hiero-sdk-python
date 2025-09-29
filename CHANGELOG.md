@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
 - AccountDeleteTransaction Class
+- testing.md
 - generate_proto.py
 - Bumped Hedera proto version from v0.57.3 to v0.64.3
 - Added `dev` and `lint` dependency groups as default in `pyproject.toml`
@@ -80,6 +81,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Removed
 - Removed the old `/documentation` folder.
 - Rebase command in README_upstream changed to just -S
+- Testing Guide link in CONTRIBUTING.md
+- Removed Testing Section in README.md and Added a link to testing.md
 - generate_proto.sh
 - pkg_resources dependency in generate_proto.py
 
