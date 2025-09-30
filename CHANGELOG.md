@@ -42,6 +42,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Function docstrings in /tokens, /transaction, /query, /consensus
 
 ### Changed
+- bump solo version to `v0.14`
 - bump protobufs version to `v0.66.0`
 - bump solo version to `v0.13`
 - Extract _build_proto_body() from build_transaction_body() in every transaction
