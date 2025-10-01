@@ -1,10 +1,8 @@
-"""Create a Non-Fungible Token (NFT) Collection and Mint NFTs"""
-# Usage:
-"""
-uv run examples/token_mint_non_fungible.py
-python examples/token_mint_non_fungible.py
+# uv run examples/token_mint_non_fungible.py
+# python examples/token_mint_non_fungible.py
 
-"""
+"""Create a Non-Fungible Token (NFT) Collection and Mint NFTs"""
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -62,7 +60,7 @@ def create_nft_collection():
             .set_initial_supply(0)  # NFTs must have an initial supply of 0
             .set_supply_key(supply_key)  # Assign the supply key for minting
         )
-        
+
         receipt = (
             tx.freeze_with(client)
             .sign(operator_key)
@@ -75,22 +73,13 @@ def create_nft_collection():
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
-def token_mint_non_fungible():
+def token_mint_non_fungible(client, token_id, supply_key):
     """
     Mint new NFTs with metadata
-
-    1. Create a new NFT collection (token) with a supply key
-    2. Prepare metadata for each NFT to be minted
-    3. Confirm total supply before minting
-    4. Mint the NFTs by submitting a TokenMintTransaction (signed by the supply key)
-    5. Confirm total supply after minting
 
     The supply key authorizes minting new NFTs after the collection is created.
     Each NFT is assigned unique metadata, which can be used to identify or describe the token.
     """
-
-    # Create a new NFT collection (token) with a supply key
-    client, token_id, supply_key = create_nft_collection()
 
     # Prepare the metadata for each NFT to be minted
     # Each entry in the list will become a unique NFT with its own metadata
@@ -114,16 +103,26 @@ def token_mint_non_fungible():
             .sign(supply_key)  # Must be signed by the supply key
             .execute(client)
         )
-        
+
         # THE FIX: The receipt confirms status, it does not contain serial numbers.
-        print(f"✅ Success! NFT minting complete.")
+        print(f"✅ Success! NFT minting complete, Status: {ResponseCode(receipt.status).name}")
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"Total supply after minting: {info_after.total_supply}")
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         print(f"❌ Error minting NFTs: {e}")
         sys.exit(1)
 
+def main():
+    """
+    1. Create a new NFT collection (token) with a supply key
+    2. Prepare metadata for each NFT to be minted
+    3. Confirm total supply before minting
+    4. Mint the NFTs by submitting a TokenMintTransaction (signed by the supply key)
+    5. Confirm total supply after minting
+    """
+    client, token_id, supply_key = create_nft_collection()
+    token_mint_non_fungible(client, token_id, supply_key)
 
 if __name__ == "__main__":
-    token_mint_non_fungible()
+    main()
