@@ -16,6 +16,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Account Balance](#querying-account-balance)
   - [Querying Account Info](#querying-account-info)
   - [Deleting an Account](#deleting-an-account)
+  - [Querying Account Records](#querying-account-records)
   - [Creating a Token](#creating-a-token)
 - [Token Transactions](#token-transactions)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -210,6 +211,28 @@ transaction = (
 
 transaction.sign(account_private_key)  # Account being deleted must sign
 transaction.execute(client)
+```
+
+### Querying Account Records
+
+#### Pythonic Syntax:
+```python
+records = AccountRecordsQuery(account_id=account_id).execute(client)
+
+for record in records:
+    print(record)
+```
+
+#### Method Chaining:
+```python
+records = (
+    AccountRecordsQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+
+for record in records:
+    print(record)
 ```
 
 ## Token Transactions
