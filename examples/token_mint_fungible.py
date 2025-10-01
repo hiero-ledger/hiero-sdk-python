@@ -1,12 +1,10 @@
+# uv run examples/token_mint_fungible.py
+# python examples/token_mint_fungible.py
+
 """
 Creates a mintable fungible token and then mints additional supply.
 """
 
-"""
-uv run examples/token_mint_fungible.py
-python examples/token_mint_fungible.py
-
-"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -18,8 +16,9 @@ from hiero_sdk_python import (
     Network,
     TokenCreateTransaction,
     TokenMintTransaction,
-    TokenInfoQuery
-    
+    TokenInfoQuery,
+    ResponseCode
+
 )
 
 # Load environment variables from .env file
@@ -86,26 +85,20 @@ def create_new_token():
             print("❌ Warning: Token does not have a supply key set.")
 
         return client, token_id, supply_key
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
 
-def token_mint_fungible():
+def token_mint_fungible(client, token_id, supply_key):
     """
     Mint more of a fungible token
-
-    1. Create a new token with a supply key so its supply can be changed later
-    2. Confirm the token's total supply before minting
-    3. Mint more tokens by submitting a TokenMintTransaction (signed by the supply key)
-    4. Confirm the token's total supply after minting
 
     The token must have a supply key set during creation, which authorizes future minting or burning.
     Only the holder of the supply key can perform these actions.
     """
 
     # Create a new token with a supply key so its supply can be changed later
-    client, token_id, supply_key = create_new_token()
 
     mint_amount = 5000 # This is 50.00 tokens because decimals is 2
     print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
@@ -125,15 +118,24 @@ def token_mint_fungible():
             .sign(supply_key)  # Must be signed by the supply key
             .execute(client)
         )
-        print(f"✅ Success! Token minting complete.")
+        print(f"✅ Success! Token minting complete, Status: {ResponseCode(receipt.status).name}")
 
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"Total supply after minting: {info_after.total_supply}")
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         print(f"❌ Error minting tokens: {e}")
         sys.exit(1)
 
+def main():
+    """
+    1. Create a new token with a supply key so its supply can be changed later
+    2. Confirm the token's total supply before minting
+    3. Mint more tokens by submitting a TokenMintTransaction (signed by the supply key)
+    4. Confirm the token's total supply after minting
+    """
+    client, token_id, supply_key = create_new_token()
+    token_mint_fungible(client, token_id, supply_key)
 
 if __name__ == "__main__":
-    token_mint_fungible()
+    main()
