@@ -1,12 +1,10 @@
+# uv run examples/token_delete.py
+# python examples/token_delete.py
+
 """
 A full example that creates a token and then immediately deletes it.
 """
 
-"""
-uv run examples/token_delete.py
-python examples/token_delete.py
-
-"""
 import os
 import sys
 from dotenv import load_dotenv
@@ -32,7 +30,7 @@ def setup_client():
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-    
+
     except (TypeError, ValueError):
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
@@ -49,13 +47,12 @@ def generate_admin_key():
     print("\nGenerating a new admin key for the token...")
     admin_key = PrivateKey.generate_ed25519()
     print("Admin key generated successfully.")
-    token_id_to_delete = None
-    return admin_key, token_id_to_delete
+    return admin_key
 
-def create_new_token():
+def create_new_token(client, operator_id, operator_key, admin_key):
     """ Create the Token"""
-    client, operator_id, operator_key = setup_client()
-    admin_key, token_id_to_delete = generate_admin_key()
+    token_id_to_delete = None
+
     try:
         print("\nSTEP 1: Creating a new token...")
         create_tx = (
@@ -73,26 +70,17 @@ def create_new_token():
         create_receipt = create_tx.execute(client)
         token_id_to_delete = create_receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id_to_delete}")
-        return admin_key, token_id_to_delete, client, operator_key
+        return token_id_to_delete
 
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
 
-
-def delete_token():
+def delete_token(admin_key, token_id_to_delete, client, operator_key):
     """
-     Delete the Token we just created:
-    1. Call create_new_token() to create a new token and get its admin key, token ID, client, and operator key.
-    2. Build a TokenDeleteTransaction using the token ID.
-    3. Freeze the transaction with the client.
-    4. Sign the transaction with both the operator key and the admin key.
-    5. Execute the transaction to delete the token.
-    6. Print the result or handle any errors.
+    Delete the Token we just created
     """
-
-    admin_key, token_id_to_delete, client, operator_key = create_new_token()
 
     try:
         print(f"\nSTEP 2: Deleting token {token_id_to_delete}...")
@@ -104,13 +92,26 @@ def delete_token():
             .sign(admin_key)     # Sign with the same admin key used to create it
         )
 
-        delete_receipt = delete_tx.execute(client)
-        print(f"✅ Success! Token deleted.")
+        delete_tx.execute(client)
+        print("✅ Success! Token deleted.")
 
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         print(f"❌ Error deleting token: {e}")
         sys.exit(1)
 
+def main():
+    """
+    1. Call create_new_token() to create a new token and get its admin key, token ID, client, and operator key.
+    2. Build a TokenDeleteTransaction using the token ID.
+    3. Freeze the transaction with the client.
+    4. Sign the transaction with both the operator key and the admin key.
+    5. Execute the transaction to delete the token.
+    6. Print the result or handle any errors.
+    """
+    client, operator_id, operator_key = setup_client()
+    admin_key = generate_admin_key()
+    token_id_to_delete = create_new_token(client, operator_id, operator_key, admin_key)
+    delete_token(admin_key, token_id_to_delete, client, operator_key)
 
 if __name__ == "__main__":
-    delete_token()
+    main()
