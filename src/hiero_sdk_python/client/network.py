@@ -74,7 +74,7 @@ class Network:
         nodes: Optional[List[_Node]] = None,
         mirror_address: Optional[str] = None,
         ledger_id: bytes | None = None
-    ) -> None
+    ) -> None:
         """
         Initializes the Network with the specified network name or custom config.
 

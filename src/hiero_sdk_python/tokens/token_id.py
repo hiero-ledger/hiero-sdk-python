@@ -6,7 +6,7 @@ Defines TokenId, a frozen dataclass for representing Hedera token identifiers
 (shard, realm, num) with validation and protobuf conversion utilities.
 """
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Optional
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.client.client import Client
