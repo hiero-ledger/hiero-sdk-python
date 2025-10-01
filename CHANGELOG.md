@@ -12,6 +12,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
+- TokenNftAllowance class
+- TokenAllowance class
+- HbarAllowance class
+- HbarTransfer class
+- AccountAllowanceApproveTransaction class
+- AccountAllowanceDeleteTransaction class
+- Approved transfer support to TransferTransaction
+- set_transaction_id() API to Transaction class
+- Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
+
+### Changed
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
