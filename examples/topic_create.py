@@ -1,7 +1,9 @@
+"""Create a new topic on Hedera"""
+
+# Usage:
 """
 uv run examples/topic_create.py
 python examples/topic_create.py
-
 """
 import os
 import sys
@@ -17,14 +19,34 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
+def setup_client():
+    """Setup and return a Hedera client."""
+    print("Connecting to Hedera testnet...")
+    client = Client(Network(network='testnet'))
+
+    try:
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+        client.set_operator(operator_id, operator_key)
+        print(f"Using operator account: {operator_id}")
+        return client, operator_key
+    except (TypeError, ValueError):
+        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
+        sys.exit(1)
+
+
 def create_topic():
-    network = Network(network='testnet')
-    client = Client(network)
+    """
+     Create a new topic on Hedera
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-
-    client.set_operator(operator_id, operator_key)
+    1. Setup a Hedera client and operator key
+    2. Build a TopicCreateTransaction with a memo and admin key
+    3. Freeze and sign the transaction
+    4. Execute the transaction and get the receipt
+    5. Print the new topic ID if successful, or an error if not
+    """
+    client, operator_key = setup_client()
+    print("\nCreating a new topic...")
 
     transaction = (
         TopicCreateTransaction(
