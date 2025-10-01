@@ -12,6 +12,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
+- TokenNftAllowance class
+- TokenAllowance class
+- HbarAllowance class
+- HbarTransfer class
+- AccountAllowanceApproveTransaction class
+- AccountAllowanceDeleteTransaction class
+- Approved transfer support to TransferTransaction
+- set_transaction_id() API to Transaction class
+- Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
+
+### Changed
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
@@ -50,22 +62,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Linting to /tokens, /transaction, /query, /consensus
 - Module docstrings in /tokens, /transaction, /query, /consensus
 - Function docstrings in /tokens, /transaction, /query, /consensus
-- TokenNftAllowance class
-- TokenAllowance class
-- HbarAllowance class
-- HbarTransfer class
-- AccountAllowanceApproveTransaction class
-- AccountAllowanceDeleteTransaction class
-- Approved transfer support to TransferTransaction
-- set_transaction_id() API to Transaction class
-- Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
 
 ### Changed
 - bump solo version to `v0.14`
 - bump protobufs version to `v0.66.0`
 - bump solo version to `v0.13`
 - Extract _build_proto_body() from build_transaction_body() in every transaction
-- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - StatefulContract's setMessage() function designed with no access restrictions, allowing calls from any address
 - bump solo version to `v0.12`
 - Extract Ed25519 byte loading logic into private helper method `_from_bytes_ed25519()`
