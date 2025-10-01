@@ -76,7 +76,7 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
 
     return "".join(reversed(letter))
 
-def validate_checksum(shard: int, realm: int, num: int, checksum: str, client: Client) -> None:
+def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client: Client) -> None:
     """
     Validate a Hiero entity ID checksum against the current client's ledger.
 
@@ -90,6 +90,10 @@ def validate_checksum(shard: int, realm: int, num: int, checksum: str, client: C
     Raises:
         ValueError: If the ledger ID is missing or if the checksum is invalid.
     """
+    # If no checksum present then return.
+    if (checksum is None):
+        return
+
     ledger_id = client.network.ledger_id
     if not ledger_id:
         raise ValueError("Missing ledger ID in client")
