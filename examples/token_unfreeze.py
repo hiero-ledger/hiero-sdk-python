@@ -15,6 +15,7 @@ from hiero_sdk_python import (
     TokenFreezeTransaction,
     TokenUnfreezeTransaction,
     TransferTransaction,
+    ResponseCode,
 )
 
 # Load environment variables from .env file
@@ -57,7 +58,7 @@ def create_freezable_token():
             .set_treasury_account_id(operator_id)
             .set_freeze_key(freeze_key)
         )
-        
+
         # FIX: The .execute() method returns the receipt directly.
         receipt = (
             tx.freeze_with(client)
@@ -68,13 +69,12 @@ def create_freezable_token():
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
         return token_id, client, operator_id, freeze_key, operator_key
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
-def freeze_token():
+def freeze_token(token_id, client, operator_id, freeze_key):
     """Freeze the token for the operator account"""
-    token_id, client, operator_id, freeze_key, operator_key = create_freezable_token()
     print(f"\nSTEP 3: Freezing token {token_id} for operator account {operator_id}...")
     try:
         receipt = (
@@ -85,26 +85,14 @@ def freeze_token():
             .sign(freeze_key)
             .execute(client)
         )
-        print(f"✅ Success! Token freeze complete.")
-        return token_id, client, operator_id, freeze_key, operator_key
-    except Exception as e:
+        print(f"✅ Success! Token freeze complete, Status: {ResponseCode(receipt.status).name}")
+    except (RuntimeError, ValueError) as e:
         print(f"❌ Error freezing token: {e}")
         sys.exit(1)
 
-def token_unfreeze():
-    """
-    Unfreeze the token for the operator account.
-    1. Freeze the token for the operator account (calls freeze_token()).
-    2. Unfreeze the token for the operator account using TokenUnfreezeTransaction.
-    3. Attempt a test transfer of 1 unit of the token to self to verify unfreeze.
-
-    Once unfrozen, the operator account can perform additional transactions with the token,
-    such as transfers, mints, or other operations that require the token to be unfrozen.
-    """
-    # Step 1: Freeze the token for the operator account
-    token_id, client, operator_id, freeze_key, operator_key = freeze_token()
-
-    # Step 2: Unfreeze the token for the operator account
+def unfreeze_token(token_id, client, operator_id, freeze_key, operator_key):
+    """Unfreeze the token for the operator account"""
+    # Step 1: Unfreeze the token for the operator account
     print(f"\nSTEP 4: Unfreezing token {token_id} for operator account {operator_id}...")
     try:
         receipt = (
@@ -115,9 +103,9 @@ def token_unfreeze():
             .sign(freeze_key)
             .execute(client)
         )
-        print(f"✅ Success! Token unfreeze complete.")
+        print(f"✅ Success! Token unfreeze complete, Status: {ResponseCode(receipt.status).name}")
 
-        # Step 3: Attempt a test transfer of 1 unit of token to self
+        # Step 2: Attempt a test transfer of 1 unit of token to self
         print(f"Attempting a test transfer of 1 unit of token {token_id} to self...")
         try:
             transfer_receipt = (
@@ -128,13 +116,22 @@ def token_unfreeze():
                 .sign(operator_key)
                 .execute(client)
             )
-            print("✅ Test transfer succeeded. Token is unfrozen and usable.")
-        except Exception as transfer_error:
+            print(f"✅ Test transfer succeeded. Token is unfrozen and usable, Status: {ResponseCode(transfer_receipt.status).name}")
+        except (RuntimeError, ValueError) as transfer_error:
             print(f"❌ Test transfer failed: {transfer_error}")
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         print(f"❌ Error unfreezing token: {e}")
         sys.exit(1)
 
+def main():
+    """ Unfreeze the token for the operator account.
+    1. Freeze the token for the operator account (calls freeze_token()).
+    2. Unfreeze the token for the operator account using TokenUnfreezeTransaction.
+    3. Attempt a test transfer of 1 unit of the token to self to verify unfreeze.
+    """
+    token_id, client, operator_id, freeze_key, operator_key = create_freezable_token()
+    freeze_token(token_id, client, operator_id, freeze_key)
+    unfreeze_token(token_id, client, operator_id, freeze_key, operator_key)
 
 if __name__ == "__main__":
-    token_unfreeze()
+    main()
