@@ -8,7 +8,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+- add revenue generating topic tests/example
+- add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
+- add CustomFeeLimit class
+- Added checksum validation for TokenId
 - Refactor examples/account_create.py to use modular functions
+
 
 ### Fixed
 
