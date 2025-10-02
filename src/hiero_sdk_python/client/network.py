@@ -1,5 +1,6 @@
 """Network module for managing Hedera SDK connections."""
 import secrets
+import os
 from typing import Dict, List, Optional, Any
 
 import requests
@@ -87,9 +88,10 @@ class Network:
                             If not provided,
                             we'll use a default from MIRROR_ADDRESS_DEFAULT[network].
         """
-        self.network: str = network or 'testnet'
+        env_network = os.getenv("NETWORK", "testnet")
+        self.network: str = (network or env_network).lower()
         self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(
-            network, 'localhost:5600'
+            self.network, 'localhost:5600'
         )
 
         self.ledger_id = ledger_id or self.LEDGER_ID.get(network, bytes.fromhex('03'))

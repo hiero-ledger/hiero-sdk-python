@@ -14,6 +14,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
 
+### Changed
+- Network configuration now uses the NETWORK environment variable instead of a hardcoded "testnet" (defaults to "testnet" if not set)
+- Updated all examples to use environment-based network selection, removing hardcoded 'testnet' from Network() instantiations.
+
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
 
@@ -69,6 +73,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add CI tests across Python 3.10–3.12.
 - kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
 - assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
+
+
 
 ### Fixed
 - Format account_create_transaction.py and add type hints

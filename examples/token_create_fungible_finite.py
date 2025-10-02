@@ -33,7 +33,7 @@ load_dotenv()
 def create_token_fungible_finite():
     """Function to create a finite fungible token."""
     # Network Setup
-    network = Network(network='testnet')
+    network = Network()
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
