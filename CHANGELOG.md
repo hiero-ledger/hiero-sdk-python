@@ -14,6 +14,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
 
+### Changed
+- Refactor token_associate.py for better structure, add association verification query (#367)
+
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
 
