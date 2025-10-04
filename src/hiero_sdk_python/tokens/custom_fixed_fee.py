@@ -4,7 +4,7 @@ from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.hbar import Hbar
 
 if typing.TYPE_CHECKING:
-    from hiero_sdk_python.client import Client
+    from hiero_sdk_python.client.client import Client
     from hiero_sdk_python.hapi.services import custom_fees_pb2
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -75,6 +75,19 @@ class CustomFixedFee(CustomFee):
         cf.all_collectors_are_exempt = self.all_collectors_are_exempt
         return cf
 
+    def _to_topic_fee_proto(self) -> "custom_fees_pb2.FixedCustomFee":
+        from hiero_sdk_python.hapi.services import custom_fees_pb2
+        
+        return custom_fees_pb2.FixedCustomFee(
+            fixed_fee=custom_fees_pb2.FixedFee(
+                amount=self.amount,
+                denominating_token_id=self.denominating_token_id._to_proto()
+                if self.denominating_token_id is not None
+                else None,
+            ),
+            fee_collector_account_id=self._get_fee_collector_account_id_protobuf(),
+        )
+
     def _validate_checksums(self, client: "Client") -> None:
         super()._validate_checksums(client)
         if self.denominating_token_id is not None:
@@ -94,9 +107,14 @@ class CustomFixedFee(CustomFee):
         if proto_fee.HasField("fee_collector_account_id"):
             fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
         
+        collectors_are_exempt = getattr(proto_fee, 'all_collectors_are_exempt', False)
+        
         return cls(
             amount=fixed_fee_proto.amount,
             denominating_token_id=denominating_token_id,
             fee_collector_account_id=fee_collector_account_id,
-            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
+            all_collectors_are_exempt=collectors_are_exempt
         )
+        
+    def __eq__(self, other: "CustomFixedFee") -> bool:
+        return super().__eq__(other) and self.amount == other.amount and self.denominating_token_id == other.denominating_token_id

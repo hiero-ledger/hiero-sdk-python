@@ -4,9 +4,9 @@ from abc import ABC, abstractmethod
 
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.account.account_id import AccountId
-    from hiero_sdk_python.client import Client
+    from hiero_sdk_python.client.client import Client
     from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountID
-    from hiero_sdk_python.hapi.services.token_service_pb2 import CustomFee as CustomFeeProto
+    from hiero_sdk_python.hapi.services.custom_fees_pb2 import CustomFee as CustomFeeProto
 
 
 class CustomFee(ABC):
@@ -60,3 +60,6 @@ class CustomFee(ABC):
     def _validate_checksums(self, client: Client) -> None:
         if self.fee_collector_account_id is not None:
             self.fee_collector_account_id.validate_checksum(client)
+            
+    def __eq__(self, other: "CustomFee") -> bool:
+        return self.fee_collector_account_id == other.fee_collector_account_id and self.all_collectors_are_exempt == other.all_collectors_are_exempt

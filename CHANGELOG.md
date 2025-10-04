@@ -7,8 +7,20 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
+### Changed
 - Convert camelCase to snake_case in integration tests (#318)
 - Refactor `examples/custom_fee.py` to improve readability and reduce repetition (#364)
+
+### Added
+- add revenue generating topic tests/example
+- add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
+- add CustomFeeLimit class
+- Added checksum validation for TokenId
+
+### Fixed
+- Incompatible Types assignment in token_transfer_list.py
+
 
 ## [0.1.5] - 2025-09-25
 ### Added
@@ -45,6 +57,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Function docstrings in /tokens, /transaction, /query, /consensus
 
 ### Changed
+- bump solo version to `v0.14`
 - bump protobufs version to `v0.66.0`
 - bump solo version to `v0.13`
 - Extract _build_proto_body() from build_transaction_body() in every transaction
