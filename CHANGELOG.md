@@ -8,6 +8,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Changed
+- Convert camelCase to snake_case in integration tests (#318)
+- Refactor `examples/custom_fee.py` to improve readability and reduce repetition (#364)
+
 ### Added
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
@@ -17,8 +21,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
 
-## [0.1.5] - 2025-09-25
 
+## [0.1.5] - 2025-09-25
 ### Added
 - ScheduleSignTransaction class
 - NodeUpdateTransaction class
