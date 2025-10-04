@@ -36,6 +36,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
+Feature Updates:
+- Comprehensive README.md in /examples directory with setup instructions
+- Interactive setup_env.py script for easy environment configuration
+
+Core Functionality & Protocol Updates:
 - AccountDeleteTransaction Class
 - generate_proto.py
 - Bumped Hedera proto version from v0.57.3 to v0.64.3
@@ -44,13 +49,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - AccountId support for ECDSA alias accounts
 - ContractId.to_evm_address() method for EVM compatibility
 - consumeLargeData() function in StatefulContract
-- example script for Token Airdrop
-- added variables directly in the example script to reduce the need for users to supply extra environment variables.
-- Added new `merge_conflicts.md` with detailed guidance on handling conflicts during rebase.
-- Type hinting to /tokens, /transaction, /query, /consensus
-- Linting to /tokens, /transaction, /query, /consensus
-- Module docstrings in /tokens, /transaction, /query, /consensus
-- Function docstrings in /tokens, /transaction, /query, /consensus
 
 ### Changed
 - bump solo version to `v0.14`
