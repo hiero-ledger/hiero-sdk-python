@@ -83,8 +83,8 @@ def test_build_transaction_body_without_key(mock_account_ids):
     assert transaction_body.tokenCreation.decimals == 2
     assert transaction_body.tokenCreation.initialSupply == 1000
     assert transaction_body.tokenCreation.memo == "Token Memo"
-    assert transaction_body.tokenCreation.autoRenewPeriod.seconds == 7776000 # Default value of 90days.
-    assert transaction_body.tokenCreation.HasField('expiry') # By default, this is set to "now + AUTO_RENEW_PERIOD" (90 days).
+    assert transaction_body.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default value of 90days.
+    assert not transaction_body.tokenCreation.HasField('expiry') # By default, this is set to "now + AUTO_RENEW_PERIOD" (90 days).
     # Ensure keys are not set
     assert not transaction_body.tokenCreation.HasField("adminKey")
     assert not transaction_body.tokenCreation.HasField("supplyKey")
@@ -386,8 +386,8 @@ def test_to_proto_without_keys(mock_account_ids, mock_client):
     assert transaction_body.tokenCreation.initialSupply == 1000
     assert transaction_body.tokenCreation.memo == "Token Memo"
     # Default Values
-    assert transaction_body.tokenCreation.HasField('expiry')
-    assert transaction_body.tokenCreation.HasField('autoRenewPeriod')
+    assert transaction_body.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto()
+    assert not  transaction_body.tokenCreation.HasField('expiry')
 
     assert not transaction_body.tokenCreation.HasField("adminKey")
 
@@ -548,8 +548,8 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
     assert token_tx._token_params.initial_supply == 0
     assert token_tx._token_params.token_type == TokenType.FUNGIBLE_COMMON
     assert token_tx._token_params.auto_renew_account_id is None
-    assert token_tx._token_params.auto_renew_period == Duration(7776000)
-    assert token_tx._token_params.expiration_time is not None
+    assert token_tx._token_params.auto_renew_period == Duration(7890000)
+    assert token_tx._token_params.expiration_time is None
 
     # 3. Overwrite the defaults using set_* methods
     token_tx.set_token_name("MyUpdatedToken")
@@ -598,7 +598,7 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
     assert tx_body.tokenCreation.symbol == "UPD"
     assert tx_body.tokenCreation.decimals == 5
     assert tx_body.tokenCreation.initialSupply == 10000
-    assert tx_body.tokenCreation.autoRenewPeriod.seconds == 2592000
+    assert tx_body.tokenCreation.autoRenewPeriod == Duration(2592000)._to_proto()
     assert tx_body.tokenCreation.autoRenewAccount == AccountId(0, 0, 2)._to_proto()
 
     # Confirm no adminKey was set
@@ -661,10 +661,10 @@ def test_transaction_freeze_prevents_modification(mock_account_ids, mock_client)
     assert transaction._token_params.decimals == 2
     assert transaction._token_params.treasury_account_id == treasury_account
     assert transaction._token_params.token_type == TokenType.FUNGIBLE_COMMON
-    assert transaction._token_params.auto_renew_period.seconds == 7776000
+    assert transaction._token_params.auto_renew_period == Duration(7890000)
     # On freezeWith(client) it will auto assign from transaction Id
     assert transaction._token_params.auto_renew_account_id == treasury_account
-    assert transaction._token_params.expiration_time is not None
+    assert transaction._token_params.expiration_time is None
 
 
 # This test uses fixture mock_account_ids as parameter
@@ -697,8 +697,8 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     assert transaction_body.tokenCreation.decimals == 0
     assert transaction_body.tokenCreation.initialSupply == 0
     assert transaction_body.tokenCreation.memo == "NFT Memo"
-    assert transaction_body.tokenCreation.autoRenewPeriod.seconds == 7776000 # Default value of 90days.
-    assert transaction_body.tokenCreation.HasField('expiry') # By default, this is set to "now + AUTO_RENEW_PERIOD" (90 days).
+    assert transaction_body.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default value of 90days.
+    assert not transaction_body.tokenCreation.HasField('expiry') # By default, this is set to "now + AUTO_RENEW_PERIOD" (90 days).
 
     # No keys are set
     assert not transaction_body.tokenCreation.HasField("adminKey")
@@ -987,8 +987,8 @@ def test_token_create_with_expiration_time_overrides_auto_renew(mock_account_ids
     )
     tx = TokenCreateTransaction(params)
     
-    assert tx._token_params.auto_renew_period == Duration(7776000)
-    assert tx._token_params.expiration_time is not None
+    assert tx._token_params.auto_renew_period == Duration(seconds=7890000)
+    assert tx._token_params.expiration_time is None
     
     tx.set_expiration_time(expiration_time);
     tx.transaction_id = generate_transaction_id(treasury_account)
@@ -1031,7 +1031,7 @@ def test_auto_renew_account_assignment_during_freeze_with_client(mock_account_id
     frozen_tx1 = tx1.freeze_with(mock_client)
     body1 = frozen_tx1.build_transaction_body()
 
-    assert body1.tokenCreation.autoRenewPeriod.seconds == 7776000 # Default 90 days
+    assert body1.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default around 90 days
     assert body1.tokenCreation.autoRenewAccount == auto_renew_account_id._to_proto()
 
     # If Trasnaction Id not generated. Then use client operator_account
@@ -1047,7 +1047,7 @@ def test_auto_renew_account_assignment_during_freeze_with_client(mock_account_id
 
     body2 = frozen_tx2.build_transaction_body();
 
-    assert body2.tokenCreation.autoRenewPeriod.seconds ==7776000 # Default 90 days
+    assert body2.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default around 90 days
     assert body2.tokenCreation.autoRenewAccount == mock_client.operator_account_id._to_proto()
 
     # If Transaction Id generated. Then use transaction_id account
@@ -1064,5 +1064,5 @@ def test_auto_renew_account_assignment_during_freeze_with_client(mock_account_id
 
     body3 = frozen_tx3.build_transaction_body()
     
-    assert body3.tokenCreation.autoRenewPeriod.seconds == 7776000 # Default 90 days
+    assert body3.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default around 90 days
     assert body3.tokenCreation.autoRenewAccount == treasury_account._to_proto()
