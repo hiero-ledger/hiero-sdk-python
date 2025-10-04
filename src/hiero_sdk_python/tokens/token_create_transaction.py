@@ -31,7 +31,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.crypto.public_key import PublicKey
 
-AUTO_RENEW_PERIOD = 7776000 # 90 Days
+AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
 
 @dataclass
@@ -61,12 +61,9 @@ class TokenParams:
     supply_type: SupplyType = SupplyType.INFINITE # Default to infinite
     freeze_default: bool = False
     custom_fees: List[CustomFee] = field(default_factory=list)
-    expiration_time: Optional[Timestamp] = Timestamp.from_date(
-        datetime.datetime.now(datetime.timezone.utc) + 
-        datetime.timedelta(seconds=AUTO_RENEW_PERIOD)
-    ) # By default, this is set to "now + AUTO_RENEW_PERIOD" (90 days).
+    expiration_time: Optional[Timestamp] = None 
     auto_renew_account_id: Optional[AccountId] = None
-    auto_renew_period: Optional[Duration] = Duration(AUTO_RENEW_PERIOD) # Default 90 days
+    auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD # Default around ~90 days
     memo: Optional[str] = None
 
 
@@ -254,14 +251,21 @@ class TokenCreateTransaction(Transaction):
                 max_supply=0,
                 supply_type=SupplyType.INFINITE,
                 freeze_default=False,
-                expiration_time=Timestamp.from_date(
-                    datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=AUTO_RENEW_PERIOD)
-                ),
-                auto_renew_period=Duration(AUTO_RENEW_PERIOD)
+                expiration_time=None,
+                auto_renew_period=AUTO_RENEW_PERIOD
             )
 
         # Store TokenParams and TokenKeys.
         self._token_params: TokenParams = token_params
+
+        # Check if expiration time is set
+        if token_params.expiration_time:
+            self.set_expiration_time(token_params.expiration_time)
+
+        # Check if auto_renew_period is set
+        if token_params.auto_renew_period:
+            self.set_auto_renew_period(token_params.auto_renew_period)
+
         self._keys: TokenKeys = keys if keys else TokenKeys()
 
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
