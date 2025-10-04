@@ -36,7 +36,6 @@ def test_integration_nft_token_create_transaction_can_execute():
 def test_fungible_token_create_sets_default_autorenew_values():
     """Test that when no expiration_time or auto_renew_account is explicitly provided default values are set"""
     env = IntegrationTestEnv()
-    expiration_time = Timestamp.from_date(datetime.datetime.now() + datetime.timedelta(days=30))
 
     params = TokenParams(
         token_name="Hiero FT",
@@ -49,8 +48,8 @@ def test_fungible_token_create_sets_default_autorenew_values():
 
     receipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
     assert receipt.token_id is not None
+
     token_id = receipt.token_id
-    
     token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
     
     assert token_info.auto_renew_period == Duration(7890000)
@@ -67,19 +66,19 @@ def test_fungible_token_create_with_expiration_time():
         token_symbol="HFT",
         initial_supply=1,
         treasury_account_id=env.client.operator_account_id,
-        token_type=TokenType.FUNGIBLE_COMMON,
+        expiration_time=expiration_time,
+        token_type=TokenType.FUNGIBLE_COMMON
     )
 
 
-    receipt = TokenCreateTransaction(params).set_expiration_time(expiration_time).freeze_with(env.client).execute(env.client)
-    
+    receipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
     assert receipt.token_id is not None
     
     token_id = receipt.token_id
-    
     token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
-    
+
     assert token_info.expiry.seconds == expiration_time.seconds
+    assert token_info.auto_renew_period == Duration(0)
 
 @pytest.mark.integration
 def test_fungible_token_create_auto_assigns_account_if_autorenew_period_present():
@@ -99,8 +98,9 @@ def test_fungible_token_create_auto_assigns_account_if_autorenew_period_present(
 
     receipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
     assert receipt.token_id is not None
-    token_id = receipt.token_id
 
+    token_id = receipt.token_id
     token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
     
+    assert token_info.auto_renew_period == Duration(7890000) # Defaut around ~90 days
     assert token_info.auto_renew_account == env.client.operator_account_id
