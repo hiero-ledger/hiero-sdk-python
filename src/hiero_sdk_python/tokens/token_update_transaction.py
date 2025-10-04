@@ -244,19 +244,43 @@ class TokenUpdateTransaction(Transaction):
         return self
     
     def set_auto_renew_account_id(self, auto_renew_account_id: AccountId) -> "TokenUpdateTransaction":
-        """"""
+        """
+        Sets the new auto renew account for the token.
+
+        Args:
+            auto_renew_account_id (AccountId): The new auto_renew_account_id to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.auto_renew_account_id = auto_renew_account_id
         return self
     
     def set_auto_renew_period(self, auto_renew_period: Duration) -> "TokenUpdateTransaction":
-        """"""
+        """
+        Sets the new auto renew period for the token.
+
+        Args:
+            auto_renew_period (Duration): The new auto_renew_period to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.auto_renew_period = auto_renew_period
         return self
     
     def set_expiration_time(self, expiration_time: Timestamp) -> "TokenUpdateTransaction":
-        """"""
+        """
+        Sets the new expiration time for the token.
+
+        Args:
+            expiration_time (Timestamp): The new expiration_time to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.expiration_time = expiration_time
         return self
@@ -364,12 +388,29 @@ class TokenUpdateTransaction(Transaction):
         return self
     
     def set_kyc_key(self, kyc_key: PrivateKey) -> "TokenUpdateTransaction":
-        """"""
+        """
+        Sets the kyc key for the token
+
+        Args:
+            kyc_key (Private Key): The new kyc_key to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.kyc_key = kyc_key
         return self
     
     def set_fee_schedule_key(self, fee_schedule_key: PrivateKey) -> "TokenUpdateTransaction":
+        """
+        Sets the fee schedule key for the token
+
+        Args:
+            fee_schedule_key (Private Key): The new fee_schedule_key to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.fee_schedule_key = fee_schedule_key
         return self
@@ -412,9 +453,9 @@ class TokenUpdateTransaction(Transaction):
             metadata=BytesValue(value=self.metadata) if self.metadata else None,
             symbol=self.token_symbol,
             key_verification_mode=self.token_key_verification_mode._to_proto(),
-            expiry=self.expiration_time._to_protobuf(),
-            autoRenewAccount=self.auto_renew_account_id._to_proto(),
-            autoRenewPeriod=self.auto_renew_period._to_proto()
+            expiry=self.expiration_time._to_protobuf() if self.expiration_time else None,
+            autoRenewAccount=self.auto_renew_account_id._to_proto() if self.auto_renew_account_id else None,
+            autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None
         )
         self._set_keys_to_proto(token_update_body)
         return token_update_body
