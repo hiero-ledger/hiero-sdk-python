@@ -2,6 +2,7 @@ import datetime
 import pytest
 
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
@@ -104,3 +105,32 @@ def test_fungible_token_create_auto_assigns_account_if_autorenew_period_present(
     
     assert token_info.auto_renew_period == Duration(7890000) # Defaut around ~90 days
     assert token_info.auto_renew_account == env.client.operator_account_id
+
+@pytest.mark.integration
+def test_fungible_token_create_with_fee_schedule_key():
+    """
+    Test create fungible token with fee_schedule_key
+    """
+    env = IntegrationTestEnv()
+    fee_schedule_key = PrivateKey.generate()
+
+    params = TokenParams(
+        token_name="Hiero FT",
+        token_symbol="HFT",
+        initial_supply=1,
+        treasury_account_id=env.client.operator_account_id,
+        token_type=TokenType.FUNGIBLE_COMMON
+    )
+
+    receipt = (
+        TokenCreateTransaction(params)
+        .set_fee_schedule_key(fee_schedule_key)
+        .freeze_with(env.client)
+        .execute(env.client)
+    )
+    assert receipt.token_id is not None
+
+    token_id = receipt.token_id
+    token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+    
+    assert token_info.fee_schedule_key.to_string() == fee_schedule_key.public_key().to_string()
