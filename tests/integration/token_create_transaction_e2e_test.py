@@ -47,8 +47,11 @@ def test_fungible_token_create_sets_default_autorenew_values():
     )
 
 
-    recipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
-    token_info = TokenInfoQuery(token_id=recipt.token_id).execute(env.client)
+    receipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
+    assert receipt.token_id is not None
+    token_id = receipt.token_id
+    
+    token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
     
     assert token_info.auto_renew_period == Duration(7890000)
     assert token_info.auto_renew_account == env.client.operator_account_id
@@ -68,8 +71,13 @@ def test_fungible_token_create_with_expiration_time():
     )
 
 
-    recipt = TokenCreateTransaction(params).set_expiration_time(expiration_time).freeze_with(env.client).execute(env.client)
-    token_info = TokenInfoQuery(token_id=recipt.token_id).execute(env.client)
+    receipt = TokenCreateTransaction(params).set_expiration_time(expiration_time).freeze_with(env.client).execute(env.client)
+    
+    assert receipt.token_id is not None
+    
+    token_id = receipt.token_id
+    
+    token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
     
     assert token_info.expiry.seconds == expiration_time.seconds
 
@@ -89,7 +97,10 @@ def test_fungible_token_create_auto_assigns_account_if_autorenew_period_present(
         token_type=TokenType.FUNGIBLE_COMMON,
     )
 
-    recipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
-    token_info = TokenInfoQuery(token_id=recipt.token_id).execute(env.client)
+    receipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
+    assert receipt.token_id is not None
+    token_id = receipt.token_id
+
+    token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
     
     assert token_info.auto_renew_account == env.client.operator_account_id
