@@ -31,7 +31,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.crypto.public_key import PublicKey
 
-AUTO_RENEW_PERIOD = 7890000
+AUTO_RENEW_PERIOD = 7776000 # 90 Days
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
 
 @dataclass
