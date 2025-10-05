@@ -8,7 +8,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-- Convert camelCase to snake_case in integration tests (#318)
+### Added
+
+- add revenue generating topic tests/example
+- add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
+- add CustomFeeLimit class
+- Added checksum validation for TokenId
+
+### Fixed
+
+- Incompatible Types assignment in token_transfer_list.py
+
+## [0.1.5] - 2025-09-25
 
 ### Added
 
@@ -46,6 +57,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- bump solo version to `v0.14`
 - bump protobufs version to `v0.66.0`
 - bump solo version to `v0.13`
 - Extract \_build_proto_body() from build_transaction_body() in every transaction
@@ -64,6 +76,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
+- Format account_create_transaction.py and add type hints
+- Format account_balance.py and fix pylint issues
+- Format account_delete_transaction.py and fix pylint issues
+- Format account_id.py and fix pylint issues
+- Format account_info.py and fix pylint issues
+- Format account_update_transaction.py and fix pylint issues
 - Unit test compatibility issues when running with UV package manager
 - Type annotations in TokenRelationship class (kyc_status and freeze_status)
 - Test assertions in test_executable.py using pytest match parameter
@@ -92,14 +110,6 @@ contract_call_local_pb2.ContractFunctionResult -> contract_types_pb2.ContractFun
 contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 - Removed init.py content in /tokens
-
-## Corrected
-
-- Duplicate validation function in TokenCreate
-- kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
-- assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
-
-### Breaking API changes
 
 **Changed imports**
 
