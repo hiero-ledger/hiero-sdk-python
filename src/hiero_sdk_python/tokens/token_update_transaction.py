@@ -7,7 +7,7 @@ token properties (settings and keys) on the Hedera network via the HTS API.
 """
 from typing import Optional
 from dataclasses import dataclass
-from google.protobuf.wrappers_pb2 import BytesValue, StringValue
+from google.protobuf.wrappers_pb2 import (BytesValue, StringValue)
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -19,13 +19,10 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services.token_update_pb2 import TokenUpdateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services import token_update_pb2, transaction_pb2
-
-from google.protobuf.wrappers_pb2 import BytesValue, StringValue
 
 @dataclass
 class TokenUpdateParams:
@@ -242,7 +239,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.metadata = metadata
         return self
-    
+
     def set_auto_renew_account_id(self, auto_renew_account_id: AccountId) -> "TokenUpdateTransaction":
         """
         Sets the new auto renew account for the token.
@@ -256,7 +253,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.auto_renew_account_id = auto_renew_account_id
         return self
-    
+
     def set_auto_renew_period(self, auto_renew_period: Duration) -> "TokenUpdateTransaction":
         """
         Sets the new auto renew period for the token.
@@ -270,7 +267,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.auto_renew_period = auto_renew_period
         return self
-    
+
     def set_expiration_time(self, expiration_time: Timestamp) -> "TokenUpdateTransaction":
         """
         Sets the new expiration time for the token.
@@ -386,7 +383,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.metadata_key = metadata_key
         return self
-    
+
     def set_kyc_key(self, kyc_key: PrivateKey) -> "TokenUpdateTransaction":
         """
         Sets the kyc key for the token
@@ -400,7 +397,7 @@ class TokenUpdateTransaction(Transaction):
         self._require_not_frozen()
         self.kyc_key = kyc_key
         return self
-    
+
     def set_fee_schedule_key(self, fee_schedule_key: PrivateKey) -> "TokenUpdateTransaction":
         """
         Sets the fee schedule key for the token
@@ -459,7 +456,7 @@ class TokenUpdateTransaction(Transaction):
         )
         self._set_keys_to_proto(token_update_body)
         return token_update_body
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token update.
@@ -471,7 +468,7 @@ class TokenUpdateTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenUpdate.CopyFrom(token_update_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token update transaction.
