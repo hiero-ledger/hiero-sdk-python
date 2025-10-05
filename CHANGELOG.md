@@ -138,6 +138,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
 
+- Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
+
+
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
