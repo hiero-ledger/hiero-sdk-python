@@ -661,14 +661,14 @@ def test_integration_token_update_auto_renew_account():
         )
 
         # Update auto renew account
-        receipient = env.create_account(1)
+        recipient = env.create_account(1)
 
         receipt = (
            TokenUpdateTransaction()
            .set_token_id(token_id)
-           .set_auto_renew_account_id(receipient.id)
+           .set_auto_renew_account_id(recipient.id)
            .freeze_with(env.client)
-           .sign(receipient.key)
+           .sign(recipient.key)
            .execute(env.client)
         )
         assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
@@ -679,7 +679,7 @@ def test_integration_token_update_auto_renew_account():
             .execute(env.client)
         )
         
-        assert new_info.auto_renew_account == receipient.id, "Updated auto_renew_account mismatch"
+        assert new_info.auto_renew_account == recipient.id, "Updated auto_renew_account mismatch"
     finally:
         env.close()
 
@@ -739,7 +739,7 @@ def test_integration_token_update_kyc_key_fungible_token():
             .sign(recipient.key)
             .execute(env.client)
         )
-        assert association_receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert association_receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(association_receipt.status)}"
         # Update Kyc Key
         new_kyc_key = PrivateKey.generate()
         
@@ -766,7 +766,7 @@ def test_integration_token_update_kyc_key_fungible_token():
             .sign(env.client.operator_private_key)
             .execute(env.client)
         )
-        assert kyc_receipt.status == ResponseCode.SUCCESS, f"Token grant kyc failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert kyc_receipt.status == ResponseCode.SUCCESS, f"Token grant kyc failed with status: {ResponseCode.get_name(kyc_receipt.status)}"
         
     finally:
         env.close()
@@ -791,7 +791,7 @@ def test_integration_token_update_kyc_key_nft():
             .sign(recipient.key)
             .execute(env.client)
         )
-        assert association_receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert association_receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(association_receipt.status)}"
         
         # Update Kyc Key
         new_kyc_key = PrivateKey.generate()
@@ -818,7 +818,7 @@ def test_integration_token_update_kyc_key_nft():
             .sign(env.client.operator_private_key)
             .execute(env.client)
         )
-        assert kyc_receipt.status == ResponseCode.SUCCESS, f"Token grant kyc failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert kyc_receipt.status == ResponseCode.SUCCESS, f"Token grant kyc failed with status: {ResponseCode.get_name(kyc_receipt.status)}"
         
     finally:
         env.close()
