@@ -13,7 +13,6 @@ This module includes:
 
 from dataclasses import dataclass, field
 from typing import Optional, Any, List, override
-import datetime
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.channels import _Channel
@@ -29,7 +28,6 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.tokens.custom_fee import CustomFee
-from hiero_sdk_python.crypto.public_key import PublicKey
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
@@ -61,7 +59,7 @@ class TokenParams:
     supply_type: SupplyType = SupplyType.INFINITE # Default to infinite
     freeze_default: bool = False
     custom_fees: List[CustomFee] = field(default_factory=list)
-    expiration_time: Optional[Timestamp] = None 
+    expiration_time: Optional[Timestamp] = None
     auto_renew_account_id: Optional[AccountId] = None
     auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD # Default around ~90 days
     memo: Optional[str] = None
@@ -343,7 +341,7 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._token_params.freeze_default = freeze_default
         return self
-    
+
     def set_expiration_time(self, expiration_time: Timestamp) -> "TokenCreateTransaction":
         """Sets the explicit expiration time for the token."""
         self._require_not_frozen()
@@ -351,19 +349,19 @@ class TokenCreateTransaction(Transaction):
         # If expiration_time is set auto_renew_period will be effectively ignored
         self._token_params.auto_renew_period = None
         return self
-    
+
     def set_auto_renew_period(self, auto_renew_period: Duration) -> "TokenCreateTransaction":
         """Sets the auto-renew period for the token."""
         self._require_not_frozen()
         self._token_params.auto_renew_period = auto_renew_period
         return self
-    
+
     def set_auto_renew_account_id(self, auto_renew_account_id: AccountId) -> "TokenCreateTransaction":
         """Sets the auto-renew account ID for the token."""
         self._require_not_frozen()
         self._token_params.auto_renew_account_id = auto_renew_account_id
         return self
-    
+
     def set_memo(self, memo: str) -> "TokenCreateTransaction":
         """Sets a short description (memo) for the token."""
         self._require_not_frozen()
@@ -417,7 +415,7 @@ class TokenCreateTransaction(Transaction):
         self._require_not_frozen()
         self._token_params.custom_fees = custom_fees
         return self
-    
+
     def set_fee_schedule_key(self, key: PrivateKey) -> "TokenCreateTransaction":
         """Sets the fee schedule key for the token."""
         self._require_not_frozen()
@@ -438,7 +436,7 @@ class TokenCreateTransaction(Transaction):
             return None
 
         return private_key.public_key()._to_proto()
-    
+
     @override
     def freeze_with(self, client) -> "TokenCreateTransaction":
         """
@@ -451,7 +449,7 @@ class TokenCreateTransaction(Transaction):
 
         """
         if (
-            self._token_params.auto_renew_account_id is None 
+            self._token_params.auto_renew_account_id is None
             and self._token_params.auto_renew_period
         ):
             self._token_params.auto_renew_account_id = (
