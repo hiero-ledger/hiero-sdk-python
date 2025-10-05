@@ -12,7 +12,7 @@ This module includes:
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Any, List, override
+from typing import Optional, Any, List
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.channels import _Channel
@@ -437,7 +437,6 @@ class TokenCreateTransaction(Transaction):
 
         return private_key.public_key()._to_proto()
 
-    @override
     def freeze_with(self, client) -> "TokenCreateTransaction":
         """
         Freeze the transaction with the given client.
