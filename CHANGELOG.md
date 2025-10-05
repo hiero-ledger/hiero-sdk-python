@@ -59,6 +59,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
 - Calls in examples for PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY')) to PrivateKey.from_string(os.getenv('OPERATOR_KEY')) to enable general key types
 - Add CI tests across Python 3.10–3.12.
+- kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
+- assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
 
 ### Fixed
 
@@ -72,6 +74,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - deprecated CamelCase instances in /examples such as TokenId and totalSupply to snake_case
 - Invalid HEX representation and signature validation in keys_public_ecdsa.py
 - Invalid signature verification for examples/keys_public_der.py
+- Duplicate validation function in TokenCreate
 
 ### Removed
 
@@ -85,9 +88,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - We have some changed imports and returns to maintain compatability in the proto bump
 
 transaction_body_pb2.TransactionBody -> transaction_pb2.TransactionBody
-
 contract_call_local_pb2.ContractFunctionResult -> contract_types_pb2.ContractFunctionResult
-
 contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 - Removed init.py content in /tokens

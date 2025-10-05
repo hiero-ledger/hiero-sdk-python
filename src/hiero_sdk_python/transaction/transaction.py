@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from hiero_sdk_python.schedule.schedule_create_transaction import (
         ScheduleCreateTransaction,
     )
+    from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
 
 class Transaction(_Executable):
@@ -45,6 +46,7 @@ class Transaction(_Executable):
         self.transaction_valid_duration = 120 
         self.generate_record = False
         self.memo = ""
+        self.custom_fee_limits: list[CustomFeeLimit] = []
         # Maps each node's AccountId to its corresponding transaction body bytes
         # This allows us to maintain separate transaction bodies for each node
         # which is necessary in case node is unhealthy and we have to switch it with other node.
@@ -375,8 +377,8 @@ class Transaction(_Executable):
         transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration
         transaction_body.generateRecord = self.generate_record
         transaction_body.memo = self.memo
-
-        # TODO: implement CUSTOM FEE LIMITS
+        custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
+        transaction_body.max_custom_fees.extend(custom_fee_limits)
 
         return transaction_body
 
@@ -393,8 +395,8 @@ class Transaction(_Executable):
             self.transaction_fee or self._default_transaction_fee
         )
         schedulable_body.memo = self.memo
-
-        # TODO: implement CUSTOM FEE LIMITS
+        custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
+        schedulable_body.max_custom_fees.extend(custom_fee_limits)
 
         return schedulable_body
 
