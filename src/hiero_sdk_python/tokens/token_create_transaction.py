@@ -412,7 +412,7 @@ class TokenCreateTransaction(Transaction):
         self._keys.kyc_key = key
         return self
 
-    def set_custom_fees(self, custom_fees: List[CustomFee]):
+    def set_custom_fees(self, custom_fees: List[CustomFee]) -> "TokenCreateTransaction":
         """Set the Custom Fees."""
         self._require_not_frozen()
         self._token_params.custom_fees = custom_fees
@@ -440,7 +440,7 @@ class TokenCreateTransaction(Transaction):
         return private_key.public_key()._to_proto()
     
     @override
-    def freeze_with(self, client):
+    def freeze_with(self, client) -> "TokenCreateTransaction":
         """
         Freeze the transaction with the given client.
 
