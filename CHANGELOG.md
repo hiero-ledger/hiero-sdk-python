@@ -13,6 +13,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
+- Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
