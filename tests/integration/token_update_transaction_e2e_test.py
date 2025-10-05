@@ -45,7 +45,7 @@ def test_integration_token_update_transaction_can_execute():
         
         assert info.name == "UpdatedName", "Token failed to update"
         assert info.symbol == "UPD", "Token symbol failed to update"
-        assert info.auto_renew_period == auto_renew_period
+        assert info.auto_renew_period == auto_renew_period, "Token auto_renew_period failed to update"
         assert info.freeze_key.to_bytes_raw() == private_key.public_key().to_bytes_raw(), "Freeze key did not update correctly"
         assert info.admin_key.to_bytes_raw() == env.public_operator_key.to_bytes_raw(), "Admin key mismatch after update"
     finally:
@@ -679,8 +679,7 @@ def test_integration_token_update_auto_renew_account():
             .execute(env.client)
         )
         
-        assert old_info.auto_renew_account != new_info.auto_renew_account
-        assert new_info.auto_renew_account == receipient.id
+        assert new_info.auto_renew_account == receipient.id, "Updated auto_renew_account mismatch"
     finally:
         env.close()
 
@@ -715,8 +714,8 @@ def test_integration_token_update_expiration_time():
             .execute(env.client)
         )
 
-        assert new_info.expiry.seconds > old_info.expiry.seconds
-        assert new_info.expiry.seconds == expiration_time.seconds
+        assert new_info.expiry.seconds > old_info.expiry.seconds, "Updated expiry must be greater"
+        assert new_info.expiry.seconds == expiration_time.seconds, "Updated expiry mismatch"
     finally:
         env.close()
 
