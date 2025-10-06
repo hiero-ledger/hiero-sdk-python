@@ -14,11 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
-- Refactor examples/account_create.py to use modular functions
-
-### Changed
-
-- Refactor examples/token_cancel_airdrop.py to use modular functions
+- Refactor examples/token_cancel_airdrop
 
 ### Fixed
 
@@ -115,14 +111,6 @@ contract_call_local_pb2.ContractFunctionResult -> contract_types_pb2.ContractFun
 contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 - Removed init.py content in /tokens
-
-## Corrected
-
-- Duplicate validation function in TokenCreate
-- kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
-- assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
-
-### Breaking API changes
 
 **Changed imports**
 
