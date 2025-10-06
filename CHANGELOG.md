@@ -15,6 +15,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
+- Max token associations to account creation
+- TokenClaimAirdropTransaction
 
 ### Changed
 - Refactor token_associate.py for better structure, add association verification query (#367)
@@ -22,6 +24,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
+
+### Changed
+- Renamed cancel_token_airdrop to token_airdrop_cancel in examples
+- Renamed token_airdrop_cancel_transaction or token_airdrop_cancel in src
+- Renamed test_token_cancel_airdrop_transaction in unit tests to test_token_airdrop_transaction_cancel
+- Renamed test_pending_airdrop_record in unit tests to test_token_airdrop_pending_record
+- Renamed test_pending_airdrop_id in unit tests to test_token_airdrop_pending_id
+- Renamed token_cancel_airdrop_transaction_e2e in integration tests to token_airdrop_transaction_cancel_e2e_test
+- Changed to add detail to str and repr method in token_airdrop_pending_id
 
 ## [0.1.5] - 2025-09-25
 
@@ -43,6 +54,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
+- TokenClaimAirdropTransaction class and examples
 - AccountDeleteTransaction Class
 - generate_proto.py
 - Bumped Hedera proto version from v0.57.3 to v0.64.3
@@ -73,6 +85,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update protobuf dependency from 5.28.1 to 5.29.1
 - Update grpcio dependency from 1.68.1 to 1.71.2
 - Updated `rebasing.md` with clarification on using `git reset --soft HEAD~<n>` where `<n>` specifies the number of commits to rewind.
+- Convert camelCase to snake_case in integration tests (#318)
 - Calls in examples for PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY')) to PrivateKey.from_string(os.getenv('OPERATOR_KEY')) to enable general key types
 - Add CI tests across Python 3.10–3.12.
 - kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
