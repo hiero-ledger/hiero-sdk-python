@@ -13,6 +13,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
+- Explicit read and write permissions to test.yml
 
 ### Fixed
 - Incompatible Types assignment in token_transfer_list.py
