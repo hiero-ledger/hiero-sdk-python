@@ -458,14 +458,7 @@ def main():
     )
 
     print("\n🔍 Verifying no balance change as airdrop is not yet claimed:")
-    log_balances(
-        client,
-        operator_id,
-        receiver_id,
-        [fungible_id],
-        [nft_serial],
-        prefix="After airdrop"
-    )
+    log_balances(client,operator_id,receiver_id,[fungible_id],[nft_serial],prefix="After airdrop")
 
     # Get a list of pending airdrops
     pending_airdrop_ids = fetch_pending_airdrops(client, transaction_id)
@@ -476,30 +469,15 @@ def main():
     # Claiming will work even without association and available auto-association slots
     # This is because the signing itself causes the Hedera network to associate the tokens.
     print("Claiming airdrop:")
-    claim_airdrop(
-        client,
-        receiver_key,
-        pending_airdrop_ids
-    ) #Pass the receiver key which is needed to sign
+    claim_airdrop(client,receiver_key,pending_airdrop_ids) #Pass the receiver key which is needed to sign
 
     # Check airdrop has resulted in transfers
     print("\n🔍 Verifying balances have now changed after claim:")
-    log_balances(
-        client,
-        operator_id,
-        receiver_id,
-        [fungible_id],
-        [nft_serial],
-        prefix="After claim"
-    )
+    log_balances(client,operator_id,receiver_id,[fungible_id],[nft_serial],prefix="After claim")
 
     # Check Hedera network has associated these tokens behind the scenes
     token_ids_to_check = [fungible_id, nft_token_id]
-    association_status = get_token_association_status(
-        client,
-        receiver_id,
-        token_ids_to_check
-    )
+    association_status = get_token_association_status(client,receiver_id,token_ids_to_check)
     print(association_status)
 
 if __name__ == "__main__":
