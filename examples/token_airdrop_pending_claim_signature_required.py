@@ -223,30 +223,44 @@ def get_token_association_status(
     except Exception as e:
         print(f"❌ Failed to fetch token associations for account {receiver_id}: {e}")
         return {token_id: False for token_id in token_ids}
+def log_fungible_balances(account_id: AccountId, balances: dict, token_ids: Iterable[TokenId]):
+    print("  Fungible tokens:")
+    for token_id in token_ids:
+        amount = balances.get(token_id, 0)
+        print(f"    {token_id}: {amount}")
+
+
+def log_nft_balances(client: Client, account_id: AccountId, nft_ids: Iterable[NftId]):
+    print("  NFTs:")
+    owned_nfts = []
+    for nft_id in nft_ids:
+        try:
+            info = TokenNftInfoQuery().set_nft_id(nft_id).execute(client)
+            if info.account_id == account_id:
+                owned_nfts.append(str(nft_id))
+        except Exception as e:
+            print(f"    ⚠️ Error fetching NFT {nft_id}: {e}")
+
+    if owned_nfts:
+        for nft in owned_nfts:
+            print(f"    {nft}")
+    else:
+        print("    (none)")
+
 
 def log_balances(
-        client: Client,
-        operator_id: AccountId,
-        receiver_id: AccountId,
-        fungible_ids: Iterable[TokenId],
-        nft_ids: Iterable[NftId],
-        prefix: str = ""
-    ):
+    client: Client,
+    operator_id: AccountId,
+    receiver_id: AccountId,
+    fungible_ids: Iterable[TokenId],
+    nft_ids: Iterable[NftId],
+    prefix: str = ""
+):
     print(f"\n===== {prefix} Balances =====")
 
     try:
-        # --- Query balances for sender (operator) and receiver ---
-        operator_balance = (
-            CryptoGetAccountBalanceQuery()
-            .set_account_id(operator_id)
-            .execute(client)
-        )
-        receiver_balance = (
-            CryptoGetAccountBalanceQuery()
-            .set_account_id(receiver_id)
-            .execute(client)
-        )
-
+        operator_balance = CryptoGetAccountBalanceQuery().set_account_id(operator_id).execute(client)
+        receiver_balance = CryptoGetAccountBalanceQuery().set_account_id(receiver_id).execute(client)
     except Exception as e:
         print(f"❌ Failed to fetch balances: {e}")
         return
@@ -258,65 +272,15 @@ def log_balances(
     # SENDER BALANCES
     # ------------------------------
     print(f"\nSender ({operator_id}):")
-
-    # Fungible balances
-    print("  Fungible tokens:")
-    for fungible_id in fungible_ids:
-        amount = operator_balances.get(fungible_id, 0)
-        print(f"    {fungible_id}: {amount}")
-
-    # NFTs owned by sender
-    print("  NFTs:")
-    sender_nfts = []
-    for nft_id in nft_ids:
-        try:
-            info = (
-                TokenNftInfoQuery()
-                .set_nft_id(nft_id)
-                .execute(client)
-            )
-            if info.account_id == operator_id:
-                sender_nfts.append(str(nft_id))
-
-        except Exception as e:
-            print(f"    ⚠️ Error fetching NFT {nft_id}: {e}")
-
-    if sender_nfts:
-        for nft in sender_nfts:
-            print(f"    {nft}")
-    else:
-        print("    (none)")
+    log_fungible_balances(operator_id, operator_balances, fungible_ids)
+    log_nft_balances(client, operator_id, nft_ids)
 
     # ------------------------------
     # RECEIVER BALANCES
     # ------------------------------
     print(f"\nReceiver ({receiver_id}):")
-
-    # Fungible balances
-    print("  Fungible tokens:")
-    for fungible_id in fungible_ids:
-        amount = receiver_balances.get(fungible_id, 0)
-        print(f"    {fungible_id}: {amount}")
-
-    # NFTs owned by receiver
-    print("  NFTs:")
-    receiver_nfts = []
-    for nft_id in nft_ids:
-        try:
-            info = (
-                TokenNftInfoQuery()
-                .set_nft_id(nft_id)
-                .execute(client)
-            )
-            if info.account_id == receiver_id:
-                receiver_nfts.append(str(nft_id))
-        except Exception as e:
-            print(f"    ⚠️ Error fetching NFT {nft_id}: {e}")
-    if receiver_nfts:
-        for nft in receiver_nfts:
-            print(f"    {nft}")
-    else:
-        print("    (none)")
+    log_fungible_balances(receiver_id, receiver_balances, fungible_ids)
+    log_nft_balances(client, receiver_id, nft_ids)
 
     print("=============================================\n")
 
