@@ -54,7 +54,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ContractDeleteTransaction class
 - ContractExecuteTransaction class
 - setMessageAndPay() function in StatefulContract
-- TokenClaimAirdropTransaction class and examples
 - AccountDeleteTransaction Class
 - generate_proto.py
 - Bumped Hedera proto version from v0.57.3 to v0.64.3
