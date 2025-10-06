@@ -9,20 +9,22 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
 - Added checksum validation for TokenId
 - Refactor examples/account_create.py to use modular functions
 
+### Changed
+
+- Refactor examples/token_cancel_airdrop.py to use modular functions
 
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
 
 ## [0.1.5] - 2025-09-25
-
-- Convert camelCase to snake_case in integration tests (#318)
 
 ### Added
 
@@ -63,7 +65,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - bump solo version to `v0.14`
 - bump protobufs version to `v0.66.0`
 - bump solo version to `v0.13`
-- Extract \_build_proto_body() from build_transaction_body() in every transaction
 - Extract \_build_proto_body() from build_transaction_body() in every transaction
 - StatefulContract's setMessage() function designed with no access restrictions, allowing calls from any address
 - bump solo version to `v0.12`
