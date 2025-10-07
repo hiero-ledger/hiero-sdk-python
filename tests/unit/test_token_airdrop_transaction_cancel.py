@@ -5,7 +5,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
-from hiero_sdk_python.tokens.token_cancel_airdrop_transaction import TokenCancelAirdropTransaction
+from hiero_sdk_python.tokens.token_airdrop_cancel import TokenCancelAirdropTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 import pytest
 

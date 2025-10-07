@@ -30,7 +30,7 @@ from .tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
 from .tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from .tokens.token_update_transaction import TokenUpdateTransaction
 from .tokens.token_airdrop_transaction import TokenAirdropTransaction
-from .tokens.token_cancel_airdrop_transaction import TokenCancelAirdropTransaction
+from .tokens.token_airdrop_cancel import TokenCancelAirdropTransaction
 from .tokens.pending_airdrop_id import PendingAirdropId
 from .tokens.pending_airdrop_record import PendingAirdropRecord
 from .tokens.token_id import TokenId
@@ -40,6 +40,7 @@ from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
 from .tokens.token_nft_info import TokenNftInfo
 from .tokens.token_relationship import TokenRelationship
+from .tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -172,6 +173,7 @@ __all__ = [
     "PendingAirdropRecord",
     "TokenType",
     "SupplyType",
+    "TokenClaimAirdropTransaction",
 
     # Transaction
     "TransferTransaction",
