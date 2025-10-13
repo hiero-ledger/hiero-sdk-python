@@ -22,6 +22,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
+- Corrected references to __require_not_frozen() to _require_not_frozen() and removed the surplus _is_frozen
 
 ## [0.1.5] - 2025-09-25
 
