@@ -12,13 +12,9 @@ Coverage includes:
 - Transaction execution error handling
 """
 
-import re
 import pytest
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
-from hiero_sdk_python.transaction.transaction import Transaction
 
-# Hiero SDK imports
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
@@ -38,6 +34,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )

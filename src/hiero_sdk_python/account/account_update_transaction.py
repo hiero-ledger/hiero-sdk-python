@@ -71,9 +71,7 @@ class AccountUpdateTransaction(Transaction):
         self.receiver_signature_required = params.receiver_signature_required
         self.expiration_time = params.expiration_time
 
-    def set_account_id(
-        self, account_id: Optional[AccountId]
-    ) -> "AccountUpdateTransaction":
+    def set_account_id(self, account_id: Optional[AccountId]) -> "AccountUpdateTransaction":
         """
         Sets the `AccountId` that will be updated.
 
@@ -117,9 +115,7 @@ class AccountUpdateTransaction(Transaction):
         self.auto_renew_period = auto_renew_period
         return self
 
-    def set_account_memo(
-        self, account_memo: Optional[str]
-    ) -> "AccountUpdateTransaction":
+    def set_account_memo(self, account_memo: Optional[str]) -> "AccountUpdateTransaction":
         """
         Sets the account memo (UTF-8, network enforced size limits apply).
 
@@ -181,17 +177,11 @@ class AccountUpdateTransaction(Transaction):
         return CryptoUpdateTransactionBody(
             accountIDToUpdate=self.account_id._to_proto(),
             key=self.key._to_proto() if self.key else None,
-            memo=(
-                StringValue(value=self.account_memo)
-                if self.account_memo is not None
-                else None
-            ),
+            memo=StringValue(value=self.account_memo) if self.account_memo is not None else None,
             autoRenewPeriod=(
                 self.auto_renew_period._to_proto() if self.auto_renew_period else None
             ),
-            expirationTime=(
-                self.expiration_time._to_protobuf() if self.expiration_time else None
-            ),
+            expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
             receiverSigRequiredWrapper=(
                 BoolValue(value=self.receiver_signature_required)
                 if self.receiver_signature_required is not None

@@ -1,5 +1,6 @@
 """
-nft_id.py
+hiero_sdk_python.tokens.nft_id.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines NftId, a value object for representing and validating a unique
 Non-Fungible Token (NFT) identifier, including conversion to/from
@@ -10,6 +11,7 @@ import re
 import warnings
 from dataclasses import dataclass, field
 from typing import Optional
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
@@ -118,6 +120,13 @@ class NftId(_DeprecatedAliasesMixin):
             token_id=TokenId.from_string(token_part),
             serial_number=int(serial_part),
         )
+ 
+    def to_string_with_checksum(self, client:Client) -> str:
+        """
+        Returns the string representation of the NftId with 
+        checksum in the format 'shard.realm.num-checksum/serial'
+        """
+        return f"{self.token_id.to_string_with_checksum(client)}/{self.serial_number}"
 
     def __str__(self) -> str:
         """

@@ -4,11 +4,12 @@ from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.hbar import Hbar
 
 if typing.TYPE_CHECKING:
-    from hiero_sdk_python.client import Client
+    from hiero_sdk_python.client.client import Client
     from hiero_sdk_python.hapi.services import custom_fees_pb2
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.hapi.services import custom_fees_pb2
 
 class CustomFixedFee(CustomFee):
     """
@@ -58,15 +59,33 @@ class CustomFixedFee(CustomFee):
     def _to_proto(self) -> "custom_fees_pb2.CustomFee":
         from hiero_sdk_python.hapi.services import custom_fees_pb2
 
-        return custom_fees_pb2.CustomFee(
-            fee_collector_account_id=self._get_fee_collector_account_id_protobuf(),
-            all_collectors_are_exempt=self.all_collectors_are_exempt,
+        fixed = custom_fees_pb2.FixedFee()
+        fixed.amount = self.amount
+
+        if self.denominating_token_id is not None:
+            fixed.denominating_token_id.CopyFrom(self.denominating_token_id._to_proto())
+
+        cf = custom_fees_pb2.CustomFee()
+        cf.fixed_fee.CopyFrom(fixed)
+
+        collector = self._get_fee_collector_account_id_protobuf()
+        if collector is not None:
+            cf.fee_collector_account_id.CopyFrom(collector)
+
+        cf.all_collectors_are_exempt = self.all_collectors_are_exempt
+        return cf
+
+    def _to_topic_fee_proto(self) -> "custom_fees_pb2.FixedCustomFee":
+        from hiero_sdk_python.hapi.services import custom_fees_pb2
+        
+        return custom_fees_pb2.FixedCustomFee(
             fixed_fee=custom_fees_pb2.FixedFee(
                 amount=self.amount,
                 denominating_token_id=self.denominating_token_id._to_proto()
                 if self.denominating_token_id is not None
                 else None,
             ),
+            fee_collector_account_id=self._get_fee_collector_account_id_protobuf(),
         )
 
     def _validate_checksums(self, client: "Client") -> None:
@@ -75,7 +94,7 @@ class CustomFixedFee(CustomFee):
             self.denominating_token_id.validate_checksum(client)
 
     @classmethod
-    def _from_proto(cls, proto_fee) -> "CustomFixedFee":
+    def _from_proto(cls, proto_fee: custom_fees_pb2.CustomFee) -> "CustomFixedFee":
         """Create CustomFixedFee from protobuf CustomFee message."""
         
         fixed_fee_proto = proto_fee.fixed_fee
@@ -88,9 +107,14 @@ class CustomFixedFee(CustomFee):
         if proto_fee.HasField("fee_collector_account_id"):
             fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
         
+        collectors_are_exempt = getattr(proto_fee, 'all_collectors_are_exempt', False)
+        
         return cls(
             amount=fixed_fee_proto.amount,
             denominating_token_id=denominating_token_id,
             fee_collector_account_id=fee_collector_account_id,
-            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
+            all_collectors_are_exempt=collectors_are_exempt
         )
+        
+    def __eq__(self, other: "CustomFixedFee") -> bool:
+        return super().__eq__(other) and self.amount == other.amount and self.denominating_token_id == other.denominating_token_id
