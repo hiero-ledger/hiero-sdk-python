@@ -18,7 +18,7 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def create_new_account():
+def setup_client():
     network = Network(network='testnet')
     client = Client(network)
 
@@ -26,6 +26,9 @@ def create_new_account():
     operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
     client.set_operator(operator_id, operator_key)
 
+    return client, operator_key
+
+def create_new_account(client, operator_key):
     new_account_private_key = PrivateKey.generate("ed25519")
     new_account_public_key = new_account_private_key.public_key()
 
@@ -60,4 +63,5 @@ def create_new_account():
         sys.exit(1)
 
 if __name__ == "__main__":
-    create_new_account()
+    client, operator_key = setup_client()
+    create_new_account(client, operator_key)
