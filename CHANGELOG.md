@@ -8,6 +8,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Changed
+- Convert camelCase to snake_case in integration tests (#318)
+- Refactor `examples/custom_fee.py` to improve readability and reduce repetition (#364)
+
 ### Added
 
 - add revenue generating topic tests/example
@@ -38,8 +42,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Incompatible Types assignment in token_transfer_list.py
 - Corrected references to __require_not_frozen() to _require_not_frozen() and removed the surplus _is_frozen
 
-## [0.1.5] - 2025-09-25
 
+## [0.1.5] - 2025-09-25
 ### Added
 
 - ScheduleSignTransaction class
