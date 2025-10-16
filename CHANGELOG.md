@@ -24,6 +24,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
 
 ### Changed
+
 - TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
@@ -36,7 +37,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
-- Corrected references to __require_not_frozen() to _require_not_frozen() and removed the surplus _is_frozen
+- Corrected references to \_\_require_not_frozen() to \_require_not_frozen() and removed the surplus \_is_frozen
 
 ## [0.1.5] - 2025-09-25
 
@@ -92,6 +93,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add CI tests across Python 3.10–3.12.
 - kyc_status: Optional[TokenFreezeStatusProto] = None → kyc_status: Optional[TokenKycStatus] = None
 - assert relationship.freeze_status == TokenFreezeStatus.FROZEN, f"Expected freeze status to be FROZEN, but got {relationship.freeze_status}" → assert relationship.freeze_status == TokenFreezeStatus.UNFROZEN, f"Expected freeze status to be UNFROZEN, but got {relationship.freeze_status}"
+- Refactor query_balance.py into modular, reusable functions with setup_client(), create_account(), get_balance(), transfer_hbars(), and main() for improved readability, maintainability, and error handling.
 
 ### Fixed
 
