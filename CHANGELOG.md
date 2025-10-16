@@ -30,6 +30,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - Refactor token_associate.py for better structure, add association verification query (#367)
+- Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 
 ### Fixed
 
