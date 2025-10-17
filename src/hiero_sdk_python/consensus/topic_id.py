@@ -89,7 +89,8 @@ class TopicId:
         topic_id.__checksum = checksum
 
         return topic_id
-    
+
+    @property 
     def checksum(self) -> str | None:
         """Return checksum of the topicId"""
         return self.__checksum
