@@ -29,12 +29,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactor examples/token_cancel_airdrop
 
 ### Changed
+
 - Refactor token_associate.py for better structure, add association verification query (#367)
+- Refactored `examples/account_create.py` to improve modularity and readability (#363)
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
+- Corrected references to __require_not_frozen() to _require_not_frozen() and removed the surplus _is_frozen
 
 ## [0.1.5] - 2025-09-25
 
