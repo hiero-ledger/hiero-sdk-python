@@ -34,12 +34,15 @@ def account_id_100():
     """AccountId with num=100 for testing."""
     return AccountId(shard=0, realm=0, num=100)
 
-
 @pytest.fixture
 def account_id_101():
     """AccountId with num=101 for testing."""
     return AccountId(shard=0, realm=0, num=101)
 
+@pytest.fixture
+def client(mock_client):
+    mock_client.network.ledger_id = bytes.fromhex("00") # Mainnet ledger id
+    return mock_client
 
 def test_default_initialization():
     """Test AccountId initialization with default values."""
@@ -49,6 +52,7 @@ def test_default_initialization():
     assert account_id.realm == 0
     assert account_id.num == 0
     assert account_id.alias_key is None
+    assert account_id.checksum() is None
 
 
 def test_custom_initialization(account_id_100):
@@ -57,6 +61,7 @@ def test_custom_initialization(account_id_100):
     assert account_id_100.realm == 0
     assert account_id_100.num == 100
     assert account_id_100.alias_key is None
+    assert account_id_100.checksum() is None
 
 
 def test_initialization_with_alias_key(alias_key):
@@ -67,6 +72,7 @@ def test_initialization_with_alias_key(alias_key):
     assert account_id.realm == 0
     assert account_id.num == 0
     assert account_id.alias_key == alias_key
+    assert account_id.checksum() is None
 
 
 def test_str_representation(account_id_100):
@@ -77,6 +83,20 @@ def test_str_representation(account_id_100):
 def test_str_representation_default(account_id_100):
     """Test string representation of AccountId with default values."""
     assert str(account_id_100) == "0.0.100"
+
+
+def test_str_representation_with_checksum(client, account_id_100):
+    """Test string representation of AccountId with checksum."""
+    assert account_id_100.to_string_with_checksum(client) == "0.0.100-hhghj"
+
+
+def test_str_representation_with_checksum_raise_error_if_alias_key_present(client, account_id_100, alias_key):
+    """AccountId with aliasKey should raise ValueError on to_string_with_checksum"""
+    account_id = account_id_100
+    account_id.alias_key = alias_key
+
+    with pytest.raises(ValueError, match="Cannot calculate checksum with an account ID that has a aliasKey"):
+        account_id.to_string_with_checksum(client)
 
 
 def test_str_representation_with_alias_key(alias_key):
@@ -109,6 +129,7 @@ def test_from_string_valid():
     assert account_id.realm == 0
     assert account_id.num == 100
     assert account_id.alias_key is None
+    assert account_id.checksum() is None
 
 
 def test_from_string_with_spaces():
@@ -119,6 +140,7 @@ def test_from_string_with_spaces():
     assert account_id.realm == 0
     assert account_id.num == 100
     assert account_id.alias_key is None
+    assert account_id.checksum() is None
 
 
 def test_from_string_zeros():
@@ -129,6 +151,17 @@ def test_from_string_zeros():
     assert account_id.realm == 0
     assert account_id.num == 100
     assert account_id.alias_key is None
+    assert account_id.checksum() is None
+
+def test_from_string_with_checksum():
+    """Test creating AccountId from string with zero values."""
+    account_id = AccountId.from_string("0.0.100-abcde")
+
+    assert account_id.shard == 0
+    assert account_id.realm == 0
+    assert account_id.num == 100
+    assert account_id.alias_key is None
+    assert account_id.checksum() == 'abcde'
 
 
 def test_from_string_invalid_format_too_few_parts():
@@ -447,3 +480,26 @@ def test_alias_key_affects_string_representation(alias_key, alias_key2, account_
 
     # Account without alias should use num
     assert str3 == "0.0.100"
+
+
+def test_validate_checksum_for_id_with_valid_checksum(client):
+    """Test validateChecksum for accountId"""
+    account_id = AccountId.from_string("0.0.100-hhghj")
+    account_id.validate_checksum(client)
+
+
+def test_validate_checksum_for_id_with_valid_checksum_and_alias_key(client, alias_key):
+    """Test validateChecksum for accountId with aliasKey set should raise ValueError"""
+    account_id = AccountId.from_string("0.0.100-hhghj")
+    account_id.alias_key = alias_key
+
+    with pytest.raises(ValueError, match="Cannot calculate checksum with an account ID that has a aliasKey"):
+        account_id.validate_checksum(client)
+
+
+def test_validate_checksum_for_id_with_invalid_checksum(client):
+    """Invalid Checksum for Id should raise ValueError"""
+    account_id = AccountId.from_string("0.0.100-abcde")
+    
+    with pytest.raises(ValueError):
+        account_id.validate_checksum(client)
