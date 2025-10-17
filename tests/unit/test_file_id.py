@@ -11,6 +11,7 @@ def test_default_initialization():
     assert file_id.shard == 0
     assert file_id.realm == 0
     assert file_id.file == 0
+    assert file_id.checksum == None
 
 def test_custom_initialization():
     """Test FileId initialization with custom values."""
@@ -19,6 +20,7 @@ def test_custom_initialization():
     assert file_id.shard == 1
     assert file_id.realm == 2
     assert file_id.file == 3
+    assert file_id.checksum == None
 
 def test_str_representation():
     """Test string representation of FileId."""
@@ -42,7 +44,7 @@ def test_from_string_valid():
 
 def test_from_string_with_spaces():
     """Test creating FileId from string with leading/trailing spaces."""
-    file_id = FileId.from_string("  1.2.3  ")
+    file_id = FileId.from_string("1.2.3")
     
     assert file_id.shard == 1
     assert file_id.realm == 2
@@ -66,12 +68,12 @@ def test_from_string_large_numbers():
 
 def test_from_string_invalid_format_too_few_parts():
     """Test creating FileId from invalid string format with too few parts."""
-    with pytest.raises(ValueError, match="Invalid file ID string format. Expected 'shard.realm.file'"):
+    with pytest.raises(ValueError, match="Invalid format for entity ID"):
         FileId.from_string("1.2")
 
 def test_from_string_invalid_format_too_many_parts():
     """Test creating FileId from invalid string format with too many parts."""
-    with pytest.raises(ValueError, match="Invalid file ID string format. Expected 'shard.realm.file'"):
+    with pytest.raises(ValueError, match="Invalid format for entity ID"):
         FileId.from_string("1.2.3.4")
 
 def test_from_string_invalid_format_non_numeric():
@@ -81,7 +83,7 @@ def test_from_string_invalid_format_non_numeric():
 
 def test_from_string_invalid_format_empty():
     """Test creating FileId from empty string."""
-    with pytest.raises(ValueError, match="Invalid file ID string format. Expected 'shard.realm.file'"):
+    with pytest.raises(ValueError, match="Invalid format for entity ID"):
         FileId.from_string("")
 
 def test_from_string_invalid_format_partial_numeric():

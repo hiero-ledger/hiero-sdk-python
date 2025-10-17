@@ -167,7 +167,7 @@ def test_from_string_with_checksum():
 def test_from_string_invalid_format_too_few_parts():
     """Test creating AccountId from invalid string format with too few parts."""
     with pytest.raises(
-        ValueError, match="Invalid account ID string format. Expected 'shard.realm.num'"
+        ValueError, match="Invalid format for entity ID"
     ):
         AccountId.from_string("1.2")
 
@@ -175,7 +175,7 @@ def test_from_string_invalid_format_too_few_parts():
 def test_from_string_invalid_format_too_many_parts():
     """Test creating AccountId from invalid string format with too many parts."""
     with pytest.raises(
-        ValueError, match="Invalid account ID string format. Expected 'shard.realm.num'"
+        ValueError, match="Invalid format for entity ID"
     ):
         AccountId.from_string("1.2.3.4")
 
@@ -189,7 +189,7 @@ def test_from_string_invalid_format_non_numeric():
 def test_from_string_invalid_format_empty():
     """Test creating AccountId from empty string."""
     with pytest.raises(
-        ValueError, match="Invalid account ID string format. Expected 'shard.realm.num'"
+        ValueError, match="Invalid format for entity ID"
     ):
         AccountId.from_string("")
 
