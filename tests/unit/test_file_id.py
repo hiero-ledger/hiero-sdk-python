@@ -86,12 +86,12 @@ def test_from_string_with_checksum():
 
 def test_from_string_invalid_format_too_few_parts():
     """Test creating FileId from invalid string format with too few parts."""
-    with pytest.raises(ValueError, match="Invalid format for entity ID"):
+    with pytest.raises(ValueError, match="Invalid file ID string '1.2'. Expected format 'shard.realm.file'."):
         FileId.from_string("1.2")
 
 def test_from_string_invalid_format_too_many_parts():
     """Test creating FileId from invalid string format with too many parts."""
-    with pytest.raises(ValueError, match="Invalid format for entity ID"):
+    with pytest.raises(ValueError, match="Invalid file ID string '1.2.3.4'. Expected format 'shard.realm.file'."):
         FileId.from_string("1.2.3.4")
 
 def test_from_string_invalid_format_non_numeric():
@@ -101,12 +101,12 @@ def test_from_string_invalid_format_non_numeric():
 
 def test_from_string_invalid_format_empty():
     """Test creating FileId from empty string."""
-    with pytest.raises(ValueError, match="Invalid format for entity ID"):
+    with pytest.raises(ValueError, match="Invalid file ID string ''. Expected format 'shard.realm.file'."):
         FileId.from_string("")
 
 def test_from_string_invalid_format_partial_numeric():
     """Test creating FileId from string with some non-numeric parts."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid file ID string '1.a.3'. Expected format 'shard.realm.file'."):
         FileId.from_string("1.a.3")
 
 def test_to_proto():

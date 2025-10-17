@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
@@ -52,11 +53,21 @@ class FileId:
         """
         Creates a FileId instance from a string in the format 'shard.realm.file'.
         """
-        shard, realm, file, checksum = parse_from_string(file_id_str)
-        file_id: FileId = cls(int(shard), int(realm), int(file))
-        object.__setattr__(file_id, 'checksum', checksum)
+        try:
+            shard, realm, file, checksum = parse_from_string(file_id_str)
 
-        return file_id
+            file_id: FileId = cls(
+                shard=int(shard),
+                realm=int(realm),
+                file=int(file)
+            )
+            object.__setattr__(file_id, 'checksum', checksum)
+
+            return file_id
+        except Exception as e:
+            raise ValueError(
+                f"Invalid file ID string '{file_id_str}'. Expected format 'shard.realm.file'."
+            ) from e
     
     def __str__(self) -> str:
         """
@@ -64,24 +75,24 @@ class FileId:
         """
         return f"{self.shard}.{self.realm}.{self.file}"
     
-    def validate_checksum(self, client) -> None:
+    def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the FileId instance"""
         validate_checksum(
-            shard=self.shard,
-            realm=self.realm,
-            num=self.file,
-            checksum=self.checksum,
-            client=client
+            self.shard,
+            self.realm,
+            self.file,
+            self.checksum,
+            client
         )
 
-    def to_string_with_checksum(self, client) -> str:
+    def to_string_with_checksum(self, client: Client) -> str:
         """
-        Returns the string representation of the FileId with checksum 
-        in the format 'shard.realm.file-checksum'
+        Returns the string representation of the FileId 
+        with checksum in 'shard.realm.file-checksum' format.
         """
         return format_to_string_with_checksum(
-            shard=self.shard,
-            realm=self.realm,
-            num=self.file,
-            client=client
+            self.shard,
+            self.realm,
+            self.file,
+            client
         )

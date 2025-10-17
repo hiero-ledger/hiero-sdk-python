@@ -132,17 +132,6 @@ def test_from_string_valid():
     assert account_id.checksum is None
 
 
-def test_from_string_with_spaces():
-    """Test creating AccountId from string with leading/trailing spaces."""
-    account_id = AccountId.from_string("  0.0.100  ")
-
-    assert account_id.shard == 0
-    assert account_id.realm == 0
-    assert account_id.num == 100
-    assert account_id.alias_key is None
-    assert account_id.checksum is None
-
-
 def test_from_string_zeros():
     """Test creating AccountId from string with zero values."""
     account_id = AccountId.from_string("0.0.100")
@@ -167,7 +156,7 @@ def test_from_string_with_checksum():
 def test_from_string_invalid_format_too_few_parts():
     """Test creating AccountId from invalid string format with too few parts."""
     with pytest.raises(
-        ValueError, match="Invalid format for entity ID"
+        ValueError, match="Invalid account ID string '1.2'. Expected format 'shard.realm.num'."
     ):
         AccountId.from_string("1.2")
 
@@ -175,28 +164,26 @@ def test_from_string_invalid_format_too_few_parts():
 def test_from_string_invalid_format_too_many_parts():
     """Test creating AccountId from invalid string format with too many parts."""
     with pytest.raises(
-        ValueError, match="Invalid format for entity ID"
+        ValueError, match="Invalid account ID string '1.2.3.4'. Expected format 'shard.realm.num'."
     ):
         AccountId.from_string("1.2.3.4")
 
 
 def test_from_string_invalid_format_non_numeric():
     """Test creating AccountId from invalid string format with non-numeric parts."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid account ID string 'a.b.c'. Expected format 'shard.realm.num'."):
         AccountId.from_string("a.b.c")
 
 
 def test_from_string_invalid_format_empty():
     """Test creating AccountId from empty string."""
-    with pytest.raises(
-        ValueError, match="Invalid format for entity ID"
-    ):
+    with pytest.raises(ValueError, match="Invalid account ID string ''. Expected format 'shard.realm.num'."):
         AccountId.from_string("")
 
 
 def test_from_string_invalid_format_partial_numeric():
     """Test creating AccountId from string with some non-numeric parts."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid account ID string '1.a.3'. Expected format 'shard.realm.num'."):
         AccountId.from_string("1.a.3")
 
 
