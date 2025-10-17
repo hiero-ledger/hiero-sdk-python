@@ -1,6 +1,6 @@
 import re
 
-from hiero_sdk_python.client.client import Client
+# from hiero_sdk_python.client.client import Client
 
 ID_REGEX = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([a-z]{5}))?$")
 
@@ -20,7 +20,7 @@ def parse_from_string(address: str):
     """
     match = ID_REGEX.match(address)
     if not match:
-        raise ValueError("Invalid address format")
+        raise ValueError("Invalid account ID string format. Expected 'shard.realm.num'")
 
     shard, realm, num, checksum = match.groups()
 
@@ -76,7 +76,7 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
 
     return "".join(reversed(letter))
 
-def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client: Client) -> None:
+def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client) -> None:
     """
     Validate a Hiero entity ID checksum against the current client's ledger.
 
@@ -110,7 +110,7 @@ def format_to_string(shard: int, realm: int, num: int) -> str:
     """
     return f"{shard}.{realm}.{num}"
 
-def format_to_string_with_checksum(shard: int, realm: int, num: int,client: Client) -> str:
+def format_to_string_with_checksum(shard: int, realm: int, num: int,client) -> str:
     """
     Convert an entity ID into its string representation with checksum.
     """
