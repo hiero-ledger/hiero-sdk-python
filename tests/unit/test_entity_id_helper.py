@@ -47,7 +47,7 @@ def test_parse_parse_entity_id_from_string():
 )
 def test_parse_from_string_for_invalid_addresses(invalid_address):
     """Invalid entity ID strings should raise ValueError"""
-    with pytest.raises(ValueError, match="Invalid address format"):
+    with pytest.raises(ValueError, match="Invalid account ID string format. Expected 'shard.realm.num'"):
         parse_from_string(invalid_address)
 
 def test_generate_checksum():
