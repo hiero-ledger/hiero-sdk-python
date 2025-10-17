@@ -160,4 +160,9 @@ class ScheduleId:
         Returns the string representation of the ScheduleId 
         with checksum in 'shard.realm.schedule-checksum' format.
         """
-        return format_to_string_with_checksum(self.shard, self.realm, self.schedule, client)
+        return format_to_string_with_checksum(
+            self.shard,
+            self.realm,
+            self.schedule,
+            client
+        )

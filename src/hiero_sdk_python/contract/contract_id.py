@@ -61,11 +61,21 @@ class ContractId:
         """
         Parses a string in the format 'shard.realm.contract' to create a ContractId instance.
         """
-        shard, realm, contract, checksum = parse_from_string(contract_id_str)
-        contract_id: ContractId =  cls(int(shard), int(realm), int(contract))
-        object.__setattr__(contract_id, "checksum", checksum)
+        try:
+            shard, realm, contract, checksum = parse_from_string(contract_id_str)
+            
+            contract_id: ContractId =  cls(
+                shard=int(shard),
+                realm=int(realm),
+                contract=int(contract)
+            )
+            object.__setattr__(contract_id, "checksum", checksum)
 
-        return contract_id
+            return contract_id
+        except Exception as e:
+            raise ValueError(
+                f"Invalid contract ID string '{contract_id_str}'. Expected format 'shard.realm.contract'."
+            ) from e
 
     def __str__(self):
         """
@@ -90,7 +100,7 @@ class ContractId:
 
         return evm_bytes.hex()
 
-    def validate_checksum(self, client):
+    def validate_checksum(self, client) -> None:
         """Validate the checksum for the contractId"""
         validate_checksum(
             self.shard,
@@ -100,8 +110,14 @@ class ContractId:
             client,
         )
     
-    def to_string_with_checksum(self, client):
+    def to_string_with_checksum(self, client) -> str:
         """
-        Returns the string representation of the ContractId with checksum in 'shard.realm.contract-checksum' format.
+        Returns the string representation of the ContractId 
+        with checksum in 'shard.realm.contract-checksum' format.
         """
-        return format_to_string_with_checksum(self.shard, self.realm, self.contract, client)
+        return format_to_string_with_checksum(
+            self.shard, 
+            self.realm, 
+            self.contract, 
+            client
+        )

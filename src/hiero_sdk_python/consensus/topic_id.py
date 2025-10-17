@@ -10,7 +10,12 @@ formats within the Hiero SDK.
 from dataclasses import dataclass
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
-from hiero_sdk_python.utils.entity_id_helper import parse_from_string, validate_checksum, format_to_string_with_checksum
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.utils.entity_id_helper import (
+    parse_from_string,
+    validate_checksum,
+    format_to_string_with_checksum
+)
 
 @dataclass
 class TopicId:
@@ -83,19 +88,28 @@ class TopicId:
         Raises:
             ValueError: If the string format is invalid.
         """
-        shard, realm, num, checksum = parse_from_string(topic_id_str)
+        try:
+            shard, realm, num, checksum = parse_from_string(topic_id_str)
 
-        topic_id: TopicId = cls(shard=int(shard), realm=int(realm), num=int(num))
-        topic_id.__checksum = checksum
+            topic_id: TopicId = cls(
+                shard=int(shard),
+                realm=int(realm),
+                num=int(num)
+            )
+            topic_id.__checksum = checksum
 
-        return topic_id
+            return topic_id
+        except Exception as e:
+            raise ValueError(
+                f"Invalid topic ID string '{topic_id_str}'. Expected format 'shard.realm.num'."
+            ) from e
 
     @property 
     def checksum(self) -> str | None:
         """Return checksum of the topicId"""
         return self.__checksum
     
-    def validate_checksum(self, client):
+    def validate_checksum(self, client: Client):
         """Validate the checksum for the topicId"""
         validate_checksum(
             self.shard,
@@ -105,8 +119,14 @@ class TopicId:
             client,
         )
     
-    def to_string_with_checksum(self, client):
+    def to_string_with_checksum(self, client: Client):
         """
-        Returns the string representation of the TopicId with checksum in 'shard.realm.num-checksum' format.
+        Returns the string representation of the TopicId 
+        with checksum in 'shard.realm.num-checksum' format.
         """
-        return format_to_string_with_checksum(self.shard, self.realm, self.num, client)
+        return format_to_string_with_checksum(
+            self.shard,
+            self.realm,
+            self.num,
+            client
+        )
