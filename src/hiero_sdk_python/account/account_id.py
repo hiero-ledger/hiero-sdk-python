@@ -90,7 +90,8 @@ class AccountId:
             account_id_proto.alias = key
 
         return account_id_proto
-    
+
+    @property 
     def checksum(self) -> str | None:
         """
         Return checksum of the accountId

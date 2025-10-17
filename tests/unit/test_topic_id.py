@@ -17,7 +17,7 @@ def test_create_topic_id_from_string():
     assert topic_id.shard == 0
     assert topic_id.realm == 0
     assert topic_id.num == 1
-    assert topic_id.checksum() is None
+    assert topic_id.checksum is None
 
     # With checksum
     topic_id = TopicId.from_string('0.0.1-dfkxr')
@@ -25,7 +25,7 @@ def test_create_topic_id_from_string():
     assert topic_id.shard == 0
     assert topic_id.realm == 0
     assert topic_id.num == 1
-    assert topic_id.checksum() == 'dfkxr'
+    assert topic_id.checksum == 'dfkxr'
 
 @pytest.mark.parametrize(
     'invalid_id', 

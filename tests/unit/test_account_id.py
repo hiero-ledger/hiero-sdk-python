@@ -52,7 +52,7 @@ def test_default_initialization():
     assert account_id.realm == 0
     assert account_id.num == 0
     assert account_id.alias_key is None
-    assert account_id.checksum() is None
+    assert account_id.checksum is None
 
 
 def test_custom_initialization(account_id_100):
@@ -61,7 +61,7 @@ def test_custom_initialization(account_id_100):
     assert account_id_100.realm == 0
     assert account_id_100.num == 100
     assert account_id_100.alias_key is None
-    assert account_id_100.checksum() is None
+    assert account_id_100.checksum is None
 
 
 def test_initialization_with_alias_key(alias_key):
@@ -72,7 +72,7 @@ def test_initialization_with_alias_key(alias_key):
     assert account_id.realm == 0
     assert account_id.num == 0
     assert account_id.alias_key == alias_key
-    assert account_id.checksum() is None
+    assert account_id.checksum is None
 
 
 def test_str_representation(account_id_100):
@@ -129,7 +129,7 @@ def test_from_string_valid():
     assert account_id.realm == 0
     assert account_id.num == 100
     assert account_id.alias_key is None
-    assert account_id.checksum() is None
+    assert account_id.checksum is None
 
 
 def test_from_string_with_spaces():
@@ -140,7 +140,7 @@ def test_from_string_with_spaces():
     assert account_id.realm == 0
     assert account_id.num == 100
     assert account_id.alias_key is None
-    assert account_id.checksum() is None
+    assert account_id.checksum is None
 
 
 def test_from_string_zeros():
@@ -151,7 +151,7 @@ def test_from_string_zeros():
     assert account_id.realm == 0
     assert account_id.num == 100
     assert account_id.alias_key is None
-    assert account_id.checksum() is None
+    assert account_id.checksum is None
 
 def test_from_string_with_checksum():
     """Test creating AccountId from string with zero values."""
@@ -161,7 +161,7 @@ def test_from_string_with_checksum():
     assert account_id.realm == 0
     assert account_id.num == 100
     assert account_id.alias_key is None
-    assert account_id.checksum() == 'abcde'
+    assert account_id.checksum == 'abcde'
 
 
 def test_from_string_invalid_format_too_few_parts():
