@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
@@ -24,7 +24,7 @@ class FileId:
     shard: int = 0
     realm: int = 0
     file: int = 0
-    checksum: str | None = None
+    checksum: str | None = field(default=None, init=False)
     
     @classmethod
     def _from_proto(cls, file_id_proto: basic_types_pb2.FileID) -> 'FileId':
@@ -53,7 +53,7 @@ class FileId:
         Creates a FileId instance from a string in the format 'shard.realm.file'.
         """
         shard, realm, file, checksum = parse_from_string(file_id_str)
-        file_id: FileId = cls(shard, realm, file)
+        file_id: FileId = cls(int(shard), int(realm), int(file))
         object.__setattr__(file_id, 'checksum', checksum)
 
         return file_id

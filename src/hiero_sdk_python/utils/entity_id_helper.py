@@ -20,7 +20,7 @@ def parse_from_string(address: str):
     """
     match = ID_REGEX.match(address)
     if not match:
-        raise ValueError("Invalid account ID string format. Expected 'shard.realm.num'")
+        raise ValueError("Invalid format for entity ID")
 
     shard, realm, num, checksum = match.groups()
 
