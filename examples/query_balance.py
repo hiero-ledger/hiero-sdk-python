@@ -158,14 +158,14 @@ def main():
     Main workflow: Set up client, create account, query balance, and transfer HBAR.
     """
     try:
-        # Step 1: Initialize client with operator credentials
+        #  Initialize client with operator credentials
         client, operator_id, operator_key = setup_client()
 
-        # Step 2: Create a new account with initial balance
+        #  Create a new account with initial balance
         new_account_id, new_account_private_key = create_account(
             client, operator_key, initial_balance=Hbar(10))
 
-        # Step 3: Query and display the initial balance
+        #  Query and display the initial balance
         print("=" * 60)
         print("INITIAL BALANCE CHECK")
         print("=" * 60)
@@ -173,7 +173,7 @@ def main():
         print(f"Initial balance of new account: {initial_balance} hbars")
         print("=" * 60 + "\n")
 
-        # Step 4: Transfer additional HBAR to the new account
+        # Transfer additional HBAR to the new account
         print("=" * 60)
         print("EXECUTING TRANSFER")
         print("=" * 60)
@@ -187,7 +187,7 @@ def main():
         print("Waiting for transfer to be processed...")
         time.sleep(2)
 
-        # Step 5: Query and display the updated balance
+        #  Query and display the updated balance
         print("=" * 60)
         print("UPDATED BALANCE CHECK")
         print("=" * 60)
