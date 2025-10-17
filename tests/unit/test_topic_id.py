@@ -38,12 +38,12 @@ def test_create_topic_id_from_string():
         '0.0.1-ad'
     ]
 )
-def test_create_token_id_from_string_invalid_cases(invalid_id):
+def test_create_topic_id_from_string_invalid_cases(invalid_id):
     """Should raise error when creating TopicId from invalid string input."""
     with pytest.raises((TypeError, ValueError)):
         TopicId.from_string(invalid_id)
 
-def test_get_token_id_with_checksum(client):
+def test_get_topic_id_with_checksum(client):
     """Should return string with checksum when ledger id is provided."""
     topic_id = TopicId.from_string("0.0.1")
     assert topic_id.to_string_with_checksum(client) == "0.0.1-dfkxr"

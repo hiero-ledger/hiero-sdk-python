@@ -69,7 +69,7 @@ class FileId:
         validate_checksum(
             shard=self.shard,
             realm=self.realm,
-            num=self.num,
+            num=self.file,
             checksum=self.checksum,
             client=client
         )
@@ -77,11 +77,11 @@ class FileId:
     def to_string_with_checksum(self, client) -> str:
         """
         Returns the string representation of the FileId with checksum 
-        in the format 'shard.realm.num-checksum'
+        in the format 'shard.realm.file-checksum'
         """
         return format_to_string_with_checksum(
             shard=self.shard,
             realm=self.realm,
-            num=self.num,
+            num=self.file,
             client=client
         )

@@ -4,6 +4,11 @@ from hiero_sdk_python.hapi.services import basic_types_pb2
 
 pytestmark = pytest.mark.unit
 
+@pytest.fixture
+def client(mock_client):
+    mock_client.network.ledger_id = bytes.fromhex("00") # mainnet ledger id
+    return mock_client
+
 def test_default_initialization():
     """Test FileId initialization with default values."""
     file_id = FileId()
@@ -41,6 +46,7 @@ def test_from_string_valid():
     assert file_id.shard == 1
     assert file_id.realm == 2
     assert file_id.file == 3
+    assert file_id.checksum == None
 
 def test_from_string_with_spaces():
     """Test creating FileId from string with leading/trailing spaces."""
@@ -49,6 +55,7 @@ def test_from_string_with_spaces():
     assert file_id.shard == 1
     assert file_id.realm == 2
     assert file_id.file == 3
+    assert file_id.checksum == None
 
 def test_from_string_zeros():
     """Test creating FileId from string with zero values."""
@@ -57,6 +64,7 @@ def test_from_string_zeros():
     assert file_id.shard == 0
     assert file_id.realm == 0
     assert file_id.file == 0
+    assert file_id.checksum == None
 
 def test_from_string_large_numbers():
     """Test creating FileId from string with large numbers."""
@@ -65,6 +73,16 @@ def test_from_string_large_numbers():
     assert file_id.shard == 999
     assert file_id.realm == 888
     assert file_id.file == 777
+    assert file_id.checksum == None
+
+def test_from_string_with_checksum():
+    """Test creating FileId from string with leading/trailing spaces."""
+    file_id = FileId.from_string("1.2.3-abcde")
+    
+    assert file_id.shard == 1
+    assert file_id.realm == 2
+    assert file_id.file == 3
+    assert file_id.checksum == "abcde"
 
 def test_from_string_invalid_format_too_few_parts():
     """Test creating FileId from invalid string format with too few parts."""
@@ -167,3 +185,20 @@ def test_equality():
     
     assert file_id1 == file_id2
     assert file_id1 != file_id3 
+
+def test_get_file_id_with_checksum(client):
+    """Should return string with checksum when ledger id is provided."""
+    file_id = FileId.from_string("0.0.1")
+    assert file_id.to_string_with_checksum(client) == "0.0.1-dfkxr"
+
+def test_validate_checksum_success(client):
+    """Should pass checksum validation when checksum is correct."""
+    file_id = FileId.from_string("0.0.1-dfkxr")
+    file_id.validate_checksum(client)
+
+def test_validate_checksum_failure(client):
+    """Should raise ValueError if checksum validation fails."""
+    file_id = FileId.from_string("0.0.1-wronx")
+
+    with pytest.raises(ValueError):
+        file_id.validate_checksum(client)
