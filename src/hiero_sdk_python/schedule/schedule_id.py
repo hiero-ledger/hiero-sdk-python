@@ -157,8 +157,8 @@ class ScheduleId:
     
     def to_string_with_checksum(self, client: Client) -> str:
         """
-        Returns the string representation of the ScheduleId 
-        with checksum in 'shard.realm.schedule-checksum' format.
+        Returns the string representation of the ScheduleId with checksum 
+        in 'shard.realm.schedule-checksum' format.
         """
         return format_to_string_with_checksum(
             self.shard,

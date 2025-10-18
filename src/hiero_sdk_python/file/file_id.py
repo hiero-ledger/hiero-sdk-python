@@ -87,8 +87,8 @@ class FileId:
 
     def to_string_with_checksum(self, client: Client) -> str:
         """
-        Returns the string representation of the FileId 
-        with checksum in 'shard.realm.file-checksum' format.
+        Returns the string representation of the FileId with checksum 
+        in 'shard.realm.file-checksum' format.
         """
         return format_to_string_with_checksum(
             self.shard,

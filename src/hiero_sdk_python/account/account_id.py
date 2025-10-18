@@ -2,6 +2,11 @@
 AccountId class.
 """
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
+
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
@@ -48,7 +53,7 @@ class AccountId:
         Creates an AccountId instance from a string in the format 'shard.realm.num'.
         """
         try:
-            shard, realm, num, checksum = parse_from_string(account_id_str);
+            shard, realm, num, checksum = parse_from_string(account_id_str)
 
             account_id: AccountId = cls(
                 shard=int(shard),
@@ -57,7 +62,7 @@ class AccountId:
             )
             account_id.__checksum = checksum
         
-            return account_id;
+            return account_id
         except Exception as e:
             raise ValueError(
                 f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
@@ -108,7 +113,7 @@ class AccountId:
         """Checksum of the accountId"""
         return self.__checksum
     
-    def validate_checksum(self, client) -> None:
+    def validate_checksum(self, client: "Client") -> None:
         """Validate the checksum for the accountId"""
         if self.alias_key is not None:
             raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
@@ -129,18 +134,18 @@ class AccountId:
             return f"{self.shard}.{self.realm}.{self.alias_key.to_string()}"
         return f"{self.shard}.{self.realm}.{self.num}"
     
-    def to_string_with_checksum(self, client) -> str:
+    def to_string_with_checksum(self, client: "Client") -> str:
         """
-        Returns the string representation of the AccountId 
-        with checksum in 'shard.realm.num-checksum' format.
+        Returns the string representation of the AccountId with checksum 
+        in 'shard.realm.num-checksum' format.
         """
         if self.alias_key is not None:
             raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
 
         return format_to_string_with_checksum(
-            self.shard, 
-            self.realm, 
-            self.num, 
+            self.shard,
+            self.realm,
+            self.num,
             client
         )
 

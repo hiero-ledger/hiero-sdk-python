@@ -109,7 +109,7 @@ class TopicId:
         """Return checksum of the topicId"""
         return self.__checksum
     
-    def validate_checksum(self, client: Client):
+    def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the topicId"""
         validate_checksum(
             self.shard,
@@ -119,10 +119,10 @@ class TopicId:
             client,
         )
     
-    def to_string_with_checksum(self, client: Client):
+    def to_string_with_checksum(self, client: Client) -> str:
         """
-        Returns the string representation of the TopicId 
-        with checksum in 'shard.realm.num-checksum' format.
+        Returns the string representation of the TopicId with checksum 
+        in 'shard.realm.num-checksum' format.
         """
         return format_to_string_with_checksum(
             self.shard,

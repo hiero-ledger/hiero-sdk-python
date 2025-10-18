@@ -3,7 +3,10 @@ Contract ID class.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
@@ -100,7 +103,7 @@ class ContractId:
 
         return evm_bytes.hex()
 
-    def validate_checksum(self, client) -> None:
+    def validate_checksum(self, client: "Client") -> None:
         """Validate the checksum for the contractId"""
         validate_checksum(
             self.shard,
@@ -110,10 +113,10 @@ class ContractId:
             client,
         )
     
-    def to_string_with_checksum(self, client) -> str:
+    def to_string_with_checksum(self, client: "Client") -> str:
         """
-        Returns the string representation of the ContractId 
-        with checksum in 'shard.realm.contract-checksum' format.
+        Returns the string representation of the ContractId with checksum 
+        in 'shard.realm.contract-checksum' format.
         """
         return format_to_string_with_checksum(
             self.shard, 

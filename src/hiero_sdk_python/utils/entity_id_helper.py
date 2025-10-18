@@ -1,6 +1,9 @@
 import re
 
-# from hiero_sdk_python.client.client import Client
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
 
 ID_REGEX = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([a-z]{5}))?$")
 
@@ -110,7 +113,7 @@ def format_to_string(shard: int, realm: int, num: int) -> str:
     """
     return f"{shard}.{realm}.{num}"
 
-def format_to_string_with_checksum(shard: int, realm: int, num: int,client) -> str:
+def format_to_string_with_checksum(shard: int, realm: int, num: int, client: "Client") -> str:
     """
     Convert an entity ID into its string representation with checksum.
     """
