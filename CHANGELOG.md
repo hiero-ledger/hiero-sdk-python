@@ -8,6 +8,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+- Added comprehensive Token Airdrop example script demonstrating token/NFT creation, airdrops, verification, and detailed logging
+
 ### Added
 
 - add revenue generating topic tests/example
@@ -24,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
 
 ### Changed
+
 - TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
@@ -37,7 +40,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
-- Corrected references to __require_not_frozen() to _require_not_frozen() and removed the surplus _is_frozen
+- Corrected references to \_\_require_not_frozen() to \_require_not_frozen() and removed the surplus \_is_frozen
 
 ## [0.1.5] - 2025-09-25
 
@@ -67,8 +70,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - AccountId support for ECDSA alias accounts
 - ContractId.to_evm_address() method for EVM compatibility
 - consumeLargeData() function in StatefulContract
-- example script for Token Airdrop
-- added variables directly in the example script to reduce the need for users to supply extra environment variables.
+- Added variables directly in the example script to reduce the need for users to supply extra environment variables.
 - Added new `merge_conflicts.md` with detailed guidance on handling conflicts during rebase.
 - Type hinting to /tokens, /transaction, /query, /consensus
 - Linting to /tokens, /transaction, /query, /consensus
@@ -135,7 +137,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 - src/hiero_sdk_python/consensus/topic_message.py: from hiero_sdk_python import Timestamp → from hiero_sdk_python.timestamp import Timestamp
 - src/hiero_sdk_python/query/topic_message_query.py: from hiero_sdk_python import Client → from hiero_sdk_python.client.client import Client
-- src/hiero_sdk_python/tokens/**init**.py: content removed.
+- src/hiero_sdk_python/tokens/\_\_init.py\_\_: content removed.
 - src/hiero_sdk_python/tokens/token_info.py: from hiero_sdk_python.hapi.services.token_get_info_pb2 import TokenInfo as proto_TokenInfo → from hiero_sdk_python.hapi.services import token_get_info_pb2
 - src/hiero_sdk_python/tokens/token_key_validation.py: from hiero_sdk_python.hapi.services → import basic_types_pb2
 - src/hiero_sdk_python/tokens/token_kyc_status.py: from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKycStatus as proto_TokenKycStatus → from hiero_sdk_python.hapi.services import basic_types_pb2
