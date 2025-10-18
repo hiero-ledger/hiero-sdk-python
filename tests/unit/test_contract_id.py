@@ -87,38 +87,30 @@ def test_from_string_valid_with_checksum():
     assert contract_id.checksum == "abcde"
 
 
-def test_from_string_invalid_format_too_few_parts():
-    """Test creating ContractId from invalid string format with too few parts."""
+@pytest.mark.parametrize(
+    'invalid_id', 
+    [
+        '1.2',  # Too few parts
+        '1.2.3.4',  # Too many parts
+        'a.b.c',  # Non-numeric parts
+        '',  # Empty string
+        '1.a.3',  # Partial numeric
+        123,
+        None,
+        '0.0.-1',
+        'abc.def.ghi',
+        '0.0.1-ad',
+        '0.0.1-addefgh',
+        '0.0.1 - abcde',
+        ' 0.0.100 '
+    ]
+)
+def test_from_string_for_invalid_format(invalid_id):
+    """Should raise error when creating ContractId from invalid string input."""
     with pytest.raises(
-        ValueError, match="Invalid contract ID string '1.2'. Expected format 'shard.realm.contract'."
+        ValueError, match=f"Invalid contract ID string '{invalid_id}'. Expected format 'shard.realm.contract'."
     ):
-        ContractId.from_string("1.2")
-
-
-def test_from_string_invalid_format_too_many_parts():
-    """Test creating ContractId from invalid string format with too many parts."""
-    with pytest.raises(
-        ValueError, match="Invalid contract ID string '1.2.3.4'. Expected format 'shard.realm.contract'."
-    ):
-        ContractId.from_string("1.2.3.4")
-
-
-def test_from_string_invalid_format_non_numeric():
-    """Test creating ContractId from invalid string format with non-numeric parts."""
-    with pytest.raises(ValueError, match="Invalid contract ID string 'a.b.c'. Expected format 'shard.realm.contract'."):
-        ContractId.from_string("a.b.c")
-
-
-def test_from_string_invalid_format_empty():
-    """Test creating ContractId from empty string."""
-    with pytest.raises(ValueError, match="Invalid contract ID string ''. Expected format 'shard.realm.contract'."):
-        ContractId.from_string("")
-
-
-def test_from_string_invalid_format_partial_numeric():
-    """Test creating ContractId from string with some non-numeric parts."""
-    with pytest.raises(ValueError, match="Invalid contract ID string '1.a.3'. Expected format 'shard.realm.contract'."):
-        ContractId.from_string("1.a.3")
+        ContractId.from_string(invalid_id)
 
 
 def test_to_proto():
@@ -294,8 +286,8 @@ def test_to_evm_address():
     )
     assert contract_id.to_evm_address() == expected_bytes.hex()
 
-def test_get_contract_id_with_checksum(client):
-    """Should return string with checksum when ledger id is provided."""
+def test_str_representaion_with_checksum(client):
+    """Should return string representation with checksum"""
     contract_id = ContractId.from_string("0.0.1")
     assert contract_id.to_string_with_checksum(client) == "0.0.1-dfkxr"
 
@@ -308,6 +300,6 @@ def test_validate_checksum_failure(client):
     """Should raise ValueError if checksum validation fails."""
     contract_id = ContractId.from_string("0.0.1-wronx")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Checksum mismatch for 0.0.1"):
         contract_id.validate_checksum(client)
 

@@ -77,7 +77,7 @@ class ContractId:
             return contract_id
         except Exception as e:
             raise ValueError(
-                f"Invalid contract ID string '{contract_id_str}'."
+                f"Invalid contract ID string '{contract_id_str}'. "
                 f"Expected format 'shard.realm.contract'."
             ) from e
 

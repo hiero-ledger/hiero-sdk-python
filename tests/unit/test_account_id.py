@@ -90,7 +90,7 @@ def test_str_representation_with_checksum(client, account_id_100):
     assert account_id_100.to_string_with_checksum(client) == "0.0.100-hhghj"
 
 
-def test_str_representation_with_checksum_raise_error_if_alias_key_present(client, account_id_100, alias_key):
+def test_str_representation_with_checksum_if_alias_key_present(client, account_id_100, alias_key):
     """AccountId with aliasKey should raise ValueError on to_string_with_checksum"""
     account_id = account_id_100
     account_id.alias_key = alias_key
@@ -142,6 +142,7 @@ def test_from_string_zeros():
     assert account_id.alias_key is None
     assert account_id.checksum is None
 
+
 def test_from_string_with_checksum():
     """Test creating AccountId from string with zero values."""
     account_id = AccountId.from_string("0.0.100-abcde")
@@ -153,38 +154,30 @@ def test_from_string_with_checksum():
     assert account_id.checksum == 'abcde'
 
 
-def test_from_string_invalid_format_too_few_parts():
-    """Test creating AccountId from invalid string format with too few parts."""
+@pytest.mark.parametrize(
+    'invalid_id', 
+    [
+        '1.2',  # Too few parts
+        '1.2.3.4',  # Too many parts
+        'a.b.c',  # Non-numeric parts
+        '',  # Empty string
+        '1.a.3',  # Partial numeric
+        123,
+        None,
+        '0.0.-1',
+        'abc.def.ghi',
+        '0.0.1-ad',
+        '0.0.1-addefgh',
+        '0.0.1 - abcde',
+        ' 0.0.100 '
+    ]
+)
+def test_from_string_for_invalid_format(invalid_id):
+    """Should raise error when creating AccountId from invalid string input."""
     with pytest.raises(
-        ValueError, match="Invalid account ID string '1.2'. Expected format 'shard.realm.num'."
+        ValueError, match=f"Invalid account ID string '{invalid_id}'. Expected format 'shard.realm.num'."
     ):
-        AccountId.from_string("1.2")
-
-
-def test_from_string_invalid_format_too_many_parts():
-    """Test creating AccountId from invalid string format with too many parts."""
-    with pytest.raises(
-        ValueError, match="Invalid account ID string '1.2.3.4'. Expected format 'shard.realm.num'."
-    ):
-        AccountId.from_string("1.2.3.4")
-
-
-def test_from_string_invalid_format_non_numeric():
-    """Test creating AccountId from invalid string format with non-numeric parts."""
-    with pytest.raises(ValueError, match="Invalid account ID string 'a.b.c'. Expected format 'shard.realm.num'."):
-        AccountId.from_string("a.b.c")
-
-
-def test_from_string_invalid_format_empty():
-    """Test creating AccountId from empty string."""
-    with pytest.raises(ValueError, match="Invalid account ID string ''. Expected format 'shard.realm.num'."):
-        AccountId.from_string("")
-
-
-def test_from_string_invalid_format_partial_numeric():
-    """Test creating AccountId from string with some non-numeric parts."""
-    with pytest.raises(ValueError, match="Invalid account ID string '1.a.3'. Expected format 'shard.realm.num'."):
-        AccountId.from_string("1.a.3")
+        AccountId.from_string(invalid_id)
 
 
 def test_to_proto(account_id_100):
@@ -468,15 +461,14 @@ def test_alias_key_affects_string_representation(alias_key, alias_key2, account_
     # Account without alias should use num
     assert str3 == "0.0.100"
 
-
-def test_validate_checksum_for_id_with_valid_checksum(client):
+def test_validate_checksum_for_id(client):
     """Test validateChecksum for accountId"""
     account_id = AccountId.from_string("0.0.100-hhghj")
     account_id.validate_checksum(client)
 
 
-def test_validate_checksum_for_id_with_valid_checksum_and_alias_key(client, alias_key):
-    """Test validateChecksum for accountId with aliasKey set should raise ValueError"""
+def test_validate_checksum_with_alias_key_set(client, alias_key):
+    """Test validateChecksum should raise ValueError if aliasKey is set"""
     account_id = AccountId.from_string("0.0.100-hhghj")
     account_id.alias_key = alias_key
 
@@ -484,9 +476,9 @@ def test_validate_checksum_for_id_with_valid_checksum_and_alias_key(client, alia
         account_id.validate_checksum(client)
 
 
-def test_validate_checksum_for_id_with_invalid_checksum(client):
-    """Invalid Checksum for Id should raise ValueError"""
+def test_validate_checksum_for_invalid_checksum(client):
+    """Test Invalid Checksum for Id should raise ValueError"""
     account_id = AccountId.from_string("0.0.100-abcde")
     
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Checksum mismatch for 0.0.100"):
         account_id.validate_checksum(client)
