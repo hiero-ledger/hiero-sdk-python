@@ -94,7 +94,7 @@ def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, cl
         ValueError: If the ledger ID is missing or if the checksum is invalid.
     """
     # If no checksum present then return.
-    if (checksum is None):
+    if checksum is None:
         return
 
     ledger_id = client.network.ledger_id
