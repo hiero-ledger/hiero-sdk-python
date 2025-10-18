@@ -2,10 +2,18 @@
 Contract ID class.
 """
 
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Optional
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.utils.entity_id_helper import (
+    parse_from_string,
+    validate_checksum,
+    format_to_string_with_checksum
+)
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
 
 
 @dataclass(frozen=True)
@@ -27,6 +35,7 @@ class ContractId:
     realm: int = 0
     contract: int = 0
     evm_address: Optional[bytes] = None
+    checksum: str | None = field(default=None, init=False)
 
     @classmethod
     def _from_proto(cls, contract_id_proto: basic_types_pb2.ContractID) -> "ContractId":
@@ -55,12 +64,22 @@ class ContractId:
         """
         Parses a string in the format 'shard.realm.contract' to create a ContractId instance.
         """
-        parts = contract_id_str.strip().split(".")
-        if len(parts) != 3:
-            raise ValueError(
-                "Invalid ContractId format. Expected 'shard.realm.contract'"
+        try:
+            shard, realm, contract, checksum = parse_from_string(contract_id_str)
+
+            contract_id: ContractId =  cls(
+                shard=int(shard),
+                realm=int(realm),
+                contract=int(contract)
             )
-        return cls(shard=int(parts[0]), realm=int(parts[1]), contract=int(parts[2]))
+            object.__setattr__(contract_id, "checksum", checksum)
+
+            return contract_id
+        except Exception as e:
+            raise ValueError(
+                f"Invalid contract ID string '{contract_id_str}'. "
+                f"Expected format 'shard.realm.contract'."
+            ) from e
 
     def __str__(self):
         """
@@ -84,3 +103,25 @@ class ContractId:
         evm_bytes = shard_bytes + realm_bytes + contract_bytes
 
         return evm_bytes.hex()
+
+    def validate_checksum(self, client: "Client") -> None:
+        """Validate the checksum for the contractId"""
+        validate_checksum(
+            self.shard,
+            self.realm,
+            self.contract,
+            self.checksum,
+            client,
+        )
+
+    def to_string_with_checksum(self, client: "Client") -> str:
+        """
+        Returns the string representation of the ContractId with checksum 
+        in 'shard.realm.contract-checksum' format.
+        """
+        return format_to_string_with_checksum(
+            self.shard,
+            self.realm,
+            self.contract,
+            client
+        )
