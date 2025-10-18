@@ -84,30 +84,30 @@ def test_from_string_with_checksum():
     assert file_id.file == 3
     assert file_id.checksum == "abcde"
 
-def test_from_string_invalid_format_too_few_parts():
-    """Test creating FileId from invalid string format with too few parts."""
-    with pytest.raises(ValueError, match="Invalid file ID string '1.2'. Expected format 'shard.realm.file'."):
-        FileId.from_string("1.2")
-
-def test_from_string_invalid_format_too_many_parts():
-    """Test creating FileId from invalid string format with too many parts."""
-    with pytest.raises(ValueError, match="Invalid file ID string '1.2.3.4'. Expected format 'shard.realm.file'."):
-        FileId.from_string("1.2.3.4")
-
-def test_from_string_invalid_format_non_numeric():
-    """Test creating FileId from invalid string format with non-numeric parts."""
-    with pytest.raises(ValueError):
-        FileId.from_string("a.b.c")
-
-def test_from_string_invalid_format_empty():
-    """Test creating FileId from empty string."""
-    with pytest.raises(ValueError, match="Invalid file ID string ''. Expected format 'shard.realm.file'."):
-        FileId.from_string("")
-
-def test_from_string_invalid_format_partial_numeric():
-    """Test creating FileId from string with some non-numeric parts."""
-    with pytest.raises(ValueError, match="Invalid file ID string '1.a.3'. Expected format 'shard.realm.file'."):
-        FileId.from_string("1.a.3")
+@pytest.mark.parametrize(
+    'invalid_id', 
+    [
+        '1.2',  # Too few parts
+        '1.2.3.4',  # Too many parts
+        'a.b.c',  # Non-numeric parts
+        '',  # Empty string
+        '1.a.3',  # Partial numeric
+        123,
+        None,
+        '0.0.-1',
+        'abc.def.ghi',
+        '0.0.1-ad',
+        '0.0.1-addefgh',
+        '0.0.1 - abcde',
+        ' 0.0.100 '
+    ]
+)
+def test_from_string_for_invalid_format(invalid_id):
+    """Should raise error when creating FileId from invalid string input."""
+    with pytest.raises(
+        ValueError, match=f"Invalid file ID string '{invalid_id}'. Expected format 'shard.realm.file'."
+    ):
+        FileId.from_string(invalid_id)
 
 def test_to_proto():
     """Test converting FileId to protobuf format."""
@@ -186,7 +186,7 @@ def test_equality():
     assert file_id1 == file_id2
     assert file_id1 != file_id3 
 
-def test_get_file_id_with_checksum(client):
+def test_str_representaion_with_checksum(client):
     """Should return string with checksum when ledger id is provided."""
     file_id = FileId.from_string("0.0.1")
     assert file_id.to_string_with_checksum(client) == "0.0.1-dfkxr"
