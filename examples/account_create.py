@@ -33,7 +33,7 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def setup_client():
+def setup_client() -> tuple[Client, PrivateKey]:
     """
     Set up and configure a Hiero client for testnet operations.
 
@@ -67,7 +67,7 @@ def setup_client():
 
     return client, operator_key
 
-def create_new_account(client, operator_key):
+def create_new_account(client: Client, operator_key: PrivateKey) -> None:
     """
     Create a new account on the Hiero network.
 
