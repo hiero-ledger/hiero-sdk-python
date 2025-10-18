@@ -13,11 +13,31 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
+- TokenNftAllowance class
+- TokenAllowance class
+- HbarAllowance class
+- HbarTransfer class
+- AccountAllowanceApproveTransaction class
+- AccountAllowanceDeleteTransaction class
+- Approved transfer support to TransferTransaction
+- set_transaction_id() API to Transaction class
+- Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
+
+### Changed
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - Added checksum validation for TokenId
+- Refactor examples/token_cancel_airdrop
+
+### Changed
+
+- Refactor token_associate.py for better structure, add association verification query (#367)
+- Refactored `examples/account_create.py` to improve modularity and readability (#363)
+- Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
+- Corrected references to __require_not_frozen() to _require_not_frozen() and removed the surplus _is_frozen
 
 ## [0.1.5] - 2025-09-25
 

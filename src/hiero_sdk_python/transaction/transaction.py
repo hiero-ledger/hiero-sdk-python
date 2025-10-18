@@ -465,3 +465,20 @@ class Transaction(_Executable):
         self._require_not_frozen()
         self.memo = memo
         return self
+
+    def set_transaction_id(self, transaction_id: TransactionId):
+        """
+        Sets the transaction ID for the transaction.
+
+        Args:
+            transaction_id (TransactionId): The transaction ID to set.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            Exception: If the transaction has already been frozen.
+        """
+        self._require_not_frozen()
+        self.transaction_id = transaction_id
+        return self
