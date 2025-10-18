@@ -1,3 +1,6 @@
+"""
+FileId class.
+"""
 from dataclasses import dataclass, field
 
 from hiero_sdk_python.client.client import Client
@@ -26,7 +29,7 @@ class FileId:
     realm: int = 0
     file: int = 0
     checksum: str | None = field(default=None, init=False)
-    
+
     @classmethod
     def _from_proto(cls, file_id_proto: basic_types_pb2.FileID) -> 'FileId':
         """
@@ -47,7 +50,7 @@ class FileId:
             realmNum=self.realm,
             fileNum=self.file
         )
-        
+
     @classmethod
     def from_string(cls, file_id_str: str) -> 'FileId':
         """
@@ -68,13 +71,13 @@ class FileId:
             raise ValueError(
                 f"Invalid file ID string '{file_id_str}'. Expected format 'shard.realm.file'."
             ) from e
-    
+
     def __str__(self) -> str:
         """
         Returns a string representation of the FileId instance.
         """
         return f"{self.shard}.{self.realm}.{self.file}"
-    
+
     def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the FileId instance"""
         validate_checksum(

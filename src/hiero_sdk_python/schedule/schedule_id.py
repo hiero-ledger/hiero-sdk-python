@@ -144,7 +144,7 @@ class ScheduleId:
         return cls(
             shard=proto.shardNum, realm=proto.realmNum, schedule=proto.scheduleNum
         )
-    
+
     def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the scheduleId"""
         validate_checksum(
@@ -154,7 +154,7 @@ class ScheduleId:
             self.checksum,
             client,
         )
-    
+
     def to_string_with_checksum(self, client: Client) -> str:
         """
         Returns the string representation of the ScheduleId with checksum 

@@ -104,11 +104,11 @@ class TopicId:
                 f"Invalid topic ID string '{topic_id_str}'. Expected format 'shard.realm.num'."
             ) from e
 
-    @property 
+    @property
     def checksum(self) -> str | None:
         """Return checksum of the topicId"""
         return self.__checksum
-    
+
     def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the topicId"""
         validate_checksum(
@@ -118,7 +118,7 @@ class TopicId:
             self.__checksum,
             client,
         )
-    
+
     def to_string_with_checksum(self, client: Client) -> str:
         """
         Returns the string representation of the TopicId with checksum 

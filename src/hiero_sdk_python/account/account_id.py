@@ -4,9 +4,6 @@ AccountId class.
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from hiero_sdk_python.client.client import Client
-
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
@@ -14,6 +11,9 @@ from hiero_sdk_python.utils.entity_id_helper import (
     validate_checksum,
     format_to_string_with_checksum
 )
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
 
 
 class AccountId:
@@ -61,7 +61,7 @@ class AccountId:
                 num=int(num)
             )
             account_id.__checksum = checksum
-        
+
             return account_id
         except Exception as e:
             raise ValueError(
@@ -108,16 +108,16 @@ class AccountId:
 
         return account_id_proto
 
-    @property 
+    @property
     def checksum(self) -> str | None:
         """Checksum of the accountId"""
         return self.__checksum
-    
+
     def validate_checksum(self, client: "Client") -> None:
         """Validate the checksum for the accountId"""
         if self.alias_key is not None:
             raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
-    
+
         validate_checksum(
             self.shard,
             self.realm,
@@ -133,7 +133,7 @@ class AccountId:
         if self.alias_key:
             return f"{self.shard}.{self.realm}.{self.alias_key.to_string()}"
         return f"{self.shard}.{self.realm}.{self.num}"
-    
+
     def to_string_with_checksum(self, client: "Client") -> str:
         """
         Returns the string representation of the AccountId with checksum 
