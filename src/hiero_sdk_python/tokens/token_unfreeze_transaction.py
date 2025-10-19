@@ -42,7 +42,6 @@ class TokenUnfreezeTransaction(Transaction):
         self.token_id: Optional[TokenId] = token_id
         self.account_id: Optional[AccountId] = account_id
         self._default_transaction_fee: int = 3_000_000_000
-        self._is_frozen: bool = False
 
     def set_token_id(self, token_id: TokenId) -> "TokenUnfreezeTransaction":
         """
@@ -52,7 +51,7 @@ class TokenUnfreezeTransaction(Transaction):
         Returns:
             TokenUnfreezeTransaction: This transaction instance.
         """
-        self.__require_not_frozen()
+        self._require_not_frozen()
         self.token_id = token_id
         return self
 
@@ -64,18 +63,10 @@ class TokenUnfreezeTransaction(Transaction):
         Returns:
             TokenUnfreezeTransaction: This transaction instance.
         """
-        self.__require_not_frozen()
+        self._require_not_frozen()
         self.account_id = account_id
         return self
 
-    def __require_not_frozen(self) -> None:
-        """
-        Ensures that the transaction is not frozen before making modifications.
-        Raises:
-            ValueError: If the transaction is already frozen.
-        """
-        if self._is_frozen:
-            raise ValueError("Transaction is already frozen and cannot be modified.")
 
     def _build_proto_body(self) -> token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody:
         """
