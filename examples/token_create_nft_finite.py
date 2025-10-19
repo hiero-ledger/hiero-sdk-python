@@ -1,8 +1,20 @@
 """
+This example creates a finite NFT using Hiero SDK Python.
+
+It:
+1. Loads environment variables.
+2. Sets up a client and operator.
+3. Generates admin and supply keys on the fly.
+4. Builds, signs, and executes a TokenCreateTransaction.
+
+Required environment variables:
+- OPERATOR_ID, OPERATOR_KEY
+
+Usage:
 uv run examples/token_create_nft_finite.py
 python examples/token_create_nft_finite.py
-
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -16,16 +28,10 @@ from hiero_sdk_python import (
     SupplyType,
 )
 
-# Load environment variables from .env file
-load_dotenv()
 
-
-def create_token_nft():
-    """
-    Creates a finite NFT by generating the admin and supply keys on the fly.
-    """
-    # 1. Network and Operator Setup
-    # =================================================================
+def setup_client():
+    """Set up network and operator client."""
+    load_dotenv()
     print("Connecting to Hedera testnet...")
     network = Network(network='testnet')
     client = Client(network)
@@ -35,55 +41,67 @@ def create_token_nft():
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
         print(f"Using operator account: {operator_id}")
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
-        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
+        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-    # 2. Generate Keys On-the-Fly
-    # =================================================================
+
+def generate_keys():
+    """Generate new admin and supply keys."""
     print("\nGenerating new admin and supply keys for the NFT...")
     admin_key = PrivateKey.generate_ed25519()
     supply_key = PrivateKey.generate_ed25519()
-    print("✅ Keys generated successfully.")
+    print("Keys generated successfully.")
+    return admin_key, supply_key
 
-    # 3. Build and Execute Transaction
-    # =================================================================
+
+def build_transaction(client, operator_id, admin_key, supply_key):
+    """Build and freeze the finite NFT creation transaction."""
+    print("\nBuilding transaction to create a finite NFT...")
+    transaction = (
+        TokenCreateTransaction()
+        .set_token_name("Finite NFT")
+        .set_token_symbol("FNFT")
+        .set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
+        .set_treasury_account_id(operator_id)
+        .set_initial_supply(0)
+        .set_supply_type(SupplyType.FINITE)
+        .set_max_supply(100)
+        .set_admin_key(admin_key)
+        .set_supply_key(supply_key)
+        .freeze_with(client)
+    )
+    return transaction
+
+
+def execute_transaction(transaction, client, operator_key, admin_key, supply_key):
+    """Sign and execute the transaction."""
+    print("Signing transaction...")
+    transaction.sign(operator_key)
+    transaction.sign(admin_key)
+    transaction.sign(supply_key)
+
+    print("Executing transaction...")
     try:
-        print("\nBuilding transaction to create a finite NFT...")
-        transaction = (
-            TokenCreateTransaction()
-            .set_token_name("Finite NFT")
-            .set_token_symbol("FNFT")
-            .set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
-            .set_treasury_account_id(operator_id)
-            .set_initial_supply(0)  # NFTs must have an initial supply of 0
-            .set_supply_type(SupplyType.FINITE) # Set supply type to Finite
-            .set_max_supply(100) # Set the maximum number of NFTs that can be minted
-            .set_admin_key(admin_key)    # Use the generated admin key
-            .set_supply_key(supply_key)  # Use the generated supply key
-            .freeze_with(client)
-        )
-
-        # Sign the transaction with all required keys
-        print("Signing transaction...")
-        transaction.sign(operator_key)  # Treasury account must sign
-        transaction.sign(admin_key)     # The new admin key must sign
-        transaction.sign(supply_key)    # The new supply key must sign
-
-        # Execute the transaction
-        print("Executing transaction...")
         receipt = transaction.execute(client)
-
         if receipt and receipt.token_id:
-            print(f"✅ Success! Finite non-fungible token created with ID: {receipt.token_id}")
+            print(f"Success! Finite non-fungible token created with ID: {receipt.token_id}")
         else:
-            print("❌ Token creation failed: Token ID not returned in receipt.")
+            print("Token creation failed: Token ID not returned in receipt.")
             sys.exit(1)
-
     except Exception as e:
-        print(f"❌ Token creation failed: {e}")
+        print(f"Token creation failed: {e}")
         sys.exit(1)
 
 
+def create_token_nft_finite():
+    """Main function to create a finite NFT."""
+    client, operator_id, operator_key = setup_client()
+    admin_key, supply_key = generate_keys()
+    transaction = build_transaction(client, operator_id, admin_key, supply_key)
+    execute_transaction(transaction, client, operator_key, admin_key, supply_key)
+
+
 if __name__ == "__main__":
-    create_token_nft()
+    create_token_nft_finite()
