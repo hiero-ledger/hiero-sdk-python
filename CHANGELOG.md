@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
 
 ### Changed
+
 - TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
@@ -35,11 +36,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactor token_associate.py for better structure, add association verification query (#367)
 - Refactored `examples/account_create.py` to improve modularity and readability (#363)
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
+- Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
-- Corrected references to __require_not_frozen() to _require_not_frozen() and removed the surplus _is_frozen
+- Corrected references to \_\_require_not_frozen() to \_require_not_frozen() and removed the surplus \_is_frozen
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 
 ## [0.1.5] - 2025-09-25
