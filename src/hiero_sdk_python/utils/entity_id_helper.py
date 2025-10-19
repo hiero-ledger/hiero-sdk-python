@@ -79,7 +79,7 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
 
     return "".join(reversed(letter))
 
-def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client) -> None:
+def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client: "Client") -> None:
     """
     Validate a Hiero entity ID checksum against the current client's ledger.
 
