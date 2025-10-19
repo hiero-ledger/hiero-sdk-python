@@ -11,11 +11,11 @@ You can choose either syntax or even mix both styles in your projects.
 ## Table of Contents
 
 - [Account Transactions](#account-transactions)
-  - [Creating an Account](#creating-an-account)
-  - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
-  - [Querying Account Info](#querying-account-info)
+  - [Creating an Account](#creating-an-account)
   - [Deleting an Account](#deleting-an-account)
+  - [Querying Account Info](#querying-account-info)
+  - [Updating an Account](#updating-an-account)
   - [Creating a Token](#creating-a-token)
   - [Allowance Approve Transaction](#allowance-approve-transaction)
   - [Allowance Delete Transaction](#allowance-delete-transaction)
@@ -85,6 +85,19 @@ You can choose either syntax or even mix both styles in your projects.
 
 ## Account Transactions
 
+### Querying Account Balance
+
+#### Pythonic Syntax:
+```
+balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(client) print(f"Account balance: {balance.hbars} hbars")
+```
+
+#### Method Chaining:
+```
+balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
+```
+
+
 ### Creating an Account
 
 #### Pythonic Syntax:
@@ -110,6 +123,60 @@ transaction = (
     )
     transaction.sign(client.operator_private_key)
     transaction.execute(client)
+```
+
+### Deleting an Account
+
+#### Pythonic Syntax:
+```
+transaction = AccountDeleteTransaction(
+    account_id=account_id,
+    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+).freeze_with(client)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    AccountDeleteTransaction()
+    .set_account_id(account_id)
+    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    .freeze_with(client)
+)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+### Querying Account Info
+
+#### Pythonic Syntax:
+```
+info = AccountInfoQuery(account_id=account_id).execute(client)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
+```
+
+#### Method Chaining:
+```
+info = (
+    AccountInfoQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
 ```
 
 ### Updating an Account
@@ -149,69 +216,54 @@ transaction.sign(new_private_key)   # Sign with new key
 transaction.execute(client)
 ```
 
-### Querying Account Balance
+### Creating a Token
 
 #### Pythonic Syntax:
 ```
-balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(client) print(f"Account balance: {balance.hbars} hbars")
-```
-
-#### Method Chaining:
-```
-balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
-```
-
-### Querying Account Info
-
-#### Pythonic Syntax:
-```
-info = AccountInfoQuery(account_id=account_id).execute(client)
-print(f"Account ID: {info.account_id}")
-print(f"Account Public Key: {info.key.to_string()}")
-print(f"Account Balance: {info.balance}")
-print(f"Account Memo: '{info.account_memo}'")
-print(f"Owned NFTs: {info.owned_nfts}")
-print(f"Token Relationships: {info.token_relationships}")
-```
-
-#### Method Chaining:
-```
-info = (
-    AccountInfoQuery()
-    .set_account_id(account_id)
-    .execute(client)
-)
-print(f"Account ID: {info.account_id}")
-print(f"Account Public Key: {info.key.to_string()}")
-print(f"Account Balance: {info.balance}")
-print(f"Account Memo: '{info.account_memo}'")
-print(f"Owned NFTs: {info.owned_nfts}")
-print(f"Token Relationships: {info.token_relationships}")
-```
-
-### Deleting an Account
-
-#### Pythonic Syntax:
-```
-transaction = AccountDeleteTransaction(
-    account_id=account_id,
-    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+transaction = TokenCreateTransaction(
+    token_params=TokenParams(
+        token_name="ExampleToken",
+        token_symbol="EXT",
+        decimals=2,                            # 0 for NON_FUNGIBLE_UNIQUE
+        initial_supply=1000,                   # 0 for NON_FUNGIBLE_UNIQUE
+        token_type=TokenType.FUNGIBLE_COMMON,  # or TokenType.NON_FUNGIBLE_UNIQUE
+        max_supply=1000                        # Must be 0 for INFINITE
+        supply_type=SupplyType.FINITE,         # or SupplyType.INFINITE
+        freeze_default=False,
+        treasury_account_id=operator_id
+    ),
+    keys=TokenKeys(
+        admin_key=admin_key,       # added but optional. Necessary for Token Delete or Update.
+        supply_key=supply_key,     # added but optional. Necessary for Token Mint or Burn.
+        freeze_key=freeze_key      # added but optional. Necessary to freeze and unfreeze a token.
+    )
 ).freeze_with(client)
-
-transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.sign(operator_key) # Required signing by the treasury account
+transaction.sign(admin_key) # Required since admin key exists
 transaction.execute(client)
 ```
 
 #### Method Chaining:
 ```
 transaction = (
-    AccountDeleteTransaction()
-    .set_account_id(account_id)
-    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    TokenCreateTransaction()  # no params => uses default placeholders which are next overwritten.
+    .set_token_name("ExampleToken")
+    .set_token_symbol("EXT")
+    .set_decimals(2)                            # 0 for NON_FUNGIBLE_UNIQUE
+    .set_initial_supply(1000)                   # 0 for NON_FUNGIBLE_UNIQUE
+    .set_token_type(TokenType.FUNGIBLE_COMMON)  # or TokenType.NON_FUNGIBLE_UNIQUE
+    .set_max_supply(1000)                       # Must be 0 for INFINITE
+    .set_supply_type(SupplyType.FINITE)         # or SupplyType.INFINITE
+    .set_freeze_default(False)
+    .set_treasury_account_id(operator_id)
+    .set_admin_key(admin_key)       # added but optional. Necessary for Token Delete or Update.
+    .set_supply_key(supply_key)     # added but optional. Necessary for Token Mint or Burn.
+    .set_freeze_key(freeze_key)     # added but optional. Necessary to freeze and unfreeze a token.
     .freeze_with(client)
 )
 
-transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.sign(operator_key) # Required signing by the treasury account
+transaction.sign(admin_key)    # Required since admin key exists
 transaction.execute(client)
 ```
 
@@ -346,57 +398,6 @@ transaction.execute(client)
 ```
 
 ## Token Transactions
-
-### Creating a Token
-
-#### Pythonic Syntax:
-```
-transaction = TokenCreateTransaction(
-    token_params=TokenParams(
-        token_name="ExampleToken",
-        token_symbol="EXT",
-        decimals=2,                            # 0 for NON_FUNGIBLE_UNIQUE
-        initial_supply=1000,                   # 0 for NON_FUNGIBLE_UNIQUE
-        token_type=TokenType.FUNGIBLE_COMMON,  # or TokenType.NON_FUNGIBLE_UNIQUE
-        max_supply=1000                        # Must be 0 for INFINITE
-        supply_type=SupplyType.FINITE,         # or SupplyType.INFINITE
-        freeze_default=False,
-        treasury_account_id=operator_id
-    ),
-    keys=TokenKeys(
-        admin_key=admin_key,       # added but optional. Necessary for Token Delete or Update.
-        supply_key=supply_key,     # added but optional. Necessary for Token Mint or Burn.
-        freeze_key=freeze_key      # added but optional. Necessary to freeze and unfreeze a token.
-    )
-).freeze_with(client)
-transaction.sign(operator_key) # Required signing by the treasury account
-transaction.sign(admin_key) # Required since admin key exists
-transaction.execute(client)
-```
-
-#### Method Chaining:
-```
-transaction = (
-    TokenCreateTransaction()  # no params => uses default placeholders which are next overwritten.
-    .set_token_name("ExampleToken")
-    .set_token_symbol("EXT")
-    .set_decimals(2)                            # 0 for NON_FUNGIBLE_UNIQUE
-    .set_initial_supply(1000)                   # 0 for NON_FUNGIBLE_UNIQUE
-    .set_token_type(TokenType.FUNGIBLE_COMMON)  # or TokenType.NON_FUNGIBLE_UNIQUE
-    .set_max_supply(1000)                       # Must be 0 for INFINITE
-    .set_supply_type(SupplyType.FINITE)         # or SupplyType.INFINITE
-    .set_freeze_default(False)
-    .set_treasury_account_id(operator_id)
-    .set_admin_key(admin_key)       # added but optional. Necessary for Token Delete or Update.
-    .set_supply_key(supply_key)     # added but optional. Necessary for Token Mint or Burn.
-    .set_freeze_key(freeze_key)     # added but optional. Necessary to freeze and unfreeze a token.
-    .freeze_with(client)
-)
-
-transaction.sign(operator_key) # Required signing by the treasury account
-transaction.sign(admin_key)    # Required since admin key exists
-transaction.execute(client)
-```
 
 ### Minting a Fungible Token
 
@@ -637,6 +638,7 @@ transaction.execute(client)
     transaction.sign(freeze_key) # Freeze key must also have been set in Token Create
     transaction.execute(client)
 ```
+
 ### Unfreezing a Token
 
 #### Pythonic Syntax:
@@ -888,7 +890,7 @@ transaction.sign(new_admin_key) # Updating the admin key requires the new admin 
 transaction.execute(client)
 ```
 
-### Token Airdrop
+### Create Token Airdrop
 
 #### Pythonic Syntax:
 ```
