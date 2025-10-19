@@ -40,7 +40,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Incompatible Types assignment in token_transfer_list.py
 - Corrected references to __require_not_frozen() to _require_not_frozen() and removed the surplus _is_frozen
-- Add strict type hints to `TransactionGetReceiptQuery` (#420)
+- Removed duplicate static methods in `TokenInfo` class:
+  - `_copy_msg_to_proto`
+  - `_copy_key_if_present`
+  - `_parse_custom_fees`
+  Kept robust versions with proper docstrings and error handling.
 
 ## [0.1.5] - 2025-09-25
 
