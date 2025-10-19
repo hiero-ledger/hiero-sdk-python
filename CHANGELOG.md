@@ -39,10 +39,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 
+
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
-- Corrected references to \_\_require_not_frozen() to \_require_not_frozen() and removed the surplus \_is_frozen
+- Corrected references to _require_not_frozen() and removed the surplus _is_frozen
+- Removed duplicate static methods in `TokenInfo` class:
+  - `_copy_msg_to_proto`
+  - `_copy_key_if_present`
+  - `_parse_custom_fees`
+  Kept robust versions with proper docstrings and error handling.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 
 ## [0.1.5] - 2025-09-25
