@@ -27,7 +27,7 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@be37932d21b1a1deaaca6ce8d7fc28a7251cfb56 #v0.13.0
+        uses: hiero-ledger/hiero-solo-action@6a1a77601cf3e69661fb6880530a4edf656b40d5 #v0.14.0
         with:
           installMirrorNode: true
         
