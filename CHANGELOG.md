@@ -8,6 +8,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Documentation
+- Added blog post announcing Hiero Python SDK v0.1.6.
+
 ### Added
 
 - add revenue generating topic tests/example
