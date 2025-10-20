@@ -8,15 +8,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-- Convert camelCase to snake_case in integration tests (#318)
-- Refactor `examples/custom_fee.py` to improve readability and reduce repetition (#364)
-
-
 ### Changed
 - Convert camelCase to snake_case in integration tests (#318)
 - Refactor `examples/custom_fee.py` to improve readability and reduce repetition (#364)
 
->>>>>>> 31c453cb2828e7ff263786532cb6fdf63e95fb4e
 ### Added
 
 - add revenue generating topic tests/example
@@ -59,9 +54,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   - `_parse_custom_fees`
   Kept robust versions with proper docstrings and error handling.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
-
-
+  
 ## [0.1.5] - 2025-09-25
+
 ### Added
 
 - ScheduleSignTransaction class
