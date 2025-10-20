@@ -11,15 +11,15 @@ You can choose either syntax or even mix both styles in your projects.
 ## Table of Contents
 
 - [Account Transactions](#account-transactions)
-  - [Creating an Account](#creating-an-account)
-  - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
-  - [Querying Account Info](#querying-account-info)
+  - [Creating an Account](#creating-an-account)
   - [Deleting an Account](#deleting-an-account)
-  - [Creating a Token](#creating-a-token)
+  - [Querying Account Info](#querying-account-info)
+  - [Updating an Account](#updating-an-account)
   - [Allowance Approve Transaction](#allowance-approve-transaction)
   - [Allowance Delete Transaction](#allowance-delete-transaction)
 - [Token Transactions](#token-transactions)
+  - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
   - [Minting a Non-Fungible Token](#minting-a-non-fungible-token)
   - [Associating a Token](#associating-a-token)
@@ -85,6 +85,18 @@ You can choose either syntax or even mix both styles in your projects.
 
 ## Account Transactions
 
+### Querying Account Balance
+
+#### Pythonic Syntax:
+```
+balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(client) print(f"Account balance: {balance.hbars} hbars")
+```
+
+#### Method Chaining:
+```
+balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
+```
+
 ### Creating an Account
 
 #### Pythonic Syntax:
@@ -110,6 +122,60 @@ transaction = (
     )
     transaction.sign(client.operator_private_key)
     transaction.execute(client)
+```
+
+### Deleting an Account
+
+#### Pythonic Syntax:
+```
+transaction = AccountDeleteTransaction(
+    account_id=account_id,
+    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+).freeze_with(client)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    AccountDeleteTransaction()
+    .set_account_id(account_id)
+    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    .freeze_with(client)
+)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+### Querying Account Info
+
+#### Pythonic Syntax:
+```
+info = AccountInfoQuery(account_id=account_id).execute(client)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
+```
+
+#### Method Chaining:
+```
+info = (
+    AccountInfoQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
 ```
 
 ### Updating an Account
@@ -146,72 +212,6 @@ transaction = (
 )
 transaction.sign(old_private_key)   # Sign with old key
 transaction.sign(new_private_key)   # Sign with new key
-transaction.execute(client)
-```
-
-### Querying Account Balance
-
-#### Pythonic Syntax:
-```
-balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(client) print(f"Account balance: {balance.hbars} hbars")
-```
-
-#### Method Chaining:
-```
-balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
-```
-
-### Querying Account Info
-
-#### Pythonic Syntax:
-```
-info = AccountInfoQuery(account_id=account_id).execute(client)
-print(f"Account ID: {info.account_id}")
-print(f"Account Public Key: {info.key.to_string()}")
-print(f"Account Balance: {info.balance}")
-print(f"Account Memo: '{info.account_memo}'")
-print(f"Owned NFTs: {info.owned_nfts}")
-print(f"Token Relationships: {info.token_relationships}")
-```
-
-#### Method Chaining:
-```
-info = (
-    AccountInfoQuery()
-    .set_account_id(account_id)
-    .execute(client)
-)
-print(f"Account ID: {info.account_id}")
-print(f"Account Public Key: {info.key.to_string()}")
-print(f"Account Balance: {info.balance}")
-print(f"Account Memo: '{info.account_memo}'")
-print(f"Owned NFTs: {info.owned_nfts}")
-print(f"Token Relationships: {info.token_relationships}")
-```
-
-### Deleting an Account
-
-#### Pythonic Syntax:
-```
-transaction = AccountDeleteTransaction(
-    account_id=account_id,
-    transfer_account_id=transfer_account_id  # Account to receive remaining balance
-).freeze_with(client)
-
-transaction.sign(account_private_key)  # Account being deleted must sign
-transaction.execute(client)
-```
-
-#### Method Chaining:
-```
-transaction = (
-    AccountDeleteTransaction()
-    .set_account_id(account_id)
-    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
-    .freeze_with(client)
-)
-
-transaction.sign(account_private_key)  # Account being deleted must sign
 transaction.execute(client)
 ```
 
