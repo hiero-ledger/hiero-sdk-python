@@ -11,6 +11,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 
 - add unified key class for private and public keys
+- Add comprehensive Google-style docstrings to examples/account_create.py
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
@@ -32,6 +33,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
 - Refactor token creation examples for modularity and consistency
+- Rearranged running_examples.md to be alphabetical
 
 ### Changed
 
