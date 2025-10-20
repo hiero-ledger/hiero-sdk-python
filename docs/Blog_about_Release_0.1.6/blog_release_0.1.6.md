@@ -61,3 +61,5 @@ pip install --upgrade hiero-sdk-python
 ```
 
 Then try out contract creation, account updates, or file queries directly in your Python environment.
+You can also check out our open issues (for both new starters and seasoned Python developers):
+👉[GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
