@@ -246,30 +246,10 @@ class TokenInfo(_DeprecatedAliasesMixin):
     set_customFees = set_custom_fees
 
     # === helpers ===
-    @staticmethod
-    def _copy_key_if_present(dst: "TokenInfo", setter: str, key_msg) -> None:
-        # In proto3, keys are a oneof; check presence via WhichOneof
-        if key_msg is not None and hasattr(key_msg, "WhichOneof") and key_msg.WhichOneof("key"):
-            getattr(dst, setter)(PublicKey._from_proto(key_msg))
 
-    @staticmethod
-    def _parse_custom_fees(proto_obj) -> List[CustomFee]:
-        out: List[CustomFee] = []
-        for fee_proto in getattr(proto_obj, "custom_fees", []):  # snake_case matches your generated proto
-            if fee_proto.HasField("fixed_fee"):
-                out.append(CustomFixedFee._from_proto(fee_proto))
-            elif fee_proto.HasField("fractional_fee"):
-                out.append(CustomFractionalFee._from_proto(fee_proto))
-            elif fee_proto.HasField("royalty_fee"):
-                out.append(CustomRoyaltyFee._from_proto(fee_proto))
-        return out
+    
 
-    @staticmethod
-    def _copy_msg_to_proto(src_obj, dst_proto, src_attr: str, dst_field: str) -> None:
-        val = getattr(src_obj, src_attr)
-        if val:
-            getattr(dst_proto, dst_field).CopyFrom(val._to_proto())
-
+   
     @staticmethod
     def _get(proto_obj, *names):
         """Get the first present attribute from a list of possible names (camelCase/snake_case)."""
