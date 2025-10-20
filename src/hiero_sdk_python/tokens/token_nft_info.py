@@ -16,14 +16,21 @@ class TokenNftInfo:
     """
     Represents information about a Non-Fungible Token (NFT) on the Hedera network.
     
-    This class encapsulates details about an NFT including its unique identifier,
+    This dataclass encapsulates details about an NFT including its unique identifier,
     owner account, creation time, associated metadata, and any account with spending privileges.
+
+    Args:
+        nft_id (NftId, optional): The unique identifier of the NFT.
+        account_id (AccountId, optional): The account ID of the NFT owner.
+        creation_time (int, optional): The timestamp when the NFT was created (in seconds).
+        metadata (bytes, optional): The metadata associated with the NFT.
+        spender_id (AccountId, optional): The account ID with spending privileges for this NFT
     """
-    nft_id: Optional[NftId] = None
-    account_id: Optional[AccountId] = None
-    creation_time: Optional[int] = None
-    metadata: Optional[bytes] = None
-    spender_id: Optional[AccountId] = None
+    nft_id: Optional[NftId] = None 
+    account_id: Optional[AccountId] = None 
+    creation_time: Optional[int] = None 
+    metadata: Optional[bytes] = None 
+    spender_id: Optional[AccountId] = None 
 
     @classmethod
     def _from_proto(cls, proto: token_get_nft_info_pb2.TokenNftInfo) -> "TokenNftInfo":
@@ -74,5 +81,3 @@ class TokenNftInfo:
                 f"metadata={self.metadata!r}, "
                 f"spender_id={self.spender_id})")
 
-#terminal check if __name__ == "__main__":
-#    print("Loaded TokenNftInfo successfully")
