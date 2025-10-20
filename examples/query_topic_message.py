@@ -96,7 +96,6 @@ def query_topic_messages():
         print("✋ Ctrl+C detected. Cancelling subscription...")
     finally:
         handle.cancel()
-        handle.join()
         print("✅ Subscription cancelled. Exiting.")
 
 if __name__ == "__main__":
