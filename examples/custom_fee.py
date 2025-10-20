@@ -66,6 +66,7 @@ def demo_royalty_fee():
     fallback_fee = CustomFixedFee(
         amount=50,
         denominating_token_id=TokenId(0, 0, 789),
+        all_collectors_are_exempt=False,
     )
     royalty_fee = CustomRoyaltyFee(
         numerator=5,
