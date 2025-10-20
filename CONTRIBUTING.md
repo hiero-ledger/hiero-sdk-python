@@ -52,7 +52,8 @@ Workflow:
 7. **Solve your issue on this branch**: code the solution and push commits progressively to your branch.
    To ensure high-quality-reviewable code, please ensure:
 
-- [ ] Update the changelog at [CHANGELOG.md](https://github.com/DinethShakya23/hiero-sdk-python/blob/main/CHANGELOG.md) with your feature or bug fix.
+- [ ] Update the changelog at `hedera_sdk_python/CHANGELOG.md`. Please follow the [Changelog Guidelines](./docs/sdk_developers/changelog.md) for correct formatting.
+
 - [ ] Only resolve tasks set. For example, if the issue is to code a Token create unit test, do not change the style in TokenCreateTransaction or update the integration tests. To resolve additional tasks, create a [New Feature](#feature-requests) and create an additional Pull Request.
 - [ ] Add type hints and check using mypy [Typing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md)
 - [ ] Style and lint using pylint [Linting Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/linting.md)
