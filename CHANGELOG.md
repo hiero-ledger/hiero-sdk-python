@@ -8,6 +8,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Docs
+
+- docs(signing): add table of contents and expand verified commits section
+
 ### Added
 
 - add revenue generating topic tests/example
