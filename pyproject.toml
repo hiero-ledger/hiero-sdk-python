@@ -9,9 +9,9 @@ authors = [
     { name = "Nadine Loepfe", email = "nadine.loepfe@hashgraph.com" },
     { name = "Richard Bair", email = "rbair23@users.noreply.github.com" }
 ]
-license = {  file = "LICENSE" }
+license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10, <3.14" # <-- Changed this line
 dependencies = [
     "protobuf==5.29.5",
     "grpcio-tools==1.68.1",
@@ -27,7 +27,10 @@ dependencies = [
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10", # <-- Changed this block
+    "Programming Language :: Python :: 3.11", # <-- Changed this block
+    "Programming Language :: Python :: 3.12", # <-- Changed this block
+    "Programming Language :: Python :: 3.13", # <-- Changed this block
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules"
