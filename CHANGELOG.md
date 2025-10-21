@@ -53,6 +53,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   - `_parse_custom_fees`
   Kept robust versions with proper docstrings and error handling.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
+- Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
+- Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
 
 ## [0.1.5] - 2025-09-25
 
