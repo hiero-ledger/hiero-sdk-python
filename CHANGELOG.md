@@ -41,6 +41,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/account_create.py` to improve modularity and readability (#363)
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
+- Converted class in `token_nft_info.py` to dataclass for simplicity.
 
 
 ### Fixed
