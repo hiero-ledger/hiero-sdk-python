@@ -47,18 +47,97 @@ Workflow:
 
   **Note**: each push to your branch will add to the draft pull request.
 
-6. **Ensure Branch is Updated With Upstream Main**. Follow these steps to make sure your branch is up-to-date with main to avoid conflicts [Updating Your Branch](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md).
+6. **Ensure Branch is Updated With Upstream Main**. Follow these steps to make sure your branch is up-to-date with main to avoid conflicts [Updating Your Branch](docs/sdk_developers/rebasing.md).
 
-7. **Solve your issue on this branch**: code the solution and push commits progressively to your branch.
-   To ensure high-quality-reviewable code, please ensure:
+7. **Solve your issue on this branch**: code the solution and push commits progressively to your branch. 
+To ensure high-quality-reviewable code, please ensure:
+- [ ] Update the changelog at CHANGELOG.md with your feature or bug fix.
+- [ ] Only resolve tasks set. For example, if the issue is to code a Token create unit test, do not change the style in TokenCreateTransaction or update the integration tests. To resolve additional tasks, create a [New Feature](#feature-requests) and create an additional Pull Request. 
+- [ ] Add type hints and check using mypy [Typing Guide](docs/sdk_developers/types.md)
+- [ ] Style and lint using pylint [Linting Guide](docs/sdk_developers/linting.md)
+- [ ] Test your code. Create unit tests (local) at tests/unit and integration tests (network) at tests/integration [Testing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md). Run tests and fix code.
+- [ ] Write functionality example(s) if applicable at examples/ [View Examples](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples).
+- [ ] Update README at docs/sdk_users/running_examples.md if you added an example script(s)
 
-- [ ] Update the changelog at [CHANGELOG.md](https://github.com/DinethShakya23/hiero-sdk-python/blob/main/CHANGELOG.md) with your feature or bug fix.
-- [ ] Only resolve tasks set. For example, if the issue is to code a Token create unit test, do not change the style in TokenCreateTransaction or update the integration tests. To resolve additional tasks, create a [New Feature](#feature-requests) and create an additional Pull Request.
-- [ ] Add type hints and check using mypy [Typing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md)
-- [ ] Style and lint using pylint [Linting Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/linting.md)
-- [ ] Test your code. Create unit tests (local) at hedera_sdk_python/tests/unit and integration tests (network) at hedera_sdk_python/tests/integration [Testing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md). Run tests and fix code.
-- [ ] Write functionality example(s) if applicable at hedera_sdk_python/examples [View Examples](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples).
-- [ ] Update README at hedera_sdk_python/examples/README.md if you added an example script(s)
+### Signing Requirements
+8. **IMPORTANT: All commits MUST be signed and verified!**
+
+
+
+  Every commit you make must be:
+- **GPG Signed** with `-S` flag
+- **DCO Signed** with `-s` flag  
+- **Verified** by GitHub (shows green "Verified" badge)
+
+**Correct commit command:**
+```bash
+git commit -S -s -m "feat: your commit message"
+```
+
+**What this means:**
+- `-S` = GPG signature (proves you authored the commit)
+- `-s` = DCO sign-off (agrees to Developer Certificate of Origin)
+- Both are required for your PR to be accepted
+
+**If you forget to sign a commit:**
+```bash
+git commit --amend -S -s
+git push --force-with-lease
+```
+
+**Setup help:** See our detailed guide for instructions on adding **GPG** keys and signing [Signing Guide](docs/sdk_developers/signing.md)
+
+
+9. **Ensure Branch is Updated**. Check if main has been updated since you started work. If it has, rebase by following the steps given in  [Updating Your Branch](docs/sdk_developers/rebasing.md). Resolve any conflicts.
+
+10. **Run tests**. Run unit tests and integration tests depending on your changes . Resolve any errors.
+
+11. **Review Network Test Outcomes**. Once your issue is solved on your branch, publish your branch and visit your forked python sdk repository. Your push will trigger Hiero Solo Integration Tests which is our network test suite. Resolve issues and fix any code in your own fork before flagging a PR to main repo. 
+
+12. **Change Pull Request From Draft to 'Ready to Review'**. Visit your draft pull request at [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls). Convert it to 'Ready to Review' by clicking the button at the bottom of the page.
+
+13. **Wait for Workflow Outcomes and Reviews**. Our maintainers will be notified automatically of your pull request and provide feedback. 
+
+14. **Update Code Given Feedback**. Create additional commits to resolve applicable feedback and ask for a review once completed.
+
+15. **Wait for Merging to Main**. When your pull request is approved, it will shortly be merged into main. Congratulations and thank you!
+
+
+### Changelog Requirements
+
+**Update CHANGELOG.md for every contribution!**
+
+You must add your changes to the `[Unreleased]` section at the top of `CHANGELOG.md`:
+
+```markdown
+## [Unreleased]
+
+### Added
+- Your new feature description
+
+### Fixed  
+- Your bug fix description
+
+### Changed
+- Your improvement description
+```
+
+**Requirements:**
+- Add one sentence describing what you changed
+- Place it in the correct category (Added/Fixed/Changed/Removed)
+- Keep it concise but descriptive
+- This helps users understand what's new in each release
+
+### Code Quality Requirements
+
+To ensure high-quality-reviewable code, please ensure:
+- [ ] Update the changelog at CHANGELOG.md with your feature or bug fix.
+- [ ] Only resolve tasks set. For example, if the issue is to code a Token create unit test, do not change the style in TokenCreateTransaction or update the integration tests. To resolve additional tasks, create a [New Feature](#feature-requests) and create an additional Pull Request. 
+- [ ] Add type hints and check using mypy [Typing Guide](docs/sdk_developers/types.md)
+- [ ] Style and lint using pylint [Linting Guide](docs/sdk_developers/linting.md)
+- [ ] Test your code. Create unit tests (local) at tests/unit and integration tests (network) at tests/integration [Testing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md). Run tests and fix code.
+- [ ] Write functionality example(s) if applicable at examples/ [View Examples](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples).
+- [ ] Update README at docs/sdk_users/running_examples.md if you added an example script(s)
 
 8. **Ensure Quality of Commits**. Each individual commit should be:
 
@@ -71,6 +150,14 @@ Workflow:
 
 11. **Change Pull Request From Draft to 'Ready to Review'**. Visit your draft pull request at [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls). Convert it to 'Ready to Review' by clicking the button at the bottom of the page.
 
+### Bad Practices 
+
+- Dont Merge main into your branch (use rebase instead) - see [merge conflicts guide](docs/sdk_developers/merge_conflicts.md)
+- Dont Make unrelated changes in the same PR
+- Dont Force push without `--force-with-lease`
+- Dont Include sensitive information (API keys, passwords, etc.)
+- Dont skip commit signing
+
 Ensure:
 
 - [ ] You've explained the changes in your pull-request.
@@ -78,7 +165,7 @@ Ensure:
 - [ ] Your pull request has a title with a pre-fix such as [conventional title formatting](https://www.conventionalcommits.org/en/v1.0.0/)
 - [ ] Local unit tests pass.
 - [ ] Hiero Solo Integration Tests pass.
-- [ ] All commits are marked as verified. If not, you'll need to back-sign [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md).
+- [ ] All commits are marked as verified. If not, you'll need to back-sign [Signing Guide](docs/sdk_developers/signing.md).
 - [ ] No sensitive information is revealed.
 
 12. **Wait for Workflow Outcomes and Reviews**. Our maintainers will be notified automatically of your pull request and provide feedback.
@@ -202,6 +289,10 @@ We strive to be a welcoming community with lots of activity, opportunities and s
 ### Documentation
 
 The Hiero Python SDK provides comprehensive documentation for both developers and users. All SDK documentation is organized in the `/docs` folder. Below is an overview to help you navigate it.
+
+- Review our collection of first starter documentation: README.md, Contributing.md, [Signing Guide](docs/sdk_developers/signing.md), [Linting Guide](docs/sdk_developers/linting.md), [Types Guide](docs/sdk_developers/types.md).
+- View examples of our code at examples/
+- View our codebase at src/hiero_sdk_python/
 
 #### 1. Hedera Services
 
