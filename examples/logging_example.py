@@ -53,7 +53,7 @@ def setup_client():
 def set_up_logging_level(client):
     """
     Configure custom logging for the client.
-    
+
     Args:
         client (Client): The Hiero client to configure logging for
     """
@@ -74,7 +74,7 @@ def set_up_logging_level(client):
 def create_key():
     """
     Generate a new key pair for account creation.
-    
+
     Returns:
         PrivateKey: Generated private key for the new account
     """
@@ -91,12 +91,12 @@ def create_key():
 def create_account(client, new_key, description=""):
     """
     Create a new account using the provided client and key.
-    
+
     Args:
         client (Client): The Hiero client to use for the transaction
         new_key (PrivateKey): The private key for the new account
         description (str): Description for logging purposes
-        
+
     Returns:
         str: The created account ID, or None if creation failed
     """
@@ -125,7 +125,7 @@ def create_account(client, new_key, description=""):
 def logging_status(client):
     """
     Display the current logging status of the client.
-    
+
     Args:
         client (Client): The client to check logging status for
     """
@@ -138,7 +138,7 @@ def logging_status(client):
 def show_logging_workflow():
     """
     Main function to demonstrate logging functionality in the Hiero SDK.
-    
+
     This function orchestrates the entire logging demonstration workflow:
     1. Sets up the client
     2. Configures custom logging
