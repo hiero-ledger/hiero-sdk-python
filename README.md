@@ -3,6 +3,48 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-python/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-sdk-python)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
 [![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/hiero-ledger/hiero-sdk-python.svg)](https://github.com/hiero-ledger/hiero-sdk-python/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/hiero-ledger/hiero-sdk-python.svg)](https://github.com/hiero-ledger/hiero-sdk-python/network/members)
+[![GitHub Watchers](https://img.shields.io/github/watchers/hiero-ledger/hiero-sdk-python.svg)](https://github.com/hiero-ledger/hiero-sdk-python/watchers)
+
+# Follow Us
+
+Join our growing community and stay updated with the latest developments!
+
+## Watch the Repository
+
+1. Visit [hiero-sdk-python](https://github.com/hiero-ledger/hiero-sdk-python)
+2. Click the 👁️ **Watch** button in the top-right
+3. Choose your notification level:
+   - **All Activity**: Receive all notifications for this repository
+   - **Releases only**: Only receive notifications for new releases
+   - **Ignore**: Stop receiving notifications
+
+Watching helps you stay informed about new features, discussions, and updates.
+
+## Star the Project ⭐
+
+1. Click the ⭐ **Star** button at the top of the repository
+2. Find your starred repositories later in your GitHub profile under:
+   - Click your profile picture
+   - Go to "Your Stars"
+   - Or visit: https://github.com/[your-username]?tab=stars
+
+Stars help us know the project is useful and encourage development!
+
+## Fork the Repository 🍴
+
+1. Click the **Fork** button at the top-right of the repository
+2. Select where to fork (your GitHub account)
+3. Now you have your own copy to:
+   - Make changes
+   - Test new features
+   - Submit Pull Requests
+   - Learn and experiment
+
+Your fork will appear at: `https://github.com/[your-username]/hiero-sdk-python`
+
+---
 
 This is a Python SDK for interacting with the Hedera Hashgraph platform. It allows developers to:
 
@@ -13,6 +55,10 @@ This is a Python SDK for interacting with the Hedera Hashgraph platform. It allo
 
 ## Table of Contents
 
+- [Follow Us](#follow-us)
+  - [Watch the Repository](#watch-the-repository)
+  - [Star the Project](#star-the-project)
+  - [Fork the Repository](#fork-the-repository)
 - [Installation](#installation)
   - [Installing from PyPI](#installing-from-pypi)
   - [Installing from Source](#installing-from-source)
