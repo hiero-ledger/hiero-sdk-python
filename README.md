@@ -13,6 +13,10 @@ This is a Python SDK for interacting with the Hedera Hashgraph platform. It allo
 
 ## Table of Contents
 
+- [Follow Us](#follow-us)
+  - [Watch Repository Activity](#watch-repository-activity)
+  - [Star the Repository](#star-the-repository)
+  - [Fork the Project](#fork-the-project)
 - [Installation](#installation)
   - [Installing from PyPI](#installing-from-pypi)
   - [Installing from Source](#installing-from-source)
@@ -20,6 +24,66 @@ This is a Python SDK for interacting with the Hedera Hashgraph platform. It allo
 - [Environment Setup](#environment-setup)
 - [Running Tests](#running-tests)
 - [Contributing](#contributing)
+
+## Follow Us
+
+Stay connected with the Hiero SDK Python project! Here's how you can follow development and contribute to the community:
+
+### Watch Repository Activity
+
+Watching the repository allows you to stay informed about project updates, discussions, and releases.
+
+1. Navigate to the [hiero-sdk-python repository](https://github.com/hiero-ledger/hiero-sdk-python)
+2. Click the **Watch** button at the top-right of the page
+3. Choose your notification level:
+   - **All Activity**: Get notified about all conversations, issues, and pull requests
+   - **Releases only**: Only receive notifications when new releases are published
+   - **Issues**: Get notified about issues and pull requests
+   - **Custom**: Select specific events you want to be notified about
+
+This helps you stay up-to-date with the latest developments and participate in discussions that matter to you.
+
+### Star the Repository
+
+Starring a repository is a way to show appreciation and bookmark projects you find interesting.
+
+1. Visit the [hiero-sdk-python repository](https://github.com/hiero-ledger/hiero-sdk-python)
+2. Click the **Star** button (⭐) at the top-right of the page
+3. The repository will be added to your starred repositories
+
+**Where to find your starred repositories:**
+- Click on your profile icon in the top-right corner of GitHub
+- Select **Your stars** from the dropdown menu
+- Or visit: `https://github.com/YOUR_USERNAME?tab=stars`
+
+Starring helps us understand the project's popularity and motivates the maintainers. It also makes it easier for you to find the project later!
+
+### Fork the Project
+
+Forking creates a personal copy of the repository under your GitHub account, allowing you to experiment and make changes without affecting the original project.
+
+1. Go to the [hiero-sdk-python repository](https://github.com/hiero-ledger/hiero-sdk-python)
+2. Click the **Fork** button at the top-right of the page
+3. GitHub will create a copy of the repository in your account
+
+**What forking means:**
+- You get your own independent copy of the project
+- You can make changes, experiment, and develop new features in your fork
+- Your changes won't affect the original project until you submit a pull request
+- You can sync your fork with the original repository to get the latest updates
+- It's the first step in contributing code changes back to the project
+
+**Next steps after forking:**
+```bash
+# Clone your fork to your local machine
+git clone https://github.com/YOUR_USERNAME/hiero-sdk-python.git
+cd hiero-sdk-python
+
+# Add the original repository as an upstream remote
+git remote add upstream https://github.com/hiero-ledger/hiero-sdk-python.git
+```
+
+For detailed contribution instructions, see our [CONTRIBUTING.md](CONTRIBUTING.md) guide.
 
 ## Installation
 
