@@ -56,17 +56,8 @@ def create_topic(client, operator_key):
         sys.exit(1)
 
 
-def submit_message(message):
-    """
-    A example to create a topic and then submit a message to it.
-    """
-    # Config Client
-    client, _, operator_key = setup_client()
-
-    # Create a new Topic
-    topic_id = create_topic(client, operator_key)
-
-    # Submit message to topic
+def submit_topic_message_transaction(client, topic_id, message, operator_key):
+    """Submit a message to the specified topic"""
     print("\nSTEP 2: Submitting message...")
     transaction = (
         TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
@@ -84,5 +75,21 @@ def submit_message(message):
         print(f"❌ Error: Message submission failed: {str(e)}")
         sys.exit(1)
 
+
+def main():
+    """
+    A example to create a topic and then submit a message to it.
+    """
+    message = "Hello, Hiero!"
+    
+    # Config Client
+    client, _, operator_key = setup_client()
+
+    # Create a new Topic
+    topic_id = create_topic(client, operator_key)
+
+    # Submit message to topic
+    submit_topic_message_transaction(client, topic_id, message, operator_key)
+
 if __name__ == "__main__":
-    submit_message("Hello, Hiero!")
+    main()
