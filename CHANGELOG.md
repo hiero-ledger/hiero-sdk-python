@@ -6,10 +6,11 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).  
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [Unreleased] (above v0.1.6)
+
 
 ### Added
-- - Added support for Python 3.13 in workflows and `pyproject.toml`.
+- Added support for Python 3.13 in workflows and `pyproject.toml`
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
