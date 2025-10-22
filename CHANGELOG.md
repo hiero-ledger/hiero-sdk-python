@@ -6,6 +6,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
+- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
+
 ### Added
 - docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
@@ -107,6 +110,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
 
 ## [0.1.6] - 2025-10-21
+
+
 
 ### Added
 

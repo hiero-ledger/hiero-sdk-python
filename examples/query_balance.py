@@ -43,7 +43,11 @@ def setup_client():
         ValueError: If OPERATOR_ID or OPERATOR_KEY environment variables are not set.
     """
     print("Setting up client connection...")
+<<<<<<< HEAD
     network = Network(os.getenv('NETWORK'))
+=======
+    network = Network(network='testnet')
+>>>>>>> 615874b (chore: refactor examples/query_balance.py to increase modularity and readability (#421))
     client = Client(network)
 
     operator_id_str = os.getenv('OPERATOR_ID')
