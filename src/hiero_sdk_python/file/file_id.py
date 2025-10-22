@@ -12,7 +12,7 @@ from hiero_sdk_python.utils.entity_id_helper import (
 )
 
 
-@dataclass
+@dataclass(frozen=True)
 class FileId:
     """
     Represents a file ID on the network.
