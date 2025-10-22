@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
+- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
+
 ### Added
 
 ### Changed
@@ -17,6 +20,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added explicit read and write permissions to test.yml
 
 ## [0.1.6] - 2025-10-21
+
+
 
 ### Added
 
