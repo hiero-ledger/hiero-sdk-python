@@ -158,7 +158,7 @@ We appreciate your interest in improving the Hiero Python SDK! Please see [CONTR
 
 ### Links
 - [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563)
-- [Hedera Python Discord](https://discord.com/channels/373889138199494658/535491161289261096).
+- [Hedera Developer Support Discord](https://discord.com/channels/373889138199494658/1106578684573388900).
 - [Hiero Blog](https://hiero.org/blog/)
 - [LFDT Youtube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
 - [Hiero LFTD Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
