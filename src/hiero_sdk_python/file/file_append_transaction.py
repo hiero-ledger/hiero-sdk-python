@@ -23,6 +23,10 @@ from hiero_sdk_python.hapi.services import file_append_pb2, timestamp_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.client import Client
+from hiero_sdk_python.keys import PrivateKey
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.hapi.services import transaction_body_pb2
 
 # pylint: disable=too-many-instance-attributes
 class FileAppendTransaction(Transaction):
@@ -61,7 +65,7 @@ class FileAppendTransaction(Transaction):
         self._current_chunk_index: int = 0
         self._total_chunks: int = self._calculate_total_chunks()
         self._transaction_ids: list[TransactionId] = []
-        self._signing_keys: list = []  # Store all signing keys for multi-chunk transactions
+        self._signing_keys: list[PrivateKey] = []  # Store all signing keys for multi-chunk transactions
 
     def _encode_contents(self, contents: Optional[str | bytes]) -> Optional[bytes]:
         """
@@ -158,7 +162,7 @@ class FileAppendTransaction(Transaction):
         self._total_chunks = self._calculate_total_chunks()
         return self
 
-    def _build_proto_body(self):
+    def _build_proto_body(self) -> file_append_pb2.FileAppendTransactionBody:
         """
         Returns the protobuf body for the file append transaction.
 
@@ -184,7 +188,7 @@ class FileAppendTransaction(Transaction):
             contents=chunk_contents
         )
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_body_pb2.TransactionBody:
         """
         Builds the transaction body for this file append transaction.
 
@@ -208,7 +212,7 @@ class FileAppendTransaction(Transaction):
         schedulable_body.fileAppend.CopyFrom(file_append_body)
         return schedulable_body
 
-    def _get_method(self, channel: _Channel) -> _Method:
+    def _get_method(self, channel: _Channel) -> _Method[file_append_pb2.FileAppendTransactionBody, None]:
         """
         Gets the method to execute the file append transaction.
 
@@ -226,7 +230,7 @@ class FileAppendTransaction(Transaction):
             query_func=None
         )
 
-    def _from_proto(self, proto) -> 'FileAppendTransaction':
+    def _from_proto(self, proto: file_append_pb2.FileAppendTransactionBody) -> 'FileAppendTransaction':
         """
         Initializes a new FileAppendTransaction instance from a protobuf object.
 
@@ -242,7 +246,7 @@ class FileAppendTransaction(Transaction):
         self._total_chunks = self._calculate_total_chunks()
         return self
 
-    def _validate_chunking(self):
+    def _validate_chunking(self) -> None:
         """
         Validates that the transaction doesn't exceed the maximum number of chunks.
         
@@ -256,7 +260,7 @@ class FileAppendTransaction(Transaction):
             )
 
 
-    def freeze_with(self, client):
+    def freeze_with(self, client: Client) -> 'FileAppendTransaction':
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
         
@@ -310,7 +314,7 @@ class FileAppendTransaction(Transaction):
         return self
 
 
-    def execute(self, client):
+    def execute(self, client: Client) -> Optional[TransactionReceipt]:
         """
         Executes the file append transaction.
         
@@ -357,7 +361,7 @@ class FileAppendTransaction(Transaction):
             # Return the first response (as per JavaScript implementation)
             return responses[0] if responses else None
 
-    def sign(self, private_key):
+    def sign(self, private_key: PrivateKey) -> 'FileAppendTransaction':
         """
         Signs the transaction using the provided private key.
             

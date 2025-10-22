@@ -7,22 +7,24 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
 
 ### Changed
+
 - Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
 - Enhanced contributing section in README.md with resource links
 - Refactored examples/topic_message_submit.py to be more modular
 
 ### Fixed
+
 - Added explicit read and write permissions to test.yml
+- Add missing type hints to `FileAppendTransaction` (Issue [#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495)).
 
 ## [0.1.6] - 2025-10-21
-
-
 
 ### Added
 
@@ -55,20 +57,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
 
-
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
-- Corrected references to _require_not_frozen() and removed the surplus _is_frozen
+- Corrected references to \_require_not_frozen() and removed the surplus \_is_frozen
 - Removed duplicate static methods in `TokenInfo` class:
   - `_copy_msg_to_proto`
   - `_copy_key_if_present`
   - `_parse_custom_fees`
-  Kept robust versions with proper docstrings and error handling.
+    Kept robust versions with proper docstrings and error handling.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
-
 
 ## [0.1.5] - 2025-09-25
 
