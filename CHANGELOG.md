@@ -7,6 +7,13 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+### Added
+
+### Changed
+
+### Fixed
+
+## [0.1.6] - 2025-10-21
 
 ### Added
 
@@ -33,9 +40,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactor examples/token_cancel_airdrop
 - Refactor token creation examples for modularity and consistency
 - Rearranged running_examples.md to be alphabetical
-
-### Changed
-
 - Refactor token_associate.py for better structure, add association verification query (#367)
 - Refactored `examples/account_create.py` to improve modularity and readability (#363)
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
@@ -53,6 +57,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   - `_parse_custom_fees`
   Kept robust versions with proper docstrings and error handling.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
+- Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
+- Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
 
 ## [0.1.5] - 2025-09-25
 
