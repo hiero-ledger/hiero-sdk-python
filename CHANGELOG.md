@@ -13,6 +13,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
+- chore: added python 3.13 to test.yml workflow (#510, #449)
 - Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
 - Added TokenUnpauseTransaction class
@@ -72,6 +73,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
+
 ### Changed
 
 - Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
@@ -92,7 +94,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
-  – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+– docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
