@@ -7,12 +7,22 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.1.6] - 2025-10-21
+
+
+
+### Added
+
+- Add comprehensive Google-style docstrings to examples/account_create.py
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
 - add CustomFeeLimit class
@@ -22,6 +32,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - HbarTransfer class
 - AccountAllowanceApproveTransaction class
 - AccountAllowanceDeleteTransaction class
+- FileAppendTransaction class
+- Documentation examples for Allowance Approve Transaction, Allowance Delete Transaction, and File Append Transaction
 - Approved transfer support to TransferTransaction
 - set_transaction_id() API to Transaction class
 - Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
@@ -31,16 +43,27 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
-
-### Changed
-
+- Refactor token creation examples for modularity and consistency
+- Rearranged running_examples.md to be alphabetical
 - Refactor token_associate.py for better structure, add association verification query (#367)
 - Refactored `examples/account_create.py` to improve modularity and readability (#363)
+- Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
+- Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
+- Converted class in `token_nft_info.py` to dataclass for simplicity.
+
 
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
-- Corrected references to \_\_require_not_frozen() to \_require_not_frozen() and removed the surplus \_is_frozen
+- Corrected references to _require_not_frozen() and removed the surplus _is_frozen
+- Removed duplicate static methods in `TokenInfo` class:
+  - `_copy_msg_to_proto`
+  - `_copy_key_if_present`
+  - `_parse_custom_fees`
+  Kept robust versions with proper docstrings and error handling.
+- Add strict type hints to `TransactionGetReceiptQuery` (#420)
+- Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
+- Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
 
 ## [0.1.5] - 2025-09-25
 
