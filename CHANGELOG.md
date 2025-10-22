@@ -25,6 +25,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - feat: add initial testing guide structure
 - Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
 - Added workflow for running example scripts.
+- added workflow for running example scripts.
 
 ### Changed
 
