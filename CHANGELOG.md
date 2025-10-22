@@ -28,6 +28,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Refactored TopicId class to use @dataclass decorator
 - TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
