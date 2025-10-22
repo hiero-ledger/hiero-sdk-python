@@ -152,6 +152,14 @@ Topic update successful.
 Topic deletion successful.
 ```
 
+## Transaction Examples
+
+If you are developing applications using the Hiero SDK (rather than contributing to the SDK itself), you'll want to check out our transaction examples.
+
+For a high-level overview of how to use the SDK with both Pythonic syntax and method chaining approaches, see [Running Examples](docs/examples/sdk_users/running_examples.md).
+
+For detailed, runnable examples of specific transactions, explore the [/examples](examples) directory which contains concrete implementations of various transaction types.
+
 ## Contributing
 
 We appreciate your interest in improving the Hiero Python SDK!
