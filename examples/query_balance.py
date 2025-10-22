@@ -93,7 +93,8 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
 
     print(f"✓ Account created successfully")
     print(f"  Account ID: {new_account_id}")
-    print(f"  Initial balance: {initial_balance.to_tinybars()} tinybars\n")
+    print(
+        f"  Initial balance: {initial_balance.to_hbars()} hbars ({initial_balance.to_tinybars()} tinybars)\n")
 
     return new_account_id, new_account_private_key
 
@@ -114,8 +115,9 @@ def get_balance(client, account_id):
     balance_query = CryptoGetAccountBalanceQuery().set_account_id(account_id)
     balance = balance_query.execute(client)
 
-    print(f"✓ Balance retrieved: {balance.hbars} hbars\n")
-    return balance.hbars
+    balance_hbar = balance.hbars.to_hbars()
+    print(f"✓ Balance retrieved: {balance_hbar} hbars\n")
+    return balance_hbar
 
 
 def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
@@ -133,7 +135,7 @@ def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
         str: The status of the transfer transaction.
     """
     print(
-        f"Transferring {amount.to_tinybars()} tinybars ({amount.hbars} hbars) from {operator_id} to {recipient_id}...")
+        f"Transferring {amount.to_tinybars()} tinybars ({amount.to_hbars()} hbars) from {operator_id} to {recipient_id}...")
 
     # Create transfer transaction
     transfer_transaction = (
