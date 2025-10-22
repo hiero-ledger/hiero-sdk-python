@@ -32,6 +32,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Approved transfer support to TransferTransaction
 - set_transaction_id() API to Transaction class
 - Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
+- docs: Add Google-style docstrings to custom_fixed_fee.py
 
 ### Changed
 
@@ -45,6 +46,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
+- docs: Improved the contributing section in the README.md file. (#484)
 
 
 ### Fixed
