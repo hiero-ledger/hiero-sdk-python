@@ -12,6 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 ### Fixed
+- Added explicit read and write permissions to test.yml
 
 ## [0.1.6] - 2025-10-21
 
@@ -60,6 +61,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
+
 
 ## [0.1.5] - 2025-09-25
 
