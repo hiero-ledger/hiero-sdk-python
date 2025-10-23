@@ -22,6 +22,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 - Added explicit read and write permissions to test.yml
 
+### Removed
+- Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
+
 ## [0.1.6] - 2025-10-21
 
 
