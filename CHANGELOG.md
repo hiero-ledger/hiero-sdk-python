@@ -10,7 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
-
+- Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
 
 ### Changed
