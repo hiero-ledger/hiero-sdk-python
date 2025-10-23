@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored examples/topic_message_submit.py to be more modular
 
 ### Fixed
+- Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
 
 ## [0.1.6] - 2025-10-21

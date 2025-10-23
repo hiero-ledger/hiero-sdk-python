@@ -24,6 +24,7 @@ Requirements:
 """
 import os
 import sys
+from typing import Tuple
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
@@ -37,7 +38,7 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def setup_client():
+def setup_client() -> Tuple[Client, PrivateKey]:
     """
     Set up and configure a Hedera client for testnet operations.
     
@@ -67,7 +68,7 @@ def setup_client():
 
     return client, operator_key
 
-def create_new_account(client, operator_key):
+def create_new_account(client: Client, operator_key: PrivateKey) -> None:
     """
     Create a new Hedera account with generated keys and initial balance.
     
