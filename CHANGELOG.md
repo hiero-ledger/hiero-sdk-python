@@ -28,7 +28,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Added explicit read and write permissions to test.yml
-- Add missing type hints to `FileAppendTransaction` (Issue [#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495)).
 
 ## [0.1.6] - 2025-10-21
 
