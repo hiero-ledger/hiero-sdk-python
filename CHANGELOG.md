@@ -12,6 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
 - Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
+- Added documentation for resolving changelog conflicts in `docs/common_issues.md`
 
 ### Changed
 - Refactored `examples/topic_create.py` to be more modular by splitting functions and renaming `create_topic()` to `main()`.
