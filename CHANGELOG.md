@@ -10,14 +10,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
-
+- Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
+- Added documentation for resolving changelog conflicts in `docs/common_issues.md`
 
 ### Changed
 - Refactored `examples/topic_create.py` to be more modular by splitting functions and renaming `create_topic()` to `main()`.
 - Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
 - Enhanced contributing section in README.md with resource links
 - Refactored examples/topic_message_submit.py to be more modular
+- docs: Improved the contributing section in the README.md file
 
 ### Fixed
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
