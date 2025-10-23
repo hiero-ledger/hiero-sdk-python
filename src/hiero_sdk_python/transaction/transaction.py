@@ -230,6 +230,33 @@ class Transaction(_Executable):
             signedTransactionBytes=signed_transaction.SerializeToString()
         )
 
+    def freeze(self):
+        """
+        Freezes the transaction by building the transaction body and setting necessary IDs.
+        
+        This method requires that transaction_id and node_account_id are already set manually.
+        Use freeze_with(client) if you want to use the client to set these values automatically.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            ValueError: If transaction_id or node_account_id are not set.
+        """
+        if self._transaction_body_bytes:
+            return self
+        
+        if self.transaction_id is None:
+            raise ValueError("Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id().")
+        
+        if self.node_account_id is None:
+            raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_id.")
+        
+        # Build the transaction body for the single node
+        self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+        
+        return self
+
     def freeze_with(self, client):
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
@@ -482,3 +509,73 @@ class Transaction(_Executable):
         self._require_not_frozen()
         self.transaction_id = transaction_id
         return self
+
+    def to_bytes(self):
+        """
+        Serializes the frozen transaction into its protobuf-encoded byte representation.
+        
+        This method is equivalent to the TypeScript SDK's transaction.toBytes() method.
+        It prepares the transaction to be serialized (frozen) and ready for signing or
+        serialization without executing it.
+
+        Returns:
+            bytes: The protobuf-encoded transaction bytes.
+
+        Raises:
+            Exception: If the transaction has not been frozen yet.
+        """
+        self._require_frozen()
+        
+        # Get the transaction protobuf
+        transaction_proto = self._to_proto()
+        
+        # Serialize to bytes
+        return transaction_proto.SerializeToString()
+
+    @staticmethod
+    def from_bytes(transaction_bytes: bytes):
+        """
+        Deserializes a transaction from its protobuf-encoded byte representation.
+        
+        This method is equivalent to the TypeScript SDK's Transaction.fromBytes() method.
+        It reconstructs a Transaction object from bytes that were previously created
+        using to_bytes().
+
+        Args:
+            transaction_bytes (bytes): The protobuf-encoded transaction bytes.
+
+        Returns:
+            Transaction: A reconstructed transaction instance.
+
+        Raises:
+            ValueError: If the bytes cannot be parsed as a valid transaction.
+            NotImplementedError: This is a placeholder - full implementation requires
+                                 transaction type detection and reconstruction.
+        """
+        # Parse the transaction protobuf
+        try:
+            transaction_proto = transaction_pb2.Transaction()
+            transaction_proto.ParseFromString(transaction_bytes)
+            
+            # Parse the signed transaction
+            signed_transaction = transaction_contents_pb2.SignedTransaction()
+            signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
+            
+            # Parse the transaction body
+            transaction_body = transaction_pb2.TransactionBody()
+            transaction_body.ParseFromString(signed_transaction.bodyBytes)
+            
+            # TODO: Implement full deserialization logic
+            # This requires:
+            # 1. Detecting the transaction type from the transaction body
+            # 2. Creating the appropriate transaction subclass instance
+            # 3. Populating all fields from the protobuf
+            # 4. Restoring signatures from the signature map
+            
+            raise NotImplementedError(
+                "Transaction.from_bytes() is not fully implemented yet. "
+                "This requires transaction type detection and reconstruction logic."
+            )
+            
+        except Exception as e:
+            raise ValueError(f"Failed to parse transaction bytes: {str(e)}")
