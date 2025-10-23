@@ -6,6 +6,7 @@ This guide is designed to help developers overcome some common issues when devel
 
 - [Verified Commits and Signing Issues](#verified-commits-and-signing-issues)
 - [Changelog Issues](#changelog-issues)
+- [One Issue Per Pull Request](#one-issue-per-pull-request)
 - [Getting in Touch](#getting-in-touch)
 
 ---
@@ -88,6 +89,48 @@ Every contribution **must include an entry in CHANGELOG.md** under the `[Unrelea
 The changelog helps users understand what's new in each release. Your entry will be included in the next version's release notes.
 
 ---
+
+## One Issue Per Pull Request
+
+### The Problem
+
+We only accept **one issue per pull request**. 
+
+Sometimes, a contributor will submit a pull request that contains changes for multiple issues. This makes the pull request difficult to review and merge.
+
+For example, if your issue is "Expand Token Creation to allow Infinite tokens", your pull request should ONLY contain changes for that feature and its changelog entry (e.g., `feat: added infinite tokens to token create`). 
+
+You should **NOT** also add a separate change, like `chore: type hint token_associate`, in the same pull request. That should be its own issue and its own pull request.
+
+### The Solution
+
+To solve this, you must follow these best practices for every pull request you submit:
+
+1.  **Create One Branch Per Issue**
+    You must create a new, separate branch for every issue you work on. 
+
+2.  **Always Branch from `main`**
+    This new branch should *always* be created from the `main` branch. Do not create a new branch from one of your other branches.
+
+3.  **Keep Your `main` Branch Up-to-Date**
+    Before you create a new branch, make sure your local `main` branch is in sync with the upstream (the project's) `main` branch. You can find instructions for this in `rebasing.md`, but the quick commands are:
+    ```sh
+    git fetch upstream
+    git checkout main
+    git pull upstream main
+    ```
+
+4.  **Check Your Files Before Submitting**
+    After you submit your pull request, click the **"Files changed"** tab.
+
+
+
+    Look at the list of files. Do they *only* relate to the *one* issue you are solving? If you see extra files or changes you didn't mean to include, your PR will not be merged.
+
+    You can see an example of this tab here: [https://github.com/hiero-ledger/hiero-sdk-python/pull/515/files](https://github.com/hiero-ledger/hiero-sdk-python/pull/515/files)
+
+---
+
 
 ## Getting in Touch
 
