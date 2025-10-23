@@ -12,7 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 - docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
-
+- Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
@@ -115,6 +115,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+
+- Added `TokenFeeScheduleUpdateTransaction` to update token fee schedules (#471).
 - Add comprehensive Google-style docstrings to examples/account_create.py
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
@@ -159,6 +161,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
     - `_copy_key_if_present`
     - `_parse_custom_fees`
     Kept robust versions with proper docstrings and error handling.
+  - `_copy_msg_to_proto`
+  - `_copy_key_if_present`
+  - `_parse_custom_fees`
+  Kept robust versions with proper docstrings and error handling.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
@@ -386,6 +392,9 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
     - Renamed and moved `README_linting.md` to `linting.md`
     - Renamed and moved `README_types.md` to `types.md`
     - Renamed and moved `Commit_Signing.md` to `signing.md`
+  - Renamed and moved `README_linting.md` to `linting.md`
+  - Renamed and moved `README_types.md` to `types.md`
+  - Renamed and moved `Commit_Signing.md` to `signing.md`
 - Created `sdk_users` docs folder and renamed `examples/README.md` to `running_examples.md`
 - Updated references and links accordingly
 
