@@ -1,7 +1,6 @@
 """
 uv run examples/topic_create.py
 python examples/topic_create.py
-
 """
 import os
 import sys
@@ -17,7 +16,8 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def create_topic():
+# set up the Hedera client with operator credentials
+def setup_client():
     network = Network(network='testnet')
     client = Client(network)
 
@@ -25,7 +25,10 @@ def create_topic():
     operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
 
     client.set_operator(operator_id, operator_key)
+    return client, operator_key
 
+# create a new topic on Hedera network
+def create_topic(client, operator_key):
     transaction = (
         TopicCreateTransaction(
             memo="Python SDK created topic",
@@ -46,5 +49,11 @@ def create_topic():
         print(f"Topic creation failed: {str(e)}")
         sys.exit(1)
 
+
+def main():
+    client, operator_key = setup_client()
+    create_topic(client, operator_key)
+
+
 if __name__ == "__main__":
-    create_topic()
+    main()
