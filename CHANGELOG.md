@@ -11,6 +11,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
+- Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 
 ### Changed
 - Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
