@@ -111,10 +111,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [0.1.6] - 2025-10-21
 
-
-
 ### Added
-
 
 - Added `TokenFeeScheduleUpdateTransaction` to update token fee schedules (#471).
 - Add comprehensive Google-style docstrings to examples/account_create.py
@@ -150,7 +147,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
-
 
 ### Fixed
 
@@ -395,6 +391,9 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
   - Renamed and moved `README_linting.md` to `linting.md`
   - Renamed and moved `README_types.md` to `types.md`
   - Renamed and moved `Commit_Signing.md` to `signing.md`
+    - Renamed and moved `README_linting.md` to `linting.md`
+    - Renamed and moved `README_types.md` to `types.md`
+    - Renamed and moved `Commit_Signing.md` to `signing.md`
 - Created `sdk_users` docs folder and renamed `examples/README.md` to `running_examples.md`
 - Updated references and links accordingly
 
