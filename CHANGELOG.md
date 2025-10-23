@@ -1,9 +1,7 @@
-This is a markdown file, click Ctrl+Shift+V to view or click open preview.
-
 # Changelog
 
-All notable changes to this project will be documented in this file.  
-This project adheres to [Semantic Versioning](https://semver.org).  
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
@@ -11,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
+- Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
 
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
 
@@ -27,7 +26,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
-
 - Add comprehensive Google-style docstrings to examples/account_create.py
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
@@ -64,10 +62,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Incompatible Types assignment in token_transfer_list.py
 - Corrected references to _require_not_frozen() and removed the surplus _is_frozen
 - Removed duplicate static methods in `TokenInfo` class:
-  - `_copy_msg_to_proto`
-  - `_copy_key_if_present`
-  - `_parse_custom_fees`
-  Kept robust versions with proper docstrings and error handling.
+  - `_copy_msg_to_proto`
+  - `_copy_key_if_present`
+  - `_parse_custom_fees`
+  Kept robust versions with proper docstrings and error handling.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
@@ -293,9 +291,9 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - SimpleContract and StatefulContract constructors to be payable
 - added new_pending_airdrops to TransactionRecord Class
 - Reorganized SDK developer documentation:
-  - Renamed and moved `README_linting.md` to `linting.md`
-  - Renamed and moved `README_types.md` to `types.md`
-  - Renamed and moved `Commit_Signing.md` to `signing.md`
+  - Renamed and moved `README_linting.md` to `linting.md`
+  - Renamed and moved `README_types.md` to `types.md`
+  - Renamed and moved `Commit_Signing.md` to `signing.md`
 - Created `sdk_users` docs folder and renamed `examples/README.md` to `running_examples.md`
 - Updated references and links accordingly
 
