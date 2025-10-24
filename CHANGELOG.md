@@ -6,6 +6,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+- Refactored `examples/custom_fee.py` into modular, reusable functions (`setup_client`, `custom_fixed_fee`, `custom_fractional_fee`, `custom_royalty_fee`). Preserved identical output and functionality for clarity and maintainability.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
