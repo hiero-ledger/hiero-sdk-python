@@ -19,10 +19,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
 - docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
 - docs: Add Google-style docstrings to `CustomRoyaltyFee` class and its methods in `custom_royalty_fee.py`.
+- docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
 
 ### Changed
 
-- Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme
 - Refactored `examples/topic_create.py` to be more modular by splitting functions and renaming `create_topic()` to `main()`.
 - Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
 - Enhanced contributing section in README.md with resource links
@@ -35,11 +35,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
-- refactored examples/topic_delete.py to be more modular (`added topic_delete_transaction()` and `main()`).
-
-### Fixed
-
 - Added explicit read and write permissions to test.yml
+- Enforced validation in `TransferTransaction` to prevent execution of empty transfer lists (#521).
 
 ## [0.1.6] - 2025-10-21
 
