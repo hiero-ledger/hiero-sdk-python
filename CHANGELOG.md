@@ -11,6 +11,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
+- Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
 
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
