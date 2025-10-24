@@ -128,6 +128,16 @@ def token_associate(client, nft_token_id, fungible_token_id, recipient_id, recip
         print(f"❌ Error associating tokens: {e}")
         sys.exit(1)
 
+def verify_dissociation(client, nft_token_id, fungible_token_id, recipient_id):
+    """Verify that the specified tokens are dissociated from the account."""
+    print("\nVerifying token dissociation...")
+    info = AccountInfoQuery().set_account_id(recipient_id).execute(client)
+    associated_tokens = [rel.token_id for rel in getattr(info, 'token_relationships', [])]
+    if nft_token_id not in associated_tokens and fungible_token_id not in associated_tokens:
+        print("✅ Verified: Both tokens are dissociated from the account.")
+    else:
+        print("❌ Verification failed: Some tokens are still associated.")
+
 def token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key):
     """
     Dissociate the tokens from the new account.
@@ -153,13 +163,7 @@ def token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, reci
         print(f"✅ Success! Token dissociation complete for both NFT and fungible tokens, Status: {ResponseCode(receipt.status).name}")
 
         # Optional: Verify dissociation
-        print("\nVerifying token dissociation...")
-        info = AccountInfoQuery().set_account_id(recipient_id).execute(client)
-        associated_tokens = [rel.token_id for rel in getattr(info, 'token_relationships', [])]
-        if nft_token_id not in associated_tokens and fungible_token_id not in associated_tokens:
-            print("✅ Verified: Both tokens are dissociated from the account.")
-        else:
-            print("❌ Verification failed: Some tokens are still associated.")
+        verify_dissociation(client, nft_token_id, fungible_token_id, recipient_id)
 
     except (ValueError, RuntimeError) as e:
         print(f"❌ Error dissociating tokens: {e}")
