@@ -8,7 +8,6 @@ on the Hedera network via the HTS API.
 
 from typing import TYPE_CHECKING, List, Optional
 
-# --- Imports based on token_update_transaction.py ---
 from ..transaction.transaction import Transaction
 from .token_id import TokenId
 from ..channels import _Channel
