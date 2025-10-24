@@ -162,9 +162,6 @@ def token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, reci
         )
         print(f"✅ Success! Token dissociation complete for both NFT and fungible tokens, Status: {ResponseCode(receipt.status).name}")
 
-        # Optional: Verify dissociation
-        verify_dissociation(client, nft_token_id, fungible_token_id, recipient_id)
-
     except (ValueError, RuntimeError) as e:
         print(f"❌ Error dissociating tokens: {e}")
         sys.exit(1)
@@ -182,6 +179,8 @@ def main():
     client, nft_token_id, fungible_token_id, recipient_id, recipient_key = create_token(client, operator_key, recipient_id, recipient_key, operator_id)
     token_associate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key)
     token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key)
+    # Optional: Verify dissociation
+    verify_dissociation(client, nft_token_id, fungible_token_id, recipient_id)
 
 
 if __name__ == "__main__":
