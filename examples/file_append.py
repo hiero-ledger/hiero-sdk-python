@@ -76,6 +76,29 @@ def append_file_single(client, file_id, file_private_key):
     
     print("Content appended successfully!")
 
+def append_file_large(client, file_id, file_private_key):
+    """Append large content to the file (multi-chunk)"""
+    print("\nAppending large content (multi-chunk)...")
+    large_content = b"Large content that will be split into multiple chunks. " * 100
+    
+    large_append_receipt = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_contents(large_content)
+        .set_chunk_size(1024)  # 1KB chunks
+        .set_max_chunks(50)    # Allow up to 50 chunks
+        .freeze_with(client)
+        .sign(file_private_key)
+        .execute(client)
+    )
+    
+    if large_append_receipt.status != ResponseCode.SUCCESS:
+        print(f"Large file append failed with status: {ResponseCode(large_append_receipt.status).name}")
+        sys.exit(1)
+    
+    print("Large content appended successfully!")
+    print(f"Total chunks used: {FileAppendTransaction().set_contents(large_content).get_required_chunks()}")
+
 def main():
     """
     Demonstrates appending content to a file on the network by:
