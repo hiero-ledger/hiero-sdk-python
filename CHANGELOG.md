@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 ### Added
+- Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
 
 ### Changed
 - Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
