@@ -6,6 +6,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
+- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
+
 ### Added
 - Added `examples/account_id.py` demonstrating `AccountId` class usage including creating standard `AccountId`s, parsing from strings, comparing instances, and creating `AccountId`s with public key aliases.
 - Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
