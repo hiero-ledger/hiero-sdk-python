@@ -19,6 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
 - docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
 - docs: Add Google-style docstrings to `CustomRoyaltyFee` class and its methods in `custom_royalty_fee.py`.
+- docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
 
 ### Changed
 
@@ -36,10 +37,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
-- refactored examples/topic_delete.py to be more modular (`added topic_delete_transaction()` and `main()`).
-
-### Fixed
-
 - Added explicit read and write permissions to test.yml
 
 ## [0.1.6] - 2025-10-21
