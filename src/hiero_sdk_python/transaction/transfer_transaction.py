@@ -205,6 +205,23 @@ class TransferTransaction(Transaction):
             )
         )
         return self
+    
+    def _validate_parameters(self) -> None:
+        """
+        Validates that at least one transfer (HBAR, Token, or NFT) has been added
+        to the transaction.
+
+        Raises:
+            ValueError: If no transfers have been added.
+        """
+        has_hbar = len(self.hbar_transfers) > 0
+        has_tokens = any(v for v in self.token_transfers.values())
+        has_nfts = any(v for v in self.nft_transfers.values())
+        if not has_hbar and not has_tokens and not has_nfts:
+            raise ValueError(
+                "TransferTransaction must have at least one transfer. "
+                "Use add_hbar_transfer(), add_token_transfer(), or add_nft_transfer() to add transfers."
+            )
 
     def add_hbar_transfer(self, account_id: AccountId, amount: int) -> "TransferTransaction":
         """
@@ -353,6 +370,7 @@ class TransferTransaction(Transaction):
         """
         Returns the protobuf body for the transfer transaction.
         """
+        self._validate_parameters()
         crypto_transfer_tx_body = crypto_transfer_pb2.CryptoTransferTransactionBody()
 
         # HBAR
