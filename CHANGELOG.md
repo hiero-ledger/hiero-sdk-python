@@ -23,10 +23,21 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   - `examples/topic_message_submit.py` → improved modularity.
   - `examples/transfer_nft.py` → isolated transfer logic.
 - Enhanced contributing section in README.md with resource links.
+- Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme
+- Added changelog conflict resolution examples to `docs/common_issues.md`
+- Refactored `examples/topic_create.py` to be more modular by splitting functions and renaming `create_topic()` to `main()`.
+- Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
+- Enhanced contributing section in README.md with resource links
+- Refactored examples/topic_message_submit.py to be more modular
+
 - Added "One Issue Per Pull Request" section to `examples/sdk_developers/common_issues.md`.
 - Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
 - Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency.
 - Improved contributing section in README.md.
+
+- Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency
+- Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
+
 
 ### Fixed
 - Added type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418).
