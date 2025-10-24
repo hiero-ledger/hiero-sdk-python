@@ -448,3 +448,16 @@ def test_integration_transfer_transaction_approved_token_transfer():
 
     finally:
         env.close()
+
+def test_empty_transfer_transaction_execution_fails_locally(client, operator_key):
+    """
+    Verifies that executing a TransferTransaction with zero transfers fails locally 
+    by raising a ValueError during the build process, preventing unnecessary network calls.
+    """
+    tx = TransferTransaction()
+    with pytest.raises(ValueError) as excinfo:
+        tx.execute(client)
+    assert "TransferTransaction must have at least one transfer" in str(excinfo.value)
+    tx_frozen = tx.freeze_with(client)
+    with pytest.raises(ValueError):
+        tx_frozen.sign(operator_key)

@@ -12,6 +12,20 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 pytestmark = pytest.mark.unit
 
+def test_transfer_transaction_must_not_be_empty():
+    """
+    Verifies that building the transaction body raises a ValueError 
+    if the TransferTransaction has no HBAR, Token, or NFT transfers.
+    """
+    tx = TransferTransaction()
+    
+    # Assert that calling the proto builder (which calls validation) raises ValueError
+    with pytest.raises(ValueError) as excinfo:
+        tx._build_proto_body()
+    
+    # Assert the error message contains the expected text
+    assert "TransferTransaction must have at least one transfer" in str(excinfo.value)
+
 
 def test_constructor_with_parameters(mock_account_ids):
     """Test constructor initialization with parameters."""
