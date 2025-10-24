@@ -1,7 +1,7 @@
 # uv run examples/token_freeze.py
 # python examples/token_freeze.py
 """
-Creates a freezeable token and demonstrates freezing
+Creates a freezeable token and demonstrates freezing and unfreezing
 the token for the operator (treasury) account.
 """
 import os
@@ -15,7 +15,6 @@ from hiero_sdk_python import (
     Network,
     TokenCreateTransaction,
     TokenFreezeTransaction,
-    TokenUnfreezeTransaction,
     TransferTransaction,
     ResponseCode,
 )
@@ -75,8 +74,7 @@ def create_freezeable_token(client, operator_id, operator_key):
         sys.exit(1)
 
 
-
-def freeze_token(token_id, client, operator_id, freeze_key, operator_key):
+def freeze_token(token_id, client, operator_id, freeze_key):
     """
     Freeze the token for the operator account.
     """
@@ -91,53 +89,36 @@ def freeze_token(token_id, client, operator_id, freeze_key, operator_key):
             .execute(client)
         )
         print(f"✅ Success! Token freeze complete. Status: {ResponseCode(receipt.status).name}")
-
-        # Attempt a token transfer to confirm the account cannot perform the operation while frozen
-        print("\nVerifying freeze: Attempting token transfer...")
         
-        # Try to transfer 1 token from operator to itself (should fail if frozen)
-        try:
-            transfer_receipt = (
-                TransferTransaction()
-                .add_token_transfer(token_id, operator_id, 1)
-                .add_token_transfer(token_id, operator_id, -1)
-                .freeze_with(client)
-                .sign(operator_key)
-                .execute(client)
-            )
-            # Handle status code 165 (ACCOUNT_FROZEN_FOR_TOKEN) and print a clear message
-            status_code = transfer_receipt.status
-            status_name = ResponseCode(status_code).name
-            if status_name in ["ACCOUNT_FROZEN_FOR_TOKEN", "ACCOUNT_FROZEN"]:
-                print(f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}")
-            elif status_name == "SUCCESS":
-                print("❌ Error: Transfer succeeded, but should have failed because the account is frozen.")
-            else:
-                print(f"❌ Unexpected: Transfer result. Status: {status_name}")
-        except Exception as e:
-            print(f"✅ Verified: Transfer failed as expected due to freeze. Error: {e}")
     except RuntimeError as e:
         print(f"❌ Error freezing token: {e}")
         sys.exit(1)
 
-def unfreeze_token(token_id, client, operator_id, freeze_key):
-    """
-    Unfreezes the token for the operator (treasury) account.
-    """
-    print(f"\nSTEP 4: Unfreezing token {token_id} for operator account {operator_id}...")
+def verify_freeze(token_id, client, operator_id, operator_key):
+    """Attempt a token transfer to confirm the account
+    cannot perform the operation while frozen."""
+    print("\nVerifying freeze: Attempting token transfer...")
+    # Try to transfer 1 token from operator to itself (should fail if frozen)
     try:
-        receipt = (
-            TokenUnfreezeTransaction()
-            .set_token_id(token_id)
-            .set_account_id(operator_id) # Target the operator account
+        transfer_receipt = (
+            TransferTransaction()
+            .add_token_transfer(token_id, operator_id, 1)
+            .add_token_transfer(token_id, operator_id, -1)
             .freeze_with(client)
-            .sign(freeze_key) # Also signed by the freeze key
+            .sign(operator_key)
             .execute(client)
         )
-        print(f"✅ Success! Token unfreeze complete. Status: {receipt.status}")
+        # Handle status code 165 (ACCOUNT_FROZEN_FOR_TOKEN) and print a clear message
+        status_code = transfer_receipt.status
+        status_name = ResponseCode(status_code).name
+        if status_name in ["ACCOUNT_FROZEN_FOR_TOKEN", "ACCOUNT_FROZEN"]:
+            print(f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}")
+        elif status_name == "SUCCESS":
+            print("❌ Error: Transfer succeeded, but should have failed because the account is frozen.")
+        else:
+            print(f"❌ Unexpected: Transfer result. Status: {status_name}")
     except RuntimeError as e:
-        print(f"❌ Error unfreezing token: {e}")
-        sys.exit(1)
+        print(f"✅ Verified: Transfer failed as expected due to freeze. Error: {e}")
 
 def main():
     """
@@ -147,8 +128,8 @@ def main():
     4. Return token details for further operations."""
     client, operator_id, operator_key = setup_client()
     freeze_key, token_id, client, operator_id, operator_key = create_freezeable_token(client, operator_id, operator_key)
-    freeze_token(token_id, client, operator_id, freeze_key, operator_key)
-
+    freeze_token(token_id, client, operator_id, freeze_key)
+    verify_freeze(token_id, client, operator_id, operator_key)
 
 if __name__ == "__main__":
     main()
