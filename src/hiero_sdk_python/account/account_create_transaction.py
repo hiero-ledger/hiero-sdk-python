@@ -1,4 +1,8 @@
-from typing import Union
+"""
+AccountCreateTransaction class.
+"""
+
+from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -11,6 +15,9 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
+AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
+DEFAULT_TRANSACTION_FEE = Hbar(3).to_tinybars()  # 3 Hbars
+
 
 class AccountCreateTransaction(Transaction):
     """
@@ -19,29 +26,30 @@ class AccountCreateTransaction(Transaction):
 
     def __init__(
         self,
-        key: PublicKey = None,
+        key: Optional[PublicKey] = None,
         initial_balance: Union[Hbar, int] = 0,
-        receiver_signature_required: bool = False,
-        auto_renew_period: Duration = Duration(7890000),  # 90 days in seconds
-        memo: str = ""
-     ) -> None:
+        receiver_signature_required: Optional[bool] = None,
+        auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD,
+        memo: Optional[str] = None,
+    ) -> None:
         """
-        Initializes a new AccountCreateTransaction instance with default values or specified keyword arguments.
+        Initializes a new AccountCreateTransaction instance with default values
+        or specified keyword arguments.
 
-        Args:
-            key (PublicKey, optional): The public key for the new account.
-            initial_balance (Hbar or int, optional): Initial balance in Hbar or tinybars.
-            receiver_signature_required (bool, optional): Whether receiver signature is required.
-            auto_renew_period (int, optional): Auto-renew period in seconds (default is ~90 days).
-            memo (str, optional): Memo for the account.
+        Attributes:
+            key (Optional[PublicKey]): The public key for the new account.
+            initial_balance (Union[Hbar, int]): Initial balance in Hbar or tinybars.
+            receiver_signature_required (Optional[bool]): Whether receiver signature is required.
+            auto_renew_period (Duration): Auto-renew period in seconds (default is ~90 days).
+            memo (Optional[str]): Memo for the account.
         """
         super().__init__()
-        self.key = key
-        self.initial_balance = initial_balance
-        self.receiver_signature_required = receiver_signature_required
-        self.auto_renew_period = auto_renew_period
-        self.account_memo = memo
-        self._default_transaction_fee = 300_000_000
+        self.key: Optional[PublicKey] = key
+        self.initial_balance: Union[Hbar, int] = initial_balance
+        self.receiver_signature_required: Optional[bool] = receiver_signature_required
+        self.auto_renew_period: Optional[Duration] = auto_renew_period
+        self.account_memo: Optional[str] = memo
+        self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
     def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
         """
@@ -89,7 +97,7 @@ class AccountCreateTransaction(Transaction):
         self.receiver_signature_required = required
         return self
 
-    def set_auto_renew_period(self, seconds: Union[int,Duration]) -> "AccountCreateTransaction":
+    def set_auto_renew_period(self, seconds: Union[int, Duration]) -> "AccountCreateTransaction":
         """
         Sets the auto-renew period in seconds.
 
@@ -148,7 +156,7 @@ class AccountCreateTransaction(Transaction):
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
-            memo=self.account_memo
+            memo=self.account_memo,
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
@@ -183,7 +191,4 @@ class AccountCreateTransaction(Transaction):
         Returns:
             _Method: An instance of _Method containing the transaction and query functions.
         """
-        return _Method(
-            transaction_func=channel.crypto.createAccount,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.crypto.createAccount, query_func=None)

@@ -19,7 +19,7 @@ Maintainers are assigned the following scopes in this repository:
 | Name           | GitHub ID     | Scope | LFID | Discord ID     | Email | Company Affiliation |
 | -------------- | ------------- | ----- | ---- | -------------- | ----- | ------------------- |
 | Nadine Loepfe  | nadineloepfe  |       |      | nadine_90669   |       | Hashgraph           |
-| Hendrik Ebbers | hendrikebbers |       |      | hendrik.ebbers |       | Hashgraph           |
+| Sophie Bulloch | exploreriii   |       |      | explorer3      |       |                     |
 | Richard Bair   | rbair23       |       |      | rbair          |       | Hashgraph           |
 
 

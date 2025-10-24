@@ -1,3 +1,7 @@
+"""
+AccountId class.
+"""
+
 from typing import List
 
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -5,6 +9,19 @@ from hiero_sdk_python.hapi.services import basic_types_pb2
 
 
 class AccountId:
+    """
+    Represents an account ID on the network.
+
+    An account ID consists of three components: shard, realm, and num.
+    These components uniquely identify an account in the network.
+
+    The standard format is `<shardNum>.<realmNum>.<accountNum>`, e.g., `0.0.10`.
+
+    In addition to the account number, the account component can also be an alias:
+    - An alias can be either a public key (ED25519 or ECDSA)
+    - The alias format is `<shardNum>.<realmNum>.<alias>`, where `alias` is the public key
+    """
+
     def __init__(
         self, shard: int = 0, realm: int = 0, num: int = 0, alias_key: PublicKey = None
     ) -> None:
@@ -28,9 +45,7 @@ class AccountId:
         """
         parts: List[str] = account_id_str.strip().split(".")
         if len(parts) != 3:
-            raise ValueError(
-                "Invalid account ID string format. Expected 'shard.realm.num'"
-            )
+            raise ValueError("Invalid account ID string format. Expected 'shard.realm.num'")
         shard, realm, num = map(int, parts)
         return cls(shard, realm, num)
 
@@ -51,7 +66,7 @@ class AccountId:
             num=account_id_proto.accountNum,
         )
         if account_id_proto.alias:
-            alias = account_id_proto.alias[2:] # remove 0x prefix
+            alias = account_id_proto.alias[2:]  # remove 0x prefix
             result.alias_key = PublicKey.from_bytes(alias)
         return result
 

@@ -8,6 +8,8 @@ from .account.account_create_transaction import AccountCreateTransaction
 from .account.account_update_transaction import AccountUpdateTransaction
 from .account.account_info import AccountInfo
 from .account.account_delete_transaction import AccountDeleteTransaction
+from .account.account_allowance_approve_transaction import AccountAllowanceApproveTransaction
+from .account.account_allowance_delete_transaction import AccountAllowanceDeleteTransaction
 
 # Crypto
 from .crypto.private_key import PrivateKey
@@ -40,6 +42,10 @@ from .tokens.nft_id import NftId
 from .tokens.token_nft_transfer import TokenNftTransfer
 from .tokens.token_nft_info import TokenNftInfo
 from .tokens.token_relationship import TokenRelationship
+from .tokens.token_allowance import TokenAllowance
+from .tokens.token_nft_allowance import TokenNftAllowance
+from .tokens.hbar_allowance import HbarAllowance
+from .tokens.hbar_transfer import HbarTransfer
 
 # Transaction
 from .transaction.transfer_transaction import TransferTransaction
@@ -112,9 +118,23 @@ from .schedule.schedule_create_transaction import ScheduleCreateTransaction
 from .schedule.schedule_id import ScheduleId
 from .schedule.schedule_info import ScheduleInfo
 from .schedule.schedule_info_query import ScheduleInfoQuery
+from .schedule.schedule_sign_transaction import ScheduleSignTransaction
+from .schedule.schedule_delete_transaction import ScheduleDeleteTransaction
 
 # Nodes
 from .nodes.node_create_transaction import NodeCreateTransaction
+from .nodes.node_update_transaction import NodeUpdateTransaction
+from .nodes.node_delete_transaction import NodeDeleteTransaction
+
+# PRNG
+from .prng_transaction import PrngTransaction
+
+# Custom Fees
+from .tokens.custom_fee import CustomFee
+from .tokens.custom_fixed_fee import CustomFixedFee
+from .tokens.custom_fractional_fee import CustomFractionalFee
+from .tokens.custom_royalty_fee import CustomRoyaltyFee
+from .transaction.custom_fee_limit import CustomFeeLimit
 
 __all__ = [
     # Client
@@ -127,6 +147,8 @@ __all__ = [
     "AccountUpdateTransaction",
     "AccountInfo",
     "AccountDeleteTransaction",
+    "AccountAllowanceApproveTransaction",
+    "AccountAllowanceDeleteTransaction",
 
     # Crypto
     "PrivateKey",
@@ -158,6 +180,10 @@ __all__ = [
     "PendingAirdropRecord",
     "TokenType",
     "SupplyType",
+    "TokenAllowance",
+    "TokenNftAllowance",
+    "HbarAllowance",
+    "HbarTransfer",
 
     # Transaction
     "TransferTransaction",
@@ -185,11 +211,11 @@ __all__ = [
     "TokenNftInfoQuery",
     "TokenInfoQuery",
     "AccountInfoQuery",
-
+    
     # Address book
     "Endpoint",
     "NodeAddress",
-
+    
     # Logger
     "Logger",
     "LogLevel",
@@ -227,7 +253,21 @@ __all__ = [
     "ScheduleId",
     "ScheduleInfoQuery",
     "ScheduleInfo",
+    "ScheduleSignTransaction",
+    "ScheduleDeleteTransaction",
 
     # Nodes
     "NodeCreateTransaction",
+    "NodeUpdateTransaction",
+    "NodeDeleteTransaction",
+
+    # PRNG
+    "PrngTransaction",
+
+    # Custom Fees
+    "CustomFee",
+    "CustomFixedFee",
+    "CustomFractionalFee",
+    "CustomRoyaltyFee",
+    "CustomFeeLimit",
 ]

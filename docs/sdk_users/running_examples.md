@@ -11,13 +11,15 @@ You can choose either syntax or even mix both styles in your projects.
 ## Table of Contents
 
 - [Account Transactions](#account-transactions)
-  - [Creating an Account](#creating-an-account)
-  - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
-  - [Querying Account Info](#querying-account-info)
+  - [Creating an Account](#creating-an-account)
   - [Deleting an Account](#deleting-an-account)
-  - [Creating a Token](#creating-a-token)
+  - [Querying Account Info](#querying-account-info)
+  - [Updating an Account](#updating-an-account)
+  - [Allowance Approve Transaction](#allowance-approve-transaction)
+  - [Allowance Delete Transaction](#allowance-delete-transaction)
 - [Token Transactions](#token-transactions)
+  - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
   - [Minting a Non-Fungible Token](#minting-a-non-fungible-token)
   - [Associating a Token](#associating-a-token)
@@ -38,7 +40,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
   - [Create Token Airdrop](#token-airdrop)
-  - [Cancel Token Airdop](#cancel-token-airdrop)
+  - [Cancel Token Airdrop](#cancel-token-airdrop)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -56,6 +58,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying File Contents](#querying-file-contents)
   - [Updating a File](#updating-a-file)
   - [Deleting a File](#deleting-a-file)
+  - [Appending to a File](#appending-to-a-file)
 - [Contract Transactions](#contract-transactions)
   - [Creating a Contract](#creating-a-contract)
   - [Querying a Contract Call](#querying-a-contract-call)
@@ -68,13 +71,31 @@ You can choose either syntax or even mix both styles in your projects.
 - [Schedule Transactions](#schedule-transactions)
   - [Creating a Schedule](#creating-a-schedule)
   - [Querying Schedule Info](#querying-schedule-info)
+  - [Signing a Schedule](#signing-a-schedule)
+  - [Deleting a Schedule](#deleting-a-schedule)
 - [Node Transactions](#node-transactions)
   - [Creating a Node](#creating-a-node)
+  - [Updating a Node](#updating-a-node)
+  - [Deleting a Node](#deleting-a-node)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
+- [Miscellaneous Transactions](#miscellaneous-transactions)
+  - [PRNG Transaction](#prng-transaction)
 
 
 ## Account Transactions
+
+### Querying Account Balance
+
+#### Pythonic Syntax:
+```
+balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(client) print(f"Account balance: {balance.hbars} hbars")
+```
+
+#### Method Chaining:
+```
+balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
+```
 
 ### Creating an Account
 
@@ -101,6 +122,60 @@ transaction = (
     )
     transaction.sign(client.operator_private_key)
     transaction.execute(client)
+```
+
+### Deleting an Account
+
+#### Pythonic Syntax:
+```
+transaction = AccountDeleteTransaction(
+    account_id=account_id,
+    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+).freeze_with(client)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    AccountDeleteTransaction()
+    .set_account_id(account_id)
+    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    .freeze_with(client)
+)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+### Querying Account Info
+
+#### Pythonic Syntax:
+```
+info = AccountInfoQuery(account_id=account_id).execute(client)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
+```
+
+#### Method Chaining:
+```
+info = (
+    AccountInfoQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
 ```
 
 ### Updating an Account
@@ -140,69 +215,133 @@ transaction.sign(new_private_key)   # Sign with new key
 transaction.execute(client)
 ```
 
-### Querying Account Balance
+### Allowance Approve Transaction
 
 #### Pythonic Syntax:
-```
-balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(client) print(f"Account balance: {balance.hbars} hbars")
-```
-
-#### Method Chaining:
-```
-balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
-```
-
-### Querying Account Info
-
-#### Pythonic Syntax:
-```
-info = AccountInfoQuery(account_id=account_id).execute(client)
-print(f"Account ID: {info.account_id}")
-print(f"Account Public Key: {info.key.to_string()}")
-print(f"Account Balance: {info.balance}")
-print(f"Account Memo: '{info.account_memo}'")
-print(f"Owned NFTs: {info.owned_nfts}")
-print(f"Token Relationships: {info.token_relationships}")
-```
-
-#### Method Chaining:
-```
-info = (
-    AccountInfoQuery()
-    .set_account_id(account_id)
-    .execute(client)
-)
-print(f"Account ID: {info.account_id}")
-print(f"Account Public Key: {info.key.to_string()}")
-print(f"Account Balance: {info.balance}")
-print(f"Account Memo: '{info.account_memo}'")
-print(f"Owned NFTs: {info.owned_nfts}")
-print(f"Token Relationships: {info.token_relationships}")
-```
-
-### Deleting an Account
-
-#### Pythonic Syntax:
-```
-transaction = AccountDeleteTransaction(
-    account_id=account_id,
-    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+```python
+# Approve HBAR allowance
+transaction = AccountAllowanceApproveTransaction(
+    hbar_allowances=[
+        HbarAllowance(
+            owner_account_id=owner_account_id,
+            spender_account_id=spender_account_id,
+            amount=Hbar(100)  # Allow spender to transfer up to 100 HBAR
+        )
+    ]
 ).freeze_with(client)
 
-transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.sign(owner_private_key)
+transaction.execute(client)
+
+# Approve token allowance
+transaction = AccountAllowanceApproveTransaction(
+    token_allowances=[
+        TokenAllowance(
+            token_id=token_id,
+            owner_account_id=owner_account_id,
+            spender_account_id=spender_account_id,
+            amount=1000  # Allow spender to transfer up to 1000 tokens
+        )
+    ]
+).freeze_with(client)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+
+# Approve NFT allowance
+transaction = AccountAllowanceApproveTransaction(
+    nft_allowances=[
+        TokenNftAllowance(
+            token_id=nft_token_id,
+            owner_account_id=owner_account_id,
+            spender_account_id=spender_account_id,
+            serial_numbers=[1, 2, 3]  # Allow spender to transfer specific NFTs
+        )
+    ]
+).freeze_with(client)
+
+transaction.sign(owner_private_key)
 transaction.execute(client)
 ```
 
 #### Method Chaining:
-```
+```python
+# Approve HBAR allowance
 transaction = (
-    AccountDeleteTransaction()
-    .set_account_id(account_id)
-    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    AccountAllowanceApproveTransaction()
+    .approve_hbar_allowance(
+        owner_account_id=owner_account_id,
+        spender_account_id=spender_account_id,
+        amount=Hbar(100)  # Allow spender to transfer up to 100 HBAR
+    )
     .freeze_with(client)
 )
 
-transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.sign(owner_private_key)
+transaction.execute(client)
+
+# Approve token allowance
+transaction = (
+    AccountAllowanceApproveTransaction()
+    .approve_token_allowance(
+        token_id=token_id,
+        owner_account_id=owner_account_id,
+        spender_account_id=spender_account_id,
+        amount=1000  # Allow spender to transfer up to 1000 tokens
+    )
+    .freeze_with(client)
+)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+
+# Approve NFT allowance
+transaction = (
+    AccountAllowanceApproveTransaction()
+    .approve_token_nft_allowance(
+        nft_id=NftId(token_id=nft_token_id, serial_number=1),
+        owner_account_id=owner_account_id,
+        spender_account_id=spender_account_id
+    )
+    .freeze_with(client)
+)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+```
+
+### Allowance Delete Transaction
+
+#### Pythonic Syntax:
+```python
+# Delete NFT allowance
+transaction = AccountAllowanceDeleteTransaction(
+    nft_wipe=[
+        TokenNftAllowance(
+            token_id=nft_token_id,
+            owner_account_id=owner_account_id,
+            serial_numbers=[1, 2, 3]  # Remove allowance for specific NFTs
+        )
+    ]
+).freeze_with(client)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Delete NFT allowance
+transaction = (
+    AccountAllowanceDeleteTransaction()
+    .delete_all_token_nft_allowances(
+        nft_id=NftId(token_id=nft_token_id, serial_number=1),
+        owner_account_id=owner_account_id
+    )
+    .freeze_with(client)
+)
+
+transaction.sign(owner_private_key)
 transaction.execute(client)
 ```
 
@@ -1175,6 +1314,32 @@ transaction.execute(client)
 
 ```
 
+### Appending to a File
+
+#### Pythonic Syntax:
+```python
+transaction = FileAppendTransaction(
+    file_id=file_id,
+    contents=b"Additional content to append to the file"
+).freeze_with(client)
+
+transaction.sign(file_private_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    FileAppendTransaction()
+    .set_file_id(file_id)
+    .set_contents(b"Additional content to append to the file")
+    .freeze_with(client)
+)
+
+transaction.sign(file_private_key)
+transaction.execute(client)
+```
+
 
 ## Contract Transactions
 
@@ -1639,6 +1804,46 @@ schedule_info = (
 print(schedule_info)
 ```
 
+### Signing a Schedule
+
+#### Pythonic Syntax:
+```python
+# Sign a scheduled transaction to execute it
+schedule_sign_tx = ScheduleSignTransaction(schedule_id=schedule_id)
+schedule_sign_tx.freeze_with(client)
+schedule_sign_tx.sign(required_private_key)
+receipt = schedule_sign_tx.execute(client)
+```
+
+### Deleting a Schedule
+
+#### Pythonic Syntax:
+```python
+transaction = ScheduleDeleteTransaction(
+    schedule_id=schedule_id
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Admin key must have been set during schedule creation
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Sign a scheduled transaction to execute it
+receipt = (
+    ScheduleSignTransaction()
+    .set_schedule_id(schedule_id)
+    .freeze_with(client)
+    .sign(required_private_key)
+receipt = (
+    ScheduleDeleteTransaction()
+    .set_schedule_id(schedule_id)
+    .freeze_with(client)
+    .sign(admin_key)  # Admin key must have been set during schedule creation
+    .execute(client)
+)
+```
+
 ## Node Transactions
 
 ### Creating a Node
@@ -1695,6 +1900,77 @@ transaction.sign(admin_key)  # Sign with the admin key
 receipt = transaction.execute(client)
 ```
 
+### Updating a Node
+
+> **IMPORTANT**: Node update is a privileged transaction only available on local development networks like "solo". Regular developers do not have permission to update nodes on testnet or mainnet as this operation requires special authorization.
+
+#### Pythonic Syntax:
+```python
+transaction = NodeUpdateTransaction(
+    node_update_params=NodeUpdateParams(
+        node_id=node_id,
+        account_id=account_id,
+        description="Updated node description",
+        gossip_endpoints=[
+            Endpoint(domain_name="updated-gossip1.example.com", port=50311),
+            Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+        ],
+        service_endpoints=[
+            Endpoint(domain_name="updated-service1.example.com", port=50311),
+            Endpoint(domain_name="updated-service2.example.com", port=50312)
+        ],
+        gossip_ca_certificate=updated_gossip_ca_cert,
+        admin_key=admin_key.public_key(),
+        decline_reward=False,
+        grpc_web_proxy_endpoint=Endpoint(domain_name="updated-grpc.example.com", port=50313)
+    )
+).freeze_with(client)
+
+transaction.sign(admin_key)  # Sign with admin key
+
+### Deleting a Node
+
+> **IMPORTANT**: Node deletion is a privileged transaction only available on local development networks like "solo". Regular developers do not have permission to delete nodes on testnet or mainnet as this operation requires special authorization.
+
+#### Pythonic Syntax:
+```python
+transaction = NodeDeleteTransaction(
+    node_id=node_id
+)
+
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    NodeUpdateTransaction()
+    .set_node_id(node_id)
+    .set_account_id(account_id)
+    .set_description("Updated node description")
+    .set_gossip_endpoints([
+        Endpoint(domain_name="updated-gossip1.example.com", port=50311),
+        Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+    ])
+    .set_service_endpoints([
+        Endpoint(domain_name="updated-service1.example.com", port=50311),
+        Endpoint(domain_name="updated-service2.example.com", port=50312)
+    ])
+    .set_gossip_ca_certificate(updated_gossip_ca_cert)
+    .set_admin_key(admin_key.public_key())
+    .set_grpc_web_proxy_endpoint(Endpoint(domain_name="updated-grpc.example.com", port=50313))
+    .set_decline_reward(False)
+    .freeze_with(client)
+)
+
+transaction.sign(admin_key)  # Sign with the admin key
+    NodeDeleteTransaction()
+    .set_node_id(node_id)
+)
+
+receipt = transaction.execute(client)
+```
+
 ## Miscellaneous Queries
 
 ### Querying Transaction Record
@@ -1726,4 +2002,52 @@ print(f"Transaction Fee: {record.transaction_fee}")
 print(f"Transaction Hash: {record.transaction_hash}")
 print(f"Transaction Memo: {record.transaction_memo}")
 print(f"Transaction Account ID: {record.receipt.account_id}")
+```
+
+## Miscellaneous Transactions
+
+### PRNG Transaction
+
+#### Pythonic Syntax:
+```python
+# Generate a random number within a range
+transaction = PrngTransaction(range=1000).execute(client)
+
+# Get the transaction record to see the generated number
+record = TransactionRecordQuery(transaction_id=transaction.transaction_id).execute(client)
+print(f"Generated PRNG number: {record.prng_number}")
+
+# Generate random bytes without a range
+transaction = PrngTransaction().execute(client)
+
+# Get the transaction record to see the generated bytes
+record = TransactionRecordQuery(transaction_id=transaction.transaction_id).execute(client)
+print(f"Generated PRNG bytes length: {len(record.prng_bytes)} bytes")
+print(f"PRNG bytes in hex: {record.prng_bytes.hex()}")
+```
+
+#### Method Chaining:
+```python
+# Generate a random number within a range
+transaction = PrngTransaction().set_range(1000).execute(client)
+
+# Get the transaction record to see the generated number
+record = (
+    TransactionRecordQuery()
+    .set_transaction_id(transaction.transaction_id)
+    .execute(client)
+)
+print(f"Generated PRNG number: {record.prng_number}")
+
+# Generate random bytes without a range
+transaction = PrngTransaction().execute(client)
+
+# Get the transaction record to see the generated bytes
+record = (
+    TransactionRecordQuery()
+    .set_transaction_id(transaction.transaction_id)
+    .execute(client)
+)
+print(f"Generated PRNG bytes length: {len(record.prng_bytes)} bytes")
+print(f"PRNG bytes in hex: {record.prng_bytes.hex()}")
 ```

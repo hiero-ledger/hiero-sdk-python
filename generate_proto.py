@@ -41,7 +41,7 @@ from urllib.parse import urlparse
 
 # -------------------- Defaults --------------------
 
-DEFAULT_HAPI_VERSION = "v0.64.3"
+DEFAULT_HAPI_VERSION = "v0.66.0"
 DEFAULT_PROTOS_DIR = ".protos"
 DEFAULT_OUTPUT = "src/hiero_sdk_python/hapi"
 

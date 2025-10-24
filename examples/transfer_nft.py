@@ -135,7 +135,25 @@ def associate_nft(client, account_id, token_id, account_private_key):
     
     print("NFT successfully associated with account")
 
-def transfer_nft():
+def transfer_nft_token(client, nft_id, sender_id, receiver_id):
+    """Transfer the NFT from the sender to the receiver account"""
+    # Transfer nft to the new account
+    transfer_transaction = (
+        TransferTransaction()
+        .add_nft_transfer(nft_id, sender_id, receiver_id)
+        .freeze_with(client)
+    )
+    
+    receipt = transfer_transaction.execute(client)
+    
+    # Check if nft transfer was successful
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"NFT transfer failed with status: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
+    
+    print(f"Successfully transferred NFT to account {receiver_id}")
+
+def main():
     """
     Demonstrates the nft transfer functionality by:
     1. Creating a new account
@@ -150,21 +168,9 @@ def transfer_nft():
     nft_id = mint_nft(client, token_id, operator_key)
     associate_nft(client, account_id, token_id, new_account_private_key)
     
-    # Transfer nft to the new account
-    transfer_transaction = (
-        TransferTransaction()
-        .add_nft_transfer(nft_id, operator_id, account_id)
-        .freeze_with(client)
-    )
-    
-    receipt = transfer_transaction.execute(client)
-    
-    # Check if nft transfer was successful
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT transfer failed with status: {ResponseCode(receipt.status).name}")
-        sys.exit(1)
-    
-    print(f"Successfully transferred NFT to account {account_id}")
+    # Transfer the NFT to the new account
+    transfer_nft_token(client, nft_id, operator_id, account_id)
+
 
 if __name__ == "__main__":
-    transfer_nft()
+    main()

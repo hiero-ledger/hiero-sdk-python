@@ -23,6 +23,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+
+- Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme
+- Added changelog conflict resolution examples to `docs/common_issues.md`
 - Refactored `examples/topic_create.py` to be more modular by splitting functions and renaming `create_topic()` to `main()`.
 - Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
 - Enhanced contributing section in README.md with resource links
@@ -32,6 +35,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
 - Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
+- Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
+
 
 ### Fixed
 

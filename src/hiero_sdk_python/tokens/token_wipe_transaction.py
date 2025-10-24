@@ -1,6 +1,6 @@
 """
-hiero_sdk_python.transaction.token_wipe_transaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hiero_sdk_python.tokens.token_wipe_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Provides TokenWipeTransaction, a subclass of Transaction for wiping fungible tokens and NFTs
 from accounts on the Hedera network via the Hedera Token Service (HTS) API.
@@ -9,6 +9,7 @@ from typing import Optional, List
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.hapi.services import token_wipe_account_pb2
 from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody
 from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -149,7 +150,10 @@ class TokenWipeTransaction(Transaction):
             query_func=None
         )
 
-    def _from_proto(self, proto: TokenWipeAccountTransactionBody) -> "TokenWipeTransaction":
+    def _from_proto(
+            self,
+            proto: TokenWipeAccountTransactionBody
+        ) -> "TokenWipeTransaction":
         """
         Deserializes a TokenWipeAccountTransactionBody from a protobuf object.
 
@@ -162,5 +166,5 @@ class TokenWipeTransaction(Transaction):
         self.token_id = TokenId._from_proto(proto.token)
         self.account_id = AccountId._from_proto(proto.account)
         self.amount = proto.amount
-        self.serial = proto.serialNumbers
+        self.serial = list(proto.serialNumbers)
         return self

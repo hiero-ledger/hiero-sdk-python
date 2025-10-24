@@ -1,7 +1,10 @@
 import grpc
 from concurrent import futures
 from contextlib import contextmanager
-from hiero_sdk_python import Network, Client, AccountId, PrivateKey
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.client.network import _Node
 import socket
 from contextlib import closing
@@ -13,6 +16,7 @@ from hiero_sdk_python.hapi.services import (
     network_service_pb2_grpc,
     file_service_pb2_grpc,
     smart_contract_service_pb2_grpc,
+    util_service_pb2_grpc,
 )
 from hiero_sdk_python.logger.log_level import LogLevel
 
@@ -55,6 +59,8 @@ class MockServer:
              smart_contract_service_pb2_grpc.add_SmartContractServiceServicer_to_server),
             (schedule_service_pb2_grpc.ScheduleServiceServicer,
              schedule_service_pb2_grpc.add_ScheduleServiceServicer_to_server),
+            (util_service_pb2_grpc.UtilServiceServicer,
+             util_service_pb2_grpc.add_UtilServiceServicer_to_server),
         ]
         
         for servicer_class, add_servicer_fn in services:

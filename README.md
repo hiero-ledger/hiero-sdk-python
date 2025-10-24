@@ -154,7 +154,26 @@ Topic deletion successful.
 
 ## Contributing
 
-We appreciate your interest in improving the Hiero Python SDK! Please see CONTRIBUTING.md for details about our contribution process, including bug reports, feature requests, and code contributions.
+We appreciate your interest in improving the Hiero Python SDK!
+Interested in helping out? We'd love for you to contribute!
+
+Before you start, it's **essential** that you carefully read our main contribution guide: **[CONTRIBUTING.md](./CONTRIBUTING.md)**. This document is your roadmap to making a successful contribution.
+
+Following the steps in this guide is the best way to ensure your pull request (PR) can be merged smoothly. It covers crucial requirements, including:
+
+* How to get your commits **verified** (which is mandatory for merging).
+* The correct way to update the **changelog** with your changes.
+* The full step-by-step workflow for submitting code.
+
+Our guide also explains how you can contribute in other ways, like submitting **bug reports** and proposing new **feature requests**.
+
+### Links
+- [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563)
+- [Hedera Developer Support Discord](https://discord.com/channels/373889138199494658/1106578684573388900).
+- [Hiero Blog](https://hiero.org/blog/)
+- [LFDT Youtube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
+- [Hiero LFTD Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+
 
 ## License
 

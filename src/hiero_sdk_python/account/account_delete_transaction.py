@@ -47,9 +47,7 @@ class AccountDeleteTransaction(Transaction):
         self.transfer_account_id: Optional[AccountId] = transfer_account_id
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
-    def set_account_id(
-        self, account_id: Optional[AccountId]
-    ) -> "AccountDeleteTransaction":
+    def set_account_id(self, account_id: Optional[AccountId]) -> "AccountDeleteTransaction":
         """
         Sets the ID of the account to delete.
 
@@ -102,9 +100,7 @@ class AccountDeleteTransaction(Transaction):
         return CryptoDeleteTransactionBody(
             deleteAccountID=self.account_id._to_proto(),
             transferAccountID=(
-                self.transfer_account_id._to_proto()
-                if self.transfer_account_id
-                else None
+                self.transfer_account_id._to_proto() if self.transfer_account_id else None
             ),
         )
 

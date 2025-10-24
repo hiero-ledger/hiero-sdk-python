@@ -1,5 +1,7 @@
 """Tests for the TopicMessageSubmitTransaction functionality."""
 
+from unittest.mock import MagicMock
+
 import pytest
 
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
@@ -14,7 +16,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.response_code import ResponseCode
-
+from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -23,7 +25,106 @@ pytestmark = pytest.mark.unit
 def message():
     """Fixture to provide a test message."""
     return "Hello from topic submit!"
-    
+
+
+@pytest.fixture
+def custom_fee_limit():
+    """Fixture for a CustomFeeLimit object."""
+    return CustomFeeLimit()
+
+
+def test_constructor_and_setters(topic_id, message, custom_fee_limit):
+    """Test constructor and all setter methods."""
+    # Test constructor with parameters
+    tx = TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
+    assert tx.topic_id == topic_id
+    assert tx.message == message
+
+    # Test constructor with default values
+    tx_default = TopicMessageSubmitTransaction()
+    assert tx_default.topic_id is None
+    assert tx_default.message is None
+
+    # Test set_topic_id
+    result = tx_default.set_topic_id(topic_id)
+    assert tx_default.topic_id == topic_id
+    assert result is tx_default
+
+    # Test set_message
+    result = tx_default.set_message(message)
+    assert tx_default.message == message
+    assert result is tx_default
+
+    # Test set_custom_fee_limits
+    custom_fee_limits = [custom_fee_limit]
+    result = tx_default.set_custom_fee_limits(custom_fee_limits)
+    assert tx_default.custom_fee_limits == custom_fee_limits
+    assert result is tx_default
+
+    # Test set_custom_fee_limits to empty list
+    result = tx_default.set_custom_fee_limits([])
+    assert tx_default.custom_fee_limits == []
+    assert result is tx_default
+
+    # Test add_custom_fee_limit
+    result = tx_default.add_custom_fee_limit(custom_fee_limit)
+    assert len(tx_default.custom_fee_limits) == 1
+    assert tx_default.custom_fee_limits[0] == custom_fee_limit
+    assert result is tx_default
+
+
+def test_set_methods_require_not_frozen(
+    mock_client, topic_id, message, custom_fee_limit
+):
+    """Test that setter methods raise exception when transaction is frozen."""
+    tx = TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
+    tx.freeze_with(mock_client)
+
+    test_cases = [
+        ("set_topic_id", topic_id),
+        ("set_message", message),
+        ("set_custom_fee_limits", [custom_fee_limit]),
+        ("add_custom_fee_limit", custom_fee_limit),
+    ]
+
+    for method_name, value in test_cases:
+        with pytest.raises(
+            Exception, match="Transaction is immutable; it has been frozen"
+        ):
+            getattr(tx, method_name)(value)
+
+
+def test_method_chaining(topic_id, message, custom_fee_limit):
+    """Test method chaining functionality."""
+    tx = TopicMessageSubmitTransaction()
+
+    result = (
+        tx.set_topic_id(topic_id)
+        .set_message(message)
+        .set_custom_fee_limits([custom_fee_limit])
+        .add_custom_fee_limit(custom_fee_limit)
+    )
+
+    assert result is tx
+    assert tx.topic_id == topic_id
+    assert tx.message == message
+    assert len(tx.custom_fee_limits) == 2
+
+
+def test_get_method():
+    """Test retrieving the gRPC method for the transaction."""
+    tx = TopicMessageSubmitTransaction()
+
+    mock_channel = MagicMock()
+    mock_topic_stub = MagicMock()
+    mock_channel.topic = mock_topic_stub
+
+    method = tx._get_method(mock_channel)
+
+    assert method.query is None
+    assert method.transaction == mock_topic_stub.submitMessage
+
+
 # This test uses fixtures (topic_id, message) as parameters
 def test_build_scheduled_body(topic_id, message):
     """Test building a schedulable TopicMessageSubmitTransaction body."""
