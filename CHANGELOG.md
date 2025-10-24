@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
 - docs: Add Google-style docstrings to `CustomRoyaltyFee` class and its methods in `custom_royalty_fee.py`.
 - docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
+- docs: Add Google-style docstrings to `TokenRelationship` class and its methods in `token_relationship.py`.
 
 ### Changed
 
