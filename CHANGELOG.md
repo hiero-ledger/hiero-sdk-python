@@ -9,7 +9,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
-- Google-style docstrings added to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
+- Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases.
+- Google-style docstrings added to `CustomFractionalFee`, `CustomFixedFee`, `CustomRoyaltyFee`, and `AbstractTokenTransferTransaction` classes and their methods.
 - Added `dependabot.yaml` for automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`.
 - Documentation for resolving changelog conflicts in `docs/common_issues.md`.
@@ -23,6 +24,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   - `examples/transfer_nft.py` → isolated transfer logic.
 - Enhanced contributing section in README.md with resource links.
 - Added "One Issue Per Pull Request" section to `examples/sdk_developers/common_issues.md`.
+- Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
+- Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency.
+- Improved contributing section in README.md.
 
 ### Fixed
 - Added type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418).
