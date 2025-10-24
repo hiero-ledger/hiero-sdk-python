@@ -10,12 +10,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
+- Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
 
 - Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
 - Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
 - Added documentation for resolving changelog conflicts in `docs/common_issues.md`
 - - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
+- docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
 
 ### Changed
 
@@ -27,6 +29,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added "One Issue Per Pull Request" section to `examples/sdk_developers/common_issues.md`.
 - docs: Improved the contributing section in the README.md file
 - Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
+- Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency
 
 ### Fixed
 
