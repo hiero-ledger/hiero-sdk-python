@@ -31,6 +31,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Improved the contributing section in the README.md file
 - Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
 - Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency
+- Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 
 ### Fixed
 
