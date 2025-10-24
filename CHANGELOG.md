@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added "One Issue Per Pull Request" section to `examples/sdk_developers/common_issues.md`.
 - docs: Improved the contributing section in the README.md file
 - Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
+- Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency
 
 ### Fixed
 
