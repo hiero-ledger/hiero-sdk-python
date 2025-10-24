@@ -100,7 +100,6 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         if self.token_id is None:
             raise ValueError("Missing token ID")
 
-        # Pattern from token_create_transaction.py
         custom_fees_proto = [
             fee._to_proto() for fee in self.custom_fees
         ]
