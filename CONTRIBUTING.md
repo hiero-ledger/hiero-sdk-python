@@ -279,7 +279,7 @@ We strive to be a welcoming community with lots of activity, opportunities and s
 ### Socials
 
 - Join us on [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563), add it to your favourites andchat with the Hiero Python SDK community and maintainers. Feel free to ask questions, propose ideas, or discuss your PR.
-- Discuss programming or issues with the Hedera community [Hedera Python Discord](https://discord.com/channels/373889138199494658/535491161289261096).
+- Discuss programming or issues with the Hedera community [Hedera Developer Support Discord](https://discord.com/channels/373889138199494658/1106578684573388900).
 - Check the [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues) page for ongoing discussions. Comment on an issue and see the conversation grow.
 
 - Learn about our recent activities at [Hiero Blog](https://hiero.org/blog/)
