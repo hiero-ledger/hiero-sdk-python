@@ -26,6 +26,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added "One Issue Per Pull Request" section to `examples/sdk_developers/common_issues.md`.
 - docs: Improved the contributing section in the README.md file
 - Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
+- Refactored `examples/file_append.py` into modular, reusable functions (`setup_client()`, `create_file()`, and `append_file_single()`) for improved readability, maintainability, and consistency with other example scripts.
+- Ensured identical runtime behavior and output to the previous version to maintain backward compatibility.
 
 ### Fixed
 
