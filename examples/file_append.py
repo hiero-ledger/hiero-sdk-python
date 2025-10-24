@@ -117,12 +117,7 @@ def main():
     append_file_single(client, file_id, file_private_key)
     
     # Step 3: Append large content (multi-chunk)
-    print("\nAppending large content (multi-chunk)...")
-    large_content = b"Large content that will be split into multiple chunks. " * 100
-    
-    
-    print("Large content appended successfully!")
-    print(f"Total chunks used: {FileAppendTransaction().set_contents(large_content).get_required_chunks()}")
+    append_file_large(client, file_id, file_private_key)
 
 if __name__ == "__main__":
     main()
