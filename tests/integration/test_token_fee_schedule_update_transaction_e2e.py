@@ -1,6 +1,6 @@
 import pytest
 
-# --- Imports from your reference files ---
+
 from tests.integration.utils_for_test import IntegrationTestEnv
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
@@ -14,7 +14,6 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 
-# --- This is YOUR new class that you are testing ---
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import (
     TokenFeeScheduleUpdateTransaction,
 )
@@ -32,7 +31,6 @@ def test_token_fee_schedule_update_e2e():
 
     try:
         # --- Step 1: Create a token WITH an admin key and an initial fee ---
-        # (Pattern from token_create_with_custom_fee_e2e_test.py)
         
         initial_fee = CustomFixedFee(
             amount=10,  # 10 tinybar fee
@@ -66,7 +64,7 @@ def test_token_fee_schedule_update_e2e():
         token_id = create_receipt.token_id
         assert token_id is not None
 
-        # --- Step 2: Update the fee schedule with YOUR new transaction ---
+        # --- Step 2: Update the fee schedule with new transaction ---
 
         # Define a *new* fee schedule
         new_fee = CustomFixedFee(
@@ -87,7 +85,6 @@ def test_token_fee_schedule_update_e2e():
         assert update_receipt.status == ResponseCode.SUCCESS
 
         # --- Step 3: Query the token to verify the fee was updated ---
-        # (Pattern from token_create_with_custom_fee_e2e_test.py)
         
         token_info = (
             TokenInfoQuery().set_token_id(token_id).execute(env.client)
