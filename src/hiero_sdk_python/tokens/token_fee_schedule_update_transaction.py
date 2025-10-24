@@ -149,7 +149,6 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the gRPC method for this transaction.
-        (Based on the original GitHub issue instructions)
         """
         return _Method(
             transaction_func=channel.token.updateTokenFeeSchedule,
