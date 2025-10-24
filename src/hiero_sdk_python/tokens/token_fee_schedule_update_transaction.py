@@ -1,0 +1,159 @@
+"""
+hiero_sdk_python.tokens.token_fee_schedule_update_transaction.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines TokenFeeScheduleUpdateTransaction for updating custom fee schedules
+on the Hedera network via the HTS API.
+"""
+
+from typing import TYPE_CHECKING, List, Optional
+
+# --- Imports based on token_update_transaction.py ---
+from ..transaction.transaction import Transaction
+from .token_id import TokenId
+from ..channels import _Channel
+from ..executable import _Method
+from ..hapi.services import (
+    token_fee_schedule_update_pb2,
+    transaction_pb2,
+)
+from ..hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
+
+# --- Correct CustomFee import from token_create_transaction.py ---
+from hiero_sdk_python.tokens.custom_fee import CustomFee
+
+
+if TYPE_CHECKING:
+    from ..client import Client
+
+
+class TokenFeeScheduleUpdateTransaction(Transaction):
+    """
+    A transaction to update a token's custom fee schedule.
+    """
+
+    def __init__(
+        self,
+        token_id: Optional[TokenId] = None,
+        custom_fees: Optional[List[CustomFee]] = None,
+    ) -> None:
+        """
+        Initializes a new TokenFeeScheduleUpdateTransaction instance.
+
+        Args:
+            token_id (TokenId, optional): The ID of the token to update.
+            custom_fees (List[CustomFee], optional): The new custom fee schedule.
+        """
+        super().__init__()
+        self.token_id = token_id
+        self.custom_fees = custom_fees or []
+
+    def set_token_id(
+        self, token_id: TokenId
+    ) -> "TokenFeeScheduleUpdateTransaction":
+        """
+        Sets the token ID to update.
+
+        Args:
+            token_id (TokenId): The ID of the token to update.
+
+        Returns:
+            TokenFeeScheduleUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.token_id = token_id
+        return self
+
+    def set_custom_fees(
+        self, custom_fees: List[CustomFee]
+    ) -> "TokenFeeScheduleUpdateTransaction":
+        """
+        Sets the new custom fee schedule for the token.
+
+        Args:
+            custom_fees (List[CustomFee]): The new list of CustomFee objects.
+
+        Returns:
+            TokenFeeScheduleUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.custom_fees = custom_fees
+        return self
+
+    def _validate_checksums(self, client: "Client") -> None:
+        """
+        Validates the checksum for the TokenId.
+        """
+        if self.token_id:
+            self.token_id.validate_checksum(client)
+
+    def _build_proto_body(
+        self,
+    ) -> token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody:
+        """
+        Returns the protobuf body for the transaction.
+
+        Raises:
+            ValueError: If token_id is not set.
+        """
+        if self.token_id is None:
+            raise ValueError("Missing token ID")
+
+        # Pattern from token_create_transaction.py
+        custom_fees_proto = [
+            fee._to_proto() for fee in self.custom_fees
+        ]
+
+        token_fee_update_body = (
+            token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody(
+                tokenId=self.token_id._to_proto(),
+                customFees=custom_fees_proto,
+            )
+        )
+        return token_fee_update_body
+
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body.
+
+        Returns:
+            TransactionBody: The protobuf transaction body.
+        """
+        token_fee_update_body = self._build_proto_body()
+        transaction_body: transaction_pb2.TransactionBody = (
+            self.build_base_transaction_body()
+        )
+        # --- This part is specific to this transaction ---
+        transaction_body.tokenFeeScheduleUpdate.CopyFrom(
+            token_fee_update_body
+        )
+        # ---
+        return transaction_body
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        """
+        Builds the scheduled transaction body.
+
+        Returns:
+            SchedulableTransactionBody: The built scheduled transaction body.
+        """
+        token_fee_update_body = self._build_proto_body()
+        schedulable_body = self.build_base_scheduled_body()
+        # --- This part is specific to this transaction ---
+        schedulable_body.tokenFeeScheduleUpdate.CopyFrom(
+            token_fee_update_body
+        )
+        # ---
+        return schedulable_body
+
+    def _get_method(self, channel: _Channel) -> _Method:
+        """
+        Gets the gRPC method for this transaction.
+        (Based on the original GitHub issue instructions)
+        """
+        return _Method(
+            transaction_func=channel.token.updateTokenFeeSchedule,
+            query_func=None,
+        )

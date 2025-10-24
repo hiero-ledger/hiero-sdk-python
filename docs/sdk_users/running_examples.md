@@ -39,6 +39,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Token Grant KYC](#token-grant-kyc)
   - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
+  - [Updating a Token Fee Schedule](#updating-a-token-fee-schedule)
   - [Create Token Airdrop](#token-airdrop)
   - [Cancel Token Airdrop](#cancel-token-airdrop)
   - [Querying NFT Info](#querying-nft-info)
@@ -984,6 +985,20 @@ print(nft_info)
 ```
 
 ### Querying Fungible Token Info
+
+### Updating a Token Fee Schedule
+
+```python
+transaction = TokenFeeScheduleUpdateTransaction(
+    token_id=token_id,
+    custom_fees=[
+        CustomFixedFee(amount=100, fee_collector=collector_account_id),
+        CustomRoyaltyFee(numerator=5, denominator=10, fee_collector=collector_account_id)
+    ]
+).freeze_with(client)
+
+transaction.sign(admin_key) # Admin key for the token must sign
+transaction.execute(client)
 
 #### Pythonic Syntax:
 ```
