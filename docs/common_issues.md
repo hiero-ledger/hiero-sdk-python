@@ -26,3 +26,66 @@ git fetch upstream
 
 # Pull those changes into your local main branch
 git pull upstream main
+```
+
+## 2. Changelog Conflict Examples
+### Example 1: The SDK Version has upgraded
+If the SDK version has upgraded, you'll need to move your changelog entry to the new unreleased section.
+
+For example:
+before
+
+`UNRELEASED (version 0.1.6)`
+` Changed`
+
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
+- Added checksum validation for TokenId
+- Refactor examples/token_cancel_airdrop <-- your entry
+
+Version 0.1.6 is now released but your PR is not yet merged so we need to move your changelog entry to the new UNRELEASED SECTION.
+
+after:
+
+`[Unreleased]`
+
+`Changed`
+- Refactor examples/token_cancel_airdrop <-- CORRECT
+
+ `[0.1.6] - 2025-10-21`
+` Changed`
+
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
+- Added checksum validation for TokenId
+
+### Example 2: The SDK has had a minor update
+In this case, a new PR is merged in the same release that has a changelog entry written in the same section as you.
+
+For example:
+
+Alice's Pull Request:
+` UNRELEASED`
+` Changed`
+
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
+- Added checksum validation for TokenId <-- ALICE'S Change
+
+Bob's Pull Request:
+` UNRELEASED`
+` Changed`
+
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
+- Refactor examples/token_cancel_airdrop <-- BOB's change
+
+They are in conflict.
+
+Alice's change was merged before Bob, so Bob needs update his changelog to be:
+Bob's Pull Request:
+` UNRELEASED`
+` Changed`
+
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
+- Added checksum validation for TokenId <-- ALICE'S Change
+- Refactor examples/token_cancel_airdrop <-- BOB's change
+Which has no conflict as they are no longer clashing.
+
+Congratulations!
