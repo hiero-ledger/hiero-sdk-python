@@ -86,6 +86,15 @@ def test_from_string_valid_with_checksum():
     assert contract_id.evm_address is None
     assert contract_id.checksum == "abcde"
 
+def test_from_string_with_evm_address():
+    """Test creating ContractId from valid string format with evm_address."""
+    contract_id = ContractId.from_string("1.2.abcdef0123456789abcdef0123456789abcdef01")
+    assert contract_id.shard == 1
+    assert contract_id.realm == 2
+    assert contract_id.contract == 0
+    assert contract_id.evm_address == bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    assert contract_id.checksum is None
+
 
 @pytest.mark.parametrize(
     'invalid_id', 
@@ -102,7 +111,9 @@ def test_from_string_valid_with_checksum():
         '0.0.1-ad',
         '0.0.1-addefgh',
         '0.0.1 - abcde',
-        ' 0.0.100 '
+        ' 0.0.100 ',
+        ' 1.2.abcdef0123456789abcdef0123456789abcdef01 '
+        '1.2.001122334455667788990011223344556677'
     ]
 )
 def test_from_string_for_invalid_format(invalid_id):
@@ -291,6 +302,13 @@ def test_str_representaion_with_checksum(client):
     contract_id = ContractId.from_string("0.0.1")
     assert contract_id.to_string_with_checksum(client) == "0.0.1-dfkxr"
 
+def test_str_representaion_checksum_with_evm_address(client):
+    """Should raise error on to_string_with_checksum is called when evm_address is set"""
+    contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
+
+    with pytest.raises(ValueError, match="to_string_with_checksum cannot be applied to ContractId with evm_address"):
+        contract_id.to_string_with_checksum(client)
+
 def test_validate_checksum_success(client):
     """Should pass checksum validation when checksum is correct."""
     contract_id = ContractId.from_string("0.0.1-dfkxr")
@@ -303,3 +321,7 @@ def test_validate_checksum_failure(client):
     with pytest.raises(ValueError, match="Checksum mismatch for 0.0.1"):
         contract_id.validate_checksum(client)
 
+def test_str_representaion__with_evm_address():
+    """Should return str represention with evm_address"""
+    contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
+    assert contract_id.__str__() == "0.0.abcdef0123456789abcdef0123456789abcdef01"

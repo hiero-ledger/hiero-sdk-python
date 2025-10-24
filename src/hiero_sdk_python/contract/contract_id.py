@@ -2,6 +2,7 @@
 Contract ID class.
 """
 
+import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
@@ -15,6 +16,7 @@ from hiero_sdk_python.utils.entity_id_helper import (
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
 
+EVM_ADDRESS_REGEX = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.([a-fA-F0-9]{40}$)")
 
 @dataclass(frozen=True)
 class ContractId:
@@ -64,27 +66,47 @@ class ContractId:
         """
         Parses a string in the format 'shard.realm.contract' to create a ContractId instance.
         """
-        try:
-            shard, realm, contract, checksum = parse_from_string(contract_id_str)
-
-            contract_id: ContractId =  cls(
-                shard=int(shard),
-                realm=int(realm),
-                contract=int(contract)
-            )
-            object.__setattr__(contract_id, "checksum", checksum)
-
-            return contract_id
-        except Exception as e:
+        if contract_id_str is None or not isinstance(contract_id_str, str):
             raise ValueError(
                 f"Invalid contract ID string '{contract_id_str}'. "
                 f"Expected format 'shard.realm.contract'."
-            ) from e
+            )
+
+        evm_address_match = EVM_ADDRESS_REGEX.match(contract_id_str)
+
+        if evm_address_match:
+            shard, realm, evm_address = evm_address_match.groups()
+            return cls(
+                shard=int(shard),
+                realm=int(realm),
+                evm_address=bytes.fromhex(evm_address)
+            )
+
+        else:
+            try:
+                shard, realm, contract, checksum = parse_from_string(contract_id_str)
+
+                contract_id: ContractId =  cls(
+                    shard=int(shard),
+                    realm=int(realm),
+                    contract=int(contract)
+                )
+                object.__setattr__(contract_id, "checksum", checksum)
+                return contract_id
+
+            except Exception as e:
+                raise ValueError(
+                    f"Invalid contract ID string '{contract_id_str}'. "
+                    f"Expected format 'shard.realm.contract'."
+                ) from e
 
     def __str__(self):
         """
         Returns the string representation of the ContractId in the format 'shard.realm.contract'.
         """
+        if self.evm_address is not None:
+            return f"{self.shard}.{self.realm}.{self.evm_address.hex()}"
+        
         return f"{self.shard}.{self.realm}.{self.contract}"
 
     def to_evm_address(self) -> str:
@@ -119,6 +141,9 @@ class ContractId:
         Returns the string representation of the ContractId with checksum 
         in 'shard.realm.contract-checksum' format.
         """
+        if self.evm_address is not None:
+            raise ValueError("to_string_with_checksum cannot be applied to ContractId with evm_address")
+
         return format_to_string_with_checksum(
             self.shard,
             self.realm,
