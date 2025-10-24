@@ -1,7 +1,6 @@
 """
 uv run examples/topic_create.py
 python examples/topic_create.py
-
 """
 import os
 import sys
