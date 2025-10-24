@@ -1,115 +1,95 @@
 """
-This is a simple example of how to update a token's fee schedule.
-
-It:
-1. Loads environment variables.
-2. Sets up a client.
-3. Defines a new custom fee schedule.
-4. Builds and executes the TokenFeeScheduleUpdateTransaction.
-5. Prints the receipt status.
-
-Required environment variables:
-- OPERATOR_ID, OPERATOR_KEY (mandatory)
-- TOKEN_ID_TO_UPDATE (mandatory, e.g., "0.0.12345")
-- TOKEN_ADMIN_KEY (mandatory, the private key for the token's admin key)
-
-Usage:
-uv run examples/update_token_fee_schedule.py
-python examples/update_token_fee_schedule.py
+Example: Update Token Fee Schedule
+Demonstrates creating a token, updating its custom fee schedule, and cleaning up.
 """
 
 import os
 import sys
 from dotenv import load_dotenv
 
-# --- Imports for Client Setup (from token_create_fungible_finite.py) ---
-from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
-)
-
-# --- Imports for your new feature ---
-from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.tokens.custom_fee import (
-    CustomFixedFee,
-    CustomRoyaltyFee,
-)
-from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import (
-    TokenFeeScheduleUpdateTransaction,
-)
+from hiero_sdk_python import Client, AccountId, PrivateKey, Network
+from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenParams, TokenKeys
+from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
+from hiero_sdk_python.tokens.custom_fee import CustomFixedFee, CustomRoyaltyFee
 
 
 def main():
-    """Main function to update a token's fee schedule."""
-    
-    # --- 1. Set up Client (Pattern from token_create_fungible_finite.py) ---
-    load_dotenv()
-    network = Network(network="testnet")
-    client = Client(network)
+    """Main function to create a token, update fee schedule, and delete it."""
 
+    load_dotenv()
+    client = Client(Network(network="testnet"))
+    token_id_to_clean = None
+
+    # --- 1. Set up Operator ---
     try:
         operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
         operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
         client.set_operator(operator_id, operator_key)
     except Exception as e:
-        print(f"Error setting up client: {e}")
-        print("Please check your OPERATOR_ID and OPERATOR_KEY in .env file.")
+        print(f"Error setting up operator: {e}")
         sys.exit(1)
 
-    # --- 2. Load the required variables from .env ---
-    # These are the variables the *user* must provide.
-    token_id_str = os.getenv("TOKEN_ID_TO_UPDATE")
-    admin_key_str = os.getenv("TOKEN_ADMIN_KEY")
-
-    if not token_id_str or not admin_key_str:
-        print("Error: TOKEN_ID_TO_UPDATE and TOKEN_ADMIN_KEY must be set in .env")
-        sys.exit(1)
+    admin_key = operator_key
+    print(f"Operator set. Using {operator_id} as admin key for example token.\n")
 
     try:
-        token_to_update = TokenId.from_string(token_id_str)
-        admin_key = PrivateKey.from_string(admin_key_str)
-    except Exception as e:
-        print(f"Error parsing token ID or admin key: {e}")
-        sys.exit(1)
-
-    print(f"Attempting to update fee schedule for token: {token_to_update}")
-
-    # --- 3. Define the *new* custom fee schedule ---
-    # (Pattern from custom_fee.py)
-    new_fee_list = [
-        CustomFixedFee(
-            amount=150,  # 150 tinybar
-            fee_collector_account_id=operator_id,
-        ),
-        CustomRoyaltyFee(
-            numerator=5,  # 5% royalty
-            denominator=100,
-            fee_collector_account_id=operator_id,
-        ),
-    ]
-    print(f"New fee schedule will have {len(new_fee_list)} custom fees.")
-
-    # --- 4. Build and execute your new transaction ---
-    try:
-        transaction = (
-            TokenFeeScheduleUpdateTransaction()
-            .set_token_id(token_to_update)
-            .set_custom_fees(new_fee_list)
-            .freeze_with(client)
-            .sign(admin_key)  # The token's Admin Key MUST sign
+        # --- 2. Create a Token ---
+        print("Creating token...")
+        token_params = TokenParams(
+            token_name="Fee Update Example Token",
+            token_symbol="FUE",
+            treasury_account_id=operator_id,
+            initial_supply=1000,
+            decimals=2,  # Realistic fungible token
+            token_type=TokenType.FUNGIBLE_COMMON,
+            supply_type=SupplyType.FINITE,
+            max_supply=2000,
+            custom_fees=[]
         )
+        keys = TokenKeys(admin_key=admin_key)
 
-        receipt = transaction.execute(client)
-        print(f"Transaction successful with status: {receipt.status.name}")
+        create_tx = TokenCreateTransaction(token_params=token_params, keys=keys).freeze_with(client).sign(admin_key)
+        create_receipt = create_tx.execute(client)
+        token_id_to_update = create_receipt.token_id
+        token_id_to_clean = token_id_to_update
+
+        if not token_id_to_update:
+            raise RuntimeError("Token creation failed, no token ID returned.")
+        print(f"Token created successfully: {token_id_to_update}\n")
+
+        # --- 3. Define new custom fees ---
+        new_fees = [
+            CustomFixedFee(amount=150, fee_collector_account_id=operator_id),
+            CustomRoyaltyFee(numerator=5, denominator=100, fee_collector_account_id=operator_id),
+        ]
+        print(f"Defined {len(new_fees)} custom fees.\n")
+
+        # --- 4. Update fee schedule ---
+        print(f"Updating fee schedule for token {token_id_to_update}...")
+        update_tx = TokenFeeScheduleUpdateTransaction().set_token_id(token_id_to_update).set_custom_fees(new_fees)
+        update_tx.freeze_with(client).sign(admin_key)
+        update_receipt = update_tx.execute(client)
+        print(f"Fee schedule updated successfully! Status: {update_receipt.status.name}\n")
 
     except Exception as e:
-        print(f"Transaction failed: {str(e)}")
-        sys.exit(1)
+        print(f"Error during token operations: {e}")
+
     finally:
-        # --- 5. Close the client (Pattern from token_create_fungible_finite.py) ---
+        # --- 5. Clean up ---
+        if token_id_to_clean:
+            print(f"Deleting token {token_id_to_clean}...")
+            try:
+                delete_tx = TokenDeleteTransaction().set_token_id(token_id_to_clean).freeze_with(client).sign(admin_key)
+                delete_receipt = delete_tx.execute(client)
+                print(f"Token deletion status: {delete_receipt.status.name}")
+            except Exception as e_del:
+                print(f"Failed to delete token: {e_del}")
+
         client.close()
+        print("\nClient closed. Example complete.")
 
 
 if __name__ == "__main__":
