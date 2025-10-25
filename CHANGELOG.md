@@ -10,6 +10,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
+
+- Added "Transaction Examples" section to README.md that references docs/sdk_users/running_examples.md for high-level overview and examples/ directory for detailed code examples (#474)
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
 

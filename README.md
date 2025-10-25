@@ -18,6 +18,7 @@ This is a Python SDK for interacting with the Hedera Hashgraph platform. It allo
   - [Installing from Source](#installing-from-source)
   - [Local Editable Installation](#local-editable-installation)
 - [Environment Setup](#environment-setup)
+- [Transaction Examples](#transaction-examples)
 - [Running Tests](#running-tests)
 - [Contributing](#contributing)
 
@@ -119,6 +120,16 @@ The only environment variables needed are OPERATOR_ID, OPERATOR_KEY and NETWORK.
 A [sample .env](.env.example) file is provided in the root of this project. If you do not have an account on
 the Hedera testnet, you can easily get one from the [Hedera Portal](https://portal.hedera.com/). Learn more about
 testnet [here](https://docs.hedera.com/guides/testnet).
+
+## Transaction Examples
+
+If you're an SDK user (building applications on top of the SDK), you'll find comprehensive transaction examples to help you get started:
+
+- **High-Level Overview**: For a conceptual understanding of how to use the SDK's transaction and query APIs, including both Pythonic and method chaining syntax styles, refer to [docs/sdk_users/running_examples.md](docs/sdk_users/running_examples.md).
+
+- **Detailed Code Examples**: For complete, runnable code examples demonstrating specific transactions (account creation, token operations, topic management, etc.), explore the [examples/](examples/) directory.
+
+These resources will guide you through common SDK operations and help you integrate Hiero functionality into your applications.
 
 ## Running Tests
 
