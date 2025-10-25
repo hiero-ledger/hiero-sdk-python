@@ -1,17 +1,116 @@
 # Changelog
 
+
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- docs: Added `testing.md` to `docs/sdk_users/` with an introduction and table of contents for contributor testing workflows (#572).
+- Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
+- Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
+- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
+
+### Added
+- Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
+- Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
+
+- Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
+- Added `dependabot.yaml` file to enable automated dependency management.
+- Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
+- Added documentation for resolving changelog conflicts in `docs/common_issues.md`
+- - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
+- docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
+- docs: Add Google-style docstrings to `CustomRoyaltyFee` class and its methods in `custom_royalty_fee.py`.
+- docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
+- docs: Add Google-style docstrings to `TokenRelationship` class and its methods in `token_relationship.py`.
+- **docs: Added `testing.md` to `docs/sdk_users/` with an introduction and table of contents for contributor testing workflows (#563).**
+
+### Changed
+
+- Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme
+- Added changelog conflict resolution examples to `docs/common_issues.md`
+- Refactored `examples/topic_create.py` to be more modular by splitting functions and renaming `create_topic()` to `main()`.
+- Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
+- Enhanced contributing section in README.md with resource links
+- Refactored examples/topic_message_submit.py to be more modular
+- Added "One Issue Per Pull Request" section to `examples/sdk_developers/common_issues.md`.
+- docs: Improved the contributing section in the README.md file
+- Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
+- Refactored `examples/file_append.py` into modular functions for better readability, reuse, and consistency across examples.
+- Ensured identical runtime behavior and output to the previous version to maintain backward compatibility.
+- Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency
+- Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
+- docs: Use relative paths for internal GitHub links (#560).
+- Update pyproject.toml maintainers list.
+
+### Fixed
+
+- Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
+- Added explicit read and write permissions to test.yml
+
+## [0.1.6] - 2025-10-21
+
+### Added
+
+- Add comprehensive Google-style docstrings to examples/account_create.py
+- add revenue generating topic tests/example
+- add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
+- add CustomFeeLimit class
+- TokenNftAllowance class
+- TokenAllowance class
+- HbarAllowance class
+- HbarTransfer class
+- AccountAllowanceApproveTransaction class
+- AccountAllowanceDeleteTransaction class
+- FileAppendTransaction class
+- Documentation examples for Allowance Approve Transaction, Allowance Delete Transaction, and File Append Transaction
+- Approved transfer support to TransferTransaction
+- set_transaction_id() API to Transaction class
+- Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
+
+### Changed
+
+- TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
+- Added checksum validation for TokenId
+- Refactor examples/token_cancel_airdrop
+- Refactor token creation examples for modularity and consistency
+- Rearranged running_examples.md to be alphabetical
+- Refactor token_associate.py for better structure, add association verification query (#367)
+- Refactored `examples/account_create.py` to improve modularity and readability (#363)
+- Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
+- Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
+- Converted class in `token_nft_info.py` to dataclass for simplicity.
+
+### Fixed
+
+- Incompatible Types assignment in token_transfer_list.py
+- Corrected references to \_require_not_frozen() and removed the surplus \_is_frozen
+- Removed duplicate static methods in `TokenInfo` class:
+    - `_copy_msg_to_proto`
+    - `_copy_key_if_present`
+    - `_parse_custom_fees`
+    Kept robust versions with proper docstrings and error handling.
+- Add strict type hints to `TransactionGetReceiptQuery` (#420)
+- Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
+- Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
+
+## [0.1.5] - 2025-09-25
+... (rest of the changelog file is unchanged)
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](https://semver.org).
+This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [Unreleased]
 
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
-- docs: Added `testing.md` to `docs/sdk_users/` with an introduction and table of contents for contributor testing workflows (#572).
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
 
