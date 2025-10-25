@@ -10,6 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
+
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
 
@@ -25,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Refactored TopicId class to use @dataclass decorator
 - Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme
 - Added changelog conflict resolution examples to `docs/common_issues.md`
 - Refactored `examples/topic_create.py` to be more modular by splitting functions and renaming `create_topic()` to `main()`.
