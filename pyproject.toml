@@ -3,7 +3,8 @@ name = "hiero-sdk-python"
 dynamic = ["version"]
 description = "A Hiero SDK in pure Python"
 maintainers = [
-    { name = "Nadine Loepfe", email = "nadine.loepfe@hashgraph.com" }
+    { name = "Nadine Loepfe", email = "nadine.loepfe@hashgraph.com" },
+    { name = "Sophie Bulloch", email = "exploreriii57@gmail.com" }
 ]
 authors = [
     { name = "Nadine Loepfe", email = "nadine.loepfe@hashgraph.com" },
