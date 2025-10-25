@@ -2,6 +2,7 @@
 AccountId class.
 """
 
+import re
 from typing import TYPE_CHECKING
 
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -15,6 +16,7 @@ from hiero_sdk_python.utils.entity_id_helper import (
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
 
+ALIAS_REGEX = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.((?:[0-9a-fA-F][0-9a-fA-F])+)$")
 
 class AccountId:
     """
@@ -52,21 +54,35 @@ class AccountId:
         """
         Creates an AccountId instance from a string in the format 'shard.realm.num'.
         """
-        try:
-            shard, realm, num, checksum = parse_from_string(account_id_str)
+        if account_id_str is None or not isinstance(account_id_str, str):
+            raise ValueError(f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'.")
 
-            account_id: AccountId = cls(
+        alias_match = ALIAS_REGEX.match(account_id_str)
+
+        if alias_match:
+            shard, realm, alias = alias_match.groups()
+            return cls(
                 shard=int(shard),
                 realm=int(realm),
-                num=int(num)
+                num=0,
+                alias_key=PublicKey.from_bytes(bytes.fromhex(alias))
             )
-            account_id.__checksum = checksum
+        else:
+            try:
+                shard, realm, num, checksum = parse_from_string(account_id_str)
 
-            return account_id
-        except Exception as e:
-            raise ValueError(
-                f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
-            ) from e
+                account_id: AccountId = cls(
+                    shard=int(shard),
+                    realm=int(realm),
+                    num=int(num)
+                )
+                account_id.__checksum = checksum
+
+                return account_id
+            except Exception as e:
+                raise ValueError(
+                    f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
+                ) from e
 
     @classmethod
     def _from_proto(cls, account_id_proto: basic_types_pb2.AccountID) -> "AccountId":

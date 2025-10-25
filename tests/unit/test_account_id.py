@@ -154,6 +154,27 @@ def test_from_string_with_checksum():
     assert account_id.checksum == 'abcde'
 
 
+def test_from_string_with_alias_key(alias_key):
+    account_id_str = f"0.0.{alias_key.to_string()}"
+    account_id = AccountId.from_string(account_id_str)
+
+    assert account_id.shard == 0
+    assert account_id.realm == 0
+    assert account_id.num == 0
+    assert account_id.alias_key.__eq__(alias_key)
+    assert account_id.checksum is None
+
+def test_from_string_with_alias_key_ecdsa(alias_key_ecdsa):
+    account_id_str = f"0.0.{alias_key_ecdsa.to_string()}"
+    account_id = AccountId.from_string(account_id_str)
+
+    assert account_id.shard == 0
+    assert account_id.realm == 0
+    assert account_id.num == 0
+    assert account_id.alias_key.__eq__(alias_key_ecdsa)
+    assert account_id.checksum is None
+
+
 @pytest.mark.parametrize(
     'invalid_id', 
     [
@@ -169,7 +190,9 @@ def test_from_string_with_checksum():
         '0.0.1-ad',
         '0.0.1-addefgh',
         '0.0.1 - abcde',
-        ' 0.0.100 '
+        ' 0.0.100 ',
+        '0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777g',
+        '0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777'
     ]
 )
 def test_from_string_for_invalid_format(invalid_id):
