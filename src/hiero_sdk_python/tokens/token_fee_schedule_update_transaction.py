@@ -101,16 +101,15 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
             raise ValueError("Missing token ID")
 
         # Assuming the correct method name is _to_protobuf based on review feedback
-        # Double-check this against CustomFee implementation if unsure.
         custom_fees_proto = [
-            fee._to_protobuf() for fee in self._custom_fees
+            fee._to_proto() for fee in self._custom_fees
         ]
 
         token_fee_update_body = (
             token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody(
                 # Assuming _to_proto is correct for TokenId based on other files
-                tokenId=self._token_id._to_proto(),
-                customFees=custom_fees_proto,
+                token_id=self._token_id._to_proto(),
+                custom_fees=custom_fees_proto,
             )
         )
         return token_fee_update_body
@@ -126,7 +125,7 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = (
             self.build_base_transaction_body()
         )
-        transaction_body.tokenFeeScheduleUpdate.CopyFrom(
+        transaction_body.token_fee_schedule_update.CopyFrom(
             token_fee_update_body
         )
         return transaction_body
@@ -149,11 +148,9 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         """
         Gets the gRPC method for this transaction.
         """
-        # Using simplified return based on potential review feedback
-        # Keep query_func=None if explicitly needed by _Method definition
+        # Using simplified return based on review feedback possibility
         return _Method(
             transaction_func=channel.token.updateTokenFeeSchedule
-            # query_func=None # Add back if _Method requires it
         )
 
     # Optional but recommended __repr__ based on review feedback
