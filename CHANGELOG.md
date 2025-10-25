@@ -10,6 +10,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
+
+- Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
+- Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
@@ -44,16 +47,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
-– docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+  – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 
 ### Fixed
 
-- Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
-- Added explicit read and write permissions to test.yml
-- Type hinting for `Topic` related transactions.
-
-### Removed
-- Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
+- Improved type hinting in `file_append_transaction.py` to resolve `mypy --strict` errors.
 
 ## [0.1.6] - 2025-10-21
 
