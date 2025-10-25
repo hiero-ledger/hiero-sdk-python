@@ -84,10 +84,12 @@ git push --force-with-lease
 
 Rebase operations will be required when your branch is behind the upstream main. See [rebasing.md](./rebasing.md) for instructions on how to keep your main branch up to date and how to rebase.
 
+
 When rebasing, you must use this command to ensure your commits remain verified:
 
 ```bash
-git rebase main
+git rebase main -S
+```
 
 ## ✅ Final Checklist
 
