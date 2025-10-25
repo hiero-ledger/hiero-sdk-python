@@ -1,6 +1,11 @@
 # pylint: disable=too-many-instance-attributes
-"""
-AccountInfo class.
+"""Module containing the AccountInfo model.
+
+The AccountInfo class provides a structured representation of detailed
+account information retrieved from the Hedera network via a
+CryptoGetInfoQuery. It includes methods for converting to and from the
+Hedera Protocol Buffer (protobuf) format, ensuring data integrity within
+the Hiero SDK.
 """
 
 from dataclasses import dataclass, field
@@ -54,6 +59,22 @@ class AccountInfo:
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
+        """
+        Creates an AccountInfo instance from a Hedera Protocol Buffer message.
+
+        This method deserializes the network response data into the SDK's internal
+        Python object structure.
+
+        Args:
+            proto: The protobuf message containing the account information. 
+                   Expected type is CryptoGetInfoResponse.AccountInfo.
+
+        Returns:
+            AccountInfo: A new instance of the SDK's AccountInfo model.
+
+        Raises:
+            ValueError: If the input 'proto' argument is None.
+        """
         if proto is None:
             raise ValueError("Account info proto is None")
 
@@ -80,6 +101,16 @@ class AccountInfo:
         )
 
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
+        """
+        Converts the current AccountInfo instance into its corresponding 
+        Hedera Protocol Buffer message.
+
+        This method serializes the Python object's state for network transmission.
+
+        Returns:
+            CryptoGetInfoResponse.AccountInfo: The generated protobuf object 
+                                               ready for transfer or storage.
+        """
         return CryptoGetInfoResponse.AccountInfo(
             accountID=self.account_id._to_proto() if self.account_id else None,
             contractAccountID=self.contract_account_id,
