@@ -1,7 +1,12 @@
 # pylint: disable=too-many-instance-attributes
+"""Model for displaying detailed account information from the Hedera network.
+
+This module defines the `AccountInfo` class, which serves as a crucial data model
+for representing the comprehensive details of a crypto account retrieved using
+the `CryptoGetInfoQuery`. It includes essential fields like account ID, balance,
+key details, expiry time, and associated fees.
 """
-AccountInfo class.
-"""
+# ^^^ MODULE DOCSTRING IS CORRECT ^^^
 
 from dataclasses import dataclass, field
 from typing import Optional
@@ -54,6 +59,23 @@ class AccountInfo:
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
+        """Creates an `AccountInfo` object from a Hedera protobuf account information response.
+
+        This method is the primary deserializer for converting the raw data structure
+        received from the Hedera network into a Python object.
+
+        Args:
+            proto: The protobuf object containing the account information, typically
+                   `CryptoGetInfoResponse.AccountInfo`.
+
+        Returns:
+            An instance of `AccountInfo` populated with data from the protobuf.
+
+        Raises:
+            ValueError: If the input `proto` object is None.
+        """
+        # ^^^ _FROM_PROTO DOCSTRING ADDED ^^^
+
         if proto is None:
             raise ValueError("Account info proto is None")
 
@@ -80,6 +102,17 @@ class AccountInfo:
         )
 
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
+        """Converts the current `AccountInfo` object into its Hedera protobuf equivalent.
+
+        This method is used for serializing the Python object back into the required
+        format for communication with the Hedera network.
+
+        Returns:
+            A Hedera protobuf object of type `CryptoGetInfoResponse.AccountInfo`
+            representing the current state of this object.
+        """
+        # ^^^ _TO_PROTO DOCSTRING ADDED ^^^
+
         return CryptoGetInfoResponse.AccountInfo(
             accountID=self.account_id._to_proto() if self.account_id else None,
             contractAccountID=self.contract_account_id,
