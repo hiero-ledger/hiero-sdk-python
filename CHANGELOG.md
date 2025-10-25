@@ -340,6 +340,11 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - Basic documentation on how to install and use the SDK.
 - Example scripts illustrating setup and usage.
 
+### Added
+- Modularized TokenTransfer example:
+  - Added `account_balance_query()` and `transfer_transaction()` helper functions
+  - Refactored `main()` to call helper functions
+
 ### Changed
 
 - N/A
