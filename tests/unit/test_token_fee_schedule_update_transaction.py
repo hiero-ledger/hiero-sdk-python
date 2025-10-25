@@ -5,7 +5,7 @@ from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import (
 )
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
-
+# This is the key import from token_create_transaction.py
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 
@@ -77,7 +77,7 @@ def test_build_transaction_body_correctly(mock_account_ids):
     update_tx.set_token_id(token_id)
     update_tx.set_custom_fees(test_fees_list)
 
-    # 4. Set required operator and node IDs 
+    # 4. Set required operator and node IDs (THIS IS A CRITICAL STEP)
     update_tx.operator_account_id = operator_id
     update_tx.node_account_id = node_account_id
     
