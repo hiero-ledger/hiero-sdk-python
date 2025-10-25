@@ -1,3 +1,11 @@
+## [Unreleased]
+### Added
+
+### Changed
+- Added comprehensive Google-style docstrings to the AccountInfo model's protobuf conversion methods (`_from_proto` and `_to_proto`) for improved clarity and maintainability. (#562)
+
+### Fixed
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
