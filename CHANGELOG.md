@@ -42,6 +42,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added "One Issue Per Pull Request" section to `examples/sdk_developers/common_issues.md`.
 - docs: Improved the contributing section in the README.md file
 - Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
+- Refactored `examples/file_append.py` into modular functions for better readability, reuse, and consistency across examples.
+- Ensured identical runtime behavior and output to the previous version to maintain backward compatibility.
 - Renamed `examples/hbar_allowance.py` to `examples/account_allowance_hbar.py` for naming consistency
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
