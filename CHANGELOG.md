@@ -118,6 +118,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Approved transfer support to TransferTransaction
 - set_transaction_id() API to Transaction class
 - Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
+- Refactored examples/logging_example.py for better modularity (#478)
 
 ### Changed
 
