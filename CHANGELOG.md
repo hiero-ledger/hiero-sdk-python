@@ -12,8 +12,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
+- Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
-
 - Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
 - Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
@@ -67,6 +67,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Approved transfer support to TransferTransaction
 - set_transaction_id() API to Transaction class
 - Allowance examples (hbar_allowance.py, token_allowance.py, nft_allowance.py)
+- Refactored examples/logging_example.py for better modularity (#478)
 
 ### Changed
 
