@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Renamed documentation file `docs/sdk_developers/changelog.md` to `docs/sdk_developers/changelog_entry.md` for clarity.
 - Refactored TopicId class to use @dataclass decorator for reducing boilerplate code
 - Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme
 - Added changelog conflict resolution examples to `docs/common_issues.md`
