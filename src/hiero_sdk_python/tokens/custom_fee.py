@@ -13,6 +13,15 @@ class CustomFee(ABC):
     """
     Base class for custom fees.
     """
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the CustomFee object.
+        """
+        return (
+            f"{self.__class__.__name__}("
+            f"fee_collector_account_id={self.fee_collector_account_id!r}, "
+            f"all_collectors_are_exempt={self.all_collectors_are_exempt!r})"
+        )
 
     def __init__(
         self,

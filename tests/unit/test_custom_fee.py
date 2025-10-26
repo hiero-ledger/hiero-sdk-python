@@ -9,6 +9,71 @@ from hiero_sdk_python.tokens.token_id import TokenId
 
 pytestmark = pytest.mark.unit
 
+# --- ADDED TESTS FOR ISSUE #583: __repr__ VERIFICATION ---
+
+def test_custom_fixed_fee_repr():
+    """Verifies the __repr__ output for CustomFixedFee."""
+    # Use the same setup values as test_custom_fixed_fee
+    fee_collector_id = AccountId(0, 0, 456)
+    
+    fee = CustomFixedFee(
+        amount=100,
+        denominating_token_id=TokenId(0, 0, 123),
+        fee_collector_account_id=fee_collector_id,
+        all_collectors_are_exempt=True,
+    )
+    
+    # The expected string must match the format implemented in CustomFee.__repr__
+    # Note the use of repr() on the objects to match the f-string's !r formatting
+    expected_repr = (
+        f"CustomFixedFee("
+        f"fee_collector_account_id={repr(fee_collector_id)}, "
+        f"all_collectors_are_exempt=True)"
+    )
+    assert repr(fee) == expected_repr
+
+def test_custom_fractional_fee_repr():
+    """Verifies the __repr__ output for CustomFractionalFee."""
+    # Use the same setup values as test_custom_fractional_fee
+    fee_collector_id = AccountId(0, 0, 456)
+    
+    fee = CustomFractionalFee(
+        numerator=1,
+        denominator=10,
+        min_amount=1,
+        max_amount=100,
+        assessment_method=FeeAssessmentMethod.EXCLUSIVE,
+        fee_collector_account_id=fee_collector_id,
+        all_collectors_are_exempt=False,
+    )
+    
+    expected_repr = (
+        f"CustomFractionalFee("
+        f"fee_collector_account_id={repr(fee_collector_id)}, "
+        f"all_collectors_are_exempt=False)"
+    )
+    assert repr(fee) == expected_repr
+
+def test_custom_royalty_fee_repr():
+    """Verifies the __repr__ output for CustomRoyaltyFee."""
+    # Use the same setup values as test_custom_royalty_fee
+    fee_collector_id = AccountId(0, 0, 456)
+    
+    fee = CustomRoyaltyFee(
+        numerator=5,
+        denominator=100,
+        fallback_fee=None, # Note: fallback_fee is NOT part of the base __repr__
+        fee_collector_account_id=fee_collector_id,
+        all_collectors_are_exempt=True,
+    )
+    
+    expected_repr = (
+        f"CustomRoyaltyFee("
+        f"fee_collector_account_id={repr(fee_collector_id)}, "
+        f"all_collectors_are_exempt=True)"
+    )
+    assert repr(fee) == expected_repr
+
 def test_custom_fixed_fee():
     fee = CustomFixedFee(
         amount=100,
@@ -73,3 +138,6 @@ def test_custom_royalty_fee():
     assert isinstance(new_fee.fallback_fee, CustomFixedFee)
     assert new_fee.fallback_fee.amount == 50
     assert new_fee.fallback_fee.denominating_token_id == TokenId(0, 0, 789)
+    
+    
+    

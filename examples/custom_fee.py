@@ -10,6 +10,8 @@ from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 
+# --- Removed the non-functional code block before main() ---
+
 def main():
     # Create a CustomFixedFee
     fixed_fee = CustomFixedFee(
@@ -19,6 +21,9 @@ def main():
         all_collectors_are_exempt=False,
     )
     print("CustomFixedFee:")
+    # --- ADDED: Demonstrate __repr__ output ---
+    print(f"DEBUG REPR: {fixed_fee!r}") 
+    # ------------------------------------------
     print(f"Amount: {fixed_fee.amount}")
     print(f"Denominating Token ID: {fixed_fee.denominating_token_id}")
     print(f"Fee Collector Account ID: {fixed_fee.fee_collector_account_id}")
@@ -40,6 +45,9 @@ def main():
         all_collectors_are_exempt=False,
     )
     print("\nCustomFractionalFee:")
+    # --- ADDED: Demonstrate __repr__ output ---
+    print(f"DEBUG REPR: {fractional_fee!r}")
+    # ------------------------------------------
     print(f"Numerator: {fractional_fee.numerator}")
     print(f"Denominator: {fractional_fee.denominator}")
     print(f"Min Amount: {fractional_fee.min_amount}")
@@ -66,6 +74,9 @@ def main():
         all_collectors_are_exempt=True,
     )
     print("\nCustomRoyaltyFee:")
+    # --- ADDED: Demonstrate __repr__ output ---
+    print(f"DEBUG REPR: {royalty_fee!r}")
+    # ------------------------------------------
     print(f"Numerator: {royalty_fee.numerator}")
     print(f"Denominator: {royalty_fee.denominator}")
     print(f"Fallback Fee Amount: {royalty_fee.fallback_fee.amount}")
