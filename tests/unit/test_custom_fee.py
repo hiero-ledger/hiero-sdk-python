@@ -73,3 +73,105 @@ def test_custom_royalty_fee():
     assert isinstance(new_fee.fallback_fee, CustomFixedFee)
     assert new_fee.fallback_fee.amount == 50
     assert new_fee.fallback_fee.denominating_token_id == TokenId(0, 0, 789)
+
+
+def test_custom_fixed_fee_repr():
+    """Test the __repr__ method of CustomFixedFee"""
+    fee = CustomFixedFee(
+        amount=100,
+        denominating_token_id=TokenId(0, 0, 123),
+        fee_collector_account_id=AccountId(0, 0, 456),
+        all_collectors_are_exempt=True,
+    )
+    
+    repr_str = repr(fee)
+    
+    assert "CustomFixedFee" in repr_str
+    assert "amount=100" in repr_str
+    assert "denominating_token_id=0.0.123" in repr_str
+    assert "fee_collector_account_id=0.0.456" in repr_str
+    assert "all_collectors_are_exempt=True" in repr_str
+
+
+def test_custom_fixed_fee_repr_without_collector():
+    """Test the __repr__ method of CustomFixedFee without collector"""
+    fee = CustomFixedFee(
+        amount=200,
+        denominating_token_id=None,
+    )
+    
+    repr_str = repr(fee)
+    
+    assert "CustomFixedFee" in repr_str
+    assert "amount=200" in repr_str
+    assert "denominating_token_id=None" in repr_str
+    assert "fee_collector_account_id=None" in repr_str
+    assert "all_collectors_are_exempt=False" in repr_str
+
+
+def test_custom_fractional_fee_repr():
+    """Test the __repr__ method of CustomFractionalFee"""
+    fee = CustomFractionalFee(
+        numerator=1,
+        denominator=10,
+        min_amount=1,
+        max_amount=100,
+        assessment_method=FeeAssessmentMethod.EXCLUSIVE,
+        fee_collector_account_id=AccountId(0, 0, 456),
+        all_collectors_are_exempt=False,
+    )
+    
+    repr_str = repr(fee)
+    
+    assert "CustomFractionalFee" in repr_str
+    assert "numerator=1" in repr_str
+    assert "denominator=10" in repr_str
+    assert "min_amount=1" in repr_str
+    assert "max_amount=100" in repr_str
+    assert "FeeAssessmentMethod.EXCLUSIVE" in repr_str
+    assert "fee_collector_account_id=0.0.456" in repr_str
+    assert "all_collectors_are_exempt=False" in repr_str
+
+
+def test_custom_royalty_fee_repr():
+    """Test the __repr__ method of CustomRoyaltyFee"""
+    fallback_fee = CustomFixedFee(
+        amount=50,
+        denominating_token_id=TokenId(0, 0, 789),
+    )
+    fee = CustomRoyaltyFee(
+        numerator=5,
+        denominator=100,
+        fallback_fee=fallback_fee,
+        fee_collector_account_id=AccountId(0, 0, 456),
+        all_collectors_are_exempt=True,
+    )
+    
+    repr_str = repr(fee)
+    
+    assert "CustomRoyaltyFee" in repr_str
+    assert "numerator=5" in repr_str
+    assert "denominator=100" in repr_str
+    assert "fee_collector_account_id=0.0.456" in repr_str
+    assert "all_collectors_are_exempt=True" in repr_str
+    assert "fallback_fee=" in repr_str
+
+
+def test_custom_royalty_fee_repr_without_fallback():
+    """Test the __repr__ method of CustomRoyaltyFee without fallback fee"""
+    fee = CustomRoyaltyFee(
+        numerator=3,
+        denominator=50,
+        fallback_fee=None,
+        fee_collector_account_id=None,
+        all_collectors_are_exempt=False,
+    )
+    
+    repr_str = repr(fee)
+    
+    assert "CustomRoyaltyFee" in repr_str
+    assert "numerator=3" in repr_str
+    assert "denominator=50" in repr_str
+    assert "fallback_fee=None" in repr_str
+    assert "fee_collector_account_id=None" in repr_str
+    assert "all_collectors_are_exempt=False" in repr_str

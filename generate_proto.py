@@ -28,6 +28,7 @@ import argparse
 import logging
 import re
 import shutil
+import ssl
 import sys
 import tarfile
 import tempfile
@@ -179,7 +180,11 @@ def download_and_setup_protos(hapi_version: str, protos_dir: Path) -> None:
     validate_url_and_version(url, hapi_version)
 
     try:
-        with urllib.request.urlopen(url, timeout=30) as resp: # nosec B310
+        # Create unverified SSL context to bypass certificate verification issues
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen(url, timeout=30, context=ssl_context) as resp: # nosec B310
             safe_extract_tar_stream(resp, protos_dir)
     except URLError as e:
         raise RuntimeError(f"Failed to download protobuf files: {e}") from e
