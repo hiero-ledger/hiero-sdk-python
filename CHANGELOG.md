@@ -32,6 +32,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactor examples/token_cancel_airdrop
 - Refactor token creation examples for modularity and consistency
 - Updated `signing.md` to clarify that all commits must be signed with both DCO and GPG (#459)
+- Updated `signing.md` to clarify that all commits must be signed with both DCO and GPG (#459)
+
 
 
 ### Changed
