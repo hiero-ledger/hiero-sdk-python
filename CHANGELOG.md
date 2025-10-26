@@ -45,6 +45,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
+- Ensured `TokenId` immutability by setting the checksum field during construction instead of using `object.__setattr__` in `from_string`.
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
 
