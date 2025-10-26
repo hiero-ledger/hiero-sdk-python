@@ -88,11 +88,11 @@ If you accidentally forgot to sign commits, there are **two ways to fix them**:
 Soft revert the impacted commits while keeping changes locally:
 
 ```bash
-git reset --soft HEADn
+git reset --soft HEAD~n
 ```
 
 * `HEADn` = number of commits to go back
-* Example: To fix the last 3 commits: `git reset --soft HEAD3`
+* Example: To fix the last 3 commits: `git reset --soft HEAD`
 
 Then, recommit each commit with proper signing:
 
