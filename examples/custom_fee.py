@@ -23,6 +23,7 @@ def main():
     print(f"Denominating Token ID: {fixed_fee.denominating_token_id}")
     print(f"Fee Collector Account ID: {fixed_fee.fee_collector_account_id}")
     print(f"All Collectors Exempt: {fixed_fee.all_collectors_are_exempt}")
+    print(f"\n__repr__ output: {repr(fixed_fee)}")
 
     # Convert to protobuf
     fixed_fee_proto = fixed_fee._to_proto()
@@ -47,6 +48,7 @@ def main():
     print(f"Assessment Method: {fractional_fee.assessment_method}")
     print(f"Fee Collector Account ID: {fractional_fee.fee_collector_account_id}")
     print(f"All Collectors Exempt: {fractional_fee.all_collectors_are_exempt}")
+    print(f"\n__repr__ output: {repr(fractional_fee)}")
 
     # Convert to protobuf
     fractional_fee_proto = fractional_fee._to_proto()
@@ -72,6 +74,7 @@ def main():
     print(f"Fallback Fee Denominating Token ID: {royalty_fee.fallback_fee.denominating_token_id}")
     print(f"Fee Collector Account ID: {royalty_fee.fee_collector_account_id}")
     print(f"All Collectors Exempt: {royalty_fee.all_collectors_are_exempt}")
+    print(f"\n__repr__ output: {repr(royalty_fee)}")
 
     # Convert to protobuf
     royalty_fee_proto = royalty_fee._to_proto()

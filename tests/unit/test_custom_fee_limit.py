@@ -355,3 +355,53 @@ def test_string_representation_empty():
 def test_repr_equals_str(custom_fee_limit):
     """Test that __repr__ equals __str__"""
     assert repr(custom_fee_limit) == str(custom_fee_limit)
+
+
+def test_custom_fee_repr_in_custom_fee_limit():
+    """Test that CustomFixedFee __repr__ method works within CustomFeeLimit"""
+    custom_fee = CustomFixedFee(
+        amount=1000,
+        denominating_token_id=TokenId(0, 0, 500),
+        fee_collector_account_id=AccountId(0, 0, 600),
+    )
+    custom_fee_limit = CustomFeeLimit(
+        payer_id=AccountId(0, 0, 100),
+        custom_fees=[custom_fee],
+    )
+    
+    repr_str = repr(custom_fee_limit)
+    
+    # Should contain the custom fee representation
+    assert "CustomFixedFee" in repr_str
+    assert "amount=1000" in repr_str
+    assert "denominating_token_id=0.0.500" in repr_str
+    assert "fee_collector_account_id=0.0.600" in repr_str
+
+
+def test_multiple_custom_fees_repr():
+    """Test repr with multiple custom fees"""
+    custom_fees = [
+        CustomFixedFee(
+            amount=1000,
+            denominating_token_id=TokenId(0, 0, 500),
+            fee_collector_account_id=AccountId(0, 0, 600),
+        ),
+        CustomFixedFee(
+            amount=2000,
+            denominating_token_id=TokenId(0, 0, 700),
+            fee_collector_account_id=AccountId(0, 0, 800),
+        ),
+    ]
+    custom_fee_limit = CustomFeeLimit(
+        payer_id=AccountId(0, 0, 100),
+        custom_fees=custom_fees,
+    )
+    
+    repr_str = repr(custom_fee_limit)
+    
+    # Should contain both custom fees
+    assert "CustomFixedFee" in repr_str
+    assert "amount=1000" in repr_str
+    assert "amount=2000" in repr_str
+    assert "denominating_token_id=0.0.500" in repr_str
+    assert "denominating_token_id=0.0.700" in repr_str

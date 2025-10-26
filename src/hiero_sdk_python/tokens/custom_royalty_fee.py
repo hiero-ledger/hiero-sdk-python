@@ -151,3 +151,20 @@ class CustomRoyaltyFee(CustomFee):
             fee_collector_account_id=fee_collector_account_id,
             all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
         )
+    
+    def __repr__(self) -> str:
+        """Return a string representation of the CustomRoyaltyFee instance.
+        
+        Returns:
+            str: A string containing the class name, numerator, denominator,
+                fallback_fee, fee_collector_account_id, and all_collectors_are_exempt.
+        """
+        return (
+            f"CustomRoyaltyFee("
+            f"numerator={self.numerator}, "
+            f"denominator={self.denominator}, "
+            f"fallback_fee={self.fallback_fee}, "
+            f"fee_collector_account_id={self.fee_collector_account_id}, "
+            f"all_collectors_are_exempt={self.all_collectors_are_exempt}"
+            f")"
+        )

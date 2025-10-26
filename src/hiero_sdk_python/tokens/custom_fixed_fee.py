@@ -262,3 +262,19 @@ class CustomFixedFee(CustomFee):
             bool: True if the objects are considered equal, False otherwise.
         """
         return super().__eq__(other) and self.amount == other.amount and self.denominating_token_id == other.denominating_token_id
+    
+    def __repr__(self) -> str:
+        """Return a string representation of the CustomFixedFee instance.
+        
+        Returns:
+            str: A string containing the class name, amount, denominating_token_id,
+                fee_collector_account_id, and all_collectors_are_exempt.
+        """
+        return (
+            f"CustomFixedFee("
+            f"amount={self.amount}, "
+            f"denominating_token_id={self.denominating_token_id}, "
+            f"fee_collector_account_id={self.fee_collector_account_id}, "
+            f"all_collectors_are_exempt={self.all_collectors_are_exempt}"
+            f")"
+        )

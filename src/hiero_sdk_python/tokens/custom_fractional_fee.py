@@ -164,3 +164,23 @@ class CustomFractionalFee(CustomFee):
             fee_collector_account_id=fee_collector_account_id,
             all_collectors_are_exempt=proto_fee.all_collectors_are_exempt,
         )
+    
+    def __repr__(self) -> str:
+        """Return a string representation of the CustomFractionalFee instance.
+        
+        Returns:
+            str: A string containing the class name, numerator, denominator,
+                min_amount, max_amount, assessment_method, fee_collector_account_id,
+                and all_collectors_are_exempt.
+        """
+        return (
+            f"CustomFractionalFee("
+            f"numerator={self.numerator}, "
+            f"denominator={self.denominator}, "
+            f"min_amount={self.min_amount}, "
+            f"max_amount={self.max_amount}, "
+            f"assessment_method={self.assessment_method}, "
+            f"fee_collector_account_id={self.fee_collector_account_id}, "
+            f"all_collectors_are_exempt={self.all_collectors_are_exempt}"
+            f")"
+        )
