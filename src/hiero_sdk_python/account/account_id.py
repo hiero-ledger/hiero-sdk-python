@@ -57,32 +57,32 @@ class AccountId:
         if account_id_str is None or not isinstance(account_id_str, str):
             raise ValueError(f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'.")
 
-        alias_match = ALIAS_REGEX.match(account_id_str)
+        try:
+            shard, realm, num, checksum = parse_from_string(account_id_str)
 
-        if alias_match:
-            shard, realm, alias = alias_match.groups()
-            return cls(
+            account_id: AccountId = cls(
                 shard=int(shard),
                 realm=int(realm),
-                num=0,
-                alias_key=PublicKey.from_bytes(bytes.fromhex(alias))
+                num=int(num)
             )
-        else:
-            try:
-                shard, realm, num, checksum = parse_from_string(account_id_str)
+            account_id.__checksum = checksum
 
-                account_id: AccountId = cls(
+            return account_id
+        except Exception as e:
+            alias_match = ALIAS_REGEX.match(account_id_str)
+            
+            if alias_match:
+                shard, realm, alias = alias_match.groups()
+                return cls(
                     shard=int(shard),
                     realm=int(realm),
-                    num=int(num)
+                    num=0,
+                    alias_key=PublicKey.from_bytes(bytes.fromhex(alias))
                 )
-                account_id.__checksum = checksum
-
-                return account_id
-            except Exception as e:
-                raise ValueError(
-                    f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
-                ) from e
+            
+            raise ValueError(
+                f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
+            ) from e
 
     @classmethod
     def _from_proto(cls, account_id_proto: basic_types_pb2.AccountID) -> "AccountId":
