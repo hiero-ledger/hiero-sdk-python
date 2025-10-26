@@ -7,28 +7,27 @@ string representations, making it easier to work with topics in different
 formats within the Hiero SDK.
 """
 
+from dataclasses import dataclass
+
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
+@dataclass
 class TopicId:
-
     """
     Represents the unique identifier of a topic in the Hedera Consensus Service (HCS).
 
     A `TopicId` consists of three components: shard, realm, and num.
     This class provides convenient methods for converting between Python objects,
     protobuf `TopicID` instances, and string formats.
+
+    Args:
+        shard (int): The shard number of the topic. Defaults to 0.
+        realm (int): The realm number of the topic. Defaults to 0.
+        num (int): The topic number. Defaults to 0.
     """
-    def __init__(self, shard: int = 0, realm: int = 0, num: int = 0) -> None:
-        """
-        Initializes a new instance of the TopicId class.
-        Args:
-            shard (int): The shard number of the topic.
-            realm (int): The realm number of the topic.
-            num (int): The topic number.
-        """
-        self.shard: int = shard
-        self.realm: int = realm
-        self.num: int = num
+    shard: int = 0
+    realm: int = 0
+    num: int = 0
 
     @classmethod
     def _from_proto(cls, topic_id_proto: basic_types_pb2.TopicID) -> "TopicId":
