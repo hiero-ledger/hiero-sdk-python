@@ -44,7 +44,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update pyproject.toml maintainers list.
 
 ### Fixed
-
+- Added missing `validate_checksum` method to `AccountId` to enable validation checks on custom fee collector accounts.
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
 

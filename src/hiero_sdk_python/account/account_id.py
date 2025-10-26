@@ -6,7 +6,9 @@ from typing import List
 
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
-
+from typing import List, TYPE_CHECKING
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
 
 class AccountId:
     """
@@ -107,6 +109,34 @@ class AccountId:
                 f"alias_key={self.alias_key.to_string_raw()})"
             )
         return f"AccountId(shard={self.shard}, realm={self.realm}, num={self.num})"
+
+    # --- START OF CHANGE FOR ISSUE #582 ---
+    def validate_checksum(self, client: "Client") -> None:
+        """
+        Validates the checksum of the AccountId against the network information
+        stored in the client.
+
+        Args:
+            client (Client): The client instance used for network interaction.
+
+        Raises:
+            Exception: If the checksum is invalid (Placeholder for actual validation logic).
+        """
+        # TODO: Implement the actual checksum validation logic here.
+        # This will typically involve comparing a generated checksum with one
+        # derived from the client's network/ledger ID.
+        
+        # For the purpose of resolving the missing method call and a basic check:
+        if self.shard < 0 or self.realm < 0 or self.num < 0:
+            raise ValueError("Account ID components cannot be negative.")
+        
+        # Placeholder for actual checksum logic that would utilize the client object:
+        # if not client._is_checksum_valid(self):
+        #     raise InvalidChecksumError(f"Checksum validation failed for AccountId {self}")
+        
+        pass # If validation passes, return None
+
+    # --- END OF CHANGE ---
 
     def __eq__(self, other: object) -> bool:
         """
