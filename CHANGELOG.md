@@ -47,6 +47,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
+- Type hinting for `Topic` related transactions.
 
 ## [0.1.6] - 2025-10-21
 
