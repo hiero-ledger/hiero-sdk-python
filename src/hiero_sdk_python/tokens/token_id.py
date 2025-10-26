@@ -23,7 +23,7 @@ class TokenId:
     shard: int
     realm: int
     num: int
-    checksum: str | None = field(default=None, init=False)
+    checksum: str | None = field(default=None, init=True) # CHANGED: init=False to init=True
 
     def __post_init__(self) -> None:
         if self.shard < 0:
@@ -64,10 +64,13 @@ class TokenId:
         """
         shard, realm, num, checksum = parse_from_string(token_id_str)
 
-        token_id = cls(int(shard), int(realm), int(num))
-        object.__setattr__(token_id, 'checksum', checksum)
-
-        return token_id
+        # CHANGED: Avoid object.__setattr__ by passing checksum to the constructor
+        return cls(
+            shard=int(shard),
+            realm=int(realm),
+            num=int(num),
+            checksum=checksum # Passed directly during initialization
+        )
 
     def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the TokenId instance"""
@@ -99,4 +102,4 @@ class TokenId:
 
     def __hash__(self) -> int:
         """ Returns a hash of the TokenId instance. """
-        return hash((self.shard, self.realm, self.num))
+        return hash((self.shard, self.realm, self.num, self.checksum))
