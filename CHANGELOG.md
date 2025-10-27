@@ -54,7 +54,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [0.1.6] - 2025-10-21
 
 ### Added
-
+- Added comprehensive integration tests for custom fee creation and verification (FixedFee, FractionalFee).
 - Add comprehensive Google-style docstrings to examples/account_create.py
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
