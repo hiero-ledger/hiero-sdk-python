@@ -253,13 +253,6 @@ Once you've configured GPG signing, you'll be ready to start contributing. See t
 git checkout main
 git fetch upstream
 git pull upstream main
-git push origin main
-```
-
-**Or use GitHub's "Sync fork" button**, then:
-```bash
-git checkout main
-git pull origin main
 ```
 
 **Run tests:**
