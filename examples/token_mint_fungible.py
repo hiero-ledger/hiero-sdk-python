@@ -98,8 +98,6 @@ def token_mint_fungible(client, token_id, supply_key):
     Only the holder of the supply key can perform these actions.
     """
 
-    # Create a new token with a supply key so its supply can be changed later
-
     mint_amount = 5000 # This is 50.00 tokens because decimals is 2
     print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
 
