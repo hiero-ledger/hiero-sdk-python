@@ -73,3 +73,19 @@ def test_custom_royalty_fee():
     assert isinstance(new_fee.fallback_fee, CustomFixedFee)
     assert new_fee.fallback_fee.amount == 50
     assert new_fee.fallback_fee.denominating_token_id == TokenId(0, 0, 789)
+
+
+def test_custom_fee_repr():
+    """Test the __repr__ method of CustomFee base class"""
+    fee = CustomFixedFee(
+        amount=100,
+        denominating_token_id=TokenId(0, 0, 123),
+        fee_collector_account_id=AccountId(0, 0, 456),
+        all_collectors_are_exempt=True,
+    )
+    
+    repr_str = repr(fee)
+    
+    assert "CustomFixedFee" in repr_str
+    assert "fee_collector_account_id=0.0.456" in repr_str
+    assert "all_collectors_are_exempt=True" in repr_str
