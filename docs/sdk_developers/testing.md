@@ -79,17 +79,13 @@ Unit tests are located in the `tests/unit/` directory, mirroring the structure o
 
 ```
 hiero-sdk-python/
-├── hiero_sdk_python/
+├── src/hiero_sdk_python/
 │   ├── account/
-│   │   └── account_create_transaction.py
-│   └── hbar.py
+│       └── account_create_transaction.py
 └── tests/
     └── unit/
-        ├── account/
-        │   └── test_account_create_transaction.py
-        └── test_hbar.py
+        └── test_account_create_transaction.py
 ```
-
 ---
 
 ## Explaining Integration Tests
@@ -402,8 +398,12 @@ Integration tests require connection to a Hedera network. There are three ways t
 - Testnet account with HBAR balance
 - Valid `.env` configuration
 
-**Command:**
+**Command (Recommended - use Solo network):**
 ```bash
+# Start your local Solo network first
+solo network start
+
+# Then run integration tests
 uv run pytest tests/integration/ -m integration
 ```
 
@@ -413,41 +413,7 @@ uv run pytest tests/integration/ -m integration
 - Slower due to consensus time
 - May fail if network is congested
 
-### 2. Against Solo Network (Local Hedera Network)
-
-Hiero Solo is a local Hedera network that runs in Docker containers.
-
-**Setup:**
-```bash
-# Install Hiero Solo (requires Docker)
-# Follow instructions at: https://github.com/hiero-ledger/solo
-
-# Start Solo network
-solo network start
-
-# Get operator credentials
-solo account list
-```
-
-**Update `.env`:**
-```bash
-OPERATOR_ID=0.0.2
-OPERATOR_KEY=<key-from-solo>
-NETWORK=localhost
-```
-
-**Run Tests:**
-```bash
-uv run pytest tests/integration/ -m integration
-```
-
-**Advantages:**
-- Fast consensus (near-instant)
-- Free (no real HBAR required)
-- Complete network control
-- Reproducible environment
-
-### 3. In CI/CD (Automatic)
+### 2. In CI/CD (Automatic)
 
 When you push a branch and create a pull request, integration tests automatically run via GitHub Actions using the **Hiero Solo Action**.
 
@@ -1160,7 +1126,7 @@ Before submitting a pull request, ensure:
 - [ ] Test fixtures are documented
 
 ### Git
-- [ ] Commits are signed: `git commit -S -s -m "message"`
+- [ ] Commits are signed: `git commit -S -s -m "chore: message"` (Add a scope prefix to your chore: commit message to match the project’s commit message style guide)
 - [ ] Commits are verified: `git log --show-signature`
 - [ ] Branch is up to date with `main`
 
