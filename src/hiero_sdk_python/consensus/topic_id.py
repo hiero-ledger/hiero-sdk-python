@@ -7,11 +7,17 @@ string representations, making it easier to work with topics in different
 formats within the Hiero SDK.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.utils.entity_id_helper import (
+    parse_from_string,
+    validate_checksum,
+    format_to_string_with_checksum
+)
 
-@dataclass
+@dataclass(frozen=True)
 class TopicId:
     """
     Represents the unique identifier of a topic in the Hedera Consensus Service (HCS).
@@ -28,6 +34,7 @@ class TopicId:
     shard: int = 0
     realm: int = 0
     num: int = 0
+    checksum: str | None = field(default=None, init=False)
 
     @classmethod
     def _from_proto(cls, topic_id_proto: basic_types_pb2.TopicID) -> "TopicId":
@@ -82,7 +89,40 @@ class TopicId:
         Raises:
             ValueError: If the string format is invalid.
         """
-        parts = topic_id_str.strip().split(".")
-        if len(parts) != 3:
-            raise ValueError("Invalid TopicId format. Expected 'shard.realm.num'")
-        return cls(shard=int(parts[0]), realm=int(parts[1]), num=int(parts[2]))
+        try:
+            shard, realm, num, checksum = parse_from_string(topic_id_str)
+
+            topic_id: TopicId = cls(
+                shard=int(shard),
+                realm=int(realm),
+                num=int(num)
+            )
+            object.__setattr__(topic_id, "checksum", checksum)
+
+            return topic_id
+        except Exception as e:
+            raise ValueError(
+                f"Invalid topic ID string '{topic_id_str}'. Expected format 'shard.realm.num'."
+            ) from e
+
+    def validate_checksum(self, client: Client) -> None:
+        """Validate the checksum for the topicId"""
+        validate_checksum(
+            self.shard,
+            self.realm,
+            self.num,
+            self.checksum,
+            client,
+        )
+
+    def to_string_with_checksum(self, client: Client) -> str:
+        """
+        Returns the string representation of the TopicId with checksum 
+        in 'shard.realm.num-checksum' format.
+        """
+        return format_to_string_with_checksum(
+            self.shard,
+            self.realm,
+            self.num,
+            client
+        )
