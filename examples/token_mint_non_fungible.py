@@ -41,8 +41,8 @@ def setup_client():
 def generate_supply_key():
     """Generate a new supply key for the token."""
     print("\nSTEP 1: Generating a new supply key...")
-    supply_key = PrivateKey.generate_ed25519()
-    print("✅ Supply key generated.")
+    supply_key = PrivateKey.generate(os.getenv('HSDK_KEY_TYPE', 'ed25519'))
+    print("✅ Supply key generated")
     return supply_key
 
 def create_nft_collection():
