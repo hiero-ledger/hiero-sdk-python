@@ -6,13 +6,13 @@ from typing import Union, Optional, List
 from google.protobuf import wrappers_pb2 as _wrappers_pb2
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.custom_fees_pb2 import FeeExemptKeyList
 from hiero_sdk_python.hapi.services.custom_fees_pb2 import FixedCustomFeeList
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import (
-    basic_types_pb2,
     consensus_update_topic_pb2,
     duration_pb2,
     timestamp_pb2,
@@ -29,7 +29,7 @@ class TopicUpdateTransaction(Transaction):
     """Represents a transaction to update a consensus topic."""
     def __init__(
         self,
-        topic_id: Optional[basic_types_pb2.TopicID] = None,
+        topic_id: Optional[TopicId] = None,
         memo: Optional[str] = None,
         admin_key: Optional[PublicKey] = None,
         submit_key: Optional[PublicKey] = None,
@@ -43,16 +43,16 @@ class TopicUpdateTransaction(Transaction):
         """
         Initializes a new instance of the TopicUpdateTransaction class.
         Args:
-            topic_id (basic_types_pb2.TopicID): The ID of the topic to update.
+            topic_id (TopicId): The ID of the topic to update.
             memo (str): The memo associated with the topic.
             admin_key (PublicKey): The admin key for the topic.
             submit_key (PublicKey): The submit key for the topic.
             auto_renew_period (Duration): The auto-renew period for the topic.
             auto_renew_account (AccountId): The account ID for auto-renewal.
-            expiration_time (timestamp_pb2.Timestamp): The expiration time of the topic.
+            expiration_time (Timestamp): The expiration time of the topic.
         """
         super().__init__()
-        self.topic_id: Optional[basic_types_pb2.TopicID] = topic_id
+        self.topic_id: Optional[TopicId] = topic_id
         self.memo: str = memo or ""
         self.admin_key: Optional[PublicKey] = admin_key
         self.submit_key: Optional[PublicKey] = submit_key
@@ -64,7 +64,7 @@ class TopicUpdateTransaction(Transaction):
         self.fee_schedule_key: Optional[PublicKey] = fee_schedule_key
         self.fee_exempt_keys: Optional[List[PublicKey]] = fee_exempt_keys
 
-    def set_topic_id(self, topic_id: basic_types_pb2.TopicID) -> "TopicUpdateTransaction":
+    def set_topic_id(self, topic_id: TopicId) -> "TopicUpdateTransaction":
         """
         Sets the topic ID for the transaction.
 
