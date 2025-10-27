@@ -54,6 +54,24 @@ class AccountInfo:
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
+        """Creates an AccountInfo object from its protobuf representation.
+
+        This method deserializes the `AccountInfo` message received from the
+        Hedera network into the SDK's `AccountInfo` dataclass structure. It handles
+        the conversion of protobuf types (like `Timestamp`, `Duration`, `Key`,
+        `AccountID`, amounts in tinybars) into their corresponding SDK types.
+
+        Args:
+            proto (CryptoGetInfoResponse.AccountInfo): The protobuf message
+                containing the account information.
+
+        Returns:
+            AccountInfo: An instance of the `AccountInfo` class populated with
+                data from the protobuf message.
+
+        Raises:
+            ValueError: If the input `proto` is None.
+        """
         if proto is None:
             raise ValueError("Account info proto is None")
 
@@ -80,6 +98,19 @@ class AccountInfo:
         )
 
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
+        """Converts this AccountInfo object to its protobuf representation.
+
+        Serializes the SDK's `AccountInfo` dataclass into the `AccountInfo`
+        protobuf message format expected by the Hedera API. Handles conversion
+        of SDK types back to their corresponding protobuf types (e.g., Hbar to
+        tinybars, SDK `Timestamp` to protobuf `Timestamp`).
+
+        Returns:
+            CryptoGetInfoResponse.AccountInfo: The protobuf message representation
+                of this AccountInfo object. Note that protobuf messages use default
+                values (like 0 for integers, empty string/bytes, False for bool)
+                for fields that are None in the SDK object, unless explicitly handled.
+        """
         return CryptoGetInfoResponse.AccountInfo(
             accountID=self.account_id._to_proto() if self.account_id else None,
             contractAccountID=self.contract_account_id,
