@@ -1,5 +1,25 @@
 ## Handling Conflicts
 
+## Table of Contents
+- [Handling Conflicts](#handling-conflicts)
+  - [1. See which files are conflicted](#1-see-which-files-are-conflicted)
+  - [2. Resolve conflicts manually](#2-resolve-conflicts-manually)
+  - [3. Resolving conflicts in VS Code (recommended):](#3-resolving-conflicts-in-vs-code-recommended)
+    - [Steps to resolve:](#steps-to-resolve)
+- [After fixing conflicts:](#after-fixing-conflicts)
+  - [4. Stage the resolved files](#4-stage-the-resolved-files)
+  - [5.Continue the rebase](#5continue-the-rebase)
+  - [6. After Rebase is Completed](#6-after-rebase-is-completed)
+- [Common issues](#common-issues)
+- [If you need to stop](#if-you-need-to-stop)
+- [What NOT to do](#what-not-to-do)
+- [Recovery Tips:](#recovery-tips)
+  - [If you are completely stuck](#if-you-are-completely-stuck)
+
+
+
+
+
 Conflicts are common if main has updates to the files you are working on. In which case, you'll have to run a rebase.
 
 If you are warned of a conflict:

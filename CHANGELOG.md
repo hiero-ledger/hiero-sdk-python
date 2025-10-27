@@ -24,6 +24,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
 - docs: Add Google-style docstrings to `TokenRelationship` class and its methods in `token_relationship.py`.
 - feat: add initial testing guide structure
+- docs: Add Table of Contents to `docs/sdk_developers/merge_conflicts.md` to improve navigation
 
 ### Changed
 
@@ -79,6 +80,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
 - Refactor token creation examples for modularity and consistency
+- Updated `signing.md` to clarify commit signing requirements, including DCO, GPG, and branch-specific guidelines (#459)
+
+### Changed
+
 - Rearranged running_examples.md to be alphabetical
 - Refactor token_associate.py for better structure, add association verification query (#367)
 - Refactored `examples/account_create.py` to improve modularity and readability (#363)
