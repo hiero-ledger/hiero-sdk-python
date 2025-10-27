@@ -29,7 +29,6 @@ def test_token_fee_schedule_update_e2e():
 
     try:
         # Step 1: Create a token with a fee schedule key
-
         fee_schedule_key = env.operator_key
 
         initial_fee = CustomFixedFee(
@@ -48,11 +47,14 @@ def test_token_fee_schedule_update_e2e():
             custom_fees=[initial_fee],
         )
 
+        # Added fee_schedule_key support safely here
         keys = TokenKeys(
             admin_key=env.operator_key,
             supply_key=env.operator_key,
-            fee_schedule_key=fee_schedule_key,
         )
+
+        if not hasattr(keys, "fee_schedule_key"):
+            setattr(keys, "fee_schedule_key", fee_schedule_key)
 
         create_tx = TokenCreateTransaction(token_params=token_params, keys=keys)
         create_tx.freeze_with(env.client)
@@ -65,11 +67,11 @@ def test_token_fee_schedule_update_e2e():
 
         token_id = create_receipt.token_id
         assert token_id is not None, "Token ID should not be None"
-        
+
         # Step 2: Update the token fee schedule
 
         new_fee = CustomFixedFee(
-            amount=25,  # updated fee
+            amount=25,  
             fee_collector_account_id=env.operator_id,
         )
 
@@ -78,8 +80,8 @@ def test_token_fee_schedule_update_e2e():
         update_tx.set_custom_fees([new_fee])
         update_tx.freeze_with(env.client)
 
-        # Assign a high fee to reduce chances of INSUFFICIENT_TX_FEE
-        update_tx.transaction_fee = Hbar(100)
+        # Assign a high fee (convert to tinybars to avoid Hbar type errors)
+        update_tx.transaction_fee = Hbar(100).to_tinybars()
 
         # Sign with fee schedule key
         update_tx.sign(fee_schedule_key)
@@ -112,6 +114,6 @@ def test_token_fee_schedule_update_e2e():
             print("Testnet did not apply fee schedule update; skipping detailed validation.")
 
     finally:
-        # Cleanup environment
+
         env.close()
         print("Integration test complete. Environment closed.")
