@@ -486,9 +486,9 @@ class Transaction(_Executable):
         self.transaction_id = transaction_id
         return self
 
-    def set_node_account_ids(self, node_account_ids, List[AccountId]):
+    def set_node_account_ids(self, node_account_ids: List[AccountId]):
         """
-        Sets the list of node account IDs the query can be sent to.
+        Sets the list of node account IDs the transaction can be sent to.
 
         Args:
             node_account_ids (List[AccountId]): The list of node account IDs.
