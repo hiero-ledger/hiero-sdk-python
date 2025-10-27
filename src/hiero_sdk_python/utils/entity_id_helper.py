@@ -1,6 +1,9 @@
 import re
 
-from hiero_sdk_python.client.client import Client
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
 
 ID_REGEX = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([a-z]{5}))?$")
 
@@ -20,7 +23,7 @@ def parse_from_string(address: str):
     """
     match = ID_REGEX.match(address)
     if not match:
-        raise ValueError("Invalid address format")
+        raise ValueError("Invalid format for entity ID")
 
     shard, realm, num, checksum = match.groups()
 
@@ -76,7 +79,7 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
 
     return "".join(reversed(letter))
 
-def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client: Client) -> None:
+def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client: "Client") -> None:
     """
     Validate a Hiero entity ID checksum against the current client's ledger.
 
@@ -91,7 +94,7 @@ def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, cl
         ValueError: If the ledger ID is missing or if the checksum is invalid.
     """
     # If no checksum present then return.
-    if (checksum is None):
+    if checksum is None:
         return
 
     ledger_id = client.network.ledger_id
@@ -110,7 +113,7 @@ def format_to_string(shard: int, realm: int, num: int) -> str:
     """
     return f"{shard}.{realm}.{num}"
 
-def format_to_string_with_checksum(shard: int, realm: int, num: int,client: Client) -> str:
+def format_to_string_with_checksum(shard: int, realm: int, num: int, client: "Client") -> str:
     """
     Convert an entity ID into its string representation with checksum.
     """

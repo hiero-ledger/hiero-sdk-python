@@ -6,8 +6,7 @@ Defines the TransactionReceipt class, which represents the outcome of a Hedera t
 
 This module provides structured access to fields in a transaction receipt,
 including associated IDs like TokenId, TopicId, AccountId, and FileId.
-It wraps the underlying protobuf object and exposes key properties with
-optional deprecated alias support via `_DeprecatedAliasesMixin`.
+It wraps the underlying protobuf object and exposes key properties.
 
 Classes:
     - TransactionReceipt: Parses and exposes fields from a transaction receipt protobuf.
@@ -21,14 +20,12 @@ from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.hapi.services import transaction_receipt_pb2, response_code_pb2
-from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_id import TopicId
 
-class TransactionReceipt(_DeprecatedAliasesMixin):  # type: ignore[misc]
+class TransactionReceipt:
     """
     Represents the receipt of a transaction.
-    Imports deprecated aliases for tokenId, topicId and accountId.
 
     The receipt contains information about the status and result of a transaction,
     such as the TokenId or AccountId involved.

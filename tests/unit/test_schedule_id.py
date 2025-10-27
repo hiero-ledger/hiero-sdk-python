@@ -6,6 +6,12 @@ from hiero_sdk_python.schedule.schedule_id import ScheduleId
 pytestmark = pytest.mark.unit
 
 
+@pytest.fixture
+def client(mock_client):
+    mock_client.network.ledger_id = bytes.fromhex("00") # mainnet ledger id
+    return mock_client
+
+
 def test_default_initialization():
     """Test ScheduleId initialization with default values."""
     schedule_id = ScheduleId()
@@ -13,6 +19,7 @@ def test_default_initialization():
     assert schedule_id.shard == 0
     assert schedule_id.realm == 0
     assert schedule_id.schedule == 0
+    assert schedule_id.checksum is None
 
 
 def test_custom_initialization():
@@ -22,6 +29,7 @@ def test_custom_initialization():
     assert schedule_id.shard == 1
     assert schedule_id.realm == 2
     assert schedule_id.schedule == 3
+    assert schedule_id.checksum is None
 
 
 def test_str_representation():
@@ -45,30 +53,43 @@ def test_from_string_valid():
     assert schedule_id.shard == 1
     assert schedule_id.realm == 2
     assert schedule_id.schedule == 3
+    assert schedule_id.checksum is None
 
 
-def test_from_string_with_spaces():
-    """Test creating ScheduleId from string with leading/trailing spaces."""
-    schedule_id = ScheduleId.from_string("  1.2.3  ")
+def test_from_string_valid_with_checksum():
+    """Test creating ScheduleId from valid string format."""
+    schedule_id = ScheduleId.from_string("1.2.3-abcde")
 
     assert schedule_id.shard == 1
     assert schedule_id.realm == 2
     assert schedule_id.schedule == 3
+    assert schedule_id.checksum == "abcde"
 
-
-def test_from_string_invalid_formats():
-    """Test creating ScheduleId from various invalid string formats."""
-    invalid_formats = [
-        "1.2",  # Too few parts
-        "1.2.3.4",  # Too many parts
-        "a.b.c",  # Non-numeric parts
-        "",  # Empty string
-        "1.a.3",  # Partial numeric
+@pytest.mark.parametrize(
+    'invalid_id', 
+    [
+        '1.2',  # Too few parts
+        '1.2.3.4',  # Too many parts
+        'a.b.c',  # Non-numeric parts
+        '',  # Empty string
+        '1.a.3',  # Partial numeric
+        123,
+        None,
+        '0.0.-1',
+        'abc.def.ghi',
+        '0.0.1-ad',
+        '0.0.1-addefgh',
+        '0.0.1 - abcde',
+        ' 0.0.100 '
     ]
-
-    for invalid_format in invalid_formats:
-        with pytest.raises(ValueError):
-            ScheduleId.from_string(invalid_format)
+)
+def test_from_string_invalid_formats(invalid_id):
+    """Test creating ScheduleId from various invalid string formats."""
+    with pytest.raises(
+        ValueError, 
+        match=f"Invalid schedule ID string '{invalid_id}'. Expected format 'shard.realm.schedule'"
+    ):
+        ScheduleId.from_string(invalid_id)
 
 
 def test_to_proto():
@@ -131,3 +152,23 @@ def test_equality_different_type():
 
     # Should not raise an exception and should return False
     assert schedule_id != "1.2.3"
+
+
+def test_str_representation_with_checksum(client):
+    """Should return string with checksum when ledger id is provided."""
+    schedule_id = ScheduleId.from_string("0.0.1")
+    assert schedule_id.to_string_with_checksum(client) == "0.0.1-dfkxr"
+
+
+def test_validate_checksum_success(client):
+    """Should pass checksum validation when checksum is correct."""
+    schedule_id = ScheduleId.from_string("0.0.1-dfkxr")
+    schedule_id.validate_checksum(client)
+
+
+def test_validate_checksum_failure(client):
+    """Should raise ValueError if checksum validation fails."""
+    schedule_id = ScheduleId.from_string("0.0.1-wronx")
+
+    with pytest.raises(ValueError, match="Checksum mismatch for 0.0.1"):
+        schedule_id.validate_checksum(client)

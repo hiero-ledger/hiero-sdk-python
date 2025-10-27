@@ -8,9 +8,8 @@ Provides TokenInfo, a dataclass representing Hedera token metadata (IDs, keys,
 statuses, supply details, and timing), with conversion to and from protobuf messages.
 """
 
-import warnings
-from dataclasses import dataclass, field, fields, MISSING
-from typing import Optional, ClassVar, Dict, Any, List, Callable, cast
+from dataclasses import dataclass, field
+from typing import Optional, Any, List
 
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.account.account_id import AccountId
@@ -25,14 +24,13 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
-from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.hapi.services import token_get_info_pb2 as hapi_pb
 
 
-@dataclass(init=False)
-class TokenInfo(_DeprecatedAliasesMixin):
-    """Data class for basic token details: ID, name, and symbol inheriting deprecated aliases."""
+@dataclass
+class TokenInfo:
+    """Data class for basic token details: ID, name, and symbol."""
     token_id: Optional[TokenId]      = None
     name:     Optional[str]          = None
     symbol:   Optional[str]          = None
@@ -71,53 +69,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
         default_factory=lambda: SupplyType.FINITE
     )
 
-    # map legacy camelCase → snake_case
-    LEGACY_MAP: ClassVar[Dict[str, str]] = {
-        "tokenId":             "token_id",
-        "totalSupply":         "total_supply",
-        "isDeleted":           "is_deleted",
-        "tokenType":           "token_type",
-        "maxSupply":           "max_supply",
-        "adminKey":            "admin_key",
-        "kycKey":              "kyc_key",
-        "freezeKey":           "freeze_key",
-        "wipeKey":             "wipe_key",
-        "supplyKey":           "supply_key",
-        "defaultFreezeStatus": "default_freeze_status",
-        "defaultKycStatus":    "default_kyc_status",
-        "autoRenewAccount":    "auto_renew_account",
-        "autoRenewPeriod":     "auto_renew_period",
-        "pauseStatus":         "pause_status",
-        "supplyType":          "supply_type",
-        "customFees":          "custom_fees",
-    }
-
-    def __init__(self, **kwargs: Any) -> None:
-        # 1) Translate deprecated camelCase names → snake_case, with warnings
-        for legacy, snake in self.LEGACY_MAP.items():
-            if legacy in kwargs:
-                warnings.warn(
-                    f"TokenInfo({legacy}=...) is deprecated; use {snake}",
-                    FutureWarning,
-                    stacklevel=2,
-                )
-                # only set snake-case if not already provided
-                if snake not in kwargs:
-                    kwargs[snake] = kwargs.pop(legacy)
-                else:
-                    kwargs.pop(legacy)
-
-        for f in fields(self):
-            if f.name in kwargs:
-                value = kwargs[f.name]
-            else:
-                if f.default_factory is not MISSING:
-                    value = cast(Callable[[], Any], f.default_factory)()
-                elif f.default is not MISSING:
-                    value = f.default
-                else:
-                    value = None
-            setattr(self, f.name, value)
 
     # === setter methods ===
     def set_admin_key(self, admin_key: PublicKey) -> "TokenInfo":
@@ -125,40 +76,30 @@ class TokenInfo(_DeprecatedAliasesMixin):
         self.admin_key = admin_key
         return self
 
-    # alias for backwards compatibility
-    set_adminKey = set_admin_key
 
     def set_kyc_key(self, kyc_key: PublicKey) -> "TokenInfo":
         """Set the KYC key."""
         self.kyc_key = kyc_key
         return self
 
-    # alias for backwards compatibility
-    set_kycKey = set_kyc_key
 
     def set_freeze_key(self, freeze_key: PublicKey) -> "TokenInfo":
         """Set the freeze key."""
         self.freeze_key = freeze_key
         return self
 
-    # alias for backwards compatibility
-    set_freezeKey = set_freeze_key
 
     def set_wipe_key(self, wipe_key: PublicKey) -> "TokenInfo":
         """Set the wipe key."""
         self.wipe_key = wipe_key
         return self
 
-    # alias for backwards compatibility
-    set_wipeKey = set_wipe_key
 
     def set_supply_key(self, supply_key: PublicKey) -> "TokenInfo":
         """Set the supply key."""
         self.supply_key = supply_key
         return self
 
-    # alias for backwards compatibility
-    set_supplyKey = set_supply_key
 
     def set_metadata_key(self, metadata_key: PublicKey) -> "TokenInfo":
         """Set the metadata key."""
@@ -175,32 +116,24 @@ class TokenInfo(_DeprecatedAliasesMixin):
         self.default_freeze_status = freeze_status
         return self
 
-    # alias for backwards compatibility
-    set_defaultFreezeStatus = set_default_freeze_status
 
     def set_default_kyc_status(self, kyc_status: TokenKycStatus) -> "TokenInfo":
         """Set the default KYC status."""
         self.default_kyc_status = kyc_status
         return self
 
-    # alias for backwards compatibility
-    set_defaultKycStatus = set_default_kyc_status
 
     def set_auto_renew_account(self, account: AccountId) -> "TokenInfo":
         """Set the auto-renew account."""
         self.auto_renew_account = account
         return self
 
-    # alias for backwards compatibility
-    set_autoRenewAccount = set_auto_renew_account
 
     def set_auto_renew_period(self, period: Duration) -> "TokenInfo":
         """Set the auto-renew period."""
         self.auto_renew_period = period
         return self
 
-    # alias for backwards compatibility
-    set_autoRenewPeriod = set_auto_renew_period
 
     def set_expiry(self, expiry: Timestamp) -> "TokenInfo":
         """Set the token expiry."""
@@ -217,8 +150,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
         self.pause_status = pause_status
         return self
 
-    # alias for backwards compatibility
-    set_pauseStatus = set_pause_status
 
     def set_supply_type(self, supply_type: SupplyType | int) -> "TokenInfo":
         """Set the supply type."""
@@ -229,8 +160,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
         )
         return self
 
-    # alias for backwards compatibility
-    set_supplyType = set_supply_type
 
     def set_metadata(self, metadata: bytes) -> "TokenInfo":
         """Set the token metadata."""
@@ -242,8 +171,6 @@ class TokenInfo(_DeprecatedAliasesMixin):
         self.custom_fees = custom_fees
         return self
 
-    # alias for backwards compatibility
-    set_customFees = set_custom_fees
 
     # === helpers ===
 

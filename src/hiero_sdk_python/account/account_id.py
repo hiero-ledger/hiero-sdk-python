@@ -2,11 +2,21 @@
 AccountId class.
 """
 
-from typing import List
+import re
+from typing import TYPE_CHECKING
 
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.utils.entity_id_helper import (
+    parse_from_string,
+    validate_checksum,
+    format_to_string_with_checksum
+)
 
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
+
+ALIAS_REGEX = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.((?:[0-9a-fA-F][0-9a-fA-F])+)$")
 
 class AccountId:
     """
@@ -37,17 +47,42 @@ class AccountId:
         self.realm = realm
         self.num = num
         self.alias_key = alias_key
+        self.__checksum: str | None = None
 
     @classmethod
     def from_string(cls, account_id_str: str) -> "AccountId":
         """
         Creates an AccountId instance from a string in the format 'shard.realm.num'.
         """
-        parts: List[str] = account_id_str.strip().split(".")
-        if len(parts) != 3:
-            raise ValueError("Invalid account ID string format. Expected 'shard.realm.num'")
-        shard, realm, num = map(int, parts)
-        return cls(shard, realm, num)
+        if account_id_str is None or not isinstance(account_id_str, str):
+            raise ValueError(f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'.")
+
+        try:
+            shard, realm, num, checksum = parse_from_string(account_id_str)
+
+            account_id: AccountId = cls(
+                shard=int(shard),
+                realm=int(realm),
+                num=int(num)
+            )
+            account_id.__checksum = checksum
+
+            return account_id
+        except Exception as e:
+            alias_match = ALIAS_REGEX.match(account_id_str)
+            
+            if alias_match:
+                shard, realm, alias = alias_match.groups()
+                return cls(
+                    shard=int(shard),
+                    realm=int(realm),
+                    num=0,
+                    alias_key=PublicKey.from_bytes(bytes.fromhex(alias))
+                )
+            
+            raise ValueError(
+                f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
+            ) from e
 
     @classmethod
     def _from_proto(cls, account_id_proto: basic_types_pb2.AccountID) -> "AccountId":
@@ -89,6 +124,24 @@ class AccountId:
 
         return account_id_proto
 
+    @property
+    def checksum(self) -> str | None:
+        """Checksum of the accountId"""
+        return self.__checksum
+
+    def validate_checksum(self, client: "Client") -> None:
+        """Validate the checksum for the accountId"""
+        if self.alias_key is not None:
+            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
+
+        validate_checksum(
+            self.shard,
+            self.realm,
+            self.num,
+            self.__checksum,
+            client,
+        )
+
     def __str__(self) -> str:
         """
         Returns the string representation of the AccountId in 'shard.realm.num' format.
@@ -96,6 +149,21 @@ class AccountId:
         if self.alias_key:
             return f"{self.shard}.{self.realm}.{self.alias_key.to_string()}"
         return f"{self.shard}.{self.realm}.{self.num}"
+
+    def to_string_with_checksum(self, client: "Client") -> str:
+        """
+        Returns the string representation of the AccountId with checksum 
+        in 'shard.realm.num-checksum' format.
+        """
+        if self.alias_key is not None:
+            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
+
+        return format_to_string_with_checksum(
+            self.shard,
+            self.realm,
+            self.num,
+            client
+        )
 
     def __repr__(self):
         """

@@ -10,6 +10,11 @@ from hiero_sdk_python.hapi.services import basic_types_pb2
 pytestmark = pytest.mark.unit
 
 
+@pytest.fixture
+def client(mock_client):
+    mock_client.network.ledger_id = bytes.fromhex("00") # mainnet ledger id
+    return mock_client
+
 def test_default_initialization():
     """Test ContractId initialization with default values."""
     contract_id = ContractId()
@@ -18,6 +23,7 @@ def test_default_initialization():
     assert contract_id.realm == 0
     assert contract_id.contract == 0
     assert contract_id.evm_address is None
+    assert contract_id.checksum is None
 
 
 def test_custom_initialization():
@@ -28,6 +34,7 @@ def test_custom_initialization():
     assert contract_id.realm == 2
     assert contract_id.contract == 3
     assert contract_id.evm_address is None
+    assert contract_id.checksum is None
 
 
 def test_str_representation():
@@ -36,6 +43,7 @@ def test_str_representation():
 
     assert str(contract_id) == "1.2.3"
     assert contract_id.evm_address is None
+    assert contract_id.checksum is None
 
 
 def test_str_representation_default():
@@ -44,6 +52,7 @@ def test_str_representation_default():
 
     assert str(contract_id) == "0.0.0"
     assert contract_id.evm_address is None
+    assert contract_id.checksum is None
 
 
 def test_from_string_valid():
@@ -54,16 +63,7 @@ def test_from_string_valid():
     assert contract_id.realm == 2
     assert contract_id.contract == 3
     assert contract_id.evm_address is None
-
-
-def test_from_string_with_spaces():
-    """Test creating ContractId from string with leading/trailing spaces."""
-    contract_id = ContractId.from_string("  1.2.3  ")
-
-    assert contract_id.shard == 1
-    assert contract_id.realm == 2
-    assert contract_id.contract == 3
-    assert contract_id.evm_address is None
+    assert contract_id.checksum is None
 
 
 def test_from_string_zeros():
@@ -74,42 +74,54 @@ def test_from_string_zeros():
     assert contract_id.realm == 0
     assert contract_id.contract == 0
     assert contract_id.evm_address is None
+    assert contract_id.checksum is None
+
+def test_from_string_valid_with_checksum():
+    """Test creating ContractId from valid string format."""
+    contract_id = ContractId.from_string("1.2.3-abcde")
+
+    assert contract_id.shard == 1
+    assert contract_id.realm == 2
+    assert contract_id.contract == 3
+    assert contract_id.evm_address is None
+    assert contract_id.checksum == "abcde"
+
+def test_from_string_with_evm_address():
+    """Test creating ContractId from valid string format with evm_address."""
+    contract_id = ContractId.from_string("1.2.abcdef0123456789abcdef0123456789abcdef01")
+    assert contract_id.shard == 1
+    assert contract_id.realm == 2
+    assert contract_id.contract == 0
+    assert contract_id.evm_address == bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    assert contract_id.checksum is None
 
 
-def test_from_string_invalid_format_too_few_parts():
-    """Test creating ContractId from invalid string format with too few parts."""
+@pytest.mark.parametrize(
+    'invalid_id', 
+    [
+        '1.2',  # Too few parts
+        '1.2.3.4',  # Too many parts
+        'a.b.c',  # Non-numeric parts
+        '',  # Empty string
+        '1.a.3',  # Partial numeric
+        123,
+        None,
+        '0.0.-1',
+        'abc.def.ghi',
+        '0.0.1-ad',
+        '0.0.1-addefgh',
+        '0.0.1 - abcde',
+        ' 0.0.100 ',
+        ' 1.2.abcdef0123456789abcdef0123456789abcdef01 '
+        '1.2.001122334455667788990011223344556677'
+    ]
+)
+def test_from_string_for_invalid_format(invalid_id):
+    """Should raise error when creating ContractId from invalid string input."""
     with pytest.raises(
-        ValueError, match="Invalid ContractId format. Expected 'shard.realm.contract'"
+        ValueError, match=f"Invalid contract ID string '{invalid_id}'. Expected format 'shard.realm.contract'."
     ):
-        ContractId.from_string("1.2")
-
-
-def test_from_string_invalid_format_too_many_parts():
-    """Test creating ContractId from invalid string format with too many parts."""
-    with pytest.raises(
-        ValueError, match="Invalid ContractId format. Expected 'shard.realm.contract'"
-    ):
-        ContractId.from_string("1.2.3.4")
-
-
-def test_from_string_invalid_format_non_numeric():
-    """Test creating ContractId from invalid string format with non-numeric parts."""
-    with pytest.raises(ValueError):
-        ContractId.from_string("a.b.c")
-
-
-def test_from_string_invalid_format_empty():
-    """Test creating ContractId from empty string."""
-    with pytest.raises(
-        ValueError, match="Invalid ContractId format. Expected 'shard.realm.contract'"
-    ):
-        ContractId.from_string("")
-
-
-def test_from_string_invalid_format_partial_numeric():
-    """Test creating ContractId from string with some non-numeric parts."""
-    with pytest.raises(ValueError):
-        ContractId.from_string("1.a.3")
+        ContractId.from_string(invalid_id)
 
 
 def test_to_proto():
@@ -284,3 +296,32 @@ def test_to_evm_address():
         (0).to_bytes(8, "big")
     )
     assert contract_id.to_evm_address() == expected_bytes.hex()
+
+def test_str_representaion_with_checksum(client):
+    """Should return string representation with checksum"""
+    contract_id = ContractId.from_string("0.0.1")
+    assert contract_id.to_string_with_checksum(client) == "0.0.1-dfkxr"
+
+def test_str_representaion_checksum_with_evm_address(client):
+    """Should raise error on to_string_with_checksum is called when evm_address is set"""
+    contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
+
+    with pytest.raises(ValueError, match="to_string_with_checksum cannot be applied to ContractId with evm_address"):
+        contract_id.to_string_with_checksum(client)
+
+def test_validate_checksum_success(client):
+    """Should pass checksum validation when checksum is correct."""
+    contract_id = ContractId.from_string("0.0.1-dfkxr")
+    contract_id.validate_checksum(client)
+
+def test_validate_checksum_failure(client):
+    """Should raise ValueError if checksum validation fails."""
+    contract_id = ContractId.from_string("0.0.1-wronx")
+
+    with pytest.raises(ValueError, match="Checksum mismatch for 0.0.1"):
+        contract_id.validate_checksum(client)
+
+def test_str_representaion__with_evm_address():
+    """Should return str represention with evm_address"""
+    contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
+    assert contract_id.__str__() == "0.0.abcdef0123456789abcdef0123456789abcdef01"

@@ -25,20 +25,27 @@ def test_create_token_id_from_string():
 @pytest.mark.parametrize(
     'invalid_id', 
     [
-        '',
+        '1.2',  # Too few parts
+        '1.2.3.4',  # Too many parts
+        'a.b.c',  # Non-numeric parts
+        '',  # Empty string
+        '1.a.3',  # Partial numeric
         123,
         None,
         '0.0.-1',
         'abc.def.ghi',
-        '0.0.1-ad'
+        '0.0.1-ad',
+        '0.0.1-addefgh',
+        '0.0.1 - abcde',
+        ' 0.0.100 '
     ]
 )
-def test_create_token_id_from_string_invalid_cases(invalid_id):
+def test_from_string_for_invalid_format(invalid_id):
     """Should raise error when creating TokenId from invalid string input."""
     with pytest.raises((TypeError, ValueError)):
         TokenId.from_string(invalid_id)
 
-def test_get_token_id_with_checksum(mock_client):
+def test_str_representaion_with_checksum(mock_client):
     """Should return string with checksum when ledger id is provided."""
     client = mock_client
     client.network.ledger_id = bytes.fromhex("00")

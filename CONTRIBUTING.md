@@ -33,7 +33,7 @@ Workflow:
 
 2. **Find or Create an Issue**. Select an issue to work on at [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues). Alternatively, create an issue, information found at [Feature Requests](#feature-requests) [Bug Reports](#bug-reports) or #bug-reports.
 
-3. **Get Assigned**. Comment “I’d like to work on this” inside the issue and wait to be assigned to avoid possibly duplicating work.
+3. **Get Assigned**. Comment "I'd like to work on this" inside the issue and wait to be assigned to avoid possibly duplicating work.
 
 4. **Create a branch** view your forked repository and create a branch from an up-to-date main. Give it a title pre-fixed by:
 
@@ -55,8 +55,8 @@ To ensure high-quality-reviewable code, please ensure:
 - [ ] Only resolve tasks set. For example, if the issue is to code a Token create unit test, do not change the style in TokenCreateTransaction or update the integration tests. To resolve additional tasks, create a [New Feature](#feature-requests) and create an additional Pull Request. 
 - [ ] Add type hints and check using mypy [Typing Guide](docs/sdk_developers/types.md)
 - [ ] Style and lint using pylint [Linting Guide](docs/sdk_developers/linting.md)
-- [ ] Test your code. Create unit tests (local) at tests/unit and integration tests (network) at tests/integration [Testing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md). Run tests and fix code.
-- [ ] Write functionality example(s) if applicable at examples/ [View Examples](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples).
+- [ ] Test your code. Create unit tests (local) at tests/unit and integration tests (network) at tests/integration [Testing Guide](README.md). Run tests and fix code.
+- [ ] Write functionality example(s) if applicable at examples/ [View Examples](examples).
 - [ ] Update README at docs/sdk_users/running_examples.md if you added an example script(s)
 
 ### Signing Requirements
@@ -135,16 +135,16 @@ To ensure high-quality-reviewable code, please ensure:
 - [ ] Only resolve tasks set. For example, if the issue is to code a Token create unit test, do not change the style in TokenCreateTransaction or update the integration tests. To resolve additional tasks, create a [New Feature](#feature-requests) and create an additional Pull Request. 
 - [ ] Add type hints and check using mypy [Typing Guide](docs/sdk_developers/types.md)
 - [ ] Style and lint using pylint [Linting Guide](docs/sdk_developers/linting.md)
-- [ ] Test your code. Create unit tests (local) at tests/unit and integration tests (network) at tests/integration [Testing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md). Run tests and fix code.
-- [ ] Write functionality example(s) if applicable at examples/ [View Examples](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples).
+- [ ] Test your code. Create unit tests (local) at tests/unit and integration tests (network) at tests/integration [Testing Guide](README.md). Run tests and fix code.
+- [ ] Write functionality example(s) if applicable at examples/ [View Examples](examples).
 - [ ] Update README at docs/sdk_users/running_examples.md if you added an example script(s)
 
 8. **Ensure Quality of Commits**. Each individual commit should be:
 
 - [ ] Pre-fixed by [conventional commit formatting](https://www.conventionalcommits.org/en/v1.0.0/) such as (`feat`, `fix`, `chore`). Example: "feat: TokenCreate unit test with missing token id".
-- [ ] Signed with `git commit -S -s -m "message"` [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+- [ ] Signed with `git commit -S -s -m "message"` [Signing Guide](docs/sdk_developers/signing.md)
 
-9. **Ensure Branch is Updated**. Check if main has been updated since you started work. If it has, rebase following these steps [Updating Your Branch](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md). Resolve any conflicts.
+9. **Ensure Branch is Updated**. Check if main has been updated since you started work. If it has, rebase following these steps [Updating Your Branch](docs/sdk_developers/rebasing.md). Resolve any conflicts.
 
 10. **Review Network Test Outcomes**. Once your issue is solved on your branch, publish your branch and visit your python sdk repository https://github.com/your_username/hiero_sdk_python. Your push will trigger Hiero Solo Integration Tests which is our network test suite. Review outcome and fix any code.
 
@@ -226,7 +226,7 @@ pip install -U hiero-sdk-python
   - [ ] Click 'create'.
 - Bugs impacting security. Workflow:
   - [ ] Ensure you have joined the [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563).
-  - [ ] Contact [maintainers](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/MAINTAINERS.md) directly on discord stating there is an issue requiring immediate follow-up.
+  - [ ] Contact [maintainers](MAINTAINERS.md) directly on discord stating there is an issue requiring immediate follow-up.
   - [ ] Prepare sufficient documentation, such as logs, screenshots and information on how to replicate to share with the maintainer once asked.
 
 We will review your bug report shortly and comment as appropriate.
@@ -333,36 +333,36 @@ All SDK documentation is located in the `/docs` folder and divided into sections
 
 - `/docs/sdk_developers/` – Comprehensive guides for developers contributing to the SDK:
 
-  - [examples.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/examples.md) – Detailed guide on running SDK example scripts
+  - [examples.md](docs/sdk_developers/examples.md) – Detailed guide on running SDK example scripts
 
-  - [linting.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/linting.md) – Complete guide to code quality tools:
+  - [linting.md](docs/sdk_developers/linting.md) – Complete guide to code quality tools:
 
     - Setting up and using Pylint
     - VS Code integration steps
     - Custom linting configurations
     - Code style enforcement guidelines
 
-  - [merge_conflicts.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md) – Step by step conflict resolution:
+  - [merge_conflicts.md](docs/sdk_developers/merge_conflicts.md) – Step by step conflict resolution:
 
     - Identifying conflicted files
     - Using VS Code's 3-pane interface
     - Proper conflict resolution techniques
     - Post-conflict cleanup steps
 
-  - [rebasing.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md) – Guide to keeping your branch updated:
+  - [rebasing.md](docs/sdk_developers/rebasing.md) – Guide to keeping your branch updated:
 
     - Rebasing workflow steps
     - Handling common issues
     - Best practices for clean history
 
-  - [signing.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md) – Comprehensive commit signing guide:
+  - [signing.md](docs/sdk_developers/signing.md) – Comprehensive commit signing guide:
 
     - GPG key generation and setup
     - DCO (Developer Certificate of Origin) sign-off
     - GitHub integration steps
     - Verification and troubleshooting
 
-  - [types.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md) – Complete Python type system guide:
+  - [types.md](docs/sdk_developers/types.md) – Complete Python type system guide:
     - Type hint usage and benefits
     - Built-in types explanation
     - Custom type definitions

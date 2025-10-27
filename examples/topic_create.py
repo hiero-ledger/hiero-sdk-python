@@ -4,6 +4,7 @@
 
 import os
 import sys
+from typing import Tuple
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
@@ -14,36 +15,42 @@ from hiero_sdk_python import (
     Network,
 )
 
+# Load environment variables from .env file
 load_dotenv()
 
-def setup_client():
-    """Setup and return a Hedera client."""
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+
+def setup_client() -> Tuple[Client, PrivateKey]:
+    """
+    Sets up and configures the Hiero client for the testnet.
+    Reads OPERATOR_ID and OPERATOR_KEY from environment variables.
+    """
+    network = Network(network='testnet')
+    client = Client(network)
+
+    operator_id_str = os.getenv('OPERATOR_ID')
+    operator_key_str = os.getenv('OPERATOR_KEY')
+
+    # Check if the environment variables are loaded correctly
+    if not operator_id_str or not operator_key_str:
+        print("Error: OPERATOR_ID or OPERATOR_KEY not found in environment.")
+        print("Please create a .env file in the project's root directory with:")
+        print("\nOPERATOR_ID=your_id_here")
+        print("OPERATOR_KEY=your_key_here\n")
+        sys.exit(1)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-        client.set_operator(operator_id, operator_key)
-        print(f"Using operator account: {operator_id}")
-        return client, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
+        operator_id = AccountId.from_string(operator_id_str)
+        operator_key = PrivateKey.from_string(operator_key_str)
+    except (TypeError, ValueError) as e:
+        print(f"Error: Invalid OPERATOR_ID or OPERATOR_KEY format: {e}")
         sys.exit(1)
 
 
-def create_topic(client, operator_key):
-    """
-     Create a new topic on Hedera
 
-    1. Setup a Hedera client and operator key
-    2. Build a TopicCreateTransaction with a memo and admin key
-    3. Freeze and sign the transaction
-    4. Execute the transaction and get the receipt
-    5. Print the new topic ID if successful, or an error if not
+def create_topic(client: Client, operator_key: PrivateKey):
     """
-    print("\nCreating a new topic...")
-
+    Builds, signs, and executes a new topic creation transaction.
+    """
     transaction = (
         TopicCreateTransaction(
             memo="Python SDK created topic",
@@ -56,7 +63,7 @@ def create_topic(client, operator_key):
     try:
         receipt = transaction.execute(client)
         if receipt and receipt.topic_id:
-            print(f"Topic created with ID: {receipt.topic_id}")
+            print(f"Success! Topic created with ID: {receipt.topic_id}")
         else:
             print("Topic creation failed: Topic ID not returned in receipt.")
             sys.exit(1)
@@ -65,6 +72,9 @@ def create_topic(client, operator_key):
         sys.exit(1)
 
 def main():
+    """
+    Main workflow to set up the client and create a new topic.
+    """
     client, operator_key = setup_client()
     create_topic(client, operator_key)
 

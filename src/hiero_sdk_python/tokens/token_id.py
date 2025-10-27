@@ -62,12 +62,20 @@ class TokenId:
         """
         Parses a string in the format 'shard.realm.num' to create a TokenId instance.
         """
-        shard, realm, num, checksum = parse_from_string(token_id_str)
+        try:
+            shard, realm, num, checksum = parse_from_string(token_id_str)
 
-        token_id = cls(int(shard), int(realm), int(num))
-        object.__setattr__(token_id, 'checksum', checksum)
+            token_id = cls(
+                shard=int(shard),
+                realm=int(realm),
+                num=int(num))
+            object.__setattr__(token_id, 'checksum', checksum)
 
-        return token_id
+            return token_id
+        except Exception as e:
+            raise ValueError(
+                f"Invalid token ID string '{token_id_str}'. Expected format 'shard.realm.num'."
+            ) from e
 
     def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the TokenId instance"""

@@ -2,9 +2,15 @@
 ScheduleId class.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from hiero_sdk_python.hapi.services.basic_types_pb2 import ScheduleID as ProtoScheduleID
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.utils.entity_id_helper import (
+    parse_from_string,
+    validate_checksum,
+    format_to_string_with_checksum
+)
 
 
 @dataclass(frozen=True)
@@ -24,6 +30,7 @@ class ScheduleId:
     shard: int = 0
     realm: int = 0
     schedule: int = 0
+    checksum: str | None = field(default=None, init=False)
 
     @classmethod
     def from_string(cls, id_str: str) -> "ScheduleId":
@@ -45,12 +52,16 @@ class ScheduleId:
                 exactly 3 dot-separated components, or contains non-integer values.
         """
         try:
-            shard_str, realm_str, schedule_str = id_str.strip().split(".")
-            return cls(
-                shard=int(shard_str),
-                realm=int(realm_str),
-                schedule=int(schedule_str),
+            shard, realm, schedule, checksum = parse_from_string(id_str)
+
+            schedule_id: ScheduleId = cls(
+                shard=int(shard),
+                realm=int(realm),
+                schedule=int(schedule),
             )
+            object.__setattr__(schedule_id, "checksum", checksum)
+
+            return schedule_id
         except Exception as e:
             raise ValueError(
                 f"Invalid schedule ID string '{id_str}'. Expected format 'shard.realm.schedule'."
@@ -132,4 +143,26 @@ class ScheduleId:
         """
         return cls(
             shard=proto.shardNum, realm=proto.realmNum, schedule=proto.scheduleNum
+        )
+
+    def validate_checksum(self, client: Client) -> None:
+        """Validate the checksum for the scheduleId"""
+        validate_checksum(
+            self.shard,
+            self.realm,
+            self.schedule,
+            self.checksum,
+            client,
+        )
+
+    def to_string_with_checksum(self, client: Client) -> str:
+        """
+        Returns the string representation of the ScheduleId with checksum 
+        in 'shard.realm.schedule-checksum' format.
+        """
+        return format_to_string_with_checksum(
+            self.shard,
+            self.realm,
+            self.schedule,
+            client
         )
