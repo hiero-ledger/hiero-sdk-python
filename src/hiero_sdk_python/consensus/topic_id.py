@@ -7,7 +7,7 @@ string representations, making it easier to work with topics in different
 formats within the Hiero SDK.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.client.client import Client
@@ -17,7 +17,7 @@ from hiero_sdk_python.utils.entity_id_helper import (
     format_to_string_with_checksum
 )
 
-@dataclass
+@dataclass(frozen=True)
 class TopicId:
     """
     Represents the unique identifier of a topic in the Hedera Consensus Service (HCS).
@@ -34,6 +34,7 @@ class TopicId:
     shard: int = 0
     realm: int = 0
     num: int = 0
+    checksum: str | None = field(default=None, init=False)
 
     @classmethod
     def _from_proto(cls, topic_id_proto: basic_types_pb2.TopicID) -> "TopicId":
@@ -96,7 +97,7 @@ class TopicId:
                 realm=int(realm),
                 num=int(num)
             )
-            topic_id.__checksum = checksum
+            object.__setattr__(topic_id, "checksum", checksum)
 
             return topic_id
         except Exception as e:
@@ -104,18 +105,13 @@ class TopicId:
                 f"Invalid topic ID string '{topic_id_str}'. Expected format 'shard.realm.num'."
             ) from e
 
-    @property
-    def checksum(self) -> str | None:
-        """Return checksum of the topicId"""
-        return self.__checksum
-
     def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the topicId"""
         validate_checksum(
             self.shard,
             self.realm,
             self.num,
-            self.__checksum,
+            self.checksum,
             client,
         )
 
