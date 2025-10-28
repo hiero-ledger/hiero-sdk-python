@@ -106,6 +106,16 @@ uv run pytest
 
 ---
 
+### ⭐ Follow Us
+
+If you find the Hiero Python SDK useful, here are three ways you can support the project and stay up-to-date **on the official repository page**: [**hiero-ledger/hiero-sdk-python**](https://github.com/hiero-ledger/hiero-sdk-python).
+
+* **Star the Repository:** Click **Star** to bookmark the project and show your support.
+* **Watch for Activity:** Click **Watch** to set your notification level, ensuring you stay updated on new features and releases.
+* **Fork the Project:** Click **Fork** to create your own copy, the first step for contributions.
+
+---
+
 ## Contributions
 
 We welcome contributions! Whether you're:
