@@ -71,8 +71,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
 - Added workflow for running example scripts.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
+<<<<<<< HEAD
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
+=======
+- Added python 3.13 to test.yml workflow and pyproject.toml
+>>>>>>> 5e68ee98 (chore: changelog update for pyproject.toml)
 
 ### Changed
 
