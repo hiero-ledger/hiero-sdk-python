@@ -18,25 +18,8 @@ from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 @dataclass
 class AccountInfo:
     """
-    Contains information about an account.
-
-    Attributes:
-        account_id (Optional[AccountId]): The ID of this account.
-        contract_account_id (Optional[str]): The contract account ID.
-        is_deleted (Optional[bool]): Whether the account has been deleted.
-        proxy_received (Optional[Hbar]): The total number of tinybars proxy staked to this account.
-        key (Optional[PublicKey]): The key for this account.
-        balance (Optional[Hbar]): The current balance of account in hbar.
-        receiver_signature_required (Optional[bool]): If true, this account's key must sign
-            any transaction depositing into this account.
-        expiration_time (Optional[Timestamp]): The timestamp at which this account
-            is set to expire.
-        auto_renew_period (Optional[Duration]): The duration for which this account
-            will automatically renew.
-        token_relationships (list[TokenRelationship]): List of token relationships
-            associated with this account.
-        account_memo (Optional[str]): The memo associated with this account.
-        owned_nfts (Optional[int]): The number of NFTs owned by this account.
+    Represents detailed information about an account, including its balance,
+    key, expiration time, and related token relationships.
     """
 
     account_id: Optional[AccountId] = None
@@ -54,6 +37,24 @@ class AccountInfo:
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
+        """Creates an AccountInfo instance from its protobuf representation.
+
+        Deserializes a `CryptoGetInfoResponse.AccountInfo` message into this
+        SDK's `AccountInfo` object. This method handles the conversion of
+        protobuf types to their corresponding SDK types (e.g., tinybars to
+        `Hbar`, proto `Timestamp` to SDK `Timestamp`).
+
+        Args:
+            proto (CryptoGetInfoResponse.AccountInfo): The source protobuf
+                message containing account information.
+
+        Returns:
+            AccountInfo: A new `AccountInfo` instance populated with data
+                from the protobuf message.
+
+        Raises:
+            ValueError: If the input `proto` is None.
+        """
         if proto is None:
             raise ValueError("Account info proto is None")
 
@@ -80,6 +81,22 @@ class AccountInfo:
         )
 
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
+        """Converts this AccountInfo object to its protobuf representation.
+
+        Serializes this `AccountInfo` instance into a
+        `CryptoGetInfoResponse.AccountInfo` message. This method handles
+        the conversion of SDK types back to their protobuf equivalents
+        (e.g., `Hbar` to tinybars, SDK `Timestamp` to proto `Timestamp`).
+
+        Note:
+            SDK fields that are `None` will be serialized as their
+            default protobuf values (e.g., 0 for integers, False for booleans,
+            empty strings/bytes).
+
+        Returns:
+            CryptoGetInfoResponse.AccountInfo: The protobuf message
+                representation of this `AccountInfo` object.
+        """
         return CryptoGetInfoResponse.AccountInfo(
             accountID=self.account_id._to_proto() if self.account_id else None,
             contractAccountID=self.contract_account_id,
