@@ -225,7 +225,7 @@ pip install -U hiero-sdk-python
   - [ ] Additional information such as: expected vs actual behavior and a minimal working example are not required but will be helpful.
   - [ ] Click 'create'.
 - Bugs impacting security. Workflow:
-  - [ ] Ensure you have joined the [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563).
+  - [ ] Ensure you have joined the [Hiero Python SDK Discord]( https://discord.gg/hyperledger).
   - [ ] Contact [maintainers](MAINTAINERS.md) directly on discord stating there is an issue requiring immediate follow-up.
   - [ ] Prepare sufficient documentation, such as logs, screenshots and information on how to replicate to share with the maintainer once asked.
 
@@ -278,8 +278,8 @@ We strive to be a welcoming community with lots of activity, opportunities and s
 
 ### Socials
 
-- Join us on [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563), add it to your favourites andchat with the Hiero Python SDK community and maintainers. Feel free to ask questions, propose ideas, or discuss your PR.
-- Discuss programming or issues with the Hedera community [Hedera Developer Support Discord](https://discord.com/channels/373889138199494658/1106578684573388900).
+- Join us on [Hiero Python SDK Discord](https://discord.gg/hyperledger), add it to your favourites andchat with the Hiero Python SDK community and maintainers. Feel free to ask questions, propose ideas, or discuss your PR.
+- Discuss programming or issues with the Hedera community [Hedera Developer Support Discord]( https://discord.gg/UuQevYMP).
 - Check the [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues) page for ongoing discussions. Comment on an issue and see the conversation grow.
 
 - Learn about our recent activities at [Hiero Blog](https://hiero.org/blog/)
