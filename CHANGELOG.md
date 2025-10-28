@@ -10,8 +10,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
-
-- Add `__repr__` method to CustomFee base class for better debugging by displaying fee_collector_account_id and all_collectors_are_exempt.
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
@@ -25,6 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
 - docs: Add Google-style docstrings to `TokenRelationship` class and its methods in `token_relationship.py`.
 - feat: add initial testing guide structure
+- Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
 
 ### Changed
 
@@ -49,6 +48,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
+- Type hinting for `Topic` related transactions.
 
 ### Removed
 - Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
@@ -80,6 +80,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added checksum validation for TokenId
 - Refactor examples/token_cancel_airdrop
 - Refactor token creation examples for modularity and consistency
+- Updated `signing.md` to clarify commit signing requirements, including DCO, GPG, and branch-specific guidelines (#459)
+
+### Changed
+
 - Rearranged running_examples.md to be alphabetical
 - Refactor token_associate.py for better structure, add association verification query (#367)
 - Refactored `examples/account_create.py` to improve modularity and readability (#363)

@@ -4,9 +4,10 @@ messages to Hedera Consensus Service topics using the Hiero SDK.
 """
 from typing import Optional
 
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
-from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2
+from hiero_sdk_python.hapi.services import consensus_submit_message_pb2
 from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -25,27 +26,27 @@ class TopicMessageSubmitTransaction(Transaction):
 
     def __init__(
         self,
-        topic_id: Optional[basic_types_pb2.TopicID] = None,
+        topic_id: Optional[TopicId] = None,
         message: Optional[str] = None,
     ) -> None:
         """
         Initializes a new TopicMessageSubmitTransaction instance.
         Args:
-            topic_id (Optional[TopicID]): The ID of the topic.
+            topic_id (Optional[TopicId]): The ID of the topic.
             message (Optional[str]): The message to submit.
         """
         super().__init__()
-        self.topic_id: Optional[basic_types_pb2.TopicID] = topic_id
+        self.topic_id: Optional[TopicId] = topic_id
         self.message: Optional[str] = message
 
     def set_topic_id(
-        self, topic_id: basic_types_pb2.TopicID
+        self, topic_id: TopicId
     ) -> "TopicMessageSubmitTransaction":
         """
         Sets the topic ID for the message submission.
 
         Args:
-            topic_id (TopicID): The ID of the topic to which the message is submitted.
+            topic_id (TopicId): The ID of the topic to which the message is submitted.
 
         Returns:
             TopicMessageSubmitTransaction: This transaction instance (for chaining).
