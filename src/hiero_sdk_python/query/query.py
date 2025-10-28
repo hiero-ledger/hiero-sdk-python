@@ -395,6 +395,7 @@ class Query(_Executable):
         """
         self.node_account_ids = node_account_ids
         return self
+        
     def set_node_account_id(self, node_account_id: AccountId):
         """
         Sets a single node account ID the query will be sent to.
