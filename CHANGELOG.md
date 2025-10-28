@@ -29,7 +29,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
-- Added direct links to Python SDK channel in Linux Foundation Discord back in
+- Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
 - Updated all occurrences of non-functional Discord invite links throughout the documentation with the new, stable Hyperledger and Hedera invite links (#603).
 - Refactored TopicId class to use @dataclass decorator for reducing boilerplate code
 - Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme

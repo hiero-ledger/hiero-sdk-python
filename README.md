@@ -94,7 +94,7 @@ uv run pytest
 
 ### Get Help
 
-- **Discord**: - [Linux Foundation Discord](https://discord.gg/hyperledger) (signed in users can use this [direct link to the Python SDK Channel](https://discord.com/channels/905194001349627914/1336494517544681563))
+- **Discord**: - [Linux Foundation Decentralized Trust Discord](https://discord.gg/hyperledger) (signed in users can use this [direct link to the Python SDK Channel](https://discord.com/channels/905194001349627914/1336494517544681563))
 - **General Hedera Support**: - [Hedera Developer Discord](https://discord.com/invite/hederahashgraph)
 - **Issues**: [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
 
