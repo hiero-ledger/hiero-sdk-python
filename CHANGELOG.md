@@ -10,8 +10,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 
 ### Changed
-
-### Changed
 - Refactored `examples/token_transfer.py` to use modular functions for better readability and maintainability.
 
 ### Fixed
