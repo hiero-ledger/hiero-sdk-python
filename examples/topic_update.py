@@ -22,7 +22,7 @@ load_dotenv()
 def setup_client():
     """Initialize and set up the client with operator account"""
     print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    client = Client(Network(os.getenv('NETWORK')))
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
@@ -60,9 +60,8 @@ def update_topic(new_memo):
     # Config Client
     client, _, operator_key = setup_client()
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string_ed25519(os.getenv('OPERATOR_KEY'))
-    topic_id = TopicId.from_string(os.getenv('TOPIC_ID'))
+    #Create Topic
+    topic_id = create_topic(client, operator_key)
 
     # Update the Topic
     print("\nSTEP 2: Updating Topic...")

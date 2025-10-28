@@ -10,6 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
+
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
@@ -17,7 +18,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
 - Added documentation for resolving changelog conflicts in `docs/common_issues.md`
-- - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
+- Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
 - docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
 - docs: Add Google-style docstrings to `CustomRoyaltyFee` class and its methods in `custom_royalty_fee.py`.
 - docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
@@ -25,8 +26,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - feat: add initial testing guide structure
 - Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
 - docs: Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
+- Added workflow for running example scripts.
+- docs: workflow.md documenting key steps to creating a pull request (#605)
+
 ### Changed
 
+- Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
+- Updated all occurrences of non-functional Discord invite links throughout the documentation with the new, stable Hyperledger and Hedera invite links (#603).
 - Refactored TopicId class to use @dataclass decorator for reducing boilerplate code
 - Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme
 - Added changelog conflict resolution examples to `docs/common_issues.md`
@@ -43,6 +49,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
+– docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+- renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 
 ### Fixed
 

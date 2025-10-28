@@ -24,7 +24,7 @@ def setup_client() -> Tuple[Client, PrivateKey]:
     Sets up and configures the Hiero client for the testnet.
     Reads OPERATOR_ID and OPERATOR_KEY from environment variables.
     """
-    network = Network(network='testnet')
+    network = Network(os.getenv('NETWORK'))
     client = Client(network)
 
     operator_id_str = os.getenv('OPERATOR_ID')
