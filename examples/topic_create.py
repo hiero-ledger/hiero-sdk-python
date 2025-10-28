@@ -1,7 +1,7 @@
-"""
-uv run examples/topic_create.py
-python examples/topic_create.py
-"""
+# uv run examples/topic_create.py
+# python examples/topic_create.py
+"""Create a new topic on Hedera"""
+
 import os
 import sys
 from typing import Tuple
@@ -45,8 +45,6 @@ def setup_client() -> Tuple[Client, PrivateKey]:
         print(f"Error: Invalid OPERATOR_ID or OPERATOR_KEY format: {e}")
         sys.exit(1)
 
-    client.set_operator(operator_id, operator_key)
-    return client, operator_key
 
 
 def create_topic(client: Client, operator_key: PrivateKey):
@@ -72,7 +70,6 @@ def create_topic(client: Client, operator_key: PrivateKey):
     except Exception as e:
         print(f"Topic creation failed: {str(e)}")
         sys.exit(1)
-
 
 def main():
     """
