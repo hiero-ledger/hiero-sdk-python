@@ -41,9 +41,6 @@ balance = AccountBalanceQuery(account_id=account_id).execute(client)
 print(f"Balance: {balance.hbars} HBAR")
 ```
 
-**See more examples:** [Running Examples Guide](docs/sdk_users/running_examples.md)
-
-
 ---
 
 ## Documentation
@@ -90,7 +87,6 @@ uv run pytest
 
 **Learn more:**
 - [Testing with Hiero Solo](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
-- [Workflow Guide](docs/sdk_developers/workflow.md)
 
 ---
 
