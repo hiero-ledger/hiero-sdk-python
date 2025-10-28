@@ -163,4 +163,4 @@ No worries, we're here to help. But please first see the [Common Issues Guide](d
 
 Thank you for contributing to the Hiero Python SDK! 🎉
 
-**Need help?** Ask on [Discord](https://discord.com/channels/905194001349627914/1336494517544681563) - we're friendly!
+**Need help?** Ask on [Discord](https://discord.gg/hyperledger ) - we're friendly!
