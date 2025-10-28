@@ -48,16 +48,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
-– docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+  – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 
 ### Fixed
 
-- Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
-- Added explicit read and write permissions to test.yml
-- Type hinting for `Topic` related transactions.
+- Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors.
 
 ### Removed
+
 - Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
 
 ## [0.1.6] - 2025-10-21
