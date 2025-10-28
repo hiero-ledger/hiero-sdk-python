@@ -78,6 +78,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- add AccountRecordsQuery class
 - Add comprehensive Google-style docstrings to examples/account_create.py
 - add revenue generating topic tests/example
 - add fee_schedule_key, fee_exempt_keys, custom_fees fields in TopicCreateTransaction, TopicUpdateTransaction, TopicInfo classes
@@ -128,7 +129,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [0.1.5] - 2025-09-25
 
 ### Added
-
 - ScheduleSignTransaction class
 - NodeUpdateTransaction class
 - NodeDeleteTransaction class
