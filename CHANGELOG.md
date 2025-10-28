@@ -6,11 +6,22 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
-- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Added
 
+### Changed
+
+### Fixed
+- Added explicit read permissions to examples.yml (#623)
+
+### Breaking Changes
+
+
+## [0.1.7] - 2025-10-28
+
+
+### Added
+- Expanded `README.md` with a new "Follow Us" section detailing how to watch, star, and fork the repository (#472).
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
@@ -27,6 +38,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
 - Added workflow for running example scripts.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
+- Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
 ### Changed
 
@@ -50,6 +62,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update pyproject.toml maintainers list.
 – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
+- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
+- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Fixed
 
