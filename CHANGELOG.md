@@ -6,8 +6,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
-- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Breaking Changes
+
+
+## [0.1.7] - 2025-10-28
+
 
 ### Added
 - Expanded `README.md` with a new "Follow Us" section detailing how to watch, star, and fork the repository (#472).
@@ -50,6 +60,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update pyproject.toml maintainers list.
 – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
+- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
+- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Fixed
 
