@@ -46,7 +46,7 @@ def parse_optional_key(key_str):
 def setup_client():
     """Set up network and client."""
     load_dotenv()
-    network = Network(network='testnet')
+    network = Network(os.getenv('NETWORK'))
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))

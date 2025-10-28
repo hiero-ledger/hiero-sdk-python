@@ -59,7 +59,7 @@ def setup_client() -> Tuple[Client, PrivateKey]:
         OPERATOR_ID (str): The account ID of the operator (format: "0.0.xxxxx")
         OPERATOR_KEY (str): The private key of the operator account
     """
-    network = Network(network='testnet')
+    network = Network(os.getenv('NETWORK'))
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
