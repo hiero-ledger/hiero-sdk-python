@@ -24,6 +24,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add Google-style docstrings to `TokenRelationship` class and its methods in `token_relationship.py`.
 - feat: add initial testing guide structure
 - Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
+- Added workflow for running example scripts.
 
 ### Changed
 
