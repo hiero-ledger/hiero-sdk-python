@@ -40,7 +40,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added workflow for running example scripts.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
-- Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 
 ### Changed
 
