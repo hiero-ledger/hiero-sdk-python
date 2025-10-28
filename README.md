@@ -1,3 +1,4 @@
+
 # Hiero SDK in Python
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-python/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-sdk-python)
@@ -86,7 +87,7 @@ uv run pytest
 **For contributors:** Tests run automatically via [Hiero Solo Action](https://github.com/marketplace/actions/hiero-solo-action) when you push to a branch.
 
 **Learn more:**
-- [Testing with Hiero Solo](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
+* [Testing with Hiero Solo](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
 
 ---
 
@@ -94,25 +95,47 @@ uv run pytest
 
 ### Get Help
 
-- **Discord**: - [Linux Foundation Decentralized Trust Discord](https://discord.gg/hyperledger) (signed in users can use this [direct link to the Python SDK Channel](https://discord.com/channels/905194001349627914/1336494517544681563))
-- **General Hedera Support**: - [Hedera Developer Discord](https://discord.com/invite/hederahashgraph)
-- **Issues**: [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
+* **Discord**: [Hiero Python SDK Channel](https://discord.gg/hyperledger)
+* **General Hedera Support**: [Developer Discord](https://discord.gg/UuQevYMP)
+* **Issues**: [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
 
 ### Stay Updated
 
-- **Blog**: [Hiero Blog](https://hiero.org/blog/)
-- **Videos**: [LFDT YouTube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
-- **Community Calls**: [Hiero Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) (Wednesdays, 2pm UTC)
+* **Blog**: [Hiero Blog](https://hiero.org/blog/)
+* **Videos**: [LFDT YouTube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
+* **Community Calls**: [Hiero Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) (Wednesdays, 2pm UTC)
 
 ---
+
+## ⭐ Follow Us
+
+If you find the Hiero Python SDK useful, there are three key ways you can support the project and stay up-to-date:
+
+### Star the Repository
+
+Click the **Star** button at the top right of the repository page.
+
+* **What it means:** Starring is a simple way to bookmark the project. It saves the repository to your list of **Starred** repositories on GitHub, which you can find on your personal GitHub profile page. It shows appreciation for the work being done.
+
+### Watch for Activity
+
+Click the **Watch** button (next to the Star button).
+
+* **What it means:** This allows you to choose what level of detail you want to monitor, from getting notified for all activity to only receiving alerts for security vulnerabilities. This is the best way to stay informed about new features and releases.
+
+### Fork the Project
+
+Click the **Fork** button (at the top right).
+
+* **What it means:** Forking creates a complete copy of the repository under your personal GitHub account. This is the first step required if you plan to submit contributions (like Pull Requests) or if you want to use the codebase as a starting point for your own project.
 
 ## Contributions
 
 We welcome contributions! Whether you're:
-- 🐛 Reporting bugs
-- 💡 Suggesting features
-- 📝 Improving documentation
-- 💻 Writing code
+* 🐛 Reporting bugs
+* 💡 Suggesting features
+* 📝 Improving documentation
+* 💻 Writing code
 
 **Start here:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
