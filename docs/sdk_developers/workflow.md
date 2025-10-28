@@ -125,5 +125,6 @@ First, ensure your commits in your branch are published.
 Then:
 1. Visit [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls)
 2. Click the orange banner at the top: "Compare & pull request"
-3. Briefly fill out the pull request template, linking to the issue ID solved. Under ##Fixes
+3. Briefly fill out the pull request template.
+**IMPORTANT** under "##Fixes" link the issue solved.
 
