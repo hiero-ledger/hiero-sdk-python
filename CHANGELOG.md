@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 
 ### Changed
 
