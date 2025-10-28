@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - feat: add initial testing guide structure
 - Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
 - Added workflow for running example scripts.
+- docs: workflow.md documenting key steps to creating a pull request (#605)
 
 ### Changed
 
@@ -48,6 +49,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
 – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+- renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 
 ### Fixed
 
