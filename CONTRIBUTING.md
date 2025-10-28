@@ -9,7 +9,6 @@ Thank you for your interest in contributing to the Hiero Python SDK!
   - [Bug Reports](#-bug-reports)
   - [Feature Requests](#-feature-requests)
   - [Blog Posts](#-blog-posts)
-  - [Breaking Changes](#️-breaking-changes)
 - [Developer Resources](#developer-resources)
 - [Community & Support](#community--support)
 - [Quick Reference](#quick-reference)
@@ -35,9 +34,8 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 - ✅ Tests pass
 - ✅ Code quality checks - [Checklist](docs/sdk_developers/checklist.md)
 
----
 
-### ⚠️ Breaking Changes
+#### ⚠️ A Note on Breaking Changes
 
 **Avoid breaking changes** when possible. If necessary:
 1. Create a new issue explaining the benefits
