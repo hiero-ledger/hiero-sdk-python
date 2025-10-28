@@ -11,8 +11,8 @@ Thank you for your interest in contributing to the Hiero Python SDK!
   - [Blog Posts](#-blog-posts)
 - [Developer Resources](#developer-resources)
 - [Community & Support](#community--support)
-- [Quick Reference](#quick-reference)
-- [Common Questions](#common-questions)
+- [Cheatsheet](#cheatsheet)
+- [Common Issues](#common-issues)
 
 ---
 
@@ -104,7 +104,7 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 
 ---
 
-## Quick Reference - Cheatsheet
+## Cheatsheet
 
 ### First-Time Setup
 ```bash
