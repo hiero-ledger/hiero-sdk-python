@@ -37,6 +37,19 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 ---
 
+### ⚠️ Breaking Changes
+
+**Avoid breaking changes** when possible. If necessary:
+1. Create a new issue explaining the benefits
+2. Wait for approval
+3. Submit as a separate PR with:
+   - Reasons for the change
+   - Backwards compatibility plan
+   - Tests
+   - Changelog documentation
+
+---
+
 ### 🐛 Bug Reports
 
 Found a bug? Help us fix it!
@@ -75,19 +88,6 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 
 ---
 
-### ⚠️ Breaking Changes
-
-**Avoid breaking changes** when possible. If necessary:
-1. Create a new issue explaining the benefits
-2. Wait for approval
-3. Submit as a separate PR with:
-   - Reasons for the change
-   - Backwards compatibility plan
-   - Tests
-   - Changelog documentation
-
----
-
 ## Developer Resources
 
 ### Essential Guides
@@ -104,42 +104,9 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 | [Types](docs/sdk_developers/types.md) | Python type hints |
 | [Linting](docs/sdk_developers/linting.md) | Code quality tools |
 
-### Code Examples
-
-- **SDK Examples:** [examples/](examples/) directory
-- **Usage Guide:** [Running Examples](docs/sdk_users/running_examples.md)
-
-### Hedera Network Resources
-
-- [Hedera Documentation](https://docs.hedera.com/)
-- [Get Testnet Account](https://portal.hedera.com/) (free)
-- [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs)
-
-### Other Language SDKs
-
-- [JavaScript SDK](https://github.com/hiero-ledger/hiero-sdk-js)
-- [Java SDK](https://github.com/hiero-ledger/hiero-sdk-java)
-- [Go SDK](https://github.com/hiero-ledger/hiero-sdk-go)
-
 ---
 
-## Community & Support
-
-### Get Help
-
-- **Discord:** [Hiero Python SDK Channel](https://discord.com/channels/905194001349627914/1336494517544681563)
-- **General Support:** [Hedera Developer Discord](https://discord.com/channels/373889138199494658/1106578684573388900)
-- **Issues:** [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
-
-### Stay Connected
-
-- **Blog:** [Hiero Blog](https://hiero.org/blog/)
-- **Videos:** [LFDT YouTube](https://www.youtube.com/@lfdecentralizedtrust/videos)
-- **Community Calls:** Wednesdays 2pm UTC - [Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
-
----
-
-## Quick Reference
+## Quick Reference - Cheatsheet
 
 ### First-Time Setup
 ```bash
