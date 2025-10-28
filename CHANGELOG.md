@@ -12,6 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 ### Fixed
+- Added explicit read permissions to examples.yml (#623)
 
 ### Breaking Changes
 
