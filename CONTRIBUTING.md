@@ -29,10 +29,10 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 4. Submit a PR
 
 **Requirements:**
-- ✅ Signed commits (GPG + DCO) - [Signing Guide](docs/sdk_developers/signing.md)
-- ✅ Updated changelog - [Changelog Guide](docs/sdk_developers/changelog_entry.md)
-- ✅ Tests pass
-- ✅ Code quality checks - [Checklist](docs/sdk_developers/checklist.md)
+- Signed commits (GPG + DCO) - [Signing Guide](docs/sdk_developers/signing.md)
+- Updated changelog - [Changelog Guide](docs/sdk_developers/changelog_entry.md)
+- Tests pass
+- Code quality checks - [Checklist](docs/sdk_developers/checklist.md)
 
 
 #### ⚠️ A Note on Breaking Changes
