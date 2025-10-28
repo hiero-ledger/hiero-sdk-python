@@ -2,14 +2,28 @@
 
 This guide walks you through setting up your development environment for contributing to the Hiero Python SDK.
 
-## Prerequisites
+## Table of Contents
+
+- [Repository Setup](#repository-setup)
+- [Installation](#installation)
+  - [Installing from PyPI](#installing-from-pypi)
+  - [Installing from Source](#installing-from-source)
+  - [Local Editable Installation](#local-editable-installation)
+- [Generate Protocol Buffers](#generate-protocol-buffers)
+- [Environment Setup](#environment-setup)
+- [Setup Checklist](#examples)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Repository Setup
 
 Before you begin, make sure you have:
 - **Git** installed ([Download Git](https://git-scm.com/downloads))
 - **Python 3.10+** installed ([Download Python](https://www.python.org/downloads/))
 - A **GitHub account** ([Sign up](https://github.com/join))
 
-## Step 1: Fork the Repository
+### Step 1: Fork the Repository
 
 Forking creates your own copy of the Hiero Python SDK that you can modify freely.
 
@@ -19,7 +33,7 @@ Forking creates your own copy of the Hiero Python SDK that you can modify freely
 
 You now have your own fork at `https://github.com/YOUR_USERNAME/hiero-sdk-python`
 
-## Step 2: Clone Your Fork
+### Step 2: Clone Your Fork
 
 Clone your fork to your local machine:
 
@@ -30,7 +44,7 @@ cd hiero-sdk-python
 
 Replace `YOUR_USERNAME` with your actual GitHub username.
 
-## Step 3: Add Upstream Remote
+### Step 3: Add Upstream Remote
 
 Connect your local repository to the original Hiero SDK repository. This allows you to keep your fork synchronized with the latest changes.
 
@@ -42,7 +56,7 @@ git remote add upstream https://github.com/hiero-ledger/hiero-sdk-python.git
 - `origin` = your fork (where you push your changes)
 - `upstream` = the original repository (where you pull updates from)
 
-### Verify Your Remotes
+### Step 4: Verify Your Remotes
 
 Check that both remotes are configured correctly:
 
@@ -58,11 +72,29 @@ upstream  https://github.com/hiero-ledger/hiero-sdk-python.git (fetch)
 upstream  https://github.com/hiero-ledger/hiero-sdk-python.git (push)
 ```
 
-## Step 4: Install uv Package Manager
+---
 
-We use `uv` - an ultra-fast Python package and project manager that replaces `pip`, `virtualenv`, `poetry`, and more.
+## Installation
 
-### Install uv
+### Installing from PyPI
+
+The latest release of this SDK is published to PyPI. You can install it with:
+
+```
+pip install --upgrade pip
+pip install hiero-sdk-python
+```
+
+This will pull down a stable release along with the required dependencies.
+
+
+### Installing from Source
+
+You can also clone the repo and install dependencies using uv:
+`uv` is an ultra-fast Python package and project manager. It replaces `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`,
+`virtualenv`, and more.
+
+#### Install uv
 
 **On macOS/Linux:**
 ```bash
@@ -81,13 +113,13 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 **Other installation methods:** [uv Installation Guide](https://docs.astral.sh/uv/getting-started/installation/)
 
-### Verify Installation
+#### Verify Installation
 
 ```bash
 uv --version
 ```
 
-## Step 5: Install Dependencies
+## Install Dependencies
 
 `uv` automatically manages the correct Python version based on the `.python-version` file in the project, so you don't need to worry about version conflicts.
 
@@ -112,7 +144,8 @@ pip install -e .
 
 **Note:** This method requires you to have Python 3.10+ already installed on your system. Changes to your local code will be immediately reflected when you import the SDK.
 
-### Generate Protocol Buffers
+
+## Generate Protocol Buffers
 
 The SDK uses protocol buffers to communicate with the Hedera network. Generate the Python code from the protobuf definitions:
 
@@ -120,7 +153,10 @@ The SDK uses protocol buffers to communicate with the Hedera network. Generate t
 uv run python generate_proto.py
 ```
 
-## Step 6: Set Up Environment Variables
+---
+
+
+## Environment Setup
 
 Create a `.env` file in the project root for your Hedera testnet credentials:
 
@@ -151,7 +187,7 @@ TOPIC_ID=...
 
 These are only needed if you're customizing example scripts.
 
-## Step 7: Verify Your Setup
+### Verify Your Setup
 
 Run the test suite to ensure everything is working:
 
@@ -164,15 +200,7 @@ You should see tests passing. If you encounter errors, check that:
 - Protocol buffers were generated (`uv run python generate_proto.py`)
 - Your `.env` file has valid credentials
 
-## Step 8: Run an Example
-
-Test that you can interact with the Hedera network:
-
-```bash
-uv run python examples/account_balance.py
-```
-
-You should see your account balance printed to the console.
+---
 
 ## Troubleshooting
 
@@ -182,17 +210,6 @@ Make sure `uv` is in your PATH. After installation, you may need to restart your
 
 ```bash
 source ~/.bashrc  # or ~/.zshrc on macOS
-```
-
-### "Permission denied" when cloning
-
-Make sure you're using the HTTPS URL (not SSH) if you haven't set up SSH keys with GitHub:
-```bash
-# Use HTTPS (works without SSH setup)
-git clone https://github.com/YOUR_USERNAME/hiero-sdk-python.git
-
-# Not SSH (requires SSH key setup)
-# git clone git@github.com:YOUR_USERNAME/hiero-sdk-python.git
 ```
 
 ### "Module not found" errors
@@ -218,69 +235,6 @@ Check your `.env` file:
 
 Test your credentials at [Hedera Portal](https://portal.hedera.com/)
 
-## Understanding Your Setup
-
-Here's what your project structure looks like now:
-
-```
-hiero-sdk-python/
-├── .venv/                  # Virtual environment (created by uv)
-├── src/
-│   └── hiero_sdk_python/   # SDK source code
-├── tests/
-│   ├── unit/               # Unit tests
-│   └── integration/        # Integration tests
-├── examples/               # Example scripts
-├── docs/                   # Documentation
-├── .env                    # Your credentials (never commit this!)
-├── .env.example            # Template for .env
-├── pyproject.toml          # Project configuration
-└── .python-version         # Python version used by uv
-```
-
-## Next Steps
-
-✅ Your development environment is ready!
-
-**Next:** [Set up commit signing →](signing.md)
-
-Once you've configured GPG signing, you'll be ready to start contributing. See the [Development Workflow Guide](workflow.md) for day-to-day development practices.
-
-## Quick Reference
-
-**Update your fork's main branch:**
-```bash
-git checkout main
-git fetch upstream
-git pull upstream main
-```
-
-**Run tests:**
-```bash
-# Using uv
-uv run pytest
-
-# Using pip
-pytest
-```
-
-**Run an example:**
-```bash
-# Using uv
-uv run python examples/script_name.py
-
-# Using pip
-python examples/script_name.py
-```
-
-**Check installed packages:**
-```bash
-# Using uv
-uv pip list
-
-# Using pip
-pip list
-```
 
 ## Need Help?
 
