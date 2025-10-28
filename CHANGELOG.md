@@ -14,13 +14,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 ### Fixed
+
 - Added explicit read permissions to examples.yml (#623)
 
 ### Breaking Changes
 
 
 ## [0.1.7] - 2025-10-28
-
 
 ### Added
 - Expanded `README.md` with a new "Follow Us" section detailing how to watch, star, and fork the repository (#472).
