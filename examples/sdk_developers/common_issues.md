@@ -141,7 +141,8 @@ You're stuck, have questions, or need help with your contribution.
 The Hiero Python SDK community is here to help! Here are the best ways to get support:
 
 **1. Discord Community**
-- Join the [Hiero Python SDK Discord](https://discord.gg/hyperledger)
+- Join the [Linux Foundation Discord](https://discord.gg/hyperledger)
+- Join the [Hedera Discord](https://discord.com/invite/hederahashgraph)
 - Ask questions, discuss your PR, or get real-time help from maintainers and community members
 - This is the fastest way to get unstuck
 
@@ -175,7 +176,7 @@ The Hiero Python SDK community is here to help! Here are the best ways to get su
 If you encounter an issue not covered in this guide, please:
 
 1. Search existing [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues) and [Discussions](https://github.com/hiero-ledger/hiero-sdk-python/discussions)
-2. Ask in the [Discord](https://discord.gg/hyperledger)
+2. Ask in the [Linux Foundation Discord](https://discord.gg/hyperledger)
 3. Create a new issue with the `documentation` label if something should be added to this guide
 
 Happy contributing! 🎉
