@@ -18,7 +18,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
 - Added documentation for resolving changelog conflicts in `docs/common_issues.md`
-- - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
+- Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
 - docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
 - docs: Add Google-style docstrings to `CustomRoyaltyFee` class and its methods in `custom_royalty_fee.py`.
 - docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
@@ -42,6 +42,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
+– docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 
 ### Fixed
 
