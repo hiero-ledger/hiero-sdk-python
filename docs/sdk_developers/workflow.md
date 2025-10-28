@@ -50,7 +50,7 @@ Once your main is updated, update your working branch by doing:
 git checkout branch-name
 git rebase main -S
 ```
-**IMPORTANT** do NOT "git merge main" or "git rebase main". This usually corrupts your work and is very difficult to resolve.
+**IMPORTANT** do NOT "git merge main" or "git rebase main". This usually corrupts your work or removes signing and is difficult to resolve, for example, you'll need to resign everything afterwards.
 
 
 ### Workflow 2: Branch From Main
@@ -97,14 +97,6 @@ Avoid commiting the issue solution all-in-one.
 For example:
 ```bash
 git commit -S -s -m "fix: token id to string bug"
-```
-
-```bash
-git commit -S -s -m "chore: unit tests for token id bug fix"
-```
-
-```bash
-git commit -S -s -m "chore: integration tests for token id bug fix"
 ```
 
 ```bash
