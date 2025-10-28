@@ -163,5 +163,7 @@ No worries, we're here to help. But please first see the [Common Issues Guide](d
 
 Thank you for contributing to the Hiero Python SDK! 🎉
 
-- **Need help?** Ask on the [Linux Foundation Decentralized Trust Discord](https://discord.gg/hyperledger)
-(or, if logged in, straight in the [related Hiero Python SDK Group](https://discord.com/channels/905194001349627914/1336494517544681563))
+- **Need help or want to connect?** Join our community on Discord! See the **[Discord Joining Guide](docs/discord.md)** for detailed steps on how to join the LFDT server
+- **Quick Links:**
+    - Join the main [Linux Foundation Decentralized Trust (LFDT) Discord Server](https://discord.gg/hyperledger).
+    - Go directly to the [#hiero-python-sdk channel](https://discord.com/channels/905194001349627914/1336494517544681563)
