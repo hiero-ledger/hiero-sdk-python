@@ -4,7 +4,6 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 ## Table of Contents
 
-- [Quick Start for New Contributors](#-quick-start-for-new-contributors)
 - [Ways to Contribute](#ways-to-contribute)
   - [Code Contributions](#-code-contributions)
   - [Bug Reports](#-bug-reports)
@@ -18,29 +17,11 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 ---
 
-## 🚀 Quick Start for New Contributors
-
-**First time contributing?** Follow this path:
-
-1. **[Setup Guide](docs/sdk_developers/setup.md)** ← START HERE
-   - Fork, clone, and install dependencies
-2. **[Signing Guide](docs/sdk_developers/signing.md)** ← REQUIRED
-   - Set up GPG commit signing (mandatory)
-3. **[Workflow Guide](docs/sdk_developers/workflow.md)** ← LEARN THIS
-   - Day-to-day development workflow
-4. **[Quality Checklist](docs/sdk_developers/checklist.md)** ← BEFORE SUBMITTING
-   - Final checks before PR submission
-
-**Already contributed before?** Quick links:
-- [Rebasing Guide](docs/sdk_developers/rebasing.md)
-- [Merge Conflicts](docs/sdk_developers/merge_conflicts.md)
-- [Changelog Guide](docs/sdk_developers/changelog.md)
-
----
-
 ## Ways to Contribute
 
 ### 💻 Code Contributions
+
+**Get started:** See [Steup Guide](docs/sdk_developers/setup.md)
 
 **Quick workflow:**
 1. Find/create an issue → [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
@@ -50,11 +31,9 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 **Requirements:**
 - ✅ Signed commits (GPG + DCO) - [Signing Guide](docs/sdk_developers/signing.md)
-- ✅ Updated changelog - [Changelog Guide](docs/sdk_developers/changelog.md)
+- ✅ Updated changelog - [Changelog Guide](docs/sdk_developers/changelog_entry.md)
 - ✅ Tests pass
 - ✅ Code quality checks - [Checklist](docs/sdk_developers/checklist.md)
-
-**Detailed step-by-step:** See [Workflow Guide](docs/sdk_developers/workflow.md)
 
 ---
 
@@ -62,20 +41,7 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 Found a bug? Help us fix it!
 
-1. **Search existing issues** - Check if it's already reported
-2. **Upgrade first** - Test with the latest version:
-   ```bash
-   pip install -U hiero-sdk-python
-   ```
-3. **Report it:**
-   - **Regular bugs** → [Create Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues/new)
-   - **Security bugs** → Contact [maintainers](MAINTAINERS.md) on [Discord](https://discord.com/channels/905194001349627914/1336494517544681563) privately
-
-**Include:**
-- Clear description
-- Steps to reproduce
-- Expected vs actual behavior
-- Logs/screenshots if applicable
+**See here** → [Bug Reports](docs/sdk_developers/bug.md)
 
 ---
 
@@ -131,7 +97,7 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 | [Setup](docs/sdk_developers/setup.md) | Fork, clone, install, configure |
 | [Workflow](docs/sdk_developers/workflow.md) | Branching, committing, PRs |
 | [Signing](docs/sdk_developers/signing.md) | GPG + DCO commit signing |
-| [Changelog](docs/sdk_developers/changelog.md) | Writing changelog entries |
+| [Changelog](docs/sdk_developers/changelog_entry.md) | Writing changelog entries |
 | [Checklist](docs/sdk_developers/checklist.md) | Pre-submission checklist |
 | [Rebasing](docs/sdk_developers/rebasing.md) | Keeping branch updated |
 | [Merge Conflicts](docs/sdk_developers/merge_conflicts.md) | Resolving conflicts |
@@ -195,7 +161,7 @@ uv run python generate_proto.py
 # Start new work
 git checkout main
 git pull upstream main
-git checkout -b issue-123-fix-thing
+git checkout -b "name-of-your-issue"
 
 # Make changes, then commit (signed!)
 git add .
@@ -205,7 +171,7 @@ git commit -S -s -m "feat: add new feature"
 # Edit CHANGELOG.md, add entry under [Unreleased]
 
 # Push and create PR
-git push origin issue-123-fix-thing
+git push origin "name-of-your-issue"
 ```
 
 **Full workflow:** [Workflow Guide](docs/sdk_developers/workflow.md)

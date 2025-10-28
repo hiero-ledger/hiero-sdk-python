@@ -6,10 +6,8 @@ Before submitting your PR, verify:
 
 - [ ] All commits are signed (`-S`) and DCO signed-off (`-s`)
 - [ ] Changelog entry added under `[Unreleased]`
-- [ ] Tests pass locally (`pytest`)
-- [ ] Branch is up to date with main
+- [ ] Tests pass 
 - [ ] Only changes related to the issue are included
-- [ ] Code follows project style (run linting tools)
 
 ## Recommended 👍
 
@@ -29,4 +27,4 @@ Before submitting your PR, verify:
 
 - **Signing issues?** → [Signing Guide](signing.md)
 - **Merge conflicts?** → [Merge Conflicts Guide](merge_conflicts.md)
-- **Changelog format?** → [Changelog Guide](changelog.md)
+- **Changelog format?** → [Changelog Guide](changelog_entry.md)

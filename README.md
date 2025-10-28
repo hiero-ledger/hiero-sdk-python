@@ -6,16 +6,6 @@
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
 
-## Features
-
-- **Token Operations**: Create, mint, transfer, freeze, and manage tokens (fungible and NFTs)
-- **Consensus Service**: Create topics, submit messages, and query topic info
-- **Account Management**: Create accounts, transfer HBAR, and query balances
-- **Smart Contracts**: Deploy and execute smart contracts
-- **File Service**: Store and manage files on the network
-- **And more**: Schedule transactions, node operations, PRNG, and more
-
----
 
 ## Quick Start
 
@@ -25,6 +15,17 @@ A Python SDK for interacting with the Hedera Hashgraph platform.
 pip install --upgrade pip
 pip install hiero-sdk-python
 ```
+
+### Environment Configuration
+
+Create a `.env` file in your project root with your Hedera testnet credentials.
+
+**Full setup instructions:** [Setup Guide](docs/sdk_developers/setup.md)
+
+**Don't have testnet credentials?** Get them free at [Hedera Portal](https://portal.hedera.com/)
+
+A sample file is provided: [.env.example](.env.example)
+
 
 ### Basic Usage
 
@@ -42,27 +43,6 @@ print(f"Balance: {balance.hbars} HBAR")
 
 **See more examples:** [Running Examples Guide](docs/sdk_users/running_examples.md)
 
----
-
-## For Contributors
-
-### 🚀 Want to Contribute?
-
-We'd love your help! Here's how to get started:
-
-1. **Read the contribution guide** → [CONTRIBUTING.md](CONTRIBUTING.md)
-2. **Set up your development environment** → [Setup Guide](docs/sdk_developers/setup.md)
-3. **Learn the workflow** → [Workflow Guide](docs/sdk_developers/workflow.md)
-
-### 📋 Key Requirements
-
-All contributions must:
-- ✅ Have **signed commits** (GPG + DCO) - [Signing Guide](docs/sdk_developers/signing.md)
-- ✅ Update the **changelog** - [Changelog Guide](docs/sdk_developers/changelog.md)
-- ✅ Pass all tests
-- ✅ Follow code quality standards
-
-**Ready to start?** → [Setup Guide](docs/sdk_developers/setup.md)
 
 ---
 
@@ -100,41 +80,6 @@ All contributions must:
 
 ---
 
-## Installation
-
-### For Users (PyPI)
-
-```bash
-pip install --upgrade pip
-pip install hiero-sdk-python
-```
-
-### For Contributors (From Source)
-
-**Full setup instructions:** [Setup Guide](docs/sdk_developers/setup.md)
-
-This covers:
-- Forking and cloning the repository
-- Installing uv package manager
-- Installing dependencies
-- Generating protocol buffers
-- Setting up environment variables
-- Running tests to verify setup
-
----
-
-## Environment Configuration
-
-Create a `.env` file in your project root with your Hedera testnet credentials.
-
-**Full setup instructions:** [Setup Guide](docs/sdk_developers/setup.md)
-
-**Don't have testnet credentials?** Get them free at [Hedera Portal](https://portal.hedera.com/)
-
-A sample file is provided: [.env.example](.env.example)
-
----
-
 ## Running Tests
 
 ```bash
@@ -163,7 +108,9 @@ uv run pytest
 - **Videos**: [LFDT YouTube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
 - **Community Calls**: [Hiero Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) (Wednesdays, 2pm UTC)
 
-### Contributing
+---
+
+## Contributions
 
 We welcome contributions! Whether you're:
 - 🐛 Reporting bugs
