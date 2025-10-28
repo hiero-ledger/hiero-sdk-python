@@ -1192,7 +1192,7 @@ If you encounter issues or have questions:
 1. **Check this guide** - Most common scenarios are covered
 2. **Review existing tests** - Look at similar tests in the codebase
 3. **Check documentation** - See `/docs/sdk_developers/`
-4. **Ask in Discord** - Link to be updated soon <!--[Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563)-->
+4. **Ask in Discord** - Link to be updated soon <!--[Hiero Python SDK Discord](  https://discord.gg/hyperledger)-->
 5. **Open an issue** - For bugs or unclear documentation
 
 ### Useful Resources
