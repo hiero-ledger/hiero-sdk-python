@@ -4,177 +4,124 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
 [![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
 
-This is a Python SDK for interacting with the Hedera Hashgraph platform. It allows developers to:
+A Python SDK for interacting with the Hedera Hashgraph platform.
 
-- Manage Token Transactions like Create, Mint Fungible, Mint Non-Fungible, Associate, Dissociate, Transfer, Freeze, Unfreeze & Delete
-- Manage Consensus Transactions like Topic Create, Update, Delete
-- Submit Topic Messages
-- Query Account Balance, Transaction Receipts, Topic Infos and Messages
 
-## Table of Contents
-
-- [Installation](#installation)
-  - [Installing from PyPI](#installing-from-pypi)
-  - [Installing from Source](#installing-from-source)
-  - [Local Editable Installation](#local-editable-installation)
-- [Environment Setup](#environment-setup)
-- [Running Tests](#running-tests)
-- [Contributing](#contributing)
-
-## Installation
+## Quick Start
 
 ### Installing from PyPI
 
-The latest release of this SDK is published to PyPI. You can install it with:
-
-```
+```bash
 pip install --upgrade pip
 pip install hiero-sdk-python
 ```
 
-This will pull down a stable release along with the required dependencies.
+### Environment Configuration
+
+Create a `.env` file in your project root with your Hedera testnet credentials.
+
+**Full setup instructions:** [Setup Guide](docs/sdk_developers/setup.md)
+
+**Don't have testnet credentials?** Get them free at [Hedera Portal](https://portal.hedera.com/)
+
+A sample file is provided: [.env.example](.env.example)
 
 
-### Installing from Source
+### Basic Usage
 
-You can also clone the repo and install dependencies using uv:
+```python
+from hiero_sdk_python import Client, AccountBalanceQuery
 
-1. Install `uv`:
+# Connect to testnet
+client = Client.for_testnet()
+client.set_operator(account_id, private_key)
 
-`uv` is an ultra-fast Python package and project manager. It replaces `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`,
-`virtualenv`, and more.
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Query account balance
+balance = AccountBalanceQuery(account_id=account_id).execute(client)
+print(f"Balance: {balance.hbars} HBAR")
 ```
 
-If on macOS, you can also install `uv` using Homebrew:
+---
 
-```bash
-brew install uv
-```
+## Documentation
 
-Other installation methods can be found [here](https://docs.astral.sh/uv/getting-started/installation/).
+### For SDK Users
 
-2. Clone this repository:
+- **[Running Examples](docs/sdk_users/running_examples.md)** - Complete guide to all SDK operations with code examples
+- **[Examples Directory](examples/)** - Ready-to-run example scripts
 
-```bash
-git clone https://github.com/hiero-ledger/hiero-sdk-python.git
-cd hiero-sdk-python
-```
+### For SDK Developers
 
-3. Install dependencies:
+- **[Contributing Guide](CONTRIBUTING.md)** - Start here!
+- **[Setup Guide](docs/sdk_developers/setup.md)** - First-time environment setup
+- **[Workflow Guide](docs/sdk_developers/workflow.md)** - Day-to-day development workflow
+- **[Signing Guide](docs/sdk_developers/signing.md)** - GPG and DCO commit signing (required)
+- **[Changelog Guide](docs/sdk_developers/changelog_entry.md)** - How to write changelog entries
+- **[Rebasing Guide](docs/sdk_developers/rebasing.md)** - Keep your branch up-to-date
+- **[Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)** - Resolve conflicts
+- **[Typing Guide](docs/sdk_developers/types.md)** - Python type hints
+- **[Linting Guide](docs/sdk_developers/linting.md)** - Code quality tools
 
-One of the really nice features of `uv` is that it will download and manage the correct version of python and build
-with the correct version of python based on the `.python-version`  file in the project. This means you don't have to
-worry about managing multiple versions of python on your machine!
+### Hedera Network Resources
 
-```bash
-uv sync
-uv run python generate_proto.py
-```
+- [Hedera Documentation](https://docs.hedera.com/)
+- [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs)
+- [Get Testnet Account](https://portal.hedera.com/) - Free testnet credentials
+- [Hedera Testnet Guide](https://docs.hedera.com/guides/testnet)
 
-**Note:** By default, `uv sync` will install the `dev` and `lint` dependency groups, which include tools like `pytest` and `ruff`. If you need to install only the project's core dependencies, use the `--no-default-groups flag`.
+### Other SDKs
 
-To update to a newer version of the protobuf libraries, edit the `generate_proto.py` file and change the version number
-and then rerun it.
+- [Hiero JavaScript SDK](https://github.com/hiero-ledger/hiero-sdk-js)
+- [Hiero Java SDK](https://github.com/hiero-ledger/hiero-sdk-java)
+- [Hiero Go SDK](https://github.com/hiero-ledger/hiero-sdk-go)
 
-
-### Local Editable Installation
-
-For active development, you can install the repo in editable mode. That way, changes in your local code are immediately reflected when you import:
-
-```
-git clone https://github.com/hiero-ledger/hiero-sdk-python.git
-cd hiero-sdk-python
-pip install --upgrade pip
-pip install -e .
-```
-
-Now you can run example scripts like python `examples/account_create.py`, and it will import from your local hiero_sdk_python code.
-
-
-## Environment Setup
-
-Before using the SDK, you need to configure your environment variables for the operator account and other credentials.
-Create a .env file in the root of your project with the following (replace with your environment variables):
-
-```
-OPERATOR_ID=0.0.1234xx
-OPERATOR_KEY=af20e47d590300506032b657004220420...
-NETWORK=testnet
-
-# optional:
-ADMIN_KEY=af20e47d59032b65700321009308ecfdf...
-SUPPLY_KEY =302a300506032b6570032100c5e4af5..."
-FREEZE_KEY=302a300306072b65700321009308ecfdf...
-RECIPIENT_ID=0.0.789xx
-TOKEN_ID=0.0.100xx
-TOPIC_ID=0.0.200xx
-FREEZE_ACCOUNT_ID=0.0.100
-```
-
-The only environment variables needed are OPERATOR_ID, OPERATOR_KEY and NETWORK. The rest is optional (if customisation of the example scripts is needed).
-
-A [sample .env](.env.example) file is provided in the root of this project. If you do not have an account on
-the Hedera testnet, you can easily get one from the [Hedera Portal](https://portal.hedera.com/). Learn more about
-testnet [here](https://docs.hedera.com/guides/testnet).
+---
 
 ## Running Tests
 
-To run the test suite for the SDK, use the following command:
-```
-uv run pytest 
-```
-
-The test file in the root of this project will be automatically run when pushing onto a branch.
-This is done by running 'Hiero Solo Action'. Read more about it here:
-
-- [Github Marketplace](https://github.com/marketplace/actions/hiero-solo-action)
-- [Blog Post by Hendrik Ebbers](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
-
-#### Output:
-```
-Account creation successful. New Account ID: 0.0.5025xxx
-New Account Private Key: 228a06c363b0eb328434d51xxx...
-New Account Public Key: 8f444e36e8926def492adxxx...
-Token creation successful. Token ID: 0.0.5025xxx
-Token association successful.
-Token dissociation successful.
-Token minting successful.
-Token transfer successful.
-Token freeze successful.
-Token Unfreeze successful.
-Token deletion successful.
-Topic creation successful.
-Topic Message submitted.
-Topic update successful.
-Topic deletion successful.
+```bash
+uv run pytest
 ```
 
-## Contributing
+**For contributors:** Tests run automatically via [Hiero Solo Action](https://github.com/marketplace/actions/hiero-solo-action) when you push to a branch.
 
-We appreciate your interest in improving the Hiero Python SDK!
-Interested in helping out? We'd love for you to contribute!
+**Learn more:**
+- [Testing with Hiero Solo](https://dev.to/hendrikebbers/ci-for-hedera-based-projects-2nja)
 
-Before you start, it's **essential** that you carefully read our main contribution guide: **[CONTRIBUTING.md](./CONTRIBUTING.md)**. This document is your roadmap to making a successful contribution.
+---
 
-Following the steps in this guide is the best way to ensure your pull request (PR) can be merged smoothly. It covers crucial requirements, including:
+## Community & Support
 
-* How to get your commits **verified** (which is mandatory for merging).
-* The correct way to update the **changelog** with your changes.
-* The full step-by-step workflow for submitting code.
+### Get Help
 
-Our guide also explains how you can contribute in other ways, like submitting **bug reports** and proposing new **feature requests**.
+- **Discord**: [Hiero Python SDK Channel](https://discord.com/channels/905194001349627914/1336494517544681563)
+- **General Hedera Support**: [Developer Discord](https://discord.com/channels/373889138199494658/1106578684573388900)
+- **Issues**: [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
 
-### Links
-- [Hiero Python SDK Discord](https://discord.com/channels/905194001349627914/1336494517544681563)
-- [Hedera Developer Support Discord](https://discord.com/channels/373889138199494658/1106578684573388900).
-- [Hiero Blog](https://hiero.org/blog/)
-- [LFDT Youtube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
-- [Hiero LFTD Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+### Stay Updated
 
+- **Blog**: [Hiero Blog](https://hiero.org/blog/)
+- **Videos**: [LFDT YouTube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
+- **Community Calls**: [Hiero Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) (Wednesdays, 2pm UTC)
+
+---
+
+## Contributions
+
+We welcome contributions! Whether you're:
+- 🐛 Reporting bugs
+- 💡 Suggesting features
+- 📝 Improving documentation
+- 💻 Writing code
+
+**Start here:** [CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
 
 ## License
 
-This project is licensed under the Apache License.
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+---
+
+**Latest release:** Check [PyPI](https://pypi.org/project/hiero-sdk-python/) or [GitHub Releases](https://github.com/hiero-ledger/hiero-sdk-python/releases)
