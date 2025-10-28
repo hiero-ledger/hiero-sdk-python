@@ -94,8 +94,8 @@ uv run pytest
 
 ### Get Help
 
-- **Discord**: [Hiero Python SDK Channel](https://discord.com/channels/905194001349627914/1336494517544681563)
-- **General Hedera Support**: [Developer Discord](https://discord.com/channels/373889138199494658/1106578684573388900)
+- **Discord**: [Hiero Python SDK Channel](https://discord.gg/hyperledger )
+- **General Hedera Support**: [Developer Discord](https://discord.gg/UuQevYMP)
 - **Issues**: [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
 
 ### Stay Updated

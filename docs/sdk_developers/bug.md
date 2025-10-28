@@ -9,7 +9,7 @@
    ```
 3. **Report it:**
    - **Regular bugs** → [Create Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues/new)
-   - **Security bugs** → Contact [maintainers](MAINTAINERS.md) on [Discord](https://discord.com/channels/905194001349627914/1336494517544681563) privately
+   - **Security bugs** → Contact [maintainers](MAINTAINERS.md) on [Discord]( https://discord.gg/hyperledger) privately
 
 **Include:**
 - Clear description
