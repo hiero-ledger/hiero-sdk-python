@@ -45,7 +45,6 @@ def create_account(client):
         .set_initial_balance(Hbar(2))
         .set_account_memo("Test account for records query")
         .freeze_with(client)
-        .sign(account_private_key)
         .execute(client)
     )
 
