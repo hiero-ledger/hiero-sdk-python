@@ -13,6 +13,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add AccountRecordsQuery class
 
 ### Changed
+#### 2025-10-28
+- Validate that token airdrop transactions require an available token service on the channel. 
 
 ### Fixed
 
