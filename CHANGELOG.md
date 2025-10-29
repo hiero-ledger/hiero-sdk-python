@@ -19,6 +19,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
 
+#### 2025-10-30
+- updated .env.example comments to correctly match their variables.
 ### Fixed
 
 - Added explicit read permissions to examples.yml (#623)
