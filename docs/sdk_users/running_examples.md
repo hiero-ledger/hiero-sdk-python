@@ -18,6 +18,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Updating an Account](#updating-an-account)
   - [Allowance Approve Transaction](#allowance-approve-transaction)
   - [Allowance Delete Transaction](#allowance-delete-transaction)
+  - [Querying Account Records](#querying-account-records)
 - [Token Transactions](#token-transactions)
   - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -343,6 +344,28 @@ transaction = (
 
 transaction.sign(owner_private_key)
 transaction.execute(client)
+```
+
+### Querying Account Records
+
+#### Pythonic Syntax:
+```python
+records = AccountRecordsQuery(account_id=account_id).execute(client)
+
+for record in records:
+    print(record)
+```
+
+#### Method Chaining:
+```python
+records = (
+    AccountRecordsQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+
+for record in records:
+    print(record)
 ```
 
 ## Token Transactions

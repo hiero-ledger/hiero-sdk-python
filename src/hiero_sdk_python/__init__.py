@@ -10,6 +10,7 @@ from .account.account_info import AccountInfo
 from .account.account_delete_transaction import AccountDeleteTransaction
 from .account.account_allowance_approve_transaction import AccountAllowanceApproveTransaction
 from .account.account_allowance_delete_transaction import AccountAllowanceDeleteTransaction
+from .account.account_records_query import AccountRecordsQuery
 
 # Crypto
 from .crypto.private_key import PrivateKey
@@ -149,6 +150,7 @@ __all__ = [
     "AccountDeleteTransaction",
     "AccountAllowanceApproveTransaction",
     "AccountAllowanceDeleteTransaction",
+    "AccountRecordsQuery",
 
     # Crypto
     "PrivateKey",
