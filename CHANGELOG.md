@@ -12,6 +12,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - add AccountRecordsQuery class
 
+- docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
+
 ### Changed
 
 ### Fixed
