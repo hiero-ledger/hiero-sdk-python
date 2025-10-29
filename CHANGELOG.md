@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
 
 ### Changed
 
