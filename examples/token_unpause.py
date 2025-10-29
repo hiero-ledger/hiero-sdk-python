@@ -14,6 +14,7 @@ from hiero_sdk_python import (
     Network
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
@@ -37,7 +38,7 @@ def setup_client():
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
 
-def create_token(client, operator_key, operator_id):
+def create_token(client: Client, operator_key: PrivateKey, operator_id: AccountId):
     """Create a fungible token"""
     print("\nCreating a token...")
 
@@ -64,7 +65,7 @@ def create_token(client, operator_key, operator_id):
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
-def pause_token(client, token_id, pause_key):
+def pause_token(client: Client, token_id: TokenId, pause_key: PrivateKey):
     """Pause token"""
     print("\nAttempting to pause the token...")
 
@@ -88,7 +89,7 @@ def pause_token(client, token_id, pause_key):
         print(f"❌ Error pausing token: {e}")
         sys.exit(1)
 
-def check_pause_status(client, token_id):
+def check_pause_status(client, token_id: TokenId):
     """Query and print the current paused/unpaused status of a token."""
     info = TokenInfoQuery().set_token_id(token_id).execute(client)
     print(f"Token status is now: {info.pause_status.name}")
