@@ -1,21 +1,3 @@
-# src/hiero_sdk_python/tokens/token_cancel_airdrop_transaction.py
-
-import warnings
-# Assuming the new file contains a class named TokenAirdropCancelTransaction
-from .token_airdrop_cancel_transaction import TokenCancelAirdropTransaction as NewTokenCancelAirdropTransaction
-
-warnings.warn(
-    "TokenCancelAirdropTransaction has been moved to token_airdrop_cancel_transaction. "
-    "The old import path will be removed in a future release. Please update your imports.",
-    DeprecationWarning,
-    stacklevel=2
-)
-
-class TokenCancelAirdropTransaction(NewTokenCancelAirdropTransaction):
-    pass
-
-__all__ = ['TokenCancelAirdropTransaction']
-from typing import Optional
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import basic_types_pb2, token_cancel_airdrop_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -30,12 +12,12 @@ class TokenCancelAirdropTransaction(Transaction):
 
     This transaction allows users to cancel one or more airdrops for both fungible tokens and NFTs.
     """
-    def __init__(self, pending_airdrops: Optional[list[PendingAirdropId]] = None) -> None:
+    def __init__(self, pending_airdrops: list[PendingAirdropId]=None) -> None:
         """
         Initializes a new TokenCancelAirdropTransaction instance.
 
         Args:
-            pending_airdrops (Optional[list[PendingAirdropId]]): An optional list of pending airdrop IDs.
+            pending_airdrops (list[PendingAirdropId], optional): An initial list of pending airdrop IDs.
         """
         super().__init__()
         self.pending_airdrops: list[PendingAirdropId] = pending_airdrops or []
