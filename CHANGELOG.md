@@ -74,6 +74,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 - docs: Restructured and expanded `signing.md` to clarify the requirements for achieving GPG 'Verified' commit status for merging (#455).
 - fix: Address maintainer feedback; fix checklist broken links and restore missing changelog entry (#645).
+- chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
 
 ### Fixed
 
