@@ -1,9 +1,10 @@
 """
 hiero_sdk_python.tokens.token_unpause_transaction.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Provides TokenUnpauseTransaction, a subclass of Transaction that facilitates unpausing a 
-specified token on the Hedera network using the Hedera Token Service (HTS) API.
+Provides the TokenUnpauseTransaction class a subclass of Transaction that
+facilitates unpausing a specified token on the Hedera network using the
+Hedera Token Service (HTS) API.
 """
 from typing import Optional
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -33,12 +34,12 @@ class TokenUnpauseTransaction(Transaction):
         Initializes a new TokenUnpauseTransaction instance with default values.
 
         Args:
-            token_id (TokenId, optional): The ID of the token to unpause.
+            token_id (Optional[TokenId]): The ID of the token to unpause.
         """
         super().__init__()
         self.token_id:  Optional[TokenId] = None
 
-        if token_id:
+        if token_id is not None:
             self.set_token_id(token_id)
     
     def set_token_id(self, token_id: TokenId) -> "TokenUnpauseTransaction":
@@ -61,7 +62,12 @@ class TokenUnpauseTransaction(Transaction):
         return self
     
     def _validate_checksum(self, client: "Client") -> None:
-        """Validates the checksum for the TokenId"""
+        """
+        Validates the checksum for the token ID associated with this transaction.
+
+        Args:
+            client (Client): The client instance used for validation.
+        """
         if self.token_id is not None:
             self.token_id.validate_checksum(client)
 
@@ -76,9 +82,8 @@ class TokenUnpauseTransaction(Transaction):
         Returns:
             TokenUnpauseTransaction: A new instance of TokenUnpauseTransaction
         """
-        return cls(
-            token_id=TokenId._from_proto(proto.token)
-        )
+        token_id = TokenId._from_proto(proto.token) if proto.token else None
+        return cls(token_id=token_id)
 
     def _build_proto_body(self) -> TokenUnpauseTransactionBody:
         """
