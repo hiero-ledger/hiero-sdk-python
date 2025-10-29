@@ -6,8 +6,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
 ### Added
+
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 
 - add AccountRecordsQuery class
@@ -16,16 +16,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 #### 2025-10-28
 - Validate that token airdrop transactions require an available token service on the channel. 
 
+- chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
+- chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
+
 ### Fixed
 
 - Added explicit read permissions to examples.yml (#623)
 
 ### Breaking Changes
 
-
 ## [0.1.7] - 2025-10-28
 
 ### Added
+
 - Expanded `README.md` with a new "Follow Us" section detailing how to watch, star, and fork the repository (#472).
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
@@ -65,7 +68,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
-– docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+  – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
@@ -77,6 +80,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Type hinting for `Topic` related transactions.
 
 ### Removed
+
 - Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
 
 ## [0.1.6] - 2025-10-21
@@ -133,6 +137,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [0.1.5] - 2025-09-25
 
 ### Added
+
 - ScheduleSignTransaction class
 - NodeUpdateTransaction class
 - NodeDeleteTransaction class
