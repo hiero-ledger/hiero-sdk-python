@@ -13,14 +13,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add AccountRecordsQuery class
 
 ### Changed
-
-- chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
+- chore: Renamed `examples/token_cancel_airdrop.py` to `examples/token_airdrop_cancel.py` for file grouping consistency (#631).
+- chore: Renamed pending airdrop test files (e.g., `test_pending_airdrop_id.py`) to use the `airdrop_pending` prefix for grouping consistency (#631).
 
 ### Fixed
 
 - Added explicit read permissions to examples.yml (#623)
 
 ### Breaking Changes
+- Renamed source file `token_cancel_airdrop_transaction.py` to `token_airdrop_cancel_transaction.py`. **Backwards compatibility is provided via a deprecation warning** under the old filename to ensure a graceful migration path. (#631).
 
 ## [0.1.7] - 2025-10-28
 
@@ -212,8 +213,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Rebase command in README_upstream changed to just -S
 - generate_proto.sh
 - pkg_resources dependency in generate_proto.py
-
-### Breaking API changes
 
 - We have some changed imports and returns to maintain compatability in the proto bump
 
