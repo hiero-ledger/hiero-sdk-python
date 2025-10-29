@@ -16,6 +16,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
+- chore: Expanded `docs/sdk_developers/checklist.md` to include a Post-Submission Verification guide, instructing contributors on how to self-check their PR statuses (DCO, Verified Signature, CI tests) before requesting a review (#645).
 
 ### Fixed
 
