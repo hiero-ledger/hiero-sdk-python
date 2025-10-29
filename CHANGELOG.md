@@ -23,8 +23,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
+<<<<<<< HEAD
 - chore: update local environment configuration in env.example (#649)
 - chore: Update env.example NETWORK to encourage testnet or local usage (#659)
+- chore: updated pyproject.toml with python 3.10 to 3.13 (#510, #449)
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
 - chore: Refactored the script of examples/custom_fee.py into modular functions 
@@ -73,6 +75,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
+
 ### Changed
 
 - Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
@@ -93,7 +96,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
-– docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+  – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
