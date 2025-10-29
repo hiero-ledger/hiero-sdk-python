@@ -15,6 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
+- chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
 
 ### Fixed
 
@@ -32,7 +33,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
 - Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
 - Added `dependabot.yaml` file to enable automated dependency management.
-- Common issues guide for SDK developers at `docs/sdk_developers/common_issues.md`
+- Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
 - Added documentation for resolving changelog conflicts in `docs/common_issues.md`
 - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
 - docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
@@ -56,7 +57,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/transfer_hbar.py` to improve modularity by separating transfer and balance query operations into dedicated functions
 - Enhanced contributing section in README.md with resource links
 - Refactored examples/topic_message_submit.py to be more modular
-- Added "One Issue Per Pull Request" section to `docs/sdk_developers/common_issues.md`.
+- Added "One Issue Per Pull Request" section to `examples/sdk_developers/common_issues.md`.
 - docs: Improved the contributing section in the README.md file
 - Refactored `examples/transfer_nft.py` to be more modular by isolating transfer logic.
 - Refactored `examples/file_append.py` into modular functions for better readability, reuse, and consistency across examples.
