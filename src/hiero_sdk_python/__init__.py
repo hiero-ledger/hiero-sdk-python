@@ -47,6 +47,7 @@ from .tokens.token_allowance import TokenAllowance
 from .tokens.token_nft_allowance import TokenNftAllowance
 from .tokens.hbar_allowance import HbarAllowance
 from .tokens.hbar_transfer import HbarTransfer
+from .tokens.token_unpause_transaction import TokenUnpauseTransaction
 
 # Transaction
 from .transaction.transaction import Transaction
@@ -187,6 +188,7 @@ __all__ = [
     "TokenNftAllowance",
     "HbarAllowance",
     "HbarTransfer",
+    "TokenUnpauseTransaction"
 
     # Transaction
     "Transaction",
