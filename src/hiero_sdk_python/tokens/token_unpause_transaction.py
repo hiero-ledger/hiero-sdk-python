@@ -52,7 +52,8 @@ class TokenUnpauseTransaction(Transaction):
             TokenUnpauseTransaction: This current instance of transaction.
         """
         self._require_not_frozen()
-
+        
+        #Check if the tokenId is instance of TokenId
         if not isinstance(token_id, TokenId):
             raise TypeError("token_id must be an instance of TokenId")
 
@@ -63,6 +64,21 @@ class TokenUnpauseTransaction(Transaction):
         """Validates the checksum for the TokenId"""
         if self.token_id is not None:
             self.token_id.validate_checksum(client)
+
+    @classmethod
+    def _from_proto(cls, proto: TokenUnpauseTransactionBody) -> "TokenUnpauseTransaction":
+        """
+        Construct TokenUnpauseTransaction from TokenUnpauseTransactionBody.
+
+        Args:
+            proto (TokenUnpauseTransactionBody): The protobuf representation of TokenUnpauseTransaction
+        
+        Returns:
+            TokenUnpauseTransaction: A new instance of TokenUnpauseTransaction
+        """
+        return cls(
+            token_id=TokenId._from_proto(proto.token)
+        )
 
     def _build_proto_body(self) -> TokenUnpauseTransactionBody:
         """

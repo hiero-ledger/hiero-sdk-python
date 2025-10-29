@@ -3,6 +3,8 @@ import pytest
 
 from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
+from hiero_sdk_python.hapi.services.token_unpause_pb2 import TokenUnpauseTransactionBody
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
@@ -156,4 +158,17 @@ def test_build_scheduled_body(mock_account_ids):
     assert isinstance(schedulable_body, SchedulableTransactionBody)
     assert schedulable_body.HasField("token_unpause")
     assert schedulable_body.token_unpause.token == token_id._to_proto()
+
+def test_from_proto(mock_account_ids):
+    """Test creating a TokenUnpauseTransaction from protobuf representaion."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    proto = TokenUnpauseTransactionBody(
+        token=TokenId._to_proto(token_id)
+    )
+    unpause_tx = TokenUnpauseTransaction._from_proto(proto)
+
+    assert unpause_tx.token_id.shard == token_id.shard
+    assert unpause_tx.token_id.realm == token_id.realm
+    assert unpause_tx.token_id.num == token_id.num
 
