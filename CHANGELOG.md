@@ -15,12 +15,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
-- chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
+- chore: Moved documentation file common_issues.md from examples/sdk_developers/ to docs/sdk_developers/ for unifir 
 - Expanded docs/sdk_developers/checklist.md with a self-review guide for all pull request submission requirements (#645).
 
 ### Fixed
 
 - Added explicit read permissions to examples.yml (#623)
+- Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
 
 ### Breaking Changes
 
@@ -71,6 +72,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
+- docs: Restructured and expanded `signing.md` to clarify the requirements for achieving GPG 'Verified' commit status for merging (#455).
+- fix: Address maintainer feedback; fix checklist broken links and restore missing changelog entry (#645).
 
 ### Fixed
 
