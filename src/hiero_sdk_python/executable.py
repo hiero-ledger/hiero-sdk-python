@@ -176,10 +176,15 @@ class _Executable(ABC):
             if attempt > 0 and current_backoff < self._max_backoff:
                 current_backoff *= 2
                         
-            # Set the node account id to the client's node account id
-            node = client.network.current_node
-            self.node_account_id = node._account_id
-  
+            # Select preferred node if provided, fallback to client's default
+            selected_node_account_id = (
+                self._select_node_account_id()
+                or client.network.current_node._account_id
+            )
+           
+            self.node_account_id = selected_node_account_id
+            node = client.network._get_node(self.node_account_id)
+
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
             
