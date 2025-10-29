@@ -502,7 +502,7 @@ class Transaction(_Executable):
     
     def set_node_account_id(self, node_account_id: AccountId):
         """
-        Selects a node account ID to use for sending a query.
+        Selects a node account ID to use for sending a transaction.
 
         Args:
             node_account_id (AccountId): The node account ID.
@@ -515,7 +515,7 @@ class Transaction(_Executable):
 
     def _select_node_account_id(self) -> Optional[AccountId]:
         """
-        Selects a node account ID to use for sending a query.
+        Selects a node account ID to use for sending a transaction.
 
         Picks the first unused node from `self.node_account_ids`.
         Once used, stores it in `_used_node_account_id`.
