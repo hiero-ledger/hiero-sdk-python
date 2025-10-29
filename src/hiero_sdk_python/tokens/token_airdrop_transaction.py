@@ -219,7 +219,11 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
+        token_service = channel.token
+        if token_service is None:
+            raise ValueError("Token service not available on channel")
+
         return _Method(
-            transaction_func=channel.token.airdropTokens,
+            transaction_func=token_service.airdropTokens,
             query_func=None
         )
