@@ -27,7 +27,7 @@ load_dotenv()
 def setup_client():
     """Initialize and set up the client with operator account"""
     print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    client = Client(Network(os.getenv('NETWORK')))
 
     try:
         operator_id_str = os.getenv('OPERATOR_ID')

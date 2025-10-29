@@ -1,0 +1,53 @@
+name: Run Examples
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: 
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  run-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@1781c6eb42f98d67097986d30130a8ff6879fda2
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Generate Proto Files
+        run: uv run python generate_proto.py
+
+      - name: Prepare Hiero Solo
+        id: solo
+        uses: hiero-ledger/hiero-solo-action@6a1a77601cf3e69661fb6880530a4edf656b40d5 #v0.14.0
+        with:
+          installMirrorNode: true
+        
+      - name: Run Examples
+        env:
+          OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
+          OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
+          CHAIN_ID: 012A
+          NETWORK: solo
+        run: |
+          files=$(ls examples/*.py)
+          for file in $files;
+          do
+            echo -e "\n************ ${file} ************"
+            uv run -m examples.$(basename "$file" .py)
+          done

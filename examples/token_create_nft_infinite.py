@@ -25,7 +25,7 @@ load_dotenv()
 """
 def net_op_setup():
     print("Connecting to Hedera testnet...")
-    network = Network(network="testnet")
+    network = Network(os.getenv('NETWORK'))
     client = Client(network)
 
     try:
