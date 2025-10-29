@@ -72,6 +72,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 - docs: Restructured and expanded `signing.md` to clarify the requirements for achieving GPG 'Verified' commit status for merging (#455).
+- fix: Address maintainer feedback; fix checklist broken links and restore missing changelog entry (#645).
 
 ### Fixed
 
