@@ -82,7 +82,7 @@ Every contribution **must include an entry in CHANGELOG.md** under the `[Unrelea
 ## [Unreleased]
 
 ### Added
-- Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
+- Common issues guide for SDK developers at `docs/sdk_developers/common_issues.md`
 ```
 
 **Why this matters:**
