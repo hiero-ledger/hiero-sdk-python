@@ -171,14 +171,19 @@ def test_cannot_modify_transaction_after_freeze():
         transaction.add_hbar_transfer(AccountId.from_string("0.0.9999"), 50_000_000)
 
 
-def test_from_bytes_not_implemented():
-    """Test that from_bytes() raises ValueError for invalid bytes."""
-    # Create some dummy bytes
-    dummy_bytes = b"dummy transaction bytes"
-    
-    # Should raise ValueError because the bytes are not valid protobuf
-    with pytest.raises(ValueError, match="Failed to parse transaction bytes"):
-        TransferTransaction.from_bytes(dummy_bytes)
+def test_from_bytes_invalid_input():
+    """Test that from_bytes() raises ValueError for invalid input."""
+    # Test with non-bytes input
+    with pytest.raises(ValueError, match="must be bytes"):
+        TransferTransaction.from_bytes("not bytes")
+
+    # Test with empty bytes
+    with pytest.raises(ValueError, match="cannot be empty"):
+        TransferTransaction.from_bytes(b"")
+
+    # Test with invalid protobuf bytes
+    with pytest.raises(ValueError, match="Failed to parse"):
+        TransferTransaction.from_bytes(b"invalid protobuf data")
 
 
 def test_freeze_and_sign_workflow():
@@ -216,3 +221,217 @@ def test_freeze_and_sign_workflow():
     
     # Verify the transaction is signed
     assert transaction.is_signed_by(private_key.public_key())
+
+
+def test_from_bytes_round_trip_unsigned():
+    """Test round-trip serialization of unsigned transaction."""
+    operator_id = AccountId.from_string("0.0.1234")
+    node_id = AccountId.from_string("0.0.3")
+    receiver_id = AccountId.from_string("0.0.5678")
+
+    # Create and freeze transaction
+    transaction = (
+        TransferTransaction()
+        .add_hbar_transfer(operator_id, -100_000_000)
+        .add_hbar_transfer(receiver_id, 100_000_000)
+        .set_transaction_memo("Test memo")
+    )
+
+    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.node_account_id = node_id
+    transaction.freeze()
+
+    # Serialize to bytes
+    transaction_bytes = transaction.to_bytes()
+
+    # Deserialize from bytes
+    restored_transaction = TransferTransaction.from_bytes(transaction_bytes)
+
+    # Verify common fields
+    assert restored_transaction.transaction_id == transaction.transaction_id
+    assert restored_transaction.node_account_id == transaction.node_account_id
+    assert restored_transaction.memo == transaction.memo
+    # When transaction_fee is None, it uses the default fee in the protobuf
+    # So the restored transaction will have the default fee value
+    assert restored_transaction.transaction_fee == 100_000_000  # Default fee for TransferTransaction
+
+    # Verify transfers
+    assert len(restored_transaction.hbar_transfers) == 2
+    assert restored_transaction.hbar_transfers[0].account_id == operator_id
+    assert restored_transaction.hbar_transfers[0].amount == -100_000_000
+    assert restored_transaction.hbar_transfers[1].account_id == receiver_id
+    assert restored_transaction.hbar_transfers[1].amount == 100_000_000
+
+    # Verify transaction is frozen
+    assert len(restored_transaction._transaction_body_bytes) > 0
+
+    # Verify round-trip produces identical bytes
+    restored_bytes = restored_transaction.to_bytes()
+    assert transaction_bytes == restored_bytes
+
+
+def test_from_bytes_round_trip_signed():
+    """Test round-trip serialization of signed transaction."""
+    operator_id = AccountId.from_string("0.0.1234")
+    node_id = AccountId.from_string("0.0.3")
+    receiver_id = AccountId.from_string("0.0.5678")
+
+    private_key = PrivateKey.generate()
+
+    # Create, freeze, and sign transaction
+    transaction = (
+        TransferTransaction()
+        .add_hbar_transfer(operator_id, -200_000_000)
+        .add_hbar_transfer(receiver_id, 200_000_000)
+        .set_transaction_memo("Signed transaction")
+    )
+
+    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.node_account_id = node_id
+    transaction.freeze()
+    transaction.sign(private_key)
+
+    # Serialize to bytes
+    transaction_bytes = transaction.to_bytes()
+
+    # Deserialize from bytes
+    restored_transaction = TransferTransaction.from_bytes(transaction_bytes)
+
+    # Verify fields
+    assert restored_transaction.transaction_id == transaction.transaction_id
+    assert restored_transaction.node_account_id == transaction.node_account_id
+    assert restored_transaction.memo == "Signed transaction"
+
+    # Verify transfers
+    assert len(restored_transaction.hbar_transfers) == 2
+
+    # Verify signature is preserved
+    assert restored_transaction.is_signed_by(private_key.public_key())
+
+    # Verify round-trip produces identical bytes
+    restored_bytes = restored_transaction.to_bytes()
+    assert transaction_bytes == restored_bytes
+
+
+def test_from_bytes_round_trip_multiple_signatures():
+    """Test round-trip serialization with multiple signatures."""
+    operator_id = AccountId.from_string("0.0.1234")
+    node_id = AccountId.from_string("0.0.3")
+    receiver_id = AccountId.from_string("0.0.5678")
+
+    key1 = PrivateKey.generate()
+    key2 = PrivateKey.generate()
+    key3 = PrivateKey.generate()
+
+    # Create transaction
+    transaction = (
+        TransferTransaction()
+        .add_hbar_transfer(operator_id, -300_000_000)
+        .add_hbar_transfer(receiver_id, 300_000_000)
+    )
+
+    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.node_account_id = node_id
+    transaction.freeze()
+
+    # Sign with multiple keys
+    transaction.sign(key1)
+    transaction.sign(key2)
+    transaction.sign(key3)
+
+    # Serialize to bytes
+    transaction_bytes = transaction.to_bytes()
+
+    # Deserialize from bytes
+    restored_transaction = TransferTransaction.from_bytes(transaction_bytes)
+
+    # Verify all signatures are preserved
+    assert restored_transaction.is_signed_by(key1.public_key())
+    assert restored_transaction.is_signed_by(key2.public_key())
+    assert restored_transaction.is_signed_by(key3.public_key())
+
+    # Verify round-trip produces identical bytes
+    restored_bytes = restored_transaction.to_bytes()
+    assert transaction_bytes == restored_bytes
+
+
+def test_from_bytes_preserves_all_common_fields():
+    """Test that from_bytes preserves all common transaction fields."""
+    operator_id = AccountId.from_string("0.0.1234")
+    node_id = AccountId.from_string("0.0.3")
+    receiver_id = AccountId.from_string("0.0.5678")
+
+    # Create transaction with all common fields set
+    transaction = (
+        TransferTransaction()
+        .add_hbar_transfer(operator_id, -100_000_000)
+        .add_hbar_transfer(receiver_id, 100_000_000)
+        .set_transaction_memo("Comprehensive test")
+    )
+
+    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.node_account_id = node_id
+    transaction.transaction_fee = 5_000_000  # Custom fee
+    transaction.transaction_valid_duration = 180  # 3 minutes
+    transaction.generate_record = True
+
+    transaction.freeze()
+
+    # Serialize and deserialize
+    transaction_bytes = transaction.to_bytes()
+    restored_transaction = TransferTransaction.from_bytes(transaction_bytes)
+
+    # Verify all common fields
+    assert restored_transaction.transaction_id == transaction.transaction_id
+    assert restored_transaction.node_account_id == transaction.node_account_id
+    assert restored_transaction.transaction_fee == 5_000_000
+    assert restored_transaction.transaction_valid_duration == 180
+    assert restored_transaction.generate_record == True
+    assert restored_transaction.memo == "Comprehensive test"
+
+    # Verify round-trip
+    assert transaction.to_bytes() == restored_transaction.to_bytes()
+
+
+def test_from_bytes_external_signing_workflow():
+    """Test the external signing workflow: create unsigned -> restore -> sign -> restore."""
+    operator_id = AccountId.from_string("0.0.1234")
+    node_id = AccountId.from_string("0.0.3")
+    receiver_id = AccountId.from_string("0.0.5678")
+
+    # Step 1: Create unsigned transaction (e.g., on online system)
+    transaction = (
+        TransferTransaction()
+        .add_hbar_transfer(operator_id, -100_000_000)
+        .add_hbar_transfer(receiver_id, 100_000_000)
+    )
+
+    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.node_account_id = node_id
+    transaction.freeze()
+
+    unsigned_bytes = transaction.to_bytes()
+
+    # Step 2: Restore on signing system (e.g., HSM or hardware wallet)
+    tx_for_signing = TransferTransaction.from_bytes(unsigned_bytes)
+
+    # Verify it's not signed yet
+    private_key = PrivateKey.generate()
+    assert not tx_for_signing.is_signed_by(private_key.public_key())
+
+    # Sign the transaction
+    tx_for_signing.sign(private_key)
+    assert tx_for_signing.is_signed_by(private_key.public_key())
+
+    signed_bytes = tx_for_signing.to_bytes()
+
+    # Step 3: Restore signed transaction on original system
+    final_tx = TransferTransaction.from_bytes(signed_bytes)
+
+    # Verify signature is preserved
+    assert final_tx.is_signed_by(private_key.public_key())
+
+    # Verify all fields are still correct
+    assert final_tx.transaction_id == transaction.transaction_id
+    assert final_tx.node_account_id == transaction.node_account_id
+    assert len(final_tx.hbar_transfers) == 2
