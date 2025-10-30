@@ -157,3 +157,41 @@ def test_from_proto(mock_account_ids):
     assert unpause_tx.token_id.realm == token_id.realm
     assert unpause_tx.token_id.num == token_id.num
 
+def test_upause_transaction_can_execute(mock_account_ids):
+    """Test that a token upause transaction can be executed successfully."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    # Create test transaction responses
+    ok_response = TransactionResponseProto()
+    ok_response.nodeTransactionPrecheckCode = ResponseCode.OK
+    
+    # Create a mock receipt for a successful token upause
+    mock_receipt_proto = TransactionReceiptProto(
+        status=ResponseCode.SUCCESS
+    )
+    
+    # Create a response for the receipt query
+    receipt_query_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=mock_receipt_proto
+        )
+    )
+    
+    response_sequences = [
+        [ok_response, receipt_query_response],
+    ]
+    
+    with mock_hedera_servers(response_sequences) as client:
+        transaction = (
+            TokenUnpauseTransaction()
+            .set_token_id(token_id)
+            .freeze_with(client)
+        )
+        
+        receipt = transaction.execute(client)
+        
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
