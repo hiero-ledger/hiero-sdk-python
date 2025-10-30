@@ -63,3 +63,17 @@ class CustomFee(ABC):
             
     def __eq__(self, other: "CustomFee") -> bool:
         return self.fee_collector_account_id == other.fee_collector_account_id and self.all_collectors_are_exempt == other.all_collectors_are_exempt
+    
+    def __repr__(self) -> str:
+        """Return a string representation of the CustomFee instance.
+        
+        Returns:
+            str: A string containing the class name, fee_collector_account_id,
+                and all_collectors_are_exempt.
+        """
+        return (
+            f"{self.__class__.__name__}("
+            f"fee_collector_account_id={self.fee_collector_account_id}, "
+            f"all_collectors_are_exempt={self.all_collectors_are_exempt}"
+            f")"
+        )
