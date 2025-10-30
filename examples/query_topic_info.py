@@ -17,22 +17,23 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    print("Connecting to Hedera testnet...")
-    network = Network(os.getenv('NETWORK'))
+    print(f"🌐 Connecting to Hedera {network_name}...")
+    network = Network(network_name)
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-        client.set_operator(operator_id, operator_key)
+            operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
+            operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+            client.set_operator(operator_id, operator_key)
 
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
-        sys.exit(1)
+            return client, operator_id, operator_key
+        except (TypeError, ValueError):
+            print("❌ Error: Creating client, Please check your .env file")
+            sys.exit(1)
 
 def create_topic(client, operator_key):
     """Create a new topic"""

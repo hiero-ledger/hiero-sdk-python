@@ -20,6 +20,7 @@ from hiero_sdk_python import (
 # Load environment variables from .env file
 load_dotenv()
 
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def token_mint_non_fungible():
     """
@@ -27,8 +28,8 @@ def token_mint_non_fungible():
     """
     # 1. Setup Client
     # =================================================================
-    print("Connecting to Hedera testnet...")
-    network = Network(os.getenv('NETWORK'))
+    print(f"🌐 Connecting to Hedera {network_name}...")
+    network = Network(network_name)
     client = Client(network)
 
     try:

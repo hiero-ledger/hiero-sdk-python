@@ -24,10 +24,9 @@ load_dotenv()
 1. Network and Operator Setup
 """
 def net_op_setup():
-    print("Connecting to Hedera testnet...")
-    network = Network(os.getenv('NETWORK'))
-    client = Client(network)
-
+    network_name = os.getenv('NETWORK', 'testnet').lower()
+    print(f"🌐 Connecting to Hedera {network_name}...")
+    client = Client(Network(network_name))
     try:
         operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
         operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))

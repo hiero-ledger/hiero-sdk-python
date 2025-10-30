@@ -19,11 +19,11 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
-
+network_name = os.getenv('NETWORK', 'testnet').lower()
 def setup_client():
     """Initialize and set up the client with operator account"""
-    print("Connecting to Hedera testnet...")
-    network = Network(os.getenv('NETWORK'))
+    print(f"🌐 Connecting to Hedera {network_name}...")
+    network = Network(network_name)
     client = Client(network)
 
     try:
