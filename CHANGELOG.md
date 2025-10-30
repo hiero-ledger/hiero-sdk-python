@@ -12,6 +12,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
 
+- docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
+
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
 
