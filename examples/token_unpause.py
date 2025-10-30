@@ -28,7 +28,9 @@ def setup_client():
     print("Connecting to Hedera testnet...")
 
     try:
-        client = Client(Network(os.getenv('NETWORK')))
+        network = Network(os.getenv('NETWORK'))
+        client = Client(network)
+        
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
         client.set_operator(operator_id, operator_key)
