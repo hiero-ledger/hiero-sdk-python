@@ -78,7 +78,7 @@ def custom_royalty_fee():
 
     print("Royalty Fee Protobuf:", royalty_fee_proto)
 
-def setup_client():
+def custom_fee():
     #create a CustomFixedFee
     custom_fixed_fee()
     #create a CustomFractionalFee
@@ -88,7 +88,7 @@ def setup_client():
 
 def main():
     #setup a Client
-    setup_client()
+    custom_fee()
 
 if __name__ == "__main__":
     main()
