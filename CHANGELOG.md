@@ -30,7 +30,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
 - Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
 - chore: Standardized client initialization across all examples/ files to promote consistency (#658).
-
+- chore: changed the file names of airdrop examples, classes, unit and integration tests so they are grouped together. (#631)
 
 ### Fixed
 
@@ -42,6 +42,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
   
 ### Breaking Changes
+- chore: changed the file names airdrop classes (#631)
+{pending_airdrop_id.py -> token_airdrop_pending_id.py}
+{pending_airdrop_record.py -> token_airdrop_pending_record.py}
+{token_cancel_airdrop_transaction.py -> token_airdrop_transaction_cancel.py}
+
 
 ## [0.1.7] - 2025-10-28
 
