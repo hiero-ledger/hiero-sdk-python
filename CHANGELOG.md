@@ -8,11 +8,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
-
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
-
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
 
 ### Changed
@@ -21,11 +19,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: Update env.example NETWORK to encourage testnet or local usage (#659)
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
-
 - chore: Refactored the script of examples/custom_fee.py into modular functions 
-
 - fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
-- chore: Refactored examples/custom_fee.py into three separate example files.
+- chore: Refactored examples/custom_fee.py into three separate example files.- Expanded docs/sdk_developers/checklist.md with a self-review guide for all pull request submission requirements (#645).
+
 
 
 ### Fixed
