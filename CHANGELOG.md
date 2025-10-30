@@ -13,8 +13,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add AccountRecordsQuery class
 
 ### Changed
-- chore: validate that token airdrop transactions require an available token service on the channel (#632) 
 
+- chore: validate that token airdrop transactions require an available token service on the channel (#632) 
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
 - fix: Address maintainer feedback; fix checklist broken links and restore missing changelog entry (#645).
@@ -74,7 +74,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
-- docs: Restructured and expanded `signing.md` to clarify the requirements for achieving GPG 'Verified' commit status for merging (#455).
 
 ### Fixed
 
