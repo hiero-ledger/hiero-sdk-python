@@ -2,8 +2,7 @@
 Client module for interacting with the Hedera network.
 """
 
-from collections import namedtuple
-from typing import List, Union
+from typing import NamedTuple, List, Union
 
 import grpc
 
@@ -18,7 +17,10 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 
 from .network import Network
 
-Operator = namedtuple('Operator', ['account_id', 'private_key'])
+class Operator(NamedTuple):
+    """A named tuple for the operator's account ID and private key."""
+    account_id: AccountId
+    private_key: PrivateKey
 
 class Client:
     """
