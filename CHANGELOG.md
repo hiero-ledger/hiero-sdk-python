@@ -25,6 +25,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: Refactored the script of examples/custom_fee.py into modular functions 
 
 - fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
+- chore: Refactored examples/custom_fee.py into three separate example files.
 
 
 ### Fixed
