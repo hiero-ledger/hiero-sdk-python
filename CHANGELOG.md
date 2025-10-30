@@ -32,6 +32,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Added explicit read permissions to examples.yml (#623)
 - Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
+- fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
 
 ### Breaking Changes
 
