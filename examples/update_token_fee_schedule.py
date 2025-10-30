@@ -18,7 +18,7 @@ from hiero_sdk_python.hbar import Hbar
 def setup_client():
     load_dotenv()
     try:
-        client = Client(Network(network="testnet"))
+        client = Client(Network(os.getenv("NETWORK", "testnet")))
         operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
         operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
         client.set_operator(operator_id, operator_key)
@@ -27,7 +27,6 @@ def setup_client():
     except Exception as e:
         print(f" Error setting up client: {e}")
         sys.exit(1)
-
 
 def create_token(client, operator_id, admin_key):
     print(" Creating token...")
@@ -42,7 +41,8 @@ def create_token(client, operator_id, admin_key):
         max_supply=2000,
         custom_fees=[],
     )
-    keys = TokenKeys(admin_key=admin_key)
+    # We cannot add fee_schedule_key here yet due to TypeError
+    keys = TokenKeys(admin_key=admin_key) 
 
     tx = TokenCreateTransaction(token_params=token_params, keys=keys)
     tx.transaction_fee = Hbar(5).to_tinybars()
@@ -72,29 +72,16 @@ def update_fee_schedule(client, token_id, admin_key, operator_id):
         .set_custom_fees(new_fees)
     )
     tx.transaction_fee = Hbar(5).to_tinybars()
-    tx.freeze_with(client).sign(admin_key)
+    tx.freeze_with(client).sign(admin_key) 
 
     try:
         receipt = tx.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
-            print(f" Fee schedule update failed: {ResponseCode(receipt.status).name}\n") # Likely TOKEN_HAS_NO_FEE_SCHEDULE_KEY
+            print(f" Fee schedule update failed: {ResponseCode(receipt.status).name}\n")
         else:
             print(" Fee schedule updated successfully.\n")
     except Exception as e:
         print(f" Error during fee schedule update execution: {e}\n")
-
-
-def delete_token(client, token_id, admin_key):
-    print(f" Deleting token {token_id}...")
-    try:
-        tx = TokenDeleteTransaction().set_token_id(token_id)
-        tx.transaction_fee = Hbar(2).to_tinybars()
-        tx.freeze_with(client).sign(admin_key)
-        receipt = tx.execute(client)
-        print(f" Token deletion status: {ResponseCode(receipt.status).name}")
-    except Exception as e:
-        print(f" Failed to delete token: {e}")
-
 
 def main():
     client, operator_id, operator_key = setup_client()
@@ -103,7 +90,6 @@ def main():
         token_id = create_token(client, operator_id, operator_key)
         if token_id:
             update_fee_schedule(client, token_id, operator_key, operator_id)
-            # delete_token(client, token_id, operator_key)
     except Exception as e:
         print(f" Error during token operations: {e}")
     finally:
