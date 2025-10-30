@@ -41,7 +41,7 @@ class TokenUnpauseTransaction(Transaction):
 
         if token_id is not None:
             self.set_token_id(token_id)
-    
+
     def set_token_id(self, token_id: TokenId) -> "TokenUnpauseTransaction":
         """
         Sets the token ID for this unpause transaction.
@@ -53,14 +53,14 @@ class TokenUnpauseTransaction(Transaction):
             TokenUnpauseTransaction: This current instance of transaction.
         """
         self._require_not_frozen()
-        
+
         #Check if the tokenId is instance of TokenId
         if not isinstance(token_id, TokenId):
             raise TypeError("token_id must be an instance of TokenId")
 
         self.token_id = token_id
         return self
-    
+
     def _validate_checksum(self, client: "Client") -> None:
         """
         Validates the checksum for the token ID associated with this transaction.
@@ -77,7 +77,7 @@ class TokenUnpauseTransaction(Transaction):
         Construct TokenUnpauseTransaction from TokenUnpauseTransactionBody.
 
         Args:
-            proto (TokenUnpauseTransactionBody): The protobuf representation of TokenUnpauseTransaction
+            proto (TokenUnpauseTransactionBody): The protobuf body of TokenUnpauseTransaction
         
         Returns:
             TokenUnpauseTransaction: A new instance of TokenUnpauseTransaction
@@ -97,11 +97,11 @@ class TokenUnpauseTransaction(Transaction):
         """
         if self.token_id is None:
             raise ValueError("Missing token ID")
-        
+
         return TokenUnpauseTransactionBody(
             token=self.token_id._to_proto()
         )
-    
+
     def build_transaction_body(self) -> TransactionBody:
         """
         Builds and returns the protobuf transaction body for token unpause.
@@ -113,7 +113,7 @@ class TokenUnpauseTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.token_unpause.CopyFrom(token_unpause_body)
         return transaction_body
-    
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token unpause transaction.
@@ -125,7 +125,7 @@ class TokenUnpauseTransaction(Transaction):
         schedulable_body = self.build_base_scheduled_body()
         schedulable_body.token_unpause.CopyFrom(token_unpause_body)
         return schedulable_body
-    
+
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
             transaction_func=channel.token.unpauseToken,

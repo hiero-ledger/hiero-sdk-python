@@ -190,7 +190,7 @@ __all__ = [
     "HbarAllowance",
     "HbarTransfer",
     "TokenPauseTransaction",
-    "TokenUnpauseTransaction"
+    "TokenUnpauseTransaction",
 
     # Transaction
     "Transaction",
