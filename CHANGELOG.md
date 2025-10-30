@@ -17,6 +17,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
+- fix: Address maintainer feedback; fix checklist broken links and restore missing changelog entry (#645).
+- Expanded docs/sdk_developers/signing.md to include a Table of Contents and a consolidated guide on achieving GPG and DCO verified commits (#455).
 
 ### Fixed
 

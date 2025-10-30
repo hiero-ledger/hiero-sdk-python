@@ -1,4 +1,4 @@
-# ✅ Commit Signing Guidelines (DCO + GPG)
+# Commit Signing Guidelines (DCO + GPG)
 
 To contribute to this repository, **both DCO sign-off and GPG signature verification** are required for your commits to be merged successfully.
 
@@ -26,14 +26,14 @@ Achieving a **"Verified"** status on GitHub is a **MANDATORY** requirement for a
 
 | Signature | Flag | Purpose | GitHub Check | Required Documentation |
 | :--- | :--- | :--- | :--- | :--- |
-| **DCO Sign-off** | `-s` | Confirms legal right to contribute code (Required by the CI bot). | DCO Check | [CONTRIBUTING.md](../CONTRIBUTING.md) |
+| **DCO Sign-off** | `-s` | Confirms legal right to contribute code (Required by the CI bot). | DCO Check | [CONTRIBUTING.md](/CONTRIBUTING.md) |
 | **GPG Signature** | `-S` | Proves you are the author of the commit (Requires GPG setup). | Verified Badge | [GitHub's GPG Docs](https://docs.github.com/en/authentication/managing-commit-signature-verification) |
 
 **CRITICAL WARNING:** To pass all checks and achieve the "Verified" status, **all commits** must be signed using **both** the `-S` and `-s` flags together.
 
 ---
 
-## ✍️ Step-by-Step Setup
+## Step-by-Step Setup
 
 ### 1. Generate a GPG Key
 
@@ -82,7 +82,7 @@ git config --global commit.gpgsign true
 
 ---
 
-## ✨ Make Signed Commits
+## Make Signed Commits
 
 **All commits must be signed using both DCO and GPG.**
 
@@ -97,7 +97,7 @@ git commit -S -s -m "chore: your commit message"
 
 ---
 
-## 🛠️ Fixing Unsigned Commits
+## Fixing Unsigned Commits
 
 If you accidentally forgot to sign commits, there are **two ways to fix them**:
 
@@ -128,7 +128,7 @@ Alternatively, you can **amend commits retroactively**:
 
 ```bash
 git commit --amend -S -s
-git rebase -i HEAD~n  # For multiple commits
+git rebase -i HEAD~n            # For multiple commits
 git push --force-with-lease
 ```
 
@@ -146,7 +146,7 @@ git rebase main -S
 
 ---
 
-## ✅ Verify Signed Status of Commits
+## Verify Signed Status of Commits
 
 To check that your commits are signed correctly:
 
@@ -165,7 +165,7 @@ git log -n 5 --pretty=format:'%h %an %G? %s'
 
 ---
 
-## ✅ Final Checklist
+## Final Checklist
 
 * [ ] All commits signed with `-S`
 * [ ] DCO added with `-s`
@@ -177,4 +177,4 @@ git log -n 5 --pretty=format:'%h %an %G? %s'
 ### Still Need Help?
 
 * Refer to [GitHub's GPG Docs](https://docs.github.com/en/authentication/managing-commit-signature-verification)
-* Ask maintainers on the **Hiero Discord** if stuck
+* Ask maintainers on the **Hiero Discord**
