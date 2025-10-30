@@ -1,29 +1,17 @@
 from unittest.mock import MagicMock
 import pytest
 
-from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.token_unpause_pb2 import TokenUnpauseTransactionBody
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
-from hiero_sdk_python.transaction.transaction_id import TransactionId
+from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
-
-def generate_transaction_id(account_id_proto):
-    """Generate a unique transaction ID based on the account ID and the current timestamp."""
-    import time
-    current_time = time.time()
-    timestamp_seconds = int(current_time)
-    timestamp_nanos = int((current_time - timestamp_seconds) * 1e9)
-
-    tx_timestamp = timestamp_pb2.Timestamp(seconds=timestamp_seconds, nanos=timestamp_nanos)
-
-    tx_id = TransactionId(
-        valid_start=tx_timestamp,
-        account_id=account_id_proto
-    )
-    return tx_id
 
 def test_constructor_without_parameters():
     """Test creating token transaction without constructor parameters."""
@@ -53,8 +41,8 @@ def test_build_transaction_body(mock_account_ids):
         TokenUnpauseTransaction()
         .set_token_id(token_id)
     )
-    unpause_tx.transaction_id = generate_transaction_id(account_id)
     unpause_tx.node_account_id = node_account_id
+    unpause_tx.operator_account_id = account_id
 
     transaction_body = unpause_tx.build_transaction_body()
 
@@ -67,7 +55,6 @@ def test_build_transaction_body_when_token_id_not_set(mock_account_ids):
     account_id, _, node_account_id, _, _ = mock_account_ids
 
     unpause_tx = TokenUnpauseTransaction()
-    unpause_tx.transaction_id = generate_transaction_id(account_id)
     unpause_tx.node_account_id = node_account_id
 
     with pytest.raises(ValueError, match="Missing token ID"):
@@ -104,11 +91,10 @@ def test_set_method_require_not_frozen(mock_account_ids, mock_client):
 
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token unpause transaction with a private key."""
-    account_id, _, _, token_id, _= mock_account_ids
+    _, _, _, token_id, _= mock_account_ids
     
     unpause_tx = TokenUnpauseTransaction()
     unpause_tx.set_token_id(token_id)
-    unpause_tx.transaction_id = generate_transaction_id(account_id)
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
@@ -128,11 +114,10 @@ def test_sign_transaction(mock_account_ids, mock_client):
 
 def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token unpause transaction to protobuf format after signing."""
-    account_id, _, _, token_id, _= mock_account_ids
+    _, _, _, token_id, _= mock_account_ids
     
     unpause_tx = TokenUnpauseTransaction()
     unpause_tx.set_token_id(token_id)
-    unpause_tx.transaction_id = generate_transaction_id(account_id)
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
