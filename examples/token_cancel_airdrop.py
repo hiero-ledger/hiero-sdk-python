@@ -24,12 +24,14 @@ from hiero_sdk_python import (
 # Load environment variables from .env file
 load_dotenv()
 
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """Initialize the Hedera client using environment variables."""
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(os.getenv('NETWORK')))
-    
+    print(f"🌐 Connecting to Hedera {network_name}...")
+    client = Client(Network(network_name))
+
+
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))

@@ -19,6 +19,7 @@ from hiero_sdk_python import (
 # Load environment variables from .env file
 load_dotenv()
 
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def create_and_delete_token():
     """
@@ -26,8 +27,8 @@ def create_and_delete_token():
     """
     # 1. Setup Client
     # =================================================================
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(os.getenv('NETWORK')))
+    print(f"🌐 Connecting to Hedera {network_name}...")
+    client = Client(Network(network_name))
 
     # Get the operator account from the .env file
     try:

@@ -22,7 +22,7 @@ from hiero_sdk_python import (
 # Load environment variables from .env file
 load_dotenv()
 
-
+network_name = os.getenv('NETWORK', 'testnet').lower()
 def token_dissociate():
     """
     A full example that creates an account, two tokens, associates them,
@@ -30,8 +30,8 @@ def token_dissociate():
     """
     # 1. Setup Client
     # =================================================================
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(os.getenv('NETWORK')))
+    print(f"🌐 Connecting to Hedera {network_name}...")
+    client = Client(Network(network_name))
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
