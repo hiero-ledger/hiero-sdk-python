@@ -19,6 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update local environment configuration in env.example (#649)
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
+- chore: Refactored the script of examples/custom_fee.py into modular functions 
 
 ### Fixed
 
@@ -416,7 +417,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ### Changed
 
-- Refactored the script of examples/custom_fee.py into moduler functions 
+- N/A
 
 ### Fixed
 
