@@ -416,7 +416,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ### Changed
 
-- N/A
+- Refactored the script of examples/custom_fee.py into moduler functions 
 
 ### Fixed
 
