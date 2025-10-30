@@ -228,7 +228,8 @@ class CustomFixedFee(CustomFee):
         Raises:
             ValueError: If the `fixed_fee` field is not set in the protobuf message.
         """
-        
+        if not proto_fee.HasField("fixed_fee"):
+            raise ValueError("protobuf CustomFee has no fixed_fee set")
         fixed_fee_proto = proto_fee.fixed_fee
         
         denominating_token_id = None
@@ -261,4 +262,25 @@ class CustomFixedFee(CustomFee):
         Returns:
             bool: True if the objects are considered equal, False otherwise.
         """
-        return super().__eq__(other) and self.amount == other.amount and self.denominating_token_id == other.denominating_token_id
+        if not isinstance(other, CustomFixedFee):
+            return NotImplemented
+
+        if not super().__eq__(other):
+            return False
+            
+        return (
+            self.amount == other.amount
+            and self.denominating_token_id == other.denominating_token_id
+        )
+    def __repr__(self) -> str:
+        """Returns a developer-friendly string representation of the CustomFixedFee."""
+        denom_token_repr = repr(self.denominating_token_id)
+        collector_repr = repr(self.fee_collector_account_id)
+
+        return (
+            f"{self.__class__.__name__}("
+            f"amount={self.amount}, "
+            f"denominating_token_id={denom_token_repr}, "
+            f"fee_collector_account_id={collector_repr}, "
+            f"all_collectors_are_exempt={self.all_collectors_are_exempt})"
+        )

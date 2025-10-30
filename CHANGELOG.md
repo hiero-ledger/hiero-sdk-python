@@ -8,6 +8,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Add `__repr__` method to `CustomFixedFee` class for clear object representation.
+- Add `examples/custom_fixed_fee.py`
+- Add `tests/unit/test_custom_fixed_fee.py`
 
 ### Changed
 
