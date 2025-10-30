@@ -10,8 +10,9 @@ from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 
-def main():
-    # Create a CustomFixedFee
+
+
+def custom_fixed_fee():
     fixed_fee = CustomFixedFee(
         amount=100,
         denominating_token_id=TokenId(0, 0, 123),
@@ -23,13 +24,12 @@ def main():
     print(f"Denominating Token ID: {fixed_fee.denominating_token_id}")
     print(f"Fee Collector Account ID: {fixed_fee.fee_collector_account_id}")
     print(f"All Collectors Exempt: {fixed_fee.all_collectors_are_exempt}")
-
     # Convert to protobuf
     fixed_fee_proto = fixed_fee._to_proto()
     
     print("Fixed Fee Protobuf:", fixed_fee_proto)
 
-    # Create a CustomFractionalFee
+def custom_fractional_fee() :
     fractional_fee = CustomFractionalFee(
         numerator=1,
         denominator=10,
@@ -53,7 +53,7 @@ def main():
 
     print("Fractional Fee Protobuf:", fractional_fee_proto)
 
-    # Create a CustomRoyaltyFee
+def custom_royalty_fee():
     fallback_fee = CustomFixedFee(
         amount=50,
         denominating_token_id=TokenId(0, 0, 789),
@@ -77,6 +77,18 @@ def main():
     royalty_fee_proto = royalty_fee._to_proto()
 
     print("Royalty Fee Protobuf:", royalty_fee_proto)
+
+def custom_fee():
+    #create a CustomFixedFee
+    custom_fixed_fee()
+    #create a CustomFractionalFee
+    custom_fractional_fee()
+    #create a CustomRoyaltyFee
+    custom_royalty_fee()
+
+def main():
+    #setup a Client
+    custom_fee()
 
 if __name__ == "__main__":
     main()
