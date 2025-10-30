@@ -1,5 +1,5 @@
 import hashlib
-from typing import Optional
+from typing import List, Optional
 
 from typing import TYPE_CHECKING
 
@@ -59,7 +59,10 @@ class Transaction(_Executable):
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee = 2_000_000
-        self.operator_account_id = None  
+        self.operator_account_id = None
+
+        self.node_account_ids: Optional[List[AccountId]] = None
+        self._used_node_account_id: Optional[AccountId] = None
 
     def _make_request(self):
         """
@@ -482,3 +485,50 @@ class Transaction(_Executable):
         self._require_not_frozen()
         self.transaction_id = transaction_id
         return self
+
+    def set_node_account_ids(self, node_account_ids: List[AccountId]):
+        """
+        Sets the list of node account IDs the transaction can be sent to.
+
+        Args:
+            node_account_ids (List[AccountId]): The list of node account IDs.
+
+        Returns:
+            Self: Returns self for method chaining.
+        """
+
+        self.node_account_ids = node_account_ids
+        return self
+    
+    def set_node_account_id(self, node_account_id: AccountId):
+        """
+        Selects a node account ID to use for sending a transaction.
+
+        Args:
+            node_account_id (AccountId): The node account ID.
+
+        Returns:
+            Self: Returns self for method chaining.
+        """
+
+        return self.set_node_account_ids([node_account_id])
+
+    def _select_node_account_id(self) -> Optional[AccountId]:
+        """
+        Selects a node account ID to use for sending a transaction.
+
+        Picks the first unused node from `self.node_account_ids`.
+        Once used, stores it in `_used_node_account_id`.
+
+        Returns:
+            Optional[AccountId]: The selected node account ID, or None if no IDs are available.
+        """
+        if not self.node_account_ids:
+            return None
+        
+        if hasattr(self, '_last_used_index'):
+            self._last_used_index = (self._last_used_index + 1) % len(self.node_account_ids)
+        else:
+            self._last_used_index = 0
+        self._used_node_account_id = self.node_account_ids[self._last_used_index]
+        return self._used_node_account_id
