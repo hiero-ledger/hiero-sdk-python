@@ -25,12 +25,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: Refactored the script of examples/custom_fee.py into modular functions 
 
 - fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
+- chore: Refactored examples/custom_fee.py into three separate example files.
 
 
 ### Fixed
 
 - Added explicit read permissions to examples.yml (#623)
 - Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
+- fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
 
 ### Breaking Changes
 

@@ -60,6 +60,9 @@ class CustomFee(ABC):
     def _validate_checksums(self, client: Client) -> None:
         if self.fee_collector_account_id is not None:
             self.fee_collector_account_id.validate_checksum(client)
-            
-    def __eq__(self, other: "CustomFee") -> bool:
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CustomFee):
+            return NotImplemented
+        
         return self.fee_collector_account_id == other.fee_collector_account_id and self.all_collectors_are_exempt == other.all_collectors_are_exempt
