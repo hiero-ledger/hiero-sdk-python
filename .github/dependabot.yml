@@ -15,3 +15,14 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    open-pull-requests-limit: 10
+  - package-ecosystem: "pip-compile"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+  - package-ecosystem: "pipenv"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
