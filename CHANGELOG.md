@@ -9,17 +9,21 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
-
+- Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
 
-### Changed
+- docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
 
+### Changed
+- chore: validate that token airdrop transactions require an available token service on the channel (#632) 
+- chore: update local environment configuration in env.example (#649)
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
 
 ### Fixed
 
 - Added explicit read permissions to examples.yml (#623)
+- Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
 
 ### Breaking Changes
 
