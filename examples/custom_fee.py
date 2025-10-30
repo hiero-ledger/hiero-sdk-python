@@ -84,9 +84,10 @@ def setup_client():
     #create a CustomFractionalFee
     custom_fractional_fee()
     #create a CustomRoyaltyFee
-    custom_royalty_fee
+    custom_royalty_fee()
 
 def main():
+    #setup a Client
     setup_client()
 
 if __name__ == "__main__":
