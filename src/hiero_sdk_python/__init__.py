@@ -49,6 +49,7 @@ from .tokens.hbar_allowance import HbarAllowance
 from .tokens.hbar_transfer import HbarTransfer
 
 # Transaction
+from .transaction.transaction import Transaction
 from .transaction.transfer_transaction import TransferTransaction
 from .transaction.transaction_id import TransactionId
 from .transaction.transaction_receipt import TransactionReceipt
@@ -188,6 +189,7 @@ __all__ = [
     "HbarTransfer",
 
     # Transaction
+    "Transaction",
     "TransferTransaction",
     "TransactionId",
     "TransactionReceipt",
