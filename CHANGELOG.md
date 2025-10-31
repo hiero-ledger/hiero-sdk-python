@@ -27,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
 - chore: Refactored examples/custom_fee.py into three separate example files.
 - Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
+- chore: Adapt examples/custom_fee_royalty.py to be a full end-to-end example (#679)
 
 
 
@@ -37,7 +38,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
 
 ### Breaking Changes
-
 ## [0.1.7] - 2025-10-28
 
 ### Added
