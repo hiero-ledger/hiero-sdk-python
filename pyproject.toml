@@ -16,8 +16,8 @@ requires-python = ">=3.10"
 dependencies = [
     "protobuf==5.29.5",
     "grpcio-tools==1.68.1",
-    "grpcio==1.71.2",
-    "cryptography==46.0.3",
+    "grpcio==1.76.0",
+    "cryptography==44.0.0",
     "python-dotenv==1.0.1",
     "requests==2.32.3",
     "pycryptodome==3.23.0",
