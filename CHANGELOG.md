@@ -33,7 +33,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added explicit read permissions to examples.yml (#623)
 - Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
 - fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
-
+- Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
+  
 ### Breaking Changes
 
 ## [0.1.7] - 2025-10-28
@@ -91,7 +92,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Type hinting for `Topic` related transactions.
 
 ### Removed
-- Removed deprecated `Logger.warn()` method and legacy parameter swap logic from `get_logger()` (#673).
 - Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
 
 ## [0.1.6] - 2025-10-21
