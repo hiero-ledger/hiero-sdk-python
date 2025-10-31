@@ -5,8 +5,6 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-2025-10-31
-- Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 
 ### Added
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
@@ -18,6 +16,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
 - Added TokenUnpauseTransaction class
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
+- Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
