@@ -53,18 +53,12 @@ def test_build_raises_error_if_no_token_id():
     with pytest.raises(ValueError, match="Missing token ID"):
         update_tx.build_transaction_body()
 
+# --- Tests split from test_build_transaction_body_correctly ---
 
-def test_build_transaction_body_correctly(mock_account_ids):
+def test_build_transaction_body_sets_token_id(mock_account_ids):
     operator_id, _, node_account_id, token_id, _ = mock_account_ids
-    test_fee = CustomFixedFee(
-        amount=150,
-        fee_collector_account_id=operator_id
-    )
-    test_fees_list = [test_fee]
-
-    update_tx = TokenFeeScheduleUpdateTransaction()
-    update_tx.set_token_id(token_id)
-    update_tx.set_custom_fees(test_fees_list)
+    
+    update_tx = TokenFeeScheduleUpdateTransaction(token_id=token_id)
     update_tx.operator_account_id = operator_id
     update_tx.node_account_id = node_account_id
 
@@ -72,8 +66,36 @@ def test_build_transaction_body_correctly(mock_account_ids):
 
     assert transaction_body.HasField("token_fee_schedule_update")
     assert transaction_body.token_fee_schedule_update.token_id == token_id._to_proto()
-    assert len(transaction_body.token_fee_schedule_update.custom_fees) == 1
 
+def test_build_transaction_body_sets_custom_fees(mock_account_ids):
+    operator_id, _, node_account_id, token_id, _ = mock_account_ids
+    test_fee = CustomFixedFee(
+        amount=150,
+        fee_collector_account_id=operator_id
+    )
+    test_fees_list = [test_fee]
+
+    update_tx = TokenFeeScheduleUpdateTransaction(token_id=token_id, custom_fees=test_fees_list)
+    update_tx.operator_account_id = operator_id
+    update_tx.node_account_id = node_account_id
+
+    transaction_body = update_tx.build_transaction_body()
+
+    assert len(transaction_body.token_fee_schedule_update.custom_fees) == 1
     proto_fee = transaction_body.token_fee_schedule_update.custom_fees[0]
     assert proto_fee.fixed_fee.amount == 150
     assert proto_fee.fee_collector_account_id == operator_id._to_proto()
+
+def test_build_transaction_body_with_empty_custom_fees(mock_account_ids):
+    """Test for empty custom fee list."""
+    operator_id, _, node_account_id, token_id, _ = mock_account_ids
+    
+    update_tx = TokenFeeScheduleUpdateTransaction(token_id=token_id, custom_fees=[])
+    update_tx.operator_account_id = operator_id
+    update_tx.node_account_id = node_account_id
+
+    transaction_body = update_tx.build_transaction_body()
+
+    assert transaction_body.HasField("token_fee_schedule_update")
+    assert transaction_body.token_fee_schedule_update.token_id == token_id._to_proto()
+    assert len(transaction_body.token_fee_schedule_update.custom_fees) == 0
