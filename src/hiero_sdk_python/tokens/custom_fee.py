@@ -146,6 +146,6 @@ class CustomFee(ABC):
             bool: `True` if the instances are equal, `False` otherwise.
         """
         if not isinstance(other, CustomFee):
-            return  
+            return NotImplemented
         
         return self.fee_collector_account_id == other.fee_collector_account_id and self.all_collectors_are_exempt == other.all_collectors_are_exempt
