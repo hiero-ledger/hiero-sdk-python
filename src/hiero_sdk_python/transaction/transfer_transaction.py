@@ -417,3 +417,58 @@ class TransferTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.crypto.cryptoTransfer, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        """
+        Creates a TransferTransaction instance from protobuf components.
+
+        Args:
+            transaction_body: The parsed TransactionBody protobuf
+            body_bytes (bytes): The raw bytes of the transaction body
+            sig_map: The SignatureMap protobuf containing signatures
+
+        Returns:
+            TransferTransaction: A new transaction instance with all fields restored
+        """
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField("cryptoTransfer"):
+            crypto_transfer = transaction_body.cryptoTransfer
+
+            if crypto_transfer.HasField("transfers"):
+                for account_amount in crypto_transfer.transfers.accountAmounts:
+                    account_id = AccountId._from_proto(account_amount.accountID)
+                    amount = account_amount.amount
+                    is_approved = account_amount.is_approval
+                    transaction.hbar_transfers.append(
+                        HbarTransfer(account_id, amount, is_approved)
+                    )
+
+            for token_transfer_list in crypto_transfer.tokenTransfers:
+                token_id = TokenId._from_proto(token_transfer_list.token)
+
+                for transfer in token_transfer_list.transfers:
+                    account_id = AccountId._from_proto(transfer.accountID)
+                    amount = transfer.amount
+                    is_approved = transfer.is_approval
+
+                    expected_decimals = None
+                    if token_transfer_list.HasField("expected_decimals"):
+                        expected_decimals = token_transfer_list.expected_decimals.value
+
+                    transaction.token_transfers[token_id].append(
+                        TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved)
+                    )
+
+                for nft_transfer in token_transfer_list.nftTransfers:
+                    sender_id = AccountId._from_proto(nft_transfer.senderAccountID)
+                    receiver_id = AccountId._from_proto(nft_transfer.receiverAccountID)
+                    serial_number = nft_transfer.serialNumber
+                    is_approved = nft_transfer.is_approval
+
+                    transaction.nft_transfers[token_id].append(
+                        TokenNftTransfer(token_id, sender_id, receiver_id, serial_number, is_approved)
+                    )
+
+        return transaction

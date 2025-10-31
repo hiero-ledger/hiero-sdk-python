@@ -37,6 +37,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Burning a Non-Fungible Token](#burning-a-non-fungible-token)
   - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
+  - [Unpausing a Token](#unpausing-a-token)
   - [Token Grant KYC](#token-grant-kyc)
   - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
@@ -82,6 +83,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 - [Miscellaneous Transactions](#miscellaneous-transactions)
+  - [Transaction Bytes Serialization](#transaction-bytes-serialization)
   - [PRNG Transaction](#prng-transaction)
 
 
@@ -837,6 +839,29 @@ transaction.execute(client)
     )
     transaction.execute(client)
 
+```
+
+### Unpausing a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenUnpauseTransaction(
+    token_id=token_id
+).freeze_with(client)
+
+transaction.sign(pause_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    TokenUnpauseTransaction()
+    .set_token_id(token_id)
+    .freeze_with(client)
+    .sign(pause_key)
+)
+transaction.execute(client)
 ```
 
 ### Token Grant KYC
@@ -2043,6 +2068,16 @@ print(f"Transaction Account ID: {record.receipt.account_id}")
 ```
 
 ## Miscellaneous Transactions
+
+### Transaction Bytes Serialization
+
+For detailed information about freezing transactions and converting them to bytes for offline signing, external signing services (HSMs, hardware wallets), and transaction storage/transmission, see [Transaction Bytes Serialization](transaction_bytes.md).
+
+This guide covers:
+- `Transaction.freeze()` and `Transaction.freeze_with(client)` methods
+- `Transaction.to_bytes()` for serialization
+- `Transaction.from_bytes()` for deserialization
+- Use cases for offline signing, HSM integration, transaction storage, and batch processing
 
 ### PRNG Transaction
 
