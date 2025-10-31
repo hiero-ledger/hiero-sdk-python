@@ -81,6 +81,7 @@ You can choose either syntax or even mix both styles in your projects.
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 - [Miscellaneous Transactions](#miscellaneous-transactions)
+  - [Transaction Bytes Serialization](#transaction-bytes-serialization)
   - [PRNG Transaction](#prng-transaction)
 
 
@@ -2028,6 +2029,16 @@ print(f"Transaction Account ID: {record.receipt.account_id}")
 ```
 
 ## Miscellaneous Transactions
+
+### Transaction Bytes Serialization
+
+For detailed information about freezing transactions and converting them to bytes for offline signing, external signing services (HSMs, hardware wallets), and transaction storage/transmission, see [Transaction Bytes Serialization](transaction_bytes.md).
+
+This guide covers:
+- `Transaction.freeze()` and `Transaction.freeze_with(client)` methods
+- `Transaction.to_bytes()` for serialization
+- `Transaction.from_bytes()` for deserialization
+- Use cases for offline signing, HSM integration, transaction storage, and batch processing
 
 ### PRNG Transaction
 
