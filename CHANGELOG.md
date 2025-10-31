@@ -38,6 +38,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
 - Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
 - fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
+- Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
+
   
 ### Breaking Changes
 
