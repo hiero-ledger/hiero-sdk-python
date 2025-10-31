@@ -31,13 +31,7 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
     ) -> None:
         """
         Initializes a new TokenFeeScheduleUpdateTransaction instance.
-
-        Sets a default transaction fee higher than the base transaction
-        to accommodate potential fee increases for this specific operation.
-
-        Args:
-            token_id (TokenId, optional): The ID of the token to update.
-            custom_fees (List[CustomFee], optional): The new custom fee schedule.
+        Sets a default transaction fee.
         """
         super().__init__()
         self._default_transaction_fee: int = 100_000_000 # 1 Hbar in tinybars
@@ -87,7 +81,6 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = (
             self.build_base_transaction_body()
         )
-
         transaction_body.token_fee_schedule_update.CopyFrom(token_fee_update_body)
         return transaction_body
 
@@ -95,8 +88,7 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         """Builds the scheduled transaction body."""
         token_fee_update_body = self._build_proto_body()
         schedulable_body = self.build_base_scheduled_body()
-
-        schedulable_body.tokenFeeScheduleUpdate.CopyFrom(token_fee_update_body) 
+        schedulable_body.tokenFeeScheduleUpdate.CopyFrom(token_fee_update_body)
         return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
