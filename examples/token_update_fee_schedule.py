@@ -5,14 +5,12 @@ from dotenv import load_dotenv
 
 from hiero_sdk_python import Client, AccountId, PrivateKey, Network
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenParams, TokenKeys
-from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
+from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee # Keep import
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.hbar import Hbar
 
 
 def setup_client():
@@ -28,6 +26,7 @@ def setup_client():
         print(f" Error setting up client: {e}")
         sys.exit(1)
 
+
 def create_token(client, operator_id, admin_key):
     print(" Creating token...")
     token_params = TokenParams(
@@ -41,11 +40,12 @@ def create_token(client, operator_id, admin_key):
         max_supply=2000,
         custom_fees=[],
     )
-    # We cannot add fee_schedule_key here yet due to TypeError
-    keys = TokenKeys(admin_key=admin_key) 
+    keys = TokenKeys(
+        admin_key=admin_key,
+        fee_schedule_key=admin_key
+    )
 
     tx = TokenCreateTransaction(token_params=token_params, keys=keys)
-    tx.transaction_fee = Hbar(5).to_tinybars()
     tx.freeze_with(client).sign(admin_key)
     receipt = tx.execute(client)
 
@@ -59,11 +59,13 @@ def create_token(client, operator_id, admin_key):
     return token_id
 
 
-def update_fee_schedule(client, token_id, admin_key, operator_id):
+def update_fee_schedule(client, token_id, fee_schedule_key, operator_id):
     print(f" Updating fee schedule for token {token_id}...")
+    
+    # --- FIX: Removed CustomRoyaltyFee for a FUNGIBLE token ---
     new_fees = [
-        CustomFixedFee(amount=150, fee_collector_account_id=operator_id),
-        CustomRoyaltyFee(numerator=5, denominator=100, fee_collector_account_id=operator_id),
+        CustomFixedFee(amount=150, fee_collector_account_id=operator_id)
+        # CustomRoyaltyFee(...) removed as it's not allowed for fungible tokens
     ]
     print(f" Defined {len(new_fees)} custom fees.\n")
     tx = (
@@ -71,8 +73,7 @@ def update_fee_schedule(client, token_id, admin_key, operator_id):
         .set_token_id(token_id)
         .set_custom_fees(new_fees)
     )
-    tx.transaction_fee = Hbar(5).to_tinybars()
-    tx.freeze_with(client).sign(admin_key) 
+    tx.freeze_with(client).sign(fee_schedule_key) 
 
     try:
         receipt = tx.execute(client)
@@ -82,6 +83,7 @@ def update_fee_schedule(client, token_id, admin_key, operator_id):
             print(" Fee schedule updated successfully.\n")
     except Exception as e:
         print(f" Error during fee schedule update execution: {e}\n")
+
 
 def main():
     client, operator_id, operator_key = setup_client()
