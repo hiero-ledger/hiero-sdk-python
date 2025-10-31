@@ -27,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
 - chore: Refactored examples/custom_fee.py into three separate example files.
 - Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
+- refactor: adapt `examples/custom_fee_fixed.py` to be a full end-to-end example (#677)
 
 
 
