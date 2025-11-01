@@ -123,11 +123,14 @@ class TokenId:
 
         Args:
             client (Client): The client instance, used to determine the
-                network and validate the checksum against.
+                network ledger ID for validation.
 
         Raises:
-            HederaPreCheckStatusError: If the checksum is present but invalid
-                for the client's network.
+            ValueError: If the client's ledger ID is not set (required for
+                validation).
+            ValueError: If the checksum is present but does not match the
+                expected checksum for the client's network (e.g.,
+                "Checksum mismatch for 0.0.123").
         """
         validate_checksum(
             shard=self.shard,
