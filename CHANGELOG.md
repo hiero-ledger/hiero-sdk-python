@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
 
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
