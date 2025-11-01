@@ -54,11 +54,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
+- Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
 - Added Google-style docstrings to `CustomFractionalFee` class and its methods in `custom_fractional_fee.py`.
 - Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
+- Added `examples/update_token_fee_schedule.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
 - Added documentation for resolving changelog conflicts in `docs/common_issues.md`
 - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
+- Updated `docs/sdk_users/running_examples.md` to include the new fee schedule update example.
 - docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
 - docs: Add Google-style docstrings to `CustomRoyaltyFee` class and its methods in `custom_royalty_fee.py`.
 - docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
