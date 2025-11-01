@@ -4,7 +4,7 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.exceptions import TransactionException
+from hiero_sdk_python.exceptions import TransactionReceipt
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.hbar import Hbar
