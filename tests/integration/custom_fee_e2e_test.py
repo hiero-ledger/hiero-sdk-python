@@ -4,8 +4,8 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-# FINAL FIX: Import the correct object name (TransactionReceipt) from the exception module
-from hiero_sdk_python.exceptions import TransactionReceipt 
+# FINAL FIX: PrecheckError is the correct exception class for pre-consensus failures.
+from hiero_sdk_python.exceptions import PrecheckError 
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.hbar import Hbar
@@ -28,7 +28,7 @@ def test_custom_fee_can_execute_on_network(env):
     custom_fee = (
         CustomFixedFee(
             amount=fixed_fee_amount, 
-            denominated_token_id=None, # HBAR fixed fee
+            denominated_token_id=None,
         )
         .set_fee_collector_account_id(collector_account.id)
         .set_all_collectors_are_exempt(False)
@@ -75,16 +75,16 @@ def test_custom_fee_collector_account_validation_on_network(env):
         .set_fee_collector_account_id(non_existent_id)
         .set_all_collectors_are_exempt(False)
     )
-    
-    # Use TransactionReceipt to catch the transaction failure
-    with pytest.raises(TransactionReceipt) as excinfo:
+
+    # Use PrecheckError for the raises block
+    with pytest.raises(PrecheckError) as excinfo:
         create_fungible_token(
             env,
             custom_fees=[custom_fee]
         )
         
-    # The status code check remains correct
-    assert excinfo.value.receipt.status == ResponseCode.INVALID_CUSTOM_FEE_COLLECTOR
+    # Check the status code attribute on the exception instance
+    assert excinfo.value.status == ResponseCode.INVALID_CUSTOM_FEE_COLLECTOR
     
     
 @pytest.mark.integration
