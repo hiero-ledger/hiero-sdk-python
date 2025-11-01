@@ -60,8 +60,22 @@ class TokenId:
     @classmethod
     def from_string(cls, token_id_str: Optional[str] = None) -> "TokenId":
         """
-        Parses a string in the format 'shard.realm.num' to create a TokenId instance.
+        Creates a TokenId instance from a string in the format 'shard.realm.num'.
+
+        Args:
+            token_id_str (str): The string representation of the token ID.
+
+        Returns:
+            TokenId: A new TokenId instance parsed from the provided string.
+
+        Raises:
+            ValueError: 
+                - If token_id_str is None.
+                - If the input string cannot be parsed or is malformed.
         """
+        if token_id_str is None:
+            raise ValueError("token_id_str cannot be None") 
+
         try:
             shard, realm, num, checksum = parse_from_string(token_id_str)
 
@@ -75,7 +89,7 @@ class TokenId:
         except Exception as e:
             raise ValueError(
                 f"Invalid token ID string '{token_id_str}'. Expected format 'shard.realm.num'."
-            ) from e
+            )from e
 
     def validate_checksum(self, client: Client) -> None:
         """Validate the checksum for the TokenId instance"""
