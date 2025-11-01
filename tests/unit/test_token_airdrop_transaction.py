@@ -148,22 +148,22 @@ def test_add_zero_transfer_amount(mock_account_ids):
     airdrop_tx = TokenAirdropTransaction()
 
     with pytest.raises(ValueError):
-        airdrop_tx.add_token_transfer(account_id, token_id, 0)
+        airdrop_tx.add_token_transfer(token_id, account_id, 0)
 
     with pytest.raises(ValueError):
-        airdrop_tx.add_token_transfer_with_decimals(account_id, token_id, 0, 1)
+        airdrop_tx.add_token_transfer_with_decimals(token_id, account_id, 0, 1)
 
     with pytest.raises(ValueError):
-        airdrop_tx.add_approved_token_transfer(account_id, token_id, 0)
+        airdrop_tx.add_approved_token_transfer(token_id, account_id, 0)
         
     with pytest.raises(ValueError):
-        airdrop_tx.add_approved_token_transfer_with_decimals(account_id, token_id, 0, 1)
+        airdrop_tx.add_approved_token_transfer_with_decimals(token_id, account_id, 0, 1)
 
 def test_add_unbalanced_transfer_amount(mock_account_ids):
     sender, receiver, _, token_id, _ = mock_account_ids
     airdrop_tx = TokenAirdropTransaction()
-    airdrop_tx.add_token_transfer(sender, token_id, -1)
-    airdrop_tx.add_token_transfer(receiver, token_id, -2)
+    airdrop_tx.add_token_transfer(token_id, sender, -1)
+    airdrop_tx.add_token_transfer(token_id, receiver, -2)
 
     with pytest.raises(ValueError):
         airdrop_tx.build_transaction_body()
