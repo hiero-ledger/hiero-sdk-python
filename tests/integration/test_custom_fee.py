@@ -1,17 +1,16 @@
 import pytest
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-# --- FIX APPLIED HERE ---
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery 
-# ------------------------
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.exceptions import TransactionException
+from hiero_sdk_python.transaction.transaction_exception import TransactionException
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.hbar import Hbar
 
 # Import utility functions and fixtures from utils_for_test.py
+from src.hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tests.integration.utils_for_test import env, create_fungible_token, create_nft_token
 @pytest.mark.integration
 def test_custom_fee_can_execute_on_network(env):
@@ -76,7 +75,7 @@ def test_custom_fee_collector_account_validation_on_network(env):
     )
     
     # We expect the transaction to fail because the collector account ID is invalid/non-existent
-    with pytest.raises(TransactionException) as excinfo:
+    with pytest.raises(TransactionReceipt) as excinfo:
         create_fungible_token(
             env,
             custom_fees=[custom_fee]
