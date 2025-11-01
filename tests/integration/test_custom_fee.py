@@ -4,7 +4,7 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.exceptions import TransactionReceipt
+from hiero_sdk_python.exceptions import TransactionRecord
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.hbar import Hbar
@@ -75,7 +75,7 @@ def test_custom_fee_collector_account_validation_on_network(env):
     )
     
     # We expect the transaction to fail because the collector account ID is invalid/non-existent
-    with pytest.raises(TransactionReceipt) as excinfo:
+    with pytest.raises(TransactionRecord) as excinfo:
         create_fungible_token(
             env,
             custom_fees=[custom_fee]
