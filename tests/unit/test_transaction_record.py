@@ -1,5 +1,5 @@
-from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
-from hiero_sdk_python.tokens.pending_airdrop_record import PendingAirdropRecord
+from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
+from hiero_sdk_python.tokens.token_airdrop_pending_record import PendingAirdropRecord
 import pytest
 from collections import defaultdict
 from hiero_sdk_python.account.account_id import AccountId

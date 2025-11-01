@@ -1,5 +1,5 @@
 from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_record_pb2
-from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
+from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 
 
 class PendingAirdropRecord:
