@@ -53,7 +53,8 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         private `_add_token_transfer` method.
 
         Args:
-            token_transfers (List[TokenTransfer]): A list of initialized TokenTransfer objects.
+            token_transfers (Union[Dict[TokenId, Dict[AccountId, int]], List[TokenTransfer]]):
+                A list of initialized TokenTransfer objects.
         """
         if isinstance(token_transfers, list):
             for transfer in token_transfers:
@@ -69,7 +70,10 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
                 for account_id, amount in account_transfers.items():
                     self._add_token_transfer(token_id, account_id, amount)
         else:
-            raise ValueError("")
+            raise ValueError(
+                "Invalid type for `token_transfers`. Expected a list of TokenTransfer "
+                "or a dict[TokenId, dict[AccountId, int]]."
+            )
 
     def _init_nft_transfers(
             self,
@@ -81,7 +85,8 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         private `_add_nft_transfer` method.
 
         Args:
-            nft_transfers (List[TokenNftTransfer]): A list of initialized TokenNftTransfer objects.
+            nft_transfers (Union[Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]], List[TokenNftTransfer]]):
+                A list or dictionary describing NFT transfers.
         """
         if isinstance(nft_transfers, list):
             for transfer in nft_transfers:
@@ -99,7 +104,10 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
                         NftId(token_id, serial_number), sender_id, receiver_id, is_approved
                     )
         else:
-            raise ValueError("")   
+            raise TypeError(
+                "Invalid type for `nft_transfers`. Expected a list of TokenNftTransfer "
+                "or a dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]]."
+            )   
 
     def _add_token_transfer(
             self,
@@ -191,7 +199,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             amount (int): The amount of the fungible token to transfer.
 
         Returns:
-            T: The current instance of the transaction for chaining.
+            Self: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
         self._add_token_transfer(token_id, account_id, amount)
@@ -213,7 +221,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             decimals (int): The number specifying the amount in the smallest denomination.
 
         Returns:
-            T: The current instance of the transaction for chaining.
+            Self: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
         self._add_token_transfer(token_id, account_id, amount, expected_decimals=decimals)
@@ -233,7 +241,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             amount (int): The amount of the fungible token to transfer.
 
         Returns:
-            T: The current instance of the transaction for chaining.
+            Self: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
         self._add_token_transfer(token_id, account_id, amount, is_approved=True)
@@ -255,7 +263,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             decimals (int): The number specifying the amount in the smallest denomination.
 
         Returns:
-            T: The current instance of the transaction for chaining.
+            Self: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
         self._add_token_transfer(token_id, account_id, amount, decimals, True)
@@ -277,7 +285,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             receiver (AccountId): The receiver's account ID.
 
         Returns:
-            T: The current instance of the transaction for chaining.
+            Self: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
         
