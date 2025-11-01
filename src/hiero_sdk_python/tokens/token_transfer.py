@@ -68,3 +68,19 @@ class TokenTransfer:
             f"expected_decimals={self.expected_decimals}, "
             f"is_approved={self.is_approved})"
         )
+
+    def __repr__(self) -> str:
+        """
+        Returns an unambiguous string representation of the TokenTransfer.
+
+        Returns:
+            str: A string that could be used to recreate the TokenTransfer object.
+        """
+        return (
+            f"TokenTransfer("
+            f"token_id={self.token_id!r}, "
+            f"account_id={self.account_id!r}, "
+            f"amount={self.amount!r}, "
+            f"expected_decimals={self.expected_decimals!r}, "
+            f"is_approved={self.is_approved!r})"
+        )
