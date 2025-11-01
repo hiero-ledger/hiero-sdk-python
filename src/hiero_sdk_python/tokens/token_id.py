@@ -103,6 +103,9 @@ class TokenId:
             ValueError: If the token_id_str is None, empty, or in an
                 invalid format.
         """
+        if token_id_str is None:
+            raise ValueError("token_id_str cannot be None") 
+
         try:
             shard, realm, num, checksum = parse_from_string(token_id_str)
 
@@ -116,7 +119,7 @@ class TokenId:
         except Exception as e:
             raise ValueError(
                 f"Invalid token ID string '{token_id_str}'. Expected format 'shard.realm.num'."
-            ) from e
+            )from e
 
     def validate_checksum(self, client: Client) -> None:
         """Validates the checksum (if present) against the client's network.

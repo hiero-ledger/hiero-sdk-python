@@ -6,22 +6,50 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
 ### Added
 - docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
+- Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
+
+- Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
+- Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
+- add AccountRecordsQuery class
+- Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
+- docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
+- Added TokenUnpauseTransaction class
+- Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
+- Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 
 ### Changed
+- chore: validate that token airdrop transactions require an available token service on the channel (#632) 
+- chore: update local environment configuration in env.example (#649)
+- chore: Update env.example NETWORK to encourage testnet or local usage (#659)
+- chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
+- chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
+
+- chore: Refactored the script of examples/custom_fee.py into modular functions 
+
+- fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
+- chore: Refactored examples/custom_fee.py into three separate example files.
+- Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
+- Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
+- chore: Standardized client initialization across all examples/ files to promote consistency (#658).
+
 
 ### Fixed
+
 - Added explicit read permissions to examples.yml (#623)
+- Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
+- Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
+- fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
+- Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
 
+  
 ### Breaking Changes
-
 
 ## [0.1.7] - 2025-10-28
 
-
 ### Added
+
 - Expanded `README.md` with a new "Follow Us" section detailing how to watch, star, and fork the repository (#472).
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
@@ -61,7 +89,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
-– docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+  – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
@@ -112,6 +140,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
+
 
 ### Fixed
 
