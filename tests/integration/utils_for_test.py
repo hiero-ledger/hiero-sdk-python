@@ -95,36 +95,39 @@ class IntegrationTestEnv:
                 f"Transfer failed: {ResponseCode(transfer_receipt.status).name}"
             )
 
-def create_fungible_token(env, opts=[]):
+def create_fungible_token(env, opts=[], custom_fees=None):
     """
-    Create a fungible token with the given options.
+    Create a fungible token with the given options and custom fees.
 
     Args:
         env: The environment object containing the client and operator account.
         opts: List of optional functions that can modify the token creation transaction before execution.
-             Example opt function:
-             lambda tx: tx.set_treasury_account_id(custom_treasury_id).freeze_with(client)
+        custom_fees: A list of CustomFee objects to attach to the token.
     """
     token_params = TokenParams(
-            token_name="PTokenTest34",
-            token_symbol="PTT34",
-            decimals=2,
-            initial_supply=1000,
-            treasury_account_id=env.operator_id,
-            token_type=TokenType.FUNGIBLE_COMMON,
-            supply_type=SupplyType.FINITE,
-            max_supply=10000
-        )
+        token_name="PTokenTest34",
+        token_symbol="PTT34",
+        decimals=2,
+        initial_supply=1000,
+        treasury_account_id=env.operator_id,
+        token_type=TokenType.FUNGIBLE_COMMON,
+        supply_type=SupplyType.FINITE,
+        max_supply=10000
+    )
     
     token_keys = TokenKeys(
-            admin_key=env.operator_key,
-            supply_key=env.operator_key,
-            freeze_key=env.operator_key,
-            wipe_key=env.operator_key
-            # pause_key=  None  # implicitly “no pause key” use opts to add one
-        )
-        
+        admin_key=env.operator_key,
+        supply_key=env.operator_key,
+        freeze_key=env.operator_key,
+        wipe_key=env.operator_key
+        # pause_key=  None  # implicitly “no pause key” use opts to add one
+    )
+    
     token_transaction = TokenCreateTransaction(token_params, token_keys)
+    
+    if custom_fees:
+        for fee in custom_fees:
+            token_transaction.add_custom_fee(fee)
     
     # Apply optional functions to the token creation transaction
     for opt in opts:
@@ -136,15 +139,14 @@ def create_fungible_token(env, opts=[]):
     
     return token_receipt.token_id
 
-def create_nft_token(env, opts=[]):
+def create_nft_token(env, opts=[], custom_fees=None):
     """
-    Create a non-fungible token (NFT) with the given options.
+    Create a non-fungible token (NFT) with the given options and custom fees.
 
     Args:
         env: The environment object containing the client and operator account.
         opts: List of optional functions that can modify the token creation transaction before execution.
-             Example opt function:
-             lambda tx: tx.set_treasury_account_id(custom_treasury_id).freeze_with(client)
+        custom_fees: A list of CustomFee objects to attach to the token.
     """
     token_params = TokenParams(
         token_name="PythonNFTToken",
@@ -154,7 +156,7 @@ def create_nft_token(env, opts=[]):
         treasury_account_id=env.operator_id,
         token_type=TokenType.NON_FUNGIBLE_UNIQUE,
         supply_type=SupplyType.FINITE,
-        max_supply=10000  
+        max_supply=10000 
     )
     
     token_keys = TokenKeys(
@@ -162,10 +164,13 @@ def create_nft_token(env, opts=[]):
         supply_key=env.operator_key,
         freeze_key=env.operator_key
         # pause_key=  None  # implicitly “no pause key” use opts to add one
-
     )
 
     transaction = TokenCreateTransaction(token_params, token_keys)
+    
+    if custom_fees:
+        for fee in custom_fees:
+            transaction.add_custom_fee(fee)
 
     # Apply optional functions to the token creation transaction
     for opt in opts:
