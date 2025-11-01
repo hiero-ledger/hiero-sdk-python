@@ -17,7 +17,7 @@ dependencies = [
     "protobuf==5.29.5",
     "grpcio-tools==1.68.1",
     "grpcio==1.71.2",
-    "cryptography==44.0.0",
+    "cryptography==46.0.3",
     "python-dotenv==1.0.1",
     "requests==2.32.3",
     "pycryptodome==3.23.0",
