@@ -62,10 +62,8 @@ def create_token(client, operator_id, admin_key):
 def update_fee_schedule(client, token_id, fee_schedule_key, operator_id):
     print(f" Updating fee schedule for token {token_id}...")
     
-    # --- FIX: Removed CustomRoyaltyFee for a FUNGIBLE token ---
     new_fees = [
         CustomFixedFee(amount=150, fee_collector_account_id=operator_id)
-        # CustomRoyaltyFee(...) removed as it's not allowed for fungible tokens
     ]
     print(f" Defined {len(new_fees)} custom fees.\n")
     tx = (
