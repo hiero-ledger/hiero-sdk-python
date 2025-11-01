@@ -1,20 +1,18 @@
 import pytest
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-from hiero_sdk_python.queries.token_info_query import TokenInfoQuery
+# --- FIX APPLIED HERE ---
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery 
+# ------------------------
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.exceptions.transaction_exception import TransactionException
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
-from hiero_sdk_python.hbar import Hbar # Re-added Hbar
+from hiero_sdk_python.hbar import Hbar
 
 # Import utility functions and fixtures from utils_for_test.py
-# IMPORTANT: Added create_nft_token here, as it's used by the royalty fee test
-from tests.integration.utils_for_test import env, create_fungible_token, create_nft_token 
-
-# --- (The rest of your test functions follow below, unchanged) ---
-
+from tests.integration.utils_for_test import env, create_fungible_token, create_nft_token
 @pytest.mark.integration
 def test_custom_fee_can_execute_on_network(env):
     """
