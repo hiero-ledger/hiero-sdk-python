@@ -10,7 +10,8 @@ from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt  
+# FIX 1: Use the path provided by the reviewer, which resolves the import issue.
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt 
 
 from tests.integration.utils_for_test import env, create_fungible_token, create_nft_token
 
@@ -68,12 +69,12 @@ def test_custom_fee_collector_account_validation_on_network(env):
         .set_all_collectors_are_exempt(False)
     )
 
-    with pytest.raises(AssertionError) as excinfo:
-      create_fungible_token(env, custom_fees=[custom_fee])
+    # FIX 3: Catch the TransactionReceipt, which contains the status
+    with pytest.raises(TransactionReceipt) as excinfo:
+        create_fungible_token(env, custom_fees=[custom_fee])
 
-    assert "INVALID_CUSTOM_FEE_COLLECTOR" in str(
-      excinfo.value
-    ), f"Unexpected error message: {excinfo.value}"
+    # Assert the status code on the receipt (TransactionReceipt.status)
+    assert excinfo.value.status == ResponseCode.INVALID_CUSTOM_FEE_COLLECTOR
 
 
 @pytest.mark.integration
@@ -94,8 +95,8 @@ def test_custom_fractional_fee_dispatch_on_network(env):
         CustomFractionalFee(
             numerator=numerator,
             denominator=denominator,
-            minimum_amount=min_amount,
-            maximum_amount=max_amount,
+            min_amount=min_amount,     # FIX 2: Correct argument name
+            max_amount=max_amount,     # FIX 2: Correct argument name
         )
         .set_fee_collector_account_id(collector_account.id)
     )
@@ -113,8 +114,8 @@ def test_custom_fractional_fee_dispatch_on_network(env):
     assert isinstance(retrieved_fee, CustomFractionalFee), "Expected CustomFractionalFee instance"
     assert retrieved_fee.numerator == numerator
     assert retrieved_fee.denominator == denominator
-    assert retrieved_fee.minimum_amount == min_amount
-    assert retrieved_fee.maximum_amount == max_amount
+    assert retrieved_fee.min_amount == min_amount                 # Updated assertion
+    assert retrieved_fee.max_amount == max_amount                 # Updated assertion
     assert retrieved_fee.fee_collector_account_id == collector_account.id
 
 
