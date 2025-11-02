@@ -10,7 +10,7 @@ for building the transaction body.
 """
 from abc import ABC
 from collections import defaultdict
-from typing import Dict, Generic, Optional, List, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, Optional, List, Tuple, TypeVar, Union
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
@@ -21,7 +21,7 @@ from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from hiero_sdk_python.tokens.token_transfer_list import TokenTransferList
 from hiero_sdk_python.transaction.transaction import Transaction
 
-T = TypeVar('T')
+T = TypeVar("T", bound="AbstractTokenTransferTransaction[Any]")
 
 class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
     """
@@ -323,7 +323,13 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         Returns:
             Self: The current instance of the transaction for chaining.
         """
-        return self.add_nft_transfer(nft_id, sender, receiver, True)
+        self._require_not_frozen()
+        
+        if not isinstance(nft_id, NftId):
+            raise TypeError("nft_id must be a NftId instance.")
+        
+        self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number, True)
+        return self
 
     def build_token_transfers(self) -> 'List[basic_types_pb2.TokenTransferList]':
         """
@@ -345,24 +351,24 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
 
         # Tokens
         for token_id, token_transfers in self.token_transfers.items():
-            token_transfer = TokenTransferList(
+            token_list = TokenTransferList(
                 token=token_id,
                 expected_decimals=token_transfers[0].expected_decimals
             )
 
-            for transfer in token_transfers:
-                token_transfer.add_token_transfer(transfer)
+            for token_transfer in token_transfers:
+                token_list.add_token_transfer(token_transfer)
             
-            token_transfer_list.append(token_transfer)
+            token_transfer_list.append(token_list)
 
         # NFTs
         for nft_id, nft_transfers in self.nft_transfers.items():
-            nft_transfer = TokenTransferList(token=nft_id)
+            nft_list = TokenTransferList(token=nft_id)
 
-            for transfer in nft_transfers:
-                nft_transfer.add_nft_transfer(transfer)
+            for nft_transfer in nft_transfers:
+                nft_list.add_nft_transfer(nft_transfer)
             
-            token_transfer_list.append(nft_transfer)
+            token_transfer_list.append(nft_list)
 
         token_transfer_proto: list[basic_types_pb2.TokenTransferList] = []
 
