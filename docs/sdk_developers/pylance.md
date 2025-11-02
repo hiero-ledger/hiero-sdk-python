@@ -1,6 +1,3 @@
-**Hi This is Raja Rathour**
-
-
 # Pylance: Improving Code Quality for Hiero SDK Developers
 
 
@@ -292,12 +289,10 @@ Here’s a recommended configuration for Hiero SDK contributors:
 ```json
 
 {
-
-  "python.analysis.autoImportCompletions": true,
+  "python.languageServer": "Pylance",
   "python.analysis.typeCheckingMode": "basic",
-  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.autoImportCompletions": true,
   "editor.formatOnSave": true
-
 }
 ```
 
