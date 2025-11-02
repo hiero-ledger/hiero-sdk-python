@@ -19,6 +19,7 @@ from hiero_sdk_python import (
     CryptoGetAccountBalanceQuery,
     TokenAssociateTransaction
 )
+from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 
 load_dotenv()
 
@@ -141,6 +142,33 @@ def transfer_tokens():
         )
         print("Token balance after token transfer:")
         print(f"{token_id}: {balance_after.get(token_id)}")
+        
+        # Demonstrate TokenTransfer __repr__ method
+        print("\n" + "="*70)
+        print("BONUS: Demonstrating TokenTransfer __repr__ method")
+        print("="*70)
+        print("\nThe TokenTransfer class now has a __repr__ method for better debugging.")
+        print("This provides an unambiguous representation of the object.\n")
+        
+        # Create a sample TokenTransfer object
+        sample_transfer = TokenTransfer(
+            token_id=token_id,
+            account_id=recipient_id,
+            amount=1,
+            expected_decimals=None,
+            is_approved=False
+        )
+        
+        print("Using str() - Human-readable format:")
+        print(f"  {str(sample_transfer)}\n")
+        
+        print("Using repr() - Unambiguous format for debugging:")
+        print(f"  {repr(sample_transfer)}\n")
+        
+        print("The repr() format uses !r to show exact object representations,")
+        print("which is helpful when debugging or logging transfer details.")
+        print("="*70)
+        
     except Exception as e:
         print(f"❌ Error transferring token: {str(e)}")
         sys.exit(1)
