@@ -25,6 +25,9 @@ def test_custom_fixed_fee():
     assert new_fee.denominating_token_id == TokenId(0, 0, 123)
     assert new_fee.fee_collector_account_id == AccountId(0, 0, 456)
     assert new_fee.all_collectors_are_exempt is True
+    assert fee == new_fee
+    new_fee_from_repr = eval(repr(fee))
+    assert fee == new_fee_from_repr
 
 def test_custom_fractional_fee():
     fee = CustomFractionalFee(
