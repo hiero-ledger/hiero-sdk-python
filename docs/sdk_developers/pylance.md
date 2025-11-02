@@ -1,8 +1,11 @@
+**Hi This is Raja Rathour**
+
+
 # Pylance: Improving Code Quality for Hiero SDK Developers
 
 
 
-## 🧭 Table of Contents
+## Table of Contents
 
 1. [Introduction](#introduction)
 
@@ -26,7 +29,7 @@
 
 
 
-## 🧩 Introduction
+## Introduction
 
 
 
@@ -56,7 +59,7 @@ To fix this, we recommend using **Pylance** — a static analysis and type-check
 
 
 
-## 💡 Why Pylance Matters for Hiero SDK
+## Why Pylance Matters for Hiero SDK
 
 
 
@@ -88,7 +91,7 @@ This feedback loop saves time for both **you and the maintainers**, ensuring you
 
 
 
-## ⚙️ Setting Up Pylance in VS Code
+## Setting Up Pylance in VS Code
 
 
 
@@ -133,13 +136,9 @@ Go to your workspace settings (`.vscode/settings.json`) and add:
 ```json
 
 {
-
   "python.languageServer": "Pylance",
-
   "python.analysis.typeCheckingMode": "basic",
-
   "python.analysis.autoImportCompletions": true
-
 }
 
 ````
@@ -154,7 +153,7 @@ Go to your workspace settings (`.vscode/settings.json`) and add:
 
 
 
-## 🧠 Common Errors and What They Mean
+## Common Errors and What They Mean
 
 
 
@@ -165,29 +164,23 @@ Let’s look at a real-world Hiero SDK example.
 ```python
 
 CustomFractionalFee(
-
     numerator=numerator,
-
     denominator=denominator,
-
     minimum_amount=min_amount,
-
     maximum_amount=max_amount,
-
 )
 
 ```
 
 
 
-### ❌ Pylance output:
+### Wrong Pylance output:
 
 
 
 ```
 
 No parameter named "minimum_amount"
-
 No parameter named "maximum_amount"
 
 ```
@@ -198,7 +191,7 @@ This means `minimum_amount` and `maximum_amount` **do not exist** in the constru
 
 
 
-### ✅ Correct Usage:
+### Correct Usage:
 
 
 
@@ -209,21 +202,13 @@ Check the source definition:
 ```python
 
 class CustomFractionalFee(CustomFee):
-
     def __init__(
-
         self,
-
         numerator: int = 0,
-
         denominator: int = 1,
-
         min_amount: int = 0,
-
         max_amount: int = 0,
-
         ...
-
     ):
 
 ```
@@ -237,15 +222,10 @@ So, you should instead write:
 ```python
 
 CustomFractionalFee(
-
     numerator=numerator,
-
     denominator=denominator,
-
     min_amount=min_amount,
-
     max_amount=max_amount,
-
 )
 
 ```
@@ -256,7 +236,7 @@ CustomFractionalFee(
 
 
 
-## 🧭 Fixing Invalid Imports and Calls
+## Fixing Invalid Imports and Calls
 
 
 
@@ -269,33 +249,26 @@ Example:
 
 
 ```python
-
 from hiero_sdk.account_id import AccountID
-
 ```
 
 
 
-### ❌ Error:
+### Error:
 
 
 
 ```
-
 Import "hiero_sdk.account_id" could not be resolved
-
 ```
 
 
 
-### ✅ Correct Import:
-
+### Correct Import:
 
 
 ```python
-
 from hiero_sdk.account import AccountId
-
 ```
 
 
@@ -308,7 +281,7 @@ This instantly prevents failed tests or runtime errors due to wrong imports.
 
 
 
-## ⚙️ Recommended Settings
+## Recommended Settings
 
 
 
@@ -321,32 +294,35 @@ Here’s a recommended configuration for Hiero SDK contributors:
 {
 
   "python.analysis.autoImportCompletions": true,
-
   "python.analysis.typeCheckingMode": "basic",
-
   "python.analysis.diagnosticMode": "workspace",
-
-  "python.linting.enabled": true,
-
-  "python.linting.pylintEnabled": true,
-
   "editor.formatOnSave": true
 
 }
-
 ```
 
 
 
-This setup ensures:
+### Advanced Settings (Optional)
 
+For experienced contributors who want deeper code analysis and stricter checks, you can enable the following settings:
 
+```json
+{
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.typeCheckingMode": "strict",
+  "python.analysis.autoImportCompletions": true,
+  "editor.formatOnSave": true
+}
+````
 
-* You see problems in **all** files.
+**Explanation:**
 
-* You get real-time linting feedback.
+* `"python.analysis.diagnosticMode": "workspace"` — runs analysis on your entire workspace, not just open files (may produce many warnings).
+* `"python.analysis.typeCheckingMode": "strict"` — enables deeper static analysis and stricter type enforcement.
+* `"python.analysis.autoImportCompletions": true` — automatically suggests imports when typing symbol names.
 
-* Imports autocomplete intelligently.
+> ⚠️ Use these only if you're comfortable handling a larger number of warnings.
 
 
 
@@ -354,7 +330,7 @@ This setup ensures:
 
 
 
-## 📋 Good Practices for Contributors
+## Good Practices for Contributors
 
 
 
@@ -376,7 +352,7 @@ This setup ensures:
 
 
 
-## 🧾 Summary
+## Summary
 
 
 
@@ -408,17 +384,17 @@ Before every PR:
 
 
 
-## 📘 References
+## References
 
 
 
 * [VS Code Pylance Documentation](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance)
 
-* [Hiero SDK Contributing Guide](https://github.com/hiero-ledger/hiero-sdk-python?tab=contributing-ov-file)
+* [Hiero SDK Contributing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
 
 * [Hiero SDK CHANGELOG](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CHANGELOG.md)
 
-* [Git Commit Signing Guide](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+
 
 
 
