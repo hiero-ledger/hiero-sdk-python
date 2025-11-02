@@ -5,13 +5,12 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
-# Imported for context in integration flow; used indirectly through utils.
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt  
 
 from tests.integration.utils_for_test import env, create_fungible_token, create_nft_token
 
@@ -47,10 +46,7 @@ def test_custom_fee_can_execute_on_network(env):
     assert len(token_info.custom_fees) == 1, "Expected exactly one custom fee"
     retrieved_fee = token_info.custom_fees[0]
 
-    # Verification of base class fields
-    assert isinstance(
-        retrieved_fee, CustomFixedFee
-    ), "Expected CustomFixedFee instance"
+    assert isinstance(retrieved_fee, CustomFixedFee), "Expected CustomFixedFee instance"
     assert retrieved_fee.fee_collector_account_id == collector_account.id
     assert retrieved_fee.all_collectors_are_exempt is False
 
@@ -67,23 +63,17 @@ def test_custom_fee_collector_account_validation_on_network(env):
     non_existent_id = AccountId(shard=0, realm=0, num=999999999)
 
     custom_fee = (
-        CustomFixedFee(amount=10, denominating_token_id=None)
-
+        CustomFixedFee(amount=10, denominated_token_id=None)
         .set_fee_collector_account_id(non_existent_id)
         .set_all_collectors_are_exempt(False)
     )
 
-    # Expect PrecheckError for invalid collector
-    with pytest.raises(PrecheckError) as excinfo:
-        create_fungible_token(
-            env,
-            custom_fees=[custom_fee],
-        )
+    with pytest.raises(AssertionError) as excinfo:
+      create_fungible_token(env, custom_fees=[custom_fee])
 
-    # Check the status code attribute on the exception instance
-    assert (
-        excinfo.value.status == ResponseCode.INVALID_CUSTOM_FEE_COLLECTOR
-    ), f"Unexpected error code: {excinfo.value.status}"
+    assert "INVALID_CUSTOM_FEE_COLLECTOR" in str(
+      excinfo.value
+    ), f"Unexpected error message: {excinfo.value}"
 
 
 @pytest.mark.integration
@@ -93,10 +83,8 @@ def test_custom_fractional_fee_dispatch_on_network(env):
     back into a CustomFractionalFee instance after querying the network.
     """
 
-    # 1. Setup: Create a new account to serve as the fee collector
     collector_account = env.create_account(initial_hbar=1.0)
 
-    # 2. Instantiate a CustomFractionalFee
     numerator = 1
     denominator = 10
     min_amount = 5
@@ -112,24 +100,17 @@ def test_custom_fractional_fee_dispatch_on_network(env):
         .set_fee_collector_account_id(collector_account.id)
     )
 
-    # 3. Network Execution
     token_id = create_fungible_token(
         env,
         custom_fees=[custom_fee],
     )
 
-    # 4. Verification: Query the network
     token_info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
 
     assert len(token_info.custom_fees) == 1, "Expected one fractional fee"
     retrieved_fee = token_info.custom_fees[0]
 
-    # Check base class dispatch and subclass type
-    assert isinstance(
-        retrieved_fee, CustomFractionalFee
-    ), "Expected CustomFractionalFee instance"
-
-    # Check Fractional Fee-specific fields
+    assert isinstance(retrieved_fee, CustomFractionalFee), "Expected CustomFractionalFee instance"
     assert retrieved_fee.numerator == numerator
     assert retrieved_fee.denominator == denominator
     assert retrieved_fee.minimum_amount == min_amount
@@ -144,17 +125,14 @@ def test_custom_royalty_fee_dispatch_on_network(env):
     from proto back into a CustomRoyaltyFee instance after querying the network.
     """
 
-    # 1. Setup: Create accounts and a denominated token
     collector_account = env.create_account(initial_hbar=1.0)
     denominated_token_id = create_fungible_token(env)
 
-    # 2. Instantiate the fallback fee (a Fixed Fee on the new token)
     fallback_fee = CustomFixedFee(
         amount=5,
         denominated_token_id=denominated_token_id,
     )
 
-    # 3. Instantiate a CustomRoyaltyFee
     numerator = 2
     denominator = 100  # 2% royalty
 
@@ -167,32 +145,22 @@ def test_custom_royalty_fee_dispatch_on_network(env):
         .set_fee_collector_account_id(collector_account.id)
     )
 
-    # 4. Network Execution (Royalty fees must be on NFTs)
     token_id = create_nft_token(
         env,
         custom_fees=[custom_fee],
     )
 
-    # 5. Verification: Query the network
     token_info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
 
     assert len(token_info.custom_fees) == 1, "Expected one royalty fee"
     retrieved_fee = token_info.custom_fees[0]
 
-    # Check base class dispatch and subclass type
-    assert isinstance(
-        retrieved_fee, CustomRoyaltyFee
-    ), "Expected CustomRoyaltyFee instance"
-
-    # Check Royalty Fee-specific fields
+    assert isinstance(retrieved_fee, CustomRoyaltyFee), "Expected CustomRoyaltyFee instance"
     assert retrieved_fee.numerator == numerator
     assert retrieved_fee.denominator == denominator
     assert retrieved_fee.fee_collector_account_id == collector_account.id
 
-    # Check the nested fallback fee (should be a CustomFixedFee)
     retrieved_fallback = retrieved_fee.fallback_fee
-    assert isinstance(
-        retrieved_fallback, CustomFixedFee
-    ), "Fallback fee should be CustomFixedFee"
+    assert isinstance(retrieved_fallback, CustomFixedFee), "Fallback fee should be CustomFixedFee"
     assert retrieved_fallback.amount == 5
     assert retrieved_fallback.denominated_token_id == denominated_token_id
