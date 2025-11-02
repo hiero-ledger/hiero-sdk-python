@@ -55,6 +55,9 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         Args:
             token_transfers (Union[Dict[TokenId, Dict[AccountId, int]], List[TokenTransfer]]):
                 A list of initialized TokenTransfer objects.
+    
+        Raises:
+            TypeError: If `token_transfers` is neither a list nor a dictionary.
         """
         if isinstance(token_transfers, list):
             for transfer in token_transfers:
@@ -70,7 +73,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
                 for account_id, amount in account_transfers.items():
                     self._add_token_transfer(token_id, account_id, amount)
         else:
-            raise ValueError(
+            raise TypeError(
                 "Invalid type for `token_transfers`. Expected a list of TokenTransfer "
                 "or a dict[TokenId, dict[AccountId, int]]."
             )
@@ -87,6 +90,9 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         Args:
             nft_transfers (Union[Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]], List[TokenNftTransfer]]):
                 A list or dictionary describing NFT transfers.
+
+        Raises:
+            TypeError: If `nft_transfers` is neither a list nor a dictionary.
         """
         if isinstance(nft_transfers, list):
             for transfer in nft_transfers:
@@ -131,7 +137,8 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
                 Defaults to False.
 
         Raises:
-            ValueError: If the `amount` is zero.
+            TypeError: If argument types are invalid.
+            ValueError: If `amount` is zero.
         """
         if not isinstance(token_id, TokenId):
             raise TypeError("token_id must be a TokenId instance.")
@@ -171,6 +178,9 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             serial_number (int): The unique serial number of the NFT being transferred.
             is_approved (bool, optional): Whether the transfer is approved. 
                 Defaults to False.
+
+        Raises:
+            TypeError: If any argument type is invalid.
         """
         if not isinstance(token_id, TokenId):
             raise TypeError("token_id must be a TokenId instance.")
@@ -283,6 +293,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             nft_id (NftId): The ID of the NFT being transferred.
             sender (AccountId): The sender's account ID.
             receiver (AccountId): The receiver's account ID.
+            is_approved (bool): Whether the transfer is approved. 
 
         Returns:
             Self: The current instance of the transaction for chaining.
@@ -312,13 +323,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         Returns:
             Self: The current instance of the transaction for chaining.
         """
-        self._require_not_frozen()
-        
-        if not isinstance(nft_id, NftId):
-            raise TypeError("nft_id must be a NftId instance.")
-        
-        self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number,True)
-        return self
+        return self.add_nft_transfer(nft_id, sender, receiver, True)
 
     def build_token_transfers(self) -> 'List[basic_types_pb2.TokenTransferList]':
         """

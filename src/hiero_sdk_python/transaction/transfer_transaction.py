@@ -13,7 +13,6 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.tokens.abstract_token_transfer_transaction import AbstractTokenTransferTransaction
 from hiero_sdk_python.tokens.hbar_transfer import HbarTransfer
-from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
