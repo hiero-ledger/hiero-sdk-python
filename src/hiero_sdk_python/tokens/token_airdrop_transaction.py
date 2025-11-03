@@ -64,7 +64,27 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
         return token_airdrop_pb2.TokenAirdropTransactionBody(
             token_transfers=token_transfers
         )
-        
+
+    @classmethod
+    def _from_proto(cls, proto: token_airdrop_pb2.TokenAirdropTransactionBody) -> "TokenAirdropTransaction":
+        """
+        Construct an instance of TokenAirdropTransaction from protobuf TokenAirdropTransactionBody.
+
+        Args:
+            proto (TokenAirdropTransactionBody): The protobuf TokenAirdropTransctionBody
+        """
+        token_transfers: List[TokenTransfer] = []
+        nft_transfers: List[TokenNftTransfer] = []
+
+        for transfer in proto.token_transfers:
+            token_transfers.append(TokenTransfer._from_proto(transfer))
+            nft_transfers.append(TokenNftTransfer._from_proto(nft_transfers))
+
+        return cls(
+            token_transfers=token_transfers,
+            nft_transfers=nft_transfers
+        )
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody :
         """
         Builds and returns the protobuf transaction body for token airdrop.
