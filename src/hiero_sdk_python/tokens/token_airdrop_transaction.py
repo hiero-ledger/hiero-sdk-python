@@ -77,8 +77,13 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
         nft_transfers: List[TokenNftTransfer] = []
 
         for transfer in proto.token_transfers:
-            token_transfers.append(TokenTransfer._from_proto(transfer))
-            nft_transfers.append(TokenNftTransfer._from_proto(nft_transfers))
+            if transfer.transfers:
+                for token_transfer in TokenTransfer._from_proto(transfer):
+                    token_transfers.append(token_transfer)
+
+            elif transfer.nftTransfers:
+                for nft_transfer in TokenNftTransfer._from_proto(transfer):
+                    nft_transfers.append(nft_transfer)
 
         return cls(
             token_transfers=token_transfers,
