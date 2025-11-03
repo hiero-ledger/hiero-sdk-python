@@ -202,7 +202,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             amount: int
         ) -> T:
         """
-        Adds a tranfer to token_transfers list 
+        Adds a transfer to token_transfers list 
         Args:
             token_id (TokenId): The ID of the token being transferred.
             account_id (AccountId): The accountId of sender/receiver.
@@ -223,7 +223,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             decimals: int
         ) -> T:
         """
-        Adds a tranfer with expected_decimals to token_transfers list
+        Adds a transfer with expected_decimals to token_transfers list
         Args:
             token_id (TokenId): The ID of the token being transferred.
             account_id (AccountId): The accountId of sender/receiver.
@@ -244,7 +244,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             amount: int
         ) -> T:
         """
-        Adds a tranfer with approve allowance to token_transfers list 
+        Adds a transfer with approve allowance to token_transfers list 
         Args:
             token_id (TokenId): The ID of the token being transferred.
             account_id (AccountId): The accountId of sender/receiver.
@@ -265,7 +265,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             decimals: int
         ) -> T:
         """
-        Adds a tranfer with expected_decimals and approve allowance to token_transfers list
+        Adds a transfer with expected_decimals and approve allowance to token_transfers list
         Args:
             token_id (TokenId): The ID of the token being transferred.
             account_id (AccountId): The accountId of sender/receiver.
