@@ -53,7 +53,16 @@ def test_build_raises_error_if_no_token_id():
     with pytest.raises(ValueError, match="Missing token ID"):
         update_tx.build_transaction_body()
 
-# --- Tests split from test_build_transaction_body_correctly ---
+def test_fails_precheck_without_token_id():
+    """Test precheck failure when token ID is missing."""
+    new_fee = CustomFixedFee(amount=50, fee_collector_account_id=AccountId(0,0,123))
+    update_tx = (
+        TokenFeeScheduleUpdateTransaction()
+        .set_custom_fees([new_fee])
+    )
+    # This test doesn't need a client or env
+    with pytest.raises(ValueError, match="Missing token ID"):
+        update_tx.build_transaction_body()
 
 def test_build_transaction_body_sets_token_id(mock_account_ids):
     operator_id, _, node_account_id, token_id, _ = mock_account_ids
