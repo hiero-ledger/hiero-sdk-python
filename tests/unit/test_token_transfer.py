@@ -98,14 +98,14 @@ def test_to_proto(mock_account_ids):
 
 def test_from_proto(mock_account_ids):
     """Test converting proto to List[TokenTransfer]"""
-    sender_id, reciver_id, _, token_id, _ = mock_account_ids
+    sender_id, receiver_id, _, token_id, _ = mock_account_ids
 
     proto = basic_types_pb2.TokenTransferList(
         token=token_id._to_proto(),
         expected_decimals={'value': 1},
         transfers=[
             basic_types_pb2.AccountAmount(accountID=sender_id._to_proto(), amount=-1, is_approval=True),
-            basic_types_pb2.AccountAmount(accountID=reciver_id._to_proto(), amount=1, is_approval=True)
+            basic_types_pb2.AccountAmount(accountID=receiver_id._to_proto(), amount=1, is_approval=True)
         ]
     )
 
@@ -120,12 +120,12 @@ def test_from_proto(mock_account_ids):
     assert token_transfer[1].token_id == token_id
     assert token_transfer[1].expected_decimals == 1
     assert token_transfer[1].amount == 1
-    assert token_transfer[1].account_id == reciver_id
+    assert token_transfer[1].account_id == receiver_id
     assert token_transfer[1].is_approved == True
 
 def test_from_proto_with_no_token_transfer(mock_account_ids):
     """Test converting proto return empty array if token_transfer not present in proto"""
-    sender_id, reciver_id, _, token_id, _ = mock_account_ids
+    sender_id, receiver_id, _, token_id, _ = mock_account_ids
 
     # If only Nft_transfer present
     proto1 = basic_types_pb2.TokenTransferList(
@@ -133,7 +133,7 @@ def test_from_proto_with_no_token_transfer(mock_account_ids):
         nftTransfers=[
             basic_types_pb2.NftTransfer(
                 senderAccountID=sender_id._to_proto(),
-                receiverAccountID=reciver_id._to_proto(),
+                receiverAccountID=receiver_id._to_proto(),
                 serialNumber=1,
                 is_approval=True
             )
@@ -152,14 +152,14 @@ def test_from_proto_with_no_token_transfer(mock_account_ids):
 
 def test_from_proto_round_trip(mock_account_ids):
     """Test round trip converting proto to List[TokenTransfer]"""
-    sender_id, reciver_id, _, token_id, _ = mock_account_ids
+    sender_id, receiver_id, _, token_id, _ = mock_account_ids
 
     token_transfer_list = TokenTransferList(token=token_id, expected_decimals=1)
     token_transfer_list.add_token_transfer(
         TokenTransfer(token_id=token_id, account_id=sender_id, amount=-1, expected_decimals=1, is_approved=True)
     )
     token_transfer_list.add_token_transfer(
-        TokenTransfer(token_id=token_id, account_id=reciver_id, amount=1, expected_decimals=1, is_approved=True)
+        TokenTransfer(token_id=token_id, account_id=receiver_id, amount=1, expected_decimals=1, is_approved=True)
     )
     token_transfer_proto = token_transfer_list._to_proto()
 
@@ -174,5 +174,5 @@ def test_from_proto_round_trip(mock_account_ids):
     assert token_transfer[1].token_id == token_id
     assert token_transfer[1].expected_decimals == 1
     assert token_transfer[1].amount == 1
-    assert token_transfer[1].account_id == reciver_id
+    assert token_transfer[1].account_id == receiver_id
     assert token_transfer[1].is_approved == True
