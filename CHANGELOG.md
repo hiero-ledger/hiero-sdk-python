@@ -19,6 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added TokenUnpauseTransaction class
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
+- docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
