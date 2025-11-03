@@ -246,7 +246,7 @@ Example:
 
 
 ```python
-from hiero_sdk.account_id import AccountID
+from hiero_sdk_python.account.account_id import AccountId
 ```
 
 
@@ -265,7 +265,7 @@ Import "hiero_sdk.account_id" could not be resolved
 
 
 ```python
-from hiero_sdk.account import AccountId
+from hiero_sdk_python import AccountId
 ```
 
 
