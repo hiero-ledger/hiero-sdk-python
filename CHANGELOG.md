@@ -7,6 +7,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
+- Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
+- Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
 - docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
 - added Google-style docstrings to the `TransactionRecord` class including all dataclass fields, `__repr__`, `_from_proto()` & `_to_proto()` methods.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).

@@ -1034,22 +1034,61 @@ print(nft_info)
 ### Querying Fungible Token Info
 
 #### Pythonic Syntax:
-```
+```python
 info_query = TokenInfoQuery(token_id=token_id)
 info = info_query.execute(client)
 print(info)
 ```
+
 #### Method Chaining:
-```
+```python
 info_query = (
-        TokenInfoQuery()
-        .set_token_id(token_id)
-    )
+    TokenInfoQuery()
+    .set_token_id(token_id)
+)
 
 info = info_query.execute(client)
 print(info)
 ```
 
+### Updating a Token Fee Schedule
+
+#### Pythonic Syntax:
+
+```python
+# Note: Royalty fees are only for NON_FUNGIBLE_UNIQUE tokens.
+new_fees = [
+    CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id),
+    CustomRoyaltyFee(numerator=5, denominator=10, fee_collector_account_id=collector_account_id)
+]
+
+transaction = TokenFeeScheduleUpdateTransaction(
+    token_id=token_id, # assumed NFT in this example
+    custom_fees=new_fees
+).freeze_with(client)
+
+transaction.sign(fee_schedule_key) # The fee_schedule_key MUST sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+
+```python
+# Note: Fractional fees are only for FUNGIBLE_COMMON tokens.
+new_fees = [
+    CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id)
+]
+
+transaction = (
+    TokenFeeScheduleUpdateTransaction()
+    .set_token_id(token_id) # assumed FUNGIBLE in this example
+    .set_custom_fees(new_fees)
+    .freeze_with(client)
+)
+
+transaction.sign(fee_schedule_key) # The fee_schedule_key MUST sign
+transaction.execute(client)
+```
 ## HBAR Transactions
 
 ### Transferring HBAR
