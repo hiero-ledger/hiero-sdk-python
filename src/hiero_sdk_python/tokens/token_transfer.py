@@ -5,7 +5,7 @@ hiero_sdk_python.tokens.token_transfer.py
 Defines TokenTransfer for representing Token transfer details.
 """
 
-from typing import Optional
+from typing import List, Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -52,6 +52,34 @@ class TokenTransfer:
             amount=self.amount,
             is_approval=self.is_approved
         )
+    
+    @classmethod
+    def _from_proto(cls, proto: basic_types_pb2.TokenTransferList) -> List["TokenTransfer"]:
+        """
+        Construct a list of TokenTransfer from the protobuf of TokenTransferList.
+
+        Args:
+        proto (basic_types_pb2.TokenTransferList: 
+            The protobuf representation of a TokenTransferList
+        """
+        token_transfer: List[TokenTransfer] = []
+
+        expected_decimals = (
+            proto.expected_decimals.value if proto.HasField('expected_decimals') else None
+        )
+
+        for transfer in proto.transfers:
+            token_transfer.append(
+                TokenTransfer(
+                    token_id=TokenId._from_proto(proto.token),
+                    account_id=AccountId._from_proto(transfer.accountID),
+                    amount=transfer.amount,
+                    expected_decimals=expected_decimals,
+                    is_approved=transfer.is_approval
+                )
+            )
+        
+        return token_transfer
 
     def __str__(self) -> str:
         """
