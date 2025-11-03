@@ -27,8 +27,8 @@ def setup_client():
         sys.exit(1)
 
 
-def create_nft(client, operator_id, admin_key, fee_schedule_key):
-    """Create an NFT with an admin key and fee schedule key."""
+def create_nft(client, operator_id, supply_key, fee_schedule_key):
+    """Create an NFT with supply and fee schedule keys."""
     print(" Creating NFT...")
     token_params = TokenParams(
         token_name="NFT Fee Example",
@@ -42,18 +42,18 @@ def create_nft(client, operator_id, admin_key, fee_schedule_key):
         custom_fees=[], # No custom fees at creation
     )
     
-    # fee_schedule_key is required to be able to update custom fees later
+    # fee_schedule_key is required to update fees
+    # supply_key is required to mint
     keys = TokenKeys(
-        admin_key=admin_key,
-        supply_key=admin_key, # Need a supply key to mint
+        supply_key=supply_key,
         fee_schedule_key=fee_schedule_key
     )
 
     tx = TokenCreateTransaction(token_params=token_params, keys=keys)
-    # Use the setter as well
     tx.set_fee_schedule_key(fee_schedule_key)
     
-    tx.freeze_with(client).sign(admin_key) 
+    # Token creation is signed by the treasury key (operator)
+    tx.freeze_with(client)
     receipt = tx.execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -101,10 +101,11 @@ def main():
     client, operator_id, operator_key = setup_client()
     token_id = None
     try:
-        admin_key = operator_key
+        # Use operator key as both supply and fee key
+        supply_key = operator_key
         fee_key = operator_key
         
-        token_id = create_nft(client, operator_id, admin_key, fee_key)
+        token_id = create_nft(client, operator_id, supply_key, fee_key)
         
         if token_id:
             update_custom_royalty_fee(client, token_id, fee_key, operator_id)
