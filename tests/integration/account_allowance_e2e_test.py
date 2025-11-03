@@ -131,8 +131,8 @@ def test_integration_can_transfer_on_behalf_of_spender_with_allowance_approval(e
         .set_transaction_id(transaction_id)
         .add_approved_nft_transfer(
             nft_id=nft_id,
-            sender=env.operator_id,
-            receiver=receiver_account.id,
+            sender_id=env.operator_id,
+            receiver_id=receiver_account.id,
         )
         .freeze_with(env.client)
         .sign(spender_account.key)

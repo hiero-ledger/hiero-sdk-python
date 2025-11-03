@@ -23,7 +23,7 @@ def test_build_transaction_body(mock_account_ids):
 
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=sender, amount=-amount)
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
-    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender=sender, receiver=receiver)
+    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
     airdrop_tx.operator_account_id = sender
     airdrop_tx.node_account_id = node_account_id
     transaction_body = airdrop_tx.build_transaction_body()
@@ -62,7 +62,7 @@ def test_build_transaction_body_with_approved_transfer(mock_account_ids):
 
     airdrop_tx.add_approved_token_transfer(token_id=token_id_1, account_id=sender, amount=-amount)
     airdrop_tx.add_approved_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
-    airdrop_tx.add_approved_nft_transfer(nft_id=nft_id, sender=sender, receiver=receiver)
+    airdrop_tx.add_approved_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
     airdrop_tx.operator_account_id = sender
     airdrop_tx.node_account_id = node_account_id
     transaction_body = airdrop_tx.build_transaction_body()
@@ -172,7 +172,7 @@ def test_sign_transaction(mock_account_ids, mock_client):
 
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=sender, amount=-amount)
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
-    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender=sender, receiver=receiver)
+    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
@@ -206,7 +206,7 @@ def test_to_proto(mock_account_ids, mock_client):
 
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=sender, amount=-amount)
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
-    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender=sender, receiver=receiver)
+    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
 
     private_key = MagicMock()
     private_key.sign.return_value = b'signature'
@@ -233,7 +233,7 @@ def test_build_scheduled_body(mock_account_ids):
     # Add token and NFT transfers
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=sender, amount=-amount)
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
-    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender=sender, receiver=receiver)
+    airdrop_tx.add_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
     
     schedulable_body = airdrop_tx.build_scheduled_body()
     

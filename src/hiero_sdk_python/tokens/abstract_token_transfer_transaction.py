@@ -282,8 +282,8 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
     def add_nft_transfer(
             self: T,
             nft_id: NftId,
-            sender: AccountId,
-            receiver: AccountId,
+            sender_id: AccountId,
+            receiver_id: AccountId,
             is_approved: bool = False
         ) -> T:
         """
@@ -291,8 +291,8 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
 
         Args:
             nft_id (NftId): The ID of the NFT being transferred.
-            sender (AccountId): The sender's account ID.
-            receiver (AccountId): The receiver's account ID.
+            sender_id (AccountId): The sender's account ID.
+            receiver_id (AccountId): The receiver's account ID.
             is_approved (bool): Whether the transfer is approved. 
 
         Returns:
@@ -303,22 +303,22 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         if not isinstance(nft_id, NftId):
             raise TypeError("nft_id must be a NftId instance.")
         
-        self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number, is_approved)
+        self._add_nft_transfer(nft_id.token_id, sender_id, receiver_id, nft_id.serial_number, is_approved)
         return self
 
     def add_approved_nft_transfer(
             self: T,
             nft_id: NftId,
-            sender: AccountId,
-            receiver: AccountId
+            sender_id: AccountId,
+            receiver_id: AccountId
         ) -> T:
         """
         Adds a transfer to the nft_transfers with approved allowance
 
         Args:
             nft_id (NftId): The ID of the NFT being transferred.
-            sender (AccountId): The sender's account ID.
-            receiver (AccountId): The receiver's account ID.
+            sender_id (AccountId): The sender's account ID.
+            receiver_id (AccountId): The receiver's account ID.
 
         Returns:
             Self: The current instance of the transaction for chaining.
@@ -328,7 +328,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         if not isinstance(nft_id, NftId):
             raise TypeError("nft_id must be a NftId instance.")
         
-        self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number, True)
+        self._add_nft_transfer(nft_id.token_id, sender_id, receiver_id, nft_id.serial_number, True)
         return self
 
     def build_token_transfers(self) -> 'List[basic_types_pb2.TokenTransferList]':

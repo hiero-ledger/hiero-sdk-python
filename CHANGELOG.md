@@ -56,6 +56,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 {pending_airdrop_record.py -> token_airdrop_pending_record.py}
 {token_cancel_airdrop_transaction.py -> token_airdrop_transaction_cancel.py}
 
+- In `TokenAirdropTransaction` the parameters of the following methods have been renamed:
+  - add_nft_transfer(sender → sender_id, receiver → receiver_id)
+  - add_approved_nft_transfer(sender → sender_id, receiver → receiver_id)
 
 ## [0.1.7] - 2025-10-28
 
