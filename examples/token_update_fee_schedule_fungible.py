@@ -27,8 +27,8 @@ def setup_client():
         sys.exit(1)
 
 
-def create_fungible_token(client, operator_id, admin_key, fee_schedule_key):
-    """Create a fungible token with an admin key and fee schedule key."""
+def create_fungible_token(client, operator_id, fee_schedule_key):
+    """Create a fungible token with only a fee schedule key."""
     print(" Creating fungible token...")
     token_params = TokenParams(
         token_name="Fungible Fee Example",
@@ -42,9 +42,9 @@ def create_fungible_token(client, operator_id, admin_key, fee_schedule_key):
         custom_fees=[], # No custom fees at creation
     )
     
+    #  Admin key is not required.
     # fee_schedule_key is required to be able to update custom fees later
     keys = TokenKeys(
-        admin_key=admin_key,
         fee_schedule_key=fee_schedule_key
     )
 
@@ -52,8 +52,8 @@ def create_fungible_token(client, operator_id, admin_key, fee_schedule_key):
     # Use the setter as well
     tx.set_fee_schedule_key(fee_schedule_key)
     
-    # Token creation must be signed by the admin key (if set) and treasury key (operator)
-    tx.freeze_with(client).sign(admin_key) 
+    # Token creation is signed by the treasury key (operator)
+    tx.freeze_with(client)
     receipt = tx.execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -70,7 +70,6 @@ def update_custom_fixed_fee(client, token_id, fee_schedule_key, collector_accoun
     """Updates the token's fee schedule with a new fixed fee."""
     print(f" Updating custom fixed fee for token {token_id}...")
     new_fees = [
-        # Fungible tokens can have fixed fees
         CustomFixedFee(amount=150, fee_collector_account_id=collector_account_id)
     ]
     print(f" Defined {len(new_fees)} new custom fees.\n")
@@ -97,14 +96,12 @@ def main():
     client, operator_id, operator_key = setup_client()
     token_id = None
     try:
-        # Use the operator key as both the admin and the fee schedule key
-        admin_key = operator_key
+        # For this example, we only need a fee schedule key
         fee_key = operator_key
         
-        token_id = create_fungible_token(client, operator_id, admin_key, fee_key)
+        token_id = create_fungible_token(client, operator_id, fee_key)
         
         if token_id:
-            # The fee collector can be any account, here we use the operator's ID
             update_custom_fixed_fee(client, token_id, fee_key, operator_id)
             
     except Exception as e:
