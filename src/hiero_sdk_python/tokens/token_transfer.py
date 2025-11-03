@@ -52,7 +52,7 @@ class TokenTransfer:
             amount=self.amount,
             is_approval=self.is_approved
         )
-    
+
     @classmethod
     def _from_proto(cls, proto: basic_types_pb2.TokenTransferList) -> List["TokenTransfer"]:
         """
@@ -78,7 +78,7 @@ class TokenTransfer:
                     is_approved=transfer.is_approval
                 )
             )
-        
+
         return token_transfer
 
     def __str__(self) -> str:

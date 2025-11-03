@@ -80,7 +80,10 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
 
     def _init_nft_transfers(
             self,
-            nft_transfers: Union[Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]],List[TokenNftTransfer]]
+            nft_transfers: Union[
+                Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]],
+                List[TokenNftTransfer]
+            ]
         ) -> None:
         """Initializes the transaction with a list of NFT transfers.
 
@@ -88,8 +91,9 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         private `_add_nft_transfer` method.
 
         Args:
-            nft_transfers (Union[Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]], List[TokenNftTransfer]]):
-                A list or dictionary describing NFT transfers.
+            nft_transfers (Union[
+                Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]], List[TokenNftTransfer]]
+            ):A list or dictionary describing NFT transfers.
 
         Raises:
             TypeError: If `nft_transfers` is neither a list nor a dictionary.
@@ -113,7 +117,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError(
                 "Invalid type for `nft_transfers`. Expected a list of TokenNftTransfer "
                 "or a dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]]."
-            )   
+            )
 
     def _add_token_transfer(
             self,
@@ -150,7 +154,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError("expected_decimals must be an integer.")
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
-        
+
         for transfer in self.token_transfers[token_id]:
             if transfer.account_id == account_id:
                 transfer.amount += amount
@@ -190,7 +194,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError("receiver_id must be an AccountId instance.")
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
-        
+
         self.nft_transfers[token_id].append(
             TokenNftTransfer(token_id, sender_id, receiver_id, serial_number, is_approved)
         )
@@ -299,11 +303,13 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             Self: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        
+
         if not isinstance(nft_id, NftId):
             raise TypeError("nft_id must be a NftId instance.")
-        
-        self._add_nft_transfer(nft_id.token_id, sender_id, receiver_id, nft_id.serial_number, is_approved)
+
+        self._add_nft_transfer(
+            nft_id.token_id, sender_id, receiver_id, nft_id.serial_number, is_approved
+        )
         return self
 
     def add_approved_nft_transfer(
@@ -324,10 +330,10 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             Self: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
-        
+
         if not isinstance(nft_id, NftId):
             raise TypeError("nft_id must be a NftId instance.")
-        
+
         self._add_nft_transfer(nft_id.token_id, sender_id, receiver_id, nft_id.serial_number, True)
         return self
 
@@ -358,7 +364,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
 
             for token_transfer in token_transfers:
                 token_list.add_token_transfer(token_transfer)
-            
+
             token_transfer_list.append(token_list)
 
         # NFTs
@@ -367,7 +373,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
 
             for nft_transfer in nft_transfers:
                 nft_list.add_nft_transfer(nft_transfer)
-            
+
             token_transfer_list.append(nft_list)
 
         token_transfer_proto: list[basic_types_pb2.TokenTransferList] = []
