@@ -36,6 +36,8 @@ class CustomFixedFee(CustomFee):
             custom fee is attached to.
     """
 
+    __slots__ = ("amount", "denominating_token_id")
+
     def __init__(
         self,
         amount: int = 0,
@@ -181,7 +183,7 @@ class CustomFixedFee(CustomFee):
 
         Raises:
             ValueError: If the fee amount is negative or potentially if IDs are invalid.
-                 (Note: Current implementation doesn't explicitly check amount >= 0).
+                (Note: Current implementation doesn't explicitly check amount >= 0).
         """
         from hiero_sdk_python.hapi.services import custom_fees_pb2
         
@@ -261,4 +263,21 @@ class CustomFixedFee(CustomFee):
         Returns:
             bool: True if the objects are considered equal, False otherwise.
         """
-        return super().__eq__(other) and self.amount == other.amount and self.denominating_token_id == other.denominating_token_id
+        if not isinstance(other, CustomFixedFee):
+            return False
+            
+        return (
+            super().__eq__(other) and 
+            self.amount == other.amount and 
+            self.denominating_token_id == other.denominating_token_id
+        )
+
+    def __repr__(self) -> str:
+        """Generates a developer-friendly string representation of the object."""
+        return (
+            f"{self.__class__.__name__}("
+            f"amount={self.amount}, "
+            f"denominating_token_id={self.denominating_token_id!r}, "
+            f"fee_collector_account_id={self.fee_collector_account_id!r}, "
+            f"all_collectors_are_exempt={self.all_collectors_are_exempt})"
+        )

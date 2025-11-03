@@ -17,14 +17,20 @@ def test_custom_fixed_fee():
         all_collectors_are_exempt=True,
     )
 
-    proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomFixedFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
-
+    proto = fee._to_proto()
+    new_fee = CustomFixedFee._from_proto(proto)
     assert isinstance(new_fee, CustomFixedFee)
     assert new_fee.amount == 100
     assert new_fee.denominating_token_id == TokenId(0, 0, 123)
     assert new_fee.fee_collector_account_id == AccountId(0, 0, 456)
     assert new_fee.all_collectors_are_exempt is True
+    assert fee == new_fee
+    fee_repr = repr(fee)
+    assert "CustomFixedFee" in fee_repr
+    assert "amount=100" in fee_repr
+    assert "denominating_token_id=TokenId(shard_num=0, realm_num=0, num=123)" in fee_repr
+    assert "fee_collector_account_id=AccountId(shard_num=0, realm_num=0, num=456)" in fee_repr
+    assert "all_collectors_are_exempt=True" in fee_repr
 
 def test_custom_fractional_fee():
     fee = CustomFractionalFee(
@@ -37,8 +43,8 @@ def test_custom_fractional_fee():
         all_collectors_are_exempt=False,
     )
 
-    proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomFractionalFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
+    proto = fee._to_proto()
+    new_fee = CustomFractionalFee._from_proto(proto)
 
     assert isinstance(new_fee, CustomFractionalFee)
     assert new_fee.numerator == 1
@@ -48,6 +54,7 @@ def test_custom_fractional_fee():
     assert new_fee.assessment_method == FeeAssessmentMethod.EXCLUSIVE
     assert new_fee.fee_collector_account_id == AccountId(0, 0, 456)
     assert new_fee.all_collectors_are_exempt is False
+    assert fee == new_fee
 
 def test_custom_royalty_fee():
     fallback_fee = CustomFixedFee(
@@ -62,8 +69,8 @@ def test_custom_royalty_fee():
         all_collectors_are_exempt=True,
     )
 
-    proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomRoyaltyFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
+    proto = fee._to_proto()
+    new_fee = CustomRoyaltyFee._from_proto(proto)
 
     assert isinstance(new_fee, CustomRoyaltyFee)
     assert new_fee.numerator == 5
@@ -73,3 +80,4 @@ def test_custom_royalty_fee():
     assert isinstance(new_fee.fallback_fee, CustomFixedFee)
     assert new_fee.fallback_fee.amount == 50
     assert new_fee.fallback_fee.denominating_token_id == TokenId(0, 0, 789)
+    assert fee == new_fee
