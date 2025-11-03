@@ -228,54 +228,37 @@ CustomFractionalFee(
 ```
 
 
-
 ---
-
-
 
 ## Fixing Invalid Imports and Calls
 
+Pylance is especially helpful when you import something that doesn’t exist — or when the import path changes depending on which folder you’re working from.
 
-
-Pylance is especially helpful when you import something that doesn’t exist.
-
-
-
-Example:
-
-
+Example 1 — When working **inside `/src`**:
 
 ```python
 from hiero_sdk_python.account.account_id import AccountId
 ```
 
-
-
-### Error:
-
-
-
-```
-Import "hiero_sdk.account_id" could not be resolved
-```
-
-
-
-### Correct Import:
-
+Example 2 — When working **inside `/examples`**:
 
 ```python
 from hiero_sdk_python import AccountId
 ```
 
+> ✅ Both imports are correct.
+> Use the first one when developing inside the SDK source (`/src`),
+> and the second when writing or testing example scripts (`/examples`).
 
+If you mix up these contexts, Pylance will display an error such as:
 
-This instantly prevents failed tests or runtime errors due to wrong imports.
+```
+Import "hiero_sdk.account.account_id" could not be resolved
+```
 
-
+Using Pylance helps you catch such mismatched imports early and ensures your code runs correctly in its intended environment.
 
 ---
-
 
 
 ## Recommended Settings
