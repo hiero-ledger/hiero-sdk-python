@@ -16,11 +16,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
 - Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
-- Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
-- Added TokenUnpauseTransaction class
-- Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
-- Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 - Added TokenUnpauseTransaction class
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
@@ -39,21 +35,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
 - Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
 - chore: Standardized client initialization across all examples/ files to promote consistency (#658).
-- Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
-- Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
-- chore: Standardized client initialization across all examples/ files to promote consistency (#658).
 
 
 ### Fixed
 
 - Added explicit read permissions to examples.yml (#623)
 - Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
-- Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
 - Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
 - fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
-- Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
-
-  
 - Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
 
   
