@@ -23,7 +23,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
-<<<<<<< HEAD
 - chore: update local environment configuration in env.example (#649)
 - chore: Update env.example NETWORK to encourage testnet or local usage (#659)
 - chore: updated pyproject.toml with python 3.10 to 3.13 (#510, #449)
