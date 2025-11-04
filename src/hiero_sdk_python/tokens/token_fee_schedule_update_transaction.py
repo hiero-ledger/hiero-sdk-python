@@ -88,7 +88,7 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         """Builds the scheduled transaction body."""
         token_fee_update_body = self._build_proto_body()
         schedulable_body = self.build_base_scheduled_body()
-        schedulable_body.tokenFeeScheduleUpdate.CopyFrom(token_fee_update_body)
+        schedulable_body.token_fee_schedule_update.CopyFrom(token_fee_update_body)
         return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
