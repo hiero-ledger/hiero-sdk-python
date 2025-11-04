@@ -14,6 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
+- chore: added python 3.13 to test.yml workflow (#510, #449)
 - Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
 - Added TokenUnpauseTransaction class
@@ -25,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
 - chore: update local environment configuration in env.example (#649)
 - chore: Update env.example NETWORK to encourage testnet or local usage (#659)
+- chore: updated pyproject.toml with python 3.10 to 3.13 (#510, #449)
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
 - chore: Refactored the script of examples/custom_fee.py into modular functions 
@@ -72,6 +74,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added workflow for running example scripts.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
+
 
 ### Changed
 
