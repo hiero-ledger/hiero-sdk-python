@@ -34,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
 - Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
 - chore: Standardized client initialization across all examples/ files to promote consistency (#658).
+- chore: refactored examples/custom_fixed_fee.py to be a full end-to-end example
 
 
 ### Fixed
