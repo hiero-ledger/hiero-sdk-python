@@ -183,7 +183,7 @@ class _Executable(ABC):
             )
            
             self.node_account_id = selected_node_account_id
-            node = client.network._select_node(self.node_account_id)
+            node = client.network._get_node(self.node_account_id)
 
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
