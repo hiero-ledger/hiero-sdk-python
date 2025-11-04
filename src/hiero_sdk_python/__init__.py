@@ -49,6 +49,7 @@ from .tokens.hbar_allowance import HbarAllowance
 from .tokens.hbar_transfer import HbarTransfer
 from .tokens.token_unpause_transaction import TokenUnpauseTransaction
 from .tokens.token_pause_transaction import TokenPauseTransaction
+from .tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 
 # Transaction
 from .transaction.transaction import Transaction
@@ -181,6 +182,7 @@ __all__ = [
     "TokenUpdateTransaction",
     "TokenAirdropTransaction",
     "TokenCancelAirdropTransaction",
+    "TokenClaimAirdropTransaction",
     "PendingAirdropId",
     "PendingAirdropRecord",
     "TokenType",
