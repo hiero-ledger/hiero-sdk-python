@@ -9,8 +9,6 @@ configuration within the SDK.
 import logging
 import sys
 from typing import Optional, Union, Sequence
-import warnings
-
 from hiero_sdk_python.logger.log_level import LogLevel
 
 # Register custom levels on import
@@ -169,24 +167,6 @@ class Logger:
         if self.internal_logger.isEnabledFor(LogLevel.WARNING.value):
             self.internal_logger.warning(self._format_args(message, args))
 
-    def warn(self, message: str, *args) -> None:
-        """
-        Legacy method for logging a message at the WARNING level.
-
-        This method is deprecated; use `Logger.warning()` instead.
-
-        Args:
-            message (str): The main log message.
-            *args: Optional key-value pairs (key, value, key, value, ...) to be appended to the message.
-        """
-        warnings.warn(
-            "Logger.warn() is deprecated; use Logger.warning()",
-            category=FutureWarning,
-            stacklevel=2,
-        )
-        # Redirects to activate the new method
-        self.warning(message, *args)
-
     def error(self, message: str, *args: object) -> None:
         """
         Logs a message at the ERROR level.
@@ -202,25 +182,4 @@ def get_logger(
     level: Optional[LogLevel] = None,
     name: Optional[str] = None,
 ) -> Logger:
-    """
-    Returns a configured Logger instance.
-
-    This function is provided for convenience and handles a legacy parameter order swap.
-
-    Args:
-        level (Optional[LogLevel]): The initial log level to set.
-        name (Optional[str]): The name of the logger instance.
-
-    Returns:
-        Logger: A new or existing configured Logger instance.
-    """
-    # Legacy method: pass in name, level
-    if isinstance(level, str) and isinstance(name, LogLevel):
-        warnings.warn(
-            "get_logger(name, level) will be deprecated; use get_logger(level, name)",
-            DeprecationWarning, stacklevel=2
-        )
-        # Swaps them to correct sequence to follow init
-        level, name = name, level
-
     return Logger(level, name)

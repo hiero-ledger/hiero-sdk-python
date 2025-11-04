@@ -29,7 +29,8 @@ def token_unfreeze():
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
-    client = Client(Network(os.getenv('NETWORK')))
+    network = Network(os.getenv('NETWORK'))
+    client = Client(network)
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))

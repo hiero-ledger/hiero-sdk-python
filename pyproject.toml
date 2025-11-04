@@ -12,23 +12,26 @@ authors = [
 ]
 license = {  file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10, <3.14"
 dependencies = [
-    "protobuf==5.29.5",
-    "grpcio-tools==1.68.1",
-    "grpcio==1.71.2",
+    "grpcio-tools==1.76.0",
+    "protobuf==6.33.0",
+    "grpcio==1.76.0",
     "cryptography==44.0.0",
-    "python-dotenv==1.0.1",
+    "python-dotenv==1.2.1",
     "requests==2.32.3",
     "pycryptodome==3.23.0",
     "eth-abi==5.2.0",
     "rlp>=4.0.0",
-    "eth-keys==0.5.1",
+    "eth-keys==0.7.0",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules"
