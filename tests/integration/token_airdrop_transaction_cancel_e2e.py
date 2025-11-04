@@ -1,5 +1,5 @@
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
-from hiero_sdk_python.tokens.token_cancel_airdrop_transaction import TokenCancelAirdropTransaction
+from hiero_sdk_python.tokens.token_airdrop_transaction_cancel import TokenCancelAirdropTransaction
 import pytest
 
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
