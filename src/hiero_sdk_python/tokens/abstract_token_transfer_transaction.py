@@ -110,8 +110,8 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         elif isinstance(nft_transfers, dict):
             for token_id, transfers in nft_transfers.items():
                 for sender_id, receiver_id, serial_number, is_approved in transfers:
-                    self.add_nft_transfer(
-                        NftId(token_id, serial_number), sender_id, receiver_id, is_approved
+                    self._add_nft_transfer(
+                        token_id, sender_id, receiver_id, serial_number, is_approved
                     )
         else:
             raise TypeError(
