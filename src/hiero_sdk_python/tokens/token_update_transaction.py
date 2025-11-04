@@ -7,23 +7,22 @@ token properties (settings and keys) on the Hedera network via the HTS API.
 """
 from typing import Optional
 from dataclasses import dataclass
-from google.protobuf.wrappers_pb2 import BytesValue, StringValue
+from google.protobuf.wrappers_pb2 import (BytesValue, StringValue)
 
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_key_validation import TokenKeyValidation
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services.token_update_pb2 import TokenUpdateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services import token_update_pb2, transaction_pb2
-
-from google.protobuf.wrappers_pb2 import BytesValue, StringValue
 
 @dataclass
 class TokenUpdateParams:
@@ -42,6 +41,9 @@ class TokenUpdateParams:
     token_symbol: Optional[str] = None
     token_memo: Optional[str] = None
     metadata: Optional[bytes] = None
+    auto_renew_period: Optional[Duration] = None
+    auto_renew_account_id: Optional[AccountId] = None
+    expiration_time: Optional[Timestamp] = None
 
 @dataclass
 class TokenUpdateKeys:
@@ -63,6 +65,8 @@ class TokenUpdateKeys:
     wipe_key: Optional[PrivateKey] = None
     metadata_key: Optional[PrivateKey] = None
     pause_key: Optional[PrivateKey] = None
+    kyc_key: Optional[PrivateKey] = None
+    fee_schedule_key: Optional[PrivateKey] = None
 
 
 class TokenUpdateTransaction(Transaction):
@@ -114,6 +118,9 @@ class TokenUpdateTransaction(Transaction):
         self.token_symbol: Optional[str] = params.token_symbol
         self.token_memo: Optional[str] = params.token_memo
         self.metadata: Optional[bytes] = params.metadata
+        self.auto_renew_account_id: Optional[AccountId] = params.auto_renew_account_id
+        self.auto_renew_period: Optional[Duration] = params.auto_renew_period
+        self.expiration_time: Optional[Timestamp] = params.expiration_time
 
         # Initialize keys attributes
         keys: TokenUpdateKeys = token_keys or TokenUpdateKeys()
@@ -123,6 +130,8 @@ class TokenUpdateTransaction(Transaction):
         self.supply_key: Optional[PrivateKey] = keys.supply_key
         self.pause_key: Optional[PrivateKey] = keys.pause_key
         self.metadata_key: Optional[PrivateKey] = keys.metadata_key
+        self.kyc_key: Optional[PrivateKey] = keys.kyc_key
+        self.fee_schedule_key: Optional[PrivateKey] = keys.fee_schedule_key
 
         self.token_key_verification_mode: TokenKeyValidation = token_key_verification_mode
 
@@ -231,6 +240,48 @@ class TokenUpdateTransaction(Transaction):
         self.metadata = metadata
         return self
 
+    def set_auto_renew_account_id(self, auto_renew_account_id: AccountId) -> "TokenUpdateTransaction":
+        """
+        Sets the new auto renew account for the token.
+
+        Args:
+            auto_renew_account_id (AccountId): The new auto_renew_account_id to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.auto_renew_account_id = auto_renew_account_id
+        return self
+
+    def set_auto_renew_period(self, auto_renew_period: Duration) -> "TokenUpdateTransaction":
+        """
+        Sets the new auto renew period for the token.
+
+        Args:
+            auto_renew_period (Duration): The new auto_renew_period to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.auto_renew_period = auto_renew_period
+        return self
+
+    def set_expiration_time(self, expiration_time: Timestamp) -> "TokenUpdateTransaction":
+        """
+        Sets the new expiration time for the token.
+
+        Args:
+            expiration_time (Timestamp): The new expiration_time to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.expiration_time = expiration_time
+        return self
+
     def set_admin_key(
             self,
             admin_key: PrivateKey
@@ -333,6 +384,34 @@ class TokenUpdateTransaction(Transaction):
         self.metadata_key = metadata_key
         return self
 
+    def set_kyc_key(self, kyc_key: PrivateKey) -> "TokenUpdateTransaction":
+        """
+        Sets the kyc key for the token
+
+        Args:
+            kyc_key (Private Key): The new kyc_key to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.kyc_key = kyc_key
+        return self
+
+    def set_fee_schedule_key(self, fee_schedule_key: PrivateKey) -> "TokenUpdateTransaction":
+        """
+        Sets the fee schedule key for the token
+
+        Args:
+            fee_schedule_key (Private Key): The new fee_schedule_key to set.
+
+        Returns:
+            TokenUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.fee_schedule_key = fee_schedule_key
+        return self
+
     def set_key_verification_mode(
             self,
             key_verification_mode: TokenKeyValidation
@@ -370,11 +449,14 @@ class TokenUpdateTransaction(Transaction):
             memo=StringValue(value=self.token_memo) if self.token_memo else None,
             metadata=BytesValue(value=self.metadata) if self.metadata else None,
             symbol=self.token_symbol,
-            key_verification_mode=self.token_key_verification_mode._to_proto()
+            key_verification_mode=self.token_key_verification_mode._to_proto(),
+            expiry=self.expiration_time._to_protobuf() if self.expiration_time else None,
+            autoRenewAccount=self.auto_renew_account_id._to_proto() if self.auto_renew_account_id else None,
+            autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None
         )
         self._set_keys_to_proto(token_update_body)
         return token_update_body
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token update.
@@ -386,7 +468,7 @@ class TokenUpdateTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenUpdate.CopyFrom(token_update_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token update transaction.
@@ -436,3 +518,7 @@ class TokenUpdateTransaction(Transaction):
             token_update_body.metadata_key.CopyFrom(self.metadata_key.public_key()._to_proto())
         if self.pause_key:
             token_update_body.pause_key.CopyFrom(self.pause_key.public_key()._to_proto())
+        if self.kyc_key:
+            token_update_body.kycKey.CopyFrom(self.kyc_key.public_key()._to_proto())
+        if self.fee_schedule_key:
+            token_update_body.fee_schedule_key.CopyFrom(self.fee_schedule_key.public_key()._to_proto())

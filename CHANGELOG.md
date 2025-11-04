@@ -7,14 +7,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
+- added Google-style docstrings to the `TransactionRecord` class including all dataclass fields, `__repr__`, `_from_proto()` & `_to_proto()` methods.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
 
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
 - Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
-
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
+- Added TokenUnpauseTransaction class
+- Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
+- Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
+- docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
@@ -30,7 +35,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
 - Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
 - chore: Standardized client initialization across all examples/ files to promote consistency (#658).
-
+- chore: changed the file names of airdrop examples, classes, unit and integration tests so they are grouped together. (#631)
 
 ### Fixed
 
@@ -42,6 +47,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
   
 ### Breaking Changes
+- chore: changed the file names airdrop classes (#631)
+{pending_airdrop_id.py -> token_airdrop_pending_id.py}
+{pending_airdrop_record.py -> token_airdrop_pending_record.py}
+{token_cancel_airdrop_transaction.py -> token_airdrop_transaction_cancel.py}
+
 
 ## [0.1.7] - 2025-10-28
 
@@ -137,6 +147,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
+
 
 ### Fixed
 
