@@ -237,7 +237,7 @@ Pylance is especially helpful when you import something that doesn’t exist —
 Example 1 — When working **inside `/src`**:
 
 ```python
-from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk.account.account_id import AccountId
 ```
 
 Example 2 — When working **inside `/examples`**:
@@ -253,7 +253,7 @@ from hiero_sdk_python import AccountId
 If you mix up these contexts, Pylance will display an error such as:
 
 ```
-Import "hiero_sdk.account.account_id" could not be resolved
+Import "hiero_sdk_python.account.account_id" could not be resolved
 ```
 
 Using Pylance helps you catch such mismatched imports early and ensures your code runs correctly in its intended environment.
