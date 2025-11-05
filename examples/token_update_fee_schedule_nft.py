@@ -35,25 +35,25 @@ def create_nft(client, operator_id, supply_key, fee_schedule_key):
         token_name="NFT Fee Example",
         token_symbol="NFE",
         treasury_account_id=operator_id,
-        initial_supply=0, # NFTs have 0 initial supply
-        decimals=0, # NFTs must have 0 decimals
+        initial_supply=0,
+        decimals=0,
         token_type=TokenType.NON_FUNGIBLE_UNIQUE,
         supply_type=SupplyType.FINITE,
         max_supply=1000,
-        custom_fees=[], # No custom fees at creation
+        custom_fees=[], 
     )
     
-    # fee_schedule_key is required to update fees
-    # supply_key is required to mint
+    # A supply_key is REQUIRED for NFTs (to mint)
+    # A fee_schedule_key is required to update fees
     keys = TokenKeys(
         supply_key=supply_key,
         fee_schedule_key=fee_schedule_key
     )
 
     tx = TokenCreateTransaction(token_params=token_params, keys=keys)
-    tx.set_fee_schedule_key(fee_schedule_key)
     
-    tx.freeze_with(client)
+    # Sign with the supply key as well
+    tx.freeze_with(client).sign(supply_key)
     receipt = tx.execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -70,7 +70,6 @@ def update_custom_royalty_fee(client, token_id, fee_schedule_key, collector_acco
     """Updates the token's fee schedule with a new royalty fee."""
     print(f" Updating custom royalty fee for token {token_id}...")
     new_fees = [
-        # NFTs can have royalty fees
         CustomRoyaltyFee(
             numerator=5, 
             denominator=100, # 5% royalty
@@ -84,7 +83,6 @@ def update_custom_royalty_fee(client, token_id, fee_schedule_key, collector_acco
         .set_custom_fees(new_fees)
     )
     
-    # The transaction MUST be signed by the fee_schedule_key
     tx.freeze_with(client).sign(fee_schedule_key) 
 
     try:
@@ -103,7 +101,7 @@ def query_token_info(client, token_id):
     try:
         token_info = TokenInfoQuery(token_id=token_id).execute(client)
         print("Token Info Retrieved Successfully!\n")
-
+        
         print(f"Name: {getattr(token_info, 'name', 'N/A')}")
         print(f"Symbol: {getattr(token_info, 'symbol', 'N/A')}")
         print(f"Total Supply: {getattr(token_info, 'total_supply', 'N/A')}")
@@ -133,15 +131,16 @@ def main():
     client, operator_id, operator_key = setup_client()
     token_id = None
     try:
+        # Use operator key as both supply and fee key
         supply_key = operator_key
         fee_key = operator_key
         
         token_id = create_nft(client, operator_id, supply_key, fee_key)
         
         if token_id:
-            query_token_info(client, token_id) # Query before update
+            query_token_info(client, token_id) 
             update_custom_royalty_fee(client, token_id, fee_key, operator_id)
-            query_token_info(client, token_id) # Query after update
+            query_token_info(client, token_id)
             
     except Exception as e:
         print(f" Error during token operations: {e}")
@@ -152,3 +151,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
