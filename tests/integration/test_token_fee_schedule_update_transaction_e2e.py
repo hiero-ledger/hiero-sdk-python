@@ -1,7 +1,7 @@
 import pytest
 
 from hiero_sdk_python.hbar import Hbar
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token 
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
@@ -21,64 +21,16 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 
-# --- Helper function for consistent token creation ---
-def _create_test_fungible_token(env, admin_key, fee_schedule_key):
-    """Helper to create a fungible token with admin and fee keys."""
-    token_params = TokenParams(
-        token_name="Test Fungible",
-        token_symbol="FT",
-        treasury_account_id=env.operator_id,
-        initial_supply=1000,
-        token_type=TokenType.FUNGIBLE_COMMON,
-    )
-    keys = TokenKeys(
-        admin_key=admin_key,
-        supply_key=admin_key,
-        fee_schedule_key=fee_schedule_key
-    )
-    # Use the setter as well, aligning with PR #409's test
-    create_tx = TokenCreateTransaction(token_params=token_params, keys=keys)
-    create_tx.set_fee_schedule_key(fee_schedule_key)
-    
-    receipt = create_tx.execute(env.client)
-    assert receipt.status == ResponseCode.SUCCESS, "Fungible token creation failed"
-    return receipt.token_id
-
-# --- Helper function for consistent token creation ---
-def _create_test_nft(env, admin_key, fee_schedule_key):
-    """Helper to create an NFT with admin and fee keys."""
-    token_params = TokenParams(
-        token_name="Test NFT",
-        token_symbol="NFT",
-        treasury_account_id=env.operator_id,
-        initial_supply=0,
-        decimals=0,
-        token_type=TokenType.NON_FUNGIBLE_UNIQUE,
-        supply_type=SupplyType.FINITE,
-        max_supply=1000,
-    )
-    keys = TokenKeys(
-        admin_key=admin_key,
-        supply_key=admin_key,
-        fee_schedule_key=fee_schedule_key
-    )
-    # Use the setter as well, aligning with PR #409's test
-    create_tx = TokenCreateTransaction(token_params=token_params, keys=keys)
-    create_tx.set_fee_schedule_key(fee_schedule_key)
-
-    receipt = create_tx.execute(env.client)
-    assert receipt.status == ResponseCode.SUCCESS, "NFT creation failed"
-    return receipt.token_id
-
-
 @pytest.mark.integration
 def test_token_fee_schedule_update_e2e_fungible():
     """Test updating fee schedule successfully for a Fungible Token."""
     env = IntegrationTestEnv()
     try:
         fee_schedule_key = env.operator_key
-        admin_key = env.operator_key
-        token_id = _create_test_fungible_token(env, admin_key, fee_schedule_key)
+        token_id = create_fungible_token(
+            env,
+            opts=[lambda tx: tx.set_fee_schedule_key(fee_schedule_key)]
+        )
         assert token_id is not None
 
         new_fee = CustomFixedFee(
@@ -108,8 +60,10 @@ def test_token_fee_schedule_update_e2e_nft():
     env = IntegrationTestEnv()
     try:
         fee_schedule_key = env.operator_key
-        admin_key = env.operator_key
-        token_id = _create_test_nft(env, admin_key, fee_schedule_key)
+        token_id = create_nft_token(
+            env,
+            opts=[lambda tx: tx.set_fee_schedule_key(fee_schedule_key)]
+        )
         assert token_id is not None
 
         new_fee = CustomRoyaltyFee(
@@ -139,8 +93,10 @@ def test_token_fee_schedule_update_fails_with_invalid_signature():
     env = IntegrationTestEnv()
     try:
         fee_schedule_key = PrivateKey.generate() # Must be a new key
-        admin_key = env.operator_key
-        token_id = _create_test_fungible_token(env, admin_key, fee_schedule_key)
+        token_id = create_fungible_token(
+            env,
+            opts=[lambda tx: tx.set_fee_schedule_key(fee_schedule_key)]
+        )
         assert token_id is not None
 
         wrong_key = PrivateKey.generate()
@@ -188,7 +144,13 @@ def test_token_fee_schedule_update_fails_for_deleted_token():
     try:
         admin_key = env.operator_key
         fee_schedule_key = env.operator_key
-        token_id = _create_test_fungible_token(env, admin_key, fee_schedule_key)
+        token_id = create_fungible_token(
+            env,
+            opts=[
+                lambda tx: tx.set_admin_key(admin_key),
+                lambda tx: tx.set_fee_schedule_key(fee_schedule_key)
+            ]
+        )
         assert token_id is not None
 
         delete_receipt = TokenDeleteTransaction().set_token_id(token_id).execute(env.client)
@@ -212,9 +174,11 @@ def test_token_fee_schedule_update_fails_royalty_on_fungible():
     """Test failure when adding a royalty fee to a fungible token."""
     env = IntegrationTestEnv()
     try:
-        admin_key = env.operator_key
         fee_schedule_key = env.operator_key
-        token_id = _create_test_fungible_token(env, admin_key, fee_schedule_key)
+        token_id = create_fungible_token(
+            env,
+            opts=[lambda tx: tx.set_fee_schedule_key(fee_schedule_key)]
+        )
         assert token_id is not None
 
         new_fee = CustomRoyaltyFee(numerator=1, denominator=10, fee_collector_account_id=env.operator_id)
@@ -236,9 +200,11 @@ def test_token_fee_schedule_update_fails_fractional_on_nft():
     """Test failure when adding a fractional fee to an NFT."""
     env = IntegrationTestEnv()
     try:
-        admin_key = env.operator_key
         fee_schedule_key = env.operator_key
-        token_id = _create_test_nft(env, admin_key, fee_schedule_key)
+        token_id = create_nft_token(
+            env,
+            opts=[lambda tx: tx.set_fee_schedule_key(fee_schedule_key)]
+        )
         assert token_id is not None
 
         new_fee = CustomFractionalFee(
@@ -270,21 +236,15 @@ def test_token_fee_schedule_update_clears_fees():
         fee_schedule_key = env.operator_key
         
         initial_fee = CustomFixedFee(amount=10, fee_collector_account_id=env.operator_id)
-        token_params = TokenParams(
-            token_name="Test Clear Fees",
-            token_symbol="CLEAR",
-            treasury_account_id=env.operator_id,
-            initial_supply=1000,
-            token_type=TokenType.FUNGIBLE_COMMON,
-            custom_fees=[initial_fee],
+        token_id = create_fungible_token(
+            env,
+            opts=[
+                lambda tx: tx.set_custom_fees([initial_fee]),
+                lambda tx: tx.set_admin_key(admin_key),
+                lambda tx: tx.set_fee_schedule_key(fee_schedule_key)
+            ]
         )
-        keys = TokenKeys(admin_key=admin_key, fee_schedule_key=fee_schedule_key)
-        create_tx = TokenCreateTransaction(token_params=token_params, keys=keys)
-        create_tx.set_fee_schedule_key(fee_schedule_key)
-        
-        create_receipt = create_tx.execute(env.client)
-        assert create_receipt.status == ResponseCode.SUCCESS, "Token creation failed"
-        token_id = create_receipt.token_id
+        assert token_id is not None
         
         token_info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
         assert len(token_info.custom_fees) == 1
