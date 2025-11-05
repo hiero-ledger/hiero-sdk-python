@@ -13,7 +13,7 @@ from hiero_sdk_python import (
     PrivateKey,
     Network,
 )
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery

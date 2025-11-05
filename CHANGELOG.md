@@ -44,6 +44,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
 - Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
 - Dependabot alerts (version bumps)
+- Fixed incorrect `TokenType` import (protobuf vs. SDK enum) in 18 example files.
   
 ### Breaking Changes
 - chore: changed the file names airdrop classes (#631)
