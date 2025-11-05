@@ -61,6 +61,63 @@ def generate_transaction_id(account_id_proto):
 
 ########### Basic Tests for Building Transactions ###########
 
+def test_to_proto_key_with_public_key():
+    """
+    Tests the _to_proto_key 'airlock' with a PublicKey.
+    This is the "new" happy path.
+    """
+    tx = TokenCreateTransaction()
+    private_key = PrivateKey.generate_ed25519()
+    public_key = private_key.public_key()
+    
+    # This is the "proto" object we expect to get back
+    expected_proto = public_key._to_proto()
+    
+    # Call the function directly
+    result_proto = tx._to_proto_key(public_key)
+    
+    # Assert the result is correct
+    assert result_proto == expected_proto
+    assert isinstance(result_proto, basic_types_pb2.Key)
+
+def test_to_proto_key_with_private_key():
+    """
+    Tests the _to_proto_key 'airlock' with a PrivateKey.
+    This proves backward compatibility.
+    """
+    tx = TokenCreateTransaction()
+    private_key = PrivateKey.generate_ed25519()
+    public_key = private_key.public_key()
+    
+    # We expect the *public key's* proto, even though we passed a private key
+    expected_proto = public_key._to_proto()
+    
+    # Call the function with the PrivateKey
+    result_proto = tx._to_proto_key(private_key)
+    
+    # Assert it correctly converted it to the public key proto
+    assert result_proto == expected_proto
+    assert isinstance(result_proto, basic_types_pb2.Key)
+
+def test_to_proto_key_with_none():
+    """
+    Tests the _to_proto_key 'airlock' with None (a non-happy path).
+    """
+    tx = TokenCreateTransaction()
+    result = tx._to_proto_key(None)
+    assert result is None
+
+def test_to_proto_key_with_invalid_string_raises_error():
+    """
+    Tests the _to_proto_key 'airlock' safety net with a string (a non-happy path).
+    """
+    tx = TokenCreateTransaction()
+    
+    with pytest.raises(TypeError) as e:
+        tx._to_proto_key("this is not a key")
+        
+    assert "Key must be of type PrivateKey or PublicKey" in str(e.value)
+    
 # This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body_without_key(mock_account_ids):
     """Test building a token creation transaction body without an admin, supply or freeze key."""
@@ -260,36 +317,36 @@ def test_sign_transaction(mock_account_ids, mock_client):
     private_key.sign.return_value = b"signature"
     private_key.public_key().to_bytes_raw.return_value = b"public_key"
 
-    private_key_admin = MagicMock()
+    private_key_admin = MagicMock(spec=PrivateKey)
     private_key_admin.sign.return_value = b"admin_signature"
     private_key_admin.public_key().to_bytes_raw.return_value = b"admin_public_key"
     private_key_admin.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"admin_public_key")
 
-    private_key_supply = MagicMock()
+    private_key_supply = MagicMock(spec=PrivateKey)
     private_key_supply.sign.return_value = b"supply_signature"
     private_key_supply.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"supply_public_key")
 
-    private_key_freeze = MagicMock()
+    private_key_freeze = MagicMock(spec=PrivateKey)
     private_key_freeze.sign.return_value = b"freeze_signature"
     private_key_freeze.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"freeze_public_key")
 
-    private_key_wipe = MagicMock()
+    private_key_wipe = MagicMock(spec=PrivateKey)
     private_key_wipe.sign.return_value = b"wipe_signature"
     private_key_wipe.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"wipe_public_key")
 
-    private_key_metadata = MagicMock()
+    private_key_metadata = MagicMock(spec=PrivateKey)
     private_key_metadata.sign.return_value = b"metadata_signature"
     private_key_metadata.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"metadata_public_key")
 
-    private_key_pause = MagicMock()
+    private_key_pause = MagicMock(spec=PrivateKey)
     private_key_pause.sign.return_value = b"pause_signature"
     private_key_pause.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"pause_public_key")
 
-    private_key_kyc = MagicMock()
+    private_key_kyc = MagicMock(spec=PrivateKey)
     private_key_kyc.sign.return_value = b"kyc_signature"
     private_key_kyc.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"kyc_public_key")
 
-    private_key_fee_schedule = MagicMock()
+    private_key_fee_schedule = MagicMock(spec=PrivateKey)
     private_key_fee_schedule.sign.return_value = b"fee_schedule_signature"
     private_key_fee_schedule.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"fee_schedule_public_key")
 
@@ -722,36 +779,36 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     private_key_private.sign.return_value = b"private_signature"
     private_key_private.public_key().to_bytes_raw.return_value = b"private_public_key"
 
-    private_key_admin = MagicMock()
+    private_key_admin = MagicMock(spec=PrivateKey)
     private_key_admin.sign.return_value = b"admin_signature"
     private_key_admin.public_key().to_bytes_raw.return_value = b"admin_public_key"
     private_key_admin.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"admin_public_key")
 
-    private_key_supply = MagicMock()
+    private_key_supply = MagicMock(spec=PrivateKey)
     private_key_supply.sign.return_value = b"supply_signature"
     private_key_supply.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"supply_public_key")
 
-    private_key_freeze = MagicMock()
+    private_key_freeze = MagicMock(spec=PrivateKey)
     private_key_freeze.sign.return_value = b"freeze_signature"
     private_key_freeze.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"freeze_public_key")
 
-    private_key_wipe = MagicMock()
+    private_key_wipe = MagicMock(spec=PrivateKey)
     private_key_wipe.sign.return_value = b"wipe_signature"
     private_key_wipe.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"wipe_public_key")
 
-    private_key_metadata = MagicMock()
+    private_key_metadata = MagicMock(spec=PrivateKey)
     private_key_metadata.sign.return_value = b"metadata_signature"
     private_key_metadata.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"metadata_public_key")
 
-    private_key_pause = MagicMock()
+    private_key_pause = MagicMock(spec=PrivateKey)
     private_key_pause.sign.return_value = b"pause_signature"
     private_key_pause.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"pause_public_key")
 
-    private_key_kyc = MagicMock()
+    private_key_kyc = MagicMock(spec=PrivateKey)
     private_key_kyc.sign.return_value = b"kyc_signature"
     private_key_kyc.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"kyc_public_key")
 
-    private_key_fee_schedule = MagicMock()
+    private_key_fee_schedule = MagicMock(spec=PrivateKey)
     private_key_fee_schedule.sign.return_value = b"fee_schedule_signature"
     private_key_fee_schedule.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"fee_schedule_public_key")
 

@@ -3,6 +3,8 @@ import pytest
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
@@ -145,4 +147,74 @@ def test_fungible_token_create_with_fee_schedule_key():
         # Validate Fee schedule key
         # TODO (required TokenFeeScheduleUpdateTransaction)
     finally:
+        env.close()
+
+@pytest.mark.integration
+def test_token_create_non_custodial_flow():
+    """
+    Tests the full non-custodial flow:
+    1. Operator builds a TX using only a PublicKey.
+    2. Operator gets the transaction bytes.
+    3. User (with the PrivateKey) signs the bytes.
+    4. Operator executes the signed transaction.
+    """
+    
+    env = IntegrationTestEnv()
+    client = env.client
+
+    try:
+        # 1. SETUP: Create a new key pair for the "user"
+        user_private_key = PrivateKey.generate_ed25519()
+        user_public_key = user_private_key.public_key()
+
+        # =================================================================
+        # STEP 1 & 2: OPERATOR (CLIENT) BUILDS THE TRANSACTION
+        # =================================================================
+        
+        tx = (
+            TokenCreateTransaction()
+            .set_token_name("NonCustodialToken")
+            .set_token_symbol("NCT")
+            .set_token_type(TokenType.FUNGIBLE_COMMON)
+            .set_treasury_account_id(client.operator_account_id)
+            .set_initial_supply(100)
+            .set_admin_key(user_public_key)  # <-- The new feature!
+            .set_supply_key(user_public_key) # <-- Using it again
+            .freeze_with(client)
+        )
+
+        tx_bytes = tx.to_bytes()
+
+        # =================================================================
+        # STEP 3: USER (SIGNER) SIGNS THE TRANSACTION
+        # =================================================================
+        
+        tx_from_bytes = Transaction.from_bytes(tx_bytes)
+        tx_from_bytes.sign(user_private_key)
+
+        # =================================================================
+        # STEP 4: OPERATOR (CLIENT) EXECUTES THE SIGNED TX
+        # =================================================================
+        
+        receipt = tx_from_bytes.execute(client)
+        
+        assert receipt is not None
+        token_id = receipt.token_id
+        assert token_id is not None
+        
+        print(f"Successfully created non-custodial token: {token_id}")
+
+        # PROOF: Query the new token and check if the admin key matches
+        token_info = TokenInfoQuery(token_id=token_id).execute(client)
+        
+        assert token_info.admin_key is not None
+        
+        admin_key_bytes = token_info.admin_key.to_bytes_raw()
+        public_key_bytes = user_public_key.to_bytes_raw()
+        
+        assert admin_key_bytes == public_key_bytes
+        print("Integration Test PASSED: Admin key on network matches public key.")
+
+    finally:
+        # Clean up the environment
         env.close()
