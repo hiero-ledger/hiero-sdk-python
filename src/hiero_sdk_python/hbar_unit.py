@@ -17,7 +17,7 @@ class HbarUnit(Enum):
     @classmethod
     def from_string(cls, symbol: str):
         for unit in cls:
-            if unit.symbol == symbol:
+            if unit._symbol == symbol:
                 return unit
             
         raise ValueError(f"Invalid Hbar unit symbol: {symbol}")
