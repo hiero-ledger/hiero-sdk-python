@@ -28,7 +28,7 @@ class FreezeType(Enum):
     TELEMETRY_UPGRADE = 5
 
     @staticmethod
-    def _from_proto(proto_obj: proto_FreezeType):
+    def _from_proto(proto_obj: proto_FreezeType) -> "FreezeType":
         """
         Converts a protobuf FreezeType to a FreezeType enum.
         
@@ -72,8 +72,9 @@ class FreezeType(Enum):
             return proto_FreezeType.TELEMETRY_UPGRADE
         return proto_FreezeType.UNKNOWN_FREEZE_TYPE
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, FreezeType):
             return self.value == other.value
         elif isinstance(other, int):
             return self.value == other
+        return False

@@ -11,6 +11,7 @@ from hiero_sdk_python.hapi.services.freeze_pb2 import FreezeTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.system.freeze_type import FreezeType
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -119,7 +120,7 @@ class FreezeTransaction(Transaction):
             freeze_type=self.freeze_type._to_proto() if self.freeze_type else None,
         )
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> TransactionBody:
         """
         Builds the transaction body for this freeze transaction.
 
