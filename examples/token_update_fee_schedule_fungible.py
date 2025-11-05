@@ -10,7 +10,7 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery # <-- Import TokenInfoQuery
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 
 def setup_client():
@@ -42,13 +42,12 @@ def create_fungible_token(client, operator_id, fee_schedule_key):
         max_supply=2000,
         custom_fees=[], # No custom fees at creation
     )
-    
+
     keys = TokenKeys(
         fee_schedule_key=fee_schedule_key
     )
 
     tx = TokenCreateTransaction(token_params=token_params, keys=keys)
-    tx.set_fee_schedule_key(fee_schedule_key)
     
     tx.freeze_with(client)
     receipt = tx.execute(client)
@@ -63,11 +62,12 @@ def create_fungible_token(client, operator_id, fee_schedule_key):
     return token_id
 
 
-def update_custom_fixed_fee(client, token_id, fee_schedule_key, collector_account_id):
+def update_custom_fixed_fee(client, token_id, fee_schedule_key, treasury_account_id):
     """Updates the token's fee schedule with a new fixed fee."""
     print(f" Updating custom fixed fee for token {token_id}...")
     new_fees = [
-        CustomFixedFee(amount=150, fee_collector_account_id=collector_account_id)
+        # Send the custom fee to the token's treasury account
+        CustomFixedFee(amount=150, fee_collector_account_id=treasury_account_id)
     ]
     print(f" Defined {len(new_fees)} new custom fees.\n")
     tx = (
@@ -76,6 +76,7 @@ def update_custom_fixed_fee(client, token_id, fee_schedule_key, collector_accoun
         .set_custom_fees(new_fees)
     )
     
+    # The transaction MUST be signed by the fee_schedule_key
     tx.freeze_with(client).sign(fee_schedule_key) 
 
     try:
@@ -109,7 +110,6 @@ def query_token_info(client, token_id):
             for i, fee in enumerate(custom_fees, 1):
                 print(f"  Fee #{i}: {type(fee).__name__}")
                 print(f"    Collector: {getattr(fee, 'fee_collector_account_id', 'N/A')}")
-                # Specific logic for fixed fee
                 if isinstance(fee, CustomFixedFee):
                     print(f"    Amount: {getattr(fee, 'amount', 'N/A')}")
         else:
@@ -128,9 +128,10 @@ def main():
         token_id = create_fungible_token(client, operator_id, fee_key)
         
         if token_id:
-            query_token_info(client, token_id) # Query before update
+            query_token_info(client, token_id) 
+            # Pass the operator_id as the fee collector (which is also the treasury)
             update_custom_fixed_fee(client, token_id, fee_key, operator_id)
-            query_token_info(client, token_id) # Query after update
+            query_token_info(client, token_id)
             
     except Exception as e:
         print(f" Error during token operations: {e}")
