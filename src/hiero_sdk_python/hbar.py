@@ -4,7 +4,7 @@ from typing import Union
 
 from hiero_sdk_python.hbar_unit import HbarUnit
 
-FROM_STRING_PATTERN = re.compile(r"^((?:\+|\-)?\d+(?:\.\d+)?)(\ (tℏ|μℏ|mℏ|ℏ|kℏ|Mℏ|Gℏ))?$")
+FROM_STRING_PATTERN = re.compile(r"^((?:\+|\-)?\d+(?:\.\d+)?)(?:\s?(tℏ|μℏ|mℏ|ℏ|kℏ|Mℏ|Gℏ))?$")
 
 class Hbar:
     """
@@ -78,9 +78,8 @@ class Hbar:
         match = FROM_STRING_PATTERN.match(amount)
         if not match:
             raise ValueError(f"Invalid Hbar format: '{amount}'")
-        
-        value, symbol = match.groups()
 
+        value, symbol = match.groups()
         if symbol is not None:
             unit = HbarUnit.from_string(symbol)
         
