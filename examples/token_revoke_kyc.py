@@ -14,7 +14,7 @@ from hiero_sdk_python import (
     Network,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType

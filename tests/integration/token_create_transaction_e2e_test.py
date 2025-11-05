@@ -3,7 +3,7 @@ import pytest
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenParams
