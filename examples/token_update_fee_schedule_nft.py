@@ -52,8 +52,8 @@ def create_nft(client, operator_id, supply_key, fee_schedule_key):
 
     tx = TokenCreateTransaction(token_params=token_params, keys=keys)
     
-    # Sign with the supply key as well
-    tx.freeze_with(client).sign(supply_key)
+    # Freeze and execute the transaction (operator auto-signs)
+    tx.freeze_with(client)
     receipt = tx.execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
