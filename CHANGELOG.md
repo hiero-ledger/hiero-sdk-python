@@ -166,6 +166,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
+- chore: fix the examples workflow to log error messages and run on import failure (#738)
 
 ## [0.1.5] - 2025-09-25
 
