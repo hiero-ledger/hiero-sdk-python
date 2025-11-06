@@ -23,7 +23,7 @@ from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.hapi.services import transaction_record_pb2
-from hiero_sdk_python.tokens.pending_airdrop_record import PendingAirdropRecord
+from hiero_sdk_python.tokens.token_airdrop_pending_record import PendingAirdropRecord
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.transaction.transaction_id import TransactionId
