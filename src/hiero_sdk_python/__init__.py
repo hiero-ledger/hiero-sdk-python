@@ -140,6 +140,10 @@ from .tokens.custom_fractional_fee import CustomFractionalFee
 from .tokens.custom_royalty_fee import CustomRoyaltyFee
 from .transaction.custom_fee_limit import CustomFeeLimit
 
+# System
+from .system.freeze_transaction import FreezeTransaction
+from .system.freeze_type import FreezeType
+
 __all__ = [
     # Client
     "Client",
@@ -278,4 +282,8 @@ __all__ = [
     "CustomFractionalFee",
     "CustomRoyaltyFee",
     "CustomFeeLimit",
+
+    # System
+    "FreezeTransaction",
+    "FreezeType",
 ]
