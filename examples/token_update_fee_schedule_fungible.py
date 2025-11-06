@@ -42,7 +42,7 @@ def create_fungible_token(client, operator_id, fee_schedule_key):
         max_supply=2000,
         custom_fees=[], # No custom fees at creation
     )
-
+    
     keys = TokenKeys(
         fee_schedule_key=fee_schedule_key
     )
@@ -83,10 +83,12 @@ def update_custom_fixed_fee(client, token_id, fee_schedule_key, treasury_account
         receipt = tx.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             print(f" Fee schedule update failed: {ResponseCode(receipt.status).name}\n")
+            sys.exit(1)
         else:
             print(" Fee schedule updated successfully.\n")
     except Exception as e:
         print(f" Error during fee schedule update execution: {e}\n")
+        sys.exit(1)
 
 
 def query_token_info(client, token_id):
@@ -117,6 +119,7 @@ def query_token_info(client, token_id):
 
     except Exception as e:
         print(f"Error querying token info: {e}")
+        sys.exit(1)
 
 
 def main():
@@ -142,3 +145,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
