@@ -51,9 +51,10 @@ def create_nft(client, operator_id, supply_key, fee_schedule_key):
     )
 
     tx = TokenCreateTransaction(token_params=token_params, keys=keys)
+    # tx.set_fee_schedule_key(fee_schedule_key)
     
-    # Freeze and execute the transaction (operator auto-signs)
-    tx.freeze_with(client)
+    # Sign with the supply key as well
+    tx.freeze_with(client).sign(supply_key)
     receipt = tx.execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -89,10 +90,12 @@ def update_custom_royalty_fee(client, token_id, fee_schedule_key, collector_acco
         receipt = tx.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
             print(f" Fee schedule update failed: {ResponseCode(receipt.status).name}\n")
+            sys.exit(1) 
         else:
             print(" Fee schedule updated successfully.\n")
     except Exception as e:
         print(f" Error during fee schedule update execution: {e}\n")
+        sys.exit(1) 
 
 
 def query_token_info(client, token_id):
@@ -125,7 +128,7 @@ def query_token_info(client, token_id):
 
     except Exception as e:
         print(f"Error querying token info: {e}")
-
+        sys.exit(1) 
 
 def main():
     client, operator_id, operator_key = setup_client()
