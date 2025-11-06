@@ -10,7 +10,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
 - Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
 - Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
+- added FreezeTransaction class
+- added FreezeType class
 - Added `docs/sdk_developers/pylance.md`, a new guide explaining how to set up and use **Pylance** in VS Code for validating imports, file references, and methods before review. (#713)
+- feat: TokenAirdropClaim Transaction, examples (with signing required and not), unit and integration tests (#201)
 - docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
 - added Google-style docstrings to the `TransactionRecord` class including all dataclass fields, `__repr__`, `_from_proto()` & `_to_proto()` methods.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
@@ -166,6 +169,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
+- chore: fix the examples workflow to log error messages and run on import failure (#738)
 
 ## [0.1.5] - 2025-09-25
 

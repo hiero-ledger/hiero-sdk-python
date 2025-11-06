@@ -49,6 +49,7 @@ from .tokens.hbar_allowance import HbarAllowance
 from .tokens.hbar_transfer import HbarTransfer
 from .tokens.token_unpause_transaction import TokenUnpauseTransaction
 from .tokens.token_pause_transaction import TokenPauseTransaction
+from .tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 
 # Transaction
 from .transaction.transaction import Transaction
@@ -140,6 +141,10 @@ from .tokens.custom_fractional_fee import CustomFractionalFee
 from .tokens.custom_royalty_fee import CustomRoyaltyFee
 from .transaction.custom_fee_limit import CustomFeeLimit
 
+# System
+from .system.freeze_transaction import FreezeTransaction
+from .system.freeze_type import FreezeType
+
 __all__ = [
     # Client
     "Client",
@@ -181,6 +186,7 @@ __all__ = [
     "TokenUpdateTransaction",
     "TokenAirdropTransaction",
     "TokenCancelAirdropTransaction",
+    "TokenClaimAirdropTransaction",
     "PendingAirdropId",
     "PendingAirdropRecord",
     "TokenType",
@@ -278,4 +284,8 @@ __all__ = [
     "CustomFractionalFee",
     "CustomRoyaltyFee",
     "CustomFeeLimit",
+
+    # System
+    "FreezeTransaction",
+    "FreezeType",
 ]
