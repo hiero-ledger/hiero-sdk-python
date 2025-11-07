@@ -1,9 +1,9 @@
 from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_record_pb2
 from hiero_sdk_python.tokens.nft_id import NftId
-from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
+from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 import pytest
 
-from hiero_sdk_python.tokens.pending_airdrop_record import PendingAirdropRecord
+from hiero_sdk_python.tokens.token_airdrop_pending_record import PendingAirdropRecord
 
 def test_pending_airdrop_record_constructor(mock_account_ids):
     """Test PendingAirdropRecord constructor with various params"""

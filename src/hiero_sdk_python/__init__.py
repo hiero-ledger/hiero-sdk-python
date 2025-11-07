@@ -33,9 +33,9 @@ from .tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
 from .tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from .tokens.token_update_transaction import TokenUpdateTransaction
 from .tokens.token_airdrop_transaction import TokenAirdropTransaction
-from .tokens.token_cancel_airdrop_transaction import TokenCancelAirdropTransaction
-from .tokens.pending_airdrop_id import PendingAirdropId
-from .tokens.pending_airdrop_record import PendingAirdropRecord
+from .tokens.token_airdrop_transaction_cancel import TokenCancelAirdropTransaction
+from .tokens.token_airdrop_pending_id import PendingAirdropId
+from .tokens.token_airdrop_pending_record import PendingAirdropRecord
 from .tokens.token_id import TokenId
 from .tokens.token_type import TokenType
 from .tokens.supply_type import SupplyType
@@ -47,8 +47,12 @@ from .tokens.token_allowance import TokenAllowance
 from .tokens.token_nft_allowance import TokenNftAllowance
 from .tokens.hbar_allowance import HbarAllowance
 from .tokens.hbar_transfer import HbarTransfer
+from .tokens.token_unpause_transaction import TokenUnpauseTransaction
+from .tokens.token_pause_transaction import TokenPauseTransaction
+from .tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 
 # Transaction
+from .transaction.transaction import Transaction
 from .transaction.transfer_transaction import TransferTransaction
 from .transaction.transaction_id import TransactionId
 from .transaction.transaction_receipt import TransactionReceipt
@@ -137,6 +141,10 @@ from .tokens.custom_fractional_fee import CustomFractionalFee
 from .tokens.custom_royalty_fee import CustomRoyaltyFee
 from .transaction.custom_fee_limit import CustomFeeLimit
 
+# System
+from .system.freeze_transaction import FreezeTransaction
+from .system.freeze_type import FreezeType
+
 __all__ = [
     # Client
     "Client",
@@ -178,6 +186,7 @@ __all__ = [
     "TokenUpdateTransaction",
     "TokenAirdropTransaction",
     "TokenCancelAirdropTransaction",
+    "TokenClaimAirdropTransaction",
     "PendingAirdropId",
     "PendingAirdropRecord",
     "TokenType",
@@ -186,8 +195,11 @@ __all__ = [
     "TokenNftAllowance",
     "HbarAllowance",
     "HbarTransfer",
+    "TokenPauseTransaction",
+    "TokenUnpauseTransaction",
 
     # Transaction
+    "Transaction",
     "TransferTransaction",
     "TransactionId",
     "TransactionReceipt",
@@ -272,4 +284,8 @@ __all__ = [
     "CustomFractionalFee",
     "CustomRoyaltyFee",
     "CustomFeeLimit",
+
+    # System
+    "FreezeTransaction",
+    "FreezeType",
 ]

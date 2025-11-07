@@ -37,6 +37,7 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client() -> Tuple[Client, PrivateKey]:
     """
@@ -59,11 +60,13 @@ def setup_client() -> Tuple[Client, PrivateKey]:
         OPERATOR_ID (str): The account ID of the operator (format: "0.0.xxxxx")
         OPERATOR_KEY (str): The private key of the operator account
     """
-    network = Network(os.getenv('NETWORK'))
+
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID',''))
+    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY',''))
     client.set_operator(operator_id, operator_key)
 
     return client, operator_key

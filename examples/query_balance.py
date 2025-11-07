@@ -30,7 +30,7 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
-
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """
@@ -42,8 +42,9 @@ def setup_client():
     Raises:
         ValueError: If OPERATOR_ID or OPERATOR_KEY environment variables are not set.
     """
-    print("Setting up client connection...")
-    network = Network(os.getenv('NETWORK'))
+
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
     operator_id_str = os.getenv('OPERATOR_ID')
@@ -57,7 +58,7 @@ def setup_client():
     operator_key = PrivateKey.from_string(operator_key_str)
     client.set_operator(operator_id, operator_key)
 
-    print(f"✓ Client configured with operator: {operator_id}\n")
+    print(f"Client set up with operator id {client.operator_account_id}")
     return client, operator_id, operator_key
 
 
