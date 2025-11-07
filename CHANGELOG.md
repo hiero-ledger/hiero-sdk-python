@@ -15,6 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Fixed
+- chore: fix test.yml workflow to log import errors (#740)
 
 
 
@@ -68,6 +69,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
 - Dependabot alerts (version bumps)
 - Fixed incorrect `TokenType` import (protobuf vs. SDK enum) in 18 example files.
+- chore: fix the examples workflow to log error messages and run on import failure (#738)
+- chore: fix test.yml workflow to log import errors (#740)
 - Update `schedule_sign_transaction_e2e_test` to check for key presence instead of relying on index.
 - Add `localhost` and `local` as network names
   
