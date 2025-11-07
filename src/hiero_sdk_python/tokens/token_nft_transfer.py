@@ -5,6 +5,7 @@ hiero_sdk_python.tokens.token_nft_transfer.py
 Defines TokenNftTransfer for representing and converting NFT transfer details
 (sender, receiver, serial number, approval) to and from protobuf messages.
 """
+from typing import List
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -61,13 +62,12 @@ class TokenNftTransfer:
         """
         Creates a TokenNftTransfer from a protobuf representation.
         """
-        nftTransfers: list[TokenNftTransfer] = []
+        nftTransfers: List[TokenNftTransfer] = []
 
-        token_id = TokenId._from_proto(proto.token)
         for nftTransfer in proto.nftTransfers:
             nftTransfers.append(
                 cls(
-                    token_id = token_id,
+                    token_id = TokenId._from_proto(proto.token),
                     sender_id=AccountId._from_proto(nftTransfer.senderAccountID),
                     receiver_id=AccountId._from_proto(nftTransfer.receiverAccountID),
                     serial_number=nftTransfer.serialNumber,

@@ -81,10 +81,10 @@ def test_token_transfer_list_add_nft_transfer(mock_account_ids):
 
 def test_to_proto(mock_account_ids):
     """Test converting TokenTransferList to protobuf object"""
-    sender_id, reciver_id, _, token_id_1, token_id_2 = mock_account_ids
+    sender_id, receiver_id, _, token_id_1, token_id_2 = mock_account_ids
     expected_decimals = 1
-    transfers = [TokenTransfer(token_id_1, sender_id, -10), TokenTransfer(token_id_1, reciver_id, 10)]
-    nft_transfers = [TokenNftTransfer(token_id_2, sender_id, reciver_id, 1)]
+    transfers = [TokenTransfer(token_id_1, sender_id, -10), TokenTransfer(token_id_1, receiver_id, 10)]
+    nft_transfers = [TokenNftTransfer(token_id_2, sender_id, receiver_id, 1)]
     
     
     token_transfer_list = TokenTransferList(
@@ -104,7 +104,7 @@ def test_to_proto(mock_account_ids):
     assert len(proto.nftTransfers) == 0
     assert proto.transfers[0].accountID.accountNum == sender_id.num
     assert proto.transfers[0].amount == -10
-    assert proto.transfers[1].accountID.accountNum == reciver_id.num
+    assert proto.transfers[1].accountID.accountNum == receiver_id.num
     assert proto.transfers[1].amount == 10
 
     # Check for NFT Transfer
@@ -123,5 +123,5 @@ def test_to_proto(mock_account_ids):
     assert len(proto.transfers) == 0
     assert len(proto.nftTransfers) == 1
     assert proto.nftTransfers[0].senderAccountID.accountNum == sender_id.num
-    assert proto.nftTransfers[0].receiverAccountID.accountNum == reciver_id.num
+    assert proto.nftTransfers[0].receiverAccountID.accountNum == receiver_id.num
     assert proto.nftTransfers[0].serialNumber == 1
