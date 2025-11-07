@@ -7,8 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-- Added CI check in `.github/workflows/pr-checks.yml` to ensure all test files follow the naming convention `*_test.py`.  
-  This prevents untracked or skipped tests from being missed during CI runs.
+- Added CI check in `.github/workflows/pr-checks.yml` to ensure all test files follow the naming convention `*_test.py`.This prevents untracked or skipped tests from being missed during CI runs.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
 
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
@@ -16,6 +15,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - add AccountRecordsQuery class
 
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
+
+- **ci:** Add automated test name validation workflow to ensure all new or modified test files follow the naming convention `*_test.py` in `.github/workflows/pr-checks.yml`.  
+  Prevents CI failures due to incorrectly named test files and improves test discoverability. (#729)
 
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
