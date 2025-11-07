@@ -55,10 +55,10 @@ jobs:
 
       - name: Set environment variables
         run: |
-          echo "OPERATOR_ID=${{ steps.solo.outputs.accountId }}" >> $GITHUB_ENV
-          echo "OPERATOR_KEY=${{ steps.solo.outputs.privateKey }}" >> $GITHUB_ENV
-          echo "ADMIN_KEY=${{ steps.solo.outputs.privateKey }}" >> $GITHUB_ENV
-          echo "PUBLIC_KEY=${{ steps.solo.outputs.publicKey }}" >> $GITHUB_ENV
+          echo "OPERATOR_ID=${{ steps.solo.outputs.accountId }}"
+          echo "OPERATOR_KEY=${{ steps.solo.outputs.privateKey }}"
+          echo "ADMIN_KEY=${{ steps.solo.outputs.privateKey }}"
+          echo "PUBLIC_KEY=${{ steps.solo.outputs.publicKey }}"
 
       - name: Install your package
         run: pip install -e .
