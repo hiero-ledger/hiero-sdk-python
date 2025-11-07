@@ -7,56 +7,36 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-- Added CI check in `.github/workflows/pr-checks.yml` to ensure all test files follow the naming convention `*_test.py`. This prevents untracked or skipped tests from being missed during CI runs.
-- Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
-- Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
-- Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
-- Added FreezeTransaction class
-- Added FreezeType class
-- Add `docs/sdk_developers/pylance.md`, a new guide explaining how to set up and use **Pylance** in VS Code for validating imports, file references, and method calls.
+- Added CI check in `.github/workflows/pr-checks.yml` to ensure all test files follow the naming convention `*_test.py`.  
+  This prevents untracked or skipped tests from being missed during CI runs.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
+
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
 - Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
 - add AccountRecordsQuery class
-- chore: added python 3.13 to test.yml workflow (#510, #449)
-- Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
+
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
-- Added TokenUnpauseTransaction class
-- Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
-- Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
-- docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
-- chore: replaced hardcoded 'testnet' messages with environment network name
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
 - chore: update local environment configuration in env.example (#649)
 - chore: Update env.example NETWORK to encourage testnet or local usage (#659)
-- chore: updated pyproject.toml with python 3.10 to 3.13 (#510, #449)
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
+
 - chore: Refactored the script of examples/custom_fee.py into modular functions 
+
 - fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
 - chore: Refactored examples/custom_fee.py into three separate example files.
-- Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
-- Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
-- chore: Standardized client initialization across all examples/ files to promote consistency (#658).
-- chore: changed the file names of airdrop examples, classes, unit and integration tests so they are grouped together. (#631)
+
 
 ### Fixed
+
 - Added explicit read permissions to examples.yml (#623)
-- Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
 - Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
 - fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
-- Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
-- Dependabot alerts (version bumps)
-- Fixed incorrect `TokenType` import (protobuf vs. SDK enum) in 18 example files.
-  
-### Breaking Changes
-- chore: changed the file names airdrop classes (#631)
-{pending_airdrop_id.py -> token_airdrop_pending_id.py}
-{pending_airdrop_record.py -> token_airdrop_pending_record.py}
-{token_cancel_airdrop_transaction.py -> token_airdrop_transaction_cancel.py}
 
+### Breaking Changes
 
 ## [0.1.7] - 2025-10-28
 
@@ -80,7 +60,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added workflow for running example scripts.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
-
 
 ### Changed
 
@@ -114,6 +93,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Type hinting for `Topic` related transactions.
 
 ### Removed
+
 - Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
 
 ## [0.1.6] - 2025-10-21
@@ -154,8 +134,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
 
-
-
 ### Fixed
 
 - Incompatible Types assignment in token_transfer_list.py
@@ -168,7 +146,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
-- chore: fix the examples workflow to log error messages and run on import failure (#738)
 
 ## [0.1.5] - 2025-09-25
 
