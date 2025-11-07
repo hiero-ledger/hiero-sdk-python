@@ -7,6 +7,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Added CI check in `.github/workflows/pr-checks.yml` to ensure all test files follow the naming convention `*_test.py`.  
+  This prevents untracked or skipped tests from being missed during CI runs.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
 
 - Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.

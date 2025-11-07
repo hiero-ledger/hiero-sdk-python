@@ -95,3 +95,32 @@ jobs:
             echo "FAIL: No line-level changes detected in CHANGELOG.md."
             exit 1
           fi
+
+  test-name-check:
+    name: Test File Naming Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate test file naming convention
+        run: |
+          echo "Checking for test files that don't end with _test.py..."
+          invalid_tests=$(find tests -type f -name "*.py" ! -name "*_test.py" || true)
+
+          if [ -n "$invalid_tests" ]; then
+            echo "The following test files don't follow the naming convention (*_test.py):"
+            echo "$invalid_tests"
+            echo ""
+            echo "Please rename them to end with *_test.py so CI can detect and run them."
+            exit 1
+          else
+            echo "All test files follow *_test.py naming convention."
+          fi
