@@ -39,15 +39,17 @@ def setup_client():
     Raises:
         SystemExit: If operator credentials are invalid or missing
     """
-    print(f"🌐 Connecting to Hedera {network_name}...")
-    client = Client(Network(network_name))
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
+    client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
-        print(f"✅ Client configured with operator account: {operator_id}")
+        print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
+
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)

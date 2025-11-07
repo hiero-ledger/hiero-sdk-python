@@ -28,20 +28,20 @@ from hiero_sdk_python import (
     SupplyType,
 )
 
+load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
-    """Set up network and operator client."""
-    load_dotenv()
-    network_name = os.getenv('NETWORK', 'testnet').lower()
-    print(f"🌐 Connecting to Hedera {network_name}...")
-    client = Client(Network(network_name))
+    """Initialize and set up the client with operator account"""
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
+    client = Client(network)
 
-
-try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    try:
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
         client.set_operator(operator_id, operator_key)
-        print(f"Using operator account: {operator_id}")
+        print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")

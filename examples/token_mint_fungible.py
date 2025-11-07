@@ -20,27 +20,27 @@ from hiero_sdk_python import (
 load_dotenv()
 network_name = os.getenv('NETWORK', 'testnet').lower()
 
-
 def token_mint_fungible():
     """
     Creates a mintable fungible token and then mints additional supply.
     """
     # 1. Setup Client
     # =================================================================
-    print(f"🌐 Connecting to Hedera {network_name}...")
     network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
 
     try:
-            operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-            operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+            operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+            operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
             client.set_operator(operator_id, operator_key)
+            print(f"Client set up with operator id {client.operator_account_id}")
+
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-    print(f"Using operator account: {operator_id}")
 
     # 2. Generate a Supply Key
     # =================================================================

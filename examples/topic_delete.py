@@ -29,6 +29,7 @@ def setup_client():
     """Initialize and set up the client with operator account"""
     print(f"🌐 Connecting to Hedera {network_name}...")
     network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
     try:
@@ -40,6 +41,7 @@ def setup_client():
         operator_id = AccountId.from_string(operator_id_str)
         operator_key = PrivateKey.from_string(operator_key_str)
         client.set_operator(operator_id, operator_key)
+        print(f"Client set up with operator id {client.operator_account_id}")
 
         return client, operator_id, operator_key
     except (TypeError, ValueError):
