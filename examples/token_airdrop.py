@@ -180,7 +180,7 @@ def token_airdrop():
             .add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
             .add_nft_transfer(
                 nft_id=NftId(token_id=nft_id, serial_number=serial_number),
-                sender=operator_id, receiver=recipient_id
+                sender_id=operator_id, receiver_id=recipient_id
             )
             .freeze_with(client)
             .sign(operator_key)
