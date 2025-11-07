@@ -17,6 +17,7 @@ from hiero_sdk_python import (
 
 # Load environment variables from .env file
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 
 def setup_client() -> Tuple[Client, PrivateKey]:
@@ -24,7 +25,8 @@ def setup_client() -> Tuple[Client, PrivateKey]:
     Sets up and configures the Hiero client for the testnet.
     Reads OPERATOR_ID and OPERATOR_KEY from environment variables.
     """
-    network = Network(os.getenv('NETWORK'))
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
     operator_id_str = os.getenv('OPERATOR_ID')
@@ -46,6 +48,7 @@ def setup_client() -> Tuple[Client, PrivateKey]:
         sys.exit(1)
 
     client.set_operator(operator_id, operator_key)
+    print(f"Client set up with operator id {client.operator_account_id}")
     return client, operator_key
 
 

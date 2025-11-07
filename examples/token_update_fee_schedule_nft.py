@@ -16,12 +16,16 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 def setup_client():
     """Initialize client and operator credentials from .env."""
     load_dotenv()
+    network_name = os.getenv('NETWORK', 'testnet').lower()
+
     try:
-        client = Client(Network(os.getenv("NETWORK", "testnet")))
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
+        network = Network(network_name)
+        print(f"Connecting to Hedera {network_name} network!")
+        client = Client(network)
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
-        print(f" Operator set: {operator_id}\n")
+        print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
     except Exception as e:
         print(f" Error setting up client: {e}")

@@ -19,15 +19,18 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 load_dotenv()
 
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(os.getenv('NETWORK'))
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
+    print(f"Client set up with operator id {client.operator_account_id}")
 
     return client
 

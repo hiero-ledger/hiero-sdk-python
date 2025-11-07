@@ -41,6 +41,7 @@ def setup_client():
     load_dotenv()
     network = Network(network="solo")
     client = Client(network)
+    print(f"Connecting to Hedera {network} network!")
 
     # Account 0.0.2 is a special administrative account with
     # elevated privileges for network management operations.
