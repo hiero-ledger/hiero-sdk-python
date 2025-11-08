@@ -27,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
+- feat: new scripts module with run_examples.py to run examples with logging all or just errors (#747) and its helper scripts (example_modules.py and find_examples.py)
 
 ### Changed
 - chore: replaced hardcoded 'testnet' messages with environment network name
@@ -43,6 +44,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
 - chore: Standardized client initialization across all examples/ files to promote consistency (#658).
 - chore: changed the file names of airdrop examples, classes, unit and integration tests so they are grouped together. (#631)
+- refactor: changed examples workflow to run scripts/run_examples.py instead of each .py file (#747)
 - Refactor `AbstractTokenTransferTransaction` to unify Token/NFT transfer logic.
 
 ### Fixed
