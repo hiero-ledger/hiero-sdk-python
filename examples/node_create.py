@@ -57,7 +57,7 @@ def setup_client():
     return client
 
 
-def node_create():
+def run_example():
     """Demonstrates creating a node on the Hedera network."""
     client = setup_client()
 
@@ -106,4 +106,4 @@ def node_create():
 
 
 if __name__ == "__main__":
-    node_create()
+    run_example()

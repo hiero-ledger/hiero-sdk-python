@@ -147,7 +147,7 @@ def get_token_balances(client, treasury_id, receiver_id, token_id):
     )
     print(f"Token balance of receiver {receiver_id}: {receiver_token_balance.token_balances[token_id]}")
 
-def token_reject_fungible():
+def run_example():
     """
     Demonstrates the fungible token reject functionality by:
     1. Creating a new treasury account
@@ -197,4 +197,4 @@ def token_reject_fungible():
     get_token_balances(client, treasury_id, receiver_id, token_id)
     
 if __name__ == "__main__":
-    token_reject_fungible()
+    run_example()

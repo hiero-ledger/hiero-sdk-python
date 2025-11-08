@@ -94,7 +94,7 @@ def topic_delete_transaction(client, operator_key, topic_id):
         sys.exit(1)
 
 
-def main():
+def run_example():
     """Orchestrator — runs the example start-to-finish"""
     # Config Client
     client, _, operator_key = setup_client()
@@ -107,4 +107,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_example()

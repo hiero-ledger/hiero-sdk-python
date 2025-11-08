@@ -21,7 +21,7 @@ load_dotenv()
 
 network_name = os.getenv('NETWORK', 'testnet').lower()
 
-def create_and_delete_token():
+def run_example():
     """
     A full example that creates a token and then immediately deletes it.
     """
@@ -96,4 +96,4 @@ def create_and_delete_token():
 
 
 if __name__ == "__main__":
-    create_and_delete_token()
+    run_example()

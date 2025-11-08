@@ -112,7 +112,7 @@ def format_account_records(records):
     return "\n".join(output)
 
 
-def query_account_records():
+def run_example():
     """
     Demonstrates the account record query functionality by:
     1. Setting up client with operator account
@@ -159,4 +159,4 @@ def query_account_records():
 
 
 if __name__ == "__main__":
-    query_account_records()
+    run_example()

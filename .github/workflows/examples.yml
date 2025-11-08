@@ -37,32 +37,15 @@ jobs:
         uses: hiero-ledger/hiero-solo-action@6a1a77601cf3e69661fb6880530a4edf656b40d5 #v0.14.0
         with:
           installMirrorNode: true
+      # Run all example scripts via the centralized runner
       - name: Run Examples
         env:
           OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
           OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
           CHAIN_ID: 012A
           NETWORK: solo
-        shell: bash
+          LOG_MODE: errors  # Change to "all" to see full logs
         run: |
           set -euo pipefail
-          files=$(ls examples/*.py)
-
-          for file in $files;
-          do
-            echo -e "\n************ ${file} ************"
-
-            module="examples.$(basename "$file" .py)"
-
-            # Run the example and capture both stdout and stderr
-            if ! output=$(uv run -m "$module" 2>&1); then
-              echo -e "\n❌ Example failed: ${file}"
-              echo "************ Error Output ************"
-              echo "$output"
-              echo "**************************************"
-              exit 1
-            fi
-
-            echo "$output"
-            echo "✅ Completed ${file} successfully."
-          done
+          echo "🚀 Running examples in scripts/run_examples.py..."
+          uv run python -m scripts.run_examples

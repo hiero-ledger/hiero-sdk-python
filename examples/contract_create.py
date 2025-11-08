@@ -69,7 +69,7 @@ def create_contract_file(client):
     return file_receipt.file_id
 
 
-def contract_create():
+def run_example():
     """
     Demonstrates creating a contract on the network by:
     1. Setting up client with operator account
@@ -101,4 +101,4 @@ def contract_create():
 
 
 if __name__ == "__main__":
-    contract_create()
+    run_example()

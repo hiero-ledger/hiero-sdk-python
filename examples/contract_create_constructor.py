@@ -73,7 +73,7 @@ def create_contract_file(client):
     return file_receipt.file_id
 
 
-def contract_create_constructor():
+def run_example():
     """
     Demonstrates creating a stateful contract with constructor parameters by:
     1. Setting up client with operator account
@@ -121,4 +121,4 @@ def contract_create_constructor():
 
 
 if __name__ == "__main__":
-    contract_create_constructor()
+    run_example()

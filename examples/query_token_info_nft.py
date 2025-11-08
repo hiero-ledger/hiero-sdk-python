@@ -66,7 +66,7 @@ def create_nft(client, operator_id, operator_key):
     
     return nft_token_id
 
-def query_token_info():
+def run_example():
     """
     Demonstrates the token info query functionality by:
     1. Creating a NFT
@@ -80,4 +80,4 @@ def query_token_info():
     print(f"Non-fungible token info: {info}")
 
 if __name__ == "__main__":
-    query_token_info()
+    run_example()

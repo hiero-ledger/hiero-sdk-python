@@ -199,7 +199,7 @@ def transfer_nft_without_allowance(
     print(f"NFT transfer successfully failed with {ResponseCode(receipt.status).name} status")
 
 
-def nft_allowance():
+def run_example():
     """
     Demonstrates NFT allowance functionality by:
     1. Setting up client with operator account
@@ -261,4 +261,4 @@ def nft_allowance():
 
 
 if __name__ == "__main__":
-    nft_allowance()
+    run_example()

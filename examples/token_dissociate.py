@@ -23,7 +23,8 @@ from hiero_sdk_python import (
 load_dotenv()
 
 network_name = os.getenv('NETWORK', 'testnet').lower()
-def token_dissociate():
+
+def run_example():
     """
     A full example that creates an account, two tokens, associates them,
     and finally dissociates them.
@@ -121,4 +122,4 @@ def token_dissociate():
 
 
 if __name__ == "__main__":
-    token_dissociate()
+    run_example()

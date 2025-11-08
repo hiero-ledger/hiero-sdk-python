@@ -383,7 +383,7 @@ def claim_airdrop(
     except Exception as e:
         raise RuntimeError(f"❌ Error claiming airdrop: {e}") from e
 
-def main():
+def run_example():
     # Set up client and return client, operator_id, operator_key
     client, operator_id, operator_key = setup_client()
 
@@ -483,4 +483,4 @@ def main():
     print(association_status)
 
 if __name__ == "__main__":
-    main()
+    run_example()

@@ -131,7 +131,7 @@ def logging_status(client):
     else:
         print(f" Logging is currently ENABLED (Level: {client.logger.level})")
 
-def show_logging_workflow():
+def run_example():
     """
     Main function to demonstrate logging functionality in the Hiero SDK.
 
@@ -188,4 +188,4 @@ def show_logging_workflow():
     print(" Logging workflow demonstration complete!")
 
 if __name__ == "__main__":
-    show_logging_workflow()
+    run_example()

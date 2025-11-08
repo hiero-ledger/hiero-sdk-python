@@ -22,7 +22,7 @@ load_dotenv()
 
 network_name = os.getenv('NETWORK', 'testnet').lower()
 
-def token_mint_non_fungible():
+def run_example():
     """
     Creates an NFT collection and then mints new NFTs with metadata.
     """
@@ -103,4 +103,4 @@ def token_mint_non_fungible():
 
 
 if __name__ == "__main__":
-    token_mint_non_fungible()
+    run_example()

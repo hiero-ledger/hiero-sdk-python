@@ -79,7 +79,7 @@ def submit_topic_message_transaction(client, topic_id, message, operator_key):
         sys.exit(1)
 
 
-def main():
+def run_example():
     """
     A example to create a topic and then submit a message to it.
     """
@@ -95,4 +95,4 @@ def main():
     submit_topic_message_transaction(client, topic_id, message, operator_key)
 
 if __name__ == "__main__":
-    main()
+    run_example()

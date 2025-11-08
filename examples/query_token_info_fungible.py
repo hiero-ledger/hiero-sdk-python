@@ -66,7 +66,7 @@ def create_fungible_token(client, operator_id, operator_key):
     
     return token_id
 
-def query_token_info():
+def run_example():
     """
     Demonstrates the token info query functionality by:
     1. Creating a fungible token
@@ -80,4 +80,4 @@ def query_token_info():
     print(f"Fungible token info: {info}")
 
 if __name__ == "__main__":
-    query_token_info()
+    run_example()

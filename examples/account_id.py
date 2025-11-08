@@ -108,7 +108,7 @@ def create_account_id_with_alias():
     return account_id_with_alias
 
 
-def main():
+def run_example():
     """
     Main function that runs all AccountId examples.
     """
@@ -134,4 +134,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_example()

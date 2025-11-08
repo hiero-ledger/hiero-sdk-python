@@ -156,7 +156,7 @@ def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
     return status
 
 
-def main():
+def run_example():
     """
     Main workflow: Set up client, create account, query balance, and transfer HBAR.
     """
@@ -206,4 +206,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_example()

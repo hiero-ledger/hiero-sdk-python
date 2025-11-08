@@ -112,7 +112,7 @@ def update_wipe_key_full_validation(client, token_id, old_wipe_key):
     info = get_token_info(client, token_id)
     print(f"Token's wipe key after update: {info.wipe_key}")
 
-def token_update_key():
+def run_example():
     """
     Demonstrates updating keys on a fungible token by:
     1. Setting up client with operator account
@@ -136,4 +136,4 @@ def token_update_key():
     update_wipe_key_full_validation(client, token_id, wipe_key)
     
 if __name__ == "__main__":
-    token_update_key()
+    run_example()

@@ -128,7 +128,7 @@ def create_contract(client, file_id):
     return receipt.contract_id
 
 
-def execute_contract_with_value():
+def run_example():
     """
     Demonstrates executing a contract with HBAR value transfer by:
     1. Setting up client with operator account
@@ -179,4 +179,4 @@ def execute_contract_with_value():
 
 
 if __name__ == "__main__":
-    execute_contract_with_value()
+    run_example()

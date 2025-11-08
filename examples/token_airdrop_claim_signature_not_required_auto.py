@@ -277,7 +277,7 @@ def perform_airdrop(
         print(f"❌ Airdrop failed: {e}")
         raise RuntimeError("Airdrop execution failed") from e
 
-def main():
+def run_example():
     # Set up client and return client, operator_id, operator_key
     client, operator_id, operator_key = setup_client()
 
@@ -312,4 +312,4 @@ def main():
     print("✅ Airdrop successful: Receiver accepted new fungible tokens without pre-association.")
 
 if __name__ == "__main__":
-    main()
+    run_example()

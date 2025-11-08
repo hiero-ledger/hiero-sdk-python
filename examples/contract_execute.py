@@ -119,7 +119,7 @@ def get_contract_message(client, contract_id):
     return result.get_bytes32(0).decode("utf-8")
 
 
-def execute_contract():
+def run_example():
     """
     Demonstrates executing a contract by:
     1. Setting up client with operator account
@@ -172,4 +172,4 @@ def execute_contract():
 
 
 if __name__ == "__main__":
-    execute_contract()
+    run_example()

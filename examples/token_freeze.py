@@ -22,7 +22,7 @@ load_dotenv()
 
 network_name = os.getenv('NETWORK', 'testnet').lower()
 
-def freeze_token():
+def run_example():
     """
     Creates a freezeable token and demonstrates freezing and unfreezing
     the token for the operator (treasury) account.
@@ -111,4 +111,4 @@ def freeze_token():
 
 
 if __name__ == "__main__":
-    freeze_token()
+    run_example()

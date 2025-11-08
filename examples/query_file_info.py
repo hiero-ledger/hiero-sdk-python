@@ -56,7 +56,7 @@ def create_file(client: Client):
     return file_id
 
 
-def query_file_info():
+def run_example():
     """
     Demonstrates querying file info by:
     1. Setting up client with operator account
@@ -82,5 +82,5 @@ def query_file_info():
 
 
 if __name__ == "__main__":
-    query_file_info()
+    run_example()
 

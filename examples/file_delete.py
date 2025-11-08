@@ -67,7 +67,7 @@ def query_file_info(client: Client, file_id: FileId):
     print(info)
 
 
-def file_delete():
+def run_example():
     """
     Demonstrates the complete file lifecycle by:
     1. Creating a file
@@ -105,4 +105,4 @@ def file_delete():
 
 
 if __name__ == "__main__":
-    file_delete()
+    run_example()

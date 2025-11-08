@@ -119,7 +119,7 @@ def delete_token(client, token_id, admin_key):
 
     print(f"Successfully deleted token {token_id}")
 
-def token_pause():
+def run_example():
     """
     Demonstrates the token pause functionality by:
       1. Creating a fungible token with pause and delete capability
@@ -149,4 +149,4 @@ def token_pause():
         print(f"✅ Unable to delete token as expected as it is paused: {e}")
 
 if __name__ == "__main__":
-    token_pause()
+    run_example()

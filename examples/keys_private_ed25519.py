@@ -118,11 +118,11 @@ def example_load_ed25519_der() -> None:
         print("Signature invalid?!")
     print()
 
-def main_ed25519():
+def run_example():
     example_generate_ed25519()
     example_load_ed25519_raw()
     example_load_ed25519_from_hex()
     example_load_ed25519_der()
 
 if __name__ == "__main__":
-    main_ed25519()
+    run_example()

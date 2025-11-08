@@ -62,7 +62,7 @@ def example_verify_ed25519_signature() -> None:
     except InvalidSignature:
         print("Ed25519 signature is INVALID!")
 
-def main():
+def run_example():
     example_load_ed25519_from_raw()
     print("-----")
     example_load_ed25519_from_hex()
@@ -70,4 +70,4 @@ def main():
     example_verify_ed25519_signature()
 
 if __name__ == "__main__":
-    main()
+    run_example()

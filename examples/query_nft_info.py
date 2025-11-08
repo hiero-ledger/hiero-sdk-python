@@ -85,7 +85,7 @@ def mint_nft(client, nft_token_id):
     
     return NftId(nft_token_id, receipt.serial_numbers[0])
 
-def query_nft_info():
+def run_example():
     """
     Demonstrates the nft info query functionality by:
     1. Creating a nft
@@ -100,4 +100,4 @@ def query_nft_info():
     print(f"NFT info: {info}")
 
 if __name__ == "__main__":
-    query_nft_info()
+    run_example()

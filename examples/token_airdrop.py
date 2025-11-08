@@ -148,7 +148,7 @@ def associate_tokens(client, recipient_id, recipient_key, tokens):
         sys.exit(1)
 
 
-def token_airdrop():
+def run_example():
     """
     A full example that creates an account, a token, associate token, and 
     finally perform token airdrop.
@@ -208,4 +208,4 @@ def token_airdrop():
         sys.exit(1)
 
 if __name__ == "__main__":
-    token_airdrop()
+    run_example()

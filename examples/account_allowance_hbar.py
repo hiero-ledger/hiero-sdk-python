@@ -108,7 +108,7 @@ def transfer_hbar_without_allowance(client, spender_account_id, spender_private_
     print(f"Hbar transfer successfully failed with {ResponseCode(receipt.status).name} status")
 
 
-def hbar_allowance():
+def run_example():
     """
     Demonstrates hbar allowance functionality by:
     1. Setting up client with operator account
@@ -158,4 +158,4 @@ def hbar_allowance():
 
 
 if __name__ == "__main__":
-    hbar_allowance()
+    run_example()

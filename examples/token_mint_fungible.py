@@ -20,7 +20,7 @@ from hiero_sdk_python import (
 load_dotenv()
 network_name = os.getenv('NETWORK', 'testnet').lower()
 
-def token_mint_fungible():
+def run_example():
     """
     Creates a mintable fungible token and then mints additional supply.
     """
@@ -96,4 +96,4 @@ def token_mint_fungible():
 
 
 if __name__ == "__main__":
-    token_mint_fungible()
+    run_example()

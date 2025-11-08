@@ -22,7 +22,7 @@ load_dotenv()
 
 network_name = os.getenv('NETWORK', 'testnet').lower()
 
-def token_unfreeze():
+def run_example():
     """
     Creates a freezeable token, freezes it for the treasury account,
     and then unfreezes it.
@@ -111,4 +111,4 @@ def token_unfreeze():
 
 
 if __name__ == "__main__":
-    token_unfreeze()
+    run_example()

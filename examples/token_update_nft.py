@@ -103,7 +103,7 @@ def update_nft_data(client, nft_token_id, update_metadata, update_token_name, up
     
     print(f"Successfully updated NFT data")
 
-def token_update_nft():
+def run_example():
     """
     Demonstrates the NFT token update functionality by:
     1. Setting up client with operator account
@@ -136,4 +136,4 @@ def token_update_nft():
     print(nft_info)
     
 if __name__ == "__main__":
-    token_update_nft()
+    run_example()

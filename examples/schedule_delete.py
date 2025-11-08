@@ -112,7 +112,7 @@ def create_schedule(client, account_id, account_private_key):
     return receipt.schedule_id
 
 
-def schedule_delete():
+def run_example():
     """
     Demonstrates schedule deletion functionality by:
     1. Setting up client with operator account
@@ -143,4 +143,4 @@ def schedule_delete():
 
 
 if __name__ == "__main__":
-    schedule_delete()
+    run_example()

@@ -7,9 +7,11 @@ You are strongly recommended to follow this workflow in order to create merge-re
 ## Table of Contents
 - [Workflow 1: Updated Main](#workflow-1-updated-main)
 - [Workflow 2: Branch From Main](#workflow-2-branch-from-main)
-- [Workflow 3: DCO + GPG Sign Commits](#workflow-3-dco-and-gpg-sign-commits)
-- [Workflow 4: Update Changelog](#workflow-4-update-changelog)
-- [Workflow 5: Submit Your Pull Request](#workflow-5-submit-your-pull-request)
+- [Workflow 3: DCO and GPG Sign Commits](#workflow-3-dco-and-gpg-sign-commits)
+- [Workflow 4: Add Examples](#workflow-4-add-examples)
+- [Workflow 5: Add Unit and Integration Tests](#workflow-5-add-unit-and-integration-tests)
+- [Workflow 6: Update Changelog](#workflow-6-update-changelog)
+- [Workflow 7: Submit Your Pull Request](#workflow-7-submit-your-pull-request)
 
 ### Workflow 1: Updated Main
 The Python SDK updates regularly and you must keep your repository in sync when developing and creating pull requests. 
@@ -89,7 +91,7 @@ Incorrect names:
 git commit -S -s -m "chore: your commit message"
 ```
 
-You'll need a GPG key and a tie to github explained at [signing.md](/docs/sdk_developers/signing.md)
+You'll need a GPG key and a tie to github explained at [signing.md](signing.md)
 
 Avoid commiting the issue solution all-in-one.
 ✅ Commit key portions of work making it easier to revert sections if needed
@@ -111,16 +113,28 @@ Do not:
 Safe:
 - ✅ git rebase main -S 
 
-### Workflow 4: Update Changelog
+### Workflow 4: Add Examples
+When you add a feature to /src, we recommend adding an example. Update:
+- [ ] /examples with the new example file(s). 
+- [ ] docs/sdk_users/running_examples with a high level pythonic or method chaining example
+- [ ] scripts/run_examples.py, importing your example and 'EXAMPLES_TO_RUN'. This will add your example to our workflow testing examples run.
+
+
+### Workflow 5: Add Unit and Integration Tests
+When you add a feature to /src, we recommend adding unit and integration tests.
+Read about creating tests here: [testing guide](testing.md)
+
+
+
+### Workflow 6: Update Changelog
 Under the existing [UNRELEASED] section, add a one-sentence description of your addition, change or fix to [CHANGELOG.md](/./CHANGELOG.md)
 
 See [Changelog Entry Guide](/docs/sdk_developers/changelog_entry.md)
 
-- ✅ **IMPORTANT** keep your main and branch regularly else your changelog will be out of date and it will be more difficult to reslve.
+- ✅ **IMPORTANT** keep your main and branch regularly else your changelog will be out of date and it will be more difficult to resolve.
 
-
-### Workflow 5: Submit Your Pull Request
-First, ensure your commits in your branch are published.
+### Workflow 7: Submit Your Pull Request
+First, ensure your commits in your branch are published and meet [checklist](checklist.md).
 
 Then:
 1. Visit [Pull Requests](https://github.com/hiero-ledger/hiero-sdk-python/pulls)

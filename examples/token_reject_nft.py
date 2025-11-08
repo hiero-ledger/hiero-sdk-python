@@ -170,7 +170,7 @@ def get_nft_balances(client, treasury_id, receiver_id, nft_token_id):
     )
     print(f"NFT balance of receiver {receiver_id}: {receiver_token_balance.token_balances[nft_token_id]}")
 
-def token_reject_nft():
+def run_example():
     """
     Demonstrates the NFT token reject functionality by:
     1. Creating a new treasury account
@@ -223,4 +223,4 @@ def token_reject_nft():
     get_nft_balances(client, treasury_id, receiver_id, nft_token_id)
     
 if __name__ == "__main__":
-    token_reject_nft()
+    run_example()

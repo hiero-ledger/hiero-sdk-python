@@ -208,7 +208,7 @@ def display_token_relationships(info):
     else:
         print("    No token relationships found")
 
-def query_account_info():
+def run_example():
     """
     Demonstrates the account info query functionality by:
     1. Setting up client with operator account
@@ -265,4 +265,4 @@ def query_account_info():
     display_token_relationships(info)
 
 if __name__ == "__main__":
-    query_account_info() 
+    run_example() 

@@ -59,7 +59,7 @@ def create_account(client):
     return account_id, account_private_key
 
 
-def account_delete():
+def run_example():
     """
     Demonstrates account delete functionality by:
     1. Setting up client with operator account
@@ -89,4 +89,4 @@ def account_delete():
 
 
 if __name__ == "__main__":
-    account_delete()
+    run_example()

@@ -156,7 +156,7 @@ def transfer_nft_token(client, nft_id, sender_id, receiver_id):
     
     print(f"Successfully transferred NFT to account {receiver_id}")
 
-def main():
+def run_example():
     """
     Demonstrates the nft transfer functionality by:
     1. Creating a new account
@@ -176,4 +176,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_example()

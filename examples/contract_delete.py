@@ -102,7 +102,7 @@ def create_contract(client, file_id, initial_balance):
     return receipt.contract_id
 
 
-def contract_delete():
+def run_example():
     """
     Demonstrates deleting a contract on the network by:
     1. Setting up client with operator account
@@ -166,4 +166,4 @@ def contract_delete():
 
 
 if __name__ == "__main__":
-    contract_delete()
+    run_example()

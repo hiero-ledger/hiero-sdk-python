@@ -96,7 +96,7 @@ def execute_transaction(transaction, client, operator_key, admin_key, supply_key
         sys.exit(1)
 
 
-def create_token_nft_finite():
+def run_example():
     """Main function to create a finite NFT."""
     client, operator_id, operator_key = setup_client()
     admin_key, supply_key = generate_keys()
@@ -105,4 +105,4 @@ def create_token_nft_finite():
 
 
 if __name__ == "__main__":
-    create_token_nft_finite()
+    run_example()

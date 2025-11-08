@@ -74,7 +74,7 @@ def get_token_info(client, token_id):
     
     print(f"Token supply: {token_info.total_supply}")
 
-def token_burn_fungible():
+def run_example():
     """
     Demonstrates the fungible token burn functionality by:
     1. Setting up client with operator account
@@ -113,4 +113,4 @@ def token_burn_fungible():
     get_token_info(client, token_id)
     
 if __name__ == "__main__":
-    token_burn_fungible()
+    run_example()

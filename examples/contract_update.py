@@ -97,7 +97,7 @@ def create_initial_contract(client, file_id):
     return receipt.contract_id
 
 
-def contract_update():
+def run_example():
     """
     Demonstrates updating a contract with ALL available setters by:
     1. Setting up client with operator account
@@ -149,4 +149,4 @@ def contract_update():
 
 
 if __name__ == "__main__":
-    contract_update()
+    run_example()

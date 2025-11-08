@@ -8,7 +8,7 @@ from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 
-def custom_royalty_fee():
+def run_example():
     fallback_fee = CustomFixedFee(
         amount=50,
         denominating_token_id=TokenId(0, 0, 789),
@@ -34,4 +34,4 @@ def custom_royalty_fee():
     print("Royalty Fee Protobuf:", royalty_fee_proto)
 
 if __name__ == "__main__":
-    custom_royalty_fee()
+    run_example()

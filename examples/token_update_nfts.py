@@ -113,7 +113,7 @@ def update_nft_metadata(client, nft_token_id, serial_numbers, new_metadata, meta
 
     print(f"Successfully updated metadata for NFTs with serial numbers: {serial_numbers}")
 
-def token_update_nfts():
+def run_example():
     """
     Demonstrates the NFT token update functionality by:
     1. Setting up client with operator account
@@ -158,4 +158,4 @@ def token_update_nfts():
         print(f"NFT ID: {nft_info.nft_id}, Metadata: {nft_info.metadata}")
     
 if __name__ == "__main__":
-    token_update_nfts()
+    run_example()
