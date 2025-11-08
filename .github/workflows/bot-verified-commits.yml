@@ -1,0 +1,40 @@
+name: PythonBot - Verify PR Commits
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  verify-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Check for unverified commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO="${{ github.repository }}"
+
+          echo "Checking commits in PR #$PR_NUMBER for repository $REPO..."
+
+          COMMITS_JSON=$(gh api repos/$REPO/pulls/$PR_NUMBER/commits)
+          UNVERIFIED_COUNT=$(echo "$COMMITS_JSON" | jq '[.[] | select(.commit.verification.verified == false)] | length')
+
+          echo "Unverified commits: $UNVERIFIED_COUNT"
+
+          if [ "$UNVERIFIED_COUNT" -gt 0 ]; then
+            COMMENT='Hi, I'\''m PythonBot. Your pull request has commits that are not verified. For your PR to be merged, all commits must be signed and verified. Please see docs/sdk_developers/signing.md, README.md, docs/discord.md. To sign commits: git commit -S -s -m "Your message here". Thank you!'
+
+            gh pr view $PR_NUMBER --repo $REPO --json comments --jq '.comments[].body' | grep -F "PythonBot" >/dev/null || \
+            (gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT" && echo "Comment added to PR #$PR_NUMBER")
+          else
+            echo "All commits in PR #$PR_NUMBER are verified."
+          fi
