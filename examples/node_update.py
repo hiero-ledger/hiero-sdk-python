@@ -159,7 +159,7 @@ def update_node(client, node_id, admin_key):
     print(f"Node {node_id} updated successfully!")
 
 
-def node_update():
+def run_example():
     """
     Demonstrates node update functionality by:
     1. Setting up client with operator account
@@ -180,4 +180,4 @@ def node_update():
 
 
 if __name__ == "__main__":
-    node_update()
+    run_example()

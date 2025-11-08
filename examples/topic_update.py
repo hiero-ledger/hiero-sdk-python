@@ -58,8 +58,9 @@ def create_topic(client, operator_key):
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
 
-def update_topic(new_memo):
+def run_example():
     """A example to create a topic and then update it"""
+    new_memo = "Updated topic memo"
     # Config Client
     client, _, operator_key = setup_client()
 
@@ -85,4 +86,4 @@ def update_topic(new_memo):
         sys.exit(1)
 
 if __name__ == "__main__":
-    update_topic("Updated topic memo")
+    run_example()

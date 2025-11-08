@@ -83,7 +83,7 @@ def schedule_transfer_transaction(client, account_id):
     return schedule_tx
 
 
-def schedule_account_create():
+def run_example():
     """
     Demonstrates account schedule functionality by:
     1. Setting up client with operator account
@@ -147,4 +147,4 @@ def schedule_account_create():
 
 
 if __name__ == "__main__":
-    schedule_account_create()
+    run_example()

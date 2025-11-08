@@ -91,7 +91,7 @@ def account_balance_query(client, account_id, when=""):
         sys.exit(1)
 
 
-def main():
+def run_example():
     """
     A full example to create a new recipent account and transfer hbar to that account
     """
@@ -111,4 +111,4 @@ def main():
     account_balance_query(client, recipient_id, " after transfer")
 
 if __name__ == "__main__":
-    main()
+    run_example()

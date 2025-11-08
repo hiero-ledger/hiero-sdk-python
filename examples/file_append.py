@@ -102,7 +102,7 @@ def append_file_large(client, file_id, file_private_key):
     print("Large content appended successfully!")
     print(f"Total chunks used: {FileAppendTransaction().set_contents(large_content).get_required_chunks()}")
 
-def main():
+def run_example():
     """
     Demonstrates appending content to a file on the network by:
     1. Setting up client with operator account
@@ -123,4 +123,4 @@ def main():
     append_file_large(client, file_id, file_private_key)
 
 if __name__ == "__main__":
-    main()
+    run_example()

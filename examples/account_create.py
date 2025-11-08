@@ -135,6 +135,9 @@ def create_new_account(client: Client, operator_key: PrivateKey) -> None:
         print(f"Account creation failed: {str(e)}")
         sys.exit(1)
 
-if __name__ == "__main__":
+def run_example():
     client, operator_key = setup_client()
     create_new_account(client, operator_key)
+
+if __name__ == "__main__":
+    run_example()

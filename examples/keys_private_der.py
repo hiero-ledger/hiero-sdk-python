@@ -53,9 +53,9 @@ def example_serialize_ecdsa_der() -> None:
     privkey2.public_key().verify(signature, b"hello ECDSA serialization")
     print("ECDSA DER reload: Verified signature OK.\n")
 
-def main():
+def run_example():
     example_serialize_ed25519_der()
     example_serialize_ecdsa_der()
 
 if __name__ == "__main__":
-    main()
+    run_example()

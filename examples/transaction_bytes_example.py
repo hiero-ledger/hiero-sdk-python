@@ -46,7 +46,7 @@ def setup_client():
         sys.exit(1)
 
 
-def transaction_bytes_example():
+def run_example():
     """
     Demonstrates transaction serialization and deserialization workflow.
     """
@@ -99,4 +99,4 @@ def transaction_bytes_example():
 
 
 if __name__ == "__main__":
-    transaction_bytes_example()
+    run_example()

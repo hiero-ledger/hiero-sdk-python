@@ -106,7 +106,7 @@ def create_node(client):
     return receipt.node_id
 
 
-def node_delete():
+def run_example():
     """
     Demonstrates node deletion functionality by:
     1. Setting up client with operator account
@@ -131,4 +131,4 @@ def node_delete():
 
 
 if __name__ == "__main__":
-    node_delete()
+    run_example()

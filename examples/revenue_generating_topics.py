@@ -375,7 +375,7 @@ def test_fee_exempt_flow(client, topic_id, token_id, operator_id, operator_key):
     )
 
 
-def revenue_generating_topics():
+def run_example():
     """
     Demonstrates revenue generating topics functionality by:
     1. Creating Alice account
@@ -427,4 +427,4 @@ def revenue_generating_topics():
 
 
 if __name__ == "__main__":
-    revenue_generating_topics()
+    run_example()

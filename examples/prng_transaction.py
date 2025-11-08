@@ -65,7 +65,7 @@ def prng_without_range(client):
     print(f"PRNG number: {record.prng_number}")
 
 
-def prng_transaction():
+def run_example():
     """
     Demonstrates PRNG transaction functionality by:
     1. Setting up client with operator account
@@ -105,4 +105,4 @@ def prng_transaction():
 
 
 if __name__ == "__main__":
-    prng_transaction()
+    run_example()

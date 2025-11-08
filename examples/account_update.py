@@ -76,7 +76,7 @@ def query_account_info(client, account_id):
     print(f"Auto Renew Period: {info.auto_renew_period}")
 
 
-def account_update():
+def run_example():
     """
     Demonstrates account update functionality by:
     1. Setting up client with operator account
@@ -128,4 +128,4 @@ def account_update():
 
 
 if __name__ == "__main__":
-    account_update()
+    run_example()

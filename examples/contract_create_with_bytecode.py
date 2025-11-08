@@ -48,7 +48,7 @@ def setup_client():
     return client
 
 
-def contract_create_with_bytecode():
+def run_example():
     """
     Demonstrates creating a contract on the network by:
     1. Setting up client with operator account
@@ -81,4 +81,4 @@ def contract_create_with_bytecode():
 
 
 if __name__ == "__main__":
-    contract_create_with_bytecode()
+    run_example()

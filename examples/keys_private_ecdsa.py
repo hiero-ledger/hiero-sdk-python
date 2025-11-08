@@ -120,11 +120,11 @@ def example_load_ecdsa_der() -> None:
         print("Signature invalid?!")
     print()
 
-def main_ecdsa():
+def run_example():
     example_generate_ecdsa()
     example_load_ecdsa_raw()
     example_load_ecdsa_from_hex()
     example_load_ecdsa_der()
 
 if __name__ == "__main__":
-    main_ecdsa()
+    run_example()

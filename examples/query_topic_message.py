@@ -59,7 +59,7 @@ def create_topic(client, operator_key):
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
 
-def query_topic_messages():
+def run_example():
     """
     A full example that creates a topic and perform query topic messages.
     """
@@ -102,4 +102,4 @@ def query_topic_messages():
         print("✅ Subscription cancelled. Exiting.")
 
 if __name__ == "__main__":
-    query_topic_messages()
+    run_example()

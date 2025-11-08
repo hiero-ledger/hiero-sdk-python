@@ -7,7 +7,7 @@ from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 
-def custom_fixed_fee():
+def run_example():
     fixed_fee = CustomFixedFee(
         amount=100,
         denominating_token_id=TokenId(0, 0, 123),
@@ -26,4 +26,4 @@ def custom_fixed_fee():
     
     
 if __name__ == "__main__":
-    custom_fixed_fee()
+    run_example()

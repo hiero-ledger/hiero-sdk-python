@@ -209,7 +209,7 @@ def verify_token_association(client, account_id, token_id):
         return False
 
 
-def main():
+def run_example():
     """
     Demonstrate the complete token association workflow.
 
@@ -253,4 +253,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_example()

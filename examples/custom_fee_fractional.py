@@ -7,7 +7,7 @@ from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.account.account_id import AccountId
 
-def custom_fractional_fee() :
+def run_example() :
     fractional_fee = CustomFractionalFee(
         numerator=1,
         denominator=10,
@@ -32,4 +32,4 @@ def custom_fractional_fee() :
     print("Fractional Fee Protobuf:", fractional_fee_proto)
 
 if __name__ == "__main__":
-    custom_fractional_fee()
+    run_example()

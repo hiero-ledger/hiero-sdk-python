@@ -103,7 +103,7 @@ def update_token_data(client, token_id, update_metadata, update_token_name, upda
     
     print(f"Successfully updated token data")
 
-def token_update_fungible():
+def run_example():
     """
     Demonstrates the fungible token update functionality by:
     1. Setting up client with operator account
@@ -136,4 +136,4 @@ def token_update_fungible():
     print(token_info)
     
 if __name__ == "__main__":
-    token_update_fungible()
+    run_example()

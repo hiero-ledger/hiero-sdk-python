@@ -97,7 +97,7 @@ def create_schedule(client, account_id, account_private_key):
     return receipt.schedule_id
 
 
-def query_schedule_info():
+def run_example():
     """
     Demonstrates querying a schedule info by:
     1. Setting up client with operator account
@@ -138,4 +138,4 @@ def query_schedule_info():
 
 
 if __name__ == "__main__":
-    query_schedule_info()
+    run_example()

@@ -158,7 +158,7 @@ def transfer_token_without_allowance(
     print(f"Token transfer successfully failed with {ResponseCode(receipt.status).name} status")
 
 
-def token_allowance():
+def run_example():
     """
     Demonstrates fungible token allowance functionality by:
     1. Setting up client with operator account
@@ -219,4 +219,4 @@ def token_allowance():
 
 
 if __name__ == "__main__":
-    token_allowance()
+    run_example()

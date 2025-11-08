@@ -144,7 +144,7 @@ def print_transaction_record(record):
     for account_id, amount in record.transfers.items():
         print(f"  Account: {account_id}, Amount: {amount}")
 
-def query_record():
+def run_example():
     """
     Demonstrates the transaction record query functionality by performing the following steps:
     1. Creating a new account transaction to get a transaction ID
@@ -185,4 +185,4 @@ def query_record():
             print(f"    Account: {account_id}, Amount: {amount}")
 
 if __name__ == "__main__":
-    query_record()
+    run_example()

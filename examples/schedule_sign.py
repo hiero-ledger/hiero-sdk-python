@@ -159,7 +159,7 @@ def query_schedule_info(client, schedule_id, required_inner_keys=None):
             print("All required inner-txn signatures have been collected.")
 
 
-def schedule_sign():
+def run_example():
     """
     Demonstrates schedule sign functionality by:
     1. Setting up client with operator account
@@ -206,4 +206,4 @@ def schedule_sign():
 
 
 if __name__ == "__main__":
-    schedule_sign()
+    run_example()

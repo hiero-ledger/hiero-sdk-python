@@ -99,7 +99,7 @@ def check_pause_status(client, token_id: TokenId):
     print(f"Token status is now: {info.pause_status.name}")
     
 
-def unpause_token():
+def run_example():
     pause_key = PrivateKey.generate()
     client, operator_id, _ = setup_client()
 
@@ -129,4 +129,4 @@ def unpause_token():
         sys.exit(1)
 
 if __name__ == "__main__":
-    unpause_token()
+    run_example()

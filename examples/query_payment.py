@@ -159,7 +159,7 @@ def demonstrate_payment_required_queries(client, token_id):
     print(f"Network-determined cost: {cost_from_network} Hbar")
     print(f"Custom payment: {custom_payment} Hbar")
 
-def query_payment():
+def run_example():
     """
     Demonstrates the query payment by:
     1. Setting up client with operator account
@@ -175,4 +175,4 @@ def query_payment():
     demonstrate_payment_required_queries(client, token_id)
 
 if __name__ == "__main__":
-    query_payment()
+    run_example()

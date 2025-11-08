@@ -59,7 +59,7 @@ def create_account(client, operator_key):
         print(f"Error creating new account: {e}")
         sys.exit(1)
 
-def query_receipt():
+def run_example():
     """
     A full example that include account creation, Hbar transfer, and receipt querying
     """
@@ -92,4 +92,4 @@ def query_receipt():
     print(f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}")
 
 if __name__ == "__main__":
-    query_receipt()
+    run_example()

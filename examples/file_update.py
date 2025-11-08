@@ -63,7 +63,7 @@ def query_file_info(client, file_id):
     print(info)
 
 
-def file_update():
+def run_example():
     """
     Demonstrates querying file info by:
     1. Setting up client with operator account
@@ -107,4 +107,4 @@ def file_update():
 
 
 if __name__ == "__main__":
-    file_update()
+    run_example()

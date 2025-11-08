@@ -79,7 +79,7 @@ def example_verify_der_signature() -> None:
     except InvalidSignature:
         print("DER: ECDSA signature invalid.")
 
-def main():
+def run_example():
     example_load_ecdsa_der()
     print("-----")
     example_load_ed25519_der()
@@ -87,4 +87,4 @@ def main():
     example_verify_der_signature()
 
 if __name__ == "__main__":
-    main()
+    run_example()

@@ -77,7 +77,7 @@ def create_topic(client: Client, operator_key: PrivateKey):
         sys.exit(1)
 
 
-def main():
+def run_example():
     """
     Main workflow to set up the client and create a new topic.
     """
@@ -86,4 +86,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_example()

@@ -161,7 +161,7 @@ def wipe_tokens(client, token_id, account_id, amount):
     
     print(f"Successfully wiped {amount} tokens from account {account_id}")
 
-def token_wipe():
+def run_example():
     """
     Demonstrates the token wipe functionality by:
     1. Creating a new account
@@ -180,4 +180,4 @@ def token_wipe():
     wipe_tokens(client, token_id, account_id, amount)
 
 if __name__ == "__main__":
-    token_wipe()
+    run_example()

@@ -128,7 +128,7 @@ def grant_kyc(client, token_id, account_id, kyc_private_key):
     
     print(f"Granted KYC for account {account_id} on token {token_id}")
 
-def token_revoke_kyc():
+def run_example():
     """
     Demonstrates the token revoke KYC functionality by:
     1. Setting up client with operator account
@@ -173,4 +173,4 @@ def token_revoke_kyc():
     print(f"Revoked KYC for account {account_id} on token {token_id}")
 
 if __name__ == "__main__":
-    token_revoke_kyc() 
+    run_example() 

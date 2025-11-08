@@ -56,7 +56,7 @@ def create_file(client: Client):
     return file_id
 
 
-def query_file_contents():
+def run_example():
     """
     Demonstrates querying file contents by:
     1. Setting up client with operator account
@@ -76,4 +76,4 @@ def query_file_contents():
 
 
 if __name__ == "__main__":
-    query_file_contents()
+    run_example()

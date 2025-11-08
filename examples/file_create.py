@@ -34,7 +34,7 @@ def setup_client():
   
     return client
 
-def file_create():
+def run_example():
     """
     Demonstrates creating a file on the network by:
     1. Setting up client with operator account
@@ -65,4 +65,4 @@ def file_create():
     print(f"File created successfully with ID: {file_id}")
 
 if __name__ == "__main__":
-    file_create() 
+    run_example() 

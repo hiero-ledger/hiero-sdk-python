@@ -67,7 +67,7 @@ def example_verify_ecdsa_signature() -> None:
     except InvalidSignature:
         print("ECDSA signature is INVALID!")
 
-def main():
+def run_example():
     example_load_compressed_ecdsa()
     print("-----")
     example_load_uncompressed_ecdsa_from_hex()
@@ -75,4 +75,4 @@ def main():
     example_verify_ecdsa_signature()
 
 if __name__ == "__main__":
-    main()
+    run_example()

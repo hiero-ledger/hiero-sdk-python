@@ -99,7 +99,7 @@ def create_contract(client, file_id):
     return receipt.contract_id
 
 
-def query_contract_call():
+def run_example():
     """
     Demonstrates querying a contract call by:
     1. Setting up client with operator account
@@ -160,4 +160,4 @@ def query_contract_call():
 
 
 if __name__ == "__main__":
-    query_contract_call()
+    run_example()

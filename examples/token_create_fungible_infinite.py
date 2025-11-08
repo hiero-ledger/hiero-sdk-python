@@ -97,7 +97,7 @@ def execute_transaction(transaction, client, operator_key, admin_key, supply_key
         sys.exit(1)
 
 
-def create_token_fungible_infinite():
+def run_example():
     """Main function to create an infinite fungible token."""
     client, operator_id, operator_key = setup_client()
     admin_key, supply_key = generate_keys()
@@ -106,4 +106,4 @@ def create_token_fungible_infinite():
 
 
 if __name__ == "__main__":
-    create_token_fungible_infinite()
+    run_example()

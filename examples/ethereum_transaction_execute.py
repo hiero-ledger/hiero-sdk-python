@@ -217,7 +217,7 @@ def create_ethereum_transaction_data(contract_id, new_message, alias_private_key
     return b"\x02" + rlp.encode(transaction_list)
 
 
-def execute_ethereum_transaction():
+def run_example():
     """
     Demonstrates executing a contract using Ethereum transaction by:
     1. Setting up client with operator account
@@ -277,4 +277,4 @@ def execute_ethereum_transaction():
 
 
 if __name__ == "__main__":
-    execute_ethereum_transaction()
+    run_example()

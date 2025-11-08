@@ -96,7 +96,7 @@ def associate_token(client, recipient_id, recipient_key, token_id):
         print(f"❌ Error associating token: {e}")
         sys.exit(1)
 
-def transfer_tokens():
+def run_example():
     """
     A full example to create a new recipent account, a fungible token, and
     transfer the token to that account
@@ -149,4 +149,4 @@ def transfer_tokens():
         sys.exit(1)
 
 if __name__ == "__main__":
-    transfer_tokens()
+    run_example()

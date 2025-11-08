@@ -110,7 +110,7 @@ def create_test_account(client):
     
     return account_id, new_account_private_key
 
-def token_grant_kyc():
+def run_example():
     """
     Demonstrates the token grant KYC functionality by:
     1. Setting up client with operator account
@@ -151,4 +151,4 @@ def token_grant_kyc():
     print(f"Granted KYC for account {account_id} on token {token_id}")
 
 if __name__ == "__main__":
-    token_grant_kyc()
+    run_example()

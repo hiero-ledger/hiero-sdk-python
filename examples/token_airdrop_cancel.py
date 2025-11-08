@@ -123,7 +123,7 @@ def cancel_airdrops(client, operator_key, pending_airdrops):
         sys.exit(1)
 
 
-def token_cancel_airdrop():
+def run_example():
     client, operator_id, operator_key = setup_client()
     recipient_id, _ = create_account(client, operator_key)
 
@@ -139,4 +139,4 @@ def token_cancel_airdrop():
 
 
 if __name__ == "__main__":
-    token_cancel_airdrop()
+    run_example()

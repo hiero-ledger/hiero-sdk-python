@@ -126,7 +126,7 @@ def query_token_info(client, token_id):
         sys.exit(1)
 
 
-def main():
+def run_example():
     client, operator_id, operator_key = setup_client()
     token_id = None
     try:
@@ -148,5 +148,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_example()
     

@@ -89,11 +89,11 @@ def transaction(client, operator_id, operator_key, admin_key, supply_key):
 """
 Creates an infinite NFT by generating admin and supply keys on the fly.
 """
-def create_token_nft_infinite():
+def run_example():
     client, operator_id, operator_key = setup_client()
     admin_key, supply_key = keys_on_fly()
     token_id = transaction(client, operator_id, operator_key, admin_key, supply_key)
     print(f"\nCreated token: {token_id}")
 
 if __name__ == "__main__":
-    create_token_nft_infinite()
+    run_example()
