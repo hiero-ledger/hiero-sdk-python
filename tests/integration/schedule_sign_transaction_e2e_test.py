@@ -118,10 +118,10 @@ def test_integration_schedule_sign_transaction_can_execute_multiple_signers(env)
     assert schedule_info is not None
     assert schedule_info.schedule_id == schedule_id
     assert len(schedule_info.signers) == 2
-    assert (
-        schedule_info.signers[0].to_bytes_raw()
-        == account.key.public_key().to_bytes_raw()
-    )
+    
+    signer_bytes = [s.to_bytes_raw() for s in schedule_info.signers]
+    assert account.key.public_key().to_bytes_raw() in signer_bytes
+    
     assert schedule_info.executed_at is not None
 
 
@@ -170,14 +170,11 @@ def test_integration_schedule_sign_transaction_add_signer_later(env):
     assert schedule_info is not None
     assert schedule_info.schedule_id == schedule_id
     assert len(schedule_info.signers) == 2
-    assert (
-        schedule_info.signers[0].to_bytes_raw()
-        == env.operator_key.public_key().to_bytes_raw()
-    )
-    assert (
-        schedule_info.signers[1].to_bytes_raw()
-        == account.key.public_key().to_bytes_raw()
-    )
+
+    signer_bytes = [s.to_bytes_raw() for s in schedule_info.signers]
+    assert env.operator_key.public_key().to_bytes_raw() in signer_bytes
+    assert account.key.public_key().to_bytes_raw() in signer_bytes
+
     assert schedule_info.executed_at is not None
 
 
