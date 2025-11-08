@@ -62,7 +62,6 @@ jobs:
 
       - name: Install your package
         run: pip install -e .
-
       - name: Run all integration tests
         id: integration
         continue-on-error: true
@@ -79,6 +78,7 @@ jobs:
           uv run pytest tests/integration -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_integration.log
           pytest_exit=${PIPESTATUS[0]}
           echo "integration_failed=$pytest_exit" >> "$GITHUB_OUTPUT"
+          cat result_integration.log
           if [ $pytest_exit -ne 0 ]; then
             echo "❌ Some integration tests failed"
           else
@@ -95,6 +95,7 @@ jobs:
           uv run pytest tests/unit -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_unit.log
           pytest_exit=${PIPESTATUS[0]}
           echo "unit_failed=$pytest_exit" >> "$GITHUB_OUTPUT"
+          cat result_unit.log
           if [ $pytest_exit -ne 0 ]; then
             echo "❌ Some unit tests failed"
           else
