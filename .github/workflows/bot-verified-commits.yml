@@ -38,3 +38,4 @@ jobs:
           else
             echo "All commits in PR #$PR_NUMBER are verified."
           fi
+ 
