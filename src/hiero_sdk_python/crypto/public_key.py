@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives.asymmetric import ed25519, ec
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.crypto_utils import keccak256
@@ -469,6 +470,16 @@ class PublicKey:
         Matches old usage that calls to_string().
         """
         return self.to_string_raw()
+    
+    def to_evm_address(self):
+        if self.is_ed25519():
+            raise ValueError("")
+        
+        uncompressed_bytes = self.to_bytes_ecdsa(compressed=False)
+        keccak_bytes =  keccak256(uncompressed_bytes[1:])
+        evm_address = keccak_bytes[-20:]
+
+        return EvmAddress.from_bytes(evm_address)
 
     #
     # ----------------------------

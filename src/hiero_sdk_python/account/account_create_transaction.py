@@ -5,6 +5,7 @@ AccountCreateTransaction class.
 from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
@@ -31,7 +32,8 @@ class AccountCreateTransaction(Transaction):
         receiver_signature_required: Optional[bool] = None,
         auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD,
         memo: Optional[str] = None,
-        max_automatic_token_associations: Optional[int] = 0 
+        max_automatic_token_associations: Optional[int] = 0,
+        alias: Optional[EvmAddress] = None
     ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values
@@ -52,6 +54,7 @@ class AccountCreateTransaction(Transaction):
         self.account_memo: Optional[str] = memo
         self.max_automatic_token_associations: Optional[int] = max_automatic_token_associations
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
+        self.alias: Optional[EvmAddress] = alias
 
     def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
         """
@@ -65,6 +68,37 @@ class AccountCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.key = key
+        return self
+    
+    def set_key_without_alias(self, key: PublicKey) -> "AccountCreateTransaction":
+        """
+        Sets the public key for the new account without alias/
+
+        Args:
+            key (PublicKey): The public key to assign to the account.
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+        """
+        self._require_not_frozen()
+        self.key = key
+        return self
+    
+    def set_key_with_alias(self, key: PublicKey, ecdsa_key: Optional[PublicKey]=None) -> "AccountCreateTransaction":
+        """
+        Sets the public key for the new account and derives it 
+        EVM Address from key if ecdsa_key not provided.
+
+        Args:
+            key (PublicKey): The public key to assign to the account.
+            ecdsa_key(PublicKey): The public key use to set the alias for account.
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+        """
+        self._require_not_frozen()
+        self.key = key
+        self.alias = ecdsa_key.to_evm_address() if ecdsa_key is not None else key.to_evm_address()
         return self
 
     def set_initial_balance(self, balance: Union[Hbar, int]) -> "AccountCreateTransaction":
@@ -140,6 +174,26 @@ class AccountCreateTransaction(Transaction):
             raise ValueError("max_automatic_token_associations must be -1 (unlimited) or a non-negative integer.")
         self.max_automatic_token_associations = max_assoc
         return self
+    
+    def set_alias(self, alias_evm_address: Union[EvmAddress, str]) -> "AccountCreateTransaction":
+        """Sets the alias for the account."""
+        self._require_not_frozen()
+        if isinstance(alias_evm_address, str):
+            if (
+                (alias_evm_address.startswith('0x') and len(alias_evm_address) == 42)
+                or len(alias_evm_address) == 40
+            ):
+                self.alias = EvmAddress.from_string(alias_evm_address)
+            else:
+                raise ValueError("alias_evm_address must be an a valid EVM address with \"0x\" prefix")
+            
+        elif isinstance(alias_evm_address, EvmAddress):
+            self.alias = alias_evm_address
+        
+        else:
+            raise TypeError("alias_evm_address must be of type str or EvmAddress")
+            
+        return self
 
     def _build_proto_body(self):
         """
@@ -168,7 +222,8 @@ class AccountCreateTransaction(Transaction):
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
             memo=self.account_memo,
-            max_automatic_token_associations=self.max_automatic_token_associations
+            max_automatic_token_associations=self.max_automatic_token_associations,
+            alias=self.alias.bytes if self.alias else None
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
