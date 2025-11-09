@@ -89,6 +89,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
+
 ### Changed
 
 - Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
@@ -160,6 +161,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
+
+
 
 ### Fixed
 
