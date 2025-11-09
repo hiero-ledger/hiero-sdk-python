@@ -37,15 +37,17 @@ def setup_client():
     
     # Network setup
     network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
     
     # Retrieving operator credentials from environment variables
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
     
     # Setting the client operator ID and key
     client.set_operator(operator_id, operator_key)
-    
+    print(f"Client set up with operator id {client.operator_account_id}")
+
     return client
 
 def set_up_logging_level(client):

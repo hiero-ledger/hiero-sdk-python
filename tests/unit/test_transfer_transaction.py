@@ -374,7 +374,7 @@ def test_build_transaction_body(mock_account_ids):
     assert token_transfers[1].token == token_id_1._to_proto()
 
     # Check token amounts
-    token_amounts = token_transfers[1].transfers
+    token_amounts = token_transfers[0].transfers
     assert len(token_amounts) == 2
 
     for transfer in token_amounts:
@@ -384,7 +384,7 @@ def test_build_transaction_body(mock_account_ids):
             assert transfer.amount == 100
 
     # Verify NFT transfers
-    nft_transfers = result.cryptoTransfer.tokenTransfers[0].nftTransfers
+    nft_transfers = result.cryptoTransfer.tokenTransfers[1].nftTransfers
     assert len(nft_transfers) == 1
     assert nft_transfers[0].senderAccountID.accountNum == account_id_sender.num
     assert nft_transfers[0].receiverAccountID.accountNum == account_id_recipient.num
@@ -430,7 +430,7 @@ def test_build_scheduled_body(mock_account_ids):
     assert token_transfers[1].token == token_id_1._to_proto()
 
     # Check token amounts
-    token_amounts = token_transfers[1].transfers
+    token_amounts = token_transfers[0].transfers
     assert len(token_amounts) == 2
 
     for transfer in token_amounts:
@@ -440,7 +440,7 @@ def test_build_scheduled_body(mock_account_ids):
             assert transfer.amount == 100
 
     # Verify NFT transfers
-    nft_transfers = result.cryptoTransfer.tokenTransfers[0].nftTransfers
+    nft_transfers = result.cryptoTransfer.tokenTransfers[1].nftTransfers
     assert len(nft_transfers) == 1
     assert nft_transfers[0].senderAccountID.accountNum == account_id_sender.num
     assert nft_transfers[0].receiverAccountID.accountNum == account_id_recipient.num

@@ -7,7 +7,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
+- Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
+- Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
+- added FreezeTransaction class
+- added FreezeType class
 - Added `docs/sdk_developers/pylance.md`, a new guide explaining how to set up and use **Pylance** in VS Code for validating imports, file references, and methods before review. (#713)
+- feat: TokenAirdropClaim Transaction, examples (with signing required and not), unit and integration tests (#201)
 - docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
 - added Google-style docstrings to the `TransactionRecord` class including all dataclass fields, `__repr__`, `_from_proto()` & `_to_proto()` methods.
 - Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
@@ -23,6 +29,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
+- chore: replaced hardcoded 'testnet' messages with environment network name
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
 - chore: update local environment configuration in env.example (#649)
 - chore: Update env.example NETWORK to encourage testnet or local usage (#659)
@@ -36,6 +43,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
 - chore: Standardized client initialization across all examples/ files to promote consistency (#658).
 - chore: changed the file names of airdrop examples, classes, unit and integration tests so they are grouped together. (#631)
+- Refactor `AbstractTokenTransferTransaction` to unify Token/NFT transfer logic.
 
 ### Fixed
 - Added explicit read permissions to examples.yml (#623)
@@ -44,6 +52,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
 - Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
 - Dependabot alerts (version bumps)
+- Fixed incorrect `TokenType` import (protobuf vs. SDK enum) in 18 example files.
+- Update `schedule_sign_transaction_e2e_test` to check for key presence instead of relying on index.
   
 ### Breaking Changes
 - chore: changed the file names airdrop classes (#631)
@@ -51,6 +61,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 {pending_airdrop_record.py -> token_airdrop_pending_record.py}
 {token_cancel_airdrop_transaction.py -> token_airdrop_transaction_cancel.py}
 
+- In `TokenAirdropTransaction` the parameters of the following methods have been renamed:
+  - add_nft_transfer(sender → sender_id, receiver → receiver_id)
+  - add_approved_nft_transfer(sender → sender_id, receiver → receiver_id)
 
 ## [0.1.7] - 2025-10-28
 
@@ -162,6 +175,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
+- chore: fix the examples workflow to log error messages and run on import failure (#738)
 
 ## [0.1.5] - 2025-09-25
 
