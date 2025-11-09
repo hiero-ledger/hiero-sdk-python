@@ -164,6 +164,6 @@ class Hbar:
         return self._amount_in_tinybar >= other._amount_in_tinybar
 
 
-Hbar.ZERO = Hbar(0, in_tinybars=True)
+Hbar.ZERO = Hbar(0)
 Hbar.MAX = Hbar(50_000_000_000)
 Hbar.MIN = Hbar(-50_000_000_000)
