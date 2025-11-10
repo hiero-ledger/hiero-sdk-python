@@ -1,0 +1,62 @@
+name: "Test File Naming Check"
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-name-check-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test-name-check:
+    name: Test File Naming Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      # Using the specific commit SHA for actions/checkout@v5.0.0, as requested
+      - name: Checkout repository
+        uses: actions/checkout@8ade135a368bb9860e15bcafd2cf940ba6f36c4c
+
+      - name: Validate test file naming convention
+        run: |
+          echo "🔍 Checking test file naming rules..."
+          
+          # Helper files that must be excluded from naming validation
+          EXCLUDES="__init__.py conftest.py mock_server.py utils_for_test.py"
+
+          # Build exclude arguments for find
+          EX_ARGS=""
+          for f in $EXCLUDES; do
+            EX_ARGS="$EX_ARGS ! -name \"$f\""
+          done
+
+          # Rule 1 — Unit tests (tests/unit) must start with test_*.py
+          echo "➡️ Checking UNIT tests (must start with test_)..."
+          invalid_unit=$(eval "find tests/unit -type f -name '*.py' $EX_ARGS ! -name 'test_*.py'")
+
+          # Rule 2 — Integration tests (tests/integration) must end with *_test.py
+          echo "➡️ Checking INTEGRATION tests (must end with _test.py)..."
+          invalid_integration=$(eval "find tests/integration -type f -name '*.py' $EX_ARGS ! -name '*_test.py'")
+
+          if [ -n "$invalid_unit" ]; then
+            echo "❌ Invalid Unit Test Filenames:"
+            echo "$invalid_unit"
+            exit 1
+          fi
+
+          if [ -n "$invalid_integration" ]; then
+            echo "❌ Invalid Integration Test Filenames:"
+            echo "$invalid_integration"
+            exit 1
+          fi
+
+          echo "✅ All test files follow the correct conventions!"

@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [0.1.8] - 2025-11-07
 
 ### Added
+- CI: Add standalone workflow `pr-check-naming-test.yml` to validate test filenames. Enforces unit tests begin with `test_` and integration tests end with `_test.py`, with exclusions for helper files. (Fixes #744)
 - Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
 - Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
 - Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
