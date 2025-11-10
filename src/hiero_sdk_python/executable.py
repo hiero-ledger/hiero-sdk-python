@@ -75,6 +75,26 @@ class _Executable(ABC):
         self._grpc_deadline = DEFAULT_GRPC_DEADLINE
         self.node_account_id = None
 
+        self.node_account_ids: Optional[List[AccountId]] = None
+        self._used_node_account_id: Optional[AccountId] = None
+
+    def set_node_account_ids(self, node_account_ids: List[AccountId]):
+        """Select node account IDs for sending the request."""
+        self.node_account_ids = node_account_ids
+        return self
+
+    def set_node_account_id(self, node_account_id: AccountId):
+        """Convenience wrapper to set a single node account ID."""
+        return self.set_node_account_ids([node_account_id])
+
+    def _select_node_account_id(self) -> Optional[AccountId]:
+        """Pick the first preferred node if available, otherwise None."""
+        if self.node_account_ids:
+            selected = self.node_account_ids[0]
+            self._used_node_account_id = selected
+            return selected
+        return None
+
     @abstractmethod
     def _should_retry(self, response) -> _ExecutionState:
         """
@@ -177,13 +197,15 @@ class _Executable(ABC):
                 current_backoff *= 2
                         
             # Select preferred node if provided, fallback to client's default
-            selected_node_account_id = (
-                self._select_node_account_id()
-                or client.network.current_node._account_id
-            )
-           
-            self.node_account_id = selected_node_account_id
-            node = client.network._get_node(self.node_account_id)
+            selected = self._select_node_account_id()
+
+            if selected is not None: 
+                node = client.network._get_node(selected)
+            else: 
+                node = client.network.current_node
+                
+            #Store for logging and receipts
+            self.node_account_id = node._account_id
 
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()

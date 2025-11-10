@@ -61,9 +61,6 @@ class Transaction(_Executable):
         self._default_transaction_fee = 2_000_000
         self.operator_account_id = None
 
-        self.node_account_ids: Optional[List[AccountId]] = None
-        self._used_node_account_id: Optional[AccountId] = None
-
     def _make_request(self):
         """
         Implements the Executable._make_request method to build the transaction request.
