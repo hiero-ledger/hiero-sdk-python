@@ -9,6 +9,7 @@ from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo
 from hiero_sdk_python.hapi.services.crypto_get_info_pb2 import CryptoGetInfoResponse
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
@@ -52,6 +53,7 @@ class AccountInfo:
     account_memo: Optional[str] = None
     owned_nfts: Optional[int] = None
     max_automatic_token_associations: Optional[int] = None
+    staked_account_id: Optional[AccountId] = None
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
@@ -93,6 +95,7 @@ class AccountInfo:
             account_memo=proto.memo,
             owned_nfts=proto.ownedNfts,
             max_automatic_token_associations=proto.max_automatic_token_associations,
+            staked_account_id=AccountId._from_proto(proto.staking_info.staked_account_id)   
         )
 
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
@@ -125,4 +128,5 @@ class AccountInfo:
             memo=self.account_memo,
             ownedNfts=self.owned_nfts,
             max_automatic_token_associations=self.max_automatic_token_associations,
+            staking_info=StakingInfo(staked_account_id=self.staked_account_id)
         )
