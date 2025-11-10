@@ -382,44 +382,4 @@ class Query(_Executable):
             bool: True if payment is required, False otherwise
         """
         return True
-    
-    def set_node_account_ids(self, node_account_ids: List[AccountId]): 
-        """
-        Sets the list of node account IDs the query can be sent to.
-
-        Args:
-            node_account_ids (List[AccountId]): The list of node account IDs.
-
-        Returns:
-            Self: Returns self for method chaining.
-        """
-        self.node_account_ids = node_account_ids
-        return self
-        
-    def set_node_account_id(self, node_account_id: AccountId):
-        """
-        Sets a single node account ID the query will be sent to.
-
-        Args:
-            node_account_id (AccountId): The node account ID.
-
-        Returns:
-            Self: Returns self for method chaining.
-        """
-
-        return self.set_node_account_ids([node_account_id])
-    
-    def _select_node_account_id(self) -> Optional[AccountId]:
-        """
-        Internal method to select a node account ID to send the query to.
-        Defaults to the first in the list.
-
-        Returns:
-            Optional[AccountId]: The selected node account ID.
-        """
-        if self.node_account_ids:
-            selected = self.node_account_ids[0]
-            self._used_node_account_id = selected 
-            return selected 
-        return None
         
