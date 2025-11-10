@@ -4,6 +4,7 @@ AccountCreateTransaction class.
 
 from typing import Optional, Union
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -33,7 +34,8 @@ class AccountCreateTransaction(Transaction):
         auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD,
         memo: Optional[str] = None,
         max_automatic_token_associations: Optional[int] = 0,
-        alias: Optional[EvmAddress] = None
+        alias: Optional[EvmAddress] = None,
+        staked_account_id: Optional[AccountId] = None
     ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values
@@ -55,6 +57,7 @@ class AccountCreateTransaction(Transaction):
         self.max_automatic_token_associations: Optional[int] = max_automatic_token_associations
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
         self.alias: Optional[EvmAddress] = alias
+        self.staked_account_id = staked_account_id
 
     def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
         """
@@ -194,6 +197,17 @@ class AccountCreateTransaction(Transaction):
             raise TypeError("alias_evm_address must be of type str or EvmAddress")
             
         return self
+    
+    def set_staked_account_id(self, account_id: Union[AccountId, str]) -> "AccountCreateTransaction":
+        """Sets the stakedAccountId for the account."""
+        if isinstance(account_id, str):
+            self.staked_account_id = AccountId.from_string(account_id)
+        elif isinstance(account_id, AccountId):
+            self.staked_account_id = account_id
+        else:
+            raise TypeError("account_id must be of type str or AccountId")
+
+        return self 
 
     def _build_proto_body(self):
         """
@@ -216,6 +230,7 @@ class AccountCreateTransaction(Transaction):
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
 
+
         return crypto_create_pb2.CryptoCreateTransactionBody(
             key=self.key._to_proto(),
             initialBalance=initial_balance_tinybars,
@@ -223,7 +238,8 @@ class AccountCreateTransaction(Transaction):
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
             memo=self.account_memo,
             max_automatic_token_associations=self.max_automatic_token_associations,
-            alias=self.alias.bytes if self.alias else None
+            alias=self.alias.bytes if self.alias else None,
+            staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
