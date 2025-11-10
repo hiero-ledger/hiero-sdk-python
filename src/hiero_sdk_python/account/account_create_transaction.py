@@ -36,7 +36,8 @@ class AccountCreateTransaction(Transaction):
         max_automatic_token_associations: Optional[int] = 0,
         alias: Optional[EvmAddress] = None,
         staked_account_id: Optional[AccountId] = None,
-        staked_node_id: Optional[int] = None
+        staked_node_id: Optional[int] = None,
+        decline_staking_reward: bool = False
     ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values
@@ -60,6 +61,7 @@ class AccountCreateTransaction(Transaction):
         self.alias: Optional[EvmAddress] = alias
         self.staked_account_id: Optional[AccountId] = staked_account_id
         self.staked_node_id: Optional[int] = staked_node_id
+        self.decline_staking_reward = decline_staking_reward
 
     def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
         """
@@ -216,9 +218,18 @@ class AccountCreateTransaction(Transaction):
         """Sets the stakedNodeId for the account."""
         self._require_not_frozen()
         if not isinstance(node_id, int):
-            raise TypeError("account_id must be of type str or AccountId")
+            raise TypeError("node_id must be of type int")
         
         self.staked_node_id = node_id
+        return self
+    
+    def set_decline_staking_reward(self, decline_staking_reward: bool) -> "AccountCreateTransaction":
+        """Sets the declineStakingReward for the account."""
+        self._require_not_frozen()
+        if not isinstance(decline_staking_reward, bool):
+            raise TypeError("decline_staking_reward must be of type bool")
+        
+        self.decline_staking_reward = decline_staking_reward
         return self 
 
     def _build_proto_body(self):
@@ -250,7 +261,8 @@ class AccountCreateTransaction(Transaction):
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
             memo=self.account_memo,
             max_automatic_token_associations=self.max_automatic_token_associations,
-            alias=self.alias.bytes if self.alias else None
+            alias=self.alias.bytes if self.alias else None,
+            decline_reward=self.decline_staking_reward
         )
 
         if self.staked_account_id:
