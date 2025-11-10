@@ -207,3 +207,31 @@ def test_create_account_with_staked_account_id(env):
 
     assert info.account_id is not account_id
     assert info.staked_account_id == env.operator_id
+
+def test_create_account_with_staked_node_id(env):
+    """Test create_account_transaction with staked_node_id set."""
+    public_key = PrivateKey.generate().public_key()
+    initial_balance = Hbar(2)
+
+    tx = (
+        AccountCreateTransaction(
+            key=public_key,
+            initial_balance=initial_balance,
+            memo="Recipient Account With alias"
+        )
+        .set_staked_node_id(1)
+        .freeze_with(env.client)
+    )
+    
+    receipt = tx.execute(env.client)
+    account_id = receipt.account_id
+    
+    assert receipt.status == ResponseCode.SUCCESS
+    assert receipt.account_id is not None, "AccountID not found in receipt. Account may not have been created."
+
+    info = AccountInfoQuery(account_id=account_id).execute(env.client)
+
+    print(info)
+
+    assert info.account_id is not account_id
+    assert info.staked_node_id == 1

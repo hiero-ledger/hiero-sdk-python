@@ -35,7 +35,8 @@ class AccountCreateTransaction(Transaction):
         memo: Optional[str] = None,
         max_automatic_token_associations: Optional[int] = 0,
         alias: Optional[EvmAddress] = None,
-        staked_account_id: Optional[AccountId] = None
+        staked_account_id: Optional[AccountId] = None,
+        staked_node_id: Optional[int] = None
     ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values
@@ -57,7 +58,8 @@ class AccountCreateTransaction(Transaction):
         self.max_automatic_token_associations: Optional[int] = max_automatic_token_associations
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
         self.alias: Optional[EvmAddress] = alias
-        self.staked_account_id = staked_account_id
+        self.staked_account_id: Optional[AccountId] = staked_account_id
+        self.staked_node_id: Optional[int] = staked_node_id
 
     def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
         """
@@ -200,6 +202,7 @@ class AccountCreateTransaction(Transaction):
     
     def set_staked_account_id(self, account_id: Union[AccountId, str]) -> "AccountCreateTransaction":
         """Sets the stakedAccountId for the account."""
+        self._require_not_frozen()
         if isinstance(account_id, str):
             self.staked_account_id = AccountId.from_string(account_id)
         elif isinstance(account_id, AccountId):
@@ -207,6 +210,15 @@ class AccountCreateTransaction(Transaction):
         else:
             raise TypeError("account_id must be of type str or AccountId")
 
+        return self
+    
+    def set_staked_node_id(self, node_id: int) -> "AccountCreateTransaction":
+        """Sets the stakedNodeId for the account."""
+        self._require_not_frozen()
+        if not isinstance(node_id, int):
+            raise TypeError("account_id must be of type str or AccountId")
+        
+        self.staked_node_id = node_id
         return self 
 
     def _build_proto_body(self):
@@ -229,18 +241,24 @@ class AccountCreateTransaction(Transaction):
             initial_balance_tinybars = self.initial_balance
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
+        
 
-
-        return crypto_create_pb2.CryptoCreateTransactionBody(
+        proto_tx = crypto_create_pb2.CryptoCreateTransactionBody(
             key=self.key._to_proto(),
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
             memo=self.account_memo,
             max_automatic_token_associations=self.max_automatic_token_associations,
-            alias=self.alias.bytes if self.alias else None,
-            staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None
+            alias=self.alias.bytes if self.alias else None
         )
+
+        if self.staked_account_id:
+            proto_tx.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
+        elif self.staked_node_id:
+            proto_tx.staked_node_id = self.staked_node_id
+
+        return proto_tx
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
