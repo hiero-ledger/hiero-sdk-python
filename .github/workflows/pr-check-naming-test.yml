@@ -1,0 +1,56 @@
+name: 'Test Naming Check'
+
+on:
+  pull_request:
+    paths:
+      - "tests/**"
+      - ".github/workflows/pr-check-naming-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test-name-check:
+    name: Validate Test File Naming
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8ade135a368bb9860e15bcafd2cf940ba6f36c4c
+
+
+      - name: Check Unit Test Naming (must start with test_*.py)
+        run: |
+          echo "Checking unit tests naming…"
+
+          invalid_unit=$(find tests/unit -type f -name "*.py" \
+            ! -name "test_*.py" \
+            ! -name "__init__.py" \
+            ! -name "conftest.py" \
+            ! -name "mock_server.py" \
+            ! -name "utils_for_test.py" \
+            || true)
+
+          if [ -n "$invalid_unit" ]; then
+            echo "❌ Invalid Unit Test Filenames:"
+            echo "$invalid_unit"
+            exit 1
+          fi
+          echo "✔️ Unit test names are valid."
+
+      - name: Check Integration Test Naming (must end with _test.py)
+        run: |
+          echo "Checking integration test naming…"
+
+          invalid_integration=$(find tests/integration -type f -name "*.py" \
+            ! -name "*_test.py" \
+            ! -name "__init__.py" \
+            ! -name "utils_for_test.py" \
+            || true)
+
+          if [ -n "$invalid_integration" ]; then
+            echo "❌ Invalid Integration Test Filenames:"
+            echo "$invalid_integration"
+            exit 1
+          fi
+          echo "✔️ Integration test names are valid."
