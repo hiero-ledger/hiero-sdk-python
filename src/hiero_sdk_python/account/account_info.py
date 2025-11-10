@@ -54,6 +54,7 @@ class AccountInfo:
     owned_nfts: Optional[int] = None
     max_automatic_token_associations: Optional[int] = None
     staked_account_id: Optional[AccountId] = None
+    staked_node_id: Optional[int] = None
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
@@ -95,7 +96,8 @@ class AccountInfo:
             account_memo=proto.memo,
             owned_nfts=proto.ownedNfts,
             max_automatic_token_associations=proto.max_automatic_token_associations,
-            staked_account_id=AccountId._from_proto(proto.staking_info.staked_account_id)   
+            staked_account_id=AccountId._from_proto(proto.staking_info.staked_account_id),
+            staked_node_id=proto.staking_info.staked_node_id
         )
 
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
@@ -129,4 +131,5 @@ class AccountInfo:
             ownedNfts=self.owned_nfts,
             max_automatic_token_associations=self.max_automatic_token_associations,
             staking_info=StakingInfo(staked_account_id=self.staked_account_id)
+            staking_info=StakingInfo(staked_account_id=self.staked_account_id, staked_node_id=self.staked_node_id),
         )
