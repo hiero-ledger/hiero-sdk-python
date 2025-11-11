@@ -98,6 +98,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: Standardized client initialization across all examples/ files to promote consistency (#658).
 - chore: changed the file names of airdrop examples, classes, unit and integration tests so they are grouped together. (#631)
 - Refactor `AbstractTokenTransferTransaction` to unify Token/NFT transfer logic.
+- Moved examples/ to be inside subfiles to match src structure
 
 ### Fixed
 
