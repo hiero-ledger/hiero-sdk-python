@@ -12,6 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
+- upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
 
 
 ### Fixed
