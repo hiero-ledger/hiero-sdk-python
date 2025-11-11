@@ -54,6 +54,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Dependabot alerts (version bumps)
 - Fixed incorrect `TokenType` import (protobuf vs. SDK enum) in 18 example files.
 - Update `schedule_sign_transaction_e2e_test` to check for key presence instead of relying on index.
+- Add `localhost` and `local` as network names
   
 ### Breaking Changes
 - chore: changed the file names airdrop classes (#631)
