@@ -15,6 +15,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
 
+- chore: add examples/client.py to illustrate Client class usage
+
 ### Changed
 - chore: validate that token airdrop transactions require an available token service on the channel (#632) 
 - chore: update local environment configuration in env.example (#649)
