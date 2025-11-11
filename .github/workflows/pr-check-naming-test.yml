@@ -2,7 +2,7 @@ name: "Test File Naming Check"
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, edited]
+    types: [opened, reopened, edited, synchronize]
 
 permissions:
   contents: read
@@ -12,51 +12,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-name-check:
-    name: Test File Naming Check
+  test-file-naming:
+    name: Test File Naming Check (pull request)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+      - name: Harden the runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a
         with:
           egress-policy: audit
 
-      # Using the specific commit SHA for actions/checkout@v5.0.0, as requested
       - name: Checkout repository
-        uses: actions/checkout@8ade135a368bb9860e15bcafd2cf940ba6f36c4c
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
-      - name: Validate test file naming convention
+      - name: Validate test filename convention
+        shell: bash
         run: |
-          echo "🔍 Checking test file naming rules..."
-          
-          # Helper files that must be excluded from naming validation
-          EXCLUDES="__init__.py conftest.py mock_server.py utils_for_test.py"
+          echo "🔍 Checking for invalid test filenames..."
 
-          # Build exclude arguments for find
-          EX_ARGS=""
-          for f in $EXCLUDES; do
-            EX_ARGS="$EX_ARGS ! -name \"$f\""
-          done
+          invalid_files=$(
+            find tests -type f -name "*.py" \
+              ! -name "*_test.py" \
+              ! -path "tests/__init__.py" \
+              ! -path "tests/unit/__init__.py" \
+              ! -path "tests/unit/conftest.py" \
+              ! -path "tests/unit/mock_server.py" \
+              ! -path "tests/integration/__init__.py" \
+              ! -path "tests/integration/utils_for_test.py" \
+              | sort || true
+          )
 
-          # Rule 1 — Unit tests (tests/unit) must start with test_*.py
-          echo "➡️ Checking UNIT tests (must start with test_)..."
-          invalid_unit=$(eval "find tests/unit -type f -name '*.py' $EX_ARGS ! -name 'test_*.py'")
-
-          # Rule 2 — Integration tests (tests/integration) must end with *_test.py
-          echo "➡️ Checking INTEGRATION tests (must end with _test.py)..."
-          invalid_integration=$(eval "find tests/integration -type f -name '*.py' $EX_ARGS ! -name '*_test.py'")
-
-          if [ -n "$invalid_unit" ]; then
-            echo "❌ Invalid Unit Test Filenames:"
-            echo "$invalid_unit"
+          if [ -n "$invalid_files" ]; then
+            echo "❌ Invalid filenames detected (must end with _test.py):"
+            echo "$invalid_files"
+            echo
             exit 1
           fi
 
-          if [ -n "$invalid_integration" ]; then
-            echo "❌ Invalid Integration Test Filenames:"
-            echo "$invalid_integration"
-            exit 1
-          fi
-
-          echo "✅ All test files follow the correct conventions!"
+          echo "✅ All test filenames follow the convention (*_test.py)."
