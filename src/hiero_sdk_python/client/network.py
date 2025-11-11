@@ -59,6 +59,12 @@ class Network:
         'solo': [
             ("localhost:50211", AccountId(0, 0, 3))
         ],
+        'localhost': [
+            ("localhost:50211", AccountId(0, 0, 3))
+        ],
+        'local': [
+            ("localhost:50211", AccountId(0, 0, 3))
+        ],
     }
 
     LEDGER_ID: Dict[str, bytes] = {
