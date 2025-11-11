@@ -1,52 +1,38 @@
-name: "Test File Naming Check"
+name: "PR Test Naming Check"
 
 on:
   pull_request:
-    types: [opened, reopened, edited, synchronize]
+    types: [opened, reopened, synchronize, edited]
 
 permissions:
   contents: read
 
-concurrency:
-  group: test-name-check-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
-  test-file-naming:
-    name: Test File Naming Check (pull request)
+  test-name-check:
+    name: Validate test naming convention
     runs-on: ubuntu-latest
 
     steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a
-        with:
-          egress-policy: audit
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-
-      - name: Validate test filename convention
-        shell: bash
+      - name: Run test naming validation
         run: |
-          echo "🔍 Checking for invalid test filenames..."
+          echo "🔍 Checking test file naming convention..."
 
-          invalid_files=$(
-            find tests -type f -name "*.py" \
-              ! -name "*_test.py" \
-              ! -path "tests/__init__.py" \
-              ! -path "tests/unit/__init__.py" \
-              ! -path "tests/unit/conftest.py" \
-              ! -path "tests/unit/mock_server.py" \
-              ! -path "tests/integration/__init__.py" \
-              ! -path "tests/integration/utils_for_test.py" \
-              | sort || true
-          )
+          bad_files=$(find tests -type f -name "*.py" \
+            ! -name "*_test.py" \
+            ! -path "tests/__init__.py" \
+            ! -path "tests/unit/__init__.py" \
+            ! -path "tests/integration/__init__.py" \
+            ! -path "tests/unit/conftest.py" \
+            ! -path "tests/unit/mock_server.py" \
+            ! -path "tests/integration/utils_for_test.py")
 
-          if [ -n "$invalid_files" ]; then
-            echo "❌ Invalid filenames detected (must end with _test.py):"
-            echo "$invalid_files"
-            echo
+          if [ -n "$bad_files" ]; then
+            echo "❌ Invalid test filenames detected:"
+            echo "$bad_files"
             exit 1
           fi
 
-          echo "✅ All test filenames follow the convention (*_test.py)."
+          echo "✅ All test files follow the _test.py convention!"
