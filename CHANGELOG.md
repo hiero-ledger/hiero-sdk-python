@@ -15,6 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Fixed
+- chore: fix test.yml workflow to log import errors (#740)
 
 
 
