@@ -362,7 +362,11 @@ class ResponseCode(IntEnum):
         unknown._name_ = f'UNKNOWN_CODE_{value}'
         unknown._value_ = value
         return unknown
-    
+
+    @property
+    def is_unknown(self) -> bool:
+        return self.name.startswith("UNKNOWN_CODE_")
+
     @classmethod
     def get_name(cls,code: int) -> str:
         """
