@@ -2,7 +2,11 @@
 uv run examples/topic_delete.py
 python examples/topic_delete.py
 
+Refactored to be more modular:
+- topic_delete_transaction() performs the create+delete transaction steps
+- main() orchestrates setup and calls helper functions
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -18,21 +22,32 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    print(f"🌐 Connecting to Hedera {network_name}...")
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
+    client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+        operator_id_str = os.getenv('OPERATOR_ID')
+        operator_key_str = os.getenv('OPERATOR_KEY')
+        if not operator_id_str or not operator_key_str:
+            print("Error: OPERATOR_ID or OPERATOR_KEY not set in .env file")
+            sys.exit(1)
+        operator_id = AccountId.from_string(operator_id_str)
+        operator_key = PrivateKey.from_string(operator_key_str)
         client.set_operator(operator_id, operator_key)
+        print(f"Client set up with operator id {client.operator_account_id}")
 
         return client, operator_id, operator_key
     except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
+        print("Error: Creating client, Please check your .env file")
         sys.exit(1)
+
 
 def create_topic(client, operator_key):
     """Create a new topic"""
@@ -52,19 +67,15 @@ def create_topic(client, operator_key):
 
         return topic_id
     except Exception as e:
-        print(f"❌ Error: Creating topic: {e}")
+        print(f"Error: Creating topic: {e}")
         sys.exit(1)
 
 
-def delete_topic():
-    """A example to create a topic and then delete it"""
-    # Config Client
-    client, _, operator_key = setup_client()
-
-    # Create a new Topic
-    topic_id = create_topic(client, operator_key)
-
-    # Delete the topic
+def topic_delete_transaction(client, operator_key, topic_id):
+    """
+    Perform the topic delete transaction for the given topic_id.
+    Separated so it can be called independently in tests or other scripts.
+    """
     print("\nSTEP 2: Deleting Topic...")
     transaction = (
         TopicDeleteTransaction(topic_id=topic_id)
@@ -79,8 +90,21 @@ def delete_topic():
               f"transaction_id: {receipt.transaction_id})")
         print(f"✅ Success! Topic {topic_id} deleted successfully.")
     except Exception as e:
-        print(f"❌ Error: Topic deletion failed: {str(e)}")
+        print(f"Error: Topic deletion failed: {str(e)}")
         sys.exit(1)
 
+
+def main():
+    """Orchestrator — runs the example start-to-finish"""
+    # Config Client
+    client, _, operator_key = setup_client()
+
+    # Create a new Topic
+    topic_id = create_topic(client, operator_key)
+
+    # Delete the topic
+    topic_delete_transaction(client, operator_key, topic_id)
+
+
 if __name__ == "__main__":
-    delete_topic()
+    main()

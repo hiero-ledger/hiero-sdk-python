@@ -11,13 +11,16 @@ You can choose either syntax or even mix both styles in your projects.
 ## Table of Contents
 
 - [Account Transactions](#account-transactions)
-  - [Creating an Account](#creating-an-account)
-  - [Updating an Account](#updating-an-account)
   - [Querying Account Balance](#querying-account-balance)
-  - [Querying Account Info](#querying-account-info)
+  - [Creating an Account](#creating-an-account)
   - [Deleting an Account](#deleting-an-account)
-  - [Creating a Token](#creating-a-token)
+  - [Querying Account Info](#querying-account-info)
+  - [Updating an Account](#updating-an-account)
+  - [Allowance Approve Transaction](#allowance-approve-transaction)
+  - [Allowance Delete Transaction](#allowance-delete-transaction)
+  - [Querying Account Records](#querying-account-records)
 - [Token Transactions](#token-transactions)
+  - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
   - [Minting a Non-Fungible Token](#minting-a-non-fungible-token)
   - [Associating a Token](#associating-a-token)
@@ -34,11 +37,12 @@ You can choose either syntax or even mix both styles in your projects.
   - [Burning a Non-Fungible Token](#burning-a-non-fungible-token)
   - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
+  - [Unpausing a Token](#unpausing-a-token)
   - [Token Grant KYC](#token-grant-kyc)
   - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
   - [Create Token Airdrop](#token-airdrop)
-  - [Cancel Token Airdop](#cancel-token-airdrop)
+  - [Cancel Token Airdrop](#cancel-token-airdrop)
   - [Querying NFT Info](#querying-nft-info)
   - [Querying Fungible Token Info](#querying-fungible-token-info)
 - [HBAR Transactions](#hbar-transactions)
@@ -56,6 +60,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying File Contents](#querying-file-contents)
   - [Updating a File](#updating-a-file)
   - [Deleting a File](#deleting-a-file)
+  - [Appending to a File](#appending-to-a-file)
 - [Contract Transactions](#contract-transactions)
   - [Creating a Contract](#creating-a-contract)
   - [Querying a Contract Call](#querying-a-contract-call)
@@ -77,10 +82,23 @@ You can choose either syntax or even mix both styles in your projects.
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 - [Miscellaneous Transactions](#miscellaneous-transactions)
+  - [Transaction Bytes Serialization](#transaction-bytes-serialization)
   - [PRNG Transaction](#prng-transaction)
 
 
 ## Account Transactions
+
+### Querying Account Balance
+
+#### Pythonic Syntax:
+```
+balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(client) print(f"Account balance: {balance.hbars} hbars")
+```
+
+#### Method Chaining:
+```
+balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
+```
 
 ### Creating an Account
 
@@ -107,6 +125,60 @@ transaction = (
     )
     transaction.sign(client.operator_private_key)
     transaction.execute(client)
+```
+
+### Deleting an Account
+
+#### Pythonic Syntax:
+```
+transaction = AccountDeleteTransaction(
+    account_id=account_id,
+    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+).freeze_with(client)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    AccountDeleteTransaction()
+    .set_account_id(account_id)
+    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    .freeze_with(client)
+)
+
+transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.execute(client)
+```
+
+### Querying Account Info
+
+#### Pythonic Syntax:
+```
+info = AccountInfoQuery(account_id=account_id).execute(client)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
+```
+
+#### Method Chaining:
+```
+info = (
+    AccountInfoQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+print(f"Account ID: {info.account_id}")
+print(f"Account Public Key: {info.key.to_string()}")
+print(f"Account Balance: {info.balance}")
+print(f"Account Memo: '{info.account_memo}'")
+print(f"Owned NFTs: {info.owned_nfts}")
+print(f"Token Relationships: {info.token_relationships}")
 ```
 
 ### Updating an Account
@@ -146,70 +218,156 @@ transaction.sign(new_private_key)   # Sign with new key
 transaction.execute(client)
 ```
 
-### Querying Account Balance
+### Allowance Approve Transaction
 
 #### Pythonic Syntax:
-```
-balance = CryptoGetAccountBalanceQuery(account_id=some_account_id).execute(client) print(f"Account balance: {balance.hbars} hbars")
-```
-
-#### Method Chaining:
-```
-balance = ( CryptoGetAccountBalanceQuery() .set_account_id(some_account_id) .execute(client) ) print(f"Account balance: {balance.hbars} hbars")
-```
-
-### Querying Account Info
-
-#### Pythonic Syntax:
-```
-info = AccountInfoQuery(account_id=account_id).execute(client)
-print(f"Account ID: {info.account_id}")
-print(f"Account Public Key: {info.key.to_string()}")
-print(f"Account Balance: {info.balance}")
-print(f"Account Memo: '{info.account_memo}'")
-print(f"Owned NFTs: {info.owned_nfts}")
-print(f"Token Relationships: {info.token_relationships}")
-```
-
-#### Method Chaining:
-```
-info = (
-    AccountInfoQuery()
-    .set_account_id(account_id)
-    .execute(client)
-)
-print(f"Account ID: {info.account_id}")
-print(f"Account Public Key: {info.key.to_string()}")
-print(f"Account Balance: {info.balance}")
-print(f"Account Memo: '{info.account_memo}'")
-print(f"Owned NFTs: {info.owned_nfts}")
-print(f"Token Relationships: {info.token_relationships}")
-```
-
-### Deleting an Account
-
-#### Pythonic Syntax:
-```
-transaction = AccountDeleteTransaction(
-    account_id=account_id,
-    transfer_account_id=transfer_account_id  # Account to receive remaining balance
+```python
+# Approve HBAR allowance
+transaction = AccountAllowanceApproveTransaction(
+    hbar_allowances=[
+        HbarAllowance(
+            owner_account_id=owner_account_id,
+            spender_account_id=spender_account_id,
+            amount=Hbar(100)  # Allow spender to transfer up to 100 HBAR
+        )
+    ]
 ).freeze_with(client)
 
-transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.sign(owner_private_key)
+transaction.execute(client)
+
+# Approve token allowance
+transaction = AccountAllowanceApproveTransaction(
+    token_allowances=[
+        TokenAllowance(
+            token_id=token_id,
+            owner_account_id=owner_account_id,
+            spender_account_id=spender_account_id,
+            amount=1000  # Allow spender to transfer up to 1000 tokens
+        )
+    ]
+).freeze_with(client)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+
+# Approve NFT allowance
+transaction = AccountAllowanceApproveTransaction(
+    nft_allowances=[
+        TokenNftAllowance(
+            token_id=nft_token_id,
+            owner_account_id=owner_account_id,
+            spender_account_id=spender_account_id,
+            serial_numbers=[1, 2, 3]  # Allow spender to transfer specific NFTs
+        )
+    ]
+).freeze_with(client)
+
+transaction.sign(owner_private_key)
 transaction.execute(client)
 ```
 
 #### Method Chaining:
-```
+```python
+# Approve HBAR allowance
 transaction = (
-    AccountDeleteTransaction()
-    .set_account_id(account_id)
-    .set_transfer_account_id(transfer_account_id)  # Account to receive remaining balance
+    AccountAllowanceApproveTransaction()
+    .approve_hbar_allowance(
+        owner_account_id=owner_account_id,
+        spender_account_id=spender_account_id,
+        amount=Hbar(100)  # Allow spender to transfer up to 100 HBAR
+    )
     .freeze_with(client)
 )
 
-transaction.sign(account_private_key)  # Account being deleted must sign
+transaction.sign(owner_private_key)
 transaction.execute(client)
+
+# Approve token allowance
+transaction = (
+    AccountAllowanceApproveTransaction()
+    .approve_token_allowance(
+        token_id=token_id,
+        owner_account_id=owner_account_id,
+        spender_account_id=spender_account_id,
+        amount=1000  # Allow spender to transfer up to 1000 tokens
+    )
+    .freeze_with(client)
+)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+
+# Approve NFT allowance
+transaction = (
+    AccountAllowanceApproveTransaction()
+    .approve_token_nft_allowance(
+        nft_id=NftId(token_id=nft_token_id, serial_number=1),
+        owner_account_id=owner_account_id,
+        spender_account_id=spender_account_id
+    )
+    .freeze_with(client)
+)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+```
+
+### Allowance Delete Transaction
+
+#### Pythonic Syntax:
+```python
+# Delete NFT allowance
+transaction = AccountAllowanceDeleteTransaction(
+    nft_wipe=[
+        TokenNftAllowance(
+            token_id=nft_token_id,
+            owner_account_id=owner_account_id,
+            serial_numbers=[1, 2, 3]  # Remove allowance for specific NFTs
+        )
+    ]
+).freeze_with(client)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+# Delete NFT allowance
+transaction = (
+    AccountAllowanceDeleteTransaction()
+    .delete_all_token_nft_allowances(
+        nft_id=NftId(token_id=nft_token_id, serial_number=1),
+        owner_account_id=owner_account_id
+    )
+    .freeze_with(client)
+)
+
+transaction.sign(owner_private_key)
+transaction.execute(client)
+```
+
+### Querying Account Records
+
+#### Pythonic Syntax:
+```python
+records = AccountRecordsQuery(account_id=account_id).execute(client)
+
+for record in records:
+    print(record)
+```
+
+#### Method Chaining:
+```python
+records = (
+    AccountRecordsQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+
+for record in records:
+    print(record)
 ```
 
 ## Token Transactions
@@ -682,6 +840,29 @@ transaction.execute(client)
 
 ```
 
+### Unpausing a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenUnpauseTransaction(
+    token_id=token_id
+).freeze_with(client)
+
+transaction.sign(pause_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    TokenUnpauseTransaction()
+    .set_token_id(token_id)
+    .freeze_with(client)
+    .sign(pause_key)
+)
+transaction.execute(client)
+```
+
 ### Token Grant KYC
 
 #### Pythonic Syntax:
@@ -774,7 +955,7 @@ transaction = (
     TokenAirdropTransaction()
     .add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
     .add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
-    .add_nft_transfer(nft_id=nft_id, serial_number=serial_number, sender=operator_id, receiver=recipient_id)
+    .add_nft_transfer(nft_id=nft_id, serial_number=serial_number, sender_id=operator_id, receiver_id=recipient_id)
     .freeze_with(client)
     .sign(operator_key)
 )
@@ -853,22 +1034,61 @@ print(nft_info)
 ### Querying Fungible Token Info
 
 #### Pythonic Syntax:
-```
+```python
 info_query = TokenInfoQuery(token_id=token_id)
 info = info_query.execute(client)
 print(info)
 ```
+
 #### Method Chaining:
-```
+```python
 info_query = (
-        TokenInfoQuery()
-        .set_token_id(token_id)
-    )
+    TokenInfoQuery()
+    .set_token_id(token_id)
+)
 
 info = info_query.execute(client)
 print(info)
 ```
 
+### Updating a Token Fee Schedule
+
+#### Pythonic Syntax:
+
+```python
+# Note: Royalty fees are only for NON_FUNGIBLE_UNIQUE tokens.
+new_fees = [
+    CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id),
+    CustomRoyaltyFee(numerator=5, denominator=10, fee_collector_account_id=collector_account_id)
+]
+
+transaction = TokenFeeScheduleUpdateTransaction(
+    token_id=token_id, # assumed NFT in this example
+    custom_fees=new_fees
+).freeze_with(client)
+
+transaction.sign(fee_schedule_key) # The fee_schedule_key MUST sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+
+```python
+# Note: Fractional fees are only for FUNGIBLE_COMMON tokens.
+new_fees = [
+    CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id)
+]
+
+transaction = (
+    TokenFeeScheduleUpdateTransaction()
+    .set_token_id(token_id) # assumed FUNGIBLE in this example
+    .set_custom_fees(new_fees)
+    .freeze_with(client)
+)
+
+transaction.sign(fee_schedule_key) # The fee_schedule_key MUST sign
+transaction.execute(client)
+```
 ## HBAR Transactions
 
 ### Transferring HBAR
@@ -1179,6 +1399,32 @@ transaction.execute(client)
     transaction.sign(operator_key)
     transaction.execute(client)
 
+```
+
+### Appending to a File
+
+#### Pythonic Syntax:
+```python
+transaction = FileAppendTransaction(
+    file_id=file_id,
+    contents=b"Additional content to append to the file"
+).freeze_with(client)
+
+transaction.sign(file_private_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+transaction = (
+    FileAppendTransaction()
+    .set_file_id(file_id)
+    .set_contents(b"Additional content to append to the file")
+    .freeze_with(client)
+)
+
+transaction.sign(file_private_key)
+transaction.execute(client)
 ```
 
 
@@ -1846,6 +2092,16 @@ print(f"Transaction Account ID: {record.receipt.account_id}")
 ```
 
 ## Miscellaneous Transactions
+
+### Transaction Bytes Serialization
+
+For detailed information about freezing transactions and converting them to bytes for offline signing, external signing services (HSMs, hardware wallets), and transaction storage/transmission, see [Transaction Bytes Serialization](transaction_bytes.md).
+
+This guide covers:
+- `Transaction.freeze()` and `Transaction.freeze_with(client)` methods
+- `Transaction.to_bytes()` for serialization
+- `Transaction.from_bytes()` for deserialization
+- Use cases for offline signing, HSM integration, transaction storage, and batch processing
 
 ### PRNG Transaction
 

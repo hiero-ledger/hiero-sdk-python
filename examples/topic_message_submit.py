@@ -18,16 +18,19 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
-
+network_name = os.getenv('NETWORK', 'testnet').lower()
 def setup_client():
     """Initialize and set up the client with operator account"""
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
+    client = Client(network)
+
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
         client.set_operator(operator_id, operator_key)
+        print(f"Client set up with operator id {client.operator_account_id}")
 
         return client, operator_id, operator_key
     except (TypeError, ValueError):
@@ -56,17 +59,8 @@ def create_topic(client, operator_key):
         sys.exit(1)
 
 
-def submit_message(message):
-    """
-    A example to create a topic and then submit a message to it.
-    """
-    # Config Client
-    client, _, operator_key = setup_client()
-
-    # Create a new Topic
-    topic_id = create_topic(client, operator_key)
-
-    # Submit message to topic
+def submit_topic_message_transaction(client, topic_id, message, operator_key):
+    """Submit a message to the specified topic"""
     print("\nSTEP 2: Submitting message...")
     transaction = (
         TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
@@ -84,5 +78,21 @@ def submit_message(message):
         print(f"❌ Error: Message submission failed: {str(e)}")
         sys.exit(1)
 
+
+def main():
+    """
+    A example to create a topic and then submit a message to it.
+    """
+    message = "Hello, Hiero!"
+    
+    # Config Client
+    client, _, operator_key = setup_client()
+
+    # Create a new Topic
+    topic_id = create_topic(client, operator_key)
+
+    # Submit message to topic
+    submit_topic_message_transaction(client, topic_id, message, operator_key)
+
 if __name__ == "__main__":
-    submit_message("Hello, Hiero!")
+    main()

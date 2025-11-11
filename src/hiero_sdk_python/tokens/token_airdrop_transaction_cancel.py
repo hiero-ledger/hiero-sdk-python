@@ -1,9 +1,10 @@
+from typing import Optional
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import basic_types_pb2, token_cancel_airdrop_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
+from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.transaction.transaction import Transaction
 
 class TokenCancelAirdropTransaction(Transaction):
@@ -12,12 +13,12 @@ class TokenCancelAirdropTransaction(Transaction):
 
     This transaction allows users to cancel one or more airdrops for both fungible tokens and NFTs.
     """
-    def __init__(self, pending_airdrops: list[PendingAirdropId]=None) -> None:
+    def __init__(self, pending_airdrops: Optional[list[PendingAirdropId]] = None) -> None:
         """
         Initializes a new TokenCancelAirdropTransaction instance.
 
         Args:
-            pending_airdrops (list[PendingAirdropId], optional): An initial list of pending airdrop IDs.
+            pending_airdrops (Optional[list[PendingAirdropId]]): An optional list of pending airdrop IDs.
         """
         super().__init__()
         self.pending_airdrops: list[PendingAirdropId] = pending_airdrops or []

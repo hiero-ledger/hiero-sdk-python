@@ -22,18 +22,23 @@ from hiero_sdk_python import (
  # Check the transaction record to verify the contents
 
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
+
+    client = Client(network)
+
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-        client.set_operator(operator_id, operator_key)
+            operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+            operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+            client.set_operator(operator_id, operator_key)
+            print(f"Client set up with operator id {client.operator_account_id}")
 
-        return client, operator_id, operator_key
+            return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
@@ -196,7 +201,7 @@ def token_airdrop():
             .add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
             .add_nft_transfer(
                 nft_id=NftId(token_id=nft_id, serial_number=serial_number),
-                sender=operator_id, receiver=recipient_id
+                sender_id=operator_id, receiver_id=recipient_id
             )
             .freeze_with(client)
             .sign(operator_key)

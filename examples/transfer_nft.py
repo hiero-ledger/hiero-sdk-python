@@ -15,7 +15,7 @@ from hiero_sdk_python import (
     TransferTransaction,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
@@ -25,18 +25,21 @@ from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransact
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
     # Initialize network and client
-    network = Network(network='testnet')
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
     # Set up operator account
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
     client.set_operator(operator_id, operator_key)
-    
+    print(f"Client set up with operator id {client.operator_account_id}")
+
     return client, operator_id, operator_key
 
 def create_test_account(client):
@@ -135,7 +138,25 @@ def associate_nft(client, account_id, token_id, account_private_key):
     
     print("NFT successfully associated with account")
 
-def transfer_nft():
+def transfer_nft_token(client, nft_id, sender_id, receiver_id):
+    """Transfer the NFT from the sender to the receiver account"""
+    # Transfer nft to the new account
+    transfer_transaction = (
+        TransferTransaction()
+        .add_nft_transfer(nft_id, sender_id, receiver_id)
+        .freeze_with(client)
+    )
+    
+    receipt = transfer_transaction.execute(client)
+    
+    # Check if nft transfer was successful
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"NFT transfer failed with status: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
+    
+    print(f"Successfully transferred NFT to account {receiver_id}")
+
+def main():
     """
     Demonstrates the nft transfer functionality by:
     1. Creating a new account
@@ -150,21 +171,9 @@ def transfer_nft():
     nft_id = mint_nft(client, token_id, operator_key)
     associate_nft(client, account_id, token_id, new_account_private_key)
     
-    # Transfer nft to the new account
-    transfer_transaction = (
-        TransferTransaction()
-        .add_nft_transfer(nft_id, operator_id, account_id)
-        .freeze_with(client)
-    )
-    
-    receipt = transfer_transaction.execute(client)
-    
-    # Check if nft transfer was successful
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT transfer failed with status: {ResponseCode(receipt.status).name}")
-        sys.exit(1)
-    
-    print(f"Successfully transferred NFT to account {account_id}")
+    # Transfer the NFT to the new account
+    transfer_nft_token(client, nft_id, operator_id, account_id)
+
 
 if __name__ == "__main__":
-    transfer_nft()
+    main()

@@ -1,21 +1,24 @@
 """
 This is a simple example of how to create a finite fungible token using setting methods.
+
 It:
 1. Loads environment variables.
 2. Sets up a client and creates a token with the given parameters.
 3. Executes the token creation and prints the result.
+
 Required environment variables:
 - OPERATOR_ID, OPERATOR_KEY (mandatory)
 - ADMIN_KEY, SUPPLY_KEY, FREEZE_KEY, PAUSE_KEY (optional)
+
 Dependencies:
 - dotenv
 - hiero_sdk_python
 
+Usage:
 uv run examples/token_create_fungible_finite.py
 python examples/token_create_fungible_finite.py
-
 """
-# Adapt imports and paths as appropriate
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -28,47 +31,60 @@ from hiero_sdk_python import (
 )
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
-# Load environment variables from .env file
+
+
+def parse_optional_key(key_str):
+    """Parse an optional private key from environment variables."""
+    if not key_str or key_str.startswith('<') or key_str.endswith('>'):
+        return None
+    try:
+        return PrivateKey.from_string_ed25519(key_str)
+    except Exception:
+        return None
+
 load_dotenv()
-def create_token_fungible_finite():
-    """Function to create a finite fungible token."""
-    # Network Setup
-    network = Network(network='testnet')
+network_name = os.getenv('NETWORK', 'testnet').lower()
+
+def setup_client():
+    """Initialize and set up the client with operator account"""
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+    client.set_operator(operator_id, operator_key)
+    print(f"Client set up with operator id {client.operator_account_id}")
 
-    def parse_optional_key(key_str):
-        if not key_str or key_str.startswith('<') or key_str.endswith('>'):
-            return None
-        try:
-            return PrivateKey.from_string_ed25519(key_str)
-        except:
-            return None
-    
+    return client, operator_id, operator_key
+
+
+def load_optional_keys():
+    """Load optional keys (admin, supply, freeze, pause)."""
     admin_key = parse_optional_key(os.getenv('ADMIN_KEY'))
     supply_key = parse_optional_key(os.getenv('SUPPLY_KEY'))
     freeze_key = parse_optional_key(os.getenv('FREEZE_KEY'))
     pause_key = parse_optional_key(os.getenv('PAUSE_KEY'))
-    # Set the operator for the client
-    client.set_operator(operator_id, operator_key)
-    # Create the token creation transaction
-    # In this example, we set up a default empty token create transaction, then set the values
+    return admin_key, supply_key, freeze_key, pause_key
+
+
+def build_transaction(client, operator_id, keys):
+    """Build and freeze the token creation transaction."""
+    admin_key, supply_key, freeze_key, pause_key = keys
+
     transaction = (
         TokenCreateTransaction()
         .set_token_name("FiniteFungibleToken")
         .set_token_symbol("FFT")
         .set_decimals(2)
-        .set_initial_supply(10)  # TokenType.FUNGIBLE_COMMON must have >0 initial supply. Cannot exceed max supply
-        .set_treasury_account_id(operator_id) # Also known as treasury account
+        .set_initial_supply(10)
+        .set_treasury_account_id(operator_id)
         .set_token_type(TokenType.FUNGIBLE_COMMON)
         .set_supply_type(SupplyType.FINITE)
         .set_max_supply(100)
-        .freeze_with(client) # Freeze the transaction. Returns self so we can sign.
+        .freeze_with(client)
     )
-    
-    # Add optional keys only if they exist
+
     if admin_key:
         transaction.set_admin_key(admin_key)
     if supply_key:
@@ -77,13 +93,17 @@ def create_token_fungible_finite():
         transaction.set_freeze_key(freeze_key)
     if pause_key:
         transaction.set_pause_key(pause_key)
-    # Required signature by treasury (operator)
+
+    return transaction
+
+
+def execute_transaction(transaction, client, operator_key, admin_key):
+    """Sign and execute the transaction."""
     transaction.sign(operator_key)
-    # Sign with adminKey if provided
     if admin_key:
         transaction.sign(admin_key)
+
     try:
-        # Execute the transaction and get the receipt
         receipt = transaction.execute(client)
         if receipt and receipt.token_id:
             print(f"Finite fungible token created with ID: {receipt.token_id}")
@@ -93,5 +113,15 @@ def create_token_fungible_finite():
     except Exception as e:
         print(f"Token creation failed: {str(e)}")
         sys.exit(1)
+
+
+def create_token_fungible_finite():
+    """Main function to create finite fungible token."""
+    client, operator_id, operator_key = setup_client()
+    keys = load_optional_keys()
+    transaction = build_transaction(client, operator_id, keys)
+    execute_transaction(transaction, client, operator_key, keys[0])
+
+
 if __name__ == "__main__":
     create_token_fungible_finite()

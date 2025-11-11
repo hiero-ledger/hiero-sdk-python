@@ -13,7 +13,7 @@ from hiero_sdk_python import (
     PrivateKey,
     Network,
 )
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.supply_type import SupplyType
@@ -23,16 +23,19 @@ from hiero_sdk_python.tokens.token_update_nfts_transaction import TokenUpdateNft
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network='testnet')
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
     client.set_operator(operator_id, operator_key)
-    
+    print(f"Client set up with operator id {client.operator_account_id}")
+
     return client, operator_id, operator_key
 
 def create_nft(client, operator_id, operator_key, metadata_key):
