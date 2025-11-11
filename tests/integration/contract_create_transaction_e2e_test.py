@@ -4,7 +4,7 @@ Integration tests for the ContractCreateTransaction class.
 
 import pytest
 
-from examples.contracts import (
+from examples.contract.contracts import (
     CONTRACT_DEPLOY_GAS,
     SIMPLE_CONTRACT_BYTECODE,
     STATEFUL_CONTRACT_BYTECODE,

@@ -6,7 +6,7 @@ import pytest
 import rlp
 from eth_keys import keys
 
-from examples.contracts import CONTRACT_DEPLOY_GAS, STATEFUL_CONTRACT_BYTECODE
+from examples.contract.contracts import CONTRACT_DEPLOY_GAS, STATEFUL_CONTRACT_BYTECODE
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import (
