@@ -25,28 +25,30 @@ from hiero_sdk_python import (
 
 # Load environment variables from .env file
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """Setup Client"""
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
+    client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
         client.set_operator(operator_id, operator_key)
+        print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
 
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-    print(f"Using operator account: {operator_id}")
 
 def create_new_account(client, operator_id, operator_key):
     """Create a new account to associate/dissociate with tokens"""
     print("\nSTEP 1: Creating a new account...")
-    recipient_key = PrivateKey.generate_ed25519()
+    recipient_key = PrivateKey.generate(os.getenv('KEY_TYPE', 'ed25519'))
 
     try:
         # Build the transaction
