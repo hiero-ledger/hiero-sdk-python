@@ -4,7 +4,7 @@ Integration tests for ContractDeleteTransaction.
 
 import pytest
 
-from examples.contracts import CONTRACT_DEPLOY_GAS, SIMPLE_CONTRACT_BYTECODE
+from examples.contract.contracts import CONTRACT_DEPLOY_GAS, SIMPLE_CONTRACT_BYTECODE
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )

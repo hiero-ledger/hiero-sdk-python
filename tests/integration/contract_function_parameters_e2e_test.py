@@ -4,7 +4,7 @@ Integration tests for the ConstructorTestContract constructor parameters.
 
 import pytest
 
-from examples.contracts import CONSTRUCTOR_TEST_CONTRACT_BYTECODE, CONTRACT_DEPLOY_GAS
+from examples.contract.contracts import CONSTRUCTOR_TEST_CONTRACT_BYTECODE, CONTRACT_DEPLOY_GAS
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
