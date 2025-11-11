@@ -20,24 +20,26 @@ from hiero_sdk_python import (
 
 # Load environment variables from .env file
 load_dotenv()
+network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
     """Setup Client """
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    network = Network(network_name)
+    print(f"Connecting to Hedera {network_name} network!")
+    client = Client(network)
 
     # Get the operator account from the .env file
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        # Set the operator (payer) account for the client
+        client.set_operator(operator_id, operator_key)
+        print(f"Client set up with operator id {client.operator_account_id}")
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
-    # Set the operator (payer) account for the client
-    client.set_operator(operator_id, operator_key)
-    print(f"Using operator account: {operator_id}")
-    return client, operator_id, operator_key
+    
 
 def generate_admin_key():
     """Generate a new admin key within the script:
@@ -45,7 +47,7 @@ def generate_admin_key():
     """
 
     print("\nGenerating a new admin key for the token...")
-    admin_key = PrivateKey.generate_ed25519()
+    admin_key = PrivateKey.generate(os.getenv('KEY_TYPE', 'ed25519'))
     print("Admin key generated successfully.")
     return admin_key
 
