@@ -6,6 +6,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+
+### Added
+
+
+### Changed
+
+
+### Fixed
+
+
+
+## [0.1.8] - 2025-11-07
+
 ### Added
 - Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
 - Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
@@ -88,6 +101,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
 - Added workflow for running example scripts.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
+- chore: fix the examples workflow to log error messages and run on import failure (#738)
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
 
@@ -177,7 +191,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
-- chore: fix the examples workflow to log error messages and run on import failure (#738)
 
 ## [0.1.5] - 2025-09-25
 
