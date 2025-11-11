@@ -7,8 +7,8 @@ This example shows how to:
 - Create accounts with logging enabled/disabled
 
 Usage:
-    uv run examples/logging_example.py
-    python examples/logging_example.py
+    uv run examples/logger/logging_example.py
+    python examples/logger/logging_example.py
 """
 import os
 from dotenv import load_dotenv
