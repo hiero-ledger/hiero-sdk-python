@@ -8,7 +8,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
-
+- CI: Add standalone workflow `pr-check-naming-test.yml` to enforce test naming rules:
+  - Unit tests must be named `test_*.py`
+  - Integration tests must be named `*_test.py`
+  - Excludes helper files: `__init__.py`, `conftest.py`, `mock_server.py`, `utils_for_test.py`
 
 ### Changed
 
