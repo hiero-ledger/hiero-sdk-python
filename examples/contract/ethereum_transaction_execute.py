@@ -14,7 +14,7 @@ Usage:
     # from the project root directory
 
     # Run from the project root directory
-    python -m examples.ethereum_transaction_execute
+    python -m examples.contract.ethereum_transaction_execute
 """
 
 import os
