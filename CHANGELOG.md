@@ -83,6 +83,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 - chore: bumped solo action from 14.0 to 15.0 (#764)
+- chore: renamed examples to match src where possible
 - chore: replaced hardcoded 'testnet' messages with environment network name
 - chore: validate that token airdrop transactions require an available token service on the channel (#632)
 - chore: update local environment configuration in env.example (#649)
