@@ -18,8 +18,8 @@ This script demonstrates:
 - Checking balances and token association statuses for verification purposes.
 
 Run this script using:
-uv run examples/token_airdrop_pending_claim_signature_required.py
-python examples/token_airdrop_pending_claim_signature_required.py
+uv run examples/tokens/token_airdrop_claim_signature_required.py
+python examples/tokens/token_airdrop_claim_signature_required.py
 """
 
 import os

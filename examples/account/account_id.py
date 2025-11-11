@@ -1,6 +1,6 @@
 """
-uv run examples/account_id.py
-python examples/account_id.py
+uv run examples/account/account_id.py
+python examples/account/account_id.py
 
 This example demonstrates various ways to use the AccountId class:
 1. Creating a standard AccountId
