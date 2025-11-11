@@ -11,8 +11,8 @@ Usage:
     # from the project root directory
 
     # Run from the project root directory
-    uv run -m examples.contract_update
-    python -m examples.contract_update
+    uv run -m examples.contract.contract_update
+    python -m examples.contract.contract_update
 """
 
 import datetime
