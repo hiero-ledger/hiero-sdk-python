@@ -14,6 +14,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `account_balance_query.py` example to demonstrate how to use the CryptoGetAccountBalanceQuery class.
 - Add `examples/token_create_transaction_admin_key.py` demonstrating admin key privileges for token management including token updates, key changes, and deletion (#798)
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
+- Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+
 
 ### Changed
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
@@ -51,7 +53,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
-- Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
 
 ### Changed
 - chore: bumped solo action from 14.0 to 15.0 (#764)
