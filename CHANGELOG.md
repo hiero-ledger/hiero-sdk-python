@@ -11,7 +11,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Changed
-- Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
+- Refactored `examples/token_transfer.py` into modular functions (`account_balance_query()` and `transfer_transaction()`), improving readability, structure, and reusability.  
+  The example now runs through a clear `main()` entry point and maintains identical output and functionality. (#773)
 
 
 ### Fixed
