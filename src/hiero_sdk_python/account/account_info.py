@@ -38,6 +38,9 @@ class AccountInfo:
             associated with this account.
         account_memo (Optional[str]): The memo associated with this account.
         owned_nfts (Optional[int]): The number of NFTs owned by this account.
+        staked_account_id (Optional[AccountId]): The account to which this account is staked.
+        staked_node_id (Optional[int]): The node to which this account is staked.
+        decline_staking_reward (bool): Whether this account declines receiving staking rewards. 
     """
 
     account_id: Optional[AccountId] = None
