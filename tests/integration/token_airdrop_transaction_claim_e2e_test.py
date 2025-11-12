@@ -11,6 +11,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from tests.integration.utils_for_test import env, create_fungible_token, create_nft_token
+from typing import List
 
 pytestmark = pytest.mark.integration
 
@@ -60,23 +61,35 @@ def has_immediate_credit(record, token_id: TokenId, account_id: AccountId, amoun
 def has_new_pending(record):
     return bool(record.new_pending_airdrops)
 
-def extract_pending_ids(record):
-    ids = []
+def extract_pending_ids(record) -> List[PendingAirdropId]:
+    """
+    Extract a list of SDK PendingAirdropId objects from a transaction record.
+    Handles both protobuf objects and already instantiated SDK objects.
+    """
+    sdk_ids: List[PendingAirdropId] = []
+
     for item in record.new_pending_airdrops:
-        # If it's already a PendingAirdropId object, just append
         if isinstance(item, PendingAirdropId):
-            ids.append(item)
+            # Already an SDK object
+            sdk_ids.append(item)
+            continue
+
+        # Try to get protobuf object
+        pid_proto = getattr(item, "pending_airdrop_id", None)
+        if pid_proto is None and hasattr(item, "_to_proto"):
+            pid_proto = item._to_proto().pending_airdrop_id
+
+        if pid_proto is None:
+            raise AssertionError(f"Cannot extract pending_airdrop_id from {type(item)}")
+
+        # Convert protobuf to SDK object
+        if hasattr(pid_proto, "HasField"):
+            sdk_ids.append(PendingAirdropId._from_proto(pid_proto))
         else:
-            # Attempt to extract the protobuf field
-            pid_proto = getattr(item, "pending_airdrop_id", None)
-            if pid_proto is None and hasattr(item, "_to_proto"):
-                pid_proto = item._to_proto().pending_airdrop_id
+            # Already SDK object
+            sdk_ids.append(pid_proto)
 
-            if pid_proto is None:
-                raise AssertionError(f"Cannot extract pending_airdrop_id from {type(item)}")
-
-            ids.append(PendingAirdropId._from_proto(pid_proto))
-    return ids
+    return sdk_ids
 
 def claim_pending(env, pending_ids, receiver_key):
     tx = TokenClaimAirdropTransaction().add_pending_airdrop_ids(pending_ids)
@@ -86,6 +99,17 @@ def claim_pending(env, pending_ids, receiver_key):
 # ======================
 # --- Integration Tests ---
 # ======================
+
+def test_airdrop_becomes_pending_if_not_associated_no_sig_required(env):
+    receiver = env.create_account(initial_hbar=2.0)
+    token_id = create_fungible_token(env)
+
+    set_receiver_signature_required(env, receiver.id, receiver.key, False)
+
+    record = submit_airdrop(env, receiver.id, token_id)
+    # ✅ Expect it to be pending but not airdropped
+    assert has_new_pending(record)
+    assert not has_immediate_credit(record, token_id, receiver.id)
 
 def test_immediate_airdrop_if_associated_and_no_sig_required(env):
     receiver = env.create_account(initial_hbar=2.0)
@@ -104,7 +128,9 @@ def test_pending_airdrop_if_unassociated_and_no_sig_required(env):
 
     set_receiver_signature_required(env, receiver.id, receiver.key, False)
     record = submit_airdrop(env, receiver.id, token_id)
+    # Becomes pending as not associated
     assert has_new_pending(record)
+    # Can't auto claim because not associated
     assert not has_immediate_credit(record, token_id, receiver.id)
 
 def test_pending_airdrop_if_sig_required_even_if_associated(env):

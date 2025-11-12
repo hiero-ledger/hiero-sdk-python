@@ -14,9 +14,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   - Excludes helper files: `__init__.py`, `conftest.py`, `mock_server.py`, `utils_for_test.py`
 
 ### Changed
+- Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
 
 
 ### Fixed
+- chore: fixed integration test names without a test prefix or postfix
 
 
 
