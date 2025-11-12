@@ -472,8 +472,18 @@ class PublicKey:
         return self.to_string_raw()
     
     def to_evm_address(self):
+        """
+        Derives the EVM address corresponding to this ECDSA public key.
+        
+        Note:
+            This address derivation is valid only for ECDSA secp256k1 keys.
+            Calling this method on an Ed25519 key will raise a ValueError.
+            
+        Returns:
+            EvmAddress: The derived EVM address.
+        """
         if self.is_ed25519():
-            raise ValueError("")
+            raise ValueError("Cannot derive an EVM address from an Ed25519 key.")
         
         uncompressed_bytes = self.to_bytes_ecdsa(compressed=False)
         keccak_bytes =  keccak256(uncompressed_bytes[1:])
