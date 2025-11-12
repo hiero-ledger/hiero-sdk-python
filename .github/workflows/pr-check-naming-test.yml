@@ -1,0 +1,38 @@
+name: "PR Test Naming Check"
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  test-name-check:
+    name: Validate test naming convention
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Run test naming validation
+        run: |
+          echo "🔍 Checking test file naming convention..."
+
+          bad_files=$(find tests -type f -name "*.py" \
+            ! -name "*_test.py" \
+            ! -path "tests/__init__.py" \
+            ! -path "tests/unit/__init__.py" \
+            ! -path "tests/integration/__init__.py" \
+            ! -path "tests/unit/conftest.py" \
+            ! -path "tests/unit/mock_server.py" \
+            ! -path "tests/integration/utils_for_test.py")
+
+          if [ -n "$bad_files" ]; then
+            echo "❌ Invalid test filenames detected:"
+            echo "$bad_files"
+            exit 1
+          fi
+
+          echo "✅ All test files follow the _test.py convention!"
