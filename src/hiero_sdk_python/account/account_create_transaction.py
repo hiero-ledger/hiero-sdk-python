@@ -49,6 +49,11 @@ class AccountCreateTransaction(Transaction):
             receiver_signature_required (Optional[bool]): Whether receiver signature is required.
             auto_renew_period (Duration): Auto-renew period in seconds (default is ~90 days).
             memo (Optional[str]): Memo for the account.
+            max_automatic_token_associations (Optional[int]): The maximum number of tokens that can be auto-associated.
+            alias (Optional[EvmAddress]): The 20-byte EVM address to be used as the account's alias
+            staked_account_id (Optional[AccountId]): The account to which this account will stake
+            staked_node_id (Optional[int]): ID of the node this account is staked to.
+            decline_staking_reward (bool): If true, the account declines receiving a staking reward (default is False)
         """
         super().__init__()
         self.key: Optional[PublicKey] = key
@@ -79,7 +84,7 @@ class AccountCreateTransaction(Transaction):
     
     def set_key_without_alias(self, key: PublicKey) -> "AccountCreateTransaction":
         """
-        Sets the public key for the new account without alias/
+        Sets the public key for the new account without alias.
 
         Args:
             key (PublicKey): The public key to assign to the account.
@@ -93,15 +98,17 @@ class AccountCreateTransaction(Transaction):
     
     def set_key_with_alias(self, key: PublicKey, ecdsa_key: Optional[PublicKey]=None) -> "AccountCreateTransaction":
         """
-        Sets the public key for the new account and derives it 
-        EVM Address from key if ecdsa_key not provided.
-
+        Sets the public key for the new account and assigns an alias derived from an ECDSA key.
+        
+        If `ecdsa_key` is provided, its corresponding EVM address will be used as the account alias.
+        Otherwise, the alias will be derived from the provided `key`.
+        
         Args:
             key (PublicKey): The public key to assign to the account.
-            ecdsa_key(PublicKey): The public key use to set the alias for account.
-
+            ecdsa_key (Optional[PublicKey]): An optional ECDSA public key used to derive the account alias.
+            
         Returns:
-            AccountCreateTransaction: The current transaction instance for method chaining.
+            AccountCreateTransaction: The current transaction instance to allow method chaining.
         """
         self._require_not_frozen()
         self.key = key
@@ -174,7 +181,15 @@ class AccountCreateTransaction(Transaction):
         return self
 
     def set_max_automatic_token_associations(self, max_assoc: int) -> "AccountCreateTransaction":
-        """Sets the maximum number of automatic token associations for the account."""
+        """
+        Sets the maximum number of automatic token associations for the account.
+
+        Args:
+            max_assoc (int): The maximum number of automatic token associations to allow (default 0).
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+        """
         self._require_not_frozen()
         # FIX
         if max_assoc < -1:
@@ -183,16 +198,21 @@ class AccountCreateTransaction(Transaction):
         return self
     
     def set_alias(self, alias_evm_address: Union[EvmAddress, str]) -> "AccountCreateTransaction":
-        """Sets the alias for the account."""
+        """
+        Sets the EVM Address alias for the account.
+
+        Args:
+            alias_evm_address (Union[EvmAddress, str]): The 20-byte EVM address to be used as the account's alias.
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+        """
         self._require_not_frozen()
         if isinstance(alias_evm_address, str):
-            if (
-                (alias_evm_address.startswith('0x') and len(alias_evm_address) == 42)
-                or len(alias_evm_address) == 40
-            ):
+            if len(alias_evm_address.removeprefix("0x")) == 40:
                 self.alias = EvmAddress.from_string(alias_evm_address)
             else:
-                raise ValueError("alias_evm_address must be an a valid EVM address with \"0x\" prefix")
+                raise ValueError("alias_evm_address must be a valid 20-byte EVM address")
             
         elif isinstance(alias_evm_address, EvmAddress):
             self.alias = alias_evm_address
@@ -203,7 +223,15 @@ class AccountCreateTransaction(Transaction):
         return self
     
     def set_staked_account_id(self, account_id: Union[AccountId, str]) -> "AccountCreateTransaction":
-        """Sets the stakedAccountId for the account."""
+        """
+        Sets the staked account id for the account.
+
+        Args:
+            account_id (Union[AccountId, str]): The account to which this account will stake.
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+        """
         self._require_not_frozen()
         if isinstance(account_id, str):
             self.staked_account_id = AccountId.from_string(account_id)
@@ -215,7 +243,15 @@ class AccountCreateTransaction(Transaction):
         return self
     
     def set_staked_node_id(self, node_id: int) -> "AccountCreateTransaction":
-        """Sets the stakedNodeId for the account."""
+        """
+        Sets the staked node id for the account.
+
+        Args:
+            node_id (int): The node to which this account will stake.
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+        """
         self._require_not_frozen()
         if not isinstance(node_id, int):
             raise TypeError("node_id must be of type int")
@@ -224,7 +260,16 @@ class AccountCreateTransaction(Transaction):
         return self
     
     def set_decline_staking_reward(self, decline_staking_reward: bool) -> "AccountCreateTransaction":
-        """Sets the declineStakingReward for the account."""
+        """
+        Sets the decline staking reward for the account.
+
+        Args:
+            decline_staking_reward (bool): If true, the account declines 
+            receiving a staking reward (default is False)
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+        """
         self._require_not_frozen()
         if not isinstance(decline_staking_reward, bool):
             raise TypeError("decline_staking_reward must be of type bool")
@@ -254,7 +299,7 @@ class AccountCreateTransaction(Transaction):
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
         
 
-        proto_tx = crypto_create_pb2.CryptoCreateTransactionBody(
+        proto_body = crypto_create_pb2.CryptoCreateTransactionBody(
             key=self.key._to_proto(),
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
@@ -266,11 +311,11 @@ class AccountCreateTransaction(Transaction):
         )
 
         if self.staked_account_id:
-            proto_tx.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
+            proto_body.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
         elif self.staked_node_id:
-            proto_tx.staked_node_id = self.staked_node_id
+            proto_body.staked_node_id = self.staked_node_id
 
-        return proto_tx
+        return proto_body
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
