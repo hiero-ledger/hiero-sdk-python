@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Add `account_balance_query.py` example to demonstrate how to use the CryptoGetAccountBalanceQuery class.
 
 
 ### Changed
