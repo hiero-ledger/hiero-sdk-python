@@ -11,8 +11,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Changed
-- Refactored `examples/token_transfer.py` into modular functions (`account_balance_query()` and `transfer_transaction()`), improving readability, structure, and reusability.  
-  The example now runs through a clear `main()` entry point and maintains identical output and functionality. (#773)
+- Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
+- upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
 
 ### Fixed
 - chore: fixed integration test names without a test prefix or postfix
