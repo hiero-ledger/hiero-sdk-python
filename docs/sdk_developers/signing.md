@@ -30,7 +30,6 @@ Choose:
 * Expiration: 0 (or choose as per your need)
 * Name, Email: Must match your GitHub email
 * Passphrase: Set a strong passphrase
-
 To list your keys:
 
 ```bash
