@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- chore: add `scripts/src_vs_proto` and contents to pull fields from the proto and compare them to the setters and attributes we provide functionality in our token transactions, thus enabling more automatic issue management"
 
 ### Changed
 

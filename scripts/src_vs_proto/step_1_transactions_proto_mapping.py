@@ -7,7 +7,7 @@ import ast
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent  # go up to hedera_sdk_python
 TOKENS_DIR = PROJECT_ROOT / "src" / "hiero_sdk_python" / "tokens"
 OUTPUT_DIR = PROJECT_ROOT / "scripts" / "src_vs_proto"
-OUTPUT_FILE = OUTPUT_DIR / "transactions_mapping.py"
+OUTPUT_FILE = OUTPUT_DIR / "step_2_transactions_mapping.py"
 
 def find_proto_import(file_path):
     """Parse transaction file to find the protobuf import."""
