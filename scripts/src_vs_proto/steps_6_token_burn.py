@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Step 6: Extract TokenBurnTransaction info from Step 3 output
-         + corresponding proto attributes and setters from Step 4 output
+Step 6: Compare token transaction SDK classes (Step 3) with proto attributes (Step 4)
+         for multiple token transactions
          + regex + mapping to check if proto really missing
+         + logging missing proto mappings
 """
 
 from pathlib import Path
@@ -33,7 +34,10 @@ def camel_to_snake(name: str) -> str:
 # Special proto -> SDK mappings
 PROTO_TO_SDK_MAP = {
     "token": "token_id",
+    "tokens": "token_ids",
     "serialNumbers": "serials",
+    "account": "account_id",
+    "set_account": "set_account_id"
 }
 
 def map_proto_to_sdk(proto_attr: str) -> str:
@@ -49,37 +53,65 @@ def map_proto_setter_to_sdk(proto_setter: str) -> str:
         return f"set_{map_proto_to_sdk(core)}"
     return proto_setter
 
+# Mapping of Step 3 module names -> SDK class names
+SDK_MODULE_CLASS_MAP = {
+    "token_burn_transaction": "TokenBurnTransaction",
+    "token_associate_transaction": "TokenAssociateTransaction",
+    "token_dissociate_transaction": "TokenDissociateTransaction",
+    "token_mint_transaction": "TokenMintTransaction",
+}
+
+# Mapping of SDK class -> proto class
+TRANSACTION_PROTO_MAP = {
+    "TokenBurnTransaction": "TokenBurnTransactionBody",
+    "TokenAssociateTransaction": "TokenAssociateTransactionBody",
+    "TokenDissociateTransaction": "TokenDissociateTransactionBody",
+    "TokenMintTransaction": "TokenMintTransactionBody",
+}
+
 if __name__ == "__main__":
     # Load Step 3 (SDK classes)
     step3_module = load_module(STEP3_FILE, "step3_token_classes")
-    tb_info = getattr(step3_module.token_burn_transaction, "TokenBurnTransaction", None)
-    if not tb_info:
-        tb_info = {'attributes': [], 'setters': []}
-
     # Load Step 4 (proto mappings)
     step4_module = load_module(STEP4_FILE, "step4_proto_attributes")
-    proto_info = getattr(step4_module, "proto_mappings", {}).get("TokenBurnTransactionBody", None)
-    if not proto_info:
-        proto_info = {'attributes': [], 'setters': []}
+    proto_mappings = getattr(step4_module, "proto_mappings", {})
 
-    # Map proto attributes and setters to SDK equivalents
-    mapped_proto_attrs = [map_proto_to_sdk(a) for a in proto_info['attributes']]
-    mapped_proto_setters = [map_proto_setter_to_sdk(s) for s in proto_info['setters']]
+    print("\n📦 All proto mappings available in Step 4:")
+    for k in sorted(proto_mappings.keys()):
+        print(" -", k)
 
-    # Compute missing attributes and setters
-    missing_attributes = [a for a in mapped_proto_attrs if a not in tb_info['attributes']]
-    missing_setters = [s for s in mapped_proto_setters if s not in tb_info['setters']]
+    for sdk_module_name, sdk_class_name in SDK_MODULE_CLASS_MAP.items():
+        # Get SDK info
+        sdk_module = getattr(step3_module, sdk_module_name, None)
+        sdk_class_info = getattr(sdk_module, sdk_class_name, None) if sdk_module else {'attributes': [], 'setters': []}
 
-    print("✅ SDK Attributes:", tb_info['attributes'])
-    print("✅ SDK Setters:", tb_info['setters'])
-    print("\n✅ Proto Attributes (mapped):", mapped_proto_attrs)
-    print("✅ Proto Setters (mapped):", mapped_proto_setters)
+        # Get proto info
+        proto_class_name = TRANSACTION_PROTO_MAP.get(sdk_class_name, "")
+        proto_info = proto_mappings.get(proto_class_name)
 
-    if missing_attributes or missing_setters:
-        print("\n⚠️ Proto attributes/setters really missing in SDK TokenBurnTransaction:")
-        if missing_attributes:
-            print("⚠️Missing attributes:", missing_attributes)
-        if missing_setters:
-            print("⚠️Missing setters:", missing_setters)
-    else:
-        print("\n✅ No proto attributes or setters are actually missing in the SDK TokenBurnTransaction")
+        if proto_info is None:
+            print(f"\n⚠️ Proto mapping missing for {proto_class_name} (SDK {sdk_class_name})")
+            proto_info = {'attributes': [], 'setters': []}
+
+        # Map proto attributes and setters to SDK equivalents
+        mapped_proto_attrs = [map_proto_to_sdk(a) for a in proto_info['attributes']]
+        mapped_proto_setters = [map_proto_setter_to_sdk(s) for s in proto_info['setters']]
+
+        # Compute missing attributes and setters
+        missing_attributes = [a for a in mapped_proto_attrs if a not in sdk_class_info['attributes']]
+        missing_setters = [s for s in mapped_proto_setters if s not in sdk_class_info['setters']]
+
+        print(f"\n💠 {sdk_class_name} vs {proto_class_name}")
+        print("✅ SDK Attributes:", sdk_class_info['attributes'])
+        print("✅ SDK Setters:", sdk_class_info['setters'])
+        print("📦 Proto Attributes (mapped):", mapped_proto_attrs)
+        print("📦 Proto Setters (mapped):", mapped_proto_setters)
+
+        if missing_attributes or missing_setters:
+            print("⚠️ Missing in SDK:")
+            if missing_attributes:
+                print(" - Attributes:", missing_attributes)
+            if missing_setters:
+                print(" - Setters:", missing_setters)
+        else:
+            print("✅ No proto attributes or setters are actually missing in SDK")

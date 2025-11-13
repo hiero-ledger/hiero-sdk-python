@@ -1,70 +1,96 @@
 """
-Step 4: Extract attributes and setters from proto classes referenced by token modules.
-This version generates a flat mapping proto_mappings[class_name] -> {attributes, setters}.
+Step 4: Extract all protobuf message classes and enums from token proto modules.
+Generates proto_mappings[class_name] -> {attributes, setters} for messages
+and proto_enums[enum_name] -> {values} for enums.
 """
 
 import importlib
 from pathlib import Path
+from steps_2_extracted_token_proto_imports import token_proto_map
 
-STEP2_OUTPUT = Path(__file__).parent / "steps_2_extracted_token_proto_imports.py"
 OUTPUT_FILE = Path(__file__).parent / "steps_4_token_classes_proto_attributes.py"
-ERROR_FILE = Path(__file__).parent / "steps_4_token_classes_proto_errors.log"
 
+proto_mappings = {}
+proto_enums = {}
 
-def parse_step2_imports():
+def extract_all_protos(module):
     """
-    Parse Step 2 output and return a mapping of token_file -> list of proto imports.
-    Each proto import is (full_import_path, class_name_or_none)
+    Recursively extract all protobuf messages and enums from a module.
+    Returns:
+        messages: dict[class_name] = [field names]
+        enums: dict[enum_name] = [enum value names]
     """
-    token_proto_map = {}
-    current_token_file = None
+    messages = {}
+    enums = {}
 
-    with open(STEP2_OUTPUT, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                if line.startswith("#") and line.endswith(".py"):
-                    current_token_file = line[2:].strip()
-                    token_proto_map[current_token_file] = []
-            elif line.startswith("import") and current_token_file:
-                full_import = line.split()[1]
-                parts = full_import.split(".")
-                proto_class = parts[-1] if parts[-1][0].isupper() else None
-                proto_module = ".".join(parts[:-1]) if proto_class else full_import
-                token_proto_map[current_token_file].append((proto_module, proto_class))
-    return token_proto_map
+    def visit(obj):
+        try:
+            if hasattr(obj, "DESCRIPTOR"):
+                # Message class
+                if hasattr(obj.DESCRIPTOR, "fields"):
+                    messages[obj.DESCRIPTOR.name] = [f.name for f in obj.DESCRIPTOR.fields]
+                # Enum class
+                elif hasattr(obj.DESCRIPTOR, "values"):
+                    enums[obj.DESCRIPTOR.name] = [v.name for v in obj.DESCRIPTOR.values]
+        except Exception:
+            pass
 
+        # Recurse into nested classes
+        for subname, subobj in vars(obj).items():
+            if isinstance(subobj, type):
+                visit(subobj)
 
-def get_proto_fields(proto_module_name, proto_class_name):
-    """Dynamically import proto class and return field names and setters."""
-    try:
-        mod = importlib.import_module(proto_module_name)
-        proto_cls = getattr(mod, proto_class_name)
-        attributes = [f.name for f in proto_cls.DESCRIPTOR.fields]
-        setters = [f"set_{f.name}" for f in proto_cls.DESCRIPTOR.fields]
-        return attributes, setters, None
-    except Exception as e:
-        return [], [], str(e)
+    for name, obj in vars(module).items():
+        if isinstance(obj, type):
+            visit(obj)
 
+    return messages, enums
 
 def main():
-    token_proto_map = parse_step2_imports()
-    error_log = []
-    proto_mappings = {}
+    global proto_mappings, proto_enums
 
-    for token_file, proto_entries in token_proto_map.items():
+    for token_module, proto_entries in token_proto_map.items():
         for proto_module, proto_class in proto_entries:
-            if not proto_class:
-                continue
-            attrs, setters, err = get_proto_fields(proto_module, proto_class)
-            if err:
-                error_log.append(f"{proto_module}.{proto_class}: {err}")
-            proto_mappings[proto_class] = {
-                "attributes": attrs,
-                "setters": setters,
-            }
+            # Clean double prefixes if they exist
+            if proto_module.startswith("hiero_sdk_python.hapi.services.hiero_sdk_python.hapi.services"):
+                proto_module = proto_module[len("hiero_sdk_python.hapi.services."):]
 
-    # Write proto_mappings to Step 4 output
+            try:
+                mod = importlib.import_module(proto_module)
+            except Exception as e:
+                print(f"❌ Failed to import {proto_module}: {e}")
+                continue
+
+            messages = {}
+            enums = {}
+
+            if proto_class:
+                cls = getattr(mod, proto_class, None)
+                if cls is not None:
+                    # Extract messages/enums from specific class
+                    m, e = extract_all_protos(cls)
+                    messages.update(m)
+                    enums.update(e)
+                else:
+                    print(f"⚠️ Class {proto_class} not found in {proto_module}")
+            else:
+                # Extract all messages/enums from module
+                m, e = extract_all_protos(mod)
+                messages.update(m)
+                enums.update(e)
+
+            # Add messages to proto_mappings
+            for cls_name, fields in messages.items():
+                proto_mappings[cls_name] = {
+                    "attributes": fields,
+                    "setters": [f"set_{f}" for f in fields]
+                }
+
+            # Add enums to proto_enums
+            for enum_name, values in enums.items():
+                proto_enums[enum_name] = {"values": values}
+
+    # Write output to file
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write("# Auto-generated proto attributes and setters\n\n")
         f.write("proto_mappings = {\n")
@@ -79,20 +105,22 @@ def main():
                 f.write(f"            '{s}',\n")
             f.write("        ]\n")
             f.write("    },\n")
+        f.write("}\n\n")
+
+        f.write("# Auto-generated proto enums\n\n")
+        f.write("proto_enums = {\n")
+        for enum_name, data in sorted(proto_enums.items()):
+            f.write(f"    '{enum_name}': {{\n")
+            f.write("        'values': [\n")
+            for v in data['values']:
+                f.write(f"            '{v}',\n")
+            f.write("        ]\n")
+            f.write("    },\n")
         f.write("}\n")
 
-    # Write errors if any
-    with open(ERROR_FILE, "w", encoding="utf-8") as f:
-        if error_log:
-            f.write("# Errors encountered during proto extraction\n\n")
-            for e in error_log:
-                f.write(e + "\n")
-        else:
-            f.write("# No errors encountered\n")
-
-    print(f"Output written to: {OUTPUT_FILE}")
-    print(f"Errors written to: {ERROR_FILE}")
-
+    print(f"✅ Proto mappings written to {OUTPUT_FILE}")
+    print(f"✅ Total message classes extracted: {len(proto_mappings)}")
+    print(f"✅ Total enums extracted: {len(proto_enums)}")
 
 if __name__ == "__main__":
     main()
