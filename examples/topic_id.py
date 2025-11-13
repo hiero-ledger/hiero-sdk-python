@@ -42,9 +42,9 @@ def show_with_checksum(client: Client, topic_id: TopicId):
 def main():
     """Demonstrate TopicId functionality."""
     topic_id = TopicId(shard=0, realm=0, num=1234)
-    client = Client.for_testnet()
-    client.set_operator("0.0.1234", "302e020100300506032b657004220420aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899")
-
+    network = Network("testnet")
+    client = Client(network)
+    
     #Create a TopicId 
     create_topic_id()
 
