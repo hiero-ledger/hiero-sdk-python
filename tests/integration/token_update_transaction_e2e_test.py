@@ -6,7 +6,9 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
@@ -851,7 +853,21 @@ def test_integation_token_update_fee_schedule_key_fungible_token():
         assert token_info.fee_schedule_key.to_string() == new_fee_schedule_key.public_key().to_string(), "Updated fee_schedule_key mismatch"
         
         # Verify fee_schedule_key
-        # TODO (required TokenFeeScheduleUpdateTransaction)
+        update_receipt = (
+            TokenFeeScheduleUpdateTransaction()
+            .set_token_id(token_id)
+            .set_custom_fees([CustomFixedFee(amount=1, fee_collector_account_id=env.client.operator_account_id)])
+            .freeze_with(env.client)
+            .sign(new_fee_schedule_key)
+            .execute(env.client)
+        )
+
+        assert update_receipt.status == ResponseCode.SUCCESS
+        token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+    
+        assert len(token_info.custom_fees) == 1
+        assert token_info.custom_fees[0].amount == 1
+        assert token_info.custom_fees[0].fee_collector_account_id == env.client.operator_account_id
     finally:
         env.close()
 
@@ -883,6 +899,20 @@ def test_integation_token_update_fee_schedule_key_nft():
         assert token_info.fee_schedule_key.to_string() == new_fee_schedule_key.public_key().to_string(), "Updated fee_schedule_key mismatch"
         
         # Verify fee_schedule_key
-        # TODO (required TokenFeeScheduleUpdateTransaction)
+        update_receipt = (
+            TokenFeeScheduleUpdateTransaction()
+            .set_token_id(token_id)
+            .set_custom_fees([CustomFixedFee(amount=1, fee_collector_account_id=env.client.operator_account_id)])
+            .freeze_with(env.client)
+            .sign(new_fee_schedule_key)
+            .execute(env.client)
+        )
+
+        assert update_receipt.status == ResponseCode.SUCCESS
+        token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+    
+        assert len(token_info.custom_fees) == 1
+        assert token_info.custom_fees[0].amount == 1
+        assert token_info.custom_fees[0].fee_collector_account_id == env.client.operator_account_id
     finally:
         env.close()

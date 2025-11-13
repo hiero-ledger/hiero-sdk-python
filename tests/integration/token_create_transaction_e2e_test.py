@@ -3,6 +3,9 @@ import pytest
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
@@ -141,8 +144,24 @@ def test_fungible_token_create_with_fee_schedule_key():
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
     
         assert token_info.fee_schedule_key.to_string() == fee_schedule_key.public_key().to_string(), "Fee schedule key missmatch"
+        assert len(token_info.custom_fees) == 0
 
         # Validate Fee schedule key
-        # TODO (required TokenFeeScheduleUpdateTransaction)
+        update_receipt = (
+            TokenFeeScheduleUpdateTransaction()
+            .set_token_id(token_id)
+            .set_custom_fees([CustomFixedFee(amount=1, fee_collector_account_id=env.client.operator_account_id)])
+            .freeze_with(env.client)
+            .sign(fee_schedule_key)
+            .execute(env.client)
+        )
+
+        assert update_receipt.status == ResponseCode.SUCCESS
+        token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+    
+        assert len(token_info.custom_fees) == 1
+        assert token_info.custom_fees[0].amount == 1
+        assert token_info.custom_fees[0].fee_collector_account_id == env.client.operator_account_id
+
     finally:
         env.close()
