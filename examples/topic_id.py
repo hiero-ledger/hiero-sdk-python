@@ -1,5 +1,6 @@
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.client.network import Network
 
 def create_topic_id() -> TopicId:
     """Create a TopicId manually."""
