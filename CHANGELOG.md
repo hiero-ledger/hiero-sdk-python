@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
+- chore: add `scripts/src_vs_proto` and contents to pull fields from the proto and compare them to the setters and attributes we provide functionality in our token transactions, thus enabling more automatic issue management"
 
 ### Changed
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
