@@ -1,7 +1,6 @@
 """
 Step 4: Extract attributes and setters from proto classes referenced by token modules.
-This version reads the auto-generated proto imports file and generates a mapping
-directly on the proto modules so IDEs/Pylance recognize them.
+This version generates a flat mapping proto_mappings[class_name] -> {attributes, setters}.
 """
 
 import importlib
@@ -29,14 +28,9 @@ def parse_step2_imports():
                     token_proto_map[current_token_file] = []
             elif line.startswith("import") and current_token_file:
                 full_import = line.split()[1]
-                # Split class name if present at end
-                if "." in full_import:
-                    parts = full_import.split(".")
-                    proto_class = parts[-1] if parts[-1][0].isupper() else None
-                    proto_module = ".".join(parts[:-1]) if proto_class else full_import
-                else:
-                    proto_module = full_import
-                    proto_class = None
+                parts = full_import.split(".")
+                proto_class = parts[-1] if parts[-1][0].isupper() else None
+                proto_module = ".".join(parts[:-1]) if proto_class else full_import
                 token_proto_map[current_token_file].append((proto_module, proto_class))
     return token_proto_map
 
@@ -45,13 +39,9 @@ def get_proto_fields(proto_module_name, proto_class_name):
     """Dynamically import proto class and return field names and setters."""
     try:
         mod = importlib.import_module(proto_module_name)
-        if proto_class_name:
-            proto_cls = getattr(mod, proto_class_name)
-            attributes = [f.name for f in proto_cls.DESCRIPTOR.fields]
-            setters = [f"set_{f.name}" for f in proto_cls.DESCRIPTOR.fields]
-        else:
-            attributes = []
-            setters = []
+        proto_cls = getattr(mod, proto_class_name)
+        attributes = [f.name for f in proto_cls.DESCRIPTOR.fields]
+        setters = [f"set_{f.name}" for f in proto_cls.DESCRIPTOR.fields]
         return attributes, setters, None
     except Exception as e:
         return [], [], str(e)
@@ -60,41 +50,36 @@ def get_proto_fields(proto_module_name, proto_class_name):
 def main():
     token_proto_map = parse_step2_imports()
     error_log = []
+    proto_mappings = {}
 
-    # Collect unique proto modules for import statements
-    proto_modules = {}
-    for entries in token_proto_map.values():
-        for proto_module, proto_class in entries:
-            alias = proto_module.split(".")[-1]
-            proto_modules[proto_module] = alias
+    for token_file, proto_entries in token_proto_map.items():
+        for proto_module, proto_class in proto_entries:
+            if not proto_class:
+                continue
+            attrs, setters, err = get_proto_fields(proto_module, proto_class)
+            if err:
+                error_log.append(f"{proto_module}.{proto_class}: {err}")
+            proto_mappings[proto_class] = {
+                "attributes": attrs,
+                "setters": setters,
+            }
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
-        out.write("# Auto-generated proto attributes and setters (IDE/Pylance friendly)\n\n")
-        # Import statements with aliases
-        for module_path, alias in sorted(proto_modules.items()):
-            out.write(f"import {module_path} as {alias}\n")
-        out.write("\n")
-
-        # Write mappings directly on proto classes
-        for token_file, proto_entries in token_proto_map.items():
-            for proto_module, proto_class in proto_entries:
-                if not proto_class:
-                    continue
-                alias = proto_modules[proto_module]
-                full_cls_name = f"{alias}.{proto_class}"
-                attrs, setters, err = get_proto_fields(proto_module, proto_class)
-                if err:
-                    error_log.append(f"{full_cls_name}: {err}")
-                out.write(f"{full_cls_name} = {{\n")
-                out.write("    'attributes': [\n")
-                for a in attrs:
-                    out.write(f"        '{a}',\n")
-                out.write("    ],\n")
-                out.write("    'setters': [\n")
-                for s in setters:
-                    out.write(f"        '{s}',\n")
-                out.write("    ]\n")
-                out.write("}\n\n")
+    # Write proto_mappings to Step 4 output
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write("# Auto-generated proto attributes and setters\n\n")
+        f.write("proto_mappings = {\n")
+        for cls_name, data in sorted(proto_mappings.items()):
+            f.write(f"    '{cls_name}': {{\n")
+            f.write("        'attributes': [\n")
+            for a in data['attributes']:
+                f.write(f"            '{a}',\n")
+            f.write("        ],\n")
+            f.write("        'setters': [\n")
+            for s in data['setters']:
+                f.write(f"            '{s}',\n")
+            f.write("        ]\n")
+            f.write("    },\n")
+        f.write("}\n")
 
     # Write errors if any
     with open(ERROR_FILE, "w", encoding="utf-8") as f:

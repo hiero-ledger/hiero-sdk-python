@@ -1,5 +1,5 @@
 # Errors encountered during proto extraction
 
-basic_types_pb2.TokenFreezeStatus: 'google._upb._message.EnumDescriptor' object has no attribute 'fields'
-basic_types_pb2.TokenFreezeStatus: 'google._upb._message.EnumDescriptor' object has no attribute 'fields'
-basic_types_pb2.TokenKycStatus: 'google._upb._message.EnumDescriptor' object has no attribute 'fields'
+hiero_sdk_python.hapi.services.basic_types_pb2.TokenFreezeStatus: 'google._upb._message.EnumDescriptor' object has no attribute 'fields'
+hiero_sdk_python.hapi.services.basic_types_pb2.TokenFreezeStatus: 'google._upb._message.EnumDescriptor' object has no attribute 'fields'
+hiero_sdk_python.hapi.services.basic_types_pb2.TokenKycStatus: 'google._upb._message.EnumDescriptor' object has no attribute 'fields'
