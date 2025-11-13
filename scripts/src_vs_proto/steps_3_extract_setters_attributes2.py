@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
 Step 3 Refactor: Token class parser, exporter, and controller
-Enhanced to capture attributes, setters, add/remove methods, and key SDK methods (to_proto/from_proto).
+Enhanced to capture:
+- Attributes from __init__
+- Setters (set_/add_/remove_)
+- All other methods, including private SDK helpers (_build_proto_body, _get_method, _from_proto)
+- Optional proto conversion helpers (to_proto/from_proto)
 """
 
 import ast
@@ -35,20 +39,16 @@ class TokenClassParser:
 
                 for item in node.body:
                     if isinstance(item, ast.FunctionDef):
-                        # Attributes from __init__
+                        # Capture __init__ args as attributes
                         if item.name == "__init__":
                             attributes = [arg.arg for arg in item.args.args if arg.arg != "self"]
 
-                        # SDK setters / repeated field methods
+                        # Setters / repeated-field helpers
                         elif item.name.startswith(("set_", "add_", "remove_")):
                             setters.append(item.name)
 
-                        # Other methods (proto conversion, validation, helpers)
-                        elif item.name in ("to_proto", "from_proto", "validate", "freeze", "unfreeze"):
-                            others.append(item.name)
-
-                        # Optionally, include any other public methods
-                        elif not item.name.startswith("_"):
+                        # All other methods (including private helpers starting with _)
+                        else:
                             others.append(item.name)
 
                 classes_info[cls_name] = {
