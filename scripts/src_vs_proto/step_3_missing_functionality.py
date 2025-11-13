@@ -19,11 +19,27 @@ def get_transaction_attributes(cls):
     init_sig = inspect.signature(cls.__init__)
     return set(init_sig.parameters.keys()) - {'self'}
 
-def get_proto_fields(proto_cls):
-    return set(proto_cls.DESCRIPTOR.fields_by_name.keys())
+def get_proto_fields(proto_cls, transaction_cls_name=None):
+    """
+    Return only the protobuf fields relevant to this transaction class.
+    
+    If transaction_cls_name is given, filter to the one field that matches
+    this transaction type (e.g., TokenUnpauseTransaction -> token_unpause).
+    """
+    all_fields = set(proto_cls.DESCRIPTOR.fields_by_name.keys())
+
+    if transaction_cls_name:
+        # Convert class name like TokenUnpauseTransaction -> token_unpause
+        relevant_field = transaction_cls_name.replace("Transaction", "")
+        relevant_field = relevant_field[0].lower() + relevant_field[1:]  # lowercase first char
+        relevant_field = relevant_field.replace("Token", "token_") if "Token" in transaction_cls_name else relevant_field
+        # Keep only the relevant proto field if it exists
+        return {f for f in all_fields if f.endswith(relevant_field)}
+    
+    return all_fields
 
 def check_transaction(transaction_cls, proto_cls):
-    proto_fields = get_proto_fields(proto_cls)
+    proto_fields = get_proto_fields(proto_cls, transaction_cls.__name__)
     methods = get_transaction_methods(transaction_cls)
     attributes = get_transaction_attributes(transaction_cls)
     
