@@ -4,45 +4,34 @@ from pathlib import Path
 import importlib
 import ast
 
-# -----------------------------
-# Hardcoded paths
-# -----------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TOKENS_DIR = PROJECT_ROOT / "src" / "hiero_sdk_python" / "tokens"
+OUTPUT_FILE = PROJECT_ROOT / "scripts" / "transactions_mapping.py"
 
-# -----------------------------
-# Helpers
-# -----------------------------
 def find_proto_import(file_path):
-    """
-    Parse the transaction file and find the protobuf import.
-    Returns (module_name, class_name) for the proto, e.g.,
-    ('hiero_sdk_python.hapi.services.token_revoke_kyc_pb2', 'TokenRevokeKycTransactionBody')
-    """
+    """Parse transaction file to find the protobuf import."""
     with open(file_path, "r") as f:
         tree = ast.parse(f.read(), filename=str(file_path))
-
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
             if node.module and node.module.startswith("hiero_sdk_python.hapi.services"):
                 for alias in node.names:
                     if alias.name.endswith("TransactionBody"):
-                        proto_module = node.module
-                        proto_class = alias.name
-                        return proto_module, proto_class
+                        return node.module, alias.name
     return None, None
 
-# -----------------------------
-# Scan tokens directory
-# -----------------------------
 transactions_mapping = {}
 unmatched_transactions = []
 
+# Keep track of modules to import
+token_modules_set = set()
+proto_modules_set = set()
+
 token_files = list(TOKENS_DIR.glob("token_*_transaction.py"))
-print(f"Found {len(token_files)} token modules in {TOKENS_DIR}")
 
 for token_file in token_files:
     module_name = f"hiero_sdk_python.tokens.{token_file.stem}"
+    token_modules_set.add(token_file.stem)
     try:
         module = importlib.import_module(module_name)
     except Exception as e:
@@ -58,40 +47,54 @@ for token_file in token_files:
             break
 
     if not transaction_class:
-        print(f"No Transaction class found in {module_name}")
         continue
 
-    # Parse the file to find the proto import
+    # Find proto import
     proto_module_name, proto_class_name = find_proto_import(token_file)
-    if not proto_module_name or not proto_class_name:
-        print(f"Could not detect proto for {transaction_class_name}")
-        proto_cls_str = "None"
-        unmatched_transactions.append(transaction_class_name)
+    proto_cls_str = proto_class_name if proto_class_name else "None"
+    if proto_module_name:
+        proto_modules_set.add(proto_module_name)
     else:
-        proto_cls_str = f"{proto_module_name}.{proto_class_name}"
+        unmatched_transactions.append(transaction_class_name)
+        proto_module_name = None
 
-    # Store mapping
     transactions_mapping[transaction_class_name] = {
-        "cls": f"{module_name}.{transaction_class_name}",
-        "proto_cls": proto_cls_str
+        "cls": f"{token_file.stem}.{transaction_class_name}",  # will become proper import
+        "proto_cls": proto_cls_str,
+        "proto_module": proto_module_name
     }
 
-# -----------------------------
-# Print the mapping in Python dict format
-# -----------------------------
-print("\nTRANSACTIONS = {")
-for k, v in transactions_mapping.items():
-    print(f"    '{k}': {{'cls': {v['cls']}, 'proto_cls': {v['proto_cls']}}},")
-print("}")
+# Write to file
+with open(OUTPUT_FILE, "w") as f:
+    f.write("# Auto-generated transactions mapping\n\n")
 
-# -----------------------------
-# Summary / checks
-# -----------------------------
-total_tokens = len(token_files)
-total_protos = total_tokens - len(unmatched_transactions)
-print(f"\nSummary:")
-print(f"Total token modules scanned: {total_tokens}")
-print(f"Protos successfully identified: {total_protos}")
-print(f"Transactions without matched proto: {len(unmatched_transactions)}")
-if unmatched_transactions:
-    print(f"  - {', '.join(unmatched_transactions)}")
+    # Write token imports
+    f.write("from hiero_sdk_python.tokens import (\n")
+    for module in sorted(token_modules_set):
+        f.write(f"    {module},\n")
+    f.write(")\n\n")
+
+    # Write proto imports
+    f.write("from hiero_sdk_python.hapi.services import (\n")
+    for module in sorted(proto_modules_set):
+        # Only write the last part of the module for correct import
+        short_module = module.split('.')[-1]
+        f.write(f"    {short_module},\n")
+    f.write(")\n\n")
+
+    # Write TRANSACTIONS dictionary
+    f.write("TRANSACTIONS = {\n")
+    for k, v in transactions_mapping.items():
+        cls_module, cls_name = v['cls'].split(".")
+        cls_str = f"{cls_module}.{cls_name}"
+        proto_cls_str = f"{v['proto_module'].split('.')[-1]}.{v['proto_cls']}" if v['proto_module'] else "None"
+        f.write(f"    '{k}': {{'cls': {cls_str}, 'proto_cls': {proto_cls_str}}},\n")
+    f.write("}\n\n")
+
+    # Summary
+    f.write("# Summary\n")
+    f.write(f"TOTAL_TOKENS = {len(token_files)}\n")
+    f.write(f"PROTO_IDENTIFIED = {len(token_files)-len(unmatched_transactions)}\n")
+    f.write(f"UNMATCHED_TRANSACTIONS = {unmatched_transactions}\n")
+
+print(f"Mapping written to {OUTPUT_FILE}")
