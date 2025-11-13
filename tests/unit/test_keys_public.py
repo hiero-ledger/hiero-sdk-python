@@ -581,7 +581,7 @@ def test_to_evm_address_ecdsa_key(ecdsa_keypair):
 
     assert evm_address is not None
     assert isinstance(evm_address, EvmAddress)
-    assert len(evm_address.bytes) == 20
+    assert len(evm_address.address_bytes) == 20
 
 def test_to_evm_address_from_ecdsa_key_manual_derivation(ecdsa_keypair):
     """Verify that to_evm_address() matches manual derivation."""
@@ -592,7 +592,7 @@ def test_to_evm_address_from_ecdsa_key_manual_derivation(ecdsa_keypair):
     uncompressed = public_key.to_bytes_ecdsa(compressed=False)
     evm_bytes = keccak256(uncompressed[1:])[-20:]
 
-    derived_bytes = public_key.to_evm_address().bytes
+    derived_bytes = public_key.to_evm_address().address_bytes
 
     assert evm_bytes== derived_bytes
 
@@ -604,12 +604,12 @@ def test_to_evm_address_with_same_ecdsa_key(ecdsa_keypair):
     evm_addr1 = public_key.to_evm_address()
 
     assert isinstance(evm_addr1, EvmAddress)
-    assert len(evm_addr1.bytes) == 20
+    assert len(evm_addr1.address_bytes) == 20
 
     # Derivation should be same for the same key
     evm_addr2 = public_key.to_evm_address()
     assert isinstance(evm_addr1, EvmAddress)
-    assert len(evm_addr1.bytes) == 20
+    assert len(evm_addr1.address_bytes) == 20
 
     assert evm_addr1 == evm_addr2
 
