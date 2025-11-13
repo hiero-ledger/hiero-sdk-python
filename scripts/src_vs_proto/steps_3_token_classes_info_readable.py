@@ -60,6 +60,10 @@ abstract_token_transfer_transaction.AbstractTokenTransferTransaction = {
         'add_approved_nft_transfer',
     ],
     'other_methods': [
+        '_init_token_transfers',
+        '_init_nft_transfers',
+        '_add_token_transfer',
+        '_add_nft_transfer',
         'build_token_transfers',
     ]
 }
@@ -75,6 +79,11 @@ custom_fee.CustomFee = {
         'set_all_collectors_are_exempt',
     ],
     'other_methods': [
+        '_from_proto',
+        '_get_fee_collector_account_id_protobuf',
+        '_to_proto',
+        '_validate_checksums',
+        '__eq__',
     ]
 }
 
@@ -93,6 +102,12 @@ custom_fixed_fee.CustomFixedFee = {
         'set_denominating_token_to_same_token',
     ],
     'other_methods': [
+        '_from_fixed_fee_proto',
+        '_to_proto',
+        '_to_topic_fee_proto',
+        '_validate_checksums',
+        '_from_proto',
+        '__eq__',
     ]
 }
 
@@ -115,6 +130,8 @@ custom_fractional_fee.CustomFractionalFee = {
         'set_assessment_method',
     ],
     'other_methods': [
+        '_to_proto',
+        '_from_proto',
     ]
 }
 
@@ -133,6 +150,8 @@ custom_royalty_fee.CustomRoyaltyFee = {
         'set_fallback_fee',
     ],
     'other_methods': [
+        '_to_proto',
+        '_from_proto',
     ]
 }
 
@@ -153,6 +172,11 @@ hbar_allowance.HbarAllowance = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '_to_proto',
+        '__str__',
+        '__repr__',
+        '_from_proto_field',
     ]
 }
 
@@ -166,6 +190,10 @@ hbar_transfer.HbarTransfer = {
     'setters': [
     ],
     'other_methods': [
+        '_to_proto',
+        '_from_proto',
+        '__str__',
+        '__repr__',
     ]
 }
 
@@ -178,8 +206,12 @@ nft_id.NftId = {
     'setters': [
     ],
     'other_methods': [
+        '__post_init__',
+        '_from_proto',
+        '_to_proto',
         'from_string',
         'to_string_with_checksum',
+        '__str__',
     ]
 }
 
@@ -203,8 +235,15 @@ token_airdrop_claim.TokenClaimAirdropTransaction = {
         'add_pending_airdrop_ids',
     ],
     'other_methods': [
+        '_validate_all',
+        '_validate_final',
+        '_pending_airdrop_ids_to_proto',
+        '_from_proto',
         'build_transaction_body',
+        '_get_method',
         'get_pending_airdrop_ids',
+        '__repr__',
+        '__str__',
     ]
 }
 
@@ -219,6 +258,12 @@ token_airdrop_pending_id.PendingAirdropId = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '_to_proto',
+        '__str__',
+        '__repr__',
+        '__eq__',
+        '__hash__',
     ]
 }
 
@@ -231,6 +276,9 @@ token_airdrop_pending_record.PendingAirdropRecord = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '_to_proto',
+        '__str__',
     ]
 }
 
@@ -243,8 +291,11 @@ token_airdrop_transaction.TokenAirdropTransaction = {
     'setters': [
     ],
     'other_methods': [
+        '_build_proto_body',
+        '_from_proto',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -259,8 +310,10 @@ token_airdrop_transaction_cancel.TokenCancelAirdropTransaction = {
     ],
     'other_methods': [
         'clear_pending_airdrops',
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -271,6 +324,11 @@ token_allowance.TokenAllowance = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '_to_proto',
+        '__str__',
+        '__repr__',
+        '_from_proto_field',
     ]
 }
 
@@ -285,8 +343,10 @@ token_associate_transaction.TokenAssociateTransaction = {
         'add_token_id',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -304,8 +364,11 @@ token_burn_transaction.TokenBurnTransaction = {
         'add_serial',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '_from_proto',
     ]
 }
 
@@ -342,9 +405,12 @@ token_create_transaction.TokenCreateTransaction = {
         'set_fee_schedule_key',
     ],
     'other_methods': [
+        '_to_proto_key',
         'freeze_with',
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -355,6 +421,13 @@ token_create_transaction.TokenCreateValidator = {
     'setters': [
     ],
     'other_methods': [
+        '_validate_token_params',
+        '_validate_token_freeze_status',
+        '_validate_required_fields',
+        '_validate_name_and_symbol',
+        '_validate_initial_supply',
+        '_validate_decimals_and_token_type',
+        '_validate_supply_max_and_type',
     ]
 }
 
@@ -387,8 +460,10 @@ token_delete_transaction.TokenDeleteTransaction = {
         'set_token_id',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -403,8 +478,10 @@ token_dissociate_transaction.TokenDissociateTransaction = {
         'add_token_id',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -419,8 +496,12 @@ token_fee_schedule_update_transaction.TokenFeeScheduleUpdateTransaction = {
         'set_custom_fees',
     ],
     'other_methods': [
+        '_validate_checksums',
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '__repr__',
     ]
 }
 
@@ -431,6 +512,8 @@ token_freeze_status.TokenFreezeStatus = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '__eq__',
     ]
 }
 
@@ -445,8 +528,10 @@ token_freeze_transaction.TokenFreezeTransaction = {
         'set_account_id',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -461,8 +546,11 @@ token_grant_kyc_transaction.TokenGrantKycTransaction = {
         'set_account_id',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '_from_proto',
     ]
 }
 
@@ -473,9 +561,14 @@ token_id.TokenId = {
     'setters': [
     ],
     'other_methods': [
+        '__post_init__',
+        '_from_proto',
+        '_to_proto',
         'from_string',
         'validate_checksum',
         'to_string_with_checksum',
+        '__str__',
+        '__hash__',
     ]
 }
 
@@ -503,6 +596,16 @@ token_info.TokenInfo = {
         'set_custom_fees',
     ],
     'other_methods': [
+        '_get',
+        '_from_proto',
+        '_copy_key_if_present',
+        '_parse_custom_fees',
+        '_copy_msg_to_proto',
+        '_set_bool',
+        '_set_enum',
+        '_append_custom_fees',
+        '_to_proto',
+        '__str__',
     ]
 }
 
@@ -513,6 +616,9 @@ token_key_validation.TokenKeyValidation = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '_to_proto',
+        '__eq__',
     ]
 }
 
@@ -523,6 +629,8 @@ token_kyc_status.TokenKycStatus = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '__eq__',
     ]
 }
 
@@ -539,8 +647,11 @@ token_mint_transaction.TokenMintTransaction = {
         'set_metadata',
     ],
     'other_methods': [
+        '_validate_parameters',
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -551,6 +662,13 @@ token_nft_allowance.TokenNftAllowance = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '_from_wipe_proto',
+        '_to_proto',
+        '_to_wipe_proto',
+        '__str__',
+        '__repr__',
+        '_from_proto_field',
     ]
 }
 
@@ -561,6 +679,9 @@ token_nft_info.TokenNftInfo = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '_to_proto',
+        '__str__',
     ]
 }
 
@@ -576,6 +697,9 @@ token_nft_transfer.TokenNftTransfer = {
     'setters': [
     ],
     'other_methods': [
+        '_to_proto',
+        '_from_proto',
+        '__str__',
     ]
 }
 
@@ -586,6 +710,8 @@ token_pause_status.TokenPauseStatus = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '__eq__',
     ]
 }
 
@@ -598,8 +724,11 @@ token_pause_transaction.TokenPauseTransaction = {
         'set_token_id',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '_from_proto',
     ]
 }
 
@@ -616,8 +745,11 @@ token_reject_transaction.TokenRejectTransaction = {
         'set_nft_ids',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '_from_proto',
     ]
 }
 
@@ -628,6 +760,8 @@ token_relationship.TokenRelationship = {
     'setters': [
     ],
     'other_methods': [
+        '_from_proto',
+        '_to_proto',
     ]
 }
 
@@ -642,8 +776,11 @@ token_revoke_kyc_transaction.TokenRevokeKycTransaction = {
         'set_account_id',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '_from_proto',
     ]
 }
 
@@ -659,6 +796,9 @@ token_transfer.TokenTransfer = {
     'setters': [
     ],
     'other_methods': [
+        '_to_proto',
+        '_from_proto',
+        '__str__',
     ]
 }
 
@@ -675,6 +815,8 @@ token_transfer_list.TokenTransferList = {
         'add_nft_transfer',
     ],
     'other_methods': [
+        '_to_proto',
+        '__str__',
     ]
 }
 
@@ -699,8 +841,10 @@ token_unfreeze_transaction.TokenUnfreezeTransaction = {
         'set_account_id',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -713,8 +857,12 @@ token_unpause_transaction.TokenUnpauseTransaction = {
         'set_token_id',
     ],
     'other_methods': [
+        '_validate_checksum',
+        '_from_proto',
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
     ]
 }
 
@@ -731,8 +879,11 @@ token_update_nfts_transaction.TokenUpdateNftsTransaction = {
         'set_metadata',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '_from_proto',
     ]
 }
 
@@ -785,8 +936,11 @@ token_update_transaction.TokenUpdateTransaction = {
         'set_key_verification_mode',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '_set_keys_to_proto',
     ]
 }
 
@@ -805,8 +959,11 @@ token_wipe_transaction.TokenWipeTransaction = {
         'set_serial',
     ],
     'other_methods': [
+        '_build_proto_body',
         'build_transaction_body',
         'build_scheduled_body',
+        '_get_method',
+        '_from_proto',
     ]
 }
 
