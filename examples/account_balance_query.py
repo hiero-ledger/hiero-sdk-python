@@ -16,16 +16,19 @@ from hiero_sdk_python import (
     AccountCreateTransaction,
     Hbar,
     ResponseCode,
+    TokenInfoQuery,
     TokenType,
+    TokenMintTransaction,
 
 )
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-import examples.token_mint_non_fungible as nft
+from hiero_sdk_python.tokens.token_id import TokenId
 
 
 # Load environment variables from .env file
 load_dotenv()
 network_name = os.getenv('NETWORK', 'testnet').lower()
+key_type = os.getenv('KEY_TYPE', 'ecdsa')
 
 def setup_client():
     """Setup Client """
@@ -47,7 +50,7 @@ def setup_client():
 
 def create_account(client, name, initial_balance=Hbar(10)):
     """Create a test account with initial balance"""
-    account_private_key = PrivateKey.generate(os.getenv('KEY_TYPE', 'ed25519'))
+    account_private_key = PrivateKey.generate(key_type)
     account_public_key = account_private_key.public_key()
 
     receipt = (
@@ -67,32 +70,31 @@ def create_account(client, name, initial_balance=Hbar(10)):
     print(f"{name} account created with id: {account_id}")
     return account_id, account_private_key
 
-# create NFT Collection to retrieve balances
-def create_nft_collection(operator_id, operator_key, client):
-    """ Create the NFT Collection (Token) """
-    supply_key = nft.generate_supply_key()
-    print("\nSTEP 2: Creating a new NFT collection...")
-    try:
-        tx = (
-            TokenCreateTransaction()
-            .set_token_name("My Awesome NFT")
-            .set_token_symbol("MANFT")
-            .set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
-            # Use provided treasury_account_id if given, otherwise fall back to operator
-            .set_treasury_account_id(operator_id)
-            .set_initial_supply(0)  # NFTs must have an initial supply of 0
-            .set_supply_key(supply_key)  # Assign the supply key for minting
-        )
+def create_and_mint_token(treasury_account_id, treasury_account_key, client):
+    """Create an NFT collection and mint metadata_list (default 3 items)."""
+    metadata_list = [b"METADATA_A", b"METADATA_B", b"METADATA_C"]
 
-        receipt = (
-            tx.freeze_with(client)
-            .sign(operator_key)
-            .sign(supply_key)  # The new supply key must sign to give consent
-            .execute(client)
-        )
-        token_id = receipt.token_id
-        print(f"✅ Success! Created NFT collection with Token ID: {token_id}")
-        return token_id, supply_key
+    try:
+        supply_key = PrivateKey.generate(key_type)
+
+        token_id = (
+            TokenCreateTransaction()
+            .set_token_name("My Awesome NFT").set_token_symbol("MANFT")
+            .set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
+            .set_treasury_account_id(treasury_account_id)
+            .set_initial_supply(0)
+            .set_supply_key(supply_key)
+            .freeze_with(client)
+            .sign(treasury_account_key).sign(supply_key).execute(client)
+        ).token_id
+
+        TokenMintTransaction() \
+            .set_token_id(token_id).set_metadata(metadata_list) \
+            .freeze_with(client).sign(supply_key).execute(client)
+
+        total_supply = TokenInfoQuery().set_token_id(token_id).execute(client).total_supply
+        print(f"✅ Created NFT {token_id} — total supply: {total_supply}")
+        return token_id
     except (ValueError, TypeError, RuntimeError, ConnectionError) as error:
         print(f"❌ Error creating token: {error}")
         sys.exit(1)
@@ -118,7 +120,10 @@ def get_account_balance(client: Client, account_id: AccountId):
         print(f"Error retrieving account balance: {error}")
         sys.exit(1)
 
-def compare_token_balances(client, treasury_id: AccountId, receiver_id: AccountId, token_id: str):
+#OPTIONAL comparison function
+def compare_token_balances(client, treasury_id: AccountId,
+                           receiver_id: AccountId,
+                           token_id: TokenId):
     """Compare token balances between two accounts"""
     print(
         f"\n🔎 Comparing token balances for Token ID {token_id} "
@@ -144,16 +149,13 @@ def main():
     """
     client = setup_client()
     test_account_id, test_account_key = create_account(client, "Test Account")
-    # Create the NFT collection with the test account as the treasury so minted NFTs
+    # Create the tokens with the test account as the treasury so minted tokens
     # will be owned by the test account and show up in its token balances.
-    token_id, supply_key = create_nft_collection(
+    token_id = create_and_mint_token(
         test_account_id,
         test_account_key,
         client)
-    #imported method from example/token_mint_non_fungible.py
-    # to mint NFTs for the test account
-    nft.token_mint_non_fungible(client, token_id, supply_key)
-
+    # Retrieve and display account balance for the test account
     get_account_balance(client, test_account_id)
     #OPTIONAL comparison of token balances between test account and operator account
     compare_token_balances(client, test_account_id, client.operator_account_id, token_id)
