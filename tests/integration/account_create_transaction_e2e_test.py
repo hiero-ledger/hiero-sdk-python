@@ -1,5 +1,6 @@
 import pytest
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
@@ -51,8 +52,9 @@ def test_create_account_without_alias(env):
 
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
-    assert info.account_id is not account_id
+    assert info.account_id == account_id
     assert info.contract_account_id.startswith('00000000000000000000')
+
 
 def test_create_account_with_alias_derived_from_ecdsa_key(env):
     """Test account_create_transaction with alias derived form key."""
@@ -76,8 +78,9 @@ def test_create_account_with_alias_derived_from_ecdsa_key(env):
 
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
-    assert info.account_id is not account_id
+    assert info.account_id == account_id
     assert info.contract_account_id == public_key.to_evm_address().__str__()
+
 
 def test_create_account_with_alias_derived_from_non_ecdsa_key():
     """Test create_account_transaction raise error for non_ecdsa key when deriving alias from key"""
@@ -86,6 +89,7 @@ def test_create_account_with_alias_derived_from_non_ecdsa_key():
 
     with pytest.raises(ValueError):
         tx.set_key_with_alias(public_key)
+
 
 def test_create_account_with_alias_from_seperate_ecdsa_key(env):
     """Test create_account_transaction from seperate ecdsa key."""
@@ -110,8 +114,9 @@ def test_create_account_with_alias_from_seperate_ecdsa_key(env):
 
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
-    assert info.account_id is not account_id
-    assert info.contract_account_id == alias_key.public_key().to_evm_address().__str__()
+    assert info.account_id == account_id
+    assert info.contract_account_id == alias_key.public_key().to_evm_address().to_string()
+
 
 def test_create_account_with_alias_from_seperate_non_ecdsa_key():
     """Test create_account_transaction raise error when seperate non_ecdsa key is used for alias."""
@@ -121,6 +126,7 @@ def test_create_account_with_alias_from_seperate_non_ecdsa_key():
     tx = AccountCreateTransaction()
     with pytest.raises(ValueError):
         tx.set_key_with_alias(public_key,alias_key)
+
 
 def test_create_account_with_alias_from_seperate_ecdsa_key_when_not_sign(env):
     """Test create_account_transaction from seperate ecdsa key fails if not sign by alias key."""
@@ -139,6 +145,7 @@ def test_create_account_with_alias_from_seperate_ecdsa_key_when_not_sign(env):
     
     receipt = tx.execute(env.client)
     assert receipt.status == ResponseCode.INVALID_SIGNATURE
+
 
 def test_create_account_with_same_alias(env):
     """Test create_account_transaction fails when creating an account with same alias."""
@@ -165,7 +172,7 @@ def test_create_account_with_same_alias(env):
 
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
-    assert info.account_id is not account_id
+    assert info.account_id == account_id
     assert info.contract_account_id == alias_evm_address.__str__()
 
     # Verify that no account with same alias can be created again
@@ -181,6 +188,7 @@ def test_create_account_with_same_alias(env):
 
     receipt2 = tx2.execute(env.client)
     assert receipt2.status == ResponseCode.ALIAS_ALREADY_ASSIGNED
+
 
 def test_create_account_with_staked_account_id(env):
     """Test create_account_transaction with staked_account_id set."""
@@ -205,8 +213,9 @@ def test_create_account_with_staked_account_id(env):
 
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
-    assert info.account_id is not account_id
+    assert info.account_id == account_id
     assert info.staked_account_id == env.operator_id
+
 
 def test_create_account_with_staked_node_id(env):
     """Test create_account_transaction with staked_node_id set."""
@@ -231,8 +240,9 @@ def test_create_account_with_staked_node_id(env):
 
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
-    assert info.account_id is not account_id
+    assert info.account_id == account_id
     assert info.staked_node_id == 1
+
 
 def test_create_account_with_decline_reward(env):
     """Test create_account_transaction with staked_account_id set."""
@@ -258,6 +268,6 @@ def test_create_account_with_decline_reward(env):
 
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
-    assert info.account_id is not account_id
+    assert info.account_id == account_id
     assert info.staked_account_id == env.operator_id
     assert info.decline_staking_reward is True

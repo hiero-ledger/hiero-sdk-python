@@ -136,7 +136,7 @@ class AccountInfo:
             ownedNfts=self.owned_nfts,
             max_automatic_token_associations=self.max_automatic_token_associations,
             staking_info=StakingInfo(
-                staked_account_id=self.staked_account_id,
+                staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None,
                 staked_node_id=self.staked_node_id,
                 decline_reward=self.decline_staking_reward
             ),

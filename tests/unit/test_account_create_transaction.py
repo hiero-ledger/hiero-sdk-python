@@ -282,7 +282,7 @@ def test_create_account_transaction_set_key_with_alias(mock_account_ids):
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
-    assert tx_body.cryptoCreateAccount.alias == public_key.to_evm_address().bytes
+    assert tx_body.cryptoCreateAccount.alias == public_key.to_evm_address().address_bytes
 
 def test_create_account_transaction_set_key_with_seperate_key_for_alias(mock_account_ids):
     """Test Create account transaction using set_key_with_alias method with seprate key"""
@@ -303,7 +303,7 @@ def test_create_account_transaction_set_key_with_seperate_key_for_alias(mock_acc
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
-    assert tx_body.cryptoCreateAccount.alias == alias_key.to_evm_address().bytes
+    assert tx_body.cryptoCreateAccount.alias == alias_key.to_evm_address().address_bytes
 
 def test_create_account_transaction_set_key_with_alias_non_ecdsa_key():
     """Test Create account transaction using set_key_with_alias method"""
@@ -343,8 +343,7 @@ def test_create_account_transaction_with_set_alias(mock_account_ids):
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
-    assert tx_body.cryptoCreateAccount.alias == evm_address.bytes
-
+    assert tx_body.cryptoCreateAccount.alias == evm_address.address_bytes
 
 @pytest.mark.parametrize("with_prefix", [False, True])
 def test_create_account_transaction_with_set_alias_from_string(mock_account_ids, with_prefix):
@@ -370,8 +369,7 @@ def test_create_account_transaction_with_set_alias_from_string(mock_account_ids,
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
-    assert tx_body.cryptoCreateAccount.alias == evm_address.bytes
-
+    assert tx_body.cryptoCreateAccount.alias == evm_address.address_bytes
 
 @pytest.mark.parametrize("invalid_str", [
     "",
@@ -389,7 +387,6 @@ def test_create_account_transaction_with_set_alias_from_invalid_string(invalid_s
 
     with pytest.raises(ValueError):
         tx.set_alias(invalid_str)
-
 
 def test_create_account_transaction_with_set_alias_from_invalid_type():
     """Test alias with invalid type raises TypeError."""
