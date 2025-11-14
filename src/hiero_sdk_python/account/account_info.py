@@ -51,6 +51,7 @@ class AccountInfo:
     token_relationships: list[TokenRelationship] = field(default_factory=list)
     account_memo: Optional[str] = None
     owned_nfts: Optional[int] = None
+    max_automatic_token_associations: Optional[int] = None
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
@@ -91,6 +92,7 @@ class AccountInfo:
             ],
             account_memo=proto.memo,
             owned_nfts=proto.ownedNfts,
+            max_automatic_token_associations=proto.max_automatic_token_associations,
         )
 
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
@@ -122,4 +124,5 @@ class AccountInfo:
             ],
             memo=self.account_memo,
             ownedNfts=self.owned_nfts,
+            max_automatic_token_associations=self.max_automatic_token_associations,
         )
