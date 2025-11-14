@@ -18,13 +18,15 @@ from hiero_sdk_python import (
     TokenAirdropTransaction,
     TransactionRecordQuery,
     TokenCancelAirdropTransaction,
-    ResponseCode
+    ResponseCode,
+    CryptoGetAccountBalanceQuery,
 )
 
 # Load environment variables from .env file
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize the Hedera client using environment variables."""
@@ -33,8 +35,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
 
@@ -81,11 +83,47 @@ def create_token(client, operator_id, operator_key, token_name, token_symbol, in
     except Exception as e:
         print(f"Error creating token {token_name}: {e}")
         sys.exit(1)
+    # Create two new tokens.
+    print("\nStep 1: Creating two new fungible tokens...")
+    try:
+        tx1 = TokenCreateTransaction().set_token_name("First Token").set_token_symbol("TKA").set_initial_supply(1).set_treasury_account_id(operator_id)
+        receipt1 = tx1.freeze_with(client).sign(operator_key).execute(client)
+        token_id_1 = receipt1.token_id
 
+        tx2 = TokenCreateTransaction().set_token_name("Second Token").set_token_symbol("TKB").set_initial_supply(1).set_treasury_account_id(operator_id)
+        receipt2 = tx2.freeze_with(client).sign(operator_key).execute(client)
+        token_id_2 = receipt2.token_id
+
+        print(f"✅ Created tokens: {token_id_1} (TKA) and {token_id_2} (TKB)")
+    except Exception as e:
+        print(f"Error creating token {token_name}: {e}")
+        sys.exit(1)
+
+    # Log balances before airdrop
+    print("\nStep 2: Checking balances before airdrop...")
+    from hiero_sdk_python import CryptoGetAccountBalanceQuery
+    sender_balances_before = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
+
+    recipient_balances_before = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+    print(f"Sender ({operator_id}) balances before airdrop:")
+    print(f"  {str(token_id_1)}: {sender_balances_before.get(str(token_id_1), 0)}")
+
+    print(f"  {str(token_id_2)}: {sender_balances_before.get(str(token_id_2), 0)}")
+
+    print(f"Recipient ({recipient_id}) balances before airdrop:")
+
+    print(f"  {str(token_id_1)}: {recipient_balances_before.get(str(token_id_1), 0)}")
+
+    print(f"  {str(token_id_2)}: {recipient_balances_before.get(str(token_id_2), 0)}")
 
 def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
-    """Airdrop the provided tokens to a recipient account."""
-    print("\nAirdropping tokens...")
+    """Airdrop the provided tokens to a recipient account. Returns pending airdrops list."""
+    if not token_ids:
+        print("No tokens provided for airdrop.")
+        return []
+
+    print(f"\nAirdropping tokens {token_ids} to recipient {recipient_id}...")
+
     try:
         tx = TokenAirdropTransaction()
         for token_id in token_ids:
@@ -96,7 +134,45 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
         print(f"Token airdrop complete: (status: {receipt.status}, transaction_id: {receipt.transaction_id})")
 
         airdrop_record = TransactionRecordQuery(receipt.transaction_id).execute(client)
-        return airdrop_record.new_pending_airdrops
+        pending_airdrops = airdrop_record.new_pending_airdrops
+
+        # Log balances after airdrop (original unreachable block moved to run)
+        sender_balances_after = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
+        recipient_balances_after = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+        print("\nBalances after airdrop:")
+
+        print(f"Sender ({operator_id}):")
+
+        # If two tokens were provided, keep the original two-token summary format.
+        if len(token_ids) >= 2:
+            t1 = token_ids[0]
+            t2 = token_ids[1]
+            print(f"  {str(t1)}: {sender_balances_after.get(str(t1), 0)}")
+            print(f"  {str(t2)}: {sender_balances_after.get(str(t2), 0)}")
+
+            print(f"Recipient ({recipient_id}):")
+            print(f"  {str(t1)}: {recipient_balances_after.get(str(t1), 0)}")
+            print(f"  {str(t2)}: {recipient_balances_after.get(str(t2), 0)}")
+
+
+            # Summary table
+            print("\nSummary Table:")
+            print(
+                "+----------------+----------------------+----------------------+----------------------+\n"
+                "| Token Symbol   | Token ID             | Sender Balance       | Recipient Balance    |\n"
+                "+----------------+----------------------+----------------------+----------------------+"
+            )
+            print(f"| TKA            | {str(t1):<20} | {str(sender_balances_after.get(str(t1), 0)):<20} | {str(recipient_balances_after.get(str(t1), 0)):<20} |")
+            print(f"| TKB            | {str(t2):<20} | {str(sender_balances_after.get(str(t2), 0)):<20} | {str(recipient_balances_after.get(str(t2), 0)):<20} |")
+            print("+----------------+----------------------+----------------------+----------------------+")
+        else:
+            # Generic logging for any number of tokens
+            print(f"Recipient ({recipient_id}):")
+            for tid in token_ids:
+                print(f"  {str(tid)}: sender={sender_balances_after.get(str(tid), 0)} recipient={recipient_balances_after.get(str(tid), 0)}")
+
+        return pending_airdrops
+
     except Exception as e:
         print(f"Error airdropping tokens: {e}")
         sys.exit(1)
