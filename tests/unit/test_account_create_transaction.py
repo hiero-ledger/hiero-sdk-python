@@ -203,3 +203,44 @@ def mock_account_ids():
     operator_account_id = AccountId(0, 0, 1001)
     node_account_id = AccountId(0, 0, 3)
     return operator_account_id, node_account_id
+
+def test_set_max_automatic_token_associations_validation():
+    """Test validation for max_automatic_token_associations."""
+    tx = AccountCreateTransaction()
+    
+    # Test good value: -1 for unlimited
+    tx.set_max_automatic_token_associations(-1)
+    assert tx.max_automatic_token_associations == -1
+    
+    # Test good value: 0 for default
+    tx.set_max_automatic_token_associations(0)
+    assert tx.max_automatic_token_associations == 0
+    
+    # Test good value: 100
+    tx.set_max_automatic_token_associations(100)
+    assert tx.max_automatic_token_associations == 100
+    
+    # Test bad value: -2
+    with pytest.raises(ValueError) as e:
+        tx.set_max_automatic_token_associations(-2)
+    
+    # Check for the new error message
+    assert "must be -1 (unlimited) or a non-negative integer" in str(e.value)
+
+def test_account_create_build_with_max_auto_assoc(mock_account_ids):
+    """Test building transaction with max_automatic_token_associations."""
+    operator_id, node_account_id = mock_account_ids
+    new_public_key = PrivateKey.generate().public_key()
+
+    account_tx = (
+        AccountCreateTransaction()
+        .set_key(new_public_key)
+        .set_max_automatic_token_associations(-1) # Test the new value
+    )
+    account_tx.transaction_id = generate_transaction_id(operator_id)
+    account_tx.node_account_id = node_account_id
+    
+    body = account_tx.build_transaction_body()
+    
+    # Verify the value is correctly set in the protobuf body
+    assert body.cryptoCreateAccount.max_automatic_token_associations == -1
