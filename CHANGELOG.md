@@ -8,12 +8,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Add `examples/topic_id.py` to demonstrate `TopicId` opeartions
+- Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
+- Added missing validation logic `fee_schedule_key` in integration `token_create_transaction_e2e_test.py` and ``token_update_transaction_e2e_test.py`. 
 - Add `account_balance_query.py` example to demonstrate how to use the CryptoGetAccountBalanceQuery class.
 
 
 ### Changed
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
 - upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
+- chore: Split `examples/account_allowance_nft.py` into separate `account_allowance_approve_transaction_nft.py` and `account_allowance_delete_transaction_nft.py` examples.
+- chore: bump protobuf from 6.33.0 to 6.33.1 (#796)
+- fix: Allow `max_automatic_token_associations` to be set to -1 (unlimited) in `AccountCreateTransaction` and add field to `AccountInfo`.
 
 
 ### Fixed
