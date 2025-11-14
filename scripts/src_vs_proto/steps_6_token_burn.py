@@ -12,6 +12,12 @@ import re
 STEP3_FILE = Path(__file__).resolve().parent / "steps_3_token_classes_info_readable.py"
 STEP4_FILE = Path(__file__).resolve().parent / "steps_4_token_classes_proto_attributes.py"
 
+RED = "\033[91m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+RESET = "\033[0m"
+
 
 def load_module(file_path: Path, module_name: str):
     if not file_path.exists():
@@ -104,20 +110,20 @@ if __name__ == "__main__":
         extra_sdk_methods = [m for m in sdk_methods if m not in predicted_setters]
 
         print(f"\n💠 {sdk_class_name} vs {proto_class_name}")
-        print("✅ SDK Attributes:", sdk_attrs)
-        print("✅ SDK Setters:", sdk_class_info.get("setters", []))
+        print(f"{GREEN}SDK Attributes: {sdk_attrs}{RESET}")
+        print(f"{GREEN}SDK Setters: {sdk_class_info.get('setters', [])}{RESET}")
         print("✅ SDK Other Methods:", sdk_class_info.get("other_methods", []))
         print("📦 Actual Proto Attributes:", actual_proto_attrs)
         print("📦 Predicted Proto Setters:", predicted_setters)
 
         if missing_attrs or missing_setters:
-            print("⚠️ Missing in SDK:")
+            print(f"{RED}⚠️ Missing in SDK:{RESET}")
             if missing_attrs:
-                print(" - Attributes:", missing_attrs)
+                print(f"{RED} - Attributes: {missing_attrs}{RESET}")
             if missing_setters:
-                print(" - Predicted Setters / Methods:", missing_setters)
+                print(f"{RED} - Predicted Setters / Methods: {missing_setters}{RESET}")
         else:
-            print("✅ SDK fully covers proto attributes and predicted setters")
+            print(f"{GREEN}✅ SDK fully covers proto attributes and predicted setters{RESET}")
 
         if extra_sdk_methods:
             print("✨ Extra SDK methods beyond proto setters:", extra_sdk_methods)
