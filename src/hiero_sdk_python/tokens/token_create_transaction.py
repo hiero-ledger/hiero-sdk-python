@@ -47,6 +47,7 @@ class TokenParams:
         max_supply (optional): The max tokens or NFT serial numbers.
         supply_type (optional): The token supply status as finite or infinite.
         freeze_default (optional): An initial Freeze status for accounts associated to this token.
+        metadata (optional): The on-ledger token metadata as bytes (max 100 bytes)
     """
 
     token_name: str
@@ -63,6 +64,7 @@ class TokenParams:
     auto_renew_account_id: Optional[AccountId] = None
     auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD # Default around ~90 days
     memo: Optional[str] = None
+    metadata: Optional[bytes] = None
 
 
 @dataclass
@@ -422,6 +424,14 @@ class TokenCreateTransaction(Transaction):
         self._keys.fee_schedule_key = key
         return self
 
+    def set_metadata(self, metadata: bytes) -> "TokenCreateTransaction":
+        """Sets the metadata for the token (max 100 bytes)"""
+        self._require_not_frozen()
+        if len(metadata) > 100:
+            raise ValueError("Metadata must not exceed 100 bytes")
+        self._token_params.metadata = metadata
+        return self
+
     def _to_proto_key(self, private_key: Optional[PrivateKey]) -> Optional[basic_types_pb2.Key]:
         """
         Helper method to convert a private key to protobuf Key format.
@@ -525,6 +535,7 @@ class TokenCreateTransaction(Transaction):
                 else None
             ),
             memo=self._token_params.memo,
+            metadata=self._token_params.metadata,
             adminKey=admin_key_proto,
             supplyKey=supply_key_proto,
             freezeKey=freeze_key_proto,
