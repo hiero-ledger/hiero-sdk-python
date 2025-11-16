@@ -18,7 +18,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/token_create_transaction_admin_key.py` demonstrating admin key privileges for token management including token updates, key changes, and deletion (#798)
 - Add `examples/token_create_transaction_freeze_key.py` showcasing freeze key behavior, expected failures without the key, and the effect of freezing/unfreezing on transfers.
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
-- Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- # Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- Add `token_airdrop.py` fix codacy warning for middle complexity for method `check_token_transfer_for_pair`
 - feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - EvmAddress class
 - `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction

@@ -186,26 +186,14 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_id, nf
 
 def _check_token_transfer_for_pair(record, token_id, operator_id, recipient_id):
     """Return True if record shows operator sent -1 and recipient got +1 for token_id."""
-    # Defensive retrieval of token_transfers mapping
-    token_transfers = getattr(record, "token_transfers", {}) or {}
-    if not isinstance(token_transfers, dict):
+    try:
+        token_transfers = getattr(record, "token_transfers", {}) or {}
+        # Try direct mapping lookup, otherwise fall back to equality-match in a generator
+        transfers = token_transfers.get(token_id) or next((v for k, v in token_transfers.items() if k == token_id), None)
+        # Validate shape and compare expected amounts in a single expression
+        return isinstance(transfers, dict) and transfers.get(operator_id) == -1 and transfers.get(recipient_id) == 1
+    except Exception:
         return False
-
-    # Try direct mapping lookup first
-    transfers = token_transfers.get(token_id)
-
-    # Fall back to equality-matching (handles keys that are not exactly the same object)
-    if transfers is None:
-        for k, v in token_transfers.items():
-            if k == token_id:
-                transfers = v
-                break
-
-    # Expect transfers to be a mapping account_id -> amount
-    if not transfers or not isinstance(transfers, dict):
-        return False
-
-    return transfers.get(operator_id) == -1 and transfers.get(recipient_id) == 1
 
 
 def _extract_nft_transfers(record):
