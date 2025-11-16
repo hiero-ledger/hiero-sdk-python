@@ -1,8 +1,9 @@
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.duration import Duration
+from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 from hiero_sdk_python.account.account_info import AccountInfo
 
@@ -12,7 +13,9 @@ def create_mock_account_id() -> AccountId:
 
 def create_mock_public_key() -> PublicKey:
     """Generate a random ED25519 public key for demonstration."""
-    return PublicKey.generate_ed25519()
+    private_key_demo = PrivateKey.generate_ecdsa()
+    public_key_demo = private_key_demo.public_key()
+    return public_key_demo
 
 def create_mock_balance() -> Hbar:
     """Return a mock account balance."""
@@ -20,7 +23,7 @@ def create_mock_balance() -> Hbar:
 
 def create_mock_expiration_time() -> Timestamp:
     """Return a sample expiration timestamp (arbitrary future date)."""
-    return Timestamp(seconds=1736539200)
+    return Timestamp(seconds=1736539200,nanos=100)
 
 def create_mock_auto_renew_period() -> Duration:
     """Return a 90-day auto-renew period."""
@@ -40,7 +43,7 @@ def build_mock_account_info() -> AccountInfo:
     info.expiration_time = create_mock_expiration_time()
     info.auto_renew_period = create_mock_auto_renew_period()
     info.token_relationships = [create_mock_token_relationship()]
-    info.memo = "Mock Account for Example"
+    info.account_memo = "Mock Account for Example"
     return info
 
 def print_account_info(info: AccountInfo) -> None:
@@ -52,7 +55,7 @@ def print_account_info(info: AccountInfo) -> None:
     print(f"Expiration Time: {info.expiration_time}")
     print(f"Auto Renew Period: {info.auto_renew_period}")
     print(f"Token Relationships: {info.token_relationships}")
-    print(f"Memo: {info.memo}")
+    print(f"Memo: {info.account_memo}")
 
 def main():
     """Run the AccountInfo example."""
