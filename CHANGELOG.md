@@ -27,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
 - # workflow: bot workflow which notifies developers of workflow failures in their pull requests.
+- Add `token_airdrop_cancel.py`added detail to example/token_airdrop_drop.py
 
 ### Changed
 
