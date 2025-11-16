@@ -428,7 +428,7 @@ class TokenCreateTransaction(Transaction):
         self._keys.fee_schedule_key = key
         return self
 
-    def set_metadata(self, metadata: bytes) -> "TokenCreateTransaction":
+    def set_metadata(self, metadata: bytes | str) -> "TokenCreateTransaction":
         """Sets the metadata for the token (max 100 bytes)"""
         self._require_not_frozen()
 
