@@ -9,7 +9,7 @@ The script walks through:
 5. Transferring again, this time succeeding.
 
 Run with:
-    uv run examples/token_create_transaction_max_automatic_token_associations_0.py
+    uv run examples/max_automatic_token_associations_0.py
 """
 
 import os
@@ -62,6 +62,7 @@ def create_demo_token(
 ) -> TokenId:
     """Create a fungible token whose treasury is the operator."""
     print("\nSTEP 1: Creating the fungible demo token...")
+    # Build and sign the fungible token creation transaction using the operator as treasury.
     tx = (
         TokenCreateTransaction()
         .set_token_name("MaxAssociationsToken")
@@ -86,6 +87,7 @@ def create_max_account(client: Client, operator_key: PrivateKey) -> Tuple[Accoun
     """Create an account whose max automatic associations equals zero."""
     print("\nSTEP 2: Creating account 'max' with max automatic associations set to 0...")
     max_key = PrivateKey.generate()
+    # Configure the new account to require explicit associations before accepting tokens.
     tx = (
         AccountCreateTransaction()
         .set_key(max_key.public_key())
@@ -108,6 +110,7 @@ def create_max_account(client: Client, operator_key: PrivateKey) -> Tuple[Accoun
 def show_account_settings(client: Client, account_id: AccountId) -> None:
     """Print the account's max automatic associations and known token relationships."""
     print("\nSTEP 3: Querying account info...")
+    # Fetch account information to verify configuration before attempting transfers.
     info = AccountInfoQuery(account_id).execute(client)
     print(
         f"Account {account_id} max_automatic_token_associations: "
@@ -130,6 +133,7 @@ def try_transfer(
         f"\nSTEP 4: Attempting to transfer {TOKENS_TO_TRANSFER} tokens ({desired})..."
     )
     try:
+        # Transfer tokens from the operator treasury to the new account.
         tx = (
             TransferTransaction()
             .add_token_transfer(token_id, operator_id, -TOKENS_TO_TRANSFER)
@@ -158,6 +162,7 @@ def associate_token(
 ) -> None:
     """Explicitly associate the token so the account can hold balances."""
     print("\nSTEP 5: Associating the token for account 'max'...")
+    # Submit the token association signed by the new account's private key.
     tx = (
         TokenAssociateTransaction()
         .set_account_id(account_id)
