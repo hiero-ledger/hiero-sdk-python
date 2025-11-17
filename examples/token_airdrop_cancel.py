@@ -18,6 +18,7 @@ from hiero_sdk_python import (
     TokenAirdropTransaction,
     TransactionRecordQuery,
     TokenCancelAirdropTransaction,
+    CryptoGetAccountBalanceQuery,
     ResponseCode
 )
 
@@ -82,21 +83,40 @@ def create_token(client, operator_id, operator_key, token_name, token_symbol, in
         print(f"Error creating token {token_name}: {e}")
         sys.exit(1)
 
-
 def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
     """Airdrop the provided tokens to a recipient account."""
-    print("\nAirdropping tokens...")
+    print(f"\nAirdropping tokens {', '.join([str(t) for t in token_ids])} to recipient {recipient_id}...")
+
     try:
+        # Balances before airdrop
+        sender_balances_before = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
+        recipient_balances_before = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+
+        print("\nBalances before airdrop:")
+        for t in token_ids:
+            print(f"  {str(t)}: sender={sender_balances_before.get(str(t), 0)} recipient={recipient_balances_before.get(str(t), 0)}")
+
         tx = TokenAirdropTransaction()
         for token_id in token_ids:
             tx.add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
             tx.add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
 
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
-        print(f"Token airdrop complete: (status: {receipt.status}, transaction_id: {receipt.transaction_id})")
+        print(f"Token airdrop executed: status={receipt.status} transaction_id={receipt.transaction_id}")
 
+        # Get record to inspect pending airdrops
         airdrop_record = TransactionRecordQuery(receipt.transaction_id).execute(client)
-        return airdrop_record.new_pending_airdrops
+        pending = getattr(airdrop_record, "new_pending_airdrops", []) or []
+
+        # Balances after airdrop
+        sender_balances_after = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
+        recipient_balances_after = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+
+        print("\nBalances after airdrop:")
+        for t in token_ids:
+            print(f"  {str(t)}: sender={sender_balances_after.get(str(t), 0)} recipient={recipient_balances_after.get(str(t), 0)}")
+
+        return pending
     except Exception as e:
         print(f"Error airdropping tokens: {e}")
         sys.exit(1)
@@ -107,10 +127,22 @@ def cancel_airdrops(client, operator_key, pending_airdrops):
     print("\nCanceling airdrops...")
     try:
         cancel_airdrop_tx = TokenCancelAirdropTransaction()
-        for record in pending_airdrops:
-            cancel_airdrop_tx.add_pending_airdrop(record.pending_airdrop_id)
+        if not pending_airdrops:
+            print("No pending airdrops to cancel.")
+            return
 
-        cancel_airdrop_tx.freeze_with(client).sign(operator_key)
+        for record in pending_airdrops:
+            # record may be a struct/object with attribute `pending_airdrop_id`
+            pid = getattr(record, "pending_airdrop_id", None)
+            if pid is None:
+                # try alternative attribute name
+                pid = getattr(record, "id", None)
+            if pid is None:
+                print(f"Skipping record without pending id: {record}")
+                continue
+            cancel_airdrop_tx.add_pending_airdrop(pid)
+
+        cancel_airdrop_tx = cancel_airdrop_tx.freeze_with(client).sign(operator_key)
         cancel_airdrop_receipt = cancel_airdrop_tx.execute(client)
 
         if cancel_airdrop_receipt.status != ResponseCode.SUCCESS:
@@ -123,7 +155,7 @@ def cancel_airdrops(client, operator_key, pending_airdrops):
         sys.exit(1)
 
 
-def token_cancel_airdrop():
+def token_airdrop_cancel():
     client, operator_id, operator_key = setup_client()
     recipient_id, _ = create_account(client, operator_key)
 
@@ -139,4 +171,4 @@ def token_cancel_airdrop():
 
 
 if __name__ == "__main__":
-    token_cancel_airdrop()
+    token_airdrop_cancel()
