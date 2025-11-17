@@ -23,6 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: Split `examples/account_allowance_nft.py` into separate `account_allowance_approve_transaction_nft.py` and `account_allowance_delete_transaction_nft.py` examples.
 - chore: bump protobuf from 6.33.0 to 6.33.1 (#796)
 - fix: Allow `max_automatic_token_associations` to be set to -1 (unlimited) in `AccountCreateTransaction` and add field to `AccountInfo`.
+- Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 
 
 ### Fixed
