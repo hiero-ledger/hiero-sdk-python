@@ -58,7 +58,7 @@ class AccountInfo:
     max_automatic_token_associations: Optional[int] = None
     staked_account_id: Optional[AccountId] = None
     staked_node_id: Optional[int] = None
-    decline_staking_reward: bool = False
+    decline_staking_reward: Optional[bool] = None
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
@@ -79,7 +79,7 @@ class AccountInfo:
         if proto is None:
             raise ValueError("Account info proto is None")
 
-        return cls(
+        account_info: "AccountInfo" = cls(
             account_id=AccountId._from_proto(proto.accountID) if proto.accountID else None,
             contract_account_id=proto.contractAccountID,
             is_deleted=proto.deleted,
@@ -100,10 +100,22 @@ class AccountInfo:
             account_memo=proto.memo,
             owned_nfts=proto.ownedNfts,
             max_automatic_token_associations=proto.max_automatic_token_associations,
-            staked_account_id=AccountId._from_proto(proto.staking_info.staked_account_id),
-            staked_node_id=proto.staking_info.staked_node_id,
-            decline_staking_reward=proto.staking_info.decline_reward
         )
+
+        staking_info = proto.staking_info if proto.HasField('staking_info') else None
+
+        if staking_info:
+            account_info.staked_account_id = (
+                AccountId._from_proto(staking_info.staked_account_id) 
+                if staking_info.HasField('staked_account_id') else None
+            )
+            account_info.staked_node_id = (
+                staking_info.staked_node_id 
+                if staking_info.HasField('staked_node_id') else None
+            )
+            account_info.decline_staking_reward = staking_info.decline_reward
+
+        return account_info
 
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
         """Converts this AccountInfo object to its protobuf representation.
@@ -137,7 +149,7 @@ class AccountInfo:
             max_automatic_token_associations=self.max_automatic_token_associations,
             staking_info=StakingInfo(
                 staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None,
-                staked_node_id=self.staked_node_id,
+                staked_node_id=self.staked_node_id if self.staked_node_id else None,
                 decline_reward=self.decline_staking_reward
             ),
         )
