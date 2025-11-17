@@ -34,31 +34,31 @@ def test_constructor_in_tinybars():
 
 def test_constructor_with_unit():
     """Test creation directly in tinybars."""
-    hbar1 = Hbar(50, _unit=HbarUnit.TINYBAR)
+    hbar1 = Hbar(50, unit=HbarUnit.TINYBAR)
     assert hbar1.to_tinybars() == 50
     assert hbar1.to_hbars() == 0.0000005
 
-    hbar2 = Hbar(50, _unit=HbarUnit.MICROBAR)
+    hbar2 = Hbar(50, unit=HbarUnit.MICROBAR)
     assert hbar2.to_tinybars() == 5000
     assert hbar2.to_hbars() == 0.00005
 
-    hbar3 = Hbar(50, _unit=HbarUnit.MILLIBAR)
+    hbar3 = Hbar(50, unit=HbarUnit.MILLIBAR)
     assert hbar3.to_tinybars() == 5_000_000
     assert hbar3.to_hbars() == 0.05
 
-    hbar4 = Hbar(50, _unit=HbarUnit.HBAR) # Default
+    hbar4 = Hbar(50, unit=HbarUnit.HBAR) # Default
     assert hbar4.to_tinybars() == 5_000_000_000
     assert hbar4.to_hbars() == 50
 
-    hbar5 = Hbar(50, _unit=HbarUnit.KILOBAR)
+    hbar5 = Hbar(50, unit=HbarUnit.KILOBAR)
     assert hbar5.to_tinybars() == 5_000_000_000_000
     assert hbar5.to_hbars() == 50_000
 
-    hbar6 = Hbar(50, _unit=HbarUnit.MEGABAR)
+    hbar6 = Hbar(50, unit=HbarUnit.MEGABAR)
     assert hbar6.to_tinybars() == 5_000_000_000_000_000
     assert hbar6.to_hbars() == 50_000_000
 
-    hbar7 = Hbar(50, _unit=HbarUnit.GIGABAR)
+    hbar7 = Hbar(50, unit=HbarUnit.GIGABAR)
     assert hbar7.to_tinybars() == 5_000_000_000_000_000_000
     assert hbar7.to_hbars() == 50_000_000_000
 

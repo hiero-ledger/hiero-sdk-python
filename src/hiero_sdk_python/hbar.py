@@ -7,6 +7,7 @@ and validating amounts of the network utility token (HBAR).
 """
 
 import re
+import warnings
 from decimal import Decimal
 from typing import ClassVar, Union
 
@@ -29,17 +30,26 @@ class Hbar:
     def __init__(
             self,
             amount: Union[int, float, Decimal],
-            in_tinybars: bool=False,
-            _unit: HbarUnit=HbarUnit.HBAR
+            unit: HbarUnit=HbarUnit.HBAR,
+            in_tinybars: bool=False # Deperecated
         ) -> None:
         """
         Create an Hbar instance with the given amount designated either in hbars or tinybars.
 
         Args:
             amount: The numeric amount of hbar or tinybar.
-            in_tinybars: If True, treat the amount as tinybars directly.
+            unit: Unit of the provided amount.
+            in_tinybars (deprecated): If True, treat the amount as tinybars directly.
         """
-        if in_tinybars or _unit == HbarUnit.TINYBAR:
+        if in_tinybars:
+            warnings.warn(
+                "The 'in_tinybars' parameter is deprecated and will be removed in a future release. "
+                "Use `unit=HbarUnit.TINYBAR` instead.",
+                DeprecationWarning
+            )
+            unit = HbarUnit.TINYBAR
+
+        if  unit == HbarUnit.TINYBAR:
             if not isinstance(amount, int):
                 raise ValueError("Fractional tinybar value not allowed")
             self._amount_in_tinybar = int(amount)
@@ -50,7 +60,7 @@ class Hbar:
         elif not isinstance(amount, Decimal):
             raise TypeError("Amount must be of type int, float, or Decimal")
 
-        tinybar = amount * Decimal(_unit.tinybar)
+        tinybar = amount * Decimal(unit.tinybar)
         if tinybar % 1 != 0:
             raise ValueError("Fractional tinybar value not allowed")
         self._amount_in_tinybar = int(tinybar)
@@ -90,7 +100,7 @@ class Hbar:
         Returns:
             Hbar: A new Hbar instance.
         """
-        return cls(amount, _unit=unit)
+        return cls(amount, unit=unit)
 
     @classmethod
     def from_tinybars(cls, tinybars: int) -> "Hbar":
@@ -127,7 +137,7 @@ class Hbar:
         parts = amount.split(' ')
         value = Decimal(parts[0])
         unit = HbarUnit.from_string(parts[1]) if len(parts) == 2 else unit
-        return cls(value, _unit=unit)
+        return cls(value, unit=unit)
 
     def __str__(self) -> str:
         return f"{self.to_hbars():.8f} ℏ"

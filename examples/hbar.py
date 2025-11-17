@@ -12,8 +12,7 @@ def create_hbar_using_constructor():
 
     The constructor accepts:
       - amount (int, float, or Decimal)
-      - optional in_tinybars flag, If True, the amount is treated as 
-        tinybars directly.Otherwise, it is interpreted as HBAR.
+      - optional unit, Unit of the provided amount.
     """
     print("\n=== Creating Hbar Using Constructor ===")
 
@@ -24,12 +23,12 @@ def create_hbar_using_constructor():
     # Treated as 0.1 ℏ
     h3 = Hbar(0.1)
     # Treated as 500 tinybars
-    h4 = Hbar(500, in_tinybars=True)
+    h4 = Hbar(500, unit=HbarUnit.TINYBAR)
 
     print(f"Hbar(10): {h1}")
     print(f"Hbar(-3): {h2}")
     print(f"Hbar(0.1): {h3}")
-    print(f"Hbar(500, in_tinybars=True): {h4}")
+    print(f"Hbar(500, unit=HbarUnit.TINYBAR): {h4}")
 
 
 def create_hbar_using_of():
