@@ -135,8 +135,9 @@ class AccountCreateTransaction(Transaction):
     def set_max_automatic_token_associations(self, max_assoc: int) -> "AccountCreateTransaction":
         """Sets the maximum number of automatic token associations for the account."""
         self._require_not_frozen()
-        if max_assoc < 0:
-            raise ValueError("max_automatic_token_associations must be a non-negative integer.")
+        # FIX
+        if max_assoc < -1:
+            raise ValueError("max_automatic_token_associations must be -1 (unlimited) or a non-negative integer.")
         self.max_automatic_token_associations = max_assoc
         return self
 
