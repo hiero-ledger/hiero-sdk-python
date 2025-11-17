@@ -287,12 +287,19 @@ class Transaction(_Executable):
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
-        for node in client.network.nodes:
-            self.node_account_id = node._account_id
-            self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+
+        if self.batch_key is None:
+            for node in client.network.nodes:
+                self.node_account_id = node._account_id
+                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
         
-        # Set the node account id to the current node in the network
-        self.node_account_id = client.network.current_node._account_id
+            # Set the node account id to the current node in the network
+            self.node_account_id = client.network.current_node._account_id
+        else:
+            print("\nbatch")
+            self.node_account_id = AccountId(0,0,0)
+            self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
+            print("batch\n")
         
         return self
 
@@ -402,6 +409,10 @@ class Transaction(_Executable):
 
         if self.node_account_id is None:
             raise ValueError("Node account ID is not set.")
+        
+        print("buildtx")
+        print(self.node_account_id)
+        print("---------------")
 
         transaction_body = transaction_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
