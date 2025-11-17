@@ -4,6 +4,7 @@ from typing import Optional
 from typing import TYPE_CHECKING
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2, transaction_pb2)
@@ -59,7 +60,8 @@ class Transaction(_Executable):
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee = 2_000_000
-        self.operator_account_id = None  
+        self.operator_account_id = None
+        self.batch_key: Optional[PrivateKey] = None
 
     def _make_request(self):
         """
@@ -412,6 +414,9 @@ class Transaction(_Executable):
         transaction_body.memo = self.memo
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         transaction_body.max_custom_fees.extend(custom_fee_limits)
+
+        if self.batch_key:
+            transaction_body.batch_key.CopyFrom(self.batch_key.public_key()._to_proto())
 
         return transaction_body
 
@@ -778,3 +783,8 @@ class Transaction(_Executable):
             transaction._signature_map[body_bytes] = sig_map
 
         return transaction
+    
+    def set_batch_key(self, key: PrivateKey):
+        self._require_not_frozen()
+        self.batch_key = key
+        return self
