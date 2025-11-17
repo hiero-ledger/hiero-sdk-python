@@ -66,6 +66,14 @@ def get_receipt(executable, client):
         sys.exit(1)
 
 
+def generate_metadata_key():
+    """Generate a new metadata key for the token."""
+    print("\nGenerating a new metadata key for the token...")
+    metadata_key = PrivateKey.generate_ed25519()
+    print("Metadata key generated successfully.")
+    return metadata_key
+
+
 def create_token_without_metadata_key(client, operator_key, operator_id):
     """
     Creating token with on-ledger metadata WITHOUT metadata_key (max 100 bytes)
@@ -124,11 +132,10 @@ def try_update_metadata_without_key(client, operator_key, token_id):
         print(f"Failed: {e}")
 
 
-def create_token_with_metadata_key(client, operator_id, operator_key):
+def create_token_with_metadata_key(client, metadata_key, operator_id, operator_key):
     """
     Create token with metadata_key and on-ledger metadata (max 100 bytes)
     """
-    metadata_key = PrivateKey.generate()
     metadata = b"Example on-ledger token metadata"
 
     print("\nCreating token with metadata and metadata_key...")
@@ -147,41 +154,43 @@ def create_token_with_metadata_key(client, operator_id, operator_key):
             .freeze_with(client)
         )
     except Exception as e:
-        print(f"Error while building create transaction: {e}")
+        print(f"Error while creating transaction: {e}")
         sys.exit(1)
 
     transaction.sign(operator_key)
     transaction.sign(metadata_key)
     receipt = get_receipt(transaction, client)
 
-    print(f"Token created with metadat_key: {metadata_key.public()}")
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"Token creation failed with status: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
+
+    print(f"Token created with metadat_key: {metadata_key.public_key()}")
     print(f"Metadata set on transaction: {metadata!r}")
-    return receipt.token_id, metdata_key
+    return receipt.token_id, metadata_key
 
 
-def update_metadata_with_key(client, token_id, operator_key, metadata_key):
+def update_metadata_with_key(client, token_id, metadata_key, operator_key):
     """
     Update token metadata with metadata_key
     """
     print("\nUpdating metadata WITH metadata_key...")
-    upodated_metadata = b"Updated metdata (with key)"
+    updated_metadata = b"Updated metdata (with key)"
 
     try:
-        update_tx = (
+        update_transaction = (
             TokenUpdateTransaction()
             .set_token_id(token_id)
             .set_metadata(updated_metadata)
             .freeze_with(client)
+            .sign(metadata_key)
         )
     except Exception as e:
         print(f"Error while freezing update transaction: {e}")
         sys.exit(1)
 
-    update_tx.sign(operator_key)
-    update_tx.sign(metadata_key)
-
-    receipt = get_receipt(update_tx, client)
-    print(f"Metadata successfully updated: {metadata!r}")
+    receipt = get_receipt(update_transaction, client)
+    print(f"Metadata successfully updated: {updated_metadata!r}")
 
 
 def demonstrate_metadata_length_validation(client, operator_id):
@@ -215,14 +224,15 @@ def create_token_with_metadata():
     and validate metadata length
     """
     client, operator_id, operator_key = setup_client()
+    metadata_key = generate_metadata_key()
 
     token_a = create_token_without_metadata_key(client, operator_key, operator_id)
     try_update_metadata_without_key(client, operator_key, token_a)
 
     token_b, metadata_key = create_token_with_metadata_key(
-        client, operator_key, operator_id
+        client, metadata_key, operator_id, operator_key
     )
-    update_metadata_with_key(client, token_b, operator_key, metadata_key)
+    update_metadata_with_key(client, token_b, metadata_key, operator_key)
 
     demonstrate_metadata_length_validation(client, operator_id)
 
