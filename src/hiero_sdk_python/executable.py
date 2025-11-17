@@ -1,12 +1,13 @@
 from os import error
 import time
-from typing import Callable, Optional, Any, TYPE_CHECKING
+from typing import Callable, Optional, Any, TYPE_CHECKING, List
 import grpc
 from abc import ABC, abstractmethod
 from enum import IntEnum
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
+from hiero_sdk_python.account.account_id import AccountId
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
 
