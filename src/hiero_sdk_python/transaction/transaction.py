@@ -296,10 +296,9 @@ class Transaction(_Executable):
             # Set the node account id to the current node in the network
             self.node_account_id = client.network.current_node._account_id
         else:
-            print("\nbatch")
+            # For Inner Transaction of batch transaction node_account_id=0.0.0
             self.node_account_id = AccountId(0,0,0)
             self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
-            print("batch\n")
         
         return self
 
@@ -409,10 +408,6 @@ class Transaction(_Executable):
 
         if self.node_account_id is None:
             raise ValueError("Node account ID is not set.")
-        
-        print("buildtx")
-        print(self.node_account_id)
-        print("---------------")
 
         transaction_body = transaction_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
