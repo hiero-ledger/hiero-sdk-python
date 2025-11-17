@@ -3,6 +3,7 @@ AccountCreateTransaction class.
 """
 
 from typing import Optional, Union
+import warnings
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -80,6 +81,10 @@ class AccountCreateTransaction(Transaction):
         Returns:
             AccountCreateTransaction: The current transaction instance for method chaining.
         """
+        warnings.warn(
+            "The 'set_key' method is deprecated, Use `set_key_without_alias` instead.",
+            DeprecationWarning,
+        )
         self._require_not_frozen()
         self.key = key
         return self
