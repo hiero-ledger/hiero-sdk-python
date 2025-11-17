@@ -23,6 +23,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
+- Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+(feat: Improve Hbar class to support floating-point values (#737))
 
 ### Changed
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
