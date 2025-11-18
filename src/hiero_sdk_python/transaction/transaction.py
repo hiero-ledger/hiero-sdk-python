@@ -3,7 +3,9 @@ from typing import Optional
 
 from typing import TYPE_CHECKING
 
+
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
@@ -319,6 +321,10 @@ class Transaction(_Executable):
             MaxAttemptsError: If the transaction/query fails after the maximum number of attempts
             ReceiptStatusError: If the query fails with a receipt status error
         """
+        from hiero_sdk_python.transaction.batch_transaction import BatchTransaction
+        if self.batch_key and not isinstance(self, (BatchTransaction)):
+            raise ValueError("Cannot execute batchified transaction outside of BatchTransaction.")
+
         if not self._transaction_body_bytes:
             self.freeze_with(client)
 
@@ -791,6 +797,23 @@ class Transaction(_Executable):
         return transaction
     
     def set_batch_key(self, key: PrivateKey):
+        """
+        Set the batch key required for batch transaction.
+
+        Args:
+            batch_key(PrivateKey):
+
+        Returns:
+            Transaction: A reconstructed transaction instance of the appropriate subclass. 
+        """
         self._require_not_frozen()
         self.batch_key = key
+        return self
+    
+    def batchify(self, client: Client, batch_key: PrivateKey):
+        """Marks the current transaction as an inner (batched) transaction."""
+        self._require_not_frozen()
+        self.set_batch_key(batch_key)
+        self.freeze_with(client)
+        self.sign(client.operator_private_key)
         return self

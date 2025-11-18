@@ -11,6 +11,7 @@ from typing import List, Optional
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.transaction_pb2 import AtomicBatchTransactionBody
 from hiero_sdk_python.system.freeze_transaction import FreezeTransaction
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -106,7 +107,10 @@ class BatchTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.atomic_batch.CopyFrom(self._build_proto_body())
         return transaction_body
-
+    
+    def build_scheduled_body(self):
+        raise ValueError("Cannot schedule Atomic Batch transaction.")
+    
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
             transaction_func=channel.util.atomicBatch,

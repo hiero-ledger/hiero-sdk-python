@@ -1,7 +1,9 @@
+import datetime
 import pytest
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.system.freeze_transaction import FreezeTransaction
@@ -18,10 +20,9 @@ def create_account_tx(key, client):
         .set_key(key)
         .set_initial_balance(1)
         .execute(client)
-    )
+    ) 
 
     return account_receipt.account_id
-
 
 batch_key = PrivateKey.generate()
 
@@ -33,9 +34,7 @@ def test_batch_transaction_can_execute(env):
         TransferTransaction()
         .add_hbar_transfer(account_id=env.operator_id, amount=-1)
         .add_hbar_transfer(account_id=receiver_id, amount=1)
-        .set_batch_key(batch_key)
-        .freeze_with(env.client)
-        .sign(env.client.operator_private_key)
+        .batchify(env.client, batch_key)
     )
 
     batch_tx = (
@@ -78,9 +77,7 @@ def test_batch_transaction_with_blacklisted_inner_transaction(env):
         .set_file_hash(bytes.fromhex('1723904587120938954702349857'))
         .set_start_time(Timestamp.generate())
         .set_freeze_type(FreezeType.FREEZE_ONLY)
-        .set_batch_key(batch_key)
-        .freeze_with(env.client)
-        .sign(env.client.operator_private_key)
+        .batchify(env.client, batch_key)
     )
 
     with pytest.raises(ValueError, match="Transaction type FreezeTransaction is not allowed in a batch transaction."):
@@ -97,15 +94,13 @@ def test_batch_transaction_with_blacklisted_inner_transaction(env):
         AccountCreateTransaction()
         .set_key(PrivateKey.generate().public_key())
         .set_initial_balance(1)
-        .set_batch_key(batch_key)
-        .freeze_with(env.client)
+        .batchify(env.client, batch_key)
     )
 
     batch_tx = (
         BatchTransaction()
         .add_inner_transaction(account_tx)
-        .set_batch_key(batch_key)
-        .freeze_with(env.client)
+        .batchify(env.client, batch_key)
     )
 
     with pytest.raises(ValueError, match="Transaction type BatchTransaction is not allowed in a batch transaction."):
@@ -126,9 +121,7 @@ def test_batch_transaction_with_invalid_batch_key(env):
         TransferTransaction()
         .add_hbar_transfer(account_id=env.operator_id, amount=-1)
         .add_hbar_transfer(account_id=receiver_id, amount=1)
-        .set_batch_key(invalid_batch_key)
-        .freeze_with(env.client)
-        .sign(env.client.operator_private_key)
+        .batchify(env.client, invalid_batch_key)
     )
 
     batch_tx = (
@@ -153,9 +146,7 @@ def test_batch_transaction_can_execute_with_different_batch_key(env):
         TransferTransaction()
         .add_hbar_transfer(account_id=env.operator_id, amount=-1)
         .add_hbar_transfer(account_id=receiver_id1, amount=1)
-        .set_batch_key(batch_key1)
-        .freeze_with(env.client)
-        .sign(env.client.operator_private_key)
+        .batchify(env.client, batch_key1)
     )
 
     receiver_id2 = create_account_tx(PrivateKey.generate().public_key(), env.client)
@@ -163,9 +154,7 @@ def test_batch_transaction_can_execute_with_different_batch_key(env):
         TransferTransaction()
         .add_hbar_transfer(account_id=env.operator_id, amount=-1)
         .add_hbar_transfer(account_id=receiver_id2, amount=1)
-        .set_batch_key(batch_key2)
-        .freeze_with(env.client)
-        .sign(env.client.operator_private_key)
+        .batchify(env.client, batch_key2)
     )
 
     receiver_id3 = create_account_tx(PrivateKey.generate().public_key(), env.client)
@@ -173,9 +162,7 @@ def test_batch_transaction_can_execute_with_different_batch_key(env):
         TransferTransaction()
         .add_hbar_transfer(account_id=env.operator_id, amount=-1)
         .add_hbar_transfer(account_id=receiver_id3, amount=1)
-        .set_batch_key(batch_key3)
-        .freeze_with(env.client)
-        .sign(env.client.operator_private_key)
+        .batchify(env.client, batch_key3)
     )
 
     batch_tx = (
@@ -202,18 +189,97 @@ def test_batch_transaction_can_execute_with_different_batch_key(env):
         )
         assert transfer_tx_receipt.status == ResponseCode.SUCCESS
 
+def test_execute_transaction_fail_when_batchified(env):
+    """Test transaction should fail when batchified but not part of a batch."""
+    tx = (
+        AccountCreateTransaction()
+        .set_key(PrivateKey.generate().public_key())
+        .set_initial_balance(1)
+        .batchify(env.client, batch_key)
+    )
 
-# def test_batch_transaction_can_execute_chunked_inner_transactions(env):
-#     """Test batch transaction can execute chunked inner transactions."""
-#     topic_receipt = (
-#         TopicCreateTransaction()
-#         .set_admin_key(env.client.operator_private_key)
-#         .set_memo("e2e_test_topic")
-#         .freeze_with(env.client)
-#         .execute(env.client)
-#     )
+    with pytest.raises(ValueError, match="Cannot execute batchified transaction outside of BatchTransaction."):
+        tx.execute(env.client)
 
-#     assert topic_receipt.status == ResponseCode.SUCCESS
-#     topic_id = topic_receipt.topic_id
-# No Chuck Option present Topic Submit Message
+def test_successful_inner_transactions_should_incur_fees_even_though_one_fails(env):
+    """Test successful inner transaction should incur fees even though one failed."""
+    initial_balance = (
+        AccountInfoQuery(account_id=env.operator_id).execute(env.client).balance
+    )
 
+    tx1 = (
+        AccountCreateTransaction()
+        .set_key(PrivateKey.generate().public_key())
+        .set_initial_balance(1)
+        .batchify(env.client, batch_key)
+    )
+
+    tx2 = (
+        AccountCreateTransaction()
+        .set_key(PrivateKey.generate().public_key())
+        .set_initial_balance(1)
+        .batchify(env.client, batch_key)
+    )
+
+    # Invalid Tx
+    tx3 = (
+        AccountCreateTransaction()
+        .set_key(PrivateKey.generate().public_key())
+        .set_initial_balance(1)
+        .set_receiver_signature_required(True)
+        .batchify(env.client, batch_key)
+    )
+
+    batch_tx = (
+        BatchTransaction()
+        .add_inner_transaction(tx1)
+        .add_inner_transaction(tx2)
+        .add_inner_transaction(tx3)
+        .freeze_with(env.client)
+        .sign(batch_key)
+    )
+
+    batch_receipt = batch_tx.execute(env.client)
+    assert batch_receipt.status == ResponseCode.INNER_TRANSACTION_FAILED
+
+    final_balance = (
+        AccountInfoQuery(account_id=env.operator_id).execute(env.client).balance
+    )
+
+    assert initial_balance > final_balance
+
+def test_batch_transaction_with_inner_schedule_transaction(env):
+    """Test batch_transaction with inner schedule transaction raise error."""
+    receiver_key = PrivateKey.generate()
+    receiver_id = create_account_tx(receiver_key.public_key(), env.client)
+
+    schedule_create_tx = (
+        TransferTransaction()
+        .add_hbar_transfer(receiver_id, -1)
+        .add_hbar_transfer(env.operator_id, 1)
+        .schedule()
+    )
+
+    current_time = datetime.datetime.now()
+    future_expiration = Timestamp.from_date(current_time + datetime.timedelta(seconds=30))
+
+    (
+        schedule_create_tx.set_payer_account_id(receiver_id)
+        .set_schedule_memo("test schedule create transaction")
+        .set_expiration_time(future_expiration)
+        .set_wait_for_expiry(True)
+        .set_batch_key(batch_key)
+        .freeze_with(env.client)
+        .sign(receiver_key)
+        .sign(env.operator_key)
+    )
+
+    batch_tx = (
+        BatchTransaction()
+        .add_inner_transaction(schedule_create_tx)
+        .freeze_with(env.client)
+        .sign(batch_key)
+    )
+
+    batch_receipt = batch_tx.execute(env.client)
+    assert batch_receipt.status == ResponseCode.BATCH_TRANSACTION_IN_BLACKLIST
