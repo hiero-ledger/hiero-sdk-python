@@ -38,7 +38,7 @@ class AccountCreateTransaction(Transaction):
         alias: Optional[EvmAddress] = None,
         staked_account_id: Optional[AccountId] = None,
         staked_node_id: Optional[int] = None,
-        decline_staking_reward: bool = False
+        decline_staking_reward: Optional[bool] = False
     ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values
@@ -55,7 +55,7 @@ class AccountCreateTransaction(Transaction):
             alias (Optional[EvmAddress]): The 20-byte EVM address to be used as the account's alias.
             staked_account_id (Optional[AccountId]): The account to which this account will stake.
             staked_node_id (Optional[int]): ID of the node this account is staked to.
-            decline_staking_reward (bool): If true, the account declines receiving a 
+            decline_staking_reward (Optional[bool]): If true, the account declines receiving a 
                 staking reward (default is False).
         """
         super().__init__()
