@@ -84,15 +84,18 @@ class BatchTransaction(Transaction):
     def _verify_inner_transactions(self, transaction: Transaction) -> bool:
         """Verify if the transaction is valid inner_transaction."""
         if isinstance(transaction, (FreezeTransaction, BatchTransaction)):
-            raise ValueError(f"Transaction type {type(transaction).__name__} is not allowed in a batch transaction")
+            raise ValueError(f"Transaction type {type(transaction).__name__} is not allowed in a batch transaction.")
 
         if not transaction._transaction_body_bytes:
-            raise ValueError("Transaction must be frozen")
+            raise ValueError("Transaction must be frozen.")
 
         if transaction.batch_key is None:
-            raise ValueError("Batch key needs to be set")
+            raise ValueError("Batch key needs to be set.")
 
     def _build_proto_body(self) -> AtomicBatchTransactionBody:
+        if len(self.inner_transactions) == 0:
+            raise ValueError("BatchTransaction requires at least one inner transaction.")
+        
         proto_body = AtomicBatchTransactionBody()
         for transaction in self.inner_transactions:
             proto_body.transactions.append(transaction._make_request().signedTransactionBytes)

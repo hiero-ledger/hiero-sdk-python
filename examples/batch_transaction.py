@@ -36,24 +36,35 @@ def setup_client():
 def batch_transaction():
     client = setup_client()
     batch_key = PrivateKey.generate()
-    tx1 = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -10)
-        .add_hbar_transfer(AccountId.from_string("0.0.4951978"), 10)
-        .set_batch_key(batch_key)  
-        .freeze_with(client)         
+
+    # tx1 = (
+    #     TransferTransaction()
+    #     .add_hbar_transfer(operator_id, -1)
+    #     .add_hbar_transfer(AccountId.from_string("0.0.4951978"), 1)
+    #     .set_batch_key(batch_key)  
+    #     .freeze_with(client)
+    #     .sign(operator_key)
+    # )
+
+    tx2 = (
+        AccountCreateTransaction()
+        .set_key(PrivateKey.generate().public_key())
+        .set_initial_balance(1)
+        .set_batch_key(batch_key)
+        .freeze_with(client)
         .sign(operator_key)
     )
 
     tx = (
         BatchTransaction()
-        .add_inner_transaction(tx1)
+        .add_inner_transaction(tx2)
         .freeze_with(client)
         .sign(batch_key)
     )
 
-    print(tx1.node_account_id)
+    # print(tx1.node_account_id)
 
     print(tx.execute(client))
+    print(tx.get_inner_transactions_ids()[0].account_id)
 
 batch_transaction()

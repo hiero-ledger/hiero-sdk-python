@@ -19,7 +19,7 @@ def batch_key():
 
 @pytest.fixture
 def transaction(mock_client, mock_account_ids, batch_key):
-    """Return a TransferTransaction with optional batch_key and freeze."""
+    """Return a transfer transaction with optional batch_key and freeze."""
     sender_id, receiver_id, _, _, _ = mock_account_ids
     key = batch_key
 
@@ -40,14 +40,14 @@ def transaction(mock_client, mock_account_ids, batch_key):
 
 
 def test_constructor_without_params():
-    """Test create BatchTransaction without constructor params."""
+    """Test create batch transaction without constructor params."""
     batch_tx = BatchTransaction()
     assert batch_tx.inner_transactions is not  None
     assert len(batch_tx.inner_transactions) == 0
 
 
 def test_constructor_with_params(transaction):
-    """Test create BatchTransaction with constructor params."""
+    """Test create batch transaction with constructor params."""
     inner_tx = [transaction(batch_key=True, freeze=True)]
     batch_tx = BatchTransaction(inner_transactions=inner_tx)
 
@@ -56,7 +56,7 @@ def test_constructor_with_params(transaction):
     assert isinstance(batch_tx.inner_transactions[0], TransferTransaction)
 
 def test_constructor_rejects_transaction_without_batch_key(transaction):
-    """Test create BatchTransaction should raise error if an inner transaction has no batch key."""
+    """Test create batch transaction should raise error if an inner transaction has no batch key."""
     # Single Inner Transaction
     inner_tx1 = [transaction(batch_key=False, freeze=True)]
     with pytest.raises(ValueError, match='Batch key needs to be set'):
@@ -71,10 +71,10 @@ def test_constructor_rejects_transaction_without_batch_key(transaction):
         BatchTransaction(inner_transactions=inner_tx2)
 
 def test_constructor_rejects_unfrozen_transaction(transaction):
-    """Test create BatchTransaction should raise error if an inner transaction is not frozen."""
+    """Test create batch transaction should raise error if an inner transaction is not frozen."""
     # Single Inner Transaction
     inner_tx1 = [transaction(batch_key=True, freeze=False)]
-    with pytest.raises(ValueError, match='Transaction must be frozen'):
+    with pytest.raises(ValueError, match='Transaction must be frozen.'):
         BatchTransaction(inner_transactions=inner_tx1)
     
     # Multiple Inner Transaction
@@ -82,27 +82,27 @@ def test_constructor_rejects_unfrozen_transaction(transaction):
         transaction(batch_key=True, freeze=True),
         transaction(batch_key=True, freeze=False)
     ]
-    with pytest.raises(ValueError, match='Transaction must be frozen'):
+    with pytest.raises(ValueError, match='Transaction must be frozen.'):
         BatchTransaction(inner_transactions=inner_tx2)
 
-def test_constructor_rejects_blacklisted_transaction_types(mock_client, batch_key):
-    """Test create BatchTransaction reject FreezeTransaction and BatchTransaction as inner transactions."""
+def test_constructor_rejects_blacklisted_transaction_types(mock_client, batch_key, transaction):
+    """Test create batch transaction reject freeze transaction and batch transaction as inner transactions."""
     # FreezeTransaction
     inner_tx1 = [
         FreezeTransaction()
         .set_batch_key(batch_key)
         .freeze_with(mock_client)
     ]
-    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction'):
+    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction.'):
         BatchTransaction(inner_transactions=inner_tx1)
 
     # BatchTransaction
     inner_tx2 = [
-        BatchTransaction()
+        BatchTransaction(inner_transactions=[transaction(batch_key=True, freeze=True)])
         .set_batch_key(batch_key)
         .freeze_with(mock_client)
     ]
-    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction'):
+    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction.'):
         BatchTransaction(inner_transactions=inner_tx2)
 
 def test_set_inner_transaction_method(transaction):
@@ -124,13 +124,13 @@ def test_set_inner_transaction_method_invalid_params(transaction, mock_client, b
     # Without batch_key
     inner_tx1 = [transaction(batch_key=False, freeze=True)]
 
-    with pytest.raises(ValueError, match="Batch key needs to be set"):
+    with pytest.raises(ValueError, match="Batch key needs to be set."):
         batch_tx.set_inner_transactions(inner_tx1)
     
     # Without freeze
     inner_tx2 = [transaction(batch_key=True, freeze=False)]
     
-    with pytest.raises(ValueError, match="Transaction must be frozen"):
+    with pytest.raises(ValueError, match="Transaction must be frozen."):
         batch_tx.set_inner_transactions(inner_tx2)
 
     # Freeze Transaction
@@ -140,16 +140,16 @@ def test_set_inner_transaction_method_invalid_params(transaction, mock_client, b
         .freeze_with(mock_client)
     ]
     
-    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction'):
+    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction.'):
         batch_tx.set_inner_transactions(inner_tx3)
 
     # BatchTransaction
     inner_tx4 = [
-        BatchTransaction()
+        BatchTransaction(inner_transactions=[transaction(batch_key=True, freeze=True)])
         .set_batch_key(batch_key)
         .freeze_with(mock_client)
     ]
-    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction'):
+    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction.'):
         batch_tx.set_inner_transactions(inner_tx4)
 
 def test_add_inner_transaction_method(transaction):
@@ -171,13 +171,13 @@ def test_add_inner_transaction_method_invalid_params(transaction, mock_client, b
     # Without batch_key
     inner_tx1 = transaction(batch_key=False, freeze=True)
 
-    with pytest.raises(ValueError, match="Batch key needs to be set"):
+    with pytest.raises(ValueError, match="Batch key needs to be set."):
         batch_tx.add_inner_transaction(inner_tx1)
     
     # Without freeze
     inner_tx2 = transaction(batch_key=True, freeze=False)
     
-    with pytest.raises(ValueError, match="Transaction must be frozen"):
+    with pytest.raises(ValueError, match="Transaction must be frozen."):
         batch_tx.add_inner_transaction(inner_tx2)
 
     # Freeze Transaction
@@ -187,16 +187,16 @@ def test_add_inner_transaction_method_invalid_params(transaction, mock_client, b
         .freeze_with(mock_client)
     )
     
-    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction'):
+    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction.'):
         batch_tx.add_inner_transaction(inner_tx3)
 
     # BatchTransaction
     inner_tx4 = (
-        BatchTransaction()
+        BatchTransaction(inner_transactions=[transaction(batch_key=True, freeze=True)])
         .set_batch_key(batch_key)
         .freeze_with(mock_client)
     )
-    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction'):
+    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction.'):
         batch_tx.add_inner_transaction(inner_tx4)
 
 def test_get_transaction_ids_method(transaction):
