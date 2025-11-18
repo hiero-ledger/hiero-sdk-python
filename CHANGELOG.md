@@ -8,7 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
-- Added `examples/token_create_transaction_max_automatic_token_associations_0.py` to demonstrate how `max_automatic_token_associations=0` behaves.
+- Add `examples/token_create_transaction_max_automatic_token_associations_0.py` to demonstrate how `max_automatic_token_associations=0` behaves.
 - Add `examples/topic_id.py` to demonstrate `TopicId` opeartions
 - Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
 - Added missing validation logic `fee_schedule_key` in integration `token_create_transaction_e2e_test.py` and ``token_update_transaction_e2e_test.py`. 
@@ -16,6 +16,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/token_create_transaction_admin_key.py` demonstrating admin key privileges for token management including token updates, key changes, and deletion (#798)
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
 - Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 
 
 ### Changed
