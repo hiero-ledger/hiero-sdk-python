@@ -128,7 +128,8 @@ def try_transfer(
     """Attempt a token transfer and return True if it succeeds."""
     desired = "should succeed" if expect_success else "expected to fail"
     print(
-        f"\nSTEP 4: Attempting to transfer {TOKENS_TO_TRANSFER} tokens ({desired})..."
+        f"\nSTEP 4: Attempting to transfer {TOKENS_TO_TRANSFER} tokens ({desired}) "
+        f"from {operator_id} to {receiver_id}..."
     )
     try:
         # Transfer tokens from the operator treasury to the new account.
@@ -173,7 +174,7 @@ def associate_token(
     if status != ResponseCode.SUCCESS:
         print(f"ERROR: Token association failed with status {status.name}.")
         sys.exit(1)
-    print("Token successfully associated with the account.")
+    print(f"Token {token_id} successfully associated with account {account_id}.")
 
 
 def _receipt_from_response(result, client) -> TransactionReceipt:
@@ -189,7 +190,11 @@ def _response_code_name(status) -> str:
 
 
 def _as_response_code(value) -> ResponseCode:
-    """Ensure we always treat codes as ResponseCode enums."""
+    """Ensure we always treat codes as ResponseCode enums.
+
+    Some transactions return raw integer codes rather than ResponseCode enums,
+    so we normalize before accessing `.name`.
+    """
     if isinstance(value, ResponseCode):
         return value
     return ResponseCode(value)
@@ -215,26 +220,23 @@ def main() -> None:
             "WARNING: transfer succeeded even though no association existed. "
             "The account may already be associated with this token."
         )
-        return
-
-    associate_token(client, max_account_id, max_account_key, token_id)
-
-    second_attempt_success = try_transfer(
-        client,
-        operator_id,
-        operator_key,
-        max_account_id,
-        token_id,
-        expect_success=True,
-    )
-    if second_attempt_success:
-        print("\nTransfer succeeded after explicitly associating the token.")
     else:
-        print(
-            "\nTransfer still failed after associating the token. "
-            "Verify balances, association status, and token configuration."
+        associate_token(client, max_account_id, max_account_key, token_id)
+        second_attempt_success = try_transfer(
+            client,
+            operator_id,
+            operator_key,
+            max_account_id,
+            token_id,
+            expect_success=True,
         )
-
+        if second_attempt_success:
+            print("\nTransfer succeeded after explicitly associating the token.")
+        else:
+            print(
+                "\nTransfer still failed after associating the token. "
+                "Verify balances, association status, and token configuration."
+            )
 
 if __name__ == "__main__":
     main()
