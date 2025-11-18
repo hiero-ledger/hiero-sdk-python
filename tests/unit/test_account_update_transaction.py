@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 # pylint: disable=no-name-in-module
-from google.protobuf.wrappers_pb2 import BoolValue, StringValue
+from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 
 from hiero_sdk_python import Duration, Timestamp
 from hiero_sdk_python.account.account_id import AccountId
@@ -50,6 +50,9 @@ def test_constructor_with_account_params():
     receiver_sig_required = True
     expiration_time = TEST_EXPIRATION_TIME
     auto_renew_period = TEST_AUTO_RENEW_PERIOD
+    max_associations = 50
+    staked_account_id = AccountId(0, 0, 999)
+    decline_reward = False
 
     params = AccountUpdateParams(
         account_id=account_id,
@@ -58,6 +61,9 @@ def test_constructor_with_account_params():
         account_memo=account_memo,
         receiver_signature_required=receiver_sig_required,
         expiration_time=expiration_time,
+        max_automatic_token_associations=max_associations,
+        staked_account_id=staked_account_id,
+        decline_staking_reward=decline_reward,
     )
 
     account_tx = AccountUpdateTransaction(account_params=params)
@@ -68,6 +74,10 @@ def test_constructor_with_account_params():
     assert account_tx.account_memo == account_memo
     assert account_tx.receiver_signature_required == receiver_sig_required
     assert account_tx.expiration_time == expiration_time
+    assert account_tx.max_automatic_token_associations == max_associations
+    assert account_tx.staked_account_id == staked_account_id
+    assert account_tx.staked_node_id is None  # Should be cleared when staked_account_id is set
+    assert account_tx.decline_staking_reward == decline_reward
 
 
 def test_constructor_without_parameters():
@@ -80,6 +90,10 @@ def test_constructor_without_parameters():
     assert account_tx.account_memo is None
     assert account_tx.receiver_signature_required is None
     assert account_tx.expiration_time is None
+    assert account_tx.max_automatic_token_associations is None
+    assert account_tx.staked_account_id is None
+    assert account_tx.staked_node_id is None
+    assert account_tx.decline_staking_reward is None
 
 
 def test_account_update_params_default_values():
@@ -92,6 +106,10 @@ def test_account_update_params_default_values():
     assert params.account_memo is None
     assert params.receiver_signature_required is None
     assert params.expiration_time is None
+    assert params.max_automatic_token_associations is None
+    assert params.staked_account_id is None
+    assert params.staked_node_id is None
+    assert params.decline_staking_reward is None
 
 
 def test_set_methods():
@@ -117,6 +135,8 @@ def test_set_methods():
             "receiver_signature_required",
         ),
         ("set_expiration_time", expiration_time, "expiration_time"),
+        ("set_max_automatic_token_associations", 100, "max_automatic_token_associations"),
+        ("set_decline_staking_reward", True, "decline_staking_reward"),
     ]
 
     for method_name, value, attr_name in test_cases:
@@ -159,6 +179,10 @@ def test_set_methods_require_not_frozen(mock_client):
         ("set_account_memo", "new memo"),
         ("set_receiver_signature_required", True),
         ("set_expiration_time", TEST_EXPIRATION_TIME),
+        ("set_max_automatic_token_associations", 100),
+        ("set_staked_account_id", AccountId(0, 0, 888)),
+        ("set_staked_node_id", 5),
+        ("set_decline_staking_reward", True),
     ]
 
     for method_name, value in test_cases:
@@ -442,6 +466,10 @@ def test_constructor_with_partial_account_params():
     assert account_tx.auto_renew_period == AUTO_RENEW_PERIOD
     assert account_tx.receiver_signature_required is None
     assert account_tx.expiration_time is None
+    assert account_tx.max_automatic_token_associations is None
+    assert account_tx.staked_account_id is None
+    assert account_tx.staked_node_id is None
+    assert account_tx.decline_staking_reward is None
 
 
 def test_build_transaction_body_with_none_auto_renew_period(mock_account_ids):
@@ -515,3 +543,200 @@ def test_build_scheduled_body(mock_account_ids):
         schedulable_body.cryptoUpdateAccount.expirationTime
         == expiration_time._to_protobuf()
     )
+
+
+def test_constructor_with_new_fields():
+    """Test creating an account update transaction with new fields in params."""
+    account_id = AccountId(0, 0, 123)
+    staked_account_id = AccountId(0, 0, 456)
+    max_associations = 100
+
+    params = AccountUpdateParams(
+        account_id=account_id,
+        max_automatic_token_associations=max_associations,
+        staked_account_id=staked_account_id,
+        decline_staking_reward=True,
+    )
+
+    account_tx = AccountUpdateTransaction(account_params=params)
+
+    assert account_tx.account_id == account_id
+    assert account_tx.max_automatic_token_associations == max_associations
+    assert account_tx.staked_account_id == staked_account_id
+    assert account_tx.staked_node_id is None  # Should be cleared when staked_account_id is set
+    assert account_tx.decline_staking_reward is True
+
+
+def test_set_max_automatic_token_associations():
+    """Test setting max automatic token associations."""
+    account_tx = AccountUpdateTransaction()
+    max_associations = 100
+    result = account_tx.set_max_automatic_token_associations(max_associations)
+
+    assert account_tx.max_automatic_token_associations == max_associations
+    assert result is account_tx  # Method chaining
+
+
+def test_set_max_automatic_token_associations_validation():
+    """Test validation for max_automatic_token_associations."""
+    account_tx = AccountUpdateTransaction()
+
+    # Test good value: -1 for unlimited
+    account_tx.set_max_automatic_token_associations(-1)
+    assert account_tx.max_automatic_token_associations == -1
+
+    # Test good value: 0 for default
+    account_tx.set_max_automatic_token_associations(0)
+    assert account_tx.max_automatic_token_associations == 0
+
+    # Test good value: 100
+    account_tx.set_max_automatic_token_associations(100)
+    assert account_tx.max_automatic_token_associations == 100
+
+    # Test None (should be allowed)
+    account_tx.set_max_automatic_token_associations(None)
+    assert account_tx.max_automatic_token_associations is None
+
+    # Test bad value: -2
+    with pytest.raises(ValueError) as e:
+        account_tx.set_max_automatic_token_associations(-2)
+
+    assert "must be -1 (unlimited) or a non-negative integer" in str(e.value)
+
+
+def test_set_staked_account_id():
+    """Test setting staked account ID."""
+    account_tx = AccountUpdateTransaction()
+    staked_account_id = AccountId(0, 0, 789)
+    result = account_tx.set_staked_account_id(staked_account_id)
+
+    assert account_tx.staked_account_id == staked_account_id
+    assert account_tx.staked_node_id is None  # Should clear the other field
+    assert result is account_tx  # Method chaining
+
+
+def test_set_staked_node_id():
+    """Test setting staked node ID."""
+    account_tx = AccountUpdateTransaction()
+    staked_node_id = 5
+    result = account_tx.set_staked_node_id(staked_node_id)
+
+    assert account_tx.staked_node_id == staked_node_id
+    assert account_tx.staked_account_id is None  # Should clear the other field
+    assert result is account_tx  # Method chaining
+
+
+def test_staked_id_oneof_behavior():
+    """Test that staked_account_id and staked_node_id are mutually exclusive."""
+    account_tx = AccountUpdateTransaction()
+    staked_account_id = AccountId(0, 0, 789)
+    staked_node_id = 5
+
+    # Set staked_account_id first
+    account_tx.set_staked_account_id(staked_account_id)
+    assert account_tx.staked_account_id == staked_account_id
+    assert account_tx.staked_node_id is None
+
+    # Setting staked_node_id should clear staked_account_id
+    account_tx.set_staked_node_id(staked_node_id)
+    assert account_tx.staked_node_id == staked_node_id
+    assert account_tx.staked_account_id is None
+
+    # Setting staked_account_id again should clear staked_node_id
+    account_tx.set_staked_account_id(staked_account_id)
+    assert account_tx.staked_account_id == staked_account_id
+    assert account_tx.staked_node_id is None
+
+
+def test_set_decline_staking_reward():
+    """Test setting decline staking reward."""
+    account_tx = AccountUpdateTransaction()
+
+    # Test with True
+    result = account_tx.set_decline_staking_reward(True)
+    assert account_tx.decline_staking_reward is True
+    assert result is account_tx
+
+    # Test with False
+    account_tx.set_decline_staking_reward(False)
+    assert account_tx.decline_staking_reward is False
+
+    # Test with None
+    account_tx.set_decline_staking_reward(None)
+    assert account_tx.decline_staking_reward is None
+
+
+def test_build_transaction_body_with_new_fields(mock_account_ids):
+    """Test building transaction body with new fields."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id = AccountId(0, 0, 123)
+    staked_account_id = AccountId(0, 0, 456)
+    max_associations = 100
+
+    account_tx = AccountUpdateTransaction()
+    account_tx.set_account_id(account_id)
+    account_tx.set_max_automatic_token_associations(max_associations)
+    account_tx.set_staked_account_id(staked_account_id)
+    account_tx.set_decline_staking_reward(True)
+
+    account_tx.operator_account_id = operator_id
+    account_tx.node_account_id = node_account_id
+
+    transaction_body = account_tx.build_transaction_body()
+
+    assert (
+        transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
+    )
+    assert transaction_body.cryptoUpdateAccount.max_automatic_token_associations == Int32Value(
+        value=max_associations
+    )
+    assert (
+        transaction_body.cryptoUpdateAccount.staked_account_id.accountNum
+        == staked_account_id.num
+    )
+    assert transaction_body.cryptoUpdateAccount.decline_reward == BoolValue(value=True)
+
+
+def test_build_transaction_body_with_staked_node_id(mock_account_ids):
+    """Test building transaction body with staked_node_id."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id = AccountId(0, 0, 123)
+    staked_node_id = 5
+
+    account_tx = AccountUpdateTransaction()
+    account_tx.set_account_id(account_id)
+    account_tx.set_staked_node_id(staked_node_id)
+
+    account_tx.operator_account_id = operator_id
+    account_tx.node_account_id = node_account_id
+
+    transaction_body = account_tx.build_transaction_body()
+
+    assert (
+        transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
+    )
+    assert transaction_body.cryptoUpdateAccount.staked_node_id == staked_node_id
+    # staked_account_id should not be set
+    assert not transaction_body.cryptoUpdateAccount.HasField("staked_account_id")
+
+
+def test_build_transaction_body_with_optional_new_fields_none(mock_account_ids):
+    """Test building transaction body when new optional fields are None."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id = AccountId(0, 0, 456)
+
+    account_tx = AccountUpdateTransaction()
+    account_tx.set_account_id(account_id)
+
+    account_tx.operator_account_id = operator_id
+    account_tx.node_account_id = node_account_id
+
+    transaction_body = account_tx.build_transaction_body()
+
+    # When new fields are None, they should not be set in the protobuf
+    assert not transaction_body.cryptoUpdateAccount.HasField(
+        "max_automatic_token_associations"
+    )
+    assert not transaction_body.cryptoUpdateAccount.HasField("staked_account_id")
+    assert not transaction_body.cryptoUpdateAccount.HasField("staked_node_id")
+    assert not transaction_body.cryptoUpdateAccount.HasField("decline_reward")
