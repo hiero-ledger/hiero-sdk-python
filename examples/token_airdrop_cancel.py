@@ -94,7 +94,8 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
 
         print("\nBalances before airdrop:")
         for t in token_ids:
-            print(f"  {str(t)}: sender={sender_balances_before.get(str(t), 0)} recipient={recipient_balances_before.get(str(t), 0)}")
+            # token_ids elements are TokenId objects (not strings), so use them as dict keys
+            print(f" {str(t)}: sender={sender_balances_before.get(t, 0)} recipient={recipient_balances_before.get(t, 0)}")
 
         tx = TokenAirdropTransaction()
         for token_id in token_ids:
@@ -114,7 +115,8 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
 
         print("\nBalances after airdrop:")
         for t in token_ids:
-            print(f"  {str(t)}: sender={sender_balances_after.get(str(t), 0)} recipient={recipient_balances_after.get(str(t), 0)}")
+            # token_ids elements are TokenId objects (not strings), so use them as dict keys
+            print(f" {str(t)}: sender={sender_balances_after.get(t, 0)} recipient={recipient_balances_after.get(t, 0)}")
 
         return pending
     except Exception as e:
@@ -132,14 +134,9 @@ def cancel_airdrops(client, operator_key, pending_airdrops):
             return
 
         for record in pending_airdrops:
-            # record may be a struct/object with attribute `pending_airdrop_id`
-            pid = getattr(record, "pending_airdrop_id", None)
-            if pid is None:
-                # try alternative attribute name
-                pid = getattr(record, "id", None)
-            if pid is None:
-                print(f"Skipping record without pending id: {record}")
-                continue
+            # `record.pending_airdrop_id` is already a PendingAirdropId object
+            # use it directly (no need to try other attribute names)
+            pid = record.pending_airdrop_id
             cancel_airdrop_tx.add_pending_airdrop(pid)
 
         cancel_airdrop_tx = cancel_airdrop_tx.freeze_with(client).sign(operator_key)
