@@ -24,7 +24,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: bump protobuf from 6.33.0 to 6.33.1 (#796)
 - fix: Allow `max_automatic_token_associations` to be set to -1 (unlimited) in `AccountCreateTransaction` and add field to `AccountInfo`.
 - Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
-- Update github actions checkout from 5.0.0 to 5.0.1 (#814)
+
 
 ### Fixed
 - chore: fixed integration test names without a test prefix or postfix
