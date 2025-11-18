@@ -34,3 +34,4 @@ src/hiero_sdk_python/hapi
 # Lock files
 uv.lock
 pdm.lock
+pubkey.asc
