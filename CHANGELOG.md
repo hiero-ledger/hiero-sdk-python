@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/token_create_transaction_freeze_key.py` showcasing freeze key behavior, expected failures without the key, and the effect of freezing/unfreezing on transfers.
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
 - Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- Add `examples/topic_info.py` to demonstrate `TopicInfo` operations.
 - feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - EvmAddress class
 - `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
