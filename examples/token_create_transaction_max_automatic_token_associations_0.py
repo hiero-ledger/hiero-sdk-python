@@ -1,16 +1,13 @@
 """
-Implenting for Issue #797
 Example: demonstrate how max_automatic_token_associations=0 behaves.
-
 The script walks through:
 1. Creating a fungible token on Hedera testnet (default network).
 2. Creating an account whose max automatic associations is zero.
 3. Attempting a token transfer (it fails because no association exists).
 4. Associating the token for that account.
 5. Transferring again, this time succeeding.
-
 Run with:
-    uv run examples/max_automatic_token_associations_0.py
+    uv run examples/token_create_transaction_max_automatic_token_associations_0
 """
 
 import os
