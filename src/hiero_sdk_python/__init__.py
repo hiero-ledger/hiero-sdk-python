@@ -64,6 +64,7 @@ from .response_code import ResponseCode
 
 # HBAR
 from .hbar import Hbar
+from .hbar_unit import HbarUnit
 
 # Timestamp
 from .timestamp import Timestamp
@@ -236,6 +237,7 @@ __all__ = [
 
     # HBAR
     "Hbar",
+    "HbarUnit",
     "ResponseCode",
     "Timestamp",
     "Duration",
