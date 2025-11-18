@@ -8,20 +8,37 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Add `examples/token_create_transaction_max_automatic_token_associations_0.py` to demonstrate how `max_automatic_token_associations=0` behaves.
+- Add `examples/topic_id.py` to demonstrate `TopicId` opeartions
+- Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
+- Added missing validation logic `fee_schedule_key` in integration `token_create_transaction_e2e_test.py` and ``token_update_transaction_e2e_test.py`. 
+- Add `account_balance_query.py` example to demonstrate how to use the CryptoGetAccountBalanceQuery class.
+- Add `examples/token_create_transaction_admin_key.py` demonstrating admin key privileges for token management including token updates, key changes, and deletion (#798)
+- Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
+- Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 
 
 ### Changed
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
-
+- upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
+- chore: Split `examples/account_allowance_nft.py` into separate `account_allowance_approve_transaction_nft.py` and `account_allowance_delete_transaction_nft.py` examples.
+- chore: bump protobuf from 6.33.0 to 6.33.1 (#796)
+- fix: Allow `max_automatic_token_associations` to be set to -1 (unlimited) in `AccountCreateTransaction` and add field to `AccountInfo`.
+- Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
+- Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 
 ### Fixed
 - chore: fix test.yml workflow to log import errors (#740)
+- chore: fixed integration test names without a test prefix or postfix
 
 
 
 ## [0.1.8] - 2025-11-07
 
 ### Added
+- `is_unknown` property added to `src/hiero_sdk_python/response_code.py`
+- Example `response_code.py`
 - Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
 - Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
 - Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
