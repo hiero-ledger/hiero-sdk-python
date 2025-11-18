@@ -19,11 +19,7 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import (
-    token_create_pb2,
-    basic_types_pb2,
-    transaction_pb2,
-)
+from hiero_sdk_python.hapi.services import token_create_pb2, basic_types_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -64,13 +60,13 @@ class TokenParams:
     decimals: int = 0  # Default to zero decimals
     initial_supply: int = 0  # Default to zero initial supply
     token_type: TokenType = TokenType.FUNGIBLE_COMMON  # Default to Fungible Common
-    max_supply: int = 0  # Since defaulting to infinite
-    supply_type: SupplyType = SupplyType.INFINITE  # Default to infinite
+    max_supply: int = 0 # Since defaulting to infinite
+    supply_type: SupplyType = SupplyType.INFINITE # Default to infinite
     freeze_default: bool = False
     custom_fees: List[CustomFee] = field(default_factory=list)
     expiration_time: Optional[Timestamp] = None
     auto_renew_account_id: Optional[AccountId] = None
-    auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD  # Default around ~90 days
+    auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD # Default around ~90 days
     memo: Optional[str] = None
     metadata: Optional[bytes] = None
 
@@ -78,7 +74,7 @@ class TokenParams:
 @dataclass
 class TokenKeys:
     """
-    Represents cryptographic keys associated with a token.
+    Represents cryptographic keys associated with a token. 
     Does not include treasury_key which is for transaction signing.
 
     Attributes:
@@ -100,7 +96,6 @@ class TokenKeys:
     kyc_key: Optional[Key] = None
     fee_schedule_key: Optional[Key] = None
 
-
 class TokenCreateValidator:
     """Token, key and freeze checks for creating a token as per the proto"""
 
@@ -116,9 +111,7 @@ class TokenCreateValidator:
         TokenCreateValidator._validate_supply_max_and_type(token_params)
 
     @staticmethod
-    def _validate_token_freeze_status(
-        keys: TokenKeys, token_params: TokenParams
-    ) -> None:
+    def _validate_token_freeze_status(keys: TokenKeys, token_params: TokenParams) -> None:
         """Ensure account is not frozen for this token."""
         if token_params.freeze_default:
             if not keys.freeze_key:
@@ -172,6 +165,7 @@ class TokenCreateValidator:
         if token_params.max_supply > MAXIMUM_SUPPLY:
             raise ValueError(f"Max supply cannot exceed {MAXIMUM_SUPPLY}")
 
+
     @staticmethod
     def _validate_decimals_and_token_type(token_params: TokenParams) -> None:
         """
@@ -183,18 +177,14 @@ class TokenCreateValidator:
         if token_params.token_type == TokenType.FUNGIBLE_COMMON:
             # Fungible tokens must have an initial supply > 0
             if token_params.initial_supply <= 0:
-                raise ValueError(
-                    "A Fungible Token requires an initial supply greater than zero"
-                )
+                raise ValueError("A Fungible Token requires an initial supply greater than zero")
 
         elif token_params.token_type == TokenType.NON_FUNGIBLE_UNIQUE:
             # Non-fungible tokens must have zero decimals and zero initial supply
             if token_params.decimals != 0:
                 raise ValueError("A Non-fungible Unique Token must have zero decimals")
             if token_params.initial_supply != 0:
-                raise ValueError(
-                    "A Non-fungible Unique Token requires an initial supply of zero"
-                )
+                raise ValueError("A Non-fungible Unique Token requires an initial supply of zero")
 
     @staticmethod
     def _validate_supply_max_and_type(token_params: TokenParams) -> None:
@@ -204,24 +194,19 @@ class TokenCreateValidator:
         # Setting a max supply is only approprite for a finite token.
         if token_params.max_supply != 0:
             if token_params.supply_type != SupplyType.FINITE:
-                raise ValueError(
-                    "Setting a max supply field requires setting a finite supply type"
-                )
+                raise ValueError("Setting a max supply field requires setting a finite supply type")
 
         # Finite tokens have the option to set a max supply >0.
         # A finite token must have max supply > 0.
         if token_params.supply_type == SupplyType.FINITE:
             if token_params.max_supply <= 0:
-                raise ValueError(
-                    "A finite supply token requires max_supply greater than zero 0"
-                )
+                raise ValueError("A finite supply token requires max_supply greater than zero 0")
 
             # Ensure max supply is greater than initial supply
             if token_params.initial_supply > token_params.max_supply:
                 raise ValueError(
                     "Initial supply cannot exceed the defined max supply for a finite token"
                 )
-
 
 class TokenCreateTransaction(Transaction):
     """
@@ -235,10 +220,10 @@ class TokenCreateTransaction(Transaction):
     """
 
     def __init__(
-        self,
-        token_params: Optional[TokenParams] = None,
-        keys: Optional[TokenKeys] = None,
-    ) -> None:
+            self,
+            token_params: Optional[TokenParams] = None,
+            keys: Optional[TokenKeys] = None
+        ) -> None:
         """
         Initializes a new TokenCreateTransaction instance with token parameters and optional keys.
 
@@ -252,8 +237,8 @@ class TokenCreateTransaction(Transaction):
         token_params (TokenParams, Optional): The token parameters (name, symbol, decimals, etc.).
                                     If None, a default/blank TokenParams is created,
                                     expecting you to call setters later.
-        keys (TokenKeys, Optional): The token keys (admin, supply, freeze).
-                                    If None, an empty TokenKeys is created,
+        keys (TokenKeys, Optional): The token keys (admin, supply, freeze). 
+                                    If None, an empty TokenKeys is created, 
                                     expecting you to call setter methods if needed.
         """
         super().__init__()
@@ -272,7 +257,7 @@ class TokenCreateTransaction(Transaction):
                 supply_type=SupplyType.INFINITE,
                 freeze_default=False,
                 expiration_time=None,
-                auto_renew_period=AUTO_RENEW_PERIOD,
+                auto_renew_period=AUTO_RENEW_PERIOD
             )
 
         # Store TokenParams and TokenKeys.
@@ -310,65 +295,61 @@ class TokenCreateTransaction(Transaction):
 
     # These allow setting of individual fields
     def set_token_name(self, name: str) -> "TokenCreateTransaction":
-        """Sets the token name for the transaction."""
+        """ Sets the token name for the transaction."""
         self._require_not_frozen()
         self._token_params.token_name = name
         return self
 
     def set_token_symbol(self, symbol: str) -> "TokenCreateTransaction":
-        """Sets the token symbol for the transaction."""
+        """ Sets the token symbol for the transaction."""
         self._require_not_frozen()
         self._token_params.token_symbol = symbol
         return self
 
-    def set_treasury_account_id(
-        self, account_id: AccountId
-    ) -> "TokenCreateTransaction":
-        """Sets the treasury account ID for the token."""
+    def set_treasury_account_id(self, account_id: AccountId) -> "TokenCreateTransaction":
+        """ Sets the treasury account ID for the token."""
         self._require_not_frozen()
         self._token_params.treasury_account_id = account_id
         return self
 
     def set_decimals(self, decimals: int) -> "TokenCreateTransaction":
-        """Sets the number of decimals for the token."""
+        """ Sets the number of decimals for the token."""
         self._require_not_frozen()
         self._token_params.decimals = decimals
         return self
 
     def set_initial_supply(self, initial_supply: int) -> "TokenCreateTransaction":
-        """Sets the initial supply of the token."""
+        """ Sets the initial supply of the token."""
         self._require_not_frozen()
         self._token_params.initial_supply = initial_supply
         return self
 
     def set_token_type(self, token_type: TokenType) -> "TokenCreateTransaction":
-        """Sets the type of the token, such as fungible or non-fungible."""
+        """ Sets the type of the token, such as fungible or non-fungible. """
         self._require_not_frozen()
         self._token_params.token_type = token_type
         return self
 
     def set_max_supply(self, max_supply: int) -> "TokenCreateTransaction":
-        """Sets the maximum supply of the token.
+        """ Sets the maximum supply of the token. 
         For fungible tokens, this is the max number of tokens that can be created."""
         self._require_not_frozen()
         self._token_params.max_supply = max_supply
         return self
 
     def set_supply_type(self, supply_type: SupplyType) -> "TokenCreateTransaction":
-        """Sets the supply type of the token, such as finite or infinite."""
+        """ Sets the supply type of the token, such as finite or infinite."""
         self._require_not_frozen()
         self._token_params.supply_type = supply_type
         return self
 
     def set_freeze_default(self, freeze_default: bool) -> "TokenCreateTransaction":
-        """Sets the default freeze status for accounts associated with this token."""
+        """ Sets the default freeze status for accounts associated with this token."""
         self._require_not_frozen()
         self._token_params.freeze_default = freeze_default
         return self
 
-    def set_expiration_time(
-        self, expiration_time: Timestamp
-    ) -> "TokenCreateTransaction":
+    def set_expiration_time(self, expiration_time: Timestamp) -> "TokenCreateTransaction":
         """Sets the explicit expiration time for the token."""
         self._require_not_frozen()
         self._token_params.expiration_time = expiration_time
@@ -376,17 +357,13 @@ class TokenCreateTransaction(Transaction):
         self._token_params.auto_renew_period = None
         return self
 
-    def set_auto_renew_period(
-        self, auto_renew_period: Duration
-    ) -> "TokenCreateTransaction":
+    def set_auto_renew_period(self, auto_renew_period: Duration) -> "TokenCreateTransaction":
         """Sets the auto-renew period for the token."""
         self._require_not_frozen()
         self._token_params.auto_renew_period = auto_renew_period
         return self
 
-    def set_auto_renew_account_id(
-        self, auto_renew_account_id: AccountId
-    ) -> "TokenCreateTransaction":
+    def set_auto_renew_account_id(self, auto_renew_account_id: AccountId) -> "TokenCreateTransaction":
         """Sets the auto-renew account ID for the token."""
         self._require_not_frozen()
         self._token_params.auto_renew_account_id = auto_renew_account_id
@@ -401,7 +378,7 @@ class TokenCreateTransaction(Transaction):
     def set_admin_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the admin key for the token, which allows updating and deleting the token."""
     def set_admin_key(self, key: PrivateKey) -> "TokenCreateTransaction":
-        """Sets the admin key for the token, which allows updating and deleting the token."""
+        """ Sets the admin key for the token, which allows updating and deleting the token."""
         self._require_not_frozen()
         self._keys.admin_key = key
         return self
@@ -460,7 +437,7 @@ class TokenCreateTransaction(Transaction):
 
         # accept stringt and converts to bytes
         if isinstance(metadata, str):
-            metadata = metadata.encode("utf-8")
+            metyadata = metadata.encode("utf-8")
 
         # type validation, if users pass something that is not a str or a byte
         if not isinstance(metadata, (bytes, bytearray)):
@@ -526,13 +503,14 @@ class TokenCreateTransaction(Transaction):
 
         return super().freeze_with(client)
 
+
     def _build_proto_body(self) -> token_create_pb2.TokenCreateTransactionBody:
         """
         Returns the protobuf body for the token create transaction.
-
+        
         Returns:
             TokenCreateTransactionBody: The protobuf body for this transaction.
-
+            
         Raises:
             ValueError: If required fields are missing or invalid.
         """
@@ -540,9 +518,7 @@ class TokenCreateTransaction(Transaction):
         TokenCreateValidator._validate_token_params(self._token_params)
 
         # Validate freeze status
-        TokenCreateValidator._validate_token_freeze_status(
-            self._keys, self._token_params
-        )
+        TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
 
         # Convert keys
         admin_key_proto = self._to_proto_key(self._keys.admin_key)
@@ -552,7 +528,7 @@ class TokenCreateTransaction(Transaction):
         metadata_key_proto = self._to_proto_key(self._keys.metadata_key)
         pause_key_proto = self._to_proto_key(self._keys.pause_key)
         kyc_key_proto = self._to_proto_key(self._keys.kyc_key)
-        fee_schedules_key_proto = self._to_proto_key(self._keys.fee_schedule_key)
+        fee_schedules_key_proto = self._to_proto_key(self._keys.fee_schedule_key);
 
         # Resolve enum values with defaults
         token_type_value = (
@@ -613,9 +589,7 @@ class TokenCreateTransaction(Transaction):
             TransactionBody: The protobuf transaction body containing the token creation details.
         """
         token_create_body = self._build_proto_body()
-        transaction_body: transaction_pb2.TransactionBody = (
-            self.build_base_transaction_body()
-        )
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenCreation.CopyFrom(token_create_body)
         return transaction_body
 
@@ -632,4 +606,7 @@ class TokenCreateTransaction(Transaction):
         return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
-        return _Method(transaction_func=channel.token.createToken, query_func=None)
+        return _Method(
+            transaction_func=channel.token.createToken,
+            query_func=None
+        )
