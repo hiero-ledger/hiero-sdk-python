@@ -4,6 +4,7 @@ from cryptography.hazmat.primitives.asymmetric import ec, ed25519
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from cryptography.exceptions import InvalidSignature
+from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.utils.crypto_utils import keccak256
@@ -571,3 +572,51 @@ def test_repr_ecdsa(ecdsa_keypair):
     # It must include the raw public-key hex string
     assert pubk.to_string_raw() in r
 
+def test_to_evm_address_ecdsa_key(ecdsa_keypair):
+    """Test that the evm_address is created."""
+    _, pub = ecdsa_keypair
+
+    public_key = PublicKey(pub)
+    evm_address = public_key.to_evm_address()
+
+    assert evm_address is not None
+    assert isinstance(evm_address, EvmAddress)
+    assert len(evm_address.address_bytes) == 20
+
+def test_to_evm_address_from_ecdsa_key_manual_derivation(ecdsa_keypair):
+    """Verify that to_evm_address() matches manual derivation."""
+    _, pub = ecdsa_keypair
+    public_key = PublicKey(pub)
+
+    # Manual derivation
+    uncompressed = public_key.to_bytes_ecdsa(compressed=False)
+    evm_bytes = keccak256(uncompressed[1:])[-20:]
+
+    derived_bytes = public_key.to_evm_address().address_bytes
+
+    assert evm_bytes== derived_bytes
+
+def test_to_evm_address_with_same_ecdsa_key(ecdsa_keypair):
+    """Test deriving EVM address from a valid same ECDSA public key."""
+    _, pub = ecdsa_keypair
+    public_key = PublicKey(pub)
+
+    evm_addr1 = public_key.to_evm_address()
+
+    assert isinstance(evm_addr1, EvmAddress)
+    assert len(evm_addr1.address_bytes) == 20
+
+    # Derivation should be same for the same key
+    evm_addr2 = public_key.to_evm_address()
+    assert isinstance(evm_addr1, EvmAddress)
+    assert len(evm_addr1.address_bytes) == 20
+
+    assert evm_addr1 == evm_addr2
+
+def test_to_evm_address_raises_for_ed25519(ed25519_keypair):
+    """Ensure ValueError is raised when deriving EVM address from Ed25519 key."""
+    _, pub = ed25519_keypair
+    public_key = PublicKey(pub)
+
+    with pytest.raises(ValueError, match="Cannot derive an EVM address"):
+        public_key.to_evm_address()

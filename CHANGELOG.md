@@ -17,7 +17,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
 - Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
 - feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
-
+- EvmAddress class
+- `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
+- `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 
 ### Changed
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
