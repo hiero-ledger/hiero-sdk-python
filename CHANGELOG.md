@@ -17,6 +17,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
 - Add `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
 - Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
+- EvmAddress class
+- `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
+- `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Add `max_automatic_token_associations`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to `AccountUpdateTransaction` (#801)
 
 
@@ -30,6 +33,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 
 ### Fixed
+- chore: fix test.yml workflow to log import errors (#740)
 - chore: fixed integration test names without a test prefix or postfix
 
 
