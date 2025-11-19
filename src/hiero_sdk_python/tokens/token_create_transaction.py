@@ -377,8 +377,6 @@ class TokenCreateTransaction(Transaction):
 
     def set_admin_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the admin key for the token, which allows updating and deleting the token."""
-    def set_admin_key(self, key: PrivateKey) -> "TokenCreateTransaction":
-        """ Sets the admin key for the token, which allows updating and deleting the token."""
         self._require_not_frozen()
         self._keys.admin_key = key
         return self
