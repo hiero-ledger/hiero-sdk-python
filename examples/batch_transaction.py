@@ -57,7 +57,7 @@ def create_account(client):
         tx = (
             AccountCreateTransaction()
             .set_key(key.public_key())
-            .set_max_automatic_token_associations(2)
+            .set_max_automatic_token_associations(2) # to transfer token without associating it
             .set_initial_balance(1)
         )
         
@@ -97,7 +97,6 @@ def create_fungible_token(client, freeze_key):
     except Exception as e:
         print(f"Error creating token: {e}")
         sys.exit(1)
-
 
 def freeze_token(client, account_id, token_id, freeze_key):
     """

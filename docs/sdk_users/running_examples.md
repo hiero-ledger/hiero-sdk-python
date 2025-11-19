@@ -79,6 +79,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Creating a Node](#creating-a-node)
   - [Updating a Node](#updating-a-node)
   - [Deleting a Node](#deleting-a-node)
+- [Batch Transaction](#batch-transaction)
+  - [Create a Batch Transaction](#create-a-batch-transaction)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 - [Miscellaneous Transactions](#miscellaneous-transactions)
@@ -2056,6 +2058,70 @@ transaction.sign(admin_key)  # Sign with the admin key
 )
 
 receipt = transaction.execute(client)
+```
+## Batch Transaction
+
+### Create a Batch Transaction
+
+#### Pythonic Syntax:
+```python
+# Create a transaction to be batched (e.g., a transfer transaction)
+transfer_tx = TransferTransaction(
+    hbar_transfers={
+        sender_id: -amount,
+        recipient_id: amount
+    }
+)
+
+# There are two approaches to mark a transaction as an inner transaction:
+
+# Approach 1: Use transaction.batchify(client, batch_key)
+# This sets the batch key, freezes the transaction, and signs it with the client's private key.
+transfer_tx.batchify(client=client, batch_key=batch_key)
+
+# Approach 2: Manually configure the transaction for batching
+transfer_tx.set_batch_key(batch_key)
+transfer_tx.freeze_with(client)
+transfer_tx.sign(client.operator_private_key)
+
+# Create the BatchTransaction and add inner transactions
+batch_tx = BatchTransaction()
+batch_tx.add_inner_transaction(transfer_tx)
+
+# Freeze and sign the batch transaction
+batch_tx.freeze_with(client)
+batch_tx.sign(batch_key)
+```
+
+#### Method Chaining:
+```python
+# Create a transaction to be batched (e.g., a transfer transaction)
+# Approch 1: Use transaction.batchify(client, batch_key)
+transfer_tx = (
+    TransferTransaction()
+    .add_hbar_transfer(sender_id, -amount)
+    .add_hbar_transfer(recipient_id, amount)
+    .batchify(client, batch_key)
+)
+
+#Approch 2: Manually configure the transaction for batching
+transfer_tx = (
+    TransferTransaction()
+    .add_hbar_transfer(sender_id, -amount)
+    .add_hbar_transfer(recipient_id, amount)
+    .set_batch_key(batch_key)
+    .freeze_with(client)
+    .sign(client.operator_private_key)
+)
+
+# Build the BatchTransaction with method chaining
+receipt = (
+    BatchTransaction()
+    .add_inner_transaction(transfer_tx)
+    .freeze_with(client)
+    .sign(batch_key)
+    .execute(client)
+)
 ```
 
 ## Miscellaneous Queries
