@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Add `examples/token_create_transaction_pause_key.py` example demonstrating token pause/unpause behavior and pause key usage (#820)
 - Add `examples/token_create_transaction_max_automatic_token_associations_0.py` to demonstrate how `max_automatic_token_associations=0` behaves.
 - Add `examples/topic_id.py` to demonstrate `TopicId` opeartions
 - Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
@@ -61,6 +62,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
+
 
 ### Changed
 - chore: bumped solo action from 14.0 to 15.0 (#764)
