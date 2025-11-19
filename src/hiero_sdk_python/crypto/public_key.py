@@ -6,7 +6,6 @@ from cryptography.hazmat.primitives.asymmetric import ed25519, ec
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.crypto_utils import keccak256
@@ -470,26 +469,6 @@ class PublicKey:
         Matches old usage that calls to_string().
         """
         return self.to_string_raw()
-    
-    def to_evm_address(self):
-        """
-        Derives the EVM address corresponding to this ECDSA public key.
-        
-        Note:
-            This address derivation is valid only for ECDSA secp256k1 keys.
-            Calling this method on an Ed25519 key will raise a ValueError.
-            
-        Returns:
-            EvmAddress: The derived EVM address.
-        """
-        if self.is_ed25519():
-            raise ValueError("Cannot derive an EVM address from an Ed25519 key.")
-        
-        uncompressed_bytes = self.to_bytes_ecdsa(compressed=False)
-        keccak_bytes =  keccak256(uncompressed_bytes[1:])
-        evm_address = keccak_bytes[-20:]
-
-        return EvmAddress.from_bytes(evm_address)
 
     #
     # ----------------------------

@@ -15,7 +15,6 @@ from .account.account_records_query import AccountRecordsQuery
 # Crypto
 from .crypto.private_key import PrivateKey
 from .crypto.public_key import PublicKey
-from .crypto.evm_address import EvmAddress
 
 # Tokens
 from .tokens.token_create_transaction import TokenCreateTransaction
@@ -165,7 +164,6 @@ __all__ = [
     # Crypto
     "PrivateKey",
     "PublicKey",
-    "EvmAddress",
 
     # Tokens
     "TokenCreateTransaction",
