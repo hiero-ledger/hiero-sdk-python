@@ -437,7 +437,7 @@ class TokenCreateTransaction(Transaction):
 
         # accept stringt and converts to bytes
         if isinstance(metadata, str):
-            metyadata = metadata.encode("utf-8")
+            metadata = metadata.encode("utf-8")
 
         # type validation, if users pass something that is not a str or a byte
         if not isinstance(metadata, (bytes, bytearray)):
