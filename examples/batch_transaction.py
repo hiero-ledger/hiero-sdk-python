@@ -3,12 +3,10 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey
+from hiero_sdk_python import AccountId, Client, Network, PrivateKey
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
@@ -25,7 +23,7 @@ def get_balance(client, account_id, token_id):
         .token_balances
     )
 
-    print(f"Account: {account_id}: {tokens_balance[token_id] if tokens_balance else None}")
+    print(f"Account: {account_id}: {tokens_balance[token_id] if tokens_balance else 0}")
 
 def setup_client():
     """
@@ -156,10 +154,8 @@ def perform_batch_tx(client, sender, recipient, token_id, freeze_key):
         TokenUnfreezeTransaction()
         .set_account_id(sender)
         .set_token_id(token_id)
-        .set_batch_key(batch_key)
-        .freeze_with(client)
+        .batchify(client, batch_key)
         .sign(freeze_key)
-        .sign(client.operator_private_key)
     )
 
     transfer_tx = (
@@ -173,10 +169,8 @@ def perform_batch_tx(client, sender, recipient, token_id, freeze_key):
         TokenFreezeTransaction()
         .set_account_id(sender)
         .set_token_id(token_id)
-        .set_batch_key(batch_key)
-        .freeze_with(client)
+        .batchify(client, batch_key)
         .sign(freeze_key)
-        .sign(client.operator_private_key)
     )
 
     batch = (

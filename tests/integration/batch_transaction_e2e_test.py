@@ -58,6 +58,42 @@ def test_batch_transaction_can_execute(env):
 
     assert transfer_tx_receipt.status == ResponseCode.SUCCESS
 
+def test_batch_transaction_can_execute_from_bytes(env):
+    """Test can create and execute batch transaction from bytes."""
+    receiver_id = create_account_tx(PrivateKey.generate().public_key(), env.client)
+
+    transfer_tx = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=env.operator_id, amount=-1)
+        .add_hbar_transfer(account_id=receiver_id, amount=1)
+        .batchify(env.client, batch_key)
+    )
+
+    batch_tx = (
+        BatchTransaction()
+        .add_inner_transaction(transfer_tx)
+        .freeze_with(env.client)
+        .sign(batch_key)
+    )
+
+    # Convert to bytes
+    batch_bytes = batch_tx.to_bytes()
+    # Build from bytes
+    batch_tx_from_bytes = BatchTransaction.from_bytes(batch_bytes)
+    batch_receipt = batch_tx_from_bytes.execute(env.client)
+
+    assert batch_receipt.status == ResponseCode.SUCCESS
+
+    # Inner Transaction Receipt
+    transfer_tx_id = batch_tx_from_bytes.get_inner_transactions_ids()[0]
+    transfer_tx_receipt = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(transfer_tx_id)
+        .execute(env.client)
+    )
+
+    assert transfer_tx_receipt.status == ResponseCode.SUCCESS
+
 def test_batch_transaction_without_inner_transactions(env):
     """Test batch transaction with empty inner transaction's list should raise an error."""
     with pytest.raises(ValueError, match="BatchTransaction requires at least one inner transaction."):

@@ -739,6 +739,7 @@ class Transaction(_Executable):
             "tokenReject": "hiero_sdk_python.tokens.token_reject_transaction.TokenRejectTransaction",
             "tokenAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction.TokenAirdropTransaction",
             "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_cancel_airdrop_transaction.TokenCancelAirdropTransaction",
+            "atomic_batch": "hiero_sdk_python.transaction.batch_transaction.BatchTransaction"
         }
 
         class_path = transaction_type_map.get(transaction_type)
@@ -801,7 +802,7 @@ class Transaction(_Executable):
         Set the batch key required for batch transaction.
 
         Args:
-            batch_key(PrivateKey):
+            batch_key (PrivateKey): Private key to use as batch key.
 
         Returns:
             Transaction: A reconstructed transaction instance of the appropriate subclass. 
@@ -811,7 +812,16 @@ class Transaction(_Executable):
         return self
     
     def batchify(self, client: Client, batch_key: PrivateKey):
-        """Marks the current transaction as an inner (batched) transaction."""
+        """
+        Marks the current transaction as an inner (batched) transaction.
+
+        Args:
+            client (Client): The client instance to use for setting defaults.
+            batch_key (PrivateKey): Private key to use as batch key.
+        
+        Returns:
+            Transaction: A reconstructed transaction instance of the appropriate subclass.
+        """
         self._require_not_frozen()
         self.set_batch_key(batch_key)
         self.freeze_with(client)

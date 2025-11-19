@@ -11,7 +11,6 @@ from typing import List, Optional
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import transaction_pb2
-from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.transaction_pb2 import AtomicBatchTransactionBody
 from hiero_sdk_python.system.freeze_transaction import FreezeTransaction
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -83,7 +82,9 @@ class BatchTransaction(Transaction):
         return transaction_ids
 
     def _verify_inner_transactions(self, transaction: Transaction) -> bool:
-        """Verify if the transaction is valid inner_transaction."""
+        """
+        Verify if the transaction is valid inner_transaction.
+        """
         if isinstance(transaction, (FreezeTransaction, BatchTransaction)):
             raise ValueError(f"Transaction type {type(transaction).__name__} is not allowed in a batch transaction.")
 
@@ -92,8 +93,40 @@ class BatchTransaction(Transaction):
 
         if transaction.batch_key is None:
             raise ValueError("Batch key needs to be set.")
+        
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map) -> "BatchTransaction":
+        """
+        Creates a BatchTransaction instance from protobuf components.
 
+        Args:
+            transaction_body: The parsed TransactionBody protobuf
+            body_bytes (bytes): The raw bytes of the transaction body
+            sig_map: The SignatureMap protobuf containing signatures
+
+        Returns:
+            BatchTransaction: A new transaction instance with all fields restored
+        """
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField('atomic_batch'):
+            atomic_batch = transaction_body.atomic_batch
+
+            for inner_transaction in atomic_batch.transactions:
+                inner_transction_proto = transaction_pb2.Transaction(
+                    signedTransactionBytes=inner_transaction
+                )
+
+                transaction.inner_transactions.append(
+                    Transaction.from_bytes(inner_transction_proto.SerializeToString())
+                )
+
+        return transaction
+            
     def _build_proto_body(self) -> AtomicBatchTransactionBody:
+        """
+        Returns the protobuf body for the batch transaction.
+        """
         if len(self.inner_transactions) == 0:
             raise ValueError("BatchTransaction requires at least one inner transaction.")
         
@@ -104,6 +137,12 @@ class BatchTransaction(Transaction):
         return proto_body
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
+        """
+        Builds and returns the protobuf transaction body for a batch transaction.
+
+        Returns:
+            TransactionBody: The built transaction body.
+        """
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.atomic_batch.CopyFrom(self._build_proto_body())
         return transaction_body
