@@ -2,11 +2,15 @@ name: PythonBot - Verify PR Commits
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, synchronize]
 
 permissions:
   contents: read
   pull-requests: write
+
+concurrency:
+  group: "verify-commits-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
 
 jobs:
   verify-commits:
