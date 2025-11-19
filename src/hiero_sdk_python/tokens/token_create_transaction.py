@@ -113,7 +113,8 @@ class TokenCreateValidator:
         if token_params.freeze_default:
             if not keys.freeze_key:
                 raise ValueError("Token is permanently frozen. Unable to proceed.")
-            raise ValueError("Token frozen. Please complete a Token Unfreeze Transaction.")
+            # freezeDefault=True simply starts accounts frozen; allow creation as long as
+            # a freeze key exists so the treasury (and others) can be unfrozen later.
 
     @staticmethod
     def _validate_required_fields(token_params: TokenParams) -> None:
