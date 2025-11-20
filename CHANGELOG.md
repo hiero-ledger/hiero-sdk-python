@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
 - Add workflow: github bot to respond to unverified PR commits (#750)
 - Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
 - Add `examples/token_create_transaction_max_automatic_token_associations_0.py` to demonstrate how `max_automatic_token_associations=0` behaves.
@@ -15,22 +16,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
 - Added missing validation logic `fee_schedule_key` in integration `token_create_transaction_e2e_test.py` and ``token_update_transaction_e2e_test.py`.
 - Add `account_balance_query.py` example to demonstrate how to use the CryptoGetAccountBalanceQuery class.
-
 - Add `examples/token_create_transaction_admin_key.py` demonstrating admin key privileges for token management including token updates, key changes, and deletion (#798)
 - Add `examples/token_create_transaction_freeze_key.py` showcasing freeze key behavior, expected failures without the key, and the effect of freezing/unfreezing on transfers.
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
-- # Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
-- Add `token_airdrop.py` fix codacy warning for middle complexity for method `check_token_transfer_for_pair`
+- Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
 - feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - EvmAddress class
 - `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
-- # workflow: bot workflow which notifies developers of workflow failures in their pull requests.
-- Add `token_airdrop_cancel.py`added detail to example/token_airdrop_drop.py
 
 ### Changed
 
+- Limit workflow bot to one message per PR
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
 - upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
 - chore: Split `examples/account_allowance_nft.py` into separate `account_allowance_approve_transaction_nft.py` and `account_allowance_delete_transaction_nft.py` examples.
@@ -43,8 +41,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - chore: fix test.yml workflow to log import errors (#740)
-
 - chore: fixed integration test names without a test prefix or postfix
+- Staked node ID id issue in the account_create_transationt_e2e_test
 
 ## [0.1.8] - 2025-11-07
 
@@ -52,7 +50,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - `is_unknown` property added to `src/hiero_sdk_python/response_code.py`
 - Example `response_code.py`
-
 - Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
 - Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
 - Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
