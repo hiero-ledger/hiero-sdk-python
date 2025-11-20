@@ -8,6 +8,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Add workflow: github bot to respond to unverified PR commits (#750)
+- Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
 - Add `examples/token_create_transaction_max_automatic_token_associations_0.py` to demonstrate how `max_automatic_token_associations=0` behaves.
 - Add `examples/topic_id.py` to demonstrate `TopicId` opeartions
 - Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
