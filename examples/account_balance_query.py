@@ -7,7 +7,7 @@ HBAR and token balances, including minting NFTs to the account."""
 import os
 import sys
 from dotenv import load_dotenv
-from hiero_sdk_python import (
+from hedera import (
     Client,
     AccountId,
     PrivateKey,
