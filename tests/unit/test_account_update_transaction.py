@@ -620,6 +620,11 @@ def test_set_staked_account_id():
     assert account_tx.staked_node_id is None  # Should clear the other field
     assert result is account_tx  # Method chaining
 
+    # Passing None should clear and set sentinel 0.0.0
+    account_tx.set_staked_account_id(None)
+    assert account_tx.staked_account_id == AccountId(0, 0, 0)
+    assert account_tx.staked_node_id is None
+
 
 def test_set_staked_node_id():
     """Test setting staked node ID."""
@@ -630,6 +635,11 @@ def test_set_staked_node_id():
     assert account_tx.staked_node_id == staked_node_id
     assert account_tx.staked_account_id is None  # Should clear the other field
     assert result is account_tx  # Method chaining
+
+    # Passing None should clear and set sentinel -1
+    account_tx.set_staked_node_id(None)
+    assert account_tx.staked_node_id == -1
+    assert account_tx.staked_account_id is None
 
 
 def test_staked_id_oneof_behavior():
@@ -652,6 +662,15 @@ def test_staked_id_oneof_behavior():
     account_tx.set_staked_account_id(staked_account_id)
     assert account_tx.staked_account_id == staked_account_id
     assert account_tx.staked_node_id is None
+
+    # Clearing should set sentinel values
+    account_tx.clear_staked_account_id()
+    assert account_tx.staked_account_id == AccountId(0, 0, 0)
+    assert account_tx.staked_node_id is None
+
+    account_tx.clear_staked_node_id()
+    assert account_tx.staked_node_id == -1
+    assert account_tx.staked_account_id is None
 
 
 def test_set_decline_staking_reward():
@@ -766,3 +785,29 @@ def test_build_transaction_body_with_optional_new_fields_none(mock_account_ids):
     assert not transaction_body.cryptoUpdateAccount.HasField("staked_account_id")
     assert not transaction_body.cryptoUpdateAccount.HasField("staked_node_id")
     assert not transaction_body.cryptoUpdateAccount.HasField("decline_reward")
+
+
+def test_build_transaction_body_with_cleared_staking(mock_account_ids):
+    """Sentinel values should be emitted when staking is cleared."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id = AccountId(0, 0, 123)
+
+    # Clear staked account
+    account_tx = AccountUpdateTransaction().set_account_id(account_id)
+    account_tx.set_staked_account_id(None)
+    account_tx.operator_account_id = operator_id
+    account_tx.node_account_id = node_account_id
+    txn_body = account_tx.build_transaction_body().cryptoUpdateAccount
+    assert txn_body.staked_account_id.accountNum == 0
+    assert txn_body.staked_account_id.realmNum == 0
+    assert txn_body.staked_account_id.shardNum == 0
+    assert not txn_body.HasField("staked_node_id")
+
+    # Clear staked node
+    account_tx = AccountUpdateTransaction().set_account_id(account_id)
+    account_tx.set_staked_node_id(None)
+    account_tx.operator_account_id = operator_id
+    account_tx.node_account_id = node_account_id
+    txn_body = account_tx.build_transaction_body().cryptoUpdateAccount
+    assert txn_body.staked_node_id == -1
+    assert not txn_body.HasField("staked_account_id")

@@ -209,17 +209,20 @@ class AccountUpdateTransaction(Transaction):
         Sets the account to which this account is staking its balances.
 
         This field is mutually exclusive with staked_node_id. Setting this will
-        clear any previously set staked_node_id. Call `clear_staked_account_id()`
-        to explicitly remove staking and send the sentinel AccountId (0.0.0).
+        clear any previously set staked_node_id. Passing ``None`` (or calling
+        :func:`clear_staked_account_id`) removes staking and sends the sentinel
+        AccountId (0.0.0) to the network.
 
         Args:
             staked_account_id (Optional[AccountId]): The account to which this account
-                will stake its balances.
+                will stake its balances. ``None`` clears the staking configuration.
 
         Returns:
             AccountUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if staked_account_id is None:
+            return self.clear_staked_account_id()
         self.staked_account_id = staked_account_id
         self.staked_node_id = None  # Clear the other field in the oneOf
         return self
@@ -231,17 +234,19 @@ class AccountUpdateTransaction(Transaction):
         Sets the node ID to which this account is staking its balances.
 
         This field is mutually exclusive with staked_account_id. Setting this will
-        clear any previously set staked_account_id. Call `clear_staked_node_id()`
-        to explicitly remove staking and send the sentinel value (-1).
+        clear any previously set staked_account_id. Passing ``None`` (or calling
+        :func:`clear_staked_node_id`) removes staking and sends the sentinel value (-1).
 
         Args:
             staked_node_id (Optional[int]): The node ID to which this account will stake
-                its balances.
+                its balances. ``None`` clears the staking configuration.
 
         Returns:
             AccountUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if staked_node_id is None:
+            return self.clear_staked_node_id()
         self.staked_node_id = staked_node_id
         self.staked_account_id = None  # Clear the other field in the oneOf
         return self
