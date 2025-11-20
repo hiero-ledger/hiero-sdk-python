@@ -8,7 +8,7 @@ This README provides an introduction to using Pylint with the Hiero Python SDK.
 ## 📋 What Is Pylint?
 
 [Pylint](https://pylint.pycqa.org/) is a static code analysis tool for Python that checks for programming errors, helps enforce a coding standard, and offers suggestions for refactoring. It parses your code without executing it, analyzing syntax, semantics, and style.
-
+ 
 ## 🎯 Why Use Pylint?
 Using Pylint is currently optional but it can help to:
 
