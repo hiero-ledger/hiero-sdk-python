@@ -6,7 +6,7 @@ AccountUpdateTransaction class, which is used to update an account on the networ
 from dataclasses import dataclass
 from typing import Optional
 
-from google.protobuf.wrappers_pb2 import BoolValue, StringValue
+from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -35,6 +35,14 @@ class AccountUpdateParams:
         account_memo (Optional[str]): The new memo for the account.
         receiver_signature_required (Optional[bool]): Whether receiver signature is required.
         expiration_time (Optional[Timestamp]): The new expiration time for the account.
+        max_automatic_token_associations (Optional[int]): The maximum number of tokens that
+            can be auto-associated with this account. Use -1 for unlimited, 0 for none.
+        staked_account_id (Optional[AccountId]): The account to which this account is staking
+            its balances. Mutually exclusive with staked_node_id.
+        staked_node_id (Optional[int]): The node ID to which this account is staking
+            its balances. Mutually exclusive with staked_account_id.
+        decline_staking_reward (Optional[bool]): If true, the account declines receiving
+            staking rewards.
     """
 
     account_id: Optional[AccountId] = None
@@ -43,6 +51,10 @@ class AccountUpdateParams:
     account_memo: Optional[str] = None
     receiver_signature_required: Optional[bool] = None
     expiration_time: Optional[Timestamp] = None
+    max_automatic_token_associations: Optional[int] = None
+    staked_account_id: Optional[AccountId] = None
+    staked_node_id: Optional[int] = None
+    decline_staking_reward: Optional[bool] = None
 
 
 class AccountUpdateTransaction(Transaction):
@@ -70,6 +82,10 @@ class AccountUpdateTransaction(Transaction):
         self.account_memo = params.account_memo
         self.receiver_signature_required = params.receiver_signature_required
         self.expiration_time = params.expiration_time
+        self.max_automatic_token_associations = params.max_automatic_token_associations
+        self.staked_account_id = params.staked_account_id
+        self.staked_node_id = params.staked_node_id
+        self.decline_staking_reward = params.decline_staking_reward
 
     def set_account_id(self, account_id: Optional[AccountId]) -> "AccountUpdateTransaction":
         """
@@ -161,6 +177,116 @@ class AccountUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
+    def set_max_automatic_token_associations(
+        self, max_automatic_token_associations: Optional[int]
+    ) -> "AccountUpdateTransaction":
+        """
+        Sets the maximum number of tokens that can be auto-associated with this account.
+
+        Args:
+            max_automatic_token_associations (Optional[int]): The maximum number of tokens
+                that can be auto-associated. Use -1 for unlimited, 0 for none.
+                Must be >= -1.
+
+        Returns:
+            AccountUpdateTransaction: This transaction instance.
+
+        Raises:
+            ValueError: If max_automatic_token_associations is less than -1.
+        """
+        self._require_not_frozen()
+        if max_automatic_token_associations is not None and max_automatic_token_associations < -1:
+            raise ValueError(
+                "max_automatic_token_associations must be -1 (unlimited) or a non-negative integer."
+            )
+        self.max_automatic_token_associations = max_automatic_token_associations
+        return self
+
+    def set_staked_account_id(
+        self, staked_account_id: Optional[AccountId]
+    ) -> "AccountUpdateTransaction":
+        """
+        Sets the account to which this account is staking its balances.
+
+        This field is mutually exclusive with staked_node_id. Setting this will
+        clear any previously set staked_node_id. Call `clear_staked_account_id()`
+        to explicitly remove staking and send the sentinel AccountId (0.0.0).
+
+        Args:
+            staked_account_id (Optional[AccountId]): The account to which this account
+                will stake its balances.
+
+        Returns:
+            AccountUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.staked_account_id = staked_account_id
+        self.staked_node_id = None  # Clear the other field in the oneOf
+        return self
+
+    def set_staked_node_id(
+        self, staked_node_id: Optional[int]
+    ) -> "AccountUpdateTransaction":
+        """
+        Sets the node ID to which this account is staking its balances.
+
+        This field is mutually exclusive with staked_account_id. Setting this will
+        clear any previously set staked_account_id. Call `clear_staked_node_id()`
+        to explicitly remove staking and send the sentinel value (-1).
+
+        Args:
+            staked_node_id (Optional[int]): The node ID to which this account will stake
+                its balances.
+
+        Returns:
+            AccountUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.staked_node_id = staked_node_id
+        self.staked_account_id = None  # Clear the other field in the oneOf
+        return self
+
+    def clear_staked_account_id(self) -> "AccountUpdateTransaction":
+        """
+        Clears staking to an account by setting the sentinel AccountId (0.0.0).
+
+        Returns:
+            AccountUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.staked_account_id = AccountId(0, 0, 0)
+        self.staked_node_id = None
+        return self
+
+    def clear_staked_node_id(self) -> "AccountUpdateTransaction":
+        """
+        Clears staking to a node by setting the sentinel node ID (-1).
+
+        Returns:
+            AccountUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.staked_node_id = -1
+        self.staked_account_id = None
+        return self
+
+    def set_decline_staking_reward(
+        self, decline_staking_reward: Optional[bool]
+    ) -> "AccountUpdateTransaction":
+        """
+        Sets whether the account declines receiving staking rewards.
+
+        Args:
+            decline_staking_reward (Optional[bool]): If True, the account declines receiving
+                staking rewards. If False or None, the account will receive rewards.
+
+        Returns:
+            AccountUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.decline_staking_reward = decline_staking_reward
+        return self
+
     def _build_proto_body(self):
         """
         Returns the protobuf body for the account update transaction.
@@ -174,7 +300,7 @@ class AccountUpdateTransaction(Transaction):
         if self.account_id is None:
             raise ValueError("Missing required AccountID to update")
 
-        return CryptoUpdateTransactionBody(
+        proto_body = CryptoUpdateTransactionBody(
             accountIDToUpdate=self.account_id._to_proto(),
             key=self.key._to_proto() if self.key else None,
             memo=StringValue(value=self.account_memo) if self.account_memo is not None else None,
@@ -187,7 +313,25 @@ class AccountUpdateTransaction(Transaction):
                 if self.receiver_signature_required is not None
                 else None
             ),
+            max_automatic_token_associations=(
+                Int32Value(value=self.max_automatic_token_associations)
+                if self.max_automatic_token_associations is not None
+                else None
+            ),
+            decline_reward=(
+                BoolValue(value=self.decline_staking_reward)
+                if self.decline_staking_reward is not None
+                else None
+            ),
         )
+
+        # Handle staked_id oneOf: only one can be set
+        if self.staked_account_id is not None:
+            proto_body.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
+        elif self.staked_node_id is not None:
+            proto_body.staked_node_id = self.staked_node_id
+
+        return proto_body
 
     def build_transaction_body(self):
         """

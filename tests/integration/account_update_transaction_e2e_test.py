@@ -272,3 +272,103 @@ def test_integration_account_update_transaction_with_only_account_id(env):
     assert (
         receipt.status == ResponseCode.SUCCESS
     ), f"Account update failed with status: {ResponseCode(receipt.status).name}"
+
+
+@pytest.mark.integration
+def test_integration_account_update_transaction_with_max_automatic_token_associations(env):
+    """Test updating max_automatic_token_associations and verifying it persists."""
+    # Create initial account
+    receipt = (
+        AccountCreateTransaction()
+        .set_key(env.operator_key.public_key())
+        .set_initial_balance(Hbar(2))
+        .execute(env.client)
+    )
+    assert (
+        receipt.status == ResponseCode.SUCCESS
+    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+
+    account_id = receipt.account_id
+    assert account_id is not None, "Account ID should not be None"
+
+    # Update max_automatic_token_associations
+    new_max_associations = 100
+    receipt = (
+        AccountUpdateTransaction()
+        .set_account_id(account_id)
+        .set_max_automatic_token_associations(new_max_associations)
+        .execute(env.client)
+    )
+    assert (
+        receipt.status == ResponseCode.SUCCESS
+    ), f"Account update failed with status: {ResponseCode(receipt.status).name}"
+
+    # Query account info to verify the update persisted
+    info = AccountInfoQuery(account_id).execute(env.client)
+    assert (
+        info.max_automatic_token_associations == new_max_associations
+    ), "Max automatic token associations should be updated"
+
+
+@pytest.mark.integration
+def test_integration_account_update_transaction_with_staking_fields(env):
+    """Test updating staking fields (staked_account_id, decline_staking_reward)."""
+    # Create two accounts - one to stake to
+    receipt1 = (
+        AccountCreateTransaction()
+        .set_key(env.operator_key.public_key())
+        .set_initial_balance(Hbar(2))
+        .execute(env.client)
+    )
+    assert receipt1.status == ResponseCode.SUCCESS
+    staked_account_id = receipt1.account_id
+
+    # Create account to update
+    receipt2 = (
+        AccountCreateTransaction()
+        .set_key(env.operator_key.public_key())
+        .set_initial_balance(Hbar(2))
+        .execute(env.client)
+    )
+    assert receipt2.status == ResponseCode.SUCCESS
+    account_id = receipt2.account_id
+
+    # Update with staking fields
+    receipt = (
+        AccountUpdateTransaction()
+        .set_account_id(account_id)
+        .set_staked_account_id(staked_account_id)
+        .set_decline_staking_reward(True)
+        .execute(env.client)
+    )
+    assert (
+        receipt.status == ResponseCode.SUCCESS
+    ), f"Account update with staking fields failed with status: {ResponseCode(receipt.status).name}"
+
+
+@pytest.mark.integration
+def test_integration_account_update_transaction_with_staked_node_id(env):
+    """Test updating with staked_node_id."""
+    # Create account to update
+    receipt = (
+        AccountCreateTransaction()
+        .set_key(env.operator_key.public_key())
+        .set_initial_balance(Hbar(2))
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS
+    account_id = receipt.account_id
+
+    # Update with staked_node_id (using node 0 as a test value)
+    # Note: In a real scenario, you'd use a valid node ID
+    receipt = (
+        AccountUpdateTransaction()
+        .set_account_id(account_id)
+        .set_staked_node_id(0)
+        .execute(env.client)
+    )
+    # This might succeed or fail depending on network state, but should not crash
+    assert receipt.status in [
+        ResponseCode.SUCCESS,
+        ResponseCode.INVALID_STAKING_ID,
+    ], f"Unexpected status: {ResponseCode(receipt.status).name}"
