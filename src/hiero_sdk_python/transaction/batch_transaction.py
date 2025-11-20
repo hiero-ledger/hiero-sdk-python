@@ -30,7 +30,7 @@ class BatchTransaction(Transaction):
         """
         super().__init__()
         self.inner_transactions: List[Transaction] = []
-        
+
         if inner_transactions:
             self.set_inner_transactions(inner_transactions)
 
@@ -81,7 +81,7 @@ class BatchTransaction(Transaction):
 
         return transaction_ids
 
-    def _verify_inner_transaction(self, transaction: Transaction) -> bool:
+    def _verify_inner_transaction(self, transaction: Transaction) -> None:
         """
         Validate that a transaction can be included as an inner batch transaction.
 
@@ -89,14 +89,17 @@ class BatchTransaction(Transaction):
             ValueError: If the transaction is invalid for batching.
         """
         if isinstance(transaction, (FreezeTransaction, BatchTransaction)):
-            raise ValueError(f"Transaction type {type(transaction).__name__} is not allowed in a batch transaction")
+            raise ValueError(
+                f"Transaction type {type(transaction).__name__} "
+                "is not allowed in a batch transaction"
+            )
 
         if not transaction._transaction_body_bytes:
             raise ValueError("Transaction must be frozen")
 
         if transaction.batch_key is None:
             raise ValueError("Batch key needs to be set")
-        
+
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map) -> "BatchTransaction":
         """
@@ -125,14 +128,14 @@ class BatchTransaction(Transaction):
                 )
 
         return transaction
-            
+
     def _build_proto_body(self) -> AtomicBatchTransactionBody:
         """
         Returns the protobuf body for the batch transaction.
         """
         if len(self.inner_transactions) == 0:
             raise ValueError("BatchTransaction requires at least one inner transaction.")
-        
+
         proto_body = AtomicBatchTransactionBody()
         for transaction in self.inner_transactions:
             proto_body.transactions.append(transaction._make_request().signedTransactionBytes)
@@ -149,11 +152,11 @@ class BatchTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.atomic_batch.CopyFrom(self._build_proto_body())
         return transaction_body
-    
+
     def build_scheduled_body(self):
         """Batch transactions cannot be scheduled."""
         raise ValueError("Cannot schedule Atomic Batch transaction.")
-    
+
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
             transaction_func=channel.util.atomicBatch,
