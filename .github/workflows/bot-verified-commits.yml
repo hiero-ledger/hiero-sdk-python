@@ -26,7 +26,7 @@ jobs:
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO="${{ github.repository }}"
-          COMMITS_URL="https://github.com/$REPO/pull/${{ PR_NUMBER }}/commits"
+          COMMITS_URL="https://github.com/$REPO/pull/${PR_NUMBER}/commits"
 
           echo "Checking commits in PR #$PR_NUMBER for repository $REPO..."
 

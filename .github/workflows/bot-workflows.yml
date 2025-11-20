@@ -1,5 +1,4 @@
 name: PythonBot - Workflow Failure Notifier
-
 on:  
   workflow_dispatch:
   workflow_run:
@@ -9,11 +8,9 @@ on:
       - "Run Examples"
     types:
       - completed
-
 permissions:
   contents: read
   pull-requests: write
-
 jobs:
   notify-pr:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
@@ -21,40 +18,38 @@ jobs:
     steps:
       - name: Get associated PR number
         id: get-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get "id" from the workflow run
+          # Get branch from the workflow run
           HEAD_BRANCH=$(gh run view ${{ github.event.workflow_run.id }} \
             --repo ${{ github.repository }} \
             --json headBranch --jq '.headBranch')
-
+          
           # Find the PR number for this branch
           PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --state all --head "$HEAD_BRANCH" --json number --jq '.[0].number')
-
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-
-
+      
       - name: Comment on PR
         if: env.PR_NUMBER != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           REPO="${{ github.repository }}"
-            COMMENT=$(cat <<EOF
-            Hi, this is WorkflowBot. 
-            Your pull request cannot be merged as it is not passing all our workflow checks. 
-            Please click on each check to review the logs and resolve issues so all checks pass.
-
-            To help you:
-            - [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
-            - [Changelog guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
-            - [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
-            - [Rebase guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
-            - [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md)
-            - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
-            - [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
-
-            Thank you for contributing!
-            From the Hiero Python SDK Team
+          COMMENT=$(cat <<EOF
+          Hi, this is WorkflowBot. 
+          Your pull request cannot be merged as it is not passing all our workflow checks. 
+          Please click on each check to review the logs and resolve issues so all checks pass.
+          To help you:
+          - [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+          - [Changelog guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+          - [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
+          - [Rebase guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
+          - [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md)
+          - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+          - [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+          Thank you for contributing!
+          From the Hiero Python SDK Team
           EOF
-            )
-            gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$COMMENT"
+          )
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$COMMENT"
