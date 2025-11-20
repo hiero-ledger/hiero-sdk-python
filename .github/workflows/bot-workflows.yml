@@ -1,4 +1,4 @@
-name: PythonBot - Workflow Failure Notifier
+name: WorkflowBot - Workflow Failure Notifier
 on:  
   workflow_dispatch:
   workflow_run:
@@ -56,3 +56,4 @@ jobs:
           EOF
           )
           gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$COMMENT"
+          echo "Comment added to PR #$PR_NUMBER"
