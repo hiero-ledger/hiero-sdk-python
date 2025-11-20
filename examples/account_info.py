@@ -2,7 +2,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.timestamp import Timestamp
+from hedera.timestamp import Timestamp
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
