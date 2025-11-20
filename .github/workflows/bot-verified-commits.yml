@@ -52,7 +52,7 @@ jobs:
             Thank you for contributing!
 
             From the Hiero Python SDK Team
-            EOF
+          EOF
             )
 
             gh pr view $PR_NUMBER --repo $REPO --json comments --jq '.comments[].body' | grep -F "PythonBot" >/dev/null || \
