@@ -112,6 +112,8 @@ def test_integration_account_update_transaction_fails_with_invalid_signature(env
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
 
+    base_info = AccountInfoQuery(account_id).execute(env.client)
+
     # Try to update without signing with the account's key
     receipt = (
         AccountUpdateTransaction()
@@ -124,6 +126,11 @@ def test_integration_account_update_transaction_fails_with_invalid_signature(env
         f"Account update should have failed with status INVALID_SIGNATURE, "
         f"but got {ResponseCode(receipt.status).name}"
     )
+
+    # Verify nothing changed on-chain
+    info_after = AccountInfoQuery(account_id).execute(env.client)
+    assert info_after.account_memo == base_info.account_memo
+    assert info_after.key.to_bytes_raw() == initial_public_key.to_bytes_raw()
 
 
 @pytest.mark.integration
@@ -187,8 +194,11 @@ def test_integration_account_update_transaction_invalid_auto_renew_period(env):
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
 
-    # Try to update with invalid auto renew period
+    # Capture existing expiration to ensure it remains unchanged
+    original_info = AccountInfoQuery(account_id).execute(env.client)
     invalid_period = Duration(777600000)  # 9000 days
+
+    # Try to update with invalid auto renew period
     receipt = (
         AccountUpdateTransaction()
         .set_account_id(account_id)
@@ -196,11 +206,14 @@ def test_integration_account_update_transaction_invalid_auto_renew_period(env):
         .execute(env.client)
     )
 
-    # Should fail with AUTORENEW_DURATION_NOT_IN_RANGE
     assert receipt.status == ResponseCode.AUTORENEW_DURATION_NOT_IN_RANGE, (
         f"Account update should have failed with status AUTORENEW_DURATION_NOT_IN_RANGE, "
         f"but got {ResponseCode(receipt.status).name}"
     )
+
+    # Ensure expiration time was not modified
+    info_after = AccountInfoQuery(account_id).execute(env.client)
+    assert info_after.expiration_time == original_info.expiration_time
 
 def _apply_tiny_max_fee_if_supported(tx, client) -> bool:
     # Try tx-level setters
@@ -250,6 +263,10 @@ def test_account_update_insufficient_fee_with_valid_expiration_bump(env):
         f"Expected INSUFFICIENT_TX_FEE but got {ResponseCode(receipt.status).name}"
     )
 
+    # Confirm expiration time did not change
+    info_after = AccountInfoQuery(account_id).execute(env.client)
+    assert int(info_after.expiration_time.seconds) == base_expiry_secs
+
 @pytest.mark.integration
 def test_integration_account_update_transaction_with_only_account_id(env):
     """Test that AccountUpdateTransaction can execute with only account ID set."""
@@ -272,6 +289,11 @@ def test_integration_account_update_transaction_with_only_account_id(env):
     assert (
         receipt.status == ResponseCode.SUCCESS
     ), f"Account update failed with status: {ResponseCode(receipt.status).name}"
+
+    # Ensure no fields were unintentionally modified
+    info = AccountInfoQuery(account_id).execute(env.client)
+    assert str(info.account_id) == str(account_id)
+    assert info.key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw()
 
 
 @pytest.mark.integration
@@ -345,6 +367,12 @@ def test_integration_account_update_transaction_with_staking_fields(env):
         receipt.status == ResponseCode.SUCCESS
     ), f"Account update with staking fields failed with status: {ResponseCode(receipt.status).name}"
 
+    # Verify staking info reflects the updated values
+    info = AccountInfoQuery(account_id).execute(env.client)
+    assert info.staked_account_id == staked_account_id, "Staked account ID should match"
+    assert info.staked_node_id is None, "Staked node ID should be cleared when staking to an account"
+    assert info.decline_staking_reward is True, "Decline staking reward should be true"
+
 
 @pytest.mark.integration
 def test_integration_account_update_transaction_with_staked_node_id(env):
@@ -372,3 +400,8 @@ def test_integration_account_update_transaction_with_staked_node_id(env):
         ResponseCode.SUCCESS,
         ResponseCode.INVALID_STAKING_ID,
     ], f"Unexpected status: {ResponseCode(receipt.status).name}"
+
+    if receipt.status == ResponseCode.SUCCESS:
+        info = AccountInfoQuery(account_id).execute(env.client)
+        assert info.staked_node_id == 0
+        assert info.staked_account_id is None
