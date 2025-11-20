@@ -113,6 +113,7 @@ def try_update_metadata_without_key(client, operator_key, token_id):
                 f"❌ Unexpected SUCCESS. Status: {receipt.status}"
                 "(this should normally fail when metadata_key is missing)"
             )
+            sys.exit(1)
         else:
                 print(f"✅ Expected failure: metadata update rejected -> status={status}")
 
@@ -177,6 +178,11 @@ def update_metadata_with_key(client, token_id, metadata_key, operator_key):
             .sign(metadata_key)
         )
         receipt = update_transaction.execute(client)
+        if receipt.status != ResponseCode.SUCCESS:
+            print(
+                f"❌ Token update failed with status: {ResponseCode(receipt.status).name}"
+            )
+            sys.exit(1)
     except Exception as e:
         print(f"Error while freezing update transaction: {e}")
         sys.exit(1)
@@ -204,9 +210,14 @@ def demonstrate_metadata_length_validation(client, operator_key, operator_id):
 
         transaction.sign(operator_key)
         receipt = transaction.execute(client)
-        print(
-            "Error: Expected ValueError for metadata > 100 bytes, but none was raised."
-        )
+        if receipt.status == ResponseCode.SUCCESS:
+            print(f"❌ Unexpected success for this operation!")
+        else:
+            print(
+                "Error: Expected ValueError for metadata > 100 bytes, but none was raised."
+            )
+            
+        sys.exit(1)
     except ValueError as exc:
         print("Expected error raised for metadata > 100 bytes")
         print(f"✅ Error raised: {exc}")
