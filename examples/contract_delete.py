@@ -33,7 +33,7 @@ from hiero_sdk_python.contract.contract_delete_transaction import (
 )
 from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
 from hedera.file.file_create_transaction import FileCreateTransaction
-from hiero_sdk_python.hbar import Hbar
+from hiero_hesdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 
 # Import the bytecode for a basic smart contract (SimpleContract.sol) that can be deployed
