@@ -54,7 +54,6 @@ def setup_client():
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-
 def create_test_account(client, operator_key):
     """
     Create a new test account for demonstration.
@@ -153,12 +152,12 @@ def associate_token_with_account(client, token_id, account_id, account_key):
         receipt = (
             TokenAssociateTransaction()
             .set_account_id(account_id)
-            .add_token_id(token_id)
+            .set_token_id(token_id)
             .freeze_with(client)
             .sign(account_key)
             .execute(client)
         )
-    
+
         if receipt.status != ResponseCode.SUCCESS:
             print(
                 f"❌ Token association failed with status: {ResponseCode(receipt.status).name}"
@@ -169,6 +168,83 @@ def associate_token_with_account(client, token_id, account_id, account_key):
     except Exception as e:
         print(f"❌ Error associating token with account: {e}")
         sys.exit(1)
+
+
+def associate_two_tokens_mixed_types_with_set_token_ids(client, token_id_1, token_id_2, account_id, account_key):
+    """
+    Associate two tokens using set_token_ids() with mixed types:
+    - first as TokenId
+    - second as string
+    """
+    try:
+        receipt = (
+            TokenAssociateTransaction()
+            .set_account_id(account_id)
+            .set_token_ids(
+                [
+                    token_id_1,  # TokenId instance
+                    str(token_id_2),  # string representation → converted internally
+                ]
+            )
+            .freeze_with(client)
+            .sign(account_key)
+            .execute(client)
+        )
+
+        if receipt.status != ResponseCode.SUCCESS:
+            print(
+                f"❌ Token association (mixed types) failed with status: "
+                f"{ResponseCode(receipt.status).name}"
+            )
+            sys.exit(1)
+
+        print("✅ Success! Token association completed.")
+        print(
+            f"   Account {account_id} can now hold and transfer tokens {token_id_1} and {token_id_2}"
+        )
+    except Exception as e:
+        print(f"❌ Error in while associating tokens: {e}")
+        sys.exit(1)
+
+
+def demonstrate_invalid_set_token_ids_usage(client, account_id, account_key):
+    """
+    Example 4: demonstrate that set_token_ids() rejects invalid types,
+    i.e. values that are neither TokenId nor string.
+    """
+    print("`set_token_ids()` only accepts a list of TokenId or strings (also mixed)")
+    invalid_value = 123  # ❌ This type is not supported from `set_token_ids()`
+    print(f"Trying to associate a token using a list of {type(invalid_value)}")
+
+    try:
+        receipt = (
+            TokenAssociateTransaction()
+            .set_account_id(account_id)
+            .set_token_ids([invalid_value])  # questo deve fallire
+            .freeze_with(client)
+            .sign(account_key)
+            .execute(client)
+        )
+
+        if receipt.status != ResponseCode.SUCCESS:
+            print(
+                f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}"
+            )
+            sys.exit(1)
+
+    except Exception as e:
+        if (
+            type(e) == TypeError
+            and "Invalid token_id type: expected TokenId or str, got" in e.args[0]
+        ):
+            print(
+                "✅ Correct behavior: invalid token_id type was rejected from `set_token_ids`"
+            )
+            print(f"   Error: {e}")
+        else:
+            print(f"❌ Unexpected error while creating transaction: {e}")
+            sys.exit(1)
+
 
 def verify_token_association(client, account_id, token_id):
     """
@@ -231,23 +307,43 @@ def main():
     print("\nSTEP 2: Creating a new account...")
     account_id, account_private_key = create_test_account(client, operator_key)
 
-    # Step 3: Create a new token
-    print("\nSTEP 3: Creating a new fungible token...")
-    token_id = create_fungible_token(client, operator_id, operator_key)
+    # step 3: How to not use set_token_ids
+    print("\nSTEP 3: Demonstrating invalid input handling in set_token_ids...")
+    demonstrate_invalid_set_token_ids_usage(client, account_id, account_private_key)
 
-    # Step 4: Associate the token with the new account
-    print(f"\nSTEP 4: Associating token {token_id} with account {account_id}...")
-    associate_token_with_account(client, token_id, account_id, account_private_key)
+    # Step 4: new tokens
+    print("\nSTEP 4: Creating new fungible tokens...")
+    token_id_0 = create_fungible_token(client, operator_id, operator_key)
+    token_id_1 = create_fungible_token(client, operator_id, operator_key)
+    token_id_2 = create_fungible_token(client, operator_id, operator_key)
 
-    # Step 5: Verify the token association
-    print(f"\nSTEP 5: Verifying token association...")
-    is_associated = verify_token_association(client, account_id, token_id)
+    # Step 5: Associate a single token with the new account
+    print(f"\nSTEP 5: Associating token {token_id_0} with account {account_id}...")
+    associate_token_with_account(client, token_id_0, account_id, account_private_key)
 
+    # Step 6: Associate multiple tokens with the new account
+    print(
+        f"\nSTEP 6: Associating token {token_id_1} and token {token_id_2} with account {account_id}..."
+    )
+    associate_two_tokens_mixed_types_with_set_token_ids(
+        client, token_id_1, token_id_2, account_id, account_private_key
+    )
+
+    # Step 7: Verify the token association
+    print(f"\nSTEP 7: Verifying token association...")
+    is_associated = verify_token_association(client, account_id, token_id_0)
+    is_associated = verify_token_association(client, account_id, token_id_1)
+    is_associated = verify_token_association(client, account_id, token_id_2)
+
+    tokens = [token_id_0, token_id_1, token_id_2]
     # Summary
     print("\n" + "=" * 50)
     print("🎉 Token Association Demo Completed Successfully!")
     print(f"   New Account: {account_id}")
-    print(f"   New Token: {token_id}")
+    print("   New Tokens:")
+
+    for token in tokens:
+        print(f"    -{token}")
     print(f"   Association: {'✅ VERIFIED' if is_associated else '❌ FAILED'}")
     print("=" * 50)
 

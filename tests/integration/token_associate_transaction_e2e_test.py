@@ -33,11 +33,12 @@ def test_integration_token_associate_transaction_can_execute():
         token_id = create_fungible_token(env)
         assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
         
-        associate_transaction = TokenAssociateTransaction(
-            account_id=new_account_id,
-            token_ids=[token_id]
+        associate_transaction = (
+            TokenAssociateTransaction()
+            .set_account_id(new_account_id)
+            .set_token_ids([token_id])
         )
-        
+
         associate_transaction.freeze_with(env.client)
         associate_transaction.sign(new_account_private_key)
         associate_receipt = associate_transaction.execute(env.client)
