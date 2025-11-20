@@ -17,7 +17,7 @@ def create_account_tx(key, client):
     """Helper transaction to create an account."""
     account_receipt = (
         AccountCreateTransaction()
-        .set_key(key)
+        .set_key_without_alias(key)
         .set_initial_balance(1)
         .execute(client)
     ) 
@@ -94,6 +94,39 @@ def test_batch_transaction_can_execute_from_bytes(env):
 
     assert transfer_tx_receipt.status == ResponseCode.SUCCESS
 
+def test_batch_transaction_can_execute_large_batch(env):
+    """Test can execute a large batch transaction"""
+    batch_tx = BatchTransaction()
+    
+    receiver_id = create_account_tx(PrivateKey.generate().public_key(), env.client)
+
+    for _ in range(20):
+        transfer_tx = (
+            TransferTransaction()
+            .add_hbar_transfer(account_id=env.operator_id, amount=-1)
+            .add_hbar_transfer(account_id=receiver_id, amount=1)
+            .batchify(env.client, batch_key)
+        )
+
+        batch_tx.add_inner_transaction(transfer_tx)
+
+    batch_tx.freeze_with(env.client)
+    batch_tx.sign(batch_key)
+
+    batch_receipt = batch_tx.execute(env.client)
+
+    assert batch_receipt.status == ResponseCode.SUCCESS
+    
+    # Inner Transaction Receipt
+    for tx_id in batch_tx.get_inner_transactions_ids():
+        transfer_tx_receipt = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(tx_id)
+            .execute(env.client)
+        )
+    
+    assert transfer_tx_receipt.status == ResponseCode.SUCCESS
+
 def test_batch_transaction_without_inner_transactions(env):
     """Test batch transaction with empty inner transaction's list should raise an error."""
     with pytest.raises(ValueError, match="BatchTransaction requires at least one inner transaction."):
@@ -116,7 +149,7 @@ def test_batch_transaction_with_blacklisted_inner_transaction(env):
         .batchify(env.client, batch_key)
     )
 
-    with pytest.raises(ValueError, match="Transaction type FreezeTransaction is not allowed in a batch transaction."):
+    with pytest.raises(ValueError, match="Transaction type FreezeTransaction is not allowed in a batch transaction"):
         (
             BatchTransaction()
             .add_inner_transaction(freeze_tx)
@@ -139,7 +172,7 @@ def test_batch_transaction_with_blacklisted_inner_transaction(env):
         .batchify(env.client, batch_key)
     )
 
-    with pytest.raises(ValueError, match="Transaction type BatchTransaction is not allowed in a batch transaction."):
+    with pytest.raises(ValueError, match="Transaction type BatchTransaction is not allowed in a batch transaction"):
         (
             BatchTransaction()
             .add_inner_transaction(batch_tx)

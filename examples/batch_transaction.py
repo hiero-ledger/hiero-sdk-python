@@ -56,7 +56,7 @@ def create_account(client):
         key = PrivateKey.generate()
         tx = (
             AccountCreateTransaction()
-            .set_key(key.public_key())
+            .set_key_without_alias(key.public_key())
             .set_max_automatic_token_associations(2) # to transfer token without associating it
             .set_initial_balance(1)
         )
@@ -172,6 +172,7 @@ def perform_batch_tx(client, sender, recipient, token_id, freeze_key):
         .sign(freeze_key)
     )
 
+    # 50 is the maximum limit for internal transaction inside a BatchTransaction
     batch = (
         BatchTransaction()
         .add_inner_transaction(unfreeze_tx)

@@ -2,9 +2,9 @@
 hiero_sdk_python.transaction.batch_transaction.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Provides the BatchTransaction class, a subclass of Transaction that enables
-grouping multiple signed and frozen transactions into a single atomic batch
-operation on the Hedera network.
+Defines the BatchTransaction class — a subclass of Transaction that enables
+grouping multiple frozen, signed transactions (with batch keys) into a single
+atomic operation on the Hedera network.
 """
 from typing import List, Optional
 
@@ -18,7 +18,7 @@ from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 class BatchTransaction(Transaction):
     """
-    Represents a batch transaction on the Hedera network.
+    Represents an atomic batch transaction on the Hedera network.
     """
     def __init__(self, inner_transactions: Optional[List[Transaction]]=None) -> None:
         """
@@ -26,7 +26,7 @@ class BatchTransaction(Transaction):
 
         Args:
             inner_transactions (Optional[List[Transaction]]):
-                An optional list of transactions to include.
+                An optional list of transactions to include in the batch.
         """
         super().__init__()
         self.inner_transactions: List[Transaction] = []
@@ -47,7 +47,7 @@ class BatchTransaction(Transaction):
         """
         self._require_not_frozen()
         for transaction in transactions:
-            self._verify_inner_transactions(transaction)
+            self._verify_inner_transaction(transaction)
 
         self.inner_transactions = transactions
         return self
@@ -64,16 +64,16 @@ class BatchTransaction(Transaction):
            BatchTransaction: The current transaction instance for method chaining.
         """
         self._require_not_frozen()
-        self._verify_inner_transactions(transaction)
+        self._verify_inner_transaction(transaction)
         self.inner_transactions.append(transaction)
         return self
 
     def get_inner_transactions_ids(self) -> List[TransactionId]:
         """
-        Get the transactionIds of inner_transactions
+        Retrieve the TransactionIds of all inner batch transactions.
 
         Returns:
-            List[TransactionId]: The IDs of all transactions in the batch.
+            List[TransactionId]: IDs of all included transactions.
         """
         transaction_ids: List[TransactionId] = []
         for transaction in self.inner_transactions:
@@ -81,18 +81,21 @@ class BatchTransaction(Transaction):
 
         return transaction_ids
 
-    def _verify_inner_transactions(self, transaction: Transaction) -> bool:
+    def _verify_inner_transaction(self, transaction: Transaction) -> bool:
         """
-        Verify if the transaction is valid inner_transaction.
+        Validate that a transaction can be included as an inner batch transaction.
+
+        Raises:
+            ValueError: If the transaction is invalid for batching.
         """
         if isinstance(transaction, (FreezeTransaction, BatchTransaction)):
-            raise ValueError(f"Transaction type {type(transaction).__name__} is not allowed in a batch transaction.")
+            raise ValueError(f"Transaction type {type(transaction).__name__} is not allowed in a batch transaction")
 
         if not transaction._transaction_body_bytes:
-            raise ValueError("Transaction must be frozen.")
+            raise ValueError("Transaction must be frozen")
 
         if transaction.batch_key is None:
-            raise ValueError("Batch key needs to be set.")
+            raise ValueError("Batch key needs to be set")
         
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map) -> "BatchTransaction":
@@ -113,12 +116,12 @@ class BatchTransaction(Transaction):
             atomic_batch = transaction_body.atomic_batch
 
             for inner_transaction in atomic_batch.transactions:
-                inner_transction_proto = transaction_pb2.Transaction(
+                inner_tx_proto = transaction_pb2.Transaction(
                     signedTransactionBytes=inner_transaction
                 )
 
                 transaction.inner_transactions.append(
-                    Transaction.from_bytes(inner_transction_proto.SerializeToString())
+                    Transaction.from_bytes(inner_tx_proto.SerializeToString())
                 )
 
         return transaction
@@ -148,6 +151,7 @@ class BatchTransaction(Transaction):
         return transaction_body
     
     def build_scheduled_body(self):
+        """Batch transactions cannot be scheduled."""
         raise ValueError("Cannot schedule Atomic Batch transaction.")
     
     def _get_method(self, channel: _Channel) -> _Method:
