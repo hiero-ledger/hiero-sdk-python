@@ -33,6 +33,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: Allow `max_automatic_token_associations` to be set to -1 (unlimited) in `AccountCreateTransaction` and add field to `AccountInfo`.
 - Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
+- allowed concurrency in the workflow bot
 
 ### Fixed
 - chore: fix test.yml workflow to log import errors (#740)
