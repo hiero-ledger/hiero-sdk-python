@@ -3,7 +3,10 @@ from typing import Optional
 
 from typing import TYPE_CHECKING
 
+
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2, transaction_pb2)
@@ -59,7 +62,8 @@ class Transaction(_Executable):
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         self._default_transaction_fee = 2_000_000
-        self.operator_account_id = None  
+        self.operator_account_id = None
+        self.batch_key: Optional[PrivateKey] = None
 
     def _make_request(self):
         """
@@ -285,12 +289,18 @@ class Transaction(_Executable):
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
-        for node in client.network.nodes:
-            self.node_account_id = node._account_id
-            self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+
+        if self.batch_key is None:
+            for node in client.network.nodes:
+                self.node_account_id = node._account_id
+                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
         
-        # Set the node account id to the current node in the network
-        self.node_account_id = client.network.current_node._account_id
+            # Set the node account id to the current node in the network
+            self.node_account_id = client.network.current_node._account_id
+        else:
+            # For Inner Transaction of batch transaction node_account_id=0.0.0
+            self.node_account_id = AccountId(0,0,0)
+            self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
         
         return self
 
@@ -311,6 +321,10 @@ class Transaction(_Executable):
             MaxAttemptsError: If the transaction/query fails after the maximum number of attempts
             ReceiptStatusError: If the query fails with a receipt status error
         """
+        from hiero_sdk_python.transaction.batch_transaction import BatchTransaction
+        if self.batch_key and not isinstance(self, (BatchTransaction)):
+            raise ValueError("Cannot execute batchified transaction outside of BatchTransaction.")
+
         if not self._transaction_body_bytes:
             self.freeze_with(client)
 
@@ -412,6 +426,9 @@ class Transaction(_Executable):
         transaction_body.memo = self.memo
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         transaction_body.max_custom_fees.extend(custom_fee_limits)
+
+        if self.batch_key:
+            transaction_body.batch_key.CopyFrom(self.batch_key.public_key()._to_proto())
 
         return transaction_body
 
@@ -722,6 +739,7 @@ class Transaction(_Executable):
             "tokenReject": "hiero_sdk_python.tokens.token_reject_transaction.TokenRejectTransaction",
             "tokenAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction.TokenAirdropTransaction",
             "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_cancel_airdrop_transaction.TokenCancelAirdropTransaction",
+            "atomic_batch": "hiero_sdk_python.transaction.batch_transaction.BatchTransaction"
         }
 
         class_path = transaction_type_map.get(transaction_type)
@@ -778,3 +796,34 @@ class Transaction(_Executable):
             transaction._signature_map[body_bytes] = sig_map
 
         return transaction
+    
+    def set_batch_key(self, key: PrivateKey):
+        """
+        Set the batch key required for batch transaction.
+
+        Args:
+            batch_key (PrivateKey): Private key to use as batch key.
+
+        Returns:
+            Transaction: A reconstructed transaction instance of the appropriate subclass. 
+        """
+        self._require_not_frozen()
+        self.batch_key = key
+        return self
+    
+    def batchify(self, client: Client, batch_key: PrivateKey):
+        """
+        Marks the current transaction as an inner (batched) transaction.
+
+        Args:
+            client (Client): The client instance to use for setting defaults.
+            batch_key (PrivateKey): Private key to use as batch key.
+        
+        Returns:
+            Transaction: A reconstructed transaction instance of the appropriate subclass.
+        """
+        self._require_not_frozen()
+        self.set_batch_key(batch_key)
+        self.freeze_with(client)
+        self.sign(client.operator_private_key)
+        return self
