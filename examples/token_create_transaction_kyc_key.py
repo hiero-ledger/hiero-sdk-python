@@ -150,7 +150,7 @@ def create_token_without_kyc_key(client, operator_id, operator_key):
         sys.exit(1)
 
 
-def attempt_kyc_without_key(client, token_id, account_id, kyc_private_key):
+def attempt_kyc_without_key(client, token_id, account_id, operator_key):
     """
     Attempt to grant KYC on a token that has no KYC key.
     This should fail with an appropriate error.
@@ -167,18 +167,20 @@ def attempt_kyc_without_key(client, token_id, account_id, kyc_private_key):
             .set_token_id(token_id)
             .set_account_id(account_id)
             .freeze_with(client)
-            .sign(kyc_private_key)
+            .sign(operator_key)
             .execute(client)
         )
 
-        # Check the response status
         status_name = ResponseCode(receipt.status).name
-        if receipt.status != ResponseCode.SUCCESS:
+        if receipt.status == ResponseCode.TOKEN_HAS_NO_KYC_KEY:
             print(f" KYC grant failed as expected with status: {status_name}")
             print(f"   Reason: Token {token_id} has no KYC key defined\n")
             return False
+        elif receipt.status != ResponseCode.SUCCESS:
+            print(f" KYC grant failed with unexpected status: {status_name}\n")
+            return False
         else:
-            print(f"  Unexpected ! Status: {status_name}\n")
+            print(f"  Unexpected success! Status: {status_name}\n")
             return True
     except Exception as e:
         print(f" Error attempting KYC grant: {e}\n")
@@ -458,7 +460,7 @@ def main():
 
         # Try to grant KYC (should fail)
         attempt_kyc_without_key(client, token_without_kyc,
-                                test_account_1, kyc_private_key)
+                                test_account_1, operator_key)
 
         # ===== PART 2: Token WITH KYC Key =====
         token_with_kyc = create_token_with_kyc_key(
