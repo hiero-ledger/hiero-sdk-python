@@ -5,6 +5,12 @@ class _ManagedNodeAddress:
     Represents a managed node address with a host and port.
     This class is used to handle node addresses in the Hedera network.
     """
+    PORT_NODE_PLAIN = 50211
+    PORT_NODE_TLS = 50212
+    PORT_MIRROR_TLS = 443
+    PORT_MIRROR_PLAIN = 5600
+    TLS_PORTS = {PORT_NODE_TLS, PORT_MIRROR_TLS}
+    PLAIN_PORTS = {PORT_NODE_PLAIN, PORT_MIRROR_PLAIN}
     
     # Regular expression to parse a host:port string
     HOST_PORT_PATTERN = re.compile(r'^(\S+):(\d+)$')
@@ -53,8 +59,48 @@ class _ManagedNodeAddress:
         Returns:
             bool: True if the port is a secure port (50212 or 443), False otherwise.
         """
-        return self._port == 50212 or self._port == 443
+        return self._port in self.TLS_PORTS
     
+    def _to_secure(self):
+        """
+        Return a new ManagedNodeAddress that uses the secure port when possible.
+        """
+        if self._is_transport_security():
+            return self
+        
+        port = self._port
+        if port == self.PORT_NODE_PLAIN:
+            port = self.PORT_NODE_TLS
+        elif port == self.PORT_MIRROR_PLAIN:
+            port = self.PORT_MIRROR_TLS
+        return _ManagedNodeAddress(self._address, port)
+    
+    def _to_insecure(self):
+        """
+        Return a new ManagedNodeAddress that uses the plaintext port when possible.
+        """
+        if not self._is_transport_security():
+            return self
+        
+        port = self._port
+        if port == self.PORT_NODE_TLS:
+            port = self.PORT_NODE_PLAIN
+        elif port == self.PORT_MIRROR_TLS:
+            port = self.PORT_MIRROR_PLAIN
+        return _ManagedNodeAddress(self._address, port)
+    
+    def _get_host(self):
+        """
+        Return the host component of the address.
+        """
+        return self._address
+
+    def _get_port(self):
+        """
+        Return the port component of the address.
+        """
+        return self._port
+
     def __str__(self):
         """
         Get a string representation of the ManagedNodeAddress.
