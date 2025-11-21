@@ -200,7 +200,7 @@ def demonstrate_metadata_length_validation(client, operator_key, operator_id):
     too_long_metadata = b"x" * 101
 
     try:
-        (
+        transaction = (
             TokenCreateTransaction()
             .set_token_name("TooLongMetadataToken")
             .set_token_symbol("TLM")
