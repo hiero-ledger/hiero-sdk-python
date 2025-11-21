@@ -44,6 +44,8 @@ from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalance
 
 load_dotenv()
 
+network_name = os.getenv('NETWORK', 'testnet').lower()
+
 
 def setup_client():
     """
@@ -52,8 +54,8 @@ def setup_client():
     Returns:
         tuple: (client, operator_id, operator_key)
     """
-    print("Connecting to Hedera testnet...")
-    client = Client(Network(network='testnet'))
+    print(f"Connecting to Hedera {network_name} network...")
+    client = Client(Network(network=network_name))
 
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
