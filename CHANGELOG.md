@@ -539,3 +539,21 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
+
+## [0.1.0] - 2025-11-21
+
+### Added
+
+-N/A
+
+### Changed
+
+- Removed dublicate import transaction_pb2 in transaction.py
+
+### Fixed
+
+- N/A
+
+### Removed
+
+- dublicate import transaction_pb2 in transaction.py
