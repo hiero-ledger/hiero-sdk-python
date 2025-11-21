@@ -25,6 +25,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
+- Added `examples/token_create_transaction_auto_renew_period.py` to demonstrate setting the auto renew period when creating a fungible token.
+- Add `examples/token_create_transaction_expiration_time.py` to demonstrate setting the expiration time when creating a fungible token.
+- Add `examples/token_create_transaction_kyc_key.py` to showcase KYC key functionality, including enabling/disabling KYC checks and verifying them through queries.
+- Add `examples/token_create_transaction_memo.py` to demonstrate memo functionality for tokens.
+- Add `examples/token_create_transaction_name.py` to demonstrate setting the name of a fungible token upon creation.
+- Added `examples/token_create_transaction_kyc_key.py` to demonstrate KYC key functionality, including creating tokens with/without KYC keys, granting/revoking KYC status, and understanding KYC requirements for token transfers.
 
 ### Changed
 
