@@ -55,4 +55,11 @@ jobs:
           From the Hiero Python SDK Team
           EOF
           )
-          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$COMMENT"
+          EXISTING_COMMENT=$(gh pr view "$PR_NUMBER" --repo "$REPO" --comments \
+            --json comments --jq ".comments[] | select(.body == \"${COMMENT//\"/\\\"}\") | .id")
+
+          if [ -z "$EXISTING_COMMENT" ]; then
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$COMMENT"
+          else
+            echo "Comment already exists, skipping."
+          fi
