@@ -59,6 +59,9 @@ class Query(_Executable):
         self.node_index: int = 0
         self.payment_amount: Optional[Hbar] = None
 
+        self.node_account_ids: Optional[List[AccountId]] = None
+        self._used_node_account_id: Optional[AccountId] = None
+
     def _get_query_response(self, response: Any) -> query_pb2.Query:
         """
         Extracts the query-specific response object from the full response.
@@ -379,3 +382,4 @@ class Query(_Executable):
             bool: True if payment is required, False otherwise
         """
         return True
+        
