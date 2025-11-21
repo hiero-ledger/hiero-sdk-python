@@ -28,6 +28,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
 - Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
 (feat: Improve Hbar class to support floating-point values (#737))
+- Added BatchTransaction class
+
 
 ### Changed
 
