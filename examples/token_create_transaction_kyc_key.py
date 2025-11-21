@@ -127,8 +127,8 @@ def create_token_without_kyc_key(client, operator_id, operator_key):
             .set_token_type(TokenType.FUNGIBLE_COMMON)
             .set_supply_type(SupplyType.FINITE)
             .set_max_supply(1000)
-            .set_admin_key(operator_key)
-            .set_supply_key(operator_key)
+            .set_admin_key(operator_key.public_key())
+            .set_supply_key(operator_key.public_key())
             # NOTE: No KYC key is set!
             .freeze_with(client)
             .sign(operator_key)
@@ -206,9 +206,9 @@ def create_token_with_kyc_key(client, operator_id, operator_key, kyc_private_key
             .set_token_type(TokenType.FUNGIBLE_COMMON)
             .set_supply_type(SupplyType.FINITE)
             .set_max_supply(1000)
-            .set_admin_key(operator_key)
-            .set_supply_key(operator_key)
-            .set_kyc_key(kyc_private_key)  # KYC key is set!
+            .set_admin_key(operator_key.public_key())
+            .set_supply_key(operator_key.public_key())
+            .set_kyc_key(kyc_private_key.public_key())  # KYC key is set!
             .freeze_with(client)
             .sign(operator_key)
             .sign(kyc_private_key)  # The KYC key must sign the transaction
