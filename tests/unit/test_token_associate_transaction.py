@@ -155,7 +155,7 @@ def test_set_token_ids_invalid_type_raises():
     """
     associate_tx = TokenAssociateTransaction()
 
-    with pytest.raises(ValueError, match="Invalid token_id type:"):
+    with pytest.raises(TypeError, match="Invalid token_id type:"):
         associate_tx.set_token_ids([123])  # int is not allowed
 
 def test_set_token_ids_non_iterable_raises_typeerror():
