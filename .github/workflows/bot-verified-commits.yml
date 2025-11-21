@@ -1,0 +1,62 @@
+name: PythonBot - Verify PR Commits
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: "verify-commits-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
+jobs:
+  verify-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Check for unverified commits
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO="${{ github.repository }}"
+          COMMITS_URL="https://github.com/$REPO/pull/${PR_NUMBER}/commits"
+
+          echo "Checking commits in PR #$PR_NUMBER for repository $REPO..."
+
+          COMMITS_JSON=$(gh api repos/$REPO/pulls/$PR_NUMBER/commits)
+          UNVERIFIED_COUNT=$(echo "$COMMITS_JSON" | jq '[.[] | select(.commit.verification.verified == false)] | length')
+
+          echo "Unverified commits: $UNVERIFIED_COUNT"
+
+          if [ "$UNVERIFIED_COUNT" -gt 0 ]; then
+            COMMENT=$(cat <<EOF
+            Hi, this is VerificationBot. 
+            Your pull request cannot be merged as it has **unverified commits**. 
+            View your commit verification status: [Commits Tab]($COMMITS_URL).
+            
+            To achieve verified status, please read:
+            - [Signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+            - [README](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md)
+            - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+
+            Remember, you require a GPG key and each commit must be signed with:
+            \`git commit -S -s -m "Your message here"\`
+
+            Thank you for contributing!
+
+            From the Hiero Python SDK Team
+          EOF )
+
+            gh pr view $PR_NUMBER --repo $REPO --json comments --jq '.comments[].body' | grep -F "PythonBot" >/dev/null || \
+            (gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT" && echo "Comment added to PR #$PR_NUMBER")
+          else
+            echo "All commits in PR #$PR_NUMBER are verified."
+          fi
+ 
