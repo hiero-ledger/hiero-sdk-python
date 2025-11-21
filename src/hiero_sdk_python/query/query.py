@@ -54,13 +54,9 @@ class Query(_Executable):
         super().__init__()
 
         self.timestamp: int = int(time.time())
-        self.node_account_ids: List[AccountId] = []
         self.operator: Optional[Operator] = None
         self.node_index: int = 0
         self.payment_amount: Optional[Hbar] = None
-
-        self.node_account_ids: Optional[List[AccountId]] = None
-        self._used_node_account_id: Optional[AccountId] = None
 
     def _get_query_response(self, response: Any) -> query_pb2.Query:
         """
@@ -109,11 +105,7 @@ class Query(_Executable):
         Args:
             client: The client instance to use for execution
         """
-        if not self.node_account_ids:
-            self.node_account_ids = client.get_node_account_ids()
-
         self.operator = self.operator or client.operator
-        self.node_account_ids = list(set(self.node_account_ids))
 
         # If no payment amount was specified and payment is required for this query,
         # get the cost from the network and set it as the payment amount
