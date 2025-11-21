@@ -30,6 +30,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - Upgraded step-security/harden-runner v2.13.2
+- bumped actions/checkout from 5.0.0 to 6.0.0
 - Limit workflow bot to one message per PR
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
 - upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
