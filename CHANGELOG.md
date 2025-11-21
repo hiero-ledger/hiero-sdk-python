@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
 - Added `examples/token_create_transaction_kyc_key.py` to demonstrate KYC key functionality, including creating tokens with/without KYC keys, granting/revoking KYC status, and understanding KYC requirements for token transfers.
+- Added BatchTransaction class
 
 
 ### Changed
