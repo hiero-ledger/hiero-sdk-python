@@ -51,7 +51,7 @@ def mock_tx(mock_client, mock_account_ids):
 def test_constructor_without_params_creates_empty_inner_transactions():
     """Test create batch transaction without constructor params."""
     batch_tx = BatchTransaction()
-    assert batch_tx.inner_transactions is not None, "inner_transactions should not br none"
+    assert batch_tx.inner_transactions is not None, "inner_transactions should not be none"
     assert len(batch_tx.inner_transactions) == 0, "inner_transactions should be empty by default"
 
 
@@ -204,11 +204,11 @@ def test_get_inner_transactions_ids_returns_transaction_ids(mock_tx):
     """Test get_transaction_ids methods returns transaction_ids."""
     batch_key = PrivateKey.generate()
     batch_tx = BatchTransaction()
-    assert batch_tx.get_inner_transactions_ids() == [], "No inner transactions should return an empty list"
+    assert batch_tx.get_inner_transaction_ids() == [], "No inner transactions should return an empty list"
 
     transaction = mock_tx(batch_key=batch_key, freeze=True)
     batch_tx.add_inner_transaction(transaction)
-    tx_ids = batch_tx.get_inner_transactions_ids()
+    tx_ids = batch_tx.get_inner_transaction_ids()
 
     assert len(tx_ids) == 1
     assert isinstance(tx_ids[0], TransactionId)

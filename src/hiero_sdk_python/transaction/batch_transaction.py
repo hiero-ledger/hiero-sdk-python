@@ -68,7 +68,7 @@ class BatchTransaction(Transaction):
         self.inner_transactions.append(transaction)
         return self
 
-    def get_inner_transactions_ids(self) -> List[TransactionId]:
+    def get_inner_transaction_ids(self) -> List[TransactionId]:
         """
         Retrieve the TransactionIds of all inner batch transactions.
 

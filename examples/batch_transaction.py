@@ -49,7 +49,7 @@ def setup_client():
         print(f"Client initialized with operator: {operator_id}")
         return client
     except Exception as e:
-        print("Failed to set up client: {e}")
+        print(f"Failed to set up client: {e}")
         sys.exit(1)
 
 def create_account(client):

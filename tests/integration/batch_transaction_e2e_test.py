@@ -49,7 +49,7 @@ def test_batch_transaction_can_execute(env):
     assert batch_receipt.status == ResponseCode.SUCCESS
 
     # Inner Transaction Receipt
-    transfer_tx_id = batch_tx.get_inner_transactions_ids()[0]
+    transfer_tx_id = batch_tx.get_inner_transaction_ids()[0]
     transfer_tx_receipt = (
         TransactionGetReceiptQuery()
         .set_transaction_id(transfer_tx_id)
@@ -85,7 +85,7 @@ def test_batch_transaction_can_execute_from_bytes(env):
     assert batch_receipt.status == ResponseCode.SUCCESS
 
     # Inner Transaction Receipt
-    transfer_tx_id = batch_tx_from_bytes.get_inner_transactions_ids()[0]
+    transfer_tx_id = batch_tx_from_bytes.get_inner_transaction_ids()[0]
     transfer_tx_receipt = (
         TransactionGetReceiptQuery()
         .set_transaction_id(transfer_tx_id)
@@ -118,7 +118,7 @@ def test_batch_transaction_can_execute_large_batch(env):
     assert batch_receipt.status == ResponseCode.SUCCESS
     
     # Inner Transaction Receipt
-    for tx_id in batch_tx.get_inner_transactions_ids():
+    for tx_id in batch_tx.get_inner_transaction_ids():
         transfer_tx_receipt = (
             TransactionGetReceiptQuery()
             .set_transaction_id(tx_id)
@@ -161,7 +161,7 @@ def test_batch_transaction_with_blacklisted_inner_transaction(env):
     # Batch Transaction
     account_tx = (
         AccountCreateTransaction()
-        .set_key(PrivateKey.generate().public_key())
+        .set_key_without_alias(PrivateKey.generate().public_key())
         .set_initial_balance(1)
         .batchify(env.client, batch_key)
     )
@@ -250,7 +250,7 @@ def test_batch_transaction_can_execute_with_different_batch_key(env):
     assert batch_receipt.status == ResponseCode.SUCCESS
 
     # Inner Transaction Receipt
-    for transfer_tx_id in batch_tx.get_inner_transactions_ids():
+    for transfer_tx_id in batch_tx.get_inner_transaction_ids():
         transfer_tx_receipt = (
             TransactionGetReceiptQuery()
             .set_transaction_id(transfer_tx_id)
@@ -262,7 +262,7 @@ def test_execute_transaction_fail_when_batchified(env):
     """Test transaction should fail when batchified but not part of a batch."""
     tx = (
         AccountCreateTransaction()
-        .set_key(PrivateKey.generate().public_key())
+        .set_key_without_alias(PrivateKey.generate().public_key())
         .set_initial_balance(1)
         .batchify(env.client, batch_key)
     )
