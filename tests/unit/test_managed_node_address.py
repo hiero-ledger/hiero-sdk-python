@@ -73,4 +73,81 @@ def test_string_representation():
     
     # Test with None address
     empty_address = _ManagedNodeAddress()
-    assert str(empty_address) == "" 
+    assert str(empty_address) == ""
+
+def test_to_secure_node_port():
+    """Test converting node address from plaintext to TLS port."""
+    insecure = _ManagedNodeAddress(address="127.0.0.1", port=50211)
+    secure = insecure._to_secure()
+    
+    assert secure._port == 50212
+    assert secure._address == "127.0.0.1"
+    assert secure._is_transport_security() is True
+
+def test_to_secure_mirror_port():
+    """Test converting mirror address from plaintext to TLS port."""
+    insecure = _ManagedNodeAddress(address="mirror.example.com", port=5600)
+    secure = insecure._to_secure()
+    
+    assert secure._port == 443
+    assert secure._address == "mirror.example.com"
+    assert secure._is_transport_security() is True
+
+def test_to_secure_already_secure():
+    """Test converting already secure address (should be idempotent)."""
+    secure = _ManagedNodeAddress(address="127.0.0.1", port=50212)
+    result = secure._to_secure()
+    
+    assert result._port == 50212
+    assert result._is_transport_security() is True
+    # Should return same instance or equivalent
+    assert str(result) == str(secure)
+
+def test_to_secure_custom_port():
+    """Test converting address with custom port (should remain unchanged)."""
+    custom = _ManagedNodeAddress(address="127.0.0.1", port=9999)
+    result = custom._to_secure()
+    
+    assert result._port == 9999  # Custom port unchanged
+    assert result._address == "127.0.0.1"
+
+def test_to_insecure_node_port():
+    """Test converting node address from TLS to plaintext port."""
+    secure = _ManagedNodeAddress(address="127.0.0.1", port=50212)
+    insecure = secure._to_insecure()
+    
+    assert insecure._port == 50211
+    assert insecure._address == "127.0.0.1"
+    assert insecure._is_transport_security() is False
+
+def test_to_insecure_mirror_port():
+    """Test converting mirror address from TLS to plaintext port."""
+    secure = _ManagedNodeAddress(address="mirror.example.com", port=443)
+    insecure = secure._to_insecure()
+    
+    assert insecure._port == 5600
+    assert insecure._address == "mirror.example.com"
+    assert insecure._is_transport_security() is False
+
+def test_to_insecure_already_insecure():
+    """Test converting already insecure address (should be idempotent)."""
+    insecure = _ManagedNodeAddress(address="127.0.0.1", port=50211)
+    result = insecure._to_insecure()
+    
+    assert result._port == 50211
+    assert result._is_transport_security() is False
+    assert str(result) == str(insecure)
+
+def test_to_insecure_custom_port():
+    """Test converting address with custom port (should remain unchanged)."""
+    custom = _ManagedNodeAddress(address="127.0.0.1", port=9999)
+    result = custom._to_insecure()
+    
+    assert result._port == 9999  # Custom port unchanged
+    assert result._address == "127.0.0.1"
+
+def test_get_host_and_port():
+    """Test getting host and port components."""
+    address = _ManagedNodeAddress(address="example.com", port=50211)
+    assert address._get_host() == "example.com"
+    assert address._get_port() == 50211 
