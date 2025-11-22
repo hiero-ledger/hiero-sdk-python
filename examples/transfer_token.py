@@ -1,7 +1,6 @@
 """
 uv run examples/transfer_token.py
 python examples/transfer_token.py
-
 """
 import os
 import sys
@@ -34,7 +33,6 @@ def setup_client():
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY',''))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
-
         return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
@@ -55,12 +53,13 @@ def create_account(client, operator_key):
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
         return recipient_id, recipient_key
-    
     except Exception as e:
         print(f"Error creating new account: {e}")
         sys.exit(1)
 
+
 def create_token(client, operator_id, operator_key):
+    """Create a new token"""
     print("\nSTEP 2: Creating a new token...")
     try:
         token_tx = (
@@ -81,7 +80,9 @@ def create_token(client, operator_id, operator_key):
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
+
 def associate_token(client, recipient_id, recipient_key, token_id):
+    """Associate token with the recipient"""
     print("\nSTEP 3: Associating Token...")
     try:
         association_tx = (
@@ -96,57 +97,53 @@ def associate_token(client, recipient_id, recipient_key, token_id):
         print(f"❌ Error associating token: {e}")
         sys.exit(1)
 
-def transfer_tokens():
-    """
-    A full example to create a new recipent account, a fungible token, and
-    transfer the token to that account
-    """
-    # Config Client
-    client, operator_id, operator_key = setup_client()
 
-    # Create a new recipient account.
-    recipient_id, recipient_key = create_account(client, operator_key)
-
-    # Create new tokens.
-    token_id = create_token(client, operator_id, operator_key)
-
-    # Associate Token
-    associate_token(client, recipient_id, recipient_key, token_id)
-
-    # Transfer Token
-    print("\nSTEP 4: Transfering Token...")
+def transfer_transaction(client, operator_id, operator_key, recipient_id, token_id):
+    """Perform the token transfer"""
+    print("\nSTEP 4: Transferring Token...")
     try:
-        # Check balance before transfer
+        # Check balance before
         balance_before = (
             CryptoGetAccountBalanceQuery(account_id=recipient_id)
             .execute(client)
             .token_balances
         )
-        print("Token balance before token transfer:")
+        print("Token balance before transfer:")
         print(f"{token_id}: {balance_before.get(token_id)}")
 
-        transfer_tx = (
+        tx = (
             TransferTransaction()
             .add_token_transfer(token_id, operator_id, -1)
             .add_token_transfer(token_id, recipient_id, 1)
             .freeze_with(client)
             .sign(operator_key)
         )
-        transfer_tx.execute(client)
-        
+        tx.execute(client)
+
         print("\n✅ Success! Token transfer complete.\n")
 
-        # Check balance after transfer
+        # Check balance after
         balance_after = (
             CryptoGetAccountBalanceQuery(account_id=recipient_id)
             .execute(client)
             .token_balances
         )
-        print("Token balance after token transfer:")
+        print("Token balance after transfer:")
         print(f"{token_id}: {balance_after.get(token_id)}")
+
     except Exception as e:
         print(f"❌ Error transferring token: {str(e)}")
         sys.exit(1)
 
+
+def main():
+    """Main script runner"""
+    client, operator_id, operator_key = setup_client()
+    recipient_id, recipient_key = create_account(client, operator_key)
+    token_id = create_token(client, operator_id, operator_key)
+    associate_token(client, recipient_id, recipient_key, token_id)
+    transfer_transaction(client, operator_id, operator_key, recipient_id, token_id)
+
+
 if __name__ == "__main__":
-    transfer_tokens()
+    main()
