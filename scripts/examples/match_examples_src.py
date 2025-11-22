@@ -60,9 +60,12 @@ def list_files(base_path, exclude_dirs=None):
     for root, dirs, files in os.walk(base_path):
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
         for file in files:
+            if file == "__init__.py":
+                continue  # skip __init__.py files
             rel_path = os.path.relpath(os.path.join(root, file), base_path)
             all_files.append(rel_path.replace("\\", "/"))
     return all_files
+
 
 
 # -----------------------------
