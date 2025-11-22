@@ -82,7 +82,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
-
+- chore: renamed examples to match src where possible
+- Moved examples/ to be inside subfiles to match src structure
+- changed example script workflow to run on new subdirectory structure
 - chore: bumped solo action from 14.0 to 15.0 (#764)
 - chore: replaced hardcoded 'testnet' messages with environment network name
 - chore: validate that token airdrop transactions require an available token service on the channel (#632)
@@ -148,7 +150,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
 ### Changed
-
 - Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
 - Updated all occurrences of non-functional Discord invite links throughout the documentation with the new, stable Hyperledger and Hedera invite links (#603).
 - Refactored TopicId class to use @dataclass decorator for reducing boilerplate code

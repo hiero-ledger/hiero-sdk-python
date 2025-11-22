@@ -4,7 +4,7 @@ Integration test for ContractExecuteTransaction.
 
 import pytest
 
-from examples.contracts.contract_utils import (
+from examples.contract.contracts.contract_utils import (
     CONTRACT_DEPLOY_GAS,
     STATEFUL_CONTRACT_BYTECODE,
 )
