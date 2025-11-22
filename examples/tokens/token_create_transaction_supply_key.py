@@ -12,7 +12,7 @@ Required environment variables:
 - OPERATOR_ID, OPERATOR_KEY
 
 Usage:
-uv run examples/token_create_transaction_supply_key.py
+uv run examples/tokens/token_create_transaction_supply_key.py
 """
 
 import os

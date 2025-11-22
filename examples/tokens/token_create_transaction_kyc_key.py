@@ -15,8 +15,8 @@ KYC Key Behavior:
 - KYC is orthogonal to freeze (different keys control different features)
 
 Run with:
-  uv run examples/token_create_transaction_kyc_key.py
-  python examples/token_create_transaction_kyc_key.py
+  uv run examples/tokens/token_create_transaction_kyc_key.py
+  python examples/tokens/token_create_transaction_kyc_key.py
 
 """
 import os

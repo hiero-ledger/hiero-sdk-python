@@ -1,6 +1,6 @@
 """
-uv run examples/token_create_transaction_freeze_key.py
-python examples/token_create_transaction_freeze_key.py
+uv run examples/tokens/token_create_transaction_freeze_key.py
+python examples/tokens/token_create_transaction_freeze_key.py
 
 Demonstrates how the Hedera freeze key works by walking through:
 1. Creating a token without a freeze key and showing freeze/unfreeze attempts fail

@@ -1,5 +1,5 @@
-# uv run examples/token_mint_fungible.py
-# python examples/token_mint_fungible.py
+# uv run examples/tokens/token_mint_fungible.py
+# python examples/tokens/token_mint_fungible.py
 """
 uv run examples/tokens/token_mint_transaction_fungible.py
 python examples/tokens/token_mint_transaction_fungible.py

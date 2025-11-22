@@ -11,8 +11,8 @@ Required environment variables:
 - OPERATOR_ID, OPERATOR_KEY
 
 Usage:
-uv run examples/token_create_transaction_nft_finite
-python examples/token_create_transaction_nft_finite
+uv run examples/tokens/token_create_transaction_nft_finite
+python examples/tokens/token_create_transaction_nft_finite
 """
 
 import os

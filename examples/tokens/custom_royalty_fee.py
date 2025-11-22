@@ -1,7 +1,7 @@
 """
 Run with: 
-uv run examples/custom_royalty_fee.py
-python examples/custom_royalty_fee.py
+uv run examples/tokens/custom_royalty_fee.py
+python examples/tokens/custom_royalty_fee.py
 """
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee

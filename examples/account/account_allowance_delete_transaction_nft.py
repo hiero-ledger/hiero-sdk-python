@@ -1,15 +1,14 @@
 """
-This example demonstrates approving an NFT allowance and transferring the NFT using it.
+this example demonstrates deleting an NFT allowance.
 
-- Creates an owner, spender, and receiver account.
-- Creates an NFT.
-- Mints the NFT to the owner's account.
-- Associates the NFT with the receiver's account.
-- Approves the spender to spend the owner's NFT.
-- Spender (as payer) transfers the NFT from the owner to the receiver.
+- Creates an owner and spender account.
+- Creates and mints an NFT.
+- Approves the spender.
+- Deletes the allowance.
+- Verifies the spender can NO LONGER transfer the NFT.
 
 Usage:
-    uv run examples/account_allowance_approve_transaction_nft.py
+    uv run examples/account/account_allowance_delete_transaction_nft.py
 """
 
 import os
@@ -28,6 +27,7 @@ from hiero_sdk_python import (
     SupplyType,
     TokenMintTransaction,
     NftId,
+    TokenId,
     TokenAssociateTransaction,
     AccountAllowanceApproveTransaction,
     TransferTransaction
@@ -35,7 +35,6 @@ from hiero_sdk_python import (
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 
 load_dotenv()
-
 network_name = os.getenv('NETWORK', 'testnet').lower()
 
 def setup_client():
@@ -50,6 +49,7 @@ def setup_client():
 
     operator_id_str = os.getenv("OPERATOR_ID")
     operator_key_str = os.getenv("OPERATOR_KEY")
+
     assert operator_id_str is not None and operator_key_str is not None
 
     operator_id = AccountId.from_string(operator_id_str)
@@ -57,10 +57,11 @@ def setup_client():
     
     client.set_operator(operator_id, operator_key)
     print(f"Client setup for NFT Owner (Operator): {client.operator_account_id}")
+    
     return client, operator_id, operator_key
 
 def create_account(client, memo="Test Account"):
-    """Create a new Hedera account with an initial balance."""
+    """Create a new Hedera account."""
     private_key = PrivateKey.generate_ed25519()
     public_key = private_key.public_key()
     
@@ -71,22 +72,16 @@ def create_account(client, memo="Test Account"):
         .set_account_memo(memo)
         .execute(client)
     )
-    
-    if tx.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed: {ResponseCode(tx.status).name}")
-        sys.exit(1)
-        
-    account_id = tx.account_id
-    print(f"Created new account ({memo}): {account_id}")
-    return account_id, private_key
+    print(f"Created new account ({memo}): {tx.account_id}")
+    return tx.account_id, private_key
 
 def create_nft_token(client, owner_id, owner_key):
-    """Create a new non-fungible token (NFT) with the owner as treasury."""
-
+    """Create a new non-fungible token (NFT)."""
+    
     tx = (
         TokenCreateTransaction()
-        .set_token_name("ApproveTest NFT")
-        .set_token_symbol("ATNFT")
+        .set_token_name("DeleteTest NFT")
+        .set_token_symbol("DTNFT")
         .set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
         .set_decimals(0)
         .set_initial_supply(0)
@@ -108,25 +103,20 @@ def create_nft_token(client, owner_id, owner_key):
     return receipt.token_id
 
 def mint_nft(client, token_id, metadata_list):
-    """Mint NFT(s) with metadata."""
+    """Mint NFT(s)."""
     tx = (
         TokenMintTransaction()
         .set_token_id(token_id)
         .set_metadata(metadata_list)
         .execute(client)
     )
-    
-    if tx.status != ResponseCode.SUCCESS:
-        print(f"Mint failed: {ResponseCode(tx.status).name}")
-        sys.exit(1)
-        
     serials = tx.serial_numbers
     print(f"NFT Owner ({client.operator_account_id}) minted {len(serials)} NFT(s) for Token {token_id}: {serials}")
-    return [NftId(token_id, s) for s in serials]
+    return [NftId(token_id, s) for s in tx.serial_numbers]
 
 def associate_token_with_account(client, account_id, private_key, token_id):
     """Associate a token with an account."""
-    tx = (
+    (
         TokenAssociateTransaction()
         .set_account_id(account_id)
         .add_token_id(token_id)
@@ -134,19 +124,31 @@ def associate_token_with_account(client, account_id, private_key, token_id):
         .sign(private_key)
         .execute(client)
     )
-    
-    if tx.status != ResponseCode.SUCCESS:
-        print(f"Association failed: {ResponseCode(tx.status).name}")
-        sys.exit(1)
-        
     print(f"Associated token {token_id} with Receiver account {account_id}")
 
-def approve_nft_allowance(client, nft_id, owner_id, spender_id, owner_key):
-    """Approve NFT allowance for a spender."""
-    tx = (
+def approve_nft_allowance_all_serials(client, token_id: TokenId, owner_id: AccountId, spender_id: AccountId, owner_key: PrivateKey):
+    """Approve NFT allowance for ALL serials for a spender."""
+    (
         AccountAllowanceApproveTransaction()
         .approve_token_nft_allowance_all_serials(
-            nft_id.token_id, owner_id, spender_id
+            token_id, owner_id, spender_id
+        )
+        .freeze_with(client)
+        .sign(owner_key)
+        .execute(client)
+    )
+    print(f"NFT Owner ({owner_id}) approved Spender ({spender_id}) for ALL serials of token {token_id}")
+
+def delete_nft_allowance_all_serials(client, token_id: TokenId, owner_id: AccountId, spender_id: AccountId, owner_key: PrivateKey):
+    """
+    Revokes an "approve for all serials" NFT allowance from a spender.
+    """
+    print(f"NFT Owner ({owner_id}) deleting 'approve for all' allowance for {token_id} from Spender ({spender_id})...")
+    
+    tx = (
+        AccountAllowanceApproveTransaction()
+        .delete_token_nft_allowance_all_serials(
+            token_id, owner_id, spender_id
         )
         .freeze_with(client)
         .sign(owner_key)
@@ -154,60 +156,67 @@ def approve_nft_allowance(client, nft_id, owner_id, spender_id, owner_key):
     )
     
     if tx.status != ResponseCode.SUCCESS:
-        print(f"Approval failed: {ResponseCode(tx.status).name}")
+        print(f"Allowance deletion failed: {ResponseCode(tx.status).name}")
         sys.exit(1)
         
-    print(f"NFT Owner ({owner_id}) approved Spender ({spender_id}) for NFT {nft_id.token_id} (all serials)")
+    print("Allowance successfully deleted.")
 
-def transfer_nft_using_allowance(spender_client, nft_id, owner_id, receiver_id):
-    """Transfer an NFT using approved allowance via the spender client."""
-    print(f"Spender ({spender_client.operator_account_id}) transferring NFT {nft_id} from Owner ({owner_id})...")
+def verify_allowance_removed(spender_client, nft_id: NftId, owner_id: AccountId, receiver_id: AccountId):
+    """
+    Try to transfer NFT after allowance removal (should fail).
+    This transaction is paid for and signed by the SPENDER.
+    """
+    print(f"\nVerifying allowance removal by Spender ({spender_client.operator_account_id}) attempting transfer...")
     
-    tx = (
+    receipt = (
         TransferTransaction()
         .add_approved_nft_transfer(nft_id, owner_id, receiver_id)
         .execute(spender_client)
     )
     
-    if tx.status != ResponseCode.SUCCESS:
-        print(f"Transfer failed: {ResponseCode(tx.status).name}")
+    if receipt.status == ResponseCode.SPENDER_DOES_NOT_HAVE_ALLOWANCE:
+        print("Verification SUCCEEDED: Transfer failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE as expected.")
+    elif receipt.status == ResponseCode.SUCCESS:
+        print(f"Verification FAILED: Transfer succeeded unexpectedly!")
         sys.exit(1)
-        
-    print(f"SUCCESS: Spender ({spender_client.operator_account_id}) transferred NFT {nft_id} to Receiver ({receiver_id})")
+    else:
+        print(f"Verification FAILED: Transfer failed with an unexpected status: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
 
 def main():
-    """End-to-end demonstration."""
+    """End-to-end demonstration of NFT allowance deletion."""
     owner_client, owner_id, owner_key = setup_client()
 
     try:
-        # Create spender and receiver accounts
+        # 1. Create accounts
         spender_id, spender_key = create_account(owner_client, "Spender")
         receiver_id, receiver_key = create_account(owner_client, "Receiver")
 
-        # Create and mint NFT
+        # 2. Create and mint NFT
         token_id = create_nft_token(owner_client, owner_id, owner_key)
         nft_ids = mint_nft(owner_client, token_id, [b"Metadata 1"])
-        nft_id = nft_ids[0]
+        nft_id = nft_ids[0] # The specific NFT we will try to transfer
 
-        # Associate token with receiver
+        # 3. Associate receiver
         associate_token_with_account(owner_client, receiver_id, receiver_key, token_id)
 
-        # Approve allowance
-        approve_nft_allowance(owner_client, nft_id, owner_id, spender_id, owner_key)
+        # 4. Approve allowance (for all serials)
+        approve_nft_allowance_all_serials(owner_client, token_id, owner_id, spender_id, owner_key)
 
-        # Create a client for the spender
+        # 5. Delete the "all serials" allowance
+        delete_nft_allowance_all_serials(owner_client, token_id, owner_id, spender_id, owner_key)
+
+        # 6. Verify deletion
         print("\nSetting up client for the Spender...")
         spender_client = Client(owner_client.network)
         spender_client.set_operator(spender_id, spender_key)
         print(f"Client setup for Spender: {spender_id}")
         
-        # Transfer NFT using the allowance
-        transfer_nft_using_allowance(spender_client, nft_id, owner_id, receiver_id)
+        # We try to transfer the specific serial (nft_id)
+        verify_allowance_removed(spender_client, nft_id, owner_id, receiver_id)
 
     except Exception as e:
         print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
     finally:
         owner_client.close()
 

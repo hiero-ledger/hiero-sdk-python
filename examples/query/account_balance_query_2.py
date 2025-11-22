@@ -1,5 +1,5 @@
-# uv run examples/token_delete.py
-# python examples/token_delete.py
+# uv run examples/query/account_balance_query_2.py
+# python examples/query/account_balance_query_2.py
 
 """Example: Use CryptoGetAccountBalanceQuery to retrieve an account's
 HBAR and token balances, including minting NFTs to the account."""

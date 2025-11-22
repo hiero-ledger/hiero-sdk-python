@@ -1,4 +1,6 @@
 """
+uv run examples/tokens/token_create_transaction_token_fee_schedule_key.py
+
 Example: Demonstrating the fee_schedule_key in Token Creation
 
 This example shows the role of the fee_schedule_key when creating a token:

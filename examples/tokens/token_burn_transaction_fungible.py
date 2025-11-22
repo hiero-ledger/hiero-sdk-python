@@ -1,6 +1,6 @@
 """
-uv run examples/token_burn_transaction_fungible.py 
-python examples/token_burn_transaction_fungible.py
+uv run examples/tokens/token_burn_transaction_fungible.py 
+python examples/tokens/token_burn_transaction_fungible.py
 
 """
 import os

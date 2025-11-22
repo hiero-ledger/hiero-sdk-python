@@ -1,5 +1,5 @@
-# uv run examples/token_dissociate.py
-# python examples/token_dissociate.py
+# uv run examples/tokens/token_dissociate.py
+# python examples/tokens/token_dissociate.py
 """
 A full example that creates an account, two tokens, associates them, and finally dissociates them.
 """

@@ -1,5 +1,5 @@
-# uv run examples/token_delete.py
-# python examples/token_delete.py
+# uv run examples/tokens/token_delete.py
+# python examples/tokens/token_delete.py
 """
 A full example that creates a token and then immediately deletes it.
 """

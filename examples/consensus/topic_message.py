@@ -7,8 +7,8 @@ This example should demonstrate:
 4. How to pretty-print a TopicMessage and iterate over chunks
 
 To run : use  
-uv run examples/topic_message.py
-python examples/topic_message.py
+uv run examples/consensus/topic_message.py
+python examples/consensus/topic_message.py
 
 """
 

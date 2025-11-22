@@ -11,8 +11,8 @@ Required environment variables:
 - OPERATOR_ID, OPERATOR_KEY
 
 Usage:
-uv run examples/token_create_transaction_token_metadata.py
-python examples/token_create_transaction_token_metadata.py
+uv run examples/tokens/token_create_transaction_token_metadata.py
+python examples/tokens/token_create_transaction_token_metadata.py
 """
 
 import os

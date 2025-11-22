@@ -7,7 +7,7 @@ The script walks through:
 4. Associating the token for that account.
 5. Transferring again, this time succeeding.
 Run with:
-    uv run examples/token_create_transaction_max_automatic_token_associations_0
+    uv run examples/tokens/token_create_transaction_max_automatic_token_associations_0
 """
 
 import os

@@ -1,3 +1,6 @@
+"""
+uv run examples/transaction/batch_transaction.py
+"""
 import os
 import sys
 

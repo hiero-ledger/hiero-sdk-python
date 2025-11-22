@@ -1,6 +1,6 @@
 """
-uv run examples/token_burn_transaction_nft.py 
-python examples/token_burn_transaction_nft.py
+uv run examples/tokens/token_burn_transaction_nft.py 
+python examples/tokens/token_burn_transaction_nft.py
 
 """
 import os

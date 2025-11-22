@@ -12,8 +12,8 @@ Required environment variables:
 - OPERATOR_ID, OPERATOR_KEY
 
 Usage:
-uv run examples/token_create_transaction_admin_key.py
-python examples/token_create_transaction_admin_key.py
+uv run examples/tokens/token_create_transaction_admin_key.py
+python examples/tokens/token_create_transaction_admin_key.py
 """
 
 import os

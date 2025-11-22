@@ -1,6 +1,6 @@
 """
-uv run examples/token_associate_transaction.py
-python examples/token_associate_transaction.py
+uv run examples/tokens/token_associate_transaction.py
+python examples/tokens/token_associate_transaction.py
 
 A modular example demonstrating token association on Hedera testnet.
 This script shows the complete workflow: client setup, account creation,

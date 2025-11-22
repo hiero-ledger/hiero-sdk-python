@@ -1,5 +1,5 @@
-# uv run examples/token_mint_non_fungible.py
-# python examples/token_mint_non_fungible.py
+# uv run examples/tokens/token_mint_non_fungible.py
+# python examples/tokens/token_mint_non_fungible.py
 
 """
 Create a Non-Fungible Token (NFT) Collection and Mint NFTs

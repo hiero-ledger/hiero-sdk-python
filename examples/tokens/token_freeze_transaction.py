@@ -1,5 +1,5 @@
-# uv run examples/token_freeze.py
-# python examples/token_freeze.py
+# uv run examples/tokens/token_freeze.py
+# python examples/tokens/token_freeze.py
 """
 Creates a freezeable token and demonstrates freezing and unfreezing
 the token for the operator (treasury) account.

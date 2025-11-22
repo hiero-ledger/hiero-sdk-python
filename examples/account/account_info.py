@@ -1,3 +1,7 @@
+"""
+uv run examples/account/account_info.py
+"""
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
