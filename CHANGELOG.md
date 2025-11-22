@@ -31,7 +31,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
 - Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
 - Added `examples/account_allowance_approve_transaction_hbar.py` and `examples/account_allowance_delete_transaction_hbar.py`, deleted `examples/account_allowance_hbar.py`. [#775]
-
+- Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
 
 ### Changed
 - Upgraded step-security/harden-runner v2.13.2
