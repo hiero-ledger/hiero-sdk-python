@@ -12,7 +12,7 @@ This module includes:
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Any, List
+from typing import Optional, Any, List, Union
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.channels import _Channel
@@ -27,10 +27,13 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
+
+Key = Union[PrivateKey, PublicKey]
 
 @dataclass
 class TokenParams:
@@ -47,6 +50,7 @@ class TokenParams:
         max_supply (optional): The max tokens or NFT serial numbers.
         supply_type (optional): The token supply status as finite or infinite.
         freeze_default (optional): An initial Freeze status for accounts associated to this token.
+        metadata (optional): The on-ledger token metadata as bytes (max 100 bytes).
     """
 
     token_name: str
@@ -63,6 +67,7 @@ class TokenParams:
     auto_renew_account_id: Optional[AccountId] = None
     auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD # Default around ~90 days
     memo: Optional[str] = None
+    metadata: Optional[bytes] = None
 
 
 @dataclass
@@ -81,14 +86,14 @@ class TokenKeys:
         kyc_key: The KYC key for the token to grant KYC to an account.
     """
 
-    admin_key: Optional[PrivateKey] = None
-    supply_key: Optional[PrivateKey] = None
-    freeze_key: Optional[PrivateKey] = None
-    wipe_key: Optional[PrivateKey] = None
-    metadata_key: Optional[PrivateKey] = None
-    pause_key: Optional[PrivateKey] = None
-    kyc_key: Optional[PrivateKey] = None
-    fee_schedule_key: Optional[PrivateKey] = None
+    admin_key: Optional[Key] = None
+    supply_key: Optional[Key] = None
+    freeze_key: Optional[Key] = None
+    wipe_key: Optional[Key] = None
+    metadata_key: Optional[Key] = None
+    pause_key: Optional[Key] = None
+    kyc_key: Optional[Key] = None
+    fee_schedule_key: Optional[Key] = None
 
 class TokenCreateValidator:
     """Token, key and freeze checks for creating a token as per the proto"""
@@ -110,7 +115,8 @@ class TokenCreateValidator:
         if token_params.freeze_default:
             if not keys.freeze_key:
                 raise ValueError("Token is permanently frozen. Unable to proceed.")
-            raise ValueError("Token frozen. Please complete a Token Unfreeze Transaction.")
+            # freezeDefault=True simply starts accounts frozen; allow creation as long as
+            # a freeze key exists so the treasury (and others) can be unfrozen later.
 
     @staticmethod
     def _validate_required_fields(token_params: TokenParams) -> None:
@@ -368,43 +374,43 @@ class TokenCreateTransaction(Transaction):
         self._token_params.memo = memo
         return self
 
-    def set_admin_key(self, key: PrivateKey) -> "TokenCreateTransaction":
+    def set_admin_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the admin key for the token, which allows updating and deleting the token."""
         self._require_not_frozen()
         self._keys.admin_key = key
         return self
 
-    def set_supply_key(self, key: PrivateKey) -> "TokenCreateTransaction":
+    def set_supply_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the supply key for the token, which allows minting and burning tokens."""
         self._require_not_frozen()
         self._keys.supply_key = key
         return self
 
-    def set_freeze_key(self, key: PrivateKey) -> "TokenCreateTransaction":
+    def set_freeze_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the freeze key for the token, which allows freezing and unfreezing accounts."""
         self._require_not_frozen()
         self._keys.freeze_key = key
         return self
 
-    def set_wipe_key(self, key: PrivateKey) -> "TokenCreateTransaction":
+    def set_wipe_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the wipe key for the token, which allows wiping tokens from an account."""
         self._require_not_frozen()
         self._keys.wipe_key = key
         return self
 
-    def set_metadata_key(self, key: PrivateKey) -> "TokenCreateTransaction":
+    def set_metadata_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the metadata key for the token, which allows updating NFT metadata."""
         self._require_not_frozen()
         self._keys.metadata_key = key
         return self
 
-    def set_pause_key(self, key: PrivateKey) -> "TokenCreateTransaction":
+    def set_pause_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the pause key for the token, which allows pausing and unpausing the token."""
         self._require_not_frozen()
         self._keys.pause_key = key
         return self
 
-    def set_kyc_key(self, key: PrivateKey) -> "TokenCreateTransaction":
+    def set_kyc_key(self, key: Key) -> "TokenCreateTransaction":
         """ Sets the KYC key for the token, which allows granting KYC to an account."""
         self._require_not_frozen()
         self._keys.kyc_key = key
@@ -416,26 +422,61 @@ class TokenCreateTransaction(Transaction):
         self._token_params.custom_fees = custom_fees
         return self
 
-    def set_fee_schedule_key(self, key: PrivateKey) -> "TokenCreateTransaction":
+    def set_fee_schedule_key(self, key: Key) -> "TokenCreateTransaction":
         """Sets the fee schedule key for the token."""
         self._require_not_frozen()
         self._keys.fee_schedule_key = key
         return self
 
-    def _to_proto_key(self, private_key: Optional[PrivateKey]) -> Optional[basic_types_pb2.Key]:
+    def set_metadata(self, metadata: bytes | str) -> "TokenCreateTransaction":
+        """Sets the metadata for the token (max 100 bytes)"""
+        self._require_not_frozen()
+
+        # accept stringt and converts to bytes
+        if isinstance(metadata, str):
+            metadata = metadata.encode("utf-8")
+
+        # type validation, if users pass something that is not a str or a byte
+        if not isinstance(metadata, (bytes, bytearray)):
+            raise TypeError("Metadata must be bytes or string")
+
+        if len(metadata) > 100:
+            raise ValueError("Metadata must not exceed 100 bytes")
+
+        self._token_params.metadata = metadata
+        return self
+
+    def _to_proto_key(self, key: Optional[Key]) -> Optional[basic_types_pb2.Key]:
         """
-        Helper method to convert a private key to protobuf Key format.
+        Helper method to convert a PrivateKey or PublicKey to the protobuf Key format.
+
+        This ensures only public keys are serialized:
+        - If a PublicKey is provided, it is used directly.
+        - If a PrivateKey is provided, its corresponding public key is extracted and used.
 
         Args:
-            private_key (PrivateKey, Optional): The private key to convert, or None
+            key (Key, Optional): The PrivateKey or PublicKey to convert.
             
         Returns:
-            basic_types_pb2.Key (Optional): The protobuf key or None if private_key is None
+            basic_types_pb2.Key (Optional): The protobuf key, or None.
+            
+        Raises:
+            TypeError: If the provided key is not a PrivateKey, PublicKey, or None.
         """
-        if not private_key:
+        if not key:
             return None
 
-        return private_key.public_key()._to_proto()
+        # If it's a PrivateKey, get its public key first
+        if isinstance(key, PrivateKey):
+            return key.public_key()._to_proto()
+        
+        # If it's already a PublicKey, just convert it
+        if isinstance(key, PublicKey):
+            return key._to_proto()
+
+        # Safety net: This will fail if a non-key is passed
+        raise TypeError("Key must be of type PrivateKey or PublicKey")
+
 
     def freeze_with(self, client) -> "TokenCreateTransaction":
         """
@@ -525,6 +566,7 @@ class TokenCreateTransaction(Transaction):
                 else None
             ),
             memo=self._token_params.memo,
+            metadata=self._token_params.metadata,
             adminKey=admin_key_proto,
             supplyKey=supply_key_proto,
             freezeKey=freeze_key_proto,

@@ -203,3 +203,195 @@ def mock_account_ids():
     operator_account_id = AccountId(0, 0, 1001)
     node_account_id = AccountId(0, 0, 3)
     return operator_account_id, node_account_id
+
+def test_set_max_automatic_token_associations_validation():
+    """Test validation for max_automatic_token_associations."""
+    tx = AccountCreateTransaction()
+    
+    # Test good value: -1 for unlimited
+    tx.set_max_automatic_token_associations(-1)
+    assert tx.max_automatic_token_associations == -1
+    
+    # Test good value: 0 for default
+    tx.set_max_automatic_token_associations(0)
+    assert tx.max_automatic_token_associations == 0
+    
+    # Test good value: 100
+    tx.set_max_automatic_token_associations(100)
+    assert tx.max_automatic_token_associations == 100
+    
+    # Test bad value: -2
+    with pytest.raises(ValueError) as e:
+        tx.set_max_automatic_token_associations(-2)
+    
+    # Check for the new error message
+    assert "must be -1 (unlimited) or a non-negative integer" in str(e.value)
+
+def test_account_create_build_with_max_auto_assoc(mock_account_ids):
+    """Test building transaction with max_automatic_token_associations."""
+    operator_id, node_account_id = mock_account_ids
+    new_public_key = PrivateKey.generate().public_key()
+
+    account_tx = (
+        AccountCreateTransaction()
+        .set_key(new_public_key)
+        .set_max_automatic_token_associations(-1) # Test the new value
+    )
+    account_tx.transaction_id = generate_transaction_id(operator_id)
+    account_tx.node_account_id = node_account_id
+    
+    body = account_tx.build_transaction_body()
+    
+    # Verify the value is correctly set in the protobuf body
+    assert body.cryptoCreateAccount.max_automatic_token_associations == -1
+
+def test_create_account_transaction_without_alias(mock_account_ids):
+    """Test Create account transaction using set_key_without_alias method"""
+    operator_id, node_id = mock_account_ids
+    public_key = PrivateKey.generate().public_key()
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(public_key)
+    )
+
+    assert tx.key == public_key
+    assert tx.alias is None
+
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_id
+    tx_body = tx.build_transaction_body()
+
+    assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
+    assert tx_body.cryptoCreateAccount.alias == b''
+
+def test_create_account_transaction_set_key_with_alias(mock_account_ids):
+    """Test Create account transaction using set_key_with_alias method"""
+    operator_id, node_id = mock_account_ids
+    public_key = PrivateKey.generate_ecdsa().public_key()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_with_alias(public_key)
+    )
+
+    assert tx.key == public_key
+    assert tx.alias == public_key.to_evm_address()
+
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_id
+    tx_body = tx.build_transaction_body()
+
+    assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
+    assert tx_body.cryptoCreateAccount.alias == public_key.to_evm_address().address_bytes
+
+def test_create_account_transaction_set_key_with_seperate_key_for_alias(mock_account_ids):
+    """Test Create account transaction using set_key_with_alias method with seprate key"""
+    operator_id, node_id = mock_account_ids
+    public_key = PrivateKey.generate().public_key()
+    alias_key = PrivateKey.generate_ecdsa().public_key()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_with_alias(public_key, alias_key)
+    )
+
+    assert tx.key == public_key
+    assert tx.alias == alias_key.to_evm_address()
+
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_id
+    tx_body = tx.build_transaction_body()
+
+    assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
+    assert tx_body.cryptoCreateAccount.alias == alias_key.to_evm_address().address_bytes
+
+def test_create_account_transaction_set_key_with_alias_non_ecdsa_key():
+    """Test Create account transaction using set_key_with_alias method"""
+    public_key = PrivateKey.generate().public_key()
+
+    with pytest.raises(ValueError):
+        (
+            AccountCreateTransaction()
+            .set_key_with_alias(public_key)
+        )
+    
+    # With seperate key for deriving alias
+    alias_key = PrivateKey.generate().public_key()
+    with pytest.raises(ValueError):
+        (
+            AccountCreateTransaction()
+            .set_key_with_alias(public_key, alias_key)
+        )
+
+def test_create_account_transaction_with_set_alias(mock_account_ids):
+    """Test account creation transaction using a valid EvmAddress object."""
+    operator_id, node_id = mock_account_ids
+    public_key = PrivateKey.generate().public_key()
+    evm_address = PrivateKey.generate_ecdsa().public_key().to_evm_address()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key(public_key)
+        .set_alias(evm_address)
+    )
+
+    assert tx.key == public_key
+    assert tx.alias == evm_address
+
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_id
+    tx_body = tx.build_transaction_body()
+
+    assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
+    assert tx_body.cryptoCreateAccount.alias == evm_address.address_bytes
+
+@pytest.mark.parametrize("with_prefix", [False, True])
+def test_create_account_transaction_with_set_alias_from_string(mock_account_ids, with_prefix):
+    """Test account creation transaction using alias from string (with and without '0x' prefix)."""
+    operator_id, node_id = mock_account_ids
+    public_key = PrivateKey.generate().public_key()
+    evm_address = PrivateKey.generate_ecdsa().public_key().to_evm_address()
+
+    evm_string = evm_address.to_string()
+    alias_str = "0x" + evm_string if with_prefix else evm_string
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key(public_key)
+        .set_alias(alias_str)
+    )
+
+    assert tx.key == public_key
+    assert tx.alias == evm_address
+
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_id
+    tx_body = tx.build_transaction_body()
+
+    assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
+    assert tx_body.cryptoCreateAccount.alias == evm_address.address_bytes
+
+@pytest.mark.parametrize("invalid_str", [
+    "",
+    "0x",
+    "12345",
+    "0x12345",
+    "0x" + "g" * 40,
+    "0x" + "a" * 39,
+    "0x" + "a" * 41,
+])
+def test_create_account_transaction_with_set_alias_from_invalid_string(invalid_str):
+    """Test invalid alias strings raise ValueError."""
+    public_key = PrivateKey.generate().public_key()
+    tx = AccountCreateTransaction().set_key(public_key)
+
+    with pytest.raises(ValueError):
+        tx.set_alias(invalid_str)
+
+def test_create_account_transaction_with_set_alias_from_invalid_type():
+    """Test alias with invalid type raises TypeError."""
+    public_key = PrivateKey.generate().public_key()
+    tx = AccountCreateTransaction().set_key(public_key)
+
+    with pytest.raises(TypeError):
+        tx.set_alias(1234)
