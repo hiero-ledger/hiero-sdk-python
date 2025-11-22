@@ -15,6 +15,7 @@ from hiero_sdk_python import (
     Network,
     TokenCreateTransaction,
     TokenDeleteTransaction,
+    ResponseCode,
 )
 
 # Load environment variables from .env file
@@ -64,17 +65,31 @@ def create_new_token(client, operator_id, operator_key, admin_key):
             .set_treasury_account_id(operator_id)
             .set_admin_key(admin_key)  # Use the newly generated admin key
             .freeze_with(client)
-            .sign(operator_key)  # Operator (treasury) must sign
-            .sign(admin_key)     # The new admin key must also sign
+            .sign(operator_key) # Operator (treasury) must sign
+            .sign(admin_key)  # The new admin key must also sign
         )
 
         create_receipt = create_tx.execute(client)
+
+        # Verify the receipt status
+        try:
+            rc = ResponseCode(create_receipt.status)
+        except Exception:
+            # Fallback if status is already an enum-like object
+            rc = create_receipt.status
+
+        if rc != ResponseCode.SUCCESS:
+            name = rc.name if hasattr(rc, "name") else str(rc)
+            txid = getattr(create_receipt, "transaction_id", None)
+            print(f"❌ Token creation failed: {name} (transaction_id: {txid})")
+            sys.exit(1)
+
         token_id_to_delete = create_receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id_to_delete}")
         return token_id_to_delete
 
-    except (ValueError, TypeError) as e:
-        print(f"❌ Error creating token: {e}")
+    except Exception as e:
+        print(f"❌ Error creating token: {repr(e)}")
         sys.exit(1)
 
 
@@ -87,17 +102,30 @@ def delete_token(admin_key, token_id_to_delete, client, operator_key):
         print(f"\nSTEP 2: Deleting token {token_id_to_delete}...")
         delete_tx = (
             TokenDeleteTransaction()
-            .set_token_id(token_id_to_delete)  # Use the ID from the token we just made
-            .freeze_with(client)
-            .sign(operator_key)  # Operator must sign
-            .sign(admin_key)     # Sign with the same admin key used to create it
+            .set_token_id(token_id_to_delete) # Use the ID from the token we just made
+            .freeze_with(client)  # Use the ID from the token we just made
+            .sign(operator_key) # Operator must sign
+            .sign(admin_key) # Sign with the same admin key used to create it
         )
 
-        delete_tx.execute(client)
-        print("✅ Success! Token deleted.")
+        delete_receipt = delete_tx.execute(client)
 
-    except (ValueError, TypeError) as e:
-        print(f"❌ Error deleting token: {e}")
+        # Verify deletion receipt status
+        try:
+            rc = ResponseCode(delete_receipt.status)
+        except Exception:
+            rc = delete_receipt.status
+
+        if rc != ResponseCode.SUCCESS:
+            name = rc.name if hasattr(rc, "name") else str(rc)
+            txid = getattr(delete_receipt, "transaction_id", None)
+            print(f"❌ Token deletion failed: {name} (transaction_id: {txid})")
+            sys.exit(1)
+
+        print(f"✅ Success! Token {token_id_to_delete} deleted.")
+
+    except Exception as e:
+        print(f"❌ Error deleting token: {repr(e)}")
         sys.exit(1)
 
 def main():
