@@ -103,11 +103,13 @@ class TopicMessage:
         chunks: List[TopicMessageChunk] = []
         total_size: int = 0
         transaction_id: Optional[str] = None
-
+        
         for r in sorted_responses:
             c = TopicMessageChunk(r)
             chunks.append(c)
+            
             total_size += len(r.message)
+            
 
             if (
                     transaction_id is None
@@ -116,11 +118,13 @@ class TopicMessage:
             ):
                 tx_id = r.chunkInfo.initialTransactionID
                 transaction_id = (
-                    f"{tx_id.shardNum}.{tx_id.realmNum}.{tx_id.accountNum}-"
+                    f"{tx_id.accountID.shardNum, '0'}.{tx_id.accountID.realmNum, '0'}.{tx_id.accountID.accountNum}-"
                     f"{tx_id.transactionValidStart.seconds}.{tx_id.transactionValidStart.nanos}"
                 )
+                print(transaction_id)
 
         contents = bytearray(total_size)
+        
         offset: int = 0
         for r in sorted_responses:
             end = offset + len(r.message)

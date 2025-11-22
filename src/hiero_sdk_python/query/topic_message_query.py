@@ -144,17 +144,21 @@ class TopicMessageQuery:
                             continue
 
                         initial_tx_id = response.chunkInfo.initialTransactionID
-                        tx_id_str = (f"{initial_tx_id.shardNum}."
-                                     f"{initial_tx_id.realmNum}."
-                                     f"{initial_tx_id.accountNum}-"
+                        tx_id_str = (f"{initial_tx_id.accountID.shardNum or '0'}."
+                                     f"{initial_tx_id.accountID.realmNum or '0'}."
+                                     f"{initial_tx_id.accountID.accountNum}-"
                                      f"{initial_tx_id.transactionValidStart.seconds}."
                                      f"{initial_tx_id.transactionValidStart.nanos}")
+                        
                         if tx_id_str not in pending_chunks:
                             pending_chunks[tx_id_str] = []
+                        
                         pending_chunks[tx_id_str].append(response)
 
-                        if len(pending_chunks[tx_id_str]) == response.chunkInfo.total:
-                            chunk_list = pending_chunks.pop(tx_id_str)
+                        if len(pending_chunks) == response.chunkInfo.total:
+                            chunk_list =  [resp for chunk_list in pending_chunks.values() for resp in chunk_list]
+                            pending_chunks.clear() 
+
                             msg_obj = TopicMessage.of_many(chunk_list)
                             on_message(msg_obj)
 
@@ -164,6 +168,7 @@ class TopicMessageQuery:
 
                 except Exception as e:
                     if subscription_handle.is_cancelled():
+
                         return
 
                     attempt += 1
