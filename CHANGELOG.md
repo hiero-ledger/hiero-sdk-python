@@ -25,23 +25,26 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
+- Added `examples/token_create_transaction_kyc_key.py` to demonstrate KYC key functionality, including creating tokens with/without KYC keys, granting/revoking KYC status, and understanding KYC requirements for token transfers.
 - Added BatchTransaction class
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
-
 - Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
+- Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
+- Refactored examples/transfer_token.py into modular functions (setup_client(), create_account(), create_token(), associate_token(), transfer_tokens()) and introduced a clear main() execution flow for improved readability, reuse, and maintainability while preserving identical runtime behavior (#773).
 
 ### Changed
 - Upgraded step-security/harden-runner v2.13.2
 - bumped actions/checkout from 5.0.0 to 6.0.0
 - Limit workflow bot to one message per PR
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
-- upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner.
+- upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
 - chore: Split `examples/account_allowance_nft.py` into separate `account_allowance_approve_transaction_nft.py` and `account_allowance_delete_transaction_nft.py` examples.
 - chore: bump protobuf from 6.33.0 to 6.33.1 (#796)
 - fix: Allow `max_automatic_token_associations` to be set to -1 (unlimited) in `AccountCreateTransaction` and add field to `AccountInfo`.
 - Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
+
 ### Fixed
 
 - chore: fix test.yml workflow to log import errors (#740)
