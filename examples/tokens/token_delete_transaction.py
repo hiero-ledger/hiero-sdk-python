@@ -1,8 +1,5 @@
-# uv run examples/tokens/token_delete.py
-# python examples/tokens/token_delete.py
-"""
-A full example that creates a token and then immediately deletes it.
-"""
+# uv run examples/tokens/token_delete_transaction.py
+# python examples/tokens/token_delete_transaction.py
 
 import os
 import sys
@@ -79,13 +76,15 @@ def create_new_token(client, operator_id, operator_key, admin_key):
             rc = create_receipt.status
 
         if rc != ResponseCode.SUCCESS:
-            name = rc.name if hasattr(rc, "name") else str(rc)
-            txid = getattr(create_receipt, "transaction_id", None)
-            print(f"❌ Token creation failed: {name} (transaction_id: {txid})")
+            try:
+                status_name = ResponseCode(create_receipt.status).name
+            except Exception:
+                status_name = rc.name if hasattr(rc, "name") else str(rc)
+            print(f"❌ Token creation failed with status: {status_name}")
             sys.exit(1)
 
         token_id_to_delete = create_receipt.token_id
-        print(f"✅ Success! Created token with ID: {token_id_to_delete}")
+        print(f"✅ Token created successfully: {token_id_to_delete}")
         return token_id_to_delete
 
     except Exception as e:
@@ -117,12 +116,14 @@ def delete_token(admin_key, token_id_to_delete, client, operator_key):
             rc = delete_receipt.status
 
         if rc != ResponseCode.SUCCESS:
-            name = rc.name if hasattr(rc, "name") else str(rc)
-            txid = getattr(delete_receipt, "transaction_id", None)
-            print(f"❌ Token deletion failed: {name} (transaction_id: {txid})")
+            try:
+                status_name = ResponseCode(delete_receipt.status).name
+            except Exception:
+                status_name = rc.name if hasattr(rc, "name") else str(rc)
+            print(f"❌ Token deletion failed with status: {status_name}")
             sys.exit(1)
 
-        print(f"✅ Success! Token {token_id_to_delete} deleted.")
+        print(f"✅ Token {token_id_to_delete} deleted successfully!")
 
     except Exception as e:
         print(f"❌ Error deleting token: {repr(e)}")
