@@ -289,7 +289,6 @@ class TopicMessageSubmitTransaction(Transaction):
         print(self.get_required_chunks())
 
         for chunk_index in range(self.get_required_chunks()):
-            print(chunk_index)
             self._current_index = chunk_index
 
             if self._transaction_ids and chunk_index < len(self._transaction_ids):
