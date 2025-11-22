@@ -29,6 +29,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
 
 - Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
+- Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
 
 ### Changed
 - Upgraded step-security/harden-runner v2.13.2
