@@ -30,6 +30,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
 - Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
 - Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
+- Added `examples/account_allowance_approve_transaction_hbar.py` and `examples/account_allowance_delete_transaction_hbar.py`, deleted `examples/account_allowance_hbar.py`. [#775]
 
 
 ### Changed
