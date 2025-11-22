@@ -30,7 +30,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
 - Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
 - Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
-
+- Refactored examples/transfer_token.py into modular functions (setup_client(), create_account(), create_token(), associate_token(), transfer_tokens()) and introduced a clear main() execution flow for improved readability, reuse, and maintainability while preserving identical runtime behavior (#773).
 
 ### Changed
 - Upgraded step-security/harden-runner v2.13.2
