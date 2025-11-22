@@ -1,68 +1,69 @@
-name: Run Examples
-permissions:
-  contents: read
+  name: Run Examples
+  permissions:
+    contents: read
 
-on:
-  push:
-    branches: 
-      - "**"
-  pull_request:
-  workflow_dispatch:
+  on:
+    push:
+      branches: 
+        - "**"
+    pull_request:
+    workflow_dispatch:
 
-jobs:
-  run-examples:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
-        with:
-          egress-policy: audit
+  jobs:
+    run-examples:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Harden the runner (Audit all outbound calls)
+          uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+          with:
+            egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
-        with:
-          fetch-depth: 0
-          
-      - name: Install uv
-        uses: astral-sh/setup-uv@1781c6eb42f98d67097986d30130a8ff6879fda2
+        - name: Checkout repository
+          uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+          with:
+            fetch-depth: 0
+            
+        - name: Install uv
+          uses: astral-sh/setup-uv@1781c6eb42f98d67097986d30130a8ff6879fda2
 
-      - name: Install dependencies
-        run: uv sync
+        - name: Install dependencies
+          run: uv sync
 
-      - name: Generate Proto Files
-        run: uv run python generate_proto.py
+        - name: Generate Proto Files
+          run: uv run python generate_proto.py
 
-      - name: Prepare Hiero Solo
-        id: solo
-        uses: hiero-ledger/hiero-solo-action@dd0048139ef1e40fd6067f01bf94eb42a67294f4 #v0.15.0
-        with:
-          installMirrorNode: true
-      - name: Run Examples
-        env:
-          OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
-          OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
-          CHAIN_ID: 012A
-          NETWORK: solo
-        shell: bash
-        run: |
-          set -euo pipefail
-          files=$(find examples -name "*.py" -type f)
+        - name: Prepare Hiero Solo
+          id: solo
+          uses: hiero-ledger/hiero-solo-action@dd0048139ef1e40fd6067f01bf94eb42a67294f4 #v0.15.0
+          with:
+            installMirrorNode: true
+        - name: Run Examples
+          env:
+            OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
+            OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
+            CHAIN_ID: 012A
+            NETWORK: solo
+          shell: bash
+          run: |
+            set -euo pipefail
+            export PYTHONPATH="$PWD"
 
-          for file in $files;
-          do
-            echo -e "\n************ ${file} ************"
+            files=$(find examples -name "*.py" -type f ! -name "__init__.py")
 
-            module="examples.$(basename "$file" .py)"
+            for file in $files; do
+              echo -e "\n************ ${file} ************"
 
-            # Run the example and capture both stdout and stderr
-            if ! output=$(uv run -m "$module" 2>&1); then
-              echo -e "\n❌ Example failed: ${file}"
-              echo "************ Error Output ************"
+              # Convert path to module name
+              module=$(realpath --relative-to="$PWD" "$file" | sed 's|/|.|g' | sed 's|.py$||')
+
+              if ! output=$(uv run -m "$module" 2>&1); then
+                echo -e "\n❌ Example failed: ${file}"
+                echo "************ Error Output ************"
+                echo "$output"
+                echo "**************************************"
+                exit 1
+              fi
+
               echo "$output"
-              echo "**************************************"
-              exit 1
-            fi
-
-            echo "$output"
-            echo "✅ Completed ${file} successfully."
-          done
+              echo "✅ Completed ${file} successfully."
+            done
