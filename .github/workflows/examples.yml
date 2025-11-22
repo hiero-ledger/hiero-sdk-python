@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          files=$(ls examples/*.py)
+          files=$(find examples -name "*.py" -type f)
 
           for file in $files;
           do
