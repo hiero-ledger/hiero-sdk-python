@@ -1,23 +1,58 @@
 import os
-import re
 from collections import defaultdict
 
 EXCLUDE_DIRS = ['hapi', '__pycache__']
 
-def normalize_filename(path):
-    filename = os.path.splitext(os.path.basename(path))[0]
-    # Strip common suffix patterns after the base operation
-    filename = re.sub(
-        r'(_(ed25519|ecdsa|der|hbar|nft|fungible|auto|signature_required|finite|infinite|'
-        r'no_constructor_parameters|with_bytecode|with_constructor_parameters|non_fungible|key|'
-        r'nfts|fungible_token|revenue_generating|with_value|_to_bytes))+$',
-        '',
-        filename
-    )
-    return filename
 
+# -----------------------------
+# Token-based normalization
+# -----------------------------
+def tokenize_filename(path):
+    """Split a filename (without extension) into tokens."""
+    filename = os.path.splitext(os.path.basename(path))[0]
+    return filename.split("_")
+
+
+def longest_shared_prefix_tokens(a, b):
+    """Return longest shared prefix between two token lists."""
+    prefix = []
+    for x, y in zip(a, b):
+        if x == y:
+            prefix.append(x)
+        else:
+            break
+    return prefix
+
+
+def normalize_example_against_src(example_path, src_token_map, folder):
+    """
+    Determine normalized name for an example file by comparing it to all
+    src files in the *same folder* and using the longest shared prefix.
+    """
+    ex_tokens = tokenize_filename(example_path)
+
+    best_prefix = []
+    src_tokens_for_folder = src_token_map.get(folder, [])
+
+    for src_tokens in src_tokens_for_folder:
+        shared = longest_shared_prefix_tokens(ex_tokens, src_tokens)
+        if len(shared) > len(best_prefix):
+            best_prefix = shared
+
+    # use longest shared prefix
+    if best_prefix:
+        return "_".join(best_prefix)
+
+    # fallback: two tokens
+    return "_".join(ex_tokens[:2])
+
+
+# -----------------------------
+# File helpers
+# -----------------------------
 def get_folder(path):
     return os.path.dirname(path).replace("\\", "/")
+
 
 def list_files(base_path, exclude_dirs=None):
     exclude_dirs = exclude_dirs or []
@@ -29,7 +64,10 @@ def list_files(base_path, exclude_dirs=None):
             all_files.append(rel_path.replace("\\", "/"))
     return all_files
 
-# --- Helper functions for matching ---
+
+# -----------------------------
+# Matching helpers
+# -----------------------------
 def match_exact_folder(norm_ex, folder_ex, src_map, unmatched_src_set):
     key = (folder_ex, norm_ex)
     if key in src_map:
@@ -38,6 +76,7 @@ def match_exact_folder(norm_ex, folder_ex, src_map, unmatched_src_set):
         return src_map[key]
     return []
 
+
 def match_by_filename_only(norm_ex, src_map, unmatched_src_set):
     for (src_folder, src_norm), src_list in src_map.items():
         if src_norm == norm_ex:
@@ -45,6 +84,7 @@ def match_by_filename_only(norm_ex, src_map, unmatched_src_set):
                 unmatched_src_set.discard(src_file)
             return src_list
     return []
+
 
 def print_results(matched, unmatched_examples, unmatched_src_set, examples_path, src_path):
     print("=== Matched files ===")
@@ -60,16 +100,26 @@ def print_results(matched, unmatched_examples, unmatched_src_set, examples_path,
     for src in sorted(unmatched_src_set):
         print(f"{os.path.relpath(src_path)}/{src}")
 
-# --- Main function ---
+
+# -----------------------------
+# Main function
+# -----------------------------
 def match_examples_to_src(examples_path, src_path):
     examples_files = list_files(examples_path, EXCLUDE_DIRS)
     src_files = list_files(src_path, EXCLUDE_DIRS)
 
-    # Build folder-aware normalized mapping for src
+    # Build token maps for SRC files
+    src_token_map = defaultdict(list)  # folder -> list of token lists
+    for f in src_files:
+        folder = get_folder(f)
+        tokens = tokenize_filename(f)
+        src_token_map[folder].append(tokens)
+
+    # Now build a normalized mapping for src files
     src_map = defaultdict(list)
     for f in src_files:
-        norm = normalize_filename(f)
         folder = get_folder(f)
+        norm = "_".join(tokenize_filename(f))  # raw tokens joined
         src_map[(folder, norm)].append(f)
 
     matched = defaultdict(list)
@@ -77,9 +127,12 @@ def match_examples_to_src(examples_path, src_path):
     unmatched_src_set = set(src_files)
 
     for ex in examples_files:
-        norm_ex = normalize_filename(ex)
         folder_ex = get_folder(ex)
 
+        # Normalize example using longest shared prefix with src files
+        norm_ex = normalize_example_against_src(ex, src_token_map, folder_ex)
+
+        # Now match using full map
         matched_files = match_exact_folder(norm_ex, folder_ex, src_map, unmatched_src_set)
         if not matched_files:
             matched_files = match_by_filename_only(norm_ex, src_map, unmatched_src_set)
@@ -92,6 +145,10 @@ def match_examples_to_src(examples_path, src_path):
 
     print_results(matched, unmatched_examples, unmatched_src_set, examples_path, src_path)
 
+
+# -----------------------------
+# Run
+# -----------------------------
 if __name__ == "__main__":
     examples_path = os.path.abspath("./examples")
     src_path = os.path.abspath("./src/hiero_sdk_python")
