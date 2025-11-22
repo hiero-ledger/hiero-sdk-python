@@ -6,22 +6,59 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
 ### Added
+
+- Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
+- Add workflow: github bot to respond to unverified PR commits (#750)
+- Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
+- Add `examples/token_create_transaction_max_automatic_token_associations_0.py` to demonstrate how `max_automatic_token_associations=0` behaves.
+- Add `examples/topic_id.py` to demonstrate `TopicId` opeartions
+- Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
+- Added missing validation logic `fee_schedule_key` in integration `token_create_transaction_e2e_test.py` and ``token_update_transaction_e2e_test.py`.
+- Add `account_balance_query.py` example to demonstrate how to use the CryptoGetAccountBalanceQuery class.
+- Add `examples/token_create_transaction_admin_key.py` demonstrating admin key privileges for token management including token updates, key changes, and deletion (#798)
+- Add `examples/token_create_transaction_freeze_key.py` showcasing freeze key behavior, expected failures without the key, and the effect of freezing/unfreezing on transfers.
+- Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
+- Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
+- EvmAddress class
+- `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
+- `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
+- Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
+- Added `examples/token_create_transaction_kyc_key.py` to demonstrate KYC key functionality, including creating tokens with/without KYC keys, granting/revoking KYC status, and understanding KYC requirements for token transfers.
+- Added BatchTransaction class
+- Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
+- Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
+- Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
 
 
 ### Changed
+- Upgraded step-security/harden-runner v2.13.2
+- bumped actions/checkout from 5.0.0 to 6.0.0
+- Limit workflow bot to one message per PR
 - Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
-
+- upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
+- chore: Split `examples/account_allowance_nft.py` into separate `account_allowance_approve_transaction_nft.py` and `account_allowance_delete_transaction_nft.py` examples.
+- chore: bump protobuf from 6.33.0 to 6.33.1 (#796)
+- fix: Allow `max_automatic_token_associations` to be set to -1 (unlimited) in `AccountCreateTransaction` and add field to `AccountInfo`.
+- Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
+- Update github actions checkout from 5.0.0 to 5.0.1 (#814)
+- changed to add concurrency to workflow bot
 
 ### Fixed
 
+- chore: fix test.yml workflow to log import errors (#740)
+- chore: fixed integration test names without a test prefix or postfix
+- Staked node ID id issue in the account_create_transationt_e2e_test
+- workflow: verified commits syntax for verfication bot
 
 
 ## [0.1.8] - 2025-11-07
 
 ### Added
-- Standardized all test file names to use the `_test.py` postfix to ensure consistency across the test suite. (#ISSUE_NUMBER)
+
+- `is_unknown` property added to `src/hiero_sdk_python/response_code.py`
+- Example `response_code.py`
 - Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
 - Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
 - Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
@@ -44,15 +81,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
+
 - chore: bumped solo action from 14.0 to 15.0 (#764)
 - chore: replaced hardcoded 'testnet' messages with environment network name
-- chore: validate that token airdrop transactions require an available token service on the channel (#632) 
+- chore: validate that token airdrop transactions require an available token service on the channel (#632)
 - chore: update local environment configuration in env.example (#649)
 - chore: Update env.example NETWORK to encourage testnet or local usage (#659)
 - chore: updated pyproject.toml with python 3.10 to 3.13 (#510, #449)
 - chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
 - chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
-- chore: Refactored the script of examples/custom_fee.py into modular functions 
+- chore: Refactored the script of examples/custom_fee.py into modular functions
 - fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
 - chore: Refactored examples/custom_fee.py into three separate example files.
 - Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
@@ -62,6 +100,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactor `AbstractTokenTransferTransaction` to unify Token/NFT transfer logic.
 
 ### Fixed
+
 - Added explicit read permissions to examples.yml (#623)
 - Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
 - Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
@@ -71,12 +110,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed incorrect `TokenType` import (protobuf vs. SDK enum) in 18 example files.
 - Update `schedule_sign_transaction_e2e_test` to check for key presence instead of relying on index.
 - Add `localhost` and `local` as network names
-  
+
 ### Breaking Changes
+
 - chore: changed the file names airdrop classes (#631)
-{pending_airdrop_id.py -> token_airdrop_pending_id.py}
-{pending_airdrop_record.py -> token_airdrop_pending_record.py}
-{token_cancel_airdrop_transaction.py -> token_airdrop_transaction_cancel.py}
+  {pending_airdrop_id.py -> token_airdrop_pending_id.py}
+  {pending_airdrop_record.py -> token_airdrop_pending_record.py}
+  {token_cancel_airdrop_transaction.py -> token_airdrop_transaction_cancel.py}
 
 - In `TokenAirdropTransaction` the parameters of the following methods have been renamed:
   - add_nft_transfer(sender → sender_id, receiver → receiver_id)
@@ -105,7 +145,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: workflow.md documenting key steps to creating a pull request (#605)
 - chore: fix the examples workflow to log error messages and run on import failure (#738)
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
-
 
 ### Changed
 
@@ -139,6 +178,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Type hinting for `Topic` related transactions.
 
 ### Removed
+
 - Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
 
 ## [0.1.6] - 2025-10-21
@@ -178,8 +218,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replace Hendrik Ebbers with Sophie Bulloch in the MAINTAINERS.md file
 - Improved `CONTRIBUTING.md` by explaining the /docs folder structure and fixing broken hyperlinks.(#431)
 - Converted class in `token_nft_info.py` to dataclass for simplicity.
-
-
 
 ### Fixed
 

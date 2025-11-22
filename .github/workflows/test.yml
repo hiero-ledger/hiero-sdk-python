@@ -1,11 +1,11 @@
-name: Hiero Solo Integration Tests
+name: Hiero Solo Integration & Unit Tests
 
 on:
   push:
     branches:
       - '**'
-  workflow_dispatch:
-  pull_request:
+  pull_request: {}
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -22,12 +22,12 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
@@ -62,8 +62,10 @@ jobs:
 
       - name: Install your package
         run: pip install -e .
-
-      - name: Run integration tests
+      - name: Run all integration tests
+        id: integration
+        continue-on-error: true
+        shell: bash
         env:
           OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
           OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
@@ -71,8 +73,41 @@ jobs:
           PUBLIC_KEY: ${{ steps.solo.outputs.publicKey }}
           NETWORK: solo
         run: |
-          uv run pytest -m integration
+          set -o pipefail
+          echo "🚀 Running integration tests..."
+          uv run pytest tests/integration -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_integration.log
+          pytest_exit=${PIPESTATUS[0]}
+          echo "integration_failed=$pytest_exit" >> "$GITHUB_OUTPUT"
+          cat result_integration.log
+          if [ $pytest_exit -ne 0 ]; then
+            echo "❌ Some integration tests failed"
+          else
+            echo "✅ All integration tests passed"
+          fi
 
-      - name: Run unit tests
+      - name: Run all unit tests
+        id: unit
+        continue-on-error: true
+        shell: bash
         run: |
-          uv run pytest -m unit
+          set -o pipefail
+          echo "🚀 Running unit tests..."
+          uv run pytest tests/unit -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_unit.log
+          pytest_exit=${PIPESTATUS[0]}
+          echo "unit_failed=$pytest_exit" >> "$GITHUB_OUTPUT"
+          cat result_unit.log
+          if [ $pytest_exit -ne 0 ]; then
+            echo "❌ Some unit tests failed"
+          else
+            echo "✅ All unit tests passed"
+          fi
+
+      - name: Fail workflow if any tests failed
+        shell: bash
+        run: |
+          if [ "${{ steps.integration.outputs.integration_failed }}" != "0" ] || [ "${{ steps.unit.outputs.unit_failed }}" != "0" ]; then
+            echo "❌ Some tests failed. Failing workflow."
+            exit 1
+          else
+            echo "✅ All tests passed!"
+          fi
