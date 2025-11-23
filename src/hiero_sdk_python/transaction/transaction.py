@@ -63,7 +63,7 @@ class Transaction(_Executable):
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         # changed from int: 2_000_000 to Hbar: 0.02
-        self._default_transaction_fee = Hbar(1)
+        self._default_transaction_fee = Hbar(0.02)
         self.operator_account_id = None  
         self.batch_key: Optional[PrivateKey] = None
 
@@ -421,7 +421,6 @@ class Transaction(_Executable):
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
 
-        # transaction_body.transactionFee = int(self.transaction_fee or self._default_transaction_fee)
         fee = self.transaction_fee or self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
             transaction_body.transactionFee = int(fee.to_tinybars())
@@ -449,9 +448,6 @@ class Transaction(_Executable):
         """
         schedulable_body = SchedulableTransactionBody()
 
-        # schedulable_body.transactionFee = (
-        #     self.transaction_fee or self._default_transaction_fee
-        # )
         fee = self.transaction_fee or self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
             schedulable_body.transactionFee = int(fee.to_tinybars())
