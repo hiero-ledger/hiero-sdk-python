@@ -44,7 +44,8 @@ class TopicMessageSubmitTransaction(Transaction):
 
         self._current_index = 0
         self._total_chunks = self.get_required_chunks()
-        self._transaction_ids: List[TransactionId] = []
+        self._intial_transaction_id: Optional[TransactionId] = None
+        self._initial_transaction_id: List[TransactionId] = []
         self._signing_keys: List["PrivateKey"] = []
             
     def get_required_chunks(self) -> int:
@@ -96,13 +97,17 @@ class TopicMessageSubmitTransaction(Transaction):
         Set maximum chunk size in bytes.
         
         Args:
-            chunck_size (int):  The size of each chunk in bytes.
+            chunk_size (int):  The size of each chunk in bytes.
 
         Returns:
             TopicMessageSubmitTransaction: This transaction instance (for chaining).
         """
         self._require_not_frozen()
+        if chunk_size <= 0:
+            raise ValueError("chunk_size must be positive")
+        
         self.chunk_size = chunk_size
+        self._total_chunks = self.get_required_chunks()
         return self
     
     def set_max_chunks(self, max_chunks: int) -> "TopicMessageSubmitTransaction":
@@ -116,6 +121,9 @@ class TopicMessageSubmitTransaction(Transaction):
             TopicMessageSubmitTransaction: This transaction instance (for chaining).
         """
         self._require_not_frozen()
+        if max_chunks <= 0:
+            raise ValueError("max_chunks must be positive")
+        
         self.max_chunks = max_chunks
         return self
 
@@ -193,10 +201,10 @@ class TopicMessageSubmitTransaction(Transaction):
             message=chunk_content
         )
 
-         # Multi-chunk metadata
+        # Multi-chunk metadata
         if self._total_chunks > 1:
             body.chunkInfo.CopyFrom(consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-                initialTransactionID=self.transaction_id._to_proto(),
+                initialTransactionID=self._intial_transaction_id._to_proto(),
                 total=self._total_chunks,
                 number=self._current_index + 1
             ))
@@ -255,7 +263,9 @@ class TopicMessageSubmitTransaction(Transaction):
 
         for i in range(self.get_required_chunks()):
             if i == 0:
-                # First chunk uses the original transaction ID
+                if self._intial_transaction_id is None:
+                    self._intial_transaction_id = self.transaction_id
+
                 chunk_transaction_id = self.transaction_id
             else:
                 chunk_valid_start = timestamp_pb2.Timestamp(
@@ -268,15 +278,9 @@ class TopicMessageSubmitTransaction(Transaction):
                 )
         
             self._transaction_ids.append(chunk_transaction_id)
-    
-        for node in client.network.nodes:
-            self.node_account_id = node._account_id
-            transaction_body = self.build_transaction_body()
-            self._transaction_body_bytes[node._account_id] = transaction_body.SerializeToString()
+        
+        return super().freeze_with(client)
 
-        self.node_account_id = client.network.current_node._account_id
-
-        return self
     
     def execute(self, client: "Client"):
         self._validate_chunking()
@@ -286,14 +290,13 @@ class TopicMessageSubmitTransaction(Transaction):
 
         # Multi-chunk transaction - execute all chunks
         responses = []
-        print(self.get_required_chunks())
 
         for chunk_index in range(self.get_required_chunks()):
             self._current_index = chunk_index
 
             if self._transaction_ids and chunk_index < len(self._transaction_ids):
                 self.transaction_id = self._transaction_ids[chunk_index]
-            
+
             self._transaction_body_bytes.clear()
             self._signature_map.clear()
             
