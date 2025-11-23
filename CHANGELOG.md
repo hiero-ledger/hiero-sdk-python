@@ -8,6 +8,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
+- Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
+- Document error handling patterns and best practices for transaction receipts
+
 - Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
 - Add workflow: github bot to respond to unverified PR commits (#750)
 - Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
