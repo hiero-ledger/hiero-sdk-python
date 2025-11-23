@@ -224,52 +224,6 @@ def test_transfer_while_paused(client, operator_id, operator_key, recipient_id, 
     else:
         print(f"⚠️ Unexpected status: {ResponseCode(receipt.status).name}\n")
 
-
-
-# -------------------------------------------------------
-# BONUS: REMOVE PAUSE KEY WHILE PAUSED → PERMANENT
-# -------------------------------------------------------
-def remove_pause_key(client, token_id, pause_key):
-    print("🔹 Removing pause key while token is UNPAUSED...")
-
-    tx = (
-        TokenUpdateTransaction()
-        .set_token_id(token_id)
-        .set_pause_key(None)
-        .freeze_with(client)
-        .sign(pause_key)
-    )
-
-    receipt = tx.execute(client)
-
-    if receipt.status == ResponseCode.SUCCESS:
-        print("✅ Pause key removed successfully.\n")
-        return True
-    else:
-        print(f"❌ Failed to remove pause key: {ResponseCode(receipt.status).name}\n")
-        return False
-
-
-def attempt_unpause_after_removal_should_fail(client, token_id):
-    print("🔹 Attempting to unpause a token with NO pause key (should fail)...")
-
-    try:
-        tx = (
-            TokenUnpauseTransaction()
-            .set_token_id(token_id)
-            .freeze_with(client)
-        )
-
-        # Do NOT sign — because pause key no longer exists
-        receipt = tx.execute(client)
-
-        print(f"⚠️ Unexpected status: {ResponseCode(receipt.status).name}\n")
-
-    except Exception as e:
-        print(f"✅ Permanent unpause failure occurred as expected: {e}\n")
-
-
-
 # -------------------------------------------------------
 # MAIN
 # -------------------------------------------------------
@@ -295,22 +249,6 @@ def main():
     )
 
     unpause_token(client, token_with_pause, pause_key)
-
-    print("\n==================== BONUS — PERMANENT PAUSE ====================\n")
-    # 1. Pause
-    pause_token(client, token_with_pause, pause_key)
-
-    # 2. Unpause (required to modify keys)
-    unpause_token(client, token_with_pause, pause_key)
-
-    # 3. Remove pause key
-    if remove_pause_key(client, token_with_pause, pause_key):
-
-        # 4. Pause again
-        pause_token(client, token_with_pause, pause_key)
-
-        # 5. Unpause should now fail permanently
-        attempt_unpause_after_removal_should_fail(client, token_with_pause)
 
 print("\n🎉 Pause key demonstration completed!")
 
