@@ -1,29 +1,30 @@
 #!/usr/bin/env python3
 """
 Example demonstrating how to handle ReceiptStatusError in the Hiero SDK.
+
+run: 
+uv run examples/errors/receipt_status_error.py
+python examples/errors/receipt_status_error.py
 """
 import os
-import sys
+import dotenv
 
-# Add the parent directory to the path so we can import the SDK
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.exceptions import ReceiptStatusError
 
-from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    TransferTransaction,
-    Hbar,
-    ResponseCode,
-    ReceiptStatusError
-)
+dotenv.load_dotenv()
 
 def main():
     # Initialize the client
     # For this example, we assume we are running against a local node or testnet
     # You would typically load these from environment variables
-    operator_id_str = os.environ.get("OPERATOR_ID", "0.0.2")
-    operator_key_str = os.environ.get("OPERATOR_KEY", "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137")
+    operator_id_str = os.environ.get("OPERATOR_ID", "")
+    operator_key_str = os.environ.get("OPERATOR_KEY", "")
     
     try:
         operator_id = AccountId.from_string(operator_id_str)
@@ -35,46 +36,38 @@ def main():
     client = Client()
     client.set_operator(operator_id, operator_key)
 
-    # Create a transfer transaction that is likely to fail post-consensus
-    # For example, transferring to an invalid account or insufficient balance
-    # Here we try to transfer a huge amount that we likely don't have
+    # Create a  transaction that is likely to fail post-consensus
+    # Here we try to associate a non-existent token
     
-    recipient_id = AccountId.from_string("0.0.3")
-    huge_amount = Hbar.from_tinybars(100_000_000_000_000) # Very large amount
-
     print("Creating transaction...")
-    tx = TransferTransaction() \
-        .add_hbar_transfer(operator_id, huge_amount.negated()) \
-        .add_hbar_transfer(recipient_id, huge_amount) \
-        .set_transaction_memo("ReceiptStatusError Example")
+    transaction = TokenAssociateTransaction() \
+        .set_account_id(operator_id) \
+        .add_token_id(TokenId(0,0,3)) \
+        .freeze_with(client) \
+        .sign(operator_key)
 
     try:
         print("Executing transaction...")
-        # execute() submits the transaction to the network
-        # It might raise PrecheckError if the transaction is malformed
-        response = tx.execute(client)
-        
-        print(f"Transaction submitted. ID: {response.transaction_id}")
-        
-        # get_receipt() waits for consensus
-        # This is where ReceiptStatusError is typically raised if the status is not SUCCESS
-        # However, the SDK might not auto-raise it depending on configuration or method used.
-        # Let's check manually as per the guide.
-        
-        receipt = response.get_receipt(client)
-        
-        # Explicit check (though get_receipt usually throws if configured, let's be explicit)
+        # execute() submits the transaction to the network and returns a receipt
+        # Note: this does NOT automatically raise an exception if the transaction fails post-consensus.
+        receipt = transaction.execute(client)
+        print(f"Transaction submitted. ID: {receipt.transaction_id}")
+                
+        # Check if the execution raised something other than SUCCESS
+        # If not, we raise our custom ReceiptStatusError for handling.
         if receipt.status != ResponseCode.SUCCESS:
-             raise ReceiptStatusError(receipt.status, response.transaction_id, receipt)
-             
+             raise ReceiptStatusError(receipt.status, receipt.transaction_id, receipt)
+        # If we reach here, the transaction succeeded
         print("Transaction successful!")
 
+    # This exception is raised when the transaction raised something other than SUCCESS
     except ReceiptStatusError as e:
         print("\nCaught ReceiptStatusError!")
         print(f"Status: {e.status} ({ResponseCode(e.status).name})")
         print(f"Transaction ID: {e.transaction_id}")
         print("This error means the transaction reached consensus but failed logic execution.")
         
+    # Catch all for unexpected errors
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}")
 
