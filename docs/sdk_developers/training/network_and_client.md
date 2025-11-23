@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Before creating any transactions or querying the Hedera blockchain, every developer must understand two foundational concepts: **Network** and **Client**. 
+Before creating any transactions or querying the Hedera blockchain, every developer must understand two foundational concepts: **Network** and **Client**.
 
 - The **Network** is your gateway to the Hedera nodes—the servers that process transactions and maintain the ledger.
 - The **Client** is your interface that connects your application to the network using your operator credentials.
@@ -47,16 +47,17 @@ A **Network** is a collection of Hedera nodes that process transactions, maintai
 
 Hedera provides multiple networks for different purposes:
 
-| Network | Purpose | Real HBAR | Use Case |
-|---------|---------|----------|----------|
-| **mainnet** | Live production network | Yes | Real transactions with actual value |
-| **testnet** | Public sandbox | No | Testing without spending real HBAR |
-| **previewnet** | Early access to new features | No | Testing upcoming mainnet changes |
-| **solo** | Local private network | No | Local development and debugging |
+| Network        | Purpose                      | Real HBAR | Use Case                            |
+| -------------- | ---------------------------- | --------- | ----------------------------------- |
+| **mainnet**    | Live production network      | Yes       | Real transactions with actual value |
+| **testnet**    | Public sandbox               | No        | Testing without spending real HBAR  |
+| **previewnet** | Early access to new features | No        | Testing upcoming mainnet changes    |
+| **solo**       | Local private network        | No        | Local development and debugging     |
 
 ### What are Nodes?
 
 **Nodes** are servers that validate transactions, maintain the ledger, and respond to queries. Each node is identified by:
+
 - **Account ID**: A unique identifier (e.g., `0.0.3`, `0.0.4`) that represents the node on the network
 - **Address**: The network address and port (e.g., `0.testnet.hedera.com:50211`)
 
@@ -81,18 +82,19 @@ The Hedera SDK provides **default node configurations** for each official networ
 ### Mirror Nodes
 
 In addition to regular nodes, Hedera has **mirror nodes**. Mirror nodes provide:
+
 - REST API access for querying historical data
 - gRPC streaming subscriptions for topics and contract events
 - Read-only access without needing operator credentials
 
 Each network has its default mirror node:
 
-| Network | Mirror Node URL |
-|---------|-----------------|
-| mainnet | `https://mainnet-public.mirrornode.hedera.com` |
-| testnet | `https://testnet.mirrornode.hedera.com` |
-| previewnet | `https://previewnet.mirrornode.hedera.com` |
-| solo | `http://localhost:8080` |
+| Network    | Mirror Node URL                                |
+| ---------- | ---------------------------------------------- |
+| mainnet    | `https://mainnet-public.mirrornode.hedera.com` |
+| testnet    | `https://testnet.mirrornode.hedera.com`        |
+| previewnet | `https://previewnet.mirrornode.hedera.com`     |
+| solo       | `http://localhost:8080`                        |
 
 ---
 
@@ -111,6 +113,7 @@ A **Client** is the main interface your application uses to interact with the He
 ### Client Responsibilities
 
 Think of the Client as a librarian that:
+
 1. Knows all the libraries (nodes) in your city (network)
 2. Knows who you are (operator credentials)
 3. Can send you to the nearest available library (node selection)
@@ -271,6 +274,7 @@ print(f"Current node: {client.network.current_node}")
 ```
 
 **How node selection works:**
+
 - Each time a request is made, the Client rotates to the next node
 - When it reaches the last node, it wraps back to the first node
 - This ensures load balancing across all available nodes
@@ -301,6 +305,7 @@ print(f"Generated transaction ID: {transaction_id}")
 ```
 
 A transaction ID consists of:
+
 - The operator's account ID
 - A unique timestamp
 - It uniquely identifies the transaction on the network
@@ -368,14 +373,44 @@ The Network and Client are separate but interdependent:
 2. **Client provides WHO and HOW**: The Client specifies who you are (operator credentials) and manages the actual communication
 3. **Together they enable communication**: The combination allows your application to securely interact with the Hedera blockchain
 
-### Example: Complete Setup
+## -### Example: Complete Setup
 
-See the complete setup example in [`examples/client/client_network_setup.py`](../../../examples/client/client_network_setup.py) for a fully functional demonstration including:
-- Network initialization
-- Client creation
-- Operator credential configuration
-- Network and client verification
-- Resource cleanup
+-```python
++### Example: Complete Setup
+
+```python
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
+import os
+
+# Create the network configuration
+network = Network("testnet")
+print(f"Connected to: {network.network}")
+print(f"Nodes available: {len(network.nodes)}")
+
+# Create the client with the network
+client = Client(network)
+print(f"Client initialized with network: {client.network.network}")
+
+# Configure operator credentials
+operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
+operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
+
+client.set_operator(operator_id, operator_key)
+print(f"Operator set: {client.operator_account_id}")
+
+# Now the client is ready for transactions
+# (Though we're not executing any transactions in this guide)
+
+print(f"Client is ready to use!")
+print(f"Current node: {client.network.current_node._account_id}")
+print(f"Mirror address: {client.network.get_mirror_address()}")
+
+# Clean up when done
+client.close()
+```
 
 ---
 
@@ -423,12 +458,14 @@ This is the recommended approach for production code.
 ### Key Takeaways
 
 **Network:**
+
 - Defines the Hedera network to connect to (mainnet, testnet, previewnet, solo)
 - Contains a list of node servers with their addresses and account IDs
 - Includes mirror node configuration for read-only access
 - Handles automatic node discovery and fallback mechanisms
 
 **Client:**
+
 - Your main interface to the Hedera network
 - Stores operator credentials (account ID and private key)
 - Manages connections to nodes via gRPC
@@ -438,6 +475,7 @@ This is the recommended approach for production code.
 - Includes retry logic for failed requests
 
 **Together:**
+
 - Network = WHERE to connect (the nodes)
 - Client = WHO connects and HOW to connect (credentials and communication)
 - You must properly set up both before any Hedera interaction
@@ -457,7 +495,12 @@ Before learning about transactions, queries, or other features, ensure you:
 
 ## Next Steps
 
+You can also explore the following stand-alone example script:
+
+- `examples/client/client.py` – Complete network and client setup example with detailed logging.
+
 Now that you understand Network and Client setup, you're ready to:
+
 - **Create and submit transactions** to the Hedera network
 - **Query the network** for account and transaction information
 - **Subscribe to topics** via mirror nodes

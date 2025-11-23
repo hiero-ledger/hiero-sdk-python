@@ -36,6 +36,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
 - Added `examples/account_allowance_approve_transaction_hbar.py` and `examples/account_allowance_delete_transaction_hbar.py`, deleted `examples/account_allowance_hbar.py`. [#775]
 - Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
+- docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
 
 ### Changed
 
@@ -84,7 +85,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
-- - docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`, `client_network_setup.py`).
 
 ### Changed
 
