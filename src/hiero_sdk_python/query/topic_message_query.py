@@ -1,12 +1,13 @@
 import time
 import threading
 from datetime import datetime
-from typing import Optional, Callable, Union, Dict, List, Any
+from typing import Optional, Callable, Union, Dict, List
 
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message import TopicMessage
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.utils.subscription_handle import SubscriptionHandle
 from hiero_sdk_python.client.client import Client
 
@@ -143,21 +144,15 @@ class TopicMessageQuery:
                             on_message(msg_obj)
                             continue
 
-                        initial_tx_id = response.chunkInfo.initialTransactionID
-                        tx_id_str = (f"{initial_tx_id.accountID.shardNum or '0'}."
-                                     f"{initial_tx_id.accountID.realmNum or '0'}."
-                                     f"{initial_tx_id.accountID.accountNum}-"
-                                     f"{initial_tx_id.transactionValidStart.seconds}."
-                                     f"{initial_tx_id.transactionValidStart.nanos}")
+                        initial_tx_id = TransactionId._from_proto(response.chunkInfo.initialTransactionID)
                         
-                        if tx_id_str not in pending_chunks:
-                            pending_chunks[tx_id_str] = []
+                        if initial_tx_id not in pending_chunks:
+                            pending_chunks[initial_tx_id] = []
                         
-                        pending_chunks[tx_id_str].append(response)
+                        pending_chunks[initial_tx_id].append(response)
 
-                        if len(pending_chunks) == response.chunkInfo.total:
-                            chunk_list =  [resp for chunk_list in pending_chunks.values() for resp in chunk_list]
-                            pending_chunks.clear() 
+                        if len(pending_chunks[initial_tx_id]) == response.chunkInfo.total:
+                            chunk_list = pending_chunks.pop(initial_tx_id)
 
                             msg_obj = TopicMessage.of_many(chunk_list)
                             on_message(msg_obj)
