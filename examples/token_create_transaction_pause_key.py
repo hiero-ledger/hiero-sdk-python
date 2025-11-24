@@ -96,20 +96,20 @@ def create_token_without_pause_key(client, operator_id, operator_key):
 
 def attempt_pause_should_fail(client, token_id, operator_key):
     print("🔹 Attempting to pause token WITHOUT a pause key... (expected failure)")
-    try:
-        tx = (
-            TokenPauseTransaction()
-            .set_token_id(token_id)
-            .freeze_with(client)
-            .sign(operator_key)
-        )
-        receipt = tx.execute(client)
 
-        print("⚠️ Unexpected success! Pause should NOT be possible.")
-        print(f"Status: {ResponseCode(receipt.status).name}\n")
+    tx = (
+        TokenPauseTransaction()
+        .set_token_id(token_id)
+        .freeze_with(client)
+        .sign(operator_key)
+    )
 
-    except Exception as e:
-        print(f"✅ Expected failure occurred: {e}\n")
+    receipt = tx.execute(client)
+
+    if receipt.status == ResponseCode.TOKEN_HAS_NO_PAUSE_KEY:
+        print("✅ Expected failure: token cannot be paused because no pause key exists.\n")
+    else:
+        print(f"❌ Unexpected status: {ResponseCode(receipt.status).name}\n")
 
 
 # -------------------------------------------------------
@@ -200,8 +200,14 @@ def create_temp_account(client, operator_key):
     )
 
     receipt = tx.execute(client)
+
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"❌ Failed to create temp account: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
+
     account_id = receipt.account_id
     print(f"✅ Temp account created: {account_id}\n")
+
     return account_id, new_key
 
 
