@@ -4,7 +4,7 @@ Integration tests for ContractCallQuery.
 
 import pytest
 
-from examples.contracts.contract_utils import (
+from examples.contract.contracts.contract_utils import (
     CONTRACT_DEPLOY_GAS,
     SIMPLE_CONTRACT_BYTECODE,
     STATEFUL_CONTRACT_BYTECODE,

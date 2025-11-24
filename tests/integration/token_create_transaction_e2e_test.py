@@ -236,3 +236,42 @@ def test_token_create_non_custodial_flow():
     finally:
         # Clean up the environment
         env.close()
+
+def test_fungible_token_create_with_metadata():
+    """
+    Test creating a fungible token with on-ledger metadata and verifying
+    the metadata via TokenInfoQuery.
+    """
+    env = IntegrationTestEnv()
+
+    try:
+        # On-ledger token metadata bytes (must not exceed 100 bytes)
+        metadata = b"Integration test token metadata"
+
+        params = TokenParams(
+            token_name="Hiero FT Metadata",
+            token_symbol="HFTM",
+            initial_supply=1,
+            treasury_account_id=env.client.operator_account_id,
+            token_type=TokenType.FUNGIBLE_COMMON,
+        )
+
+        # Build, freeze and execute the token creation transaction with metadata
+        receipt = (
+            TokenCreateTransaction(params)
+            .set_metadata(metadata)
+            .freeze_with(env.client)
+            .execute(env.client)
+        )
+
+        assert receipt.token_id is not None, "TokenID not found in receipt. Token may not have been created."
+
+        token_id = receipt.token_id
+
+        # Query the created token to verify that metadata has been set
+        token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+
+        assert token_info.metadata == metadata, "Token metadata mismatch"
+
+    finally:
+        env.close()
