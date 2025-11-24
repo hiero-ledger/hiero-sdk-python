@@ -38,6 +38,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
 
 ### Changed
+
 - Upgraded step-security/harden-runner v2.13.2
 - bumped actions/checkout from 5.0.0 to 6.0.0
 - Limit workflow bot to one message per PR
@@ -56,7 +57,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: fixed integration test names without a test prefix or postfix
 - Staked node ID id issue in the account_create_transationt_e2e_test
 - workflow: verified commits syntax for verfication bot
-
 
 ## [0.1.8] - 2025-11-07
 
@@ -84,8 +84,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
+- - docs: Refactored `network_and_client.md` with a table of contents, and added external example scripts (`client.py`, `client_network_setup.py`).
 
 ### Changed
+
 - chore: renamed examples to match src where possible
 - Moved examples/ to be inside subfiles to match src structure
 - changed example script workflow to run on new subdirectory structure
@@ -154,6 +156,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
 ### Changed
+
 - Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
 - Updated all occurrences of non-functional Discord invite links throughout the documentation with the new, stable Hyperledger and Hedera invite links (#603).
 - Refactored TopicId class to use @dataclass decorator for reducing boilerplate code
