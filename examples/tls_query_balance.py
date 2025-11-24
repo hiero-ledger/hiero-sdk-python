@@ -33,34 +33,52 @@ def _bool_env(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes"}
 
 
-def main():
-    load_dotenv()
-
-    network_name = os.getenv("NETWORK", "testnet")
+def _load_operator_credentials() -> tuple[AccountId, PrivateKey]:
+    """Load operator credentials from the environment."""
     operator_id_str = os.getenv("OPERATOR_ID")
     operator_key_str = os.getenv("OPERATOR_KEY")
 
     if not operator_id_str or not operator_key_str:
         raise ValueError("OPERATOR_ID and OPERATOR_KEY must be set in the environment")
 
+    operator_id = AccountId.from_string(operator_id_str)
+    operator_key = PrivateKey.from_string(operator_key_str)
+    return operator_id, operator_key
+
+
+def setup_client() -> Client:
+    """Create and configure a client with TLS enabled using env settings."""
+    network_name = os.getenv("NETWORK", "testnet")
+    verify_certs = _bool_env("VERIFY_CERTS", True)
+
     network = Network(network_name)
     client = Client(network)
 
-    # Enable TLS for consensus nodes. Mirror nodes already require TLS.
+    # Disable TLS for consensus nodes. Mirror nodes already require TLS.
     client.set_transport_security(False)
-
-    verify_certs = _bool_env("VERIFY_CERTS", True)
     client.set_verify_certificates(verify_certs)
+    return client
 
-    operator_id = AccountId.from_string(operator_id_str)
-    operator_key = PrivateKey.from_string(operator_key_str)
+
+def query_account_balance(client: Client, account_id: AccountId):
+    """Execute a CryptoGetAccountBalanceQuery for the given account."""
+    query = CryptoGetAccountBalanceQuery().set_account_id(account_id)
+    balance = query.execute(client)
+    print(f"Operator account {account_id} balance: {balance.hbars.to_hbars()} hbars")
+
+
+def main():
+    load_dotenv()
+
+    operator_id, operator_key = _load_operator_credentials()
+    client = setup_client()
     client.set_operator(operator_id, operator_key)
 
-    balance = CryptoGetAccountBalanceQuery().set_account_id(operator_id).execute(client)
-    print(f"Operator account {operator_id} balance: {balance.hbars.to_hbars()} hbars")
+    query_account_balance(client, operator_id)
 
 
 if __name__ == "__main__":
     main()
+
 
 
