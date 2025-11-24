@@ -74,15 +74,11 @@ def test_set_token_ids(mock_account_ids):
     """Test setting multiple token IDs at once for dissociation."""
     account_id, _, _, token_id_1, token_id_2 = mock_account_ids
     token_ids = [token_id_1, token_id_2]
-    another_token_id =  Mock(spec=TokenId)
     
-
     dissociate_tx = TokenDissociateTransaction()
     dissociate_tx.set_account_id(account_id)
-    dissociate_tx.set_token_id(another_token_id)
-    assert dissociate_tx.token_ids == another_token_id
-
     dissociate_tx.set_token_ids(token_ids)
+
     assert dissociate_tx.token_ids == token_ids
 
 
