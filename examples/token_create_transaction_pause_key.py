@@ -7,7 +7,7 @@ It shows:
 3. Creating a token *with* a pause key
 4. Successfully pausing and unpausing the token
 5. Demonstrating that transfers fail while the token is paused
-6. (Bonus) Removing the pause key while the token is paused → permanently paused
+
 
 Required environment variables:
 - OPERATOR_ID
