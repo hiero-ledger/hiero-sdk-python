@@ -50,7 +50,7 @@ class TokenDissociateTransaction(Transaction):
         self.account_id: Optional[AccountId] = account_id
         self.token_ids: List[TokenId] = token_ids or []
 
-        self._default_transaction_fee = Hbar(1)
+        self._default_transaction_fee = Hbar(0.05)
 
     def set_account_id(self, account_id: AccountId) -> "TokenDissociateTransaction":
         """ Sets the account ID for the token dissociation transaction. """
@@ -62,13 +62,6 @@ class TokenDissociateTransaction(Transaction):
         """Adds a token ID to the list of tokens to dissociate from the account."""
         self._require_not_frozen()
         self.token_ids.append(token_id)
-        return self
-
-    def set_token_id(self, token_id: TokenId) -> "TokenDissociateTransaction":
-        """Adds a token ID to the list of tokens to dissociate from the account.
-        """
-        self._require_not_frozen()
-        self.token_ids = token_id
         return self
 
     def set_token_ids(self, token_ids: List[TokenId]) -> "TokenDissociateTransaction":
