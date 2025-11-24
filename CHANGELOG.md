@@ -6,6 +6,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+- Removed duplicate import of transaction_pb2 in transaction.py
+
+### Fixed
+
 ## [0.1.9] - 2025-11-26
 
 ### Added
@@ -59,6 +67,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
 - feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
+
 
 ### Fixed
 
@@ -539,21 +548,3 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
-
-## [0.1.0] - 2025-11-21
-
-### Added
-
--N/A
-
-### Changed
-
-- Removed dublicate import transaction_pb2 in transaction.py
-
-### Fixed
-
-- N/A
-
-### Removed
-
-- dublicate import transaction_pb2 in transaction.py
