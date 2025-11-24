@@ -50,7 +50,7 @@ class TokenDissociateTransaction(Transaction):
         self.account_id: Optional[AccountId] = account_id
         self.token_ids: List[TokenId] = token_ids or []
 
-        self._default_transaction_fee = Hbar(0.05)
+        self._default_transaction_fee = Hbar(0.6)
 
     def set_account_id(self, account_id: AccountId) -> "TokenDissociateTransaction":
         """ Sets the account ID for the token dissociation transaction. """
