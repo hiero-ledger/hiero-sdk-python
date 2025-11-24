@@ -35,15 +35,27 @@ def custom_fee_limit():
 
 def test_constructor_and_setters(topic_id, message, custom_fee_limit):
     """Test constructor and all setter methods."""
+    max_chunks = 2
+    chunk_size = 128
+
     # Test constructor with parameters
-    tx = TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
+    tx = TopicMessageSubmitTransaction(
+        topic_id=topic_id,
+        message=message,
+        chunk_size=chunk_size,
+        max_chunks=max_chunks
+    )
     assert tx.topic_id == topic_id
     assert tx.message == message
+    assert tx.chunk_size == chunk_size
+    assert tx.max_chunks == max_chunks
 
     # Test constructor with default values
     tx_default = TopicMessageSubmitTransaction()
     assert tx_default.topic_id is None
     assert tx_default.message is None
+    assert tx_default.chunk_size == 1024
+    assert tx_default.max_chunks == 20
 
     # Test set_topic_id
     result = tx_default.set_topic_id(topic_id)
@@ -53,6 +65,16 @@ def test_constructor_and_setters(topic_id, message, custom_fee_limit):
     # Test set_message
     result = tx_default.set_message(message)
     assert tx_default.message == message
+    assert result is tx_default
+
+    # Test set_chunk_size
+    result = tx_default.set_chunk_size(chunk_size)
+    assert tx_default.chunk_size == chunk_size
+    assert result is tx_default
+
+    # Test set_max_chunks
+    result = tx_default.set_max_chunks(max_chunks)
+    assert tx_default.max_chunks == max_chunks
     assert result is tx_default
 
     # Test set_custom_fee_limits
@@ -77,6 +99,9 @@ def test_set_methods_require_not_frozen(
     mock_client, topic_id, message, custom_fee_limit
 ):
     """Test that setter methods raise exception when transaction is frozen."""
+    max_chunks = 2
+    chunk_size = 128
+
     tx = TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
     tx.freeze_with(mock_client)
 
@@ -85,6 +110,8 @@ def test_set_methods_require_not_frozen(
         ("set_message", message),
         ("set_custom_fee_limits", [custom_fee_limit]),
         ("add_custom_fee_limit", custom_fee_limit),
+        ("set_chunk_size", chunk_size),
+        ("set_max_chunks", max_chunks)
     ]
 
     for method_name, value in test_cases:
@@ -97,18 +124,24 @@ def test_set_methods_require_not_frozen(
 def test_method_chaining(topic_id, message, custom_fee_limit):
     """Test method chaining functionality."""
     tx = TopicMessageSubmitTransaction()
+    max_chunks = 2
+    chunk_size = 128
 
     result = (
         tx.set_topic_id(topic_id)
         .set_message(message)
         .set_custom_fee_limits([custom_fee_limit])
         .add_custom_fee_limit(custom_fee_limit)
+        .set_chunk_size(chunk_size)
+        .set_max_chunks(max_chunks)
     )
 
     assert result is tx
     assert tx.topic_id == topic_id
     assert tx.message == message
     assert len(tx.custom_fee_limits) == 2
+    assert tx.chunk_size == chunk_size
+    assert tx.max_chunks == max_chunks
 
 
 def test_get_method():
@@ -209,14 +242,19 @@ def test_topic_message_submit_transaction_with_large_message(topic_id):
     )
     
     response_sequences = [
-        [tx_response, receipt_response],
+        [tx_response, receipt_response],  # chunk 1
+        [tx_response, receipt_response],  # chunk 2
+        [tx_response, receipt_response],  # chunk 3
+        [tx_response, receipt_response],  # chunk 4
     ]
+
     
     with mock_hedera_servers(response_sequences) as client:
         tx = (
             TopicMessageSubmitTransaction()
             .set_topic_id(topic_id)
             .set_message(large_message)
+            .freeze_with(client)
         )
         
         try:

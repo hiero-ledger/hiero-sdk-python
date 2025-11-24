@@ -287,3 +287,30 @@ def test_integration_scheduled_topic_message_submit_transaction_can_execute_with
 
     env.client.set_operator(operator_id, operator_key)  # Set the operator to the account
     delete_topic(env.client, topic_id)
+
+
+@pytest.mark.integration
+def test_integration_topic_message_submit_transaction_fails_if_required_chunk_greater_than_max_chunk(env):
+    """Test that a topic message fails submitting transaction when required chunk greater than max_chunks."""
+    submit_key = PrivateKey.generate()
+
+    topic_id = create_topic(
+        client=env.client,
+        admin_key=env.operator_key,
+        submit_key=submit_key
+    )
+
+    info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
+    # Check that no message is submited
+    assert info.sequence_number == 0
+
+    message_transaction = TopicMessageSubmitTransaction(
+        topic_id=topic_id,
+        message="A"*(1024*4) # requires 4 chunks
+    )
+    message_transaction.set_max_chunks(2)
+    message_transaction.freeze_with(env.client)
+    with pytest.raises(ValueError, match="Message requires 4 chunks but max_chunks=2. Increase limit with set_max_chunks()."):
+        message_transaction.execute(env.client)
+    
+    delete_topic(env.client, topic_id)

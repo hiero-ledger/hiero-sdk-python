@@ -20,14 +20,21 @@ class MockTimestamp:
         self.seconds = seconds
         self.nanos = nanos
 
+class MockAccountID:
+    """Mocks the protobuf AccountID object."""
+    def __init__(self, shard, realm, num):
+        self.shardNum = shard
+        self.realmNum = realm
+        self.accountNum = num
+        self.alias = None
+
 class MockTransactionID:
     """Mocks the protobuf TransactionID object."""
     def __init__(self, account_id, seconds, nanos):
 
-        self.shardNum = account_id.shard
-        self.realmNum = account_id.realm
-        self.accountNum = account_id.num
+        self.accountID = account_id
         self.transactionValidStart = MockTimestamp(seconds, nanos)
+        self.scheduled = False
 
 class MockChunkInfo:
     """Mocks the protobuf ChunkInfo object."""
@@ -72,13 +79,7 @@ def mock_consensus_response(
     
     chunk_info = None
     if is_chunked:
-      
-        class MockAcct:
-            shard = 0
-            realm = 0
-            num = 10
-            
-        tx_id = MockTransactionID(MockAcct(), 1736539100, 1) if has_tx_id else None
+        tx_id = MockTransactionID(MockAccountID(0,0,10), 1736539100, 1) if has_tx_id else None
         chunk_info = MockChunkInfo(seq, total_chunks, tx_id)
 
     return MockResponse(message, seq, timestamp, chunk_info)
