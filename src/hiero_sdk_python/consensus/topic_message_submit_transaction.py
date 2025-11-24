@@ -44,8 +44,8 @@ class TopicMessageSubmitTransaction(Transaction):
 
         self._current_index = 0
         self._total_chunks = self.get_required_chunks()
-        self._intial_transaction_id: Optional[TransactionId] = None
-        self._initial_transaction_id: List[TransactionId] = []
+        self._initial_transaction_id: Optional[TransactionId] = None
+        self._transaction_ids: List[TransactionId] = []
         self._signing_keys: List["PrivateKey"] = []
             
     def get_required_chunks(self) -> int:
@@ -204,7 +204,7 @@ class TopicMessageSubmitTransaction(Transaction):
         # Multi-chunk metadata
         if self._total_chunks > 1:
             body.chunkInfo.CopyFrom(consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-                initialTransactionID=self._intial_transaction_id._to_proto(),
+                initialTransactionID=self._initial_transaction_id._to_proto(),
                 total=self._total_chunks,
                 number=self._current_index + 1
             ))
@@ -256,28 +256,29 @@ class TopicMessageSubmitTransaction(Transaction):
 
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
-
-        self._transaction_ids = []
         
-        base_timestamp = self.transaction_id.valid_start
-
-        for i in range(self.get_required_chunks()):
-            if i == 0:
-                if self._intial_transaction_id is None:
-                    self._intial_transaction_id = self.transaction_id
-
-                chunk_transaction_id = self.transaction_id
-            else:
-                chunk_valid_start = timestamp_pb2.Timestamp(
-                    seconds=base_timestamp.seconds,
-                    nanos=base_timestamp.nanos + i
-                )
-                chunk_transaction_id = TransactionId(
-                    account_id=self.transaction_id.account_id,
-                    valid_start=chunk_valid_start
-                )
+        if len(self._transaction_ids) == 0:
+            self._transaction_ids = []
         
-            self._transaction_ids.append(chunk_transaction_id)
+            base_timestamp = self.transaction_id.valid_start
+
+            for i in range(self.get_required_chunks()):
+                if i == 0:
+                    if self._initial_transaction_id is None:
+                        self._initial_transaction_id = self.transaction_id
+
+                    chunk_transaction_id = self.transaction_id
+                else:
+                    chunk_valid_start = timestamp_pb2.Timestamp(
+                        seconds=base_timestamp.seconds,
+                        nanos=base_timestamp.nanos + i
+                    )
+                    chunk_transaction_id = TransactionId(
+                        account_id=self.transaction_id.account_id,
+                        valid_start=chunk_valid_start
+                    )
+        
+                self._transaction_ids.append(chunk_transaction_id)
         
         return super().freeze_with(client)
 

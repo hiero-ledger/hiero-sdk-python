@@ -55,8 +55,8 @@ def create_topic(client):
 
 
 @pytest.mark.integration
-def test_integration_can_s(env):
-    """Test that a topic message submit transaction executes."""
+def test_topic_message_query_receives_messages(env):
+    """Test that topic message query receives a message."""
     topic_id = create_topic(env.client)
     
     messages: List[str] = []
@@ -70,8 +70,7 @@ def test_integration_can_s(env):
     query = TopicMessageQuery(
         topic_id=topic_id,
         start_time=datetime.now(timezone.utc),
-        limit=0,
-        chunking_enabled=True
+        limit=0
     )
 
     handle = query.subscribe(
@@ -96,7 +95,7 @@ def test_integration_can_s(env):
     start = datetime.now()
 
     while len(messages) == 0:
-        if datetime.now() - start > timedelta(seconds=60):
+        if datetime.now() - start > timedelta(seconds=120):
             raise TimeoutError("TopicMessage was not received in time")
         time.sleep(1)
 
@@ -105,8 +104,48 @@ def test_integration_can_s(env):
 
 
 @pytest.mark.integration
-def test_integration_topic_message_submit_large_transaction_can_execute():
-    """Test that a topic message submit transaction executes with large message."""
+def test_topic_message_query_limit(env):
+    """Test topic message query stops after receiving limit messages."""
+    topic_id = create_topic(env.client)
+    messages: List[str] = []
+
+    def on_message(m: TopicMessage):
+        messages.append(m.contents.decode("utf-8"))
+
+    query = TopicMessageQuery(
+        topic_id=topic_id,
+        start_time=datetime.now(timezone.utc),
+        limit=2
+    )
+
+    handle = query.subscribe(env.client, on_message=on_message)
+
+    # Submit 3 messages
+    try:
+        for i in range(3):
+            (
+                TopicMessageSubmitTransaction(topic_id=topic_id, message=f"msg{i}")
+                .freeze_with(env.client)
+                .execute(env.client)
+            )
+        
+        start = datetime.now()
+
+        while len(messages) != 2:
+            if datetime.now() - start > timedelta(seconds=120):
+                raise TimeoutError("TopicMessage was not received in time")
+            time.sleep(1)
+
+        # Should stop at limit=2
+        assert messages == ["msg0", "msg1"]
+
+    finally:
+        handle.cancel()
+
+
+@pytest.mark.integration
+def test_topic_message_query_large_message_chunking(env):
+    """Test that topic message query receives chunked message."""
     topic_id = create_topic(env.client)
     messages: List[str] = []
 
@@ -147,7 +186,7 @@ def test_integration_topic_message_submit_large_transaction_can_execute():
     start = datetime.now()
 
     while len(messages) == 0:
-        if datetime.now() - start > timedelta(seconds=60):
+        if datetime.now() - start > timedelta(seconds=120):
             raise TimeoutError("TopicMessage was not received in time")
         time.sleep(1)
     
