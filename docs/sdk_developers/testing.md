@@ -751,7 +751,7 @@ from tests.integration.utils_for_test import (
     create_fungible_token,
     create_nft_token,
     env
-)
+) 
 
 @pytest.mark.integration
 def test_with_helpers(env):
