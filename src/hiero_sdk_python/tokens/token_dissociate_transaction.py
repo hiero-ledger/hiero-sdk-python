@@ -22,6 +22,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.hbar import Hbar
 
 class TokenDissociateTransaction(Transaction):
     """
@@ -49,7 +50,7 @@ class TokenDissociateTransaction(Transaction):
         self.account_id: Optional[AccountId] = account_id
         self.token_ids: List[TokenId] = token_ids or []
 
-        self._default_transaction_fee: int = 500_000_000
+        self._default_transaction_fee = Hbar(2)
 
     def set_account_id(self, account_id: AccountId) -> "TokenDissociateTransaction":
         """ Sets the account ID for the token dissociation transaction. """
@@ -62,6 +63,42 @@ class TokenDissociateTransaction(Transaction):
         self._require_not_frozen()
         self.token_ids.append(token_id)
         return self
+
+    def set_token_ids(self, token_ids: List[TokenId]) -> "TokenDissociateTransaction":
+        """Sets the list of token IDs to dissociate from the account.
+        """
+        self._require_not_frozen()
+        self.token_ids = token_ids
+        return self
+
+    def _validate_check_sum(self, client) -> None:
+        """Validates the checksums of the account ID and token IDs against the provided client."""
+        if self.account_id is not None:
+            self.account_id.validate_checksum(client)
+        for token_id in (self.token_ids or []):
+            if token_id is not None:
+                token_id.validate_checksum(client)
+
+
+    @classmethod
+    def _from_proto(cls, proto: token_dissociate_pb2.TokenDissociateTransactionBody) -> "TokenDissociateTransaction":
+        """
+        Creates a TokenDissociateTransaction instance from a protobuf
+        TokenDissociateTransactionBody object.
+
+        Args:
+            proto (TokenDissociateTransactionBody): The protobuf
+            representation of the token dissociate transaction.
+        """
+        account_id = AccountId._from_proto(proto.account)
+        token_ids = [TokenId._from_proto(token_proto) for token_proto in proto.tokens]
+
+        transaction = cls(
+            account_id=account_id,
+            token_ids=token_ids
+        )
+
+        return transaction
 
     def _build_proto_body(self) -> token_dissociate_pb2.TokenDissociateTransactionBody:
         """
