@@ -52,7 +52,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - changed to add concurrency to workflow bot
 
 ### Fixed
-
+- chore: updated solo action to avoid v5
 - chore: fix test.yml workflow to log import errors (#740)
 - chore: fixed integration test names without a test prefix or postfix
 - Staked node ID id issue in the account_create_transationt_e2e_test
