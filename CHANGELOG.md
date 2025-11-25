@@ -11,7 +11,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
 - Document error handling patterns and best practices for transaction receipts
-
 - Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
 - Add workflow: github bot to respond to unverified PR commits (#750)
 - Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
@@ -85,6 +84,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
+- Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
 
 ### Changed
 - chore: renamed examples to match src where possible
