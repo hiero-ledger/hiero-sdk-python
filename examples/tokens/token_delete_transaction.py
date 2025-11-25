@@ -1,8 +1,5 @@
-# uv run examples/tokens/token_delete.py
-# python examples/tokens/token_delete.py
-"""
-A full example that creates a token and then immediately deletes it.
-"""
+# uv run examples/tokens/token_delete_transaction.py
+# python examples/tokens/token_delete_transaction.py
 
 import os
 import sys
@@ -15,6 +12,7 @@ from hiero_sdk_python import (
     Network,
     TokenCreateTransaction,
     TokenDeleteTransaction,
+    ResponseCode,
 )
 
 # Load environment variables from .env file
@@ -64,17 +62,24 @@ def create_new_token(client, operator_id, operator_key, admin_key):
             .set_treasury_account_id(operator_id)
             .set_admin_key(admin_key)  # Use the newly generated admin key
             .freeze_with(client)
-            .sign(operator_key)  # Operator (treasury) must sign
-            .sign(admin_key)     # The new admin key must also sign
+            .sign(operator_key) # Operator (treasury) must sign
+            .sign(admin_key)  # The new admin key must also sign
         )
 
         create_receipt = create_tx.execute(client)
+
+        # Verify the receipt status
+        rc = ResponseCode(create_receipt.status)
+        if rc != ResponseCode.SUCCESS:
+            print(f"❌ Token creation failed with status: {rc.name}")
+            sys.exit(1)
+
         token_id_to_delete = create_receipt.token_id
-        print(f"✅ Success! Created token with ID: {token_id_to_delete}")
+        print(f"✅ Token created successfully: {token_id_to_delete}")
         return token_id_to_delete
 
-    except (ValueError, TypeError) as e:
-        print(f"❌ Error creating token: {e}")
+    except Exception as e:
+        print(f"❌ Error creating token: {repr(e)}")
         sys.exit(1)
 
 
@@ -87,17 +92,24 @@ def delete_token(admin_key, token_id_to_delete, client, operator_key):
         print(f"\nSTEP 2: Deleting token {token_id_to_delete}...")
         delete_tx = (
             TokenDeleteTransaction()
-            .set_token_id(token_id_to_delete)  # Use the ID from the token we just made
-            .freeze_with(client)
-            .sign(operator_key)  # Operator must sign
-            .sign(admin_key)     # Sign with the same admin key used to create it
+            .set_token_id(token_id_to_delete) # Use the ID from the token we just made
+            .freeze_with(client)  # Use the ID from the token we just made
+            .sign(operator_key) # Operator must sign
+            .sign(admin_key) # Sign with the same admin key used to create it
         )
 
-        delete_tx.execute(client)
-        print("✅ Success! Token deleted.")
+        delete_receipt = delete_tx.execute(client)
 
-    except (ValueError, TypeError) as e:
-        print(f"❌ Error deleting token: {e}")
+        # Verify deletion receipt status
+        rc = ResponseCode(delete_receipt.status)
+        if rc != ResponseCode.SUCCESS:
+            print(f"❌ Token deletion failed with status: {rc.name}")
+            sys.exit(1)
+
+        print(f"✅ Token {token_id_to_delete} deleted successfully!")
+
+    except Exception as e:
+        print(f"❌ Error deleting token: {repr(e)}")
         sys.exit(1)
 
 def main():
