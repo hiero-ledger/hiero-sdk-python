@@ -50,6 +50,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
+- update the worlflow to use fork solo-action
 
 ### Fixed
 
