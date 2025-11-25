@@ -43,6 +43,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Upgraded actions set up python to 6.1.0
 - Upgraded step-security/harden-runner v2.13.2
 - bumped actions/checkout from 5.0.0 to 6.0.0
 - Limit workflow bot to one message per PR
