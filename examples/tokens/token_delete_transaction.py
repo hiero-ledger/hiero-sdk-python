@@ -69,18 +69,9 @@ def create_new_token(client, operator_id, operator_key, admin_key):
         create_receipt = create_tx.execute(client)
 
         # Verify the receipt status
-        try:
-            rc = ResponseCode(create_receipt.status)
-        except Exception:
-            # Fallback if status is already an enum-like object
-            rc = create_receipt.status
-
+        rc = ResponseCode(create_receipt.status)
         if rc != ResponseCode.SUCCESS:
-            try:
-                status_name = ResponseCode(create_receipt.status).name
-            except Exception:
-                status_name = rc.name if hasattr(rc, "name") else str(rc)
-            print(f"❌ Token creation failed with status: {status_name}")
+            print(f"❌ Token creation failed with status: {rc.name}")
             sys.exit(1)
 
         token_id_to_delete = create_receipt.token_id
@@ -110,17 +101,9 @@ def delete_token(admin_key, token_id_to_delete, client, operator_key):
         delete_receipt = delete_tx.execute(client)
 
         # Verify deletion receipt status
-        try:
-            rc = ResponseCode(delete_receipt.status)
-        except Exception:
-            rc = delete_receipt.status
-
+        rc = ResponseCode(delete_receipt.status)
         if rc != ResponseCode.SUCCESS:
-            try:
-                status_name = ResponseCode(delete_receipt.status).name
-            except Exception:
-                status_name = rc.name if hasattr(rc, "name") else str(rc)
-            print(f"❌ Token deletion failed with status: {status_name}")
+            print(f"❌ Token deletion failed with status: {rc.name}")
             sys.exit(1)
 
         print(f"✅ Token {token_id_to_delete} deleted successfully!")
