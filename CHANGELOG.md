@@ -24,6 +24,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/token_create_transaction_freeze_key.py` showcasing freeze key behavior, expected failures without the key, and the effect of freezing/unfreezing on transfers.
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
 - Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- Add `examples/topic_info.py` to demonstrate `TopicInfo` operations.
 - feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - EvmAddress class
 - `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
@@ -52,7 +53,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
 
 ### Fixed
-
+- chore: updated solo action to avoid v5
 - chore: fix test.yml workflow to log import errors (#740)
 - chore: fixed integration test names without a test prefix or postfix
 - Staked node ID id issue in the account_create_transationt_e2e_test
