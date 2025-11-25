@@ -40,6 +40,18 @@ def test_integration_token_associate_transaction_can_execute():
         )
 
         associate_transaction.freeze_with(env.client)
+
+        # building transaction body
+        transaction_body = associate_transaction.build_transaction_body()
+
+        proto_body = transaction_body.tokenAssociate
+
+        # Recreating transaction from protobuf
+        transaction_from_proto = TokenAssociateTransaction._from_proto(proto_body)
+
+        assert transaction_from_proto.account_id == associate_transaction.account_id
+        assert transaction_from_proto.token_ids == associate_transaction.token_ids
+
         associate_transaction.sign(new_account_private_key)
         associate_receipt = associate_transaction.execute(env.client)
         

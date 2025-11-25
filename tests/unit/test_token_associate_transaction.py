@@ -33,7 +33,7 @@ def test_build_transaction_body(mock_account_ids):
 
     associate_tx.set_account_id(account_id)
     associate_tx.add_token_id(token_id_1)
-    associate_tx.set_token_id(token_id_2)
+    associate_tx.add_token_id(token_id_2)
     associate_tx.transaction_id = generate_transaction_id(account_id)
     associate_tx.node_account_id = node_account_id
 

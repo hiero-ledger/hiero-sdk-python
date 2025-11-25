@@ -66,14 +66,6 @@ class TokenAssociateTransaction(Transaction):
         self.token_ids.append(token_id)
         return self
 
-    # twin of `add_token_id` but using `set`: in this way users
-    # have something more familiar
-    def set_token_id(self, token_id: TokenId) -> "TokenAssociateTransaction":
-        """Set a token ID to the association list."""
-        self._require_not_frozen()
-        self.token_ids.append(token_id)
-        return self
-
     def set_token_ids(self, token_ids: List[TokenId]) -> "TokenAssociateTransaction":
         """
         Sets the list of token IDs for the token association transaction.
@@ -99,7 +91,7 @@ class TokenAssociateTransaction(Transaction):
                     f"Invalid token_id type: expected TokenId or str, got {type(token_id).__name__}"
                 )
 
-        self.token_ids = list(tokens_to_add)
+        self.token_ids = tokens_to_add
         return self
 
     def _build_proto_body(self) -> token_associate_pb2.TokenAssociateTransactionBody:

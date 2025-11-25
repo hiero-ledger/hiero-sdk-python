@@ -152,7 +152,7 @@ def associate_token_with_account(client, token_id, account_id, account_key):
         receipt = (
             TokenAssociateTransaction()
             .set_account_id(account_id)
-            .set_token_id(token_id)
+            .add_token_id(token_id)
             .freeze_with(client)
             .sign(account_key)
             .execute(client)
@@ -220,7 +220,7 @@ def demonstrate_invalid_set_token_ids_usage(client, account_id, account_key):
         receipt = (
             TokenAssociateTransaction()
             .set_account_id(account_id)
-            .set_token_ids([invalid_value])  # questo deve fallire
+            .set_token_ids([invalid_value])  # this should fail
             .freeze_with(client)
             .sign(account_key)
             .execute(client)
