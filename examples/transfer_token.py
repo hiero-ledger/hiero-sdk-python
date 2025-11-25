@@ -22,6 +22,7 @@ from hiero_sdk_python import (
 load_dotenv()
 network_name = os.getenv('NETWORK', 'testnet').lower()
 
+
 def setup_client():
     """Initialize and set up the client with operator account"""
     network = Network(network_name)
@@ -29,8 +30,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID',''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY',''))
+        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
+        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
@@ -98,7 +99,7 @@ def associate_token(client, recipient_id, recipient_key, token_id):
         sys.exit(1)
 
 
-def transfer_transaction(client, operator_id, operator_key, recipient_id, token_id):
+def transfer_tokens(client, operator_id, operator_key, recipient_id, token_id):
     """Perform the token transfer"""
     print("\nSTEP 4: Transferring Token...")
     try:
@@ -142,7 +143,7 @@ def main():
     recipient_id, recipient_key = create_account(client, operator_key)
     token_id = create_token(client, operator_id, operator_key)
     associate_token(client, recipient_id, recipient_key, token_id)
-    transfer_transaction(client, operator_id, operator_key, recipient_id, token_id)
+    transfer_tokens(client, operator_id, operator_key, recipient_id, token_id)
 
 
 if __name__ == "__main__":
