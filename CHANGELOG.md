@@ -41,10 +41,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
 - Added `examples/account_allowance_approve_transaction_hbar.py` and `examples/account_allowance_delete_transaction_hbar.py`, deleted `examples/account_allowance_hbar.py`. [#775]
 - Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
+- docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
 
 ### Changed
 
-- Upgraded actions set up python to 6.1.0
 - Upgraded step-security/harden-runner v2.13.2
 - bumped actions/checkout from 5.0.0 to 6.0.0
 - Limit workflow bot to one message per PR
