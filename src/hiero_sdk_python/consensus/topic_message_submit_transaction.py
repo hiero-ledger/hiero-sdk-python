@@ -115,7 +115,7 @@ class TopicMessageSubmitTransaction(Transaction):
         Set maximum allowed chunks.
 
         Args:
-            mac_chunks (int): The maximum number of chunks allowed.
+            max_chunks (int): The maximum number of chunks allowed.
 
         Returns:
             TopicMessageSubmitTransaction: This transaction instance (for chaining).
@@ -257,9 +257,7 @@ class TopicMessageSubmitTransaction(Transaction):
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
         
-        if len(self._transaction_ids) == 0:
-            self._transaction_ids = []
-        
+        if not self._transaction_ids:
             base_timestamp = self.transaction_id.valid_start
 
             for i in range(self.get_required_chunks()):
@@ -310,7 +308,7 @@ class TopicMessageSubmitTransaction(Transaction):
             response = super().execute(client)
             responses.append(response)
 
-        # Return the first response JS SDK do
+        # Return the first response as the JS SDK does
         return responses[0] if responses else None
 
     def sign(self, private_key: "PrivateKey"):

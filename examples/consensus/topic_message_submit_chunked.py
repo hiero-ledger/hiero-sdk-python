@@ -1,6 +1,6 @@
 """
-uv run examples/topic_message_submit.py
-python examples/topic_message_submit.py
+uv run examples/consensus/topic_message_submit_chunked.py
+python examples/consensus/topic_message_submit_chunked.py
 
 """
 import os
@@ -54,7 +54,7 @@ def setup_client():
 
     print(f"Connecting to Hedera {network_name} network!")
 
-    try :
+    try:
         network = Network(network_name)
         client = Client(network)
         
@@ -83,7 +83,7 @@ def create_topic(client):
         )
         topic_id = topic_receipt.topic_id
         
-        print(f"Topic created: {topic_id}: {topic_id}")
+        print(f"Topic created: {topic_id}")
 
         return topic_id
     except Exception as e:
@@ -97,7 +97,7 @@ def submit_topic_message_transaction(client, topic_id):
     print("\nSubmitting large message...")
     try:
         message_receipt = (
-        TopicMessageSubmitTransaction()
+            TopicMessageSubmitTransaction()
             .set_topic_id(topic_id)
             .set_message(BIG_CONTENT)
             .freeze_with(client)
@@ -110,7 +110,7 @@ def submit_topic_message_transaction(client, topic_id):
             
         print(f"Message submitted (status={ResponseCode(message_receipt.status)}, txId={message_receipt.transaction_id})")
         print(f"Message size:", len(BIG_CONTENT), "bytes")
-        print(f"Message Content: {(BIG_CONTENT[:140] + "...") if len(BIG_CONTENT) > 40 else BIG_CONTENT}")
+        print(f"Message Content: {(BIG_CONTENT[:140] + "...") if len(BIG_CONTENT) > 140 else BIG_CONTENT}")
     except Exception as e:
         print(f"Error: Message submission failed: {str(e)}")
         sys.exit(1)
@@ -123,7 +123,7 @@ def fetch_topic_info(client, topic_id):
 
     try:
         info = TopicInfoQuery().set_topic_id(topic_id).execute(client)
-        print (
+        print(
             f"--- Topic Info ---\n"
             f"TopicId: {topic_id}\n"
             f"Memo: {info.memo}\n"
@@ -149,5 +149,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-        

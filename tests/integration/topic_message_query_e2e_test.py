@@ -75,7 +75,8 @@ def test_topic_message_query_receives_messages(env):
 
     handle = query.subscribe(
         env.client,
-        on_message=get_message,on_error=on_error_handler
+        on_message=get_message,
+        on_error=on_error_handler
     )
 
     message_receipt = (
