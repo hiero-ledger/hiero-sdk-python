@@ -8,10 +8,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+-Removed `actions/checkout@v4` from `bot-verified-commits.yml`
+
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
 - Document error handling patterns and best practices for transaction receipts
 
+- fix `pull_request` to `pull_request_target` in `bot-verified-commits.yml`
+- Add more robust receipt checks and removed fallback to `examples/tokens/token_delete_transaction.py`
 - Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
 - Add workflow: github bot to respond to unverified PR commits (#750)
 - Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
@@ -41,6 +45,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
 
 ### Changed
+
+- Upgraded actions set up python to 6.1.0
 - Upgraded step-security/harden-runner v2.13.2
 - bumped actions/checkout from 5.0.0 to 6.0.0
 - Limit workflow bot to one message per PR
@@ -52,14 +58,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
+- feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
 
 ### Fixed
 
+- chore: updated solo action to avoid v5
 - chore: fix test.yml workflow to log import errors (#740)
 - chore: fixed integration test names without a test prefix or postfix
 - Staked node ID id issue in the account_create_transationt_e2e_test
 - workflow: verified commits syntax for verfication bot
-
 
 ## [0.1.8] - 2025-11-07
 
@@ -89,6 +96,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
+
 - chore: renamed examples to match src where possible
 - Moved examples/ to be inside subfiles to match src structure
 - changed example script workflow to run on new subdirectory structure
@@ -157,6 +165,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
 ### Changed
+
 - Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
 - Updated all occurrences of non-functional Discord invite links throughout the documentation with the new, stable Hyperledger and Hedera invite links (#603).
 - Refactored TopicId class to use @dataclass decorator for reducing boilerplate code
