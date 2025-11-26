@@ -6,14 +6,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.1.9] - 2025-11-26
+
 ### Added
 
--Removed `actions/checkout@v4` from `bot-verified-commits.yml`
-
+- Removed `actions/checkout@v4` from `bot-verified-commits.yml`
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
 - Document error handling patterns and best practices for transaction receipts
-
 - fix `pull_request` to `pull_request_target` in `bot-verified-commits.yml`
 - Add more robust receipt checks and removed fallback to `examples/tokens/token_delete_transaction.py`
 - Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
