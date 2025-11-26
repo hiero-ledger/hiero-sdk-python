@@ -8,7 +8,6 @@ It shows:
 4. Successfully pausing and unpausing the token
 5. Demonstrating that transfers fail while the token is paused
 
-
 Required environment variables:
 - OPERATOR_ID
 - OPERATOR_KEY
