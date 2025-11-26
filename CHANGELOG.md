@@ -14,7 +14,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
 - Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.  
 - feat: Implement account creation with EVM-style alias transaction example.
-- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased]
+- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased]  
+- Add support for chunk message  in `TopicSubmitMessageTransaction`.
 
 ### Changed
 - bot workflows to include new changelog entry
@@ -63,7 +64,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
 - Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
 - docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
-- Add support for chunk message  in `TopicSubmitMessageTransaction`.
 
 
 ### Changed
