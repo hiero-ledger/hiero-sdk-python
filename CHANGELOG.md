@@ -8,10 +8,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+-Removed `actions/checkout@v4` from `bot-verified-commits.yml`
+
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
 - Document error handling patterns and best practices for transaction receipts
 
+- fix `pull_request` to `pull_request_target` in `bot-verified-commits.yml`
+- Add more robust receipt checks and removed fallback to `examples/tokens/token_delete_transaction.py`
 - Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
 - Add workflow: github bot to respond to unverified PR commits (#750)
 - Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
@@ -24,6 +28,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/token_create_transaction_freeze_key.py` showcasing freeze key behavior, expected failures without the key, and the effect of freezing/unfreezing on transfers.
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
 - Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- Add `examples/topic_info.py` to demonstrate `TopicInfo` operations.
 - feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - EvmAddress class
 - `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
@@ -51,9 +56,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
+- feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
 
 ### Fixed
 
+- chore: updated solo action to avoid v5
 - chore: fix test.yml workflow to log import errors (#740)
 - chore: fixed integration test names without a test prefix or postfix
 - Staked node ID id issue in the account_create_transationt_e2e_test
