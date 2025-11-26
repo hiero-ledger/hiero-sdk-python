@@ -80,7 +80,7 @@ def test_integration_topic_message_submit_transaction_can_execute(env):
 
 
 @pytest.mark.integration
-def test_topic_message_submit_transation_can_submit_a_large_message(env):
+def test_topic_message_submit_transaction_can_submit_a_large_message(env):
     """Test topic message submit transaction can submit large message."""
     topic_id = create_topic(
         client=env.client,

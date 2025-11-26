@@ -47,7 +47,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self._initial_transaction_id: Optional[TransactionId] = None
         self._transaction_ids: List[TransactionId] = []
         self._signing_keys: List["PrivateKey"] = []
-            
+
     def get_required_chunks(self) -> int:
         """
         Returns the number of chunks required for the current message.
@@ -91,7 +91,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self.message = message
         self._total_chunks = self.get_required_chunks()
         return self
-    
+
     def set_chunk_size(self, chunk_size: int) -> "TopicMessageSubmitTransaction":
         """
         Set maximum chunk size in bytes.
@@ -105,11 +105,11 @@ class TopicMessageSubmitTransaction(Transaction):
         self._require_not_frozen()
         if chunk_size <= 0:
             raise ValueError("chunk_size must be positive")
-        
+
         self.chunk_size = chunk_size
         self._total_chunks = self.get_required_chunks()
         return self
-    
+
     def set_max_chunks(self, max_chunks: int) -> "TopicMessageSubmitTransaction":
         """
         Set maximum allowed chunks.
@@ -123,7 +123,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self._require_not_frozen()
         if max_chunks <= 0:
             raise ValueError("max_chunks must be positive")
-        
+
         self.max_chunks = max_chunks
         return self
 
@@ -158,7 +158,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self._require_not_frozen()
         self.custom_fee_limits.append(custom_fee_limit)
         return self
-    
+
     def _validate_chunking(self) -> None:
         """
         Validates that chunk count does not exceed max_chunks.
@@ -188,7 +188,7 @@ class TopicMessageSubmitTransaction(Transaction):
             raise ValueError("Missing required fields: topic_id.")
         if self.message is None:
             raise ValueError("Missing required fields: message.")
-        
+
         content = self.message.encode("utf-8")
 
         start_index = self._current_index * self.chunk_size
@@ -216,7 +216,8 @@ class TopicMessageSubmitTransaction(Transaction):
         Builds and returns the protobuf transaction body for message submission.
 
         Returns:
-            TransactionBody: The protobuf transaction body containing the message submission details.
+            TransactionBody: The protobuf transaction body containing 
+                the message submission details.
         """
         consensus_submit_message_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
@@ -249,14 +250,14 @@ class TopicMessageSubmitTransaction(Transaction):
             transaction_func=channel.topic.submitMessage,
             query_func=None
         )
-    
+
     def freeze_with(self, client: "Client") -> "TopicMessageSubmitTransaction":
         if self._transaction_body_bytes:
             return self
 
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
-        
+
         if not self._transaction_ids:
             base_timestamp = self.transaction_id.valid_start
 
@@ -275,12 +276,12 @@ class TopicMessageSubmitTransaction(Transaction):
                         account_id=self.transaction_id.account_id,
                         valid_start=chunk_valid_start
                     )
-        
+
                 self._transaction_ids.append(chunk_transaction_id)
-        
+
         return super().freeze_with(client)
 
-    
+
     def execute(self, client: "Client"):
         self._validate_chunking()
 
@@ -298,7 +299,7 @@ class TopicMessageSubmitTransaction(Transaction):
 
             self._transaction_body_bytes.clear()
             self._signature_map.clear()
-            
+
             self.freeze_with(client)
 
             for signing_key in self._signing_keys:

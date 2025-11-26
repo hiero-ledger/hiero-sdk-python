@@ -145,10 +145,10 @@ class TopicMessageQuery:
                             continue
 
                         initial_tx_id = TransactionId._from_proto(response.chunkInfo.initialTransactionID)
-                        
+
                         if initial_tx_id not in pending_chunks:
                             pending_chunks[initial_tx_id] = []
-                        
+
                         pending_chunks[initial_tx_id].append(response)
 
                         if len(pending_chunks[initial_tx_id]) == response.chunkInfo.total:
