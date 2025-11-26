@@ -1,68 +1,65 @@
-name: Merge Conflict Bot
+name: PythonBot - Check Merge Conflicts
 
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
 
 permissions:
+  contents: read
   pull-requests: write
+  issues: write
+
+concurrency:
+  group: "check-conflicts-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
 
 jobs:
   check-conflicts:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check for conflicts and comment
-        uses: actions/github-script@v7
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
-          script: |
-            // 1. Get the Pull Request details
-            const pr = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number
-            });
+          egress-policy: audit
+      
+      - name: Check for merge conflicts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO="${{ github.repository }}"
 
-            // 2. Check if the state is 'dirty' (Conflict)
-            // GitHub calculates this asynchronously, so it might be 'unknown' at first.
-            // But for an MVP, checking 'dirty' is the standard approach.
-            const isConflict = pr.data.mergeable_state === 'dirty';
+          echo "Checking merge status for PR #$PR_NUMBER in repository $REPO..."
 
-            if (isConflict) {
-              console.log("Merge conflict detected.");
+          # Fetch the Pull Request JSON to inspect the 'mergeable_state'
+          PR_JSON=$(gh api repos/$REPO/pulls/$PR_NUMBER)
+          MERGEABLE_STATE=$(echo "$PR_JSON" | jq -r '.mergeable_state')
 
-              // 3. Prepare the comment
-              const msg = `👋 Hi @${context.payload.pull_request.user.login},
-              
-              It looks like this Pull Request has **merge conflicts** that prevent it from being merged. 🛑
-              
-              Please resolve these conflicts locally and push the changes.
-              
-              **Helpful Resources:**
-              - [Resolving Merge Conflicts](docs/sdk_developers/training/merge_conflicts.md)
-              - [Rebasing Guide](docs/sdk_developers/training/rebasing.md)
-              
-              Once resolved, I will automatically run the checks again!`;
+          echo "Current mergeable state: $MERGEABLE_STATE"
 
-              // 4. Check if we already commented to avoid spamming
-              const comments = await github.rest.issues.listComments({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number
-              });
+          # 'dirty' is the GitHub API status for merge conflicts
+          if [ "$MERGEABLE_STATE" = "dirty" ]; then
+            COMMENT=$(cat <<EOF
+            Hi, this is MergeConflictBot. 
+            Your pull request cannot be merged because it contains **merge conflicts**. 
+            
+            Please resolve these conflicts locally and push the changes.
 
-              const botComment = comments.data.find(comment => comment.body.includes("merge conflicts"));
+            To assist you, please read:
+            - [Resolving Merge Conflicts](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/merge_conflicts.md)
+            - [Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/rebasing.md)
 
-              if (!botComment) {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.payload.pull_request.number,
-                  body: msg
-                });
-                console.log("Comment posted.");
-              } else {
-                console.log("Bot already commented. Skipping.");
-              }
-            } else {
-              console.log("No conflicts detected. Mergeable state: " + pr.data.mergeable_state);
-            }
+            Thank you for contributing!
+
+            From the Hiero Python SDK Team
+          EOF
+            )
+
+            # Check if we already commented to avoid spamming
+            # Greps specifically for "MergeConflictBot" to distinguish from VerificationBot
+            gh pr view $PR_NUMBER --repo $REPO --json comments --jq '.comments[].body' | grep -F "MergeConflictBot" >/dev/null || \
+            (gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT" && echo "Comment added to PR #$PR_NUMBER")
+          else
+            echo "No merge conflicts detected (State: $MERGEABLE_STATE)."
+          fi
