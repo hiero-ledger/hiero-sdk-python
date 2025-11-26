@@ -8,12 +8,20 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
--Removed `actions/checkout@v4` from `bot-verified-commits.yml`
+### Changed
 
+- Removed duplicate import of transaction_pb2 in transaction.py
+
+### Fixed
+
+## [0.1.9] - 2025-11-26
+
+### Added
+
+- Removed `actions/checkout@v4` from `bot-verified-commits.yml`
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
 - Document error handling patterns and best practices for transaction receipts
-
 - fix `pull_request` to `pull_request_target` in `bot-verified-commits.yml`
 - Add more robust receipt checks and removed fallback to `examples/tokens/token_delete_transaction.py`
 - Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
@@ -35,6 +43,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
 - Added `examples/token_create_transaction_kyc_key.py` to demonstrate KYC key functionality, including creating tokens with/without KYC keys, granting/revoking KYC status, and understanding KYC requirements for token transfers.
+- Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
 - Added BatchTransaction class
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
 - Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
@@ -44,10 +53,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add comprehensive documentation for `MaxAttemptsError` in `docs/sdk_developers/training/max_attempts_error.md` (2025-11-26)
 - Add practical example `examples/errors/max_attempts_error.py` demonstrating network error handling and recovery strategies (2025-11-26)
 - Document error handling patterns for network failures and node retry attempts (#877)
+- Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
+- docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
 
 ### Changed
 
-- Upgraded actions set up python to 6.1.0
 - Upgraded step-security/harden-runner v2.13.2
 - bumped actions/checkout from 5.0.0 to 6.0.0
 - Limit workflow bot to one message per PR
@@ -60,6 +70,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
 - feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
+
 
 ### Fixed
 
