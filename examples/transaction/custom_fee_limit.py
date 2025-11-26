@@ -23,37 +23,41 @@ from hiero_sdk_python import (
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
 
-def setup_client():
+def setup_client() -> tuple[Client, AccountId]:
     """Initialize client and operator from .env file."""
     load_dotenv()
 
-    try:
-        if "OPERATOR_ID" not in os.environ or "OPERATOR_KEY" not in os.environ:
-            raise Exception(
-                "Environment variables OPERATOR_ID or OPERATOR_KEY are missing."
-            )
-
-        operator_id = AccountId.from_string(os.environ["OPERATOR_ID"])
-        operator_key = PrivateKey.from_string(os.environ["OPERATOR_KEY"])
-
-        # Default to testnet if NETWORK is not set
-        network_name = os.environ.get("NETWORK", "testnet")
-        client = Client(Network(network_name))
-
-        client.set_operator(operator_id, operator_key)
-        print(f"Operator set: {operator_id}")
-
-        return client, operator_id
-    except Exception as e:
-        print(f"Error setting up client: {e}")
+    if "OPERATOR_ID" not in os.environ or "OPERATOR_KEY" not in os.environ:
+        print("Environment variables OPERATOR_ID or OPERATOR_KEY are missing.")
         sys.exit(1)
 
+    try:
+        operator_id = AccountId.from_string(os.environ["OPERATOR_ID"])
+        operator_key = PrivateKey.from_string(os.environ["OPERATOR_KEY"])
+    except Exception as e:  # noqa: BLE001
+        print(f"Failed to parse OPERATOR_ID or OPERATOR_KEY: {e}")
+        sys.exit(1)
 
-def main():
-    #  Setup Client
-    client, operator_id = setup_client()
+    network_name = os.environ.get("NETWORK", "testnet")
 
-    # Create a revenue-generating topic with a custom fee
+    try:
+        client = Client(Network(network_name))
+    except Exception as e:
+        print(f"Failed to create client for network '{network_name}': {e}")
+        sys.exit(1)
+
+    client.set_operator(operator_id, operator_key)
+    print(f"Operator set: {operator_id}")
+
+    return client, operator_id
+
+
+def create_revenue_generating_topic(client: Client, operator_id: AccountId):
+    """
+    Create a topic that charges a fixed custom fee per message.
+
+    The topic charges 1 HBAR (in tinybars) to the operator account for every message.
+    """
     print("\nCreating a topic with a fixed custom fee per message...")
 
     # Charge 1 HBAR to the operator for every message
@@ -72,11 +76,22 @@ def main():
         topic_id = topic_receipt.topic_id
         print(f"Topic created successfully: {topic_id}")
         print("This topic charges a fixed fee of 1 HBAR per message.")
-    except Exception as e:
-        print(f"Failed to create topic: {e}")
-        return
 
-    # Submit a message with a Custom Fee Limit
+        return topic_id
+    except Exception as e:   # noqa: BLE001
+        print(f"Failed to create topic: {e}")
+        return None
+
+
+def submit_message_with_custom_fee_limit(
+    client: Client, topic_id, operator_id: AccountId
+) -> None:
+    """
+    Submit a message to the topic with a CustomFeeLimit applied.
+
+    The CustomFeeLimit caps the total custom fees the payer is willing to pay
+    for this message at 2 HBAR.
+    """
     print("\nSubmitting a message with a CustomFeeLimit...")
 
     # We are willing to pay up to 2 HBAR in custom fees for this message
@@ -99,7 +114,7 @@ def main():
         submit_tx.set_topic_id(topic_id)
         submit_tx.set_message("Hello Hedera with Fee Limits!")
 
-        # Ensure the base transaction fee is high enough
+        # Ensure the base transaction fee is high enough to cover processing
         submit_tx.transaction_fee = Hbar(5).to_tinybars()
 
         # Attach the custom fee limit to the transaction
@@ -109,8 +124,18 @@ def main():
 
         print("Message submitted successfully!")
         print(f"Transaction status: {submit_receipt.status}")
-    except Exception as e:
+    except Exception as e:    # noqa: BLE001
         print(f"Transaction failed: {e}")
+
+
+def main() -> None:
+    client, operator_id = setup_client()
+
+    topic_id = create_revenue_generating_topic(client, operator_id)
+    if topic_id is None:
+        return
+
+    submit_message_with_custom_fee_limit(client, topic_id, operator_id)
 
     print("\nExample complete.")
 
