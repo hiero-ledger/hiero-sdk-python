@@ -18,6 +18,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Removed `actions/checkout@v4` from `bot-verified-commits.yml`
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
