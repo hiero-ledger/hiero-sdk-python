@@ -1,0 +1,68 @@
+name: Merge Conflict Bot
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  check-conflicts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for conflicts and comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // 1. Get the Pull Request details
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+
+            // 2. Check if the state is 'dirty' (Conflict)
+            // GitHub calculates this asynchronously, so it might be 'unknown' at first.
+            // But for an MVP, checking 'dirty' is the standard approach.
+            const isConflict = pr.data.mergeable_state === 'dirty';
+
+            if (isConflict) {
+              console.log("Merge conflict detected.");
+
+              // 3. Prepare the comment
+              const msg = `👋 Hi @${context.payload.pull_request.user.login},
+              
+              It looks like this Pull Request has **merge conflicts** that prevent it from being merged. 🛑
+              
+              Please resolve these conflicts locally and push the changes.
+              
+              **Helpful Resources:**
+              - [Resolving Merge Conflicts](docs/sdk_developers/training/merge_conflicts.md)
+              - [Rebasing Guide](docs/sdk_developers/training/rebasing.md)
+              
+              Once resolved, I will automatically run the checks again!`;
+
+              // 4. Check if we already commented to avoid spamming
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number
+              });
+
+              const botComment = comments.data.find(comment => comment.body.includes("merge conflicts"));
+
+              if (!botComment) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: msg
+                });
+                console.log("Comment posted.");
+              } else {
+                console.log("Bot already commented. Skipping.");
+              }
+            } else {
+              console.log("No conflicts detected. Mergeable state: " + pr.data.mergeable_state);
+            }
