@@ -57,7 +57,7 @@ def test_integration_topic_message_submit_transaction_can_execute(env):
     )
 
     info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
-    # Check that no message is submited
+    # Check that no message is submitted
     assert info.sequence_number == 0
 
     message_transaction = TopicMessageSubmitTransaction(
@@ -73,7 +73,7 @@ def test_integration_topic_message_submit_transaction_can_execute(env):
     ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
 
     info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
-    # Check that one message is submited
+    # Check that one message is submitted
     assert info.sequence_number == 1
 
     delete_topic(env.client, topic_id)
@@ -121,7 +121,7 @@ def test_integration_topic_message_submit_transaction_with_submit_key(env):
     )
 
     info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
-    # Check that no message is submited
+    # Check that no message is  submited
     assert info.sequence_number == 0
 
     message_transaction = TopicMessageSubmitTransaction(
@@ -139,7 +139,7 @@ def test_integration_topic_message_submit_transaction_with_submit_key(env):
     ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
 
     info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
-    # Check that one message is submited
+    # Check that one message is  submited
     assert info.sequence_number == 1
 
     delete_topic(env.client, topic_id)
@@ -157,7 +157,7 @@ def test_integration_topic_message_submit_transaction_without_submit_key_fails(e
     )
 
     info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
-    # Check that no message is submited
+    # Check that no message is  submited
     assert info.sequence_number == 0
 
     message_transaction = TopicMessageSubmitTransaction(
@@ -257,7 +257,8 @@ def test_integration_scheduled_topic_message_submit_transaction_can_execute_with
         balance.hbars.to_tinybars() == Hbar(3).to_tinybars()
     ), f"Expected balance of 3 Hbar, but got {balance.hbars.to_tinybars()}"
 
-    env.client.set_operator(account.id, account.key)  # Set the operator to the account
+    # Restore the operator to the original account
+    env.client.set_operator(account.id, account.key)
 
     topic_message_submit_fee_limit = (
         CustomFeeLimit().set_payer_id(account.id).add_custom_fee(topic_fee)
@@ -285,7 +286,8 @@ def test_integration_scheduled_topic_message_submit_transaction_can_execute_with
         balance.hbars.to_tinybars() < Hbar(2).to_tinybars()
     ), f"Expected balance of less than 2 Hbar, but got {balance.hbars.to_tinybars()}"
 
-    env.client.set_operator(operator_id, operator_key)  # Set the operator to the account
+    # Restore the operator to the original account
+    env.client.set_operator(operator_id, operator_key)
     delete_topic(env.client, topic_id)
 
 
@@ -301,7 +303,7 @@ def test_integration_topic_message_submit_transaction_fails_if_required_chunk_gr
     )
 
     info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
-    # Check that no message is submited
+    # Check that no message is  submited
     assert info.sequence_number == 0
 
     message_transaction = TopicMessageSubmitTransaction(

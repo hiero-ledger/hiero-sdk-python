@@ -163,7 +163,6 @@ class TopicMessageQuery:
 
                 except Exception as e:
                     if subscription_handle.is_cancelled():
-
                         return
 
                     attempt += 1
