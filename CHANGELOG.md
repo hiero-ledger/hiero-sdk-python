@@ -35,12 +35,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
 - Added `examples/token_create_transaction_kyc_key.py` to demonstrate KYC key functionality, including creating tokens with/without KYC keys, granting/revoking KYC status, and understanding KYC requirements for token transfers.
+- Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
 - Added BatchTransaction class
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
 - Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
 - Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
 - Added `examples/account_allowance_approve_transaction_hbar.py` and `examples/account_allowance_delete_transaction_hbar.py`, deleted `examples/account_allowance_hbar.py`. [#775]
 - Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
+- Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
 - docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
 
 ### Changed
