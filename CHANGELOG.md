@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
+- Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
   
 ### Changed
 
@@ -68,7 +69,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
 - feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
-
 
 ### Fixed
 
