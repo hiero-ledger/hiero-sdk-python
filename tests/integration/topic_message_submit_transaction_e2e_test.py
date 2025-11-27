@@ -110,6 +110,33 @@ def test_topic_message_submit_transaction_can_submit_a_large_message(env):
 
 
 @pytest.mark.integration
+def test_topic_message_submit_transaction_fails_if_max_chunks_less_than_requied(env):
+    """Test topic message submit transaction can submit large message."""
+    topic_id = create_topic(
+        client=env.client,
+        admin_key=env.operator_key
+    )
+
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 0
+
+    message = "A" * (1024 * 14) # message with (1024 * 14) bytes ie 14 chunks
+
+    message_tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_message(message)
+        .set_max_chunks(2)
+        .freeze_with(env.client)
+    )
+
+    with pytest.raises(ValueError):
+        message_receipt = message_tx.execute(env.client)
+    
+    delete_topic(env.client, topic_id)
+
+
+@pytest.mark.integration
 def test_integration_topic_message_submit_transaction_with_submit_key(env):
     """Test that a topic message submit transaction executes with submit key."""
     submit_key = PrivateKey.generate()
