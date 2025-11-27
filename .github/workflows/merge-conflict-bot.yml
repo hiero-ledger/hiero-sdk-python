@@ -1,7 +1,7 @@
 name: PythonBot - Check Merge Conflicts
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 permissions:
@@ -69,4 +69,3 @@ jobs:
           else
             echo "No merge conflicts detected (State: $MERGEABLE_STATE)."
           fi
-# Trigger
