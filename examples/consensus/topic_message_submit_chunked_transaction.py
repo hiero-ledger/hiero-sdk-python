@@ -107,10 +107,11 @@ def submit_topic_message_transaction(client, topic_id):
         if message_receipt.status != ResponseCode.SUCCESS:
             print(f"Failed to submit message status: {ResponseCode(message_receipt.status).name}")
             sys.exit(1)
-            
+
         print(f"Message submitted (status={ResponseCode(message_receipt.status)}, txId={message_receipt.transaction_id})")
         print(f"Message size:", len(BIG_CONTENT), "bytes")
         print(f"Message Content: {(BIG_CONTENT[:140] + "...") if len(BIG_CONTENT) > 140 else BIG_CONTENT}")
+
     except Exception as e:
         print(f"Error: Message submission failed: {str(e)}")
         sys.exit(1)
