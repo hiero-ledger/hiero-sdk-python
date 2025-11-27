@@ -183,6 +183,29 @@ class TransactionReceipt:
             int: The node ID if present; otherwise, 0.
         """
         return self._receipt_proto.node_id
+    
+    @property
+    def topic_sequence_number(self) -> int:
+        """
+        Returns the topic sequence number associated with this receipt.
+
+        Returns:
+            int: The sequence number of the topic if present, otherwise 0.
+        """
+        return self._receipt_proto.topicSequenceNumber
+
+    @property
+    def topic_running_hash(self) -> Optional[bytes]:
+        """
+        Returns the topic running hash associated with this receipt.
+
+        Returns:
+            int: The running hash of the topic if present, otherwise None.
+        """
+        if self._receipt_proto.HasField('topicRunningHash'):
+            return self._receipt_proto.topicRunningHash
+
+        return None
 
     def _to_proto(self):
         """
