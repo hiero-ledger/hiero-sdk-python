@@ -111,7 +111,7 @@ def test_topic_message_submit_transaction_can_submit_a_large_message(env):
 
 @pytest.mark.integration
 def test_topic_message_submit_transaction_fails_if_max_chunks_less_than_requied(env):
-    """Test topic message submit transaction can submit large message."""
+    """Test topic message submit transaction fails if max_chunks less than requied."""
     topic_id = create_topic(
         client=env.client,
         admin_key=env.operator_key
