@@ -35,6 +35,8 @@ class TopicMessageSubmitTransaction(Transaction):
         Args:
             topic_id (Optional[TopicId]): The ID of the topic.
             message (Optional[str]): The message to submit.
+            chunk_size (Optional[int]): The maximum chunk size in bytes, Default: 1024.
+            max_chunks (Optional[int]): The maximum number of chunks allowed, Default: 20.
         """
         super().__init__()
         self.topic_id: Optional[TopicId] = topic_id
