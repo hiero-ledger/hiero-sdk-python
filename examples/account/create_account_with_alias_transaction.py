@@ -65,13 +65,14 @@ def create_account_with_alias(client):
         public_key = private_key.public_key()
         evm_address = public_key.to_evm_address()
         if evm_address is None:
-            print("❌ Error generating ECDSA key pair")
+            print("❌ Error: Failed to generate EVM address from public key.")
             sys.exit(1)
         print(f"✅ Generated new ECDSA key pair. EVM Address (alias): {evm_address}")
         # Create the account with the alias
         print("\nSTEP 2: Creating the account with the EVM address alias...")
         transaction = (
             AccountCreateTransaction()
+            
             .set_key(public_key)
             .set_initial_balance(Hbar(5))
             .set_alias(evm_address)
