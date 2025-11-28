@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
+- Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.  
   
 ### Changed
 
