@@ -72,7 +72,6 @@ def create_account_with_alias(client):
         print("\nSTEP 2: Creating the account with the EVM address alias...")
         transaction = (
             AccountCreateTransaction()
-            
             .set_key(public_key)
             .set_initial_balance(Hbar(5))
             .set_alias(evm_address)
