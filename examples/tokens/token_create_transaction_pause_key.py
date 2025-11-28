@@ -255,7 +255,7 @@ def main():
 
     unpause_token(client, token_with_pause, pause_key)
 
-print("\n🎉 Pause key demonstration completed!")
+    print("\n🎉 Pause key demonstration completed!")
 
 
 if __name__ == "__main__":
