@@ -7,9 +7,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
-  
+- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased]
+
 ### Changed
 
 - Removed duplicate import of transaction_pb2 in transaction.py
