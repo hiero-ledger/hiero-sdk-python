@@ -84,51 +84,6 @@ def test_token_info_is_immutable(token_info):
     with pytest.raises(FrozenInstanceError):
         token_info.name = "Changed"
 
-# def test_setters(token_info):
-#     public_key = PrivateKey.generate_ed25519().public_key()
-#     token_info.set_admin_key(public_key)
-#     assert token_info.admin_key == public_key
-# 
-#     token_info.set_kyc_key(public_key)
-#     assert token_info.kyc_key == public_key
-# 
-#     token_info.set_freeze_key(public_key)
-#     assert token_info.freeze_key == public_key
-# 
-#     token_info.set_wipe_key(public_key)
-#     assert token_info.wipe_key == public_key
-# 
-#     token_info.set_supply_key(public_key)
-#     assert token_info.supply_key == public_key
-# 
-#     token_info.set_fee_schedule_key(public_key)
-#     assert token_info.fee_schedule_key == public_key
-# 
-#     token_info.set_default_freeze_status(TokenFreezeStatus.FROZEN)
-#     assert token_info.default_freeze_status == TokenFreezeStatus.FROZEN
-# 
-#     token_info.set_default_kyc_status(TokenKycStatus.GRANTED)
-#     assert token_info.default_kyc_status == TokenKycStatus.GRANTED
-# 
-#     token_info.set_auto_renew_account(AccountId(0, 0, 300))
-#     assert token_info.auto_renew_account == AccountId(0, 0, 300)
-# 
-#     token_info.set_auto_renew_period(Duration(3600))
-#     assert token_info.auto_renew_period == Duration(3600)
-# 
-#     expiry = Timestamp(1625097600, 0)
-#     token_info.set_expiry(expiry)
-#     assert token_info.expiry == expiry
-# 
-#     token_info.set_pause_key(public_key)
-#     assert token_info.pause_key == public_key
-# 
-#     token_info.set_pause_status(TokenPauseStatus.PAUSED)
-#     assert token_info.pause_status == TokenPauseStatus.PAUSED
-# 
-#     token_info.set_supply_type(SupplyType.INFINITE)
-#     assert token_info.supply_type == SupplyType.INFINITE
-
 def test_from_proto(proto_token_info):
     public_key = PrivateKey.generate_ed25519().public_key()
     proto_token_info.adminKey.ed25519 = public_key.to_bytes_raw()

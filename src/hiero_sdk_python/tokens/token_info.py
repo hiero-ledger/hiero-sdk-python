@@ -70,113 +70,6 @@ class TokenInfo:
     )
 
 
-    # === setter methods ===
-    # def set_admin_key(self, admin_key: PublicKey) -> "TokenInfo":
-    #     """Set the admin key."""
-    #     self.admin_key = admin_key
-    #     return self
-
-
-    # def set_kyc_key(self, kyc_key: PublicKey) -> "TokenInfo":
-    #     """Set the KYC key."""
-    #     self.kyc_key = kyc_key
-    #     return self
-
-
-    # def set_freeze_key(self, freeze_key: PublicKey) -> "TokenInfo":
-    #     """Set the freeze key."""
-    #     self.freeze_key = freeze_key
-    #     return self
-
-
-    # def set_wipe_key(self, wipe_key: PublicKey) -> "TokenInfo":
-    #     """Set the wipe key."""
-    #     self.wipe_key = wipe_key
-    #     return self
-
-
-    # def set_supply_key(self, supply_key: PublicKey) -> "TokenInfo":
-    #     """Set the supply key."""
-    #     self.supply_key = supply_key
-    #     return self
-
-
-    # def set_metadata_key(self, metadata_key: PublicKey) -> "TokenInfo":
-    #     """Set the metadata key."""
-    #     self.metadata_key = metadata_key
-    #     return self
-
-    # def set_fee_schedule_key(self, fee_schedule_key: PublicKey) -> "TokenInfo":
-    #     """Set the fee schedule key."""
-    #     self.fee_schedule_key = fee_schedule_key
-    #     return self
-
-    # def set_default_freeze_status(self, freeze_status: TokenFreezeStatus) -> "TokenInfo":
-    #     """Set the default freeze status."""
-    #     self.default_freeze_status = freeze_status
-    #     return self
-
-
-    # def set_default_kyc_status(self, kyc_status: TokenKycStatus) -> "TokenInfo":
-    #     """Set the default KYC status."""
-    #     self.default_kyc_status = kyc_status
-    #     return self
-
-
-    # def set_auto_renew_account(self, account: AccountId) -> "TokenInfo":
-    #     """Set the auto-renew account."""
-    #     self.auto_renew_account = account
-    #     return self
-
-
-    # def set_auto_renew_period(self, period: Duration) -> "TokenInfo":
-    #     """Set the auto-renew period."""
-    #     self.auto_renew_period = period
-    #     return self
-
-
-    # def set_expiry(self, expiry: Timestamp) -> "TokenInfo":
-    #     """Set the token expiry."""
-    #     self.expiry = expiry
-    #     return self
-
-    # def set_pause_key(self, pause_key: PublicKey) -> "TokenInfo":
-    #     """Set the pause key."""
-    #     self.pause_key = pause_key
-    #     return self
-
-    # def set_pause_status(self, pause_status: TokenPauseStatus) -> "TokenInfo":
-    #     """Set the pause status."""
-    #     self.pause_status = pause_status
-    #     return self
-
-
-    # def set_supply_type(self, supply_type: SupplyType | int) -> "TokenInfo":
-    #     """Set the supply type."""
-    #     self.supply_type = (
-    #         supply_type
-    #         if isinstance(supply_type, SupplyType)
-    #         else SupplyType(supply_type)
-    #     )
-    #     return self
-
-
-    # def set_metadata(self, metadata: bytes) -> "TokenInfo":
-    #     """Set the token metadata."""
-    #     self.metadata = metadata
-    #     return self
-
-    # def set_custom_fees(self, custom_fees: List[Any]) -> "TokenInfo":
-    #     """Set the custom fees."""
-    #     self.custom_fees = custom_fees
-    #     return self
-
-
-    # === helpers ===
-
-    
-
-   
     @staticmethod
     def _get(proto_obj, *names):
         """Get the first present attribute from a list of possible names (camelCase/snake_case)."""
@@ -217,22 +110,6 @@ class TokenInfo:
             "metadata": proto_obj.metadata,
             "custom_fees": cls._parse_custom_fees(proto_obj),
         }
-        # tokenInfoObject = TokenInfo(
-        #     token_id=TokenId._from_proto(proto_obj.tokenId),
-        #     name=proto_obj.name,
-        #     symbol=proto_obj.symbol,
-        #     decimals=proto_obj.decimals,
-        #     total_supply=proto_obj.totalSupply,
-        #     treasury=AccountId._from_proto(proto_obj.treasury),
-        #     is_deleted=proto_obj.deleted,
-        #     memo=proto_obj.memo,
-        #     token_type=TokenType(proto_obj.tokenType),
-        #     max_supply=proto_obj.maxSupply,
-        #     ledger_id=proto_obj.ledger_id,
-        #     metadata=proto_obj.metadata,
-        # )
-
-        # tokenInfoObject.set_custom_fees(cls._parse_custom_fees(proto_obj))
 
         key_sources = [
             (("adminKey",),                         "admin_key"),
@@ -260,15 +137,6 @@ class TokenInfo:
             (("supplyType",),          "supply_type",           SupplyType),
         ]
 
-        # conv_map = [
-        #     (("defaultFreezeStatus",), tokenInfoObject.set_default_freeze_status, TokenFreezeStatus._from_proto),
-        #     (("defaultKycStatus",),    tokenInfoObject.set_default_kyc_status,    TokenKycStatus._from_proto),
-        #     (("autoRenewAccount",),    tokenInfoObject.set_auto_renew_account,    AccountId._from_proto),
-        #     (("autoRenewPeriod",),     tokenInfoObject.set_auto_renew_period,     Duration._from_proto),
-        #     (("expiry",),              tokenInfoObject.set_expiry,                Timestamp._from_protobuf),
-        #     (("pauseStatus", "pause_status"), tokenInfoObject.set_pause_status,   TokenPauseStatus._from_proto),
-        #     (("supplyType",),          tokenInfoObject.set_supply_type,           SupplyType),
-        # ]
         for names, attr_name, conv in conv_map:
             val = cls._get(proto_obj, *names)
             if val is not None:
