@@ -61,7 +61,7 @@ def create_account_with_alias(client):
     """Create an account with an alias transaction."""
     try:
         print("\nSTEP 1: Generating a new ECDSA key pair for the account alias...")
-        private_key = PrivateKey.generate("ecdsa")
+        private_key = PrivateKey.generate(key_type)
         public_key = private_key.public_key()
         evm_address = public_key.to_evm_address()
         if evm_address is None:
@@ -102,7 +102,12 @@ def create_account_with_alias(client):
         sys.exit(1)
 
 def main():
-    """Main function to create an account with an alias transaction."""
+    """Main function to create an account with an alias transaction.
+    1- Setup client
+    2- Generate ECDSA key pair and EVM address alias
+    3- Create account with alias
+    4- Print account info
+    """
     client = setup_client()
     create_account_with_alias(client)
 
