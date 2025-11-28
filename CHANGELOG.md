@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
 - Added docs/sdk_developers/training/setup: a training to set up as a developer to the python sdk
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
