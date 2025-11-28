@@ -10,7 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
 - Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.  
-  
+- feat: Implement account creation with EVM-style alias transaction example.
 ### Changed
 
 - Removed duplicate import of transaction_pb2 in transaction.py
