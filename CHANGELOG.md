@@ -13,6 +13,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 - Removed duplicate import of transaction_pb2 in transaction.py
+- Refactor `TokenInfo` into an immutable dataclass, remove all setters, and rewrite `_from_proto` as a pure factory for consistent parsing [#800]
+
 
 ### Fixed
 
