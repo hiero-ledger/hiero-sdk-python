@@ -14,6 +14,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Update `TokenInfo.__str__` to include all token fields in the string representation (#914)
+
 - Removed duplicate import of transaction_pb2 in transaction.py
 
 ### Fixed
