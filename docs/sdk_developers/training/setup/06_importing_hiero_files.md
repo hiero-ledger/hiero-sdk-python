@@ -21,32 +21,49 @@ from hiero_sdk_python.tokens import token_create_transaction
 ### Advanced Example
 You'll need to import everything you require. 
 
-In this more advanced example, we are using: sys, TokenCreateTransaction, Client and ResponseCode.
+In this more advanced example, we are using imports to load env, to set up the client and network, and to form the Token Create Transaction and check the response:
+
 ```python
 import sys
+from dotenv import load_dotenv
+from os import getenv
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
-from hiero_sdk_python.client import client
 from hiero_sdk_python.response_code import ResponseCode
 
-# 1. Build the transaction
+# 1. Setup Client
+load_dotenv()
+operator_id = AccountId.from_string(getenv('OPERATOR_ID',''))
+operator_key = PrivateKey.from_string(getenv('OPERATOR_KEY',''))
+
+network = Network(getenv('NETWORK',''))
+client = Client(network)
+client.set_operator(operator_id, operator_key)
+
+# 2. Build the transaction
 create_tx = (
     TokenCreateTransaction()
     .set_token_name("Example Token")
     .set_token_symbol("EXT")
     .set_treasury_account_id(operator_id)
+    .set_initial_supply(100000)
     .freeze_with(client)
     .sign(operator_key)
 )
 
-# 2. Execute and get receipt
+# 3. Execute and get receipt
 receipt = create_tx.execute(client)
 
-# 3. Validate Success
+# 4. Validate Success
 if receipt.status != ResponseCode.SUCCESS:
     print(f"Token creation on Hedera failed: {ResponseCode(receipt.status).name}")
     sys.exit(1)
 
-# 4. Extract the Token ID
+# 5. Extract the Token ID
 token_id = receipt.token_id
 print(f"🎉 Created new token on the Hedera network with ID: {token_id}")
 ```
