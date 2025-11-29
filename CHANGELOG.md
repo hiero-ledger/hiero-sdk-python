@@ -18,6 +18,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Removed duplicate import of transaction_pb2 in transaction.py
 
 ### Fixed
+- fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
 
 ## [0.1.9] - 2025-11-26
 
