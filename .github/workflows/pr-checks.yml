@@ -60,6 +60,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+            echo "Dependabot PR detected — skipping CHANGELOG validation."
+            exit 0
+          fi
+
           gh api repos/$REPO/contents/CHANGELOG.md?ref=$BASE --jq '.content' | base64 -d > base.md
           gh api repos/$REPO/contents/CHANGELOG.md?ref=$HEAD --jq '.content' | base64 -d > head.md
 
