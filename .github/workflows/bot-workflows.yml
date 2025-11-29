@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows:
       - "PR Formatting"
+      - "PR Changelog Check"
       - "Hiero Solo Integration Tests"
       - "Run Examples"
     types:
