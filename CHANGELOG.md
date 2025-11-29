@@ -5,8 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-
 ### Added
+- Added `docs/sdk_developers/training/query.md` guide and `examples/query/custom_query_example.py` to demonstrate custom query implementation.
+- Added comprehensive documentation for the `Query` class architecture and usage.
 
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
