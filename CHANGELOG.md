@@ -14,6 +14,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
+- Improved the precision of `scripts/examples/match_examples_src.py` to correctly identify source files that have matching examples.
+
 ## [0.1.9] - 2025-11-26
 
 ### Added

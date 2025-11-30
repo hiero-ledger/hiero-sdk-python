@@ -27,17 +27,18 @@ def longest_shared_prefix_tokens(a, b):
 def normalize_example_against_src(example_path, src_token_map, folder):
     """
     Determine normalized name for an example file by comparing it to all
-    src files in the *same folder* and using the longest shared prefix.
+    src files across all folders and using the longest shared prefix.
     """
     ex_tokens = tokenize_filename(example_path)
 
     best_prefix = []
-    src_tokens_for_folder = src_token_map.get(folder, [])
-
-    for src_tokens in src_tokens_for_folder:
-        shared = longest_shared_prefix_tokens(ex_tokens, src_tokens)
-        if len(shared) > len(best_prefix):
-            best_prefix = shared
+    
+    # Check all folders, not just the same folder
+    for src_folder, src_tokens_list in src_token_map.items():
+        for src_tokens in src_tokens_list:
+            shared = longest_shared_prefix_tokens(ex_tokens, src_tokens)
+            if len(shared) > len(best_prefix):
+                best_prefix = shared
 
     # use longest shared prefix
     if best_prefix:
@@ -89,6 +90,30 @@ def match_by_filename_only(norm_ex, src_map, unmatched_src_set):
     return []
 
 
+def match_by_partial_tokens(norm_ex, src_map, unmatched_src_set):
+    """
+    Match by partial token overlap for cases where normalization might differ.
+    """
+    ex_tokens = norm_ex.split("_")
+    best_matches = []
+    max_overlap = 0
+    
+    for (src_folder, src_norm), src_list in src_map.items():
+        src_tokens = src_norm.split("_")
+        overlap = len(longest_shared_prefix_tokens(ex_tokens, src_tokens))
+        
+        if overlap > max_overlap and overlap >= 2:  # Require at least 2 matching tokens
+            max_overlap = overlap
+            best_matches = src_list
+    
+    if best_matches:
+        for src_file in best_matches:
+            unmatched_src_set.discard(src_file)
+        return best_matches
+    
+    return []
+
+
 def print_results(matched, unmatched_examples, unmatched_src_set, examples_path, src_path):
     print("=== Matched files ===")
     for src_file, ex_list in matched.items():
@@ -134,11 +159,25 @@ def match_examples_to_src(examples_path, src_path):
 
         # Normalize example using longest shared prefix with src files
         norm_ex = normalize_example_against_src(ex, src_token_map, folder_ex)
+        
+
 
         # Now match using full map
         matched_files = match_exact_folder(norm_ex, folder_ex, src_map, unmatched_src_set)
         if not matched_files:
             matched_files = match_by_filename_only(norm_ex, src_map, unmatched_src_set)
+        if not matched_files:
+            matched_files = match_by_partial_tokens(norm_ex, src_map, unmatched_src_set)
+
+        # Fallback: exact filename match
+        if not matched_files:
+            ex_filename = os.path.basename(ex)
+            for src_file in list(unmatched_src_set):
+                if os.path.basename(src_file) == ex_filename:
+                    matched_files = [src_file]
+                    unmatched_src_set.discard(src_file)
+                    break
+
 
         if matched_files:
             for src_file in matched_files:
