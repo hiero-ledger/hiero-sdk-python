@@ -8,6 +8,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
+- Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
+- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased]
+
 ### Changed
 
 - Removed duplicate import of transaction_pb2 in transaction.py
@@ -15,11 +19,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Fixed `scripts/examples/match_examples_src.py` to correctly match examples with exact filenames in different folders.
+- fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
 
 ## [0.1.9] - 2025-11-26
 
 ### Added
 
+- Add a limit of one comment for PR to the commit verification bot. [#892]
 - Removed `actions/checkout@v4` from `bot-verified-commits.yml`
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
@@ -52,14 +58,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
 - Added `examples/account_allowance_approve_transaction_hbar.py` and `examples/account_allowance_delete_transaction_hbar.py`, deleted `examples/account_allowance_hbar.py`. [#775]
 - Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
-<<<<<<< HEAD
 - Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
 - docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
-=======
 - Add comprehensive documentation for `MaxAttemptsError` in `docs/sdk_developers/training/max_attempts_error.md` (2025-11-26)
 - Add practical example `examples/errors/max_attempts_error.py` demonstrating network error handling and recovery strategies (2025-11-26)
 - Document error handling patterns for network failures and node retry attempts (#877)
->>>>>>> d2c4500 (feat: Refactor TokenDissociateTransaction to use set_token_ids method (#830))
 
 ### Changed
 
@@ -75,10 +78,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
 - feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
-<<<<<<< HEAD
 
-=======
->>>>>>> d2c4500 (feat: Refactor TokenDissociateTransaction to use set_token_ids method (#830))
 
 ### Fixed
 
