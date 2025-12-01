@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Added docs/sdk_developers/training/setup: a training to set up as a developer to the python sdk
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
 - Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.  
