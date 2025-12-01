@@ -7,10 +7,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+
+- Added docs/sdk_developers/training/setup: a training to set up as a developer to the python sdk
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
-- Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.  
-  
+- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased]
+
 ### Changed
 
 - Removed duplicate import of transaction_pb2 in transaction.py
@@ -18,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Fixed
+- fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
 
 ## [0.1.9] - 2025-11-26
 
