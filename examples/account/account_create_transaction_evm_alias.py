@@ -1,5 +1,5 @@
-# uv run examples/account/create_account_with_alias_transaction.py
-# python examples/account/create_account_with_alias_transaction.py
+# uv run examples/account/account_create_transaction_evm_alias.py
+# python examples/account/account_create_transaction_evm_alias.py
 """
 Example: Create an account using an EVM-style alias (evm_address).
 """
@@ -21,7 +21,6 @@ from hiero_sdk_python import (
 
 load_dotenv()
 network_name = os.getenv('NETWORK', 'testnet').lower()
-key_type = os.getenv('KEY_TYPE', 'ecdsa')
 
 def setup_client():
     """Setup Client """
@@ -61,7 +60,7 @@ def create_account_with_alias(client):
     """Create an account with an alias transaction."""
     try:
         print("\nSTEP 1: Generating a new ECDSA key pair for the account alias...")
-        private_key = PrivateKey.generate(key_type)
+        private_key = PrivateKey.generate('ecdsa')
         public_key = private_key.public_key()
         evm_address = public_key.to_evm_address()
         if evm_address is None:
