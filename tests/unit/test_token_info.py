@@ -127,9 +127,6 @@ def test_from_proto(proto_token_info):
     assert token_info.auto_renew_period == Duration(3600)
     assert token_info.expiry == Timestamp(1625097600, 0)
     assert token_info.pause_key.to_bytes_raw() == public_key.to_bytes_raw()
-    assert token_info.pause_status == TokenPauseStatus.PAUSED.value
-    assert token_info.supply_type.value == SupplyType.INFINITE.value
-
     assert token_info.pause_status == TokenPauseStatus.PAUSED
     assert token_info.supply_type == SupplyType.INFINITE
 
@@ -153,20 +150,6 @@ def test_to_proto(token_info):
         pause_status=TokenPauseStatus.PAUSED,
         supply_type=SupplyType.INFINITE,
     )
-    # token_info.set_admin_key(public_key)
-    # token_info.set_kyc_key(public_key)
-    # token_info.set_freeze_key(public_key)
-    # token_info.set_wipe_key(public_key)
-    # token_info.set_supply_key(public_key)
-    # token_info.set_fee_schedule_key(public_key)
-    # token_info.set_pause_key(public_key)
-    # token_info.set_default_freeze_status(TokenFreezeStatus.FROZEN)
-    # token_info.set_default_kyc_status(TokenKycStatus.GRANTED)
-    # token_info.set_auto_renew_account(AccountId(0, 0, 300))
-    # token_info.set_auto_renew_period(Duration(3600))
-    # token_info.set_expiry(Timestamp(1625097600, 0))
-    # token_info.set_pause_status(TokenPauseStatus.PAUSED)
-    # token_info.set_supply_type(SupplyType.INFINITE)
 
     proto = full_token_info._to_proto()
 
@@ -195,7 +178,7 @@ def test_to_proto(token_info):
     assert proto.autoRenewPeriod == Duration(3600)._to_proto()
     assert proto.expiry == Timestamp(1625097600, 0)._to_protobuf()
     assert proto.pause_key.ed25519 == public_key.to_bytes_raw()
-    assert proto.pause_status == TokenPauseStatus.PAUSED.value
+    assert proto.pause_status == TokenPauseStatus.PAUSED
 
 def test_str_representation(token_info):
     expected = (
