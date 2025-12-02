@@ -19,6 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 - bot workflows to include new changelog entry
 - Removed duplicate import of transaction_pb2 in transaction.py
+- feat: Add string representation method for `CustomFractionalFee` class and update `custom_fractional_fee.py` example.
 
 ### Fixed
 - fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases

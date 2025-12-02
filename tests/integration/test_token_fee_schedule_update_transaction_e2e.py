@@ -224,6 +224,12 @@ def test_token_fee_schedule_update_fails_fractional_on_nft():
         
         assert update_receipt.status == ResponseCode.CUSTOM_FRACTIONAL_FEE_ONLY_ALLOWED_FOR_FUNGIBLE_COMMON, \
             f"Expected CUSTOM_FRACTIONAL_FEE_ONLY_ALLOWED_FOR_FUNGIBLE_COMMON, but got {ResponseCode(update_receipt.status).name}"
+        
+        #Additional check to ensure the string representation works as expected
+        fee_str = new_fee.__str__()
+        assert "Numerator" in fee_str and "1" in fee_str
+        assert "Denominator" in fee_str and "100" in fee_str
+
     finally:
         env.close()
 
