@@ -1,7 +1,7 @@
 """
 Example demonstrating schedule info query on the network.
-uv run examples/query/schedule_info_query.py
-python examples/query/schedule_info_query.py
+uv run examples/schedule/schedule_info_query.py
+python examples/schedule/schedule_info_query.py
 """
 
 import datetime
