@@ -17,7 +17,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased]
 
 ### Changed
-
+- bot workflows to include new changelog entry
 - Removed duplicate import of transaction_pb2 in transaction.py
 
 ### Fixed
