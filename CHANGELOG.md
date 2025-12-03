@@ -7,17 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-
-- Added **str**() to CustomFixedFee and updated examples and tests accordingly.
-- Added a github template for good first issues
-- Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
-- Added all missing fields to **str**() method and updated `test_tokem_info.py`
-- Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
-- Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
-- Add inactivity bot workflow to unassign stale issue assignees (#952)
-- Made custom fraction fee end to end
-- Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
-- Added __str__() to CustomRoyaltyFee and updated examples and tests accordingly (#986)
+- Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
 
 ### Changed
 
@@ -150,7 +140,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
 - Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
-- Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
 
 ### Changed
 
