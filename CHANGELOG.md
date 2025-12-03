@@ -83,7 +83,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
 - Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
 - docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
-
+- Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
 
 ### Changed
 
