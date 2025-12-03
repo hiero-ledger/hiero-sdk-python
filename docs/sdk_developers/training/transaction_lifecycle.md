@@ -68,7 +68,7 @@ transaction.sign(account_private_key)
 Submit the transaction to the Hedera network. This returns a `TransactionResponse` indicating the network received it.
 
 ```python
-response = transaction.execute(client)
+receipt = transaction.execute(client)
 ```
 
 - **Does this guarantee success?** No! It only confirms receipt. The network processes it asynchronously.
@@ -79,7 +79,8 @@ response = transaction.execute(client)
 Fetch and verify the transaction receipt to confirm processing.
 
 ```python
-receipt = response.get_receipt(client)
+# In this SDK `execute(client)` returns the receipt directly:
+receipt = transaction.execute(client)
 
 if receipt.status != ResponseCode.SUCCESS:
     print(f"Transaction failed: {ResponseCode(receipt.status).name}")
@@ -87,8 +88,32 @@ else:
     print("Transaction successful!")
 ```
 
-- **Why check?** Receipts provide the final status and any generated IDs (e.g., new account ID).
-- **Common statuses:** `SUCCESS`, `INSUFFICIENT_ACCOUNT_BALANCE`, `INVALID_SIGNATURE`.
+- **Why check?** Always inspect `receipt.status` returned by `execute(client)`. The `execute` call confirms the network received your transaction; the receipt contains the final processing result. Your Python code will not automatically raise for Hedera-level failures — you must check the receipt to detect them.
+
+- **Common failure examples (from `src/hiero_sdk_python/response_code.py`):**
+  - `INSUFFICIENT_ACCOUNT_BALANCE` — payer/account lacks sufficient funds
+  - `INSUFFICIENT_TX_FEE` — submitted fee was too low to cover processing
+  - `INVALID_SIGNATURE` — missing or incorrect cryptographic signature
+  - `INVALID_PAYER_SIGNATURE` — payer's signature is invalid
+  - `TRANSACTION_EXPIRED` — transaction timestamp/duration expired
+  - `INVALID_TOKEN_ID` — supplied token ID does not exist
+  - `TOKEN_NOT_ASSOCIATED_TO_ACCOUNT` — attempted token operation on an unassociated account
+  - `TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT` — duplicate association attempt
+  - `FAIL_BALANCE`, `FAIL_FEE` — generic failure categories
+
+- **Important:** These are examples only — many other ResponseCodes exist. Always consult `src/hiero_sdk_python/response_code.py` for the full list and handle codes relevant to your workflow.
+
+```python
+# Example: check and handle failure explicitly
+receipt = transaction.execute(client)
+
+if receipt.status != ResponseCode.SUCCESS:
+    # react to failure: log, retry, or surface to caller
+    print(f"Transaction processed with failure: {ResponseCode(receipt.status).name}")
+    # e.g. inspect receipt fields for more info, then handle appropriately
+else:
+    print("Transaction successful!")
+```
 
 ## Complete Example
 
@@ -108,7 +133,6 @@ def associate_token_with_account(client, account_id, account_private_key, token_
         .freeze_with(client)          # Lock fields
         .sign(account_private_key)    # Authorize
         .execute(client)              # Submit to Hedera
-        .get_receipt(client)          # Fetch result
     )
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -125,7 +149,6 @@ For more examples, see `examples/token_grant_kyc.py` or `examples/token_associat
 ### Correct
 ```python
 transaction = TokenAssociateTransaction().set_account_id(account_id).freeze_with(client).sign(key).execute(client)
-receipt = response.get_receipt(client)
 ```
 
 ### Incorrect (Signing before freezing)
