@@ -6,10 +6,186 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
-- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+### Breaking Change
+-
+
+## [0.1.10] - 2025-12-03
 
 ### Added
+- Added docs/sdk_developers/training/workflow: a training for developers to learn the workflow to contribute to the python SDK.
+- Added Improved NFT allowance deletion flow with receipt-based status checks and strict `SPENDER_DOES_NOT_HAVE_ALLOWANCE` verification.
+- Add `max_automatic_token_associations`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to `AccountUpdateTransaction` (#801)
+- Added docs/sdk_developers/training/setup: a training to set up as a developer to the python sdk
+- Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
+- Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
+- Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.
+- feat: Implement account creation with EVM-style alias transaction example.
+- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased].
+- Support for message chunking in `TopicSubmitMessageTransaction`.
+
+### Changed
+
+- bot workflows to include new changelog entry
+- Removed duplicate import of transaction_pb2 in transaction.py
+- Refactor `TokenInfo` into an immutable dataclass, remove all setters, and rewrite `_from_proto` as a pure factory for consistent parsing [#800]
+- feat: Add string representation method for `CustomFractionalFee` class and update `custom_fractional_fee.py` example.
+- Moved query examples to their respective domain folders to improve structure matching.
+
+
+### Fixed
+
+- fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
+
+## [0.1.9] - 2025-11-26
+
+### Added
+
+- Add a limit of one comment for PR to the commit verification bot. [#892]
+- Removed `actions/checkout@v4` from `bot-verified-commits.yml`
+- Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
+- Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
+- Document error handling patterns and best practices for transaction receipts
+- fix `pull_request` to `pull_request_target` in `bot-verified-commits.yml`
+- Add more robust receipt checks and removed fallback to `examples/tokens/token_delete_transaction.py`
+- Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
+- Add workflow: github bot to respond to unverified PR commits (#750)
+- Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
+- Add `examples/token_create_transaction_max_automatic_token_associations_0.py` to demonstrate how `max_automatic_token_associations=0` behaves.
+- Add `examples/topic_id.py` to demonstrate `TopicId` opeartions
+- Add `examples/topic_message.py` to demonstrate `TopicMessage` and `TopicMessageChunk` with local mock data.
+- Added missing validation logic `fee_schedule_key` in integration `token_create_transaction_e2e_test.py` and ``token_update_transaction_e2e_test.py`.
+- Add `account_balance_query.py` example to demonstrate how to use the CryptoGetAccountBalanceQuery class.
+- Add `examples/token_create_transaction_admin_key.py` demonstrating admin key privileges for token management including token updates, key changes, and deletion (#798)
+- Add `examples/token_create_transaction_freeze_key.py` showcasing freeze key behavior, expected failures without the key, and the effect of freezing/unfreezing on transfers.
+- Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
+- Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- Add `examples/topic_info.py` to demonstrate `TopicInfo` operations.
+- feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
+- EvmAddress class
+- `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
+- `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
+- Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
+- Added `examples/token_create_transaction_kyc_key.py` to demonstrate KYC key functionality, including creating tokens with/without KYC keys, granting/revoking KYC status, and understanding KYC requirements for token transfers.
+- Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
+- Added BatchTransaction class
+- Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
+- Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
+- Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
+- Added `examples/account_allowance_approve_transaction_hbar.py` and `examples/account_allowance_delete_transaction_hbar.py`, deleted `examples/account_allowance_hbar.py`. [#775]
+- Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
+- Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
+- docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
+
+
+### Changed
+
+- Upgraded step-security/harden-runner v2.13.2
+- bumped actions/checkout from 5.0.0 to 6.0.0
+- Limit workflow bot to one message per PR
+- Refactored token-related example scripts (`token_delete.py`, `token_dissociate.py`, etc.) for improved readability and modularity. [#370]
+- upgrade: step security action upgraded from harden-runner-2.13.1 to harden-runner-2.13.1
+- chore: Split `examples/account_allowance_nft.py` into separate `account_allowance_approve_transaction_nft.py` and `account_allowance_delete_transaction_nft.py` examples.
+- chore: bump protobuf from 6.33.0 to 6.33.1 (#796)
+- fix: Allow `max_automatic_token_associations` to be set to -1 (unlimited) in `AccountCreateTransaction` and add field to `AccountInfo`.
+- Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
+- Update github actions checkout from 5.0.0 to 5.0.1 (#814)
+- changed to add concurrency to workflow bot
+- feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
+
+### Fixed
+
+- chore: updated solo action to avoid v5
+- chore: fix test.yml workflow to log import errors (#740)
+- chore: fixed integration test names without a test prefix or postfix
+- Staked node ID id issue in the account_create_transationt_e2e_test
+- workflow: verified commits syntax for verfication bot
+
+## [0.1.8] - 2025-11-07
+
+### Added
+
+- `is_unknown` property added to `src/hiero_sdk_python/response_code.py`
+- Example `response_code.py`
+- Add `TokenFeeScheduleUpdateTransaction` class to support updating custom fee schedules on tokens (#471).
+- Add `examples/token_update_fee_schedule_fungible.py` and `examples/token_update_fee_schedule_nft.py` demonstrating the use of `TokenFeeScheduleUpdateTransaction`.
+- Update `docs/sdk_users/running_examples.md` to include `TokenFeeScheduleUpdateTransaction`.
+- added FreezeTransaction class
+- added FreezeType class
+- Added `docs/sdk_developers/pylance.md`, a new guide explaining how to set up and use **Pylance** in VS Code for validating imports, file references, and methods before review. (#713)
+- feat: TokenAirdropClaim Transaction, examples (with signing required and not), unit and integration tests (#201)
+- docs: Add Google-style docstrings to `TokenId` class and its methods in `token_id.py`.
+- added Google-style docstrings to the `TransactionRecord` class including all dataclass fields, `__repr__`, `_from_proto()` & `_to_proto()` methods.
+- Standardized docstrings, improved error handling, and updated type hinting (`str | None` to `Optional[str]`) for the `FileId` class (#652).
+- Add Google-style docstrings to `AccountInfo` class and its methods in `account_info.py`.
+- Added comprehensive Google-style docstrings to the `Logger` class and all utility functions in `src/hiero_sdk_python/logger/logger.py` (#639).
+- add AccountRecordsQuery class
+- chore: added python 3.13 to test.yml workflow (#510, #449)
+- Transaction bytes serialization support: `Transaction.freeze()`, `Transaction.to_bytes()`, and `Transaction.from_bytes()` methods for offline signing and transaction storage
+- docs: Add Google-style docstrings to `ContractId` class and methods in `contract_id.py`.
+- Added TokenUnpauseTransaction class
+- Added expiration_time, auto_renew_period, auto_renew_account, fee_schedule_key, kyc_key in `TokenCreateTransaction`, `TokenUpdateTransaction` classes
+- Added comprehensive Google-style docstrings to the `CustomFee` class and its methods in `custom_fee.py`.
+- docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
+
+### Changed
+
+- chore: renamed examples to match src where possible
+- Moved examples/ to be inside subfiles to match src structure
+- changed example script workflow to run on new subdirectory structure
+- chore: bumped solo action from 14.0 to 15.0 (#764)
+- chore: replaced hardcoded 'testnet' messages with environment network name
+- chore: validate that token airdrop transactions require an available token service on the channel (#632)
+- chore: update local environment configuration in env.example (#649)
+- chore: Update env.example NETWORK to encourage testnet or local usage (#659)
+- chore: updated pyproject.toml with python 3.10 to 3.13 (#510, #449)
+- chore: fix type hint for TokenCancelAirdropTransaction pending_airdrops parameter
+- chore: Moved documentation file `common_issues.md` from `examples/sdk_developers/` to `docs/sdk_developers/` for unified documentation management (#516).
+- chore: Refactored the script of examples/custom_fee.py into modular functions
+- fix: Replaced `collections.namedtuple` with `typing.NamedTuple` in `client.py` for improved type checking.
+- chore: Refactored examples/custom_fee.py into three separate example files.
+- Expanded `docs/sdk_developers/checklist.md` with a self-review guide for all pull request submission requirements (#645).
+- Expanded docs/sdk_developers/signing.md to clarify GPG and DCO requirements and add a Table of Contents (#455).
+- chore: Standardized client initialization across all examples/ files to promote consistency (#658).
+- chore: changed the file names of airdrop examples, classes, unit and integration tests so they are grouped together. (#631)
+- Refactor `AbstractTokenTransferTransaction` to unify Token/NFT transfer logic.
+
+### Fixed
+
+- Added explicit read permissions to examples.yml (#623)
+- Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
+- Improved type hinting in `file_append_transaction.py` to resolve 'mypy --strict` errors. ([#495](https://github.com/hiero-ledger/hiero-sdk-python/issues/495))
+- fix: Resolve `__eq__` type conflict in `CustomFee` class (#627)
+- Fixes a type conflict in `token_id.py` where `from_string` could receive `None`, preventing a runtime error by raising a `ValueError` if the input is missing. #630
+- Dependabot alerts (version bumps)
+- Fixed incorrect `TokenType` import (protobuf vs. SDK enum) in 18 example files.
+- Update `schedule_sign_transaction_e2e_test` to check for key presence instead of relying on index.
+- Add `localhost` and `local` as network names
+
+### Breaking Changes
+
+- chore: changed the file names airdrop classes (#631)
+  {pending_airdrop_id.py -> token_airdrop_pending_id.py}
+  {pending_airdrop_record.py -> token_airdrop_pending_record.py}
+  {token_cancel_airdrop_transaction.py -> token_airdrop_transaction_cancel.py}
+
+- In `TokenAirdropTransaction` the parameters of the following methods have been renamed:
+  - add_nft_transfer(sender → sender_id, receiver → receiver_id)
+  - add_approved_nft_transfer(sender → sender_id, receiver → receiver_id)
+
+## [0.1.7] - 2025-10-28
+
+### Added
+
+- Expanded `README.md` with a new "Follow Us" section detailing how to watch, star, and fork the repository (#472).
 - Refactored `examples/topic_create.py` into modular functions for better readability and reuse.
 - Add Rebasing and Signing section to signing.md with instructions for maintaining commit verification during rebase operations (#556)
 - Add `examples/account_id.py` demonstrating AccountId class usage including creating standard AccountIds, parsing from strings, comparing instances, and creating AccountIds with public key aliases
@@ -17,16 +193,22 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `dependabot.yaml` file to enable automated dependency management.
 - Common issues guide for SDK developers at `examples/sdk_developers/common_issues.md`
 - Added documentation for resolving changelog conflicts in `docs/common_issues.md`
-- - Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
+- Added comprehensive changelog entry guide at `docs/sdk_developers/changelog.md` to help contributors create proper changelog entries (#532).
 - docs: Added Google-style docstrings to `CustomFixedFee` class and its methods in `custom_fixed_fee.py`.
 - docs: Add Google-style docstrings to `CustomRoyaltyFee` class and its methods in `custom_royalty_fee.py`.
 - docs: Add Google-style docstrings to `AbstractTokenTransferTransaction` class and its methods in `abstract_token_transfer_transaction.py`.
 - docs: Add Google-style docstrings to `TokenRelationship` class and its methods in `token_relationship.py`.
 - feat: add initial testing guide structure
 - Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
+- Added workflow for running example scripts.
+- docs: workflow.md documenting key steps to creating a pull request (#605)
+- chore: fix the examples workflow to log error messages and run on import failure (#738)
+- Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
 ### Changed
 
+- Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
+- Updated all occurrences of non-functional Discord invite links throughout the documentation with the new, stable Hyperledger and Hedera invite links (#603).
 - Refactored TopicId class to use @dataclass decorator for reducing boilerplate code
 - Renamed `examples/nft_allowance.py` to `examples/account_allowance_nft.py` for consistency with account class naming scheme
 - Added changelog conflict resolution examples to `docs/common_issues.md`
@@ -43,6 +225,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Converted monolithic function in `token_create_nft_infinite.py` to multiple modular functions for better structure and ease.
 - docs: Use relative paths for internal GitHub links (#560).
 - Update pyproject.toml maintainers list.
+  – docs: Updated README.md/CHANGELOG.md and added blog.md, bud.md and setup.md (#474)
+- renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
+- Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
+- Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Fixed
 
@@ -51,6 +237,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Type hinting for `Topic` related transactions.
 
 ### Removed
+
 - Remove deprecated camelCase alias support and `_DeprecatedAliasesMixin`; SDK now only exposes snake_case attributes for `NftId`, `TokenInfo`, and `TransactionReceipt`. (Issue #428)
 
 ## [0.1.6] - 2025-10-21

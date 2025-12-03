@@ -18,6 +18,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Updating an Account](#updating-an-account)
   - [Allowance Approve Transaction](#allowance-approve-transaction)
   - [Allowance Delete Transaction](#allowance-delete-transaction)
+  - [Querying Account Records](#querying-account-records)
 - [Token Transactions](#token-transactions)
   - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -36,6 +37,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Burning a Non-Fungible Token](#burning-a-non-fungible-token)
   - [Token Update NFTs](#token-update-nfts)
   - [Pausing a Token](#pausing-a-token)
+  - [Unpausing a Token](#unpausing-a-token)
   - [Token Grant KYC](#token-grant-kyc)
   - [Token Revoke KYC](#token-revoke-kyc)
   - [Updating a Token](#updating-a-token)
@@ -77,9 +79,12 @@ You can choose either syntax or even mix both styles in your projects.
   - [Creating a Node](#creating-a-node)
   - [Updating a Node](#updating-a-node)
   - [Deleting a Node](#deleting-a-node)
+- [Batch Transaction](#batch-transaction)
+  - [Create a Batch Transaction](#create-a-batch-transaction)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 - [Miscellaneous Transactions](#miscellaneous-transactions)
+  - [Transaction Bytes Serialization](#transaction-bytes-serialization)
   - [PRNG Transaction](#prng-transaction)
 
 
@@ -343,6 +348,28 @@ transaction = (
 
 transaction.sign(owner_private_key)
 transaction.execute(client)
+```
+
+### Querying Account Records
+
+#### Pythonic Syntax:
+```python
+records = AccountRecordsQuery(account_id=account_id).execute(client)
+
+for record in records:
+    print(record)
+```
+
+#### Method Chaining:
+```python
+records = (
+    AccountRecordsQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+
+for record in records:
+    print(record)
 ```
 
 ## Token Transactions
@@ -815,6 +842,29 @@ transaction.execute(client)
 
 ```
 
+### Unpausing a Token
+
+#### Pythonic Syntax:
+```
+transaction = TokenUnpauseTransaction(
+    token_id=token_id
+).freeze_with(client)
+
+transaction.sign(pause_key)
+transaction.execute(client)
+```
+
+#### Method Chaining:
+```
+transaction = (
+    TokenUnpauseTransaction()
+    .set_token_id(token_id)
+    .freeze_with(client)
+    .sign(pause_key)
+)
+transaction.execute(client)
+```
+
 ### Token Grant KYC
 
 #### Pythonic Syntax:
@@ -907,7 +957,7 @@ transaction = (
     TokenAirdropTransaction()
     .add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
     .add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
-    .add_nft_transfer(nft_id=nft_id, serial_number=serial_number, sender=operator_id, receiver=recipient_id)
+    .add_nft_transfer(nft_id=nft_id, serial_number=serial_number, sender_id=operator_id, receiver_id=recipient_id)
     .freeze_with(client)
     .sign(operator_key)
 )
@@ -986,22 +1036,61 @@ print(nft_info)
 ### Querying Fungible Token Info
 
 #### Pythonic Syntax:
-```
+```python
 info_query = TokenInfoQuery(token_id=token_id)
 info = info_query.execute(client)
 print(info)
 ```
+
 #### Method Chaining:
-```
+```python
 info_query = (
-        TokenInfoQuery()
-        .set_token_id(token_id)
-    )
+    TokenInfoQuery()
+    .set_token_id(token_id)
+)
 
 info = info_query.execute(client)
 print(info)
 ```
 
+### Updating a Token Fee Schedule
+
+#### Pythonic Syntax:
+
+```python
+# Note: Royalty fees are only for NON_FUNGIBLE_UNIQUE tokens.
+new_fees = [
+    CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id),
+    CustomRoyaltyFee(numerator=5, denominator=10, fee_collector_account_id=collector_account_id)
+]
+
+transaction = TokenFeeScheduleUpdateTransaction(
+    token_id=token_id, # assumed NFT in this example
+    custom_fees=new_fees
+).freeze_with(client)
+
+transaction.sign(fee_schedule_key) # The fee_schedule_key MUST sign
+transaction.execute(client)
+```
+
+#### Method Chaining:
+
+```python
+# Note: Fractional fees are only for FUNGIBLE_COMMON tokens.
+new_fees = [
+    CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id)
+]
+
+transaction = (
+    TokenFeeScheduleUpdateTransaction()
+    .set_token_id(token_id) # assumed FUNGIBLE in this example
+    .set_custom_fees(new_fees)
+    .freeze_with(client)
+)
+
+transaction.sign(fee_schedule_key) # The fee_schedule_key MUST sign
+transaction.execute(client)
+```
 ## HBAR Transactions
 
 ### Transferring HBAR
@@ -1970,6 +2059,70 @@ transaction.sign(admin_key)  # Sign with the admin key
 
 receipt = transaction.execute(client)
 ```
+## Batch Transaction
+
+### Create a Batch Transaction
+
+#### Pythonic Syntax:
+```python
+# Create a transaction to be batched (e.g., a transfer transaction)
+transfer_tx = TransferTransaction(
+    hbar_transfers={
+        sender_id: -amount,
+        recipient_id: amount
+    }
+)
+
+# There are two approaches to mark a transaction as an inner transaction:
+
+# Approach 1: Use transaction.batchify(client, batch_key)
+# This sets the batch key, freezes the transaction, and signs it with the client's private key.
+transfer_tx.batchify(client=client, batch_key=batch_key)
+
+# Approach 2: Manually configure the transaction for batching
+transfer_tx.set_batch_key(batch_key)
+transfer_tx.freeze_with(client)
+transfer_tx.sign(client.operator_private_key)
+
+# Create the BatchTransaction and add inner transactions
+batch_tx = BatchTransaction()
+batch_tx.add_inner_transaction(transfer_tx)
+
+# Freeze and sign the batch transaction
+batch_tx.freeze_with(client)
+batch_tx.sign(batch_key)
+```
+
+#### Method Chaining:
+```python
+# Create a transaction to be batched (e.g., a transfer transaction)
+# Approch 1: Use transaction.batchify(client, batch_key)
+transfer_tx = (
+    TransferTransaction()
+    .add_hbar_transfer(sender_id, -amount)
+    .add_hbar_transfer(recipient_id, amount)
+    .batchify(client, batch_key)
+)
+
+#Approch 2: Manually configure the transaction for batching
+transfer_tx = (
+    TransferTransaction()
+    .add_hbar_transfer(sender_id, -amount)
+    .add_hbar_transfer(recipient_id, amount)
+    .set_batch_key(batch_key)
+    .freeze_with(client)
+    .sign(client.operator_private_key)
+)
+
+# Build the BatchTransaction with method chaining
+receipt = (
+    BatchTransaction()
+    .add_inner_transaction(transfer_tx)
+    .freeze_with(client)
+    .sign(batch_key)
+    .execute(client)
+)
+```
 
 ## Miscellaneous Queries
 
@@ -2005,6 +2158,16 @@ print(f"Transaction Account ID: {record.receipt.account_id}")
 ```
 
 ## Miscellaneous Transactions
+
+### Transaction Bytes Serialization
+
+For detailed information about freezing transactions and converting them to bytes for offline signing, external signing services (HSMs, hardware wallets), and transaction storage/transmission, see [Transaction Bytes Serialization](transaction_bytes.md).
+
+This guide covers:
+- `Transaction.freeze()` and `Transaction.freeze_with(client)` methods
+- `Transaction.to_bytes()` for serialization
+- `Transaction.from_bytes()` for deserialization
+- Use cases for offline signing, HSM integration, transaction storage, and batch processing
 
 ### PRNG Transaction
 

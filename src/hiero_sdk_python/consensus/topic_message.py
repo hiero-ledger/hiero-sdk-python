@@ -8,6 +8,7 @@ from typing import Optional, List, Union, Dict
 
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 class TopicMessageChunk:
@@ -40,7 +41,7 @@ class TopicMessage:
             consensus_timestamp: datetime,
             message_data: Dict[str, Union[bytes, int]],
             chunks: List[TopicMessageChunk],
-            transaction_id: Optional[str] = None,
+            transaction_id: Optional[TransactionId] = None,
     ) -> None:
         """
         Args:
@@ -52,14 +53,14 @@ class TopicMessage:
                               "sequence_number": int
                           }
             chunks (List[TopicMessageChunk]): All individual chunks that form this message.
-            transaction_id (Optional[str]): The transaction ID string if available.
+            transaction_id (Optional[Transaction]): The transaction ID if available.
         """
         self.consensus_timestamp: datetime = consensus_timestamp
         self.contents: Union[bytes, int] = message_data["contents"]
         self.running_hash: Union[bytes, int] = message_data["running_hash"]
         self.sequence_number: Union[bytes, int] = message_data["sequence_number"]
         self.chunks: List[TopicMessageChunk] = chunks
-        self.transaction_id: Optional[str] = transaction_id
+        self.transaction_id: Optional[TransactionId] = transaction_id
 
     @classmethod
     def of_single(cls, response: mirror_proto.ConsensusTopicResponse) -> "TopicMessage":  # type: ignore
@@ -72,13 +73,9 @@ class TopicMessage:
         running_hash: Union[bytes, int] = response.runningHash
         sequence_number: Union[bytes, int] = chunk.sequence_number
 
-        transaction_id: Optional[str] = None
+        transaction_id: Optional[TransactionId] = None
         if response.HasField("chunkInfo") and response.chunkInfo.HasField("initialTransactionID"):
-            tx_id = response.chunkInfo.initialTransactionID
-            transaction_id = (
-                f"{tx_id.shardNum}.{tx_id.realmNum}.{tx_id.accountNum}-"
-                f"{tx_id.transactionValidStart.seconds}.{tx_id.transactionValidStart.nanos}"
-            )
+            transaction_id = TransactionId._from_proto(response.chunkInfo.initialTransactionID)
 
         return cls(
             consensus_timestamp,
@@ -102,25 +99,24 @@ class TopicMessage:
 
         chunks: List[TopicMessageChunk] = []
         total_size: int = 0
-        transaction_id: Optional[str] = None
-
+        transaction_id: Optional[TransactionId] = None
+        
         for r in sorted_responses:
             c = TopicMessageChunk(r)
             chunks.append(c)
+            
             total_size += len(r.message)
+            
 
             if (
                     transaction_id is None
                     and r.HasField("chunkInfo")
                     and r.chunkInfo.HasField("initialTransactionID")
             ):
-                tx_id = r.chunkInfo.initialTransactionID
-                transaction_id = (
-                    f"{tx_id.shardNum}.{tx_id.realmNum}.{tx_id.accountNum}-"
-                    f"{tx_id.transactionValidStart.seconds}.{tx_id.transactionValidStart.nanos}"
-                )
+                transaction_id = TransactionId._from_proto(r.chunkInfo.initialTransactionID)
 
         contents = bytearray(total_size)
+        
         offset: int = 0
         for r in sorted_responses:
             end = offset + len(r.message)

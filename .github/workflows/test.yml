@@ -1,11 +1,11 @@
-name: Hiero Solo Integration Tests
+name: Hiero Solo Integration & Unit Tests
 
 on:
   push:
     branches:
       - '**'
-  workflow_dispatch:
-  pull_request:
+  pull_request: {}
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -18,25 +18,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
         with:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
       - name: Install uv
-        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a # v4.2.0
+        uses: astral-sh/setup-uv@2ddd2b9cb38ad8efd50337e8ab201519a34c9f24 # v7.1.1
 
       - name: Install setuptools wheel
         run: pip install --upgrade pip setuptools wheel
@@ -49,7 +49,7 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@b76850c1ac44466900f8e7412b309c3aa0f539c1 # v0.14
+        uses: hiero-ledger/hiero-solo-action@fbca3e7a99ce9aa8a250563a81187abe115e0dad # v0.15.0
         with:
           installMirrorNode: true
 
@@ -62,8 +62,10 @@ jobs:
 
       - name: Install your package
         run: pip install -e .
-
-      - name: Run integration tests
+      - name: Run all integration tests
+        id: integration
+        continue-on-error: true
+        shell: bash
         env:
           OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
           OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
@@ -71,8 +73,41 @@ jobs:
           PUBLIC_KEY: ${{ steps.solo.outputs.publicKey }}
           NETWORK: solo
         run: |
-          uv run pytest -m integration
+          set -o pipefail
+          echo "🚀 Running integration tests..."
+          uv run pytest tests/integration -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_integration.log
+          pytest_exit=${PIPESTATUS[0]}
+          echo "integration_failed=$pytest_exit" >> "$GITHUB_OUTPUT"
+          cat result_integration.log
+          if [ $pytest_exit -ne 0 ]; then
+            echo "❌ Some integration tests failed"
+          else
+            echo "✅ All integration tests passed"
+          fi
 
-      - name: Run unit tests
+      - name: Run all unit tests
+        id: unit
+        continue-on-error: true
+        shell: bash
         run: |
-          uv run pytest -m unit
+          set -o pipefail
+          echo "🚀 Running unit tests..."
+          uv run pytest tests/unit -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_unit.log
+          pytest_exit=${PIPESTATUS[0]}
+          echo "unit_failed=$pytest_exit" >> "$GITHUB_OUTPUT"
+          cat result_unit.log
+          if [ $pytest_exit -ne 0 ]; then
+            echo "❌ Some unit tests failed"
+          else
+            echo "✅ All unit tests passed"
+          fi
+
+      - name: Fail workflow if any tests failed
+        shell: bash
+        run: |
+          if [ "${{ steps.integration.outputs.integration_failed }}" != "0" ] || [ "${{ steps.unit.outputs.unit_failed }}" != "0" ]; then
+            echo "❌ Some tests failed. Failing workflow."
+            exit 1
+          else
+            echo "✅ All tests passed!"
+          fi

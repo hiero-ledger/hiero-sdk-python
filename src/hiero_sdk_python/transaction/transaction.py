@@ -3,12 +3,16 @@ from typing import Optional
 
 from typing import TYPE_CHECKING
 
+
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2, transaction_pb2)
+from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -58,8 +62,10 @@ class Transaction(_Executable):
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
-        self._default_transaction_fee = 2_000_000
+        # changed from int: 2_000_000 to Hbar: 0.02
+        self._default_transaction_fee = Hbar(0.02)
         self.operator_account_id = None  
+        self.batch_key: Optional[PrivateKey] = None
 
     def _make_request(self):
         """
@@ -217,9 +223,10 @@ class Transaction(_Executable):
         if body_bytes is None:
             raise ValueError(f"No transaction body found for node {self.node_account_id}")
 
+        # Get signature map, or create empty one if transaction is not signed
         sig_map = self._signature_map.get(body_bytes)
         if sig_map is None:
-            raise ValueError("No signature map found for the current transaction body")
+            sig_map = basic_types_pb2.SignatureMap()
 
         signed_transaction = transaction_contents_pb2.SignedTransaction(
             bodyBytes=body_bytes,
@@ -229,6 +236,38 @@ class Transaction(_Executable):
         return transaction_pb2.Transaction(
             signedTransactionBytes=signed_transaction.SerializeToString()
         )
+
+    def freeze(self):
+        """
+        Freezes the transaction by building the transaction body and setting necessary IDs.
+
+        This method requires that transaction_id and node_account_id are already set manually.
+        Use freeze_with(client) if you want to use the client to set these values automatically.
+
+        IMPORTANT: This method only builds the transaction body for the single node specified
+        in node_account_id. If you later execute this transaction and the network needs to retry
+        with a different node, the transaction will fail. For production use with automatic node
+        failover, use freeze_with(client) instead.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            ValueError: If transaction_id or node_account_id are not set.
+        """
+        if self._transaction_body_bytes:
+            return self
+        
+        if self.transaction_id is None:
+            raise ValueError("Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id().")
+        
+        if self.node_account_id is None:
+            raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_id.")
+        
+        # Build the transaction body for the single node
+        self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+        
+        return self
 
     def freeze_with(self, client):
         """
@@ -252,12 +291,18 @@ class Transaction(_Executable):
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
-        for node in client.network.nodes:
-            self.node_account_id = node._account_id
-            self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+
+        if self.batch_key is None:
+            for node in client.network.nodes:
+                self.node_account_id = node._account_id
+                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
         
-        # Set the node account id to the current node in the network
-        self.node_account_id = client.network.current_node._account_id
+            # Set the node account id to the current node in the network
+            self.node_account_id = client.network.current_node._account_id
+        else:
+            # For Inner Transaction of batch transaction node_account_id=0.0.0
+            self.node_account_id = AccountId(0,0,0)
+            self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
         
         return self
 
@@ -278,6 +323,10 @@ class Transaction(_Executable):
             MaxAttemptsError: If the transaction/query fails after the maximum number of attempts
             ReceiptStatusError: If the query fails with a receipt status error
         """
+        from hiero_sdk_python.transaction.batch_transaction import BatchTransaction
+        if self.batch_key and not isinstance(self, (BatchTransaction)):
+            raise ValueError("Cannot execute batchified transaction outside of BatchTransaction.")
+
         if not self._transaction_body_bytes:
             self.freeze_with(client)
 
@@ -372,13 +421,20 @@ class Transaction(_Executable):
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
 
-        transaction_body.transactionFee = self.transaction_fee or self._default_transaction_fee
+        fee = self.transaction_fee or self._default_transaction_fee
+        if hasattr(fee, "to_tinybars"):
+            transaction_body.transactionFee = int(fee.to_tinybars())
+        else:
+            transaction_body.transactionFee = int(fee)
 
         transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration
         transaction_body.generateRecord = self.generate_record
         transaction_body.memo = self.memo
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         transaction_body.max_custom_fees.extend(custom_fee_limits)
+
+        if self.batch_key:
+            transaction_body.batch_key.CopyFrom(self.batch_key.public_key()._to_proto())
 
         return transaction_body
 
@@ -391,9 +447,13 @@ class Transaction(_Executable):
                 The protobuf SchedulableTransactionBody message with common fields set.
         """
         schedulable_body = SchedulableTransactionBody()
-        schedulable_body.transactionFee = (
-            self.transaction_fee or self._default_transaction_fee
-        )
+
+        fee = self.transaction_fee or self._default_transaction_fee
+        if hasattr(fee, "to_tinybars"):
+            schedulable_body.transactionFee = int(fee.to_tinybars())
+        else:
+            schedulable_body.transactionFee = int(fee)
+
         schedulable_body.memo = self.memo
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         schedulable_body.max_custom_fees.extend(custom_fee_limits)
@@ -481,4 +541,299 @@ class Transaction(_Executable):
         """
         self._require_not_frozen()
         self.transaction_id = transaction_id
+        return self
+
+    def to_bytes(self):
+        """
+        Serializes the frozen transaction into its protobuf-encoded byte representation.
+
+        This method is equivalent to the TypeScript SDK's transaction.toBytes() method.
+        The transaction must be frozen before calling this method.
+
+        The transaction can be serialized with or without signatures:
+        - **Unsigned**: Can be sent to external signing services or HSMs
+        - **Signed**: Ready for submission to the network
+
+        **Examples:**
+
+        Unsigned transaction bytes (for external signing):
+        ```python
+        tx = TransferTransaction().add_hbar_transfer(...)
+        tx.transaction_id = TransactionId.generate(account_id)
+        tx.node_account_id = AccountId.from_string("0.0.3")
+        tx.freeze()
+        unsigned_bytes = tx.to_bytes()  # Can be sent to HSM for signing
+        ```
+
+        Signed transaction bytes (ready for submission):
+        ```python
+        tx.freeze()
+        tx.sign(private_key)
+        signed_bytes = tx.to_bytes()  # Ready to submit to network
+        ```
+
+        Returns:
+            bytes: The protobuf-encoded transaction bytes.
+
+        Raises:
+            Exception: If the transaction has not been frozen yet.
+        """
+        self._require_frozen()
+        
+        # Get the transaction protobuf
+        transaction_proto = self._to_proto()
+        
+        # Serialize to bytes
+        return transaction_proto.SerializeToString()
+
+    @staticmethod
+    def from_bytes(transaction_bytes: bytes):
+        """
+        Deserializes a transaction from its protobuf-encoded byte representation.
+
+        This method reconstructs a Transaction object from bytes that were previously
+        created using to_bytes(). It supports all transaction types in the SDK.
+
+        **What is restored:**
+        - Transaction type and all transaction-specific fields
+        - Common fields (transaction ID, node ID, memo, fee, etc.)
+        - All signatures (if the transaction was signed)
+        - Transaction state (frozen)
+
+        **Examples:**
+
+        Basic round-trip:
+        ```python
+        # Create and freeze a transaction
+        tx = TransferTransaction().add_hbar_transfer(...)
+        tx.freeze_with(client)
+        tx.sign(private_key)
+
+        # Serialize to bytes
+        tx_bytes = tx.to_bytes()
+
+        # Deserialize back to transaction
+        restored_tx = Transaction.from_bytes(tx_bytes)
+
+        # The restored transaction can be executed
+        receipt = restored_tx.execute(client)
+        ```
+
+        External signing workflow:
+        ```python
+        # System A: Create unsigned transaction
+        tx = TransferTransaction().add_hbar_transfer(...)
+        tx.freeze_with(client)
+        unsigned_bytes = tx.to_bytes()
+
+        # Send unsigned_bytes to System B (HSM, hardware wallet)...
+
+        # System B: Restore, sign, and serialize
+        tx = Transaction.from_bytes(unsigned_bytes)
+        tx.sign(hsm_private_key)
+        signed_bytes = tx.to_bytes()
+
+        # System A: Restore signed transaction and execute
+        final_tx = Transaction.from_bytes(signed_bytes)
+        receipt = final_tx.execute(client)
+        ```
+
+        Args:
+            transaction_bytes (bytes): The protobuf-encoded transaction bytes.
+
+        Returns:
+            Transaction: A reconstructed transaction instance of the appropriate subclass.
+
+        Raises:
+            ValueError: If the bytes cannot be parsed or transaction type is unknown.
+        """
+        if not isinstance(transaction_bytes, bytes):
+            raise ValueError("transaction_bytes must be bytes")
+
+        if len(transaction_bytes) == 0:
+            raise ValueError("transaction_bytes cannot be empty")
+
+        try:
+            transaction_proto = transaction_pb2.Transaction()
+            transaction_proto.ParseFromString(transaction_bytes)
+        except Exception as e:
+            raise ValueError(f"Failed to parse transaction bytes: {e}")
+
+        try:
+            signed_transaction = transaction_contents_pb2.SignedTransaction()
+            signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
+        except Exception as e:
+            raise ValueError(f"Failed to parse signed transaction: {e}")
+
+        try:
+            transaction_body = transaction_pb2.TransactionBody()
+            transaction_body.ParseFromString(signed_transaction.bodyBytes)
+        except Exception as e:
+            raise ValueError(f"Failed to parse transaction body: {e}")
+
+        transaction_type = transaction_body.WhichOneof("data")
+
+        if transaction_type is None:
+            raise ValueError("Transaction body does not contain any transaction data")
+
+        transaction_class = Transaction._get_transaction_class(transaction_type)
+
+        if transaction_class is None:
+            raise ValueError(f"Unknown transaction type: {transaction_type}")
+
+        transaction_instance = transaction_class._from_protobuf(
+            transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
+        )
+
+        return transaction_instance
+
+    @staticmethod
+    def _get_transaction_class(transaction_type: str):
+        """
+        Maps a protobuf transaction type field name to the corresponding Python class.
+
+        Args:
+            transaction_type (str): The protobuf field name (e.g., "cryptoTransfer")
+
+        Returns:
+            type: The corresponding transaction class, or None if unknown
+        """
+        transaction_type_map = {
+            "cryptoTransfer": "hiero_sdk_python.transaction.transfer_transaction.TransferTransaction",
+            "contractCall": "hiero_sdk_python.contract.contract_execute_transaction.ContractExecuteTransaction",
+            "contractCreateInstance": "hiero_sdk_python.contract.contract_create_transaction.ContractCreateTransaction",
+            "contractUpdateInstance": "hiero_sdk_python.contract.contract_update_transaction.ContractUpdateTransaction",
+            "contractDeleteInstance": "hiero_sdk_python.contract.contract_delete_transaction.ContractDeleteTransaction",
+            "ethereumTransaction": "hiero_sdk_python.contract.ethereum_transaction.EthereumTransaction",
+            "cryptoAddLiveHash": None,  # Not implemented in SDK
+            "cryptoApproveAllowance": "hiero_sdk_python.account.account_allowance_approve_transaction.AccountAllowanceApproveTransaction",
+            "cryptoDeleteAllowance": "hiero_sdk_python.account.account_allowance_delete_transaction.AccountAllowanceDeleteTransaction",
+            "cryptoCreateAccount": "hiero_sdk_python.account.account_create_transaction.AccountCreateTransaction",
+            "cryptoDelete": "hiero_sdk_python.account.account_delete_transaction.AccountDeleteTransaction",
+            "cryptoDeleteLiveHash": None,  # Not implemented in SDK
+            "cryptoUpdateAccount": "hiero_sdk_python.account.account_update_transaction.AccountUpdateTransaction",
+            "fileAppend": "hiero_sdk_python.file.file_append_transaction.FileAppendTransaction",
+            "fileCreate": "hiero_sdk_python.file.file_create_transaction.FileCreateTransaction",
+            "fileDelete": "hiero_sdk_python.file.file_delete_transaction.FileDeleteTransaction",
+            "fileUpdate": "hiero_sdk_python.file.file_update_transaction.FileUpdateTransaction",
+            "systemDelete": None,  # Admin transaction
+            "systemUndelete": None,  # Admin transaction
+            "freeze": None,  # Admin transaction
+            "consensusCreateTopic": "hiero_sdk_python.consensus.topic_create_transaction.TopicCreateTransaction",
+            "consensusUpdateTopic": "hiero_sdk_python.consensus.topic_update_transaction.TopicUpdateTransaction",
+            "consensusDeleteTopic": "hiero_sdk_python.consensus.topic_delete_transaction.TopicDeleteTransaction",
+            "consensusSubmitMessage": "hiero_sdk_python.consensus.topic_message_submit_transaction.TopicMessageSubmitTransaction",
+            "tokenCreation": "hiero_sdk_python.tokens.token_create_transaction.TokenCreateTransaction",
+            "tokenFreeze": "hiero_sdk_python.tokens.token_freeze_transaction.TokenFreezeTransaction",
+            "tokenUnfreeze": "hiero_sdk_python.tokens.token_unfreeze_transaction.TokenUnfreezeTransaction",
+            "tokenGrantKyc": "hiero_sdk_python.tokens.token_grant_kyc_transaction.TokenGrantKycTransaction",
+            "tokenRevokeKyc": "hiero_sdk_python.tokens.token_revoke_kyc_transaction.TokenRevokeKycTransaction",
+            "tokenDeletion": "hiero_sdk_python.tokens.token_delete_transaction.TokenDeleteTransaction",
+            "tokenUpdate": "hiero_sdk_python.tokens.token_update_transaction.TokenUpdateTransaction",
+            "tokenMint": "hiero_sdk_python.tokens.token_mint_transaction.TokenMintTransaction",
+            "tokenBurn": "hiero_sdk_python.tokens.token_burn_transaction.TokenBurnTransaction",
+            "tokenWipe": "hiero_sdk_python.tokens.token_wipe_transaction.TokenWipeTransaction",
+            "tokenAssociate": "hiero_sdk_python.tokens.token_associate_transaction.TokenAssociateTransaction",
+            "tokenDissociate": "hiero_sdk_python.tokens.token_dissociate_transaction.TokenDissociateTransaction",
+            "tokenPause": "hiero_sdk_python.tokens.token_pause_transaction.TokenPauseTransaction",
+            "tokenUnpause": "hiero_sdk_python.tokens.token_pause_transaction.TokenUnpauseTransaction",
+            "scheduleCreate": "hiero_sdk_python.schedule.schedule_create_transaction.ScheduleCreateTransaction",
+            "scheduleDelete": "hiero_sdk_python.schedule.schedule_delete_transaction.ScheduleDeleteTransaction",
+            "scheduleSign": "hiero_sdk_python.schedule.schedule_sign_transaction.ScheduleSignTransaction",
+            "tokenFeeScheduleUpdate": None,  # Not commonly used
+            "tokenUpdateNfts": "hiero_sdk_python.tokens.token_update_nfts_transaction.TokenUpdateNftsTransaction",
+            "nodeCreate": "hiero_sdk_python.nodes.node_create_transaction.NodeCreateTransaction",
+            "nodeUpdate": "hiero_sdk_python.nodes.node_update_transaction.NodeUpdateTransaction",
+            "nodeDelete": "hiero_sdk_python.nodes.node_delete_transaction.NodeDeleteTransaction",
+            "utilPrng": "hiero_sdk_python.prng_transaction.PrngTransaction",
+            "tokenReject": "hiero_sdk_python.tokens.token_reject_transaction.TokenRejectTransaction",
+            "tokenAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction.TokenAirdropTransaction",
+            "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_cancel_airdrop_transaction.TokenCancelAirdropTransaction",
+            "atomic_batch": "hiero_sdk_python.transaction.batch_transaction.BatchTransaction"
+        }
+
+        class_path = transaction_type_map.get(transaction_type)
+
+        if class_path is None:
+            return None
+
+        try:
+            module_path, class_name = class_path.rsplit(".", 1)
+            module = __import__(module_path, fromlist=[class_name])
+            return getattr(module, class_name)
+        except (ImportError, AttributeError) as e:
+            raise ValueError(f"Failed to import transaction class for type '{transaction_type}': {e}")
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        """
+        Creates a transaction instance from protobuf components.
+
+        This is an internal method that should be overridden by subclasses to restore
+        transaction-specific fields.
+
+        Args:
+            transaction_body: The parsed TransactionBody protobuf
+            body_bytes (bytes): The raw bytes of the transaction body
+            sig_map: The SignatureMap protobuf containing signatures
+
+        Returns:
+            Transaction: A new transaction instance with all fields restored
+        """
+        transaction = cls()
+
+        if transaction_body.HasField("transactionID"):
+            transaction.transaction_id = TransactionId._from_proto(transaction_body.transactionID)
+
+        if transaction_body.HasField("nodeAccountID"):
+            transaction.node_account_id = AccountId._from_proto(transaction_body.nodeAccountID)
+
+        transaction.transaction_fee = transaction_body.transactionFee
+        transaction.transaction_valid_duration = transaction_body.transactionValidDuration.seconds
+        transaction.generate_record = transaction_body.generateRecord
+        transaction.memo = transaction_body.memo
+
+        if transaction_body.max_custom_fees:
+            from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+            transaction.custom_fee_limits = [
+                CustomFeeLimit._from_proto(fee) for fee in transaction_body.max_custom_fees
+            ]
+
+        if transaction.node_account_id:
+            transaction._transaction_body_bytes[transaction.node_account_id] = body_bytes
+
+        if sig_map and sig_map.sigPair:
+            transaction._signature_map[body_bytes] = sig_map
+
+        return transaction
+    
+    def set_batch_key(self, key: PrivateKey):
+        """
+        Set the batch key required for batch transaction.
+
+        Args:
+            batch_key (PrivateKey): Private key to use as batch key.
+
+        Returns:
+            Transaction: A reconstructed transaction instance of the appropriate subclass. 
+        """
+        self._require_not_frozen()
+        self.batch_key = key
+        return self
+    
+    def batchify(self, client: Client, batch_key: PrivateKey):
+        """
+        Marks the current transaction as an inner (batched) transaction.
+
+        Args:
+            client (Client): The client instance to use for setting defaults.
+            batch_key (PrivateKey): Private key to use as batch key.
+        
+        Returns:
+            Transaction: A reconstructed transaction instance of the appropriate subclass.
+        """
+        self._require_not_frozen()
+        self.set_batch_key(batch_key)
+        self.freeze_with(client)
+        self.sign(client.operator_private_key)
         return self

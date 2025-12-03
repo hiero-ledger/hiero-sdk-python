@@ -52,6 +52,14 @@ class CustomFractionalFee(CustomFee):
         self.max_amount = max_amount
         self.assessment_method = assessment_method
 
+    def __str__(self) -> str:
+        """Return a string representation of the CustomFractionalFee."""
+        max_len = max(len(k.replace('_', ' ').title()) for k in self.__dict__)
+        return f"{self.__class__.__name__}:\n" + "".join(
+            f"    {key.replace('_', ' ').title():<{max_len}} = {value}\n"
+            for key, value in self.__dict__.items()
+            )
+
     def set_numerator(self, numerator: int) -> "CustomFractionalFee":
         """Set the numerator for the fractional fee.
 

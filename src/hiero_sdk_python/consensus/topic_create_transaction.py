@@ -13,14 +13,18 @@ from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services import (
     consensus_create_topic_pb2,
-    transaction_pb2)
+    transaction_pb2,
+    basic_types_pb2)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
+
+Key = Union[PrivateKey, PublicKey]
 
 
 class TopicCreateTransaction(Transaction):
@@ -34,37 +38,37 @@ class TopicCreateTransaction(Transaction):
     def __init__(
         self,
         memo: Optional[str] = None,
-        admin_key: Optional[PublicKey] = None,
-        submit_key: Optional[PublicKey] = None,
+        admin_key: Optional[Key] = None,
+        submit_key: Optional[Key] = None,
         auto_renew_period: Optional[Duration] = None,
         auto_renew_account: Optional[AccountId] = None,
         custom_fees: Optional[List[CustomFixedFee]] = None,
-        fee_schedule_key: Optional[PublicKey] = None,
-        fee_exempt_keys: Optional[List[PublicKey]] = None,
+        fee_schedule_key: Optional[Key] = None,
+        fee_exempt_keys: Optional[List[Key]] = None,
     ) -> None:
         """
         Initializes a new instance of the TopicCreateTransaction class.
 
         Args:
             memo (Optional[str]): Optional memo for the topic.
-            admin_key (Optional[PublicKey]): Optional public admin key for the topic.
-            submit_key (Optional[PublicKey]): Optional public submit key for the topic.
+            admin_key (Optional[Key]): Optional admin key for the topic (PrivateKey or PublicKey).
+            submit_key (Optional[Key]): Optional submit key for the topic (PrivateKey or PublicKey).
             auto_renew_period (Optional[Duration]): Optional auto-renew period for the topic.
             auto_renew_account (Optional[AccountId]): Optional account ID for auto-renewal.
             custom_fees (list[CustomFixedFee]): Optional list of custom fees for the topic.
-            fee_schedule_key (PublicKey): Optional fee schedule key for the topic.
-            fee_exempt_keys (list[PublicKey]): Optional list of fee exempt keys for the topic.
+            fee_schedule_key (Optional[Key]): Optional fee schedule key for the topic (PrivateKey or PublicKey).
+            fee_exempt_keys (Optional[List[Key]]): Optional list of fee exempt keys for the topic (PrivateKey or PublicKey).
         """
         super().__init__()
         self.memo: str = memo or ""
-        self.admin_key: Optional[PublicKey] = admin_key
-        self.submit_key: Optional[PublicKey] = submit_key
+        self.admin_key: Optional[Key] = admin_key
+        self.submit_key: Optional[Key] = submit_key
         self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
         self.auto_renew_account: Optional[AccountId] = auto_renew_account
         self.transaction_fee: Optional[int] = 2_000_000_000 # 20 Hbars
         self.custom_fees: List[CustomFixedFee] = custom_fees or []
-        self.fee_exempt_keys: List[PublicKey] = fee_exempt_keys or []
-        self.fee_schedule_key: PublicKey = fee_schedule_key
+        self.fee_exempt_keys: List[Key] = fee_exempt_keys or []
+        self.fee_schedule_key: Optional[Key] = fee_schedule_key
 
     def set_memo(self, memo: str) -> "TopicCreateTransaction":
         """
@@ -78,11 +82,11 @@ class TopicCreateTransaction(Transaction):
         self.memo = memo
         return self
 
-    def set_admin_key(self, key: PublicKey) -> "TopicCreateTransaction":
+    def set_admin_key(self, key: Key) -> "TopicCreateTransaction":
         """
         Sets the admin key for the topic creation transaction.
         Args:
-            key (PublicKey): The public admin key to set for the topic.
+            key (Key): The admin key to set for the topic (PrivateKey or PublicKey).
         Returns:
             TopicCreateTransaction: The current instance for method chaining.
         """
@@ -90,11 +94,11 @@ class TopicCreateTransaction(Transaction):
         self.admin_key = key
         return self
 
-    def set_submit_key(self, key: PublicKey) -> "TopicCreateTransaction":
+    def set_submit_key(self, key: Key) -> "TopicCreateTransaction":
         """
         Sets the submit key for the topic creation transaction.
         Args:
-            key (PublicKey): The public submit key to set for the topic.
+            key (Key): The submit key to set for the topic (PrivateKey or PublicKey).
         Returns:
             TopicCreateTransaction: The current instance for method chaining.
         """
@@ -146,11 +150,11 @@ class TopicCreateTransaction(Transaction):
         return self
 
 
-    def set_fee_schedule_key(self, key: PublicKey) -> "TopicCreateTransaction":
+    def set_fee_schedule_key(self, key: Key) -> "TopicCreateTransaction":
         """
         Sets the fee schedule key for the topic creation transaction.
         Args:
-            key (PublicKey): The fee schedule key to set for the topic.
+            key (Key): The fee schedule key to set for the topic (PrivateKey or PublicKey).
         Returns:
             TopicCreateTransaction: The current instance for method chaining.
         """
@@ -158,17 +162,37 @@ class TopicCreateTransaction(Transaction):
         self.fee_schedule_key = key
         return self
 
-    def set_fee_exempt_keys(self, keys: List[PublicKey]) -> "TopicCreateTransaction":
+    def set_fee_exempt_keys(self, keys: List[Key]) -> "TopicCreateTransaction":
         """
         Sets the fee exempt keys for the topic creation transaction.
         Args:
-            keys (List[PublicKey]): The fee exempt keys to set for the topic.
+            keys (List[Key]): The fee exempt keys to set for the topic (PrivateKey or PublicKey).
         Returns:
             TopicCreateTransaction: The current instance for method chaining.
         """
         self._require_not_frozen()
         self.fee_exempt_keys = keys
         return self
+
+    def _to_proto_key(self, key: Optional[Key]) -> Optional[basic_types_pb2.Key]:
+        """
+        Helper method to convert a key (PrivateKey or PublicKey) to protobuf Key format.
+
+        Args:
+            key (Optional[Key]): The key to convert (PrivateKey or PublicKey), or None
+            
+        Returns:
+            basic_types_pb2.Key (Optional): The protobuf key or None if key is None
+        """
+        if not key:
+            return None
+
+        # If it's a PrivateKey, get the public key first, then convert to proto
+        if isinstance(key, PrivateKey):
+            return key.public_key()._to_proto()
+        
+        # If it's a PublicKey, convert directly to proto
+        return key._to_proto()
 
     def _build_proto_body(self) -> consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody:
         """
@@ -178,14 +202,8 @@ class TopicCreateTransaction(Transaction):
             ConsensusCreateTopicTransactionBody: The protobuf body for this transaction.
         """
         return consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
-            adminKey=(
-                self.admin_key._to_proto()
-                if self.admin_key is not None
-                else None),
-            submitKey=(
-                self.submit_key._to_proto()
-                if self.submit_key is not None
-                else None),
+            adminKey=self._to_proto_key(self.admin_key),
+            submitKey=self._to_proto_key(self.submit_key),
             autoRenewPeriod=(
                 self.auto_renew_period._to_proto()
                 if self.auto_renew_period is not None
@@ -196,8 +214,8 @@ class TopicCreateTransaction(Transaction):
                 else None),
             memo=self.memo,
             custom_fees=[custom_fee._to_topic_fee_proto() for custom_fee in self.custom_fees],
-            fee_schedule_key=self.fee_schedule_key._to_proto() if self.fee_schedule_key else None,
-            fee_exempt_key_list=[key._to_proto() for key in self.fee_exempt_keys],
+            fee_schedule_key=self._to_proto_key(self.fee_schedule_key),
+            fee_exempt_key_list=[self._to_proto_key(key) for key in self.fee_exempt_keys],
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:

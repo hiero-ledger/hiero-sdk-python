@@ -10,10 +10,12 @@ from .account.account_info import AccountInfo
 from .account.account_delete_transaction import AccountDeleteTransaction
 from .account.account_allowance_approve_transaction import AccountAllowanceApproveTransaction
 from .account.account_allowance_delete_transaction import AccountAllowanceDeleteTransaction
+from .account.account_records_query import AccountRecordsQuery
 
 # Crypto
 from .crypto.private_key import PrivateKey
 from .crypto.public_key import PublicKey
+from .crypto.evm_address import EvmAddress
 
 # Tokens
 from .tokens.token_create_transaction import TokenCreateTransaction
@@ -32,9 +34,9 @@ from .tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
 from .tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from .tokens.token_update_transaction import TokenUpdateTransaction
 from .tokens.token_airdrop_transaction import TokenAirdropTransaction
-from .tokens.token_cancel_airdrop_transaction import TokenCancelAirdropTransaction
-from .tokens.pending_airdrop_id import PendingAirdropId
-from .tokens.pending_airdrop_record import PendingAirdropRecord
+from .tokens.token_airdrop_transaction_cancel import TokenCancelAirdropTransaction
+from .tokens.token_airdrop_pending_id import PendingAirdropId
+from .tokens.token_airdrop_pending_record import PendingAirdropRecord
 from .tokens.token_id import TokenId
 from .tokens.token_type import TokenType
 from .tokens.supply_type import SupplyType
@@ -46,19 +48,25 @@ from .tokens.token_allowance import TokenAllowance
 from .tokens.token_nft_allowance import TokenNftAllowance
 from .tokens.hbar_allowance import HbarAllowance
 from .tokens.hbar_transfer import HbarTransfer
+from .tokens.token_unpause_transaction import TokenUnpauseTransaction
+from .tokens.token_pause_transaction import TokenPauseTransaction
+from .tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 
 # Transaction
+from .transaction.transaction import Transaction
 from .transaction.transfer_transaction import TransferTransaction
 from .transaction.transaction_id import TransactionId
 from .transaction.transaction_receipt import TransactionReceipt
 from .transaction.transaction_response import TransactionResponse
 from .transaction.transaction_record import TransactionRecord
+from .transaction.batch_transaction import BatchTransaction
 
 # Response / Codes
 from .response_code import ResponseCode
 
 # HBAR
 from .hbar import Hbar
+from .hbar_unit import HbarUnit
 
 # Timestamp
 from .timestamp import Timestamp
@@ -136,6 +144,10 @@ from .tokens.custom_fractional_fee import CustomFractionalFee
 from .tokens.custom_royalty_fee import CustomRoyaltyFee
 from .transaction.custom_fee_limit import CustomFeeLimit
 
+# System
+from .system.freeze_transaction import FreezeTransaction
+from .system.freeze_type import FreezeType
+
 __all__ = [
     # Client
     "Client",
@@ -149,10 +161,12 @@ __all__ = [
     "AccountDeleteTransaction",
     "AccountAllowanceApproveTransaction",
     "AccountAllowanceDeleteTransaction",
+    "AccountRecordsQuery",
 
     # Crypto
     "PrivateKey",
     "PublicKey",
+    "EvmAddress",
 
     # Tokens
     "TokenCreateTransaction",
@@ -176,6 +190,7 @@ __all__ = [
     "TokenUpdateTransaction",
     "TokenAirdropTransaction",
     "TokenCancelAirdropTransaction",
+    "TokenClaimAirdropTransaction",
     "PendingAirdropId",
     "PendingAirdropRecord",
     "TokenType",
@@ -184,13 +199,17 @@ __all__ = [
     "TokenNftAllowance",
     "HbarAllowance",
     "HbarTransfer",
+    "TokenPauseTransaction",
+    "TokenUnpauseTransaction",
 
     # Transaction
+    "Transaction",
     "TransferTransaction",
     "TransactionId",
     "TransactionReceipt",
     "TransactionResponse",
     "TransactionRecord",
+    "BatchTransaction",
 
     # Response
     "ResponseCode",
@@ -222,6 +241,7 @@ __all__ = [
 
     # HBAR
     "Hbar",
+    "HbarUnit",
     "ResponseCode",
     "Timestamp",
     "Duration",
@@ -270,4 +290,8 @@ __all__ = [
     "CustomFractionalFee",
     "CustomRoyaltyFee",
     "CustomFeeLimit",
+
+    # System
+    "FreezeTransaction",
+    "FreezeType",
 ]

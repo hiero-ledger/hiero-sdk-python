@@ -348,6 +348,13 @@ class ResponseCode(IntEnum):
     DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST = 385
     DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST = 386
     MAX_CUSTOM_FEES_IS_NOT_SUPPORTED = 387
+    BATCH_LIST_EMPTY = 388
+    BATCH_LIST_CONTAINS_DUPLICATES = 389
+    BATCH_TRANSACTION_IN_BLACKLIST = 390
+    INNER_TRANSACTION_FAILED = 391
+    MISSING_BATCH_KEY = 392
+    BATCH_KEY_SET_ON_NON_INNER_TRANSACTION = 393
+    INVALID_BATCH_KEY = 394
 
     @classmethod
     def _missing_(cls, value: object) -> "ResponseCode":
@@ -362,7 +369,11 @@ class ResponseCode(IntEnum):
         unknown._name_ = f'UNKNOWN_CODE_{value}'
         unknown._value_ = value
         return unknown
-    
+
+    @property
+    def is_unknown(self) -> bool:
+        return self.name.startswith("UNKNOWN_CODE_")
+
     @classmethod
     def get_name(cls,code: int) -> str:
         """

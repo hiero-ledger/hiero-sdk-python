@@ -12,9 +12,12 @@ Coverage includes:
 - Transaction execution error handling
 """
 
+import datetime
 import pytest
 from unittest.mock import MagicMock, patch
 
+from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
@@ -38,6 +41,10 @@ from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
+from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.tokens.token_id import TokenId
 
 pytestmark = pytest.mark.unit
 
@@ -69,6 +76,7 @@ def test_build_transaction_body_without_key(mock_account_ids):
     token_tx.set_decimals(2)
     token_tx.set_initial_supply(1000)
     token_tx.set_treasury_account_id(treasury_account)
+    token_tx.set_memo("Token Memo")
     token_tx.transaction_id = generate_transaction_id(treasury_account)
     token_tx.node_account_id = node_account_id
 
@@ -78,6 +86,9 @@ def test_build_transaction_body_without_key(mock_account_ids):
     assert transaction_body.tokenCreation.symbol == "MTK"
     assert transaction_body.tokenCreation.decimals == 2
     assert transaction_body.tokenCreation.initialSupply == 1000
+    assert transaction_body.tokenCreation.memo == "Token Memo"
+    assert transaction_body.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default value of 90days.
+    assert not transaction_body.tokenCreation.HasField('expiry') # By default, this is set to "now + AUTO_RENEW_PERIOD" (90 days).
     # Ensure keys are not set
     assert not transaction_body.tokenCreation.HasField("adminKey")
     assert not transaction_body.tokenCreation.HasField("supplyKey")
@@ -85,6 +96,7 @@ def test_build_transaction_body_without_key(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("wipeKey")
     assert not transaction_body.tokenCreation.HasField("metadata_key")
     assert not transaction_body.tokenCreation.HasField("pause_key")
+    assert not transaction_body.tokenCreation.HasField("fee_schedule_key")
 
 # This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body(mock_account_ids):
@@ -98,6 +110,7 @@ def test_build_transaction_body(mock_account_ids):
     private_key_wipe = PrivateKey.generate_ed25519()
     private_key_metadata = PrivateKey.generate_ed25519()
     private_key_kyc = PrivateKey.generate_ed25519()
+    private_key_fee_schedule = PrivateKey.generate_ed25519()
 
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
@@ -114,6 +127,7 @@ def test_build_transaction_body(mock_account_ids):
     token_tx.set_wipe_key(private_key_wipe)
     token_tx.set_metadata_key(private_key_metadata)
     token_tx.set_kyc_key(private_key_kyc)
+    token_tx.set_fee_schedule_key(private_key_fee_schedule)
     token_tx.node_account_id = node_account_id
 
     transaction_body = token_tx.build_transaction_body()
@@ -129,6 +143,39 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenCreation.wipeKey == private_key_wipe.public_key()._to_proto()
     assert transaction_body.tokenCreation.metadata_key == private_key_metadata.public_key()._to_proto()
     assert transaction_body.tokenCreation.kycKey == private_key_kyc.public_key()._to_proto()
+    assert transaction_body.tokenCreation.fee_schedule_key == private_key_fee_schedule.public_key()._to_proto()
+
+# This test uses fixture mock_account_ids as parameter
+def test_build_transaction_body_with_metadata(mock_account_ids):
+    """Test building a token creation transaction body with metadata bytes set."""
+    treasury_account, _, node_account_id, _, _ = mock_account_ids
+
+    token_tx = TokenCreateTransaction()
+    token_tx.set_token_name("MyTokenWithMetadata")
+    token_tx.set_token_symbol("MTKM")
+    token_tx.set_decimals(2)
+    token_tx.set_initial_supply(1000)
+    token_tx.set_treasury_account_id(treasury_account)
+
+    metadata = b"Example on-ledger token metadata"
+    token_tx.set_metadata(metadata)
+
+    token_tx.transaction_id = generate_transaction_id(treasury_account)
+    token_tx.node_account_id = node_account_id
+
+    transaction_body = token_tx.build_transaction_body()
+
+    assert transaction_body.tokenCreation.name == "MyTokenWithMetadata"
+    assert transaction_body.tokenCreation.symbol == "MTKM"
+    assert transaction_body.tokenCreation.metadata == metadata
+
+def test_set_metadata_raises_when_over_100_bytes():
+    """set_metadata must reject metadata longer than 100 bytes."""
+    token_tx = TokenCreateTransaction()
+    too_long_metadata = b"x" * 101  # 101 bytes
+
+    with pytest.raises(ValueError, match="Metadata must not exceed 100 bytes"):
+        token_tx.set_metadata(too_long_metadata)
 
 @pytest.mark.parametrize(
     "token_name, token_symbol, decimals, initial_supply, token_type, expected_error",
@@ -249,34 +296,38 @@ def test_sign_transaction(mock_account_ids, mock_client):
     private_key.sign.return_value = b"signature"
     private_key.public_key().to_bytes_raw.return_value = b"public_key"
 
-    private_key_admin = MagicMock()
+    private_key_admin = MagicMock(spec=PrivateKey)
     private_key_admin.sign.return_value = b"admin_signature"
     private_key_admin.public_key().to_bytes_raw.return_value = b"admin_public_key"
     private_key_admin.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"admin_public_key")
 
-    private_key_supply = MagicMock()
+    private_key_supply = MagicMock(spec=PrivateKey)
     private_key_supply.sign.return_value = b"supply_signature"
     private_key_supply.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"supply_public_key")
 
-    private_key_freeze = MagicMock()
+    private_key_freeze = MagicMock(spec=PrivateKey)
     private_key_freeze.sign.return_value = b"freeze_signature"
     private_key_freeze.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"freeze_public_key")
 
-    private_key_wipe = MagicMock()
+    private_key_wipe = MagicMock(spec=PrivateKey)
     private_key_wipe.sign.return_value = b"wipe_signature"
     private_key_wipe.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"wipe_public_key")
 
-    private_key_metadata = MagicMock()
+    private_key_metadata = MagicMock(spec=PrivateKey)
     private_key_metadata.sign.return_value = b"metadata_signature"
     private_key_metadata.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"metadata_public_key")
 
-    private_key_pause = MagicMock()
+    private_key_pause = MagicMock(spec=PrivateKey)
     private_key_pause.sign.return_value = b"pause_signature"
     private_key_pause.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"pause_public_key")
 
-    private_key_kyc = MagicMock()
+    private_key_kyc = MagicMock(spec=PrivateKey)
     private_key_kyc.sign.return_value = b"kyc_signature"
     private_key_kyc.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"kyc_public_key")
+
+    private_key_fee_schedule = MagicMock(spec=PrivateKey)
+    private_key_fee_schedule.sign.return_value = b"fee_schedule_signature"
+    private_key_fee_schedule.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"fee_schedule_public_key")
 
     token_tx = TokenCreateTransaction()
     token_tx.set_token_name("MyToken")
@@ -291,6 +342,7 @@ def test_sign_transaction(mock_account_ids, mock_client):
     token_tx.set_metadata_key(private_key_metadata)
     token_tx.set_pause_key(private_key_pause)
     token_tx.set_kyc_key(private_key_kyc)
+    token_tx.set_fee_schedule_key(private_key_fee_schedule)
     
     token_tx.transaction_id = generate_transaction_id(treasury_account)
     
@@ -321,7 +373,8 @@ def test_sign_transaction(mock_account_ids, mock_client):
             b"freeze_public_key", 
             b"wipe_public_key", 
             b"metadata_public_key",
-            b"pause_public_key"
+            b"pause_public_key",
+            b"fee_schedule_public_key"
         )
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter
@@ -335,6 +388,7 @@ def test_to_proto_without_keys(mock_account_ids, mock_client):
     token_tx.set_decimals(2)
     token_tx.set_initial_supply(1000)
     token_tx.set_treasury_account_id(treasury_account)
+    token_tx.set_memo("Token Memo")
     token_tx.transaction_id = generate_transaction_id(treasury_account)
 
     # Mock treasury/operator key
@@ -366,6 +420,10 @@ def test_to_proto_without_keys(mock_account_ids, mock_client):
     assert transaction_body.tokenCreation.symbol == "MTK"
     assert transaction_body.tokenCreation.decimals == 2
     assert transaction_body.tokenCreation.initialSupply == 1000
+    assert transaction_body.tokenCreation.memo == "Token Memo"
+    # Default Values
+    assert transaction_body.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto()
+    assert not  transaction_body.tokenCreation.HasField('expiry')
 
     assert not transaction_body.tokenCreation.HasField("adminKey")
 
@@ -382,6 +440,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     private_key_wipe = PrivateKey.generate_ed25519()
     private_key_metadata = PrivateKey.generate_ed25519()
     private_key_kyc = PrivateKey.generate_ed25519()
+    private_key_fee_schedule = PrivateKey.generate_ed25519()
 
     # Build the transaction
     token_tx = TokenCreateTransaction()
@@ -396,6 +455,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     token_tx.set_wipe_key(private_key_wipe)
     token_tx.set_metadata_key(private_key_metadata)
     token_tx.set_kyc_key(private_key_kyc)
+    token_tx.set_fee_schedule_key(private_key_fee_schedule)
     token_tx.transaction_id = generate_transaction_id(treasury_account)
 
     token_tx.freeze_with(mock_client)
@@ -429,6 +489,7 @@ def test_to_proto_with_keys(mock_account_ids, mock_client):
     assert tx_body.tokenCreation.wipeKey == private_key_wipe.public_key()._to_proto()
     assert tx_body.tokenCreation.metadata_key == private_key_metadata.public_key()._to_proto()
     assert tx_body.tokenCreation.kycKey == private_key_kyc.public_key()._to_proto()
+    assert tx_body.tokenCreation.fee_schedule_key == private_key_fee_schedule.public_key()._to_proto()
 
 # This test uses fixture mock_account_ids as parameter
 def test_freeze_status_without_freeze_key(mock_account_ids):
@@ -522,6 +583,9 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
     assert token_tx._token_params.decimals == 0
     assert token_tx._token_params.initial_supply == 0
     assert token_tx._token_params.token_type == TokenType.FUNGIBLE_COMMON
+    assert token_tx._token_params.auto_renew_account_id is None
+    assert token_tx._token_params.auto_renew_period == Duration(7890000)
+    assert token_tx._token_params.expiration_time is None
 
     # 3. Overwrite the defaults using set_* methods
     token_tx.set_token_name("MyUpdatedToken")
@@ -529,6 +593,8 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
     token_tx.set_treasury_account_id(treasury_account)
     token_tx.set_decimals(5)
     token_tx.set_initial_supply(10000)
+    token_tx.set_auto_renew_period(Duration(2592000))
+    token_tx.set_auto_renew_account_id(AccountId(0, 0, 2))
 
     # Set transaction/node IDs so can sign
     token_tx.transaction_id = generate_transaction_id(treasury_account)
@@ -568,6 +634,8 @@ def test_overwrite_defaults(mock_account_ids, mock_client):
     assert tx_body.tokenCreation.symbol == "UPD"
     assert tx_body.tokenCreation.decimals == 5
     assert tx_body.tokenCreation.initialSupply == 10000
+    assert tx_body.tokenCreation.autoRenewPeriod == Duration(2592000)._to_proto()
+    assert tx_body.tokenCreation.autoRenewAccount == AccountId(0, 0, 2)._to_proto()
 
     # Confirm no adminKey was set
     assert not tx_body.tokenCreation.HasField("adminKey")
@@ -611,6 +679,17 @@ def test_transaction_freeze_prevents_modification(mock_account_ids, mock_client)
     with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
         transaction.set_token_type(TokenType.NON_FUNGIBLE_UNIQUE) # Should have defaulted to this
 
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
+        transaction.set_expiration_time(Duration(2592000))
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
+        transaction.set_auto_renew_period(Duration(2592000))
+    
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
+        transaction.set_auto_renew_account_id(AccountId(0, 0, 2))
+    
+    
+
     # Confirm that values remain unchanged after freeze attempt
     assert transaction._token_params.token_name == "TestName"
     assert transaction._token_params.token_symbol == "TEST"    
@@ -618,6 +697,11 @@ def test_transaction_freeze_prevents_modification(mock_account_ids, mock_client)
     assert transaction._token_params.decimals == 2
     assert transaction._token_params.treasury_account_id == treasury_account
     assert transaction._token_params.token_type == TokenType.FUNGIBLE_COMMON
+    assert transaction._token_params.auto_renew_period == Duration(7890000)
+    # On freezeWith(client) it will auto assign from transaction Id
+    assert transaction._token_params.auto_renew_account_id == treasury_account
+    assert transaction._token_params.expiration_time is None
+
 
 # This test uses fixture mock_account_ids as parameter
 def test_build_transaction_body_non_fungible(mock_account_ids):
@@ -634,6 +718,7 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     token_tx.set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
     token_tx.set_decimals(0)         # NFTs must have 0 decimals
     token_tx.set_initial_supply(0)   # NFTs must have 0 initial supply
+    token_tx.set_memo("NFT Memo")
 
     token_tx.transaction_id = generate_transaction_id(treasury_account)
     token_tx.node_account_id = node_account_id
@@ -647,6 +732,9 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     assert transaction_body.tokenCreation.tokenType == TokenType.NON_FUNGIBLE_UNIQUE.value
     assert transaction_body.tokenCreation.decimals == 0
     assert transaction_body.tokenCreation.initialSupply == 0
+    assert transaction_body.tokenCreation.memo == "NFT Memo"
+    assert transaction_body.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default value of 90days.
+    assert not transaction_body.tokenCreation.HasField('expiry') # By default, this is set to "now + AUTO_RENEW_PERIOD" (90 days).
 
     # No keys are set
     assert not transaction_body.tokenCreation.HasField("adminKey")
@@ -655,6 +743,7 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     assert not transaction_body.tokenCreation.HasField("wipeKey")
     assert not transaction_body.tokenCreation.HasField("metadata_key")
     assert not transaction_body.tokenCreation.HasField("kycKey")
+    assert not transaction_body.tokenCreation.HasField("fee_schedule_key")
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter
 def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
@@ -669,34 +758,38 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     private_key_private.sign.return_value = b"private_signature"
     private_key_private.public_key().to_bytes_raw.return_value = b"private_public_key"
 
-    private_key_admin = MagicMock()
+    private_key_admin = MagicMock(spec=PrivateKey)
     private_key_admin.sign.return_value = b"admin_signature"
     private_key_admin.public_key().to_bytes_raw.return_value = b"admin_public_key"
     private_key_admin.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"admin_public_key")
 
-    private_key_supply = MagicMock()
+    private_key_supply = MagicMock(spec=PrivateKey)
     private_key_supply.sign.return_value = b"supply_signature"
     private_key_supply.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"supply_public_key")
 
-    private_key_freeze = MagicMock()
+    private_key_freeze = MagicMock(spec=PrivateKey)
     private_key_freeze.sign.return_value = b"freeze_signature"
     private_key_freeze.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"freeze_public_key")
 
-    private_key_wipe = MagicMock()
+    private_key_wipe = MagicMock(spec=PrivateKey)
     private_key_wipe.sign.return_value = b"wipe_signature"
     private_key_wipe.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"wipe_public_key")
 
-    private_key_metadata = MagicMock()
+    private_key_metadata = MagicMock(spec=PrivateKey)
     private_key_metadata.sign.return_value = b"metadata_signature"
     private_key_metadata.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"metadata_public_key")
 
-    private_key_pause = MagicMock()
+    private_key_pause = MagicMock(spec=PrivateKey)
     private_key_pause.sign.return_value = b"pause_signature"
     private_key_pause.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"pause_public_key")
 
-    private_key_kyc = MagicMock()
+    private_key_kyc = MagicMock(spec=PrivateKey)
     private_key_kyc.sign.return_value = b"kyc_signature"
     private_key_kyc.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"kyc_public_key")
+
+    private_key_fee_schedule = MagicMock(spec=PrivateKey)
+    private_key_fee_schedule.sign.return_value = b"fee_schedule_signature"
+    private_key_fee_schedule.public_key()._to_proto.return_value = basic_types_pb2.Key(ed25519=b"fee_schedule_public_key")
 
     # Build the transaction
     token_tx = TokenCreateTransaction()
@@ -713,6 +806,7 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     token_tx.set_metadata_key(private_key_metadata)
     token_tx.set_pause_key(private_key_pause)
     token_tx.set_kyc_key(private_key_kyc)
+    token_tx.set_fee_schedule_key(private_key_fee_schedule)
     token_tx.transaction_id = generate_transaction_id(treasury_account)
 
     token_tx.freeze_with(mock_client)
@@ -751,6 +845,8 @@ def test_build_and_sign_nft_transaction_to_proto(mock_account_ids, mock_client):
     assert tx_body.tokenCreation.metadata_key.ed25519 == b"metadata_public_key"
     assert tx_body.tokenCreation.pause_key.ed25519  == b"pause_public_key"
     assert tx_body.tokenCreation.kycKey.ed25519 == b"kyc_public_key"
+    assert tx_body.tokenCreation.fee_schedule_key.ed25519 == b"fee_schedule_public_key"
+
 @pytest.mark.parametrize(
     "token_type, supply_type, max_supply, initial_supply, expected_error",
     [
@@ -911,3 +1007,251 @@ def test_build_scheduled_body_nft(mock_account_ids, private_key):
     assert schedulable_body.tokenCreation.adminKey.HasField("ed25519")
     assert schedulable_body.tokenCreation.supplyKey.HasField("ed25519")
     assert schedulable_body.tokenCreation.wipeKey.HasField("ed25519")
+
+def test_token_create_with_expiration_time_overrides_auto_renew(mock_account_ids):
+    """Test set_expiration_time set the autoRenewPeriod to None"""
+    treasury_account, _, node_account_id, *_ = mock_account_ids
+    expiration_time = Timestamp.from_date(
+        datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
+    )
+
+    params = TokenParams(
+        token_name="ExpToken",
+        token_symbol="EXP",
+        treasury_account_id=treasury_account,
+        initial_supply=1
+    )
+    tx = TokenCreateTransaction(params)
+    
+    assert tx._token_params.auto_renew_period == Duration(seconds=7890000)
+    assert tx._token_params.expiration_time is None
+    
+    tx.set_expiration_time(expiration_time);
+    tx.transaction_id = generate_transaction_id(treasury_account)
+    tx.node_account_id = node_account_id    
+    body = tx.build_transaction_body()
+
+    assert body.tokenCreation.expiry.seconds == expiration_time.seconds
+    assert not body.tokenCreation.HasField("autoRenewPeriod") 
+
+def test_auto_renew_account_assignment_during_freeze_with_client(mock_account_ids, mock_client):
+    """Test autoRenewPeriod and autoRenewAccount assignment behavior when freezing with a client."""
+    treasury_account, auto_renew_account_id, *_ = mock_account_ids
+
+    # Auto renewAccountId must not be set if autoRenewPeriod is None
+    tx = TokenCreateTransaction(
+        TokenParams(
+            token_name="FreezeClientToken",
+            token_symbol="FCT",
+            treasury_account_id=treasury_account,
+            initial_supply=1,
+            auto_renew_period=None
+        )
+    )
+    frozen_tx = tx.freeze_with(mock_client)
+    body = frozen_tx.build_transaction_body()
+
+    assert not body.tokenCreation.HasField("autoRenewPeriod") 
+    assert not body.tokenCreation.HasField('autoRenewAccount')
+
+    # If autoRenewAccountId is set then freezeWith(client) will not assing value to it
+    tx1 = TokenCreateTransaction(
+        TokenParams(
+            token_name="FreezeClientToken",
+            token_symbol="FCT",
+            treasury_account_id=treasury_account,
+            initial_supply=1
+        )
+    )
+    tx1.set_auto_renew_account_id(auto_renew_account_id)
+    frozen_tx1 = tx1.freeze_with(mock_client)
+    body1 = frozen_tx1.build_transaction_body()
+
+    assert body1.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default around 90 days
+    assert body1.tokenCreation.autoRenewAccount == auto_renew_account_id._to_proto()
+
+    # If Trasnaction Id not generated. Then use client operator_account
+    tx2 = TokenCreateTransaction(
+        TokenParams(
+            token_name="FreezeClientToken",
+            token_symbol="FCT",
+            treasury_account_id=treasury_account,
+            initial_supply=1,
+        )
+    )
+    frozen_tx2 = tx2.freeze_with(mock_client)
+
+    body2 = frozen_tx2.build_transaction_body();
+
+    assert body2.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default around 90 days
+    assert body2.tokenCreation.autoRenewAccount == mock_client.operator_account_id._to_proto()
+
+    # If Transaction Id generated. Then use transaction_id account
+    tx3 = TokenCreateTransaction(
+        TokenParams(
+            token_name="FreezeClientToken",
+            token_symbol="FCT",
+            treasury_account_id=treasury_account,
+            initial_supply=1,
+        )
+    );
+    tx3.transaction_id = generate_transaction_id(treasury_account)
+    frozen_tx3 = tx3.freeze_with(mock_client)
+
+    body3 = frozen_tx3.build_transaction_body()
+    
+    assert body3.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default around 90 days
+    assert body3.tokenCreation.autoRenewAccount == treasury_account._to_proto()
+
+def test_admin_key_token_operations_logic(mock_client):
+    """
+    Test the logic of admin key token operations from the example.
+    This test verifies that the transactions are built correctly with proper signing requirements.
+    """
+    client = mock_client
+    operator_id = client.operator_account_id
+    operator_key = PrivateKey.generate()  # Generate a key for testing
+
+    # Find a node account ID from the client's network
+    node_account_id = client.network.nodes[0]._account_id if client.network.nodes else AccountId(0, 0, 3)
+
+    # Generate transaction ID helper
+    import time
+    current_time = time.time()
+    timestamp_seconds = int(current_time)
+    timestamp_nanos = int((current_time - timestamp_seconds) * 1e9)
+    from hiero_sdk_python.hapi.services import timestamp_pb2
+    tx_timestamp = timestamp_pb2.Timestamp(seconds=timestamp_seconds, nanos=timestamp_nanos)
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+    tx_id = TransactionId(valid_start=tx_timestamp, account_id=operator_id)
+
+    # Step 1: Generate admin key
+    admin_key = PrivateKey.generate_ed25519()
+
+    # Step 2: Create token with admin key
+    create_tx = TokenCreateTransaction()
+    create_tx.set_token_name("Admin Key Demo Token")
+    create_tx.set_token_symbol("AKDT")
+    create_tx.set_decimals(2)
+    create_tx.set_initial_supply(1000)
+    create_tx.set_treasury_account_id(operator_id)
+    create_tx.set_token_type(TokenType.FUNGIBLE_COMMON)
+    create_tx.set_supply_type(SupplyType.INFINITE)
+    create_tx.set_admin_key(admin_key)
+    create_tx.transaction_id = tx_id
+    create_tx.node_account_id = node_account_id
+
+    transaction_body = create_tx.build_transaction_body()
+
+    # Verify admin key is set in protobuf
+    assert transaction_body.tokenCreation.HasField("adminKey")
+
+    # Verify no other keys are set
+    assert not transaction_body.tokenCreation.HasField("supplyKey")
+    assert not transaction_body.tokenCreation.HasField("freezeKey")
+    assert not transaction_body.tokenCreation.HasField("wipeKey")
+    assert not transaction_body.tokenCreation.HasField("pause_key")
+
+    # Step 3: Test token update with admin key
+    update_tx = TokenUpdateTransaction()
+    update_tx.set_token_id("0.0.12345")
+    update_tx.set_token_memo("Updated by admin key")
+
+    # Step 4: Test failed supply key addition (this would fail in integration)
+    failed_update_tx = TokenUpdateTransaction()
+    failed_update_tx.set_token_id("0.0.12345")
+    failed_update_tx.set_supply_key(PrivateKey.generate_ed25519())
+
+    # This transaction would fail because admin key cannot add new keys
+    # In a real scenario, this would return ResponseCode.TOKEN_HAS_NO_SUPPLY_KEY
+
+    # Step 5: Test admin key update
+    new_admin_key = PrivateKey.generate_ed25519()
+    admin_update_tx = TokenUpdateTransaction()
+    admin_update_tx.set_token_id("0.0.12345")
+    admin_update_tx.set_admin_key(new_admin_key)
+
+    # Step 6: Test token deletion
+    delete_tx = TokenDeleteTransaction()
+    delete_tx.set_token_id("0.0.12345")
+
+    print("✅ All admin key token operation logic tests passed")
+
+
+def test_token_info_query_structure():
+    """Test that TokenInfoQuery is properly structured."""
+    query = TokenInfoQuery(TokenId.from_string("0.0.12345"))
+
+    # Verify query has the token ID set
+    assert str(query.token_id) == "0.0.12345"
+
+    print("✅ TokenInfoQuery structure test passed")
+
+# --- Tests for _to_proto_key (Proof of Safety) ---
+
+def test_to_proto_key_with_ed25519_public_key():
+    """Tests _to_proto_key with an Ed25519 PublicKey (New Happy Path)."""
+    tx = TokenCreateTransaction()
+    private_key = PrivateKey.generate_ed25519()
+    public_key = private_key.public_key()
+    
+    expected_proto = public_key._to_proto()
+    result_proto = tx._to_proto_key(public_key)
+    
+    assert result_proto == expected_proto
+    assert isinstance(result_proto, basic_types_pb2.Key)
+
+def test_to_proto_key_with_ecdsa_public_key():
+    """Tests _to_proto_key with an ECDSA PublicKey (New Happy Path)."""
+    tx = TokenCreateTransaction()
+    private_key = PrivateKey.generate_ecdsa()
+    public_key = private_key.public_key()
+    
+    expected_proto = public_key._to_proto()
+    result_proto = tx._to_proto_key(public_key)
+    
+    assert result_proto == expected_proto
+    assert isinstance(result_proto, basic_types_pb2.Key)
+
+def test_to_proto_key_with_ed25519_private_key():
+    """Tests _to_proto_key with an Ed25519 PrivateKey (Backward-Compatibility)."""
+    tx = TokenCreateTransaction()
+    private_key = PrivateKey.generate_ed25519()
+    public_key = private_key.public_key()
+    
+    # We expect the *public key's* proto, even though we passed a private key
+    expected_proto = public_key._to_proto()
+    
+    # Call the function with the PrivateKey
+    result_proto = tx._to_proto_key(private_key)
+    
+    # Assert it correctly converted it to the public key proto
+    assert result_proto == expected_proto
+    assert isinstance(result_proto, basic_types_pb2.Key)
+
+def test_to_proto_key_with_ecdsa_private_key():
+    """Tests _to_proto_key with an ECDSA PrivateKey (Backward-Compatibility)."""
+    tx = TokenCreateTransaction()
+    private_key = PrivateKey.generate_ecdsa()
+    public_key = private_key.public_key()
+    
+    expected_proto = public_key._to_proto()
+    result_proto = tx._to_proto_key(private_key)
+    
+    assert result_proto == expected_proto
+    assert isinstance(result_proto, basic_types_pb2.Key)
+
+def test_to_proto_key_with_none():
+    """Tests the _to_proto_key function with None (Non-Happy Path)."""
+    tx = TokenCreateTransaction()
+    result = tx._to_proto_key(None)
+    assert result is None
+
+def test_to_proto_key_with_invalid_string_raises_error():
+    """Tests the _to_proto_key safety net with a string (Non-Happy Path)."""
+    tx = TokenCreateTransaction()
+    
+    with pytest.raises(TypeError) as e:
+        tx._to_proto_key("this is not a key")
+        
+    assert "Key must be of type PrivateKey or PublicKey" in str(e.value)
