@@ -7,10 +7,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-### Changed
-### Fixed
-### Breaking
+-
 
+### Changed
+-
+
+### Fixed
+-
+
+### Breaking Change
+-
 
 ## [0.1.10] - 2025-12-03
 
