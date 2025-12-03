@@ -65,7 +65,7 @@ transaction.sign(account_private_key)
 
 ## 4. Execute the Transaction
 
-Submit the transaction to the Hedera network. This returns a `TransactionResponse` indicating the network received it.
+Submit the transaction to the Hedera network. This returns a `TransactionReceipt` indicating the network has processed it.
 
 ```python
 receipt = transaction.execute(client)
@@ -142,7 +142,7 @@ def associate_token_with_account(client, account_id, account_private_key, token_
     print("Token associated successfully!")
 ```
 
-For more examples, see `examples/token_grant_kyc.py` or `examples/token_associate.py`.
+For more examples, see `examples/tokens/token_grant_kyc.py` or `examples/tokens/token_associate.py`.
 
 ## Correct vs. Incorrect Order
 
