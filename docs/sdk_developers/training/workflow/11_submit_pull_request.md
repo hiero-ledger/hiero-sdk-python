@@ -7,7 +7,9 @@ This guide walks you through each step of the PR process.
 1. Push Your Branch to Your Fork
 If you haven’t already pushed your changes:
 
+```bash
 git push origin <your-branch-name>
+```
 
 2. Open a Pull Request to the Python SDK
 

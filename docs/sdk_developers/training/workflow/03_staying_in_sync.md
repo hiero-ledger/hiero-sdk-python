@@ -1,4 +1,4 @@
-### Syncing Your Repo with the Upstream Python SDK
+## Syncing Your Repo with the Upstream Python SDK
 
 Development at the Python SDK can be fast meaning new changes are added frequently.
 

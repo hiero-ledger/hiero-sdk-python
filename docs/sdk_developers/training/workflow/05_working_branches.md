@@ -1,4 +1,4 @@
-### Working on a Newly Assigned Issue in a Branch
+## Working on a Newly Assigned Issue in a Branch
 
 Once you are assigned to an issue, you can get started working on it.
 

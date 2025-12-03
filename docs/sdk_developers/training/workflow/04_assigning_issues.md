@@ -6,7 +6,7 @@ We recommend Good First Issues for developers new to the Python SDK. These are e
 
 To do that, 
 1. Select a `Good First Issue` that interests you and is not yet assigned at [Python SDK Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
-3. Write a comment at the bottom of the issue page asking "I want to be assigned to this issue"
-4. A maintainer will shortly assign you to the issue
+2. Write a comment at the bottom of the issue page asking "I want to be assigned to this issue"
+3. A maintainer will shortly assign you to the issue
 
 Congratulations! You are assigned and can now get started on the work.
