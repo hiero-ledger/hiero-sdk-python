@@ -395,3 +395,59 @@ def test_create_account_transaction_with_set_alias_from_invalid_type():
 
     with pytest.raises(TypeError):
         tx.set_alias(1234)
+
+# This test uses fixture mock_account_ids as parameter
+def test_account_create_transaction_build_with_private_key(mock_account_ids):
+    """AccountCreateTransaction should accept also PrivateKey and serialize the PublicKey in the proto."""
+    operator_id, node_account_id = mock_account_ids
+
+    private_key = PrivateKey.generate()
+    public_key = private_key.public_key()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(private_key)
+        .set_initial_balance(100000000)
+        .set_account_memo("Account with private key")
+    )
+
+    tx.transaction_id = generate_transaction_id(operator_id)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+
+    # In the proto  we should have the public key not the private one
+    assert body.cryptoCreateAccount.key.ed25519 == public_key.to_bytes_raw()
+    assert body.cryptoCreateAccount.initialBalance == 100000000
+    assert body.cryptoCreateAccount.memo == "Account with private key"
+
+# This test uses fixture mock_account_ids as parameter
+def test_create_account_transaction_set_key_with_alias_private_keys(mock_account_ids):
+    """set_key_with_alias should work alsoi with PrivateKey ECDSA (account key + alias key)."""
+    operator_id, node_id = mock_account_ids
+
+    # Account key(ECDSA)
+    account_private_key = PrivateKey.generate_ecdsa()
+    account_public_key = account_private_key.public_key()
+
+    # Alias key (ECDSA)
+    alias_private_key = PrivateKey.generate_ecdsa()
+    alias_public_key = alias_private_key.public_key()
+    expected_evm_address = alias_public_key.to_evm_address()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_with_alias(account_private_key, alias_private_key)
+    )
+
+    assert tx.key == account_private_key
+    assert tx.alias == expected_evm_address
+
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_id
+    tx_body = tx.build_transaction_body()
+
+    # In the proto we should have account public key
+    assert tx_body.cryptoCreateAccount.key == account_public_key._to_proto()
+    # Alias should be the address bytes from the key for the alias
+    assert tx_body.cryptoCreateAccount.alias == expected_evm_address.address_bytes
