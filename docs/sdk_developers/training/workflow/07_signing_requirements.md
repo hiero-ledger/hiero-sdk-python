@@ -19,4 +19,4 @@ git commit -S -s -m "chore: changelog entry for TokenCreateTransaction"
 **WARNING** any merge or rebase operations will cause a loss of signing status unless you preserve signing: `git rebase main -S`
 
 Read more about signing and how to set up a GPG key at:
-[Signing Guide](./../../signing.md)
+[Signing Guide](../../signing.md)

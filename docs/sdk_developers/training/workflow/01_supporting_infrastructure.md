@@ -44,7 +44,7 @@ from hiero_sdk_python.account.token_id import TokenId
 ```
 This is incorrect because token_id.py does not live in /account! Instead, it lives in /tokens
 
-Read our [Pylance Installation Guide](./docs/sdk_developers/pylance.md)
+Read our [Pylance Installation Guide](../../pylance.md)
 
 #### Github Copilot
 Github Copilot is an AI coding-assistant tool.
