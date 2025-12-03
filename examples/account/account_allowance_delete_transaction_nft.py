@@ -8,6 +8,7 @@ this example demonstrates deleting an NFT allowance.
 - Verifies the spender can NO LONGER transfer the NFT.
 
 Usage:
+    python examples/account/account_allowance_delete_transaction_nft.py
     uv run examples/account/account_allowance_delete_transaction_nft.py
 """
 
@@ -72,8 +73,19 @@ def create_account(client, memo="Test Account"):
         .set_account_memo(memo)
         .execute(client)
     )
-    print(f"Created new account ({memo}): {tx.account_id}")
-    return tx.account_id, private_key
+    # Check receipt/status for account creation
+    try:
+        receipt = tx
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"Account creation failed ({memo}): {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+
+        account_id = receipt.account_id
+        print(f"Created new account ({memo}): {account_id}")
+        return account_id, private_key
+    except Exception as e:
+        print(f"Account creation exception ({memo}): {e}")
+        sys.exit(1)
 
 def create_nft_token(client, owner_id, owner_key):
     """Create a new non-fungible token (NFT)."""
@@ -93,51 +105,85 @@ def create_nft_token(client, owner_id, owner_key):
         .sign(owner_key)
     )
     
-    receipt = tx.execute(client)
-    
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token creation failed: {ResponseCode(receipt.status).name}")
+    try:
+        receipt = tx.execute(client)
+
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"Token creation failed: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+
+        print(f"NFT Owner ({owner_id}) created NFT Token: {receipt.token_id}")
+        return receipt.token_id
+    except Exception as e:
+        print(f"Token creation exception: {e}")
         sys.exit(1)
-        
-    print(f"NFT Owner ({owner_id}) created NFT Token: {receipt.token_id}")
-    return receipt.token_id
 
 def mint_nft(client, token_id, metadata_list):
     """Mint NFT(s)."""
-    tx = (
-        TokenMintTransaction()
-        .set_token_id(token_id)
-        .set_metadata(metadata_list)
-        .execute(client)
-    )
-    serials = tx.serial_numbers
-    print(f"NFT Owner ({client.operator_account_id}) minted {len(serials)} NFT(s) for Token {token_id}: {serials}")
-    return [NftId(token_id, s) for s in tx.serial_numbers]
+    try:
+        tx = (
+            TokenMintTransaction()
+            .set_token_id(token_id)
+            .set_metadata(metadata_list)
+            .execute(client)
+        )
+
+        receipt = tx
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"NFT minting failed: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+
+        serials = receipt.serial_numbers
+        print(f"NFT Owner ({client.operator_account_id}) minted {len(serials)} NFT(s) for Token {token_id}: {serials}")
+        return [NftId(token_id, s) for s in serials]
+    except Exception as e:
+        print(f"NFT minting exception: {e}")
+        sys.exit(1)
 
 def associate_token_with_account(client, account_id, private_key, token_id):
     """Associate a token with an account."""
-    (
-        TokenAssociateTransaction()
-        .set_account_id(account_id)
-        .add_token_id(token_id)
-        .freeze_with(client)
-        .sign(private_key)
-        .execute(client)
-    )
-    print(f"Associated token {token_id} with Receiver account {account_id}")
+    try:
+        tx = (
+            TokenAssociateTransaction()
+            .set_account_id(account_id)
+            .add_token_id(token_id)
+            .freeze_with(client)
+            .sign(private_key)
+            .execute(client)
+        )
+
+        receipt = tx
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"Token association failed for {account_id}: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+
+        print(f"Associated token {token_id} with Receiver account {account_id}")
+    except Exception as e:
+        print(f"Token association exception for {account_id}: {e}")
+        sys.exit(1)
 
 def approve_nft_allowance_all_serials(client, token_id: TokenId, owner_id: AccountId, spender_id: AccountId, owner_key: PrivateKey):
     """Approve NFT allowance for ALL serials for a spender."""
-    (
-        AccountAllowanceApproveTransaction()
-        .approve_token_nft_allowance_all_serials(
-            token_id, owner_id, spender_id
+    try:
+        tx = (
+            AccountAllowanceApproveTransaction()
+            .approve_token_nft_allowance_all_serials(
+                token_id, owner_id, spender_id
+            )
+            .freeze_with(client)
+            .sign(owner_key)
+            .execute(client)
         )
-        .freeze_with(client)
-        .sign(owner_key)
-        .execute(client)
-    )
-    print(f"NFT Owner ({owner_id}) approved Spender ({spender_id}) for ALL serials of token {token_id}")
+
+        receipt = tx
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"Allowance approval failed: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+
+        print(f"NFT Owner ({owner_id}) approved Spender ({spender_id}) for ALL serials of token {token_id}")
+    except Exception as e:
+        print(f"Allowance approval exception: {e}")
+        sys.exit(1)
 
 def delete_nft_allowance_all_serials(client, token_id: TokenId, owner_id: AccountId, spender_id: AccountId, owner_key: PrivateKey):
     """
@@ -145,21 +191,26 @@ def delete_nft_allowance_all_serials(client, token_id: TokenId, owner_id: Accoun
     """
     print(f"NFT Owner ({owner_id}) deleting 'approve for all' allowance for {token_id} from Spender ({spender_id})...")
     
-    tx = (
-        AccountAllowanceApproveTransaction()
-        .delete_token_nft_allowance_all_serials(
-            token_id, owner_id, spender_id
+    try:
+        tx = (
+            AccountAllowanceApproveTransaction()
+            .delete_token_nft_allowance_all_serials(
+                token_id, owner_id, spender_id
+            )
+            .freeze_with(client)
+            .sign(owner_key)
+            .execute(client)
         )
-        .freeze_with(client)
-        .sign(owner_key)
-        .execute(client)
-    )
-    
-    if tx.status != ResponseCode.SUCCESS:
-        print(f"Allowance deletion failed: {ResponseCode(tx.status).name}")
+
+        receipt = tx
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"Allowance deletion failed: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+
+        print("Allowance successfully deleted.")
+    except Exception as e:
+        print(f"Allowance deletion exception: {e}")
         sys.exit(1)
-        
-    print("Allowance successfully deleted.")
 
 def verify_allowance_removed(spender_client, nft_id: NftId, owner_id: AccountId, receiver_id: AccountId):
     """
@@ -168,19 +219,23 @@ def verify_allowance_removed(spender_client, nft_id: NftId, owner_id: AccountId,
     """
     print(f"\nVerifying allowance removal by Spender ({spender_client.operator_account_id}) attempting transfer...")
     
-    receipt = (
-        TransferTransaction()
-        .add_approved_nft_transfer(nft_id, owner_id, receiver_id)
-        .execute(spender_client)
-    )
-    
-    if receipt.status == ResponseCode.SPENDER_DOES_NOT_HAVE_ALLOWANCE:
-        print("Verification SUCCEEDED: Transfer failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE as expected.")
-    elif receipt.status == ResponseCode.SUCCESS:
-        print(f"Verification FAILED: Transfer succeeded unexpectedly!")
-        sys.exit(1)
-    else:
-        print(f"Verification FAILED: Transfer failed with an unexpected status: {ResponseCode(receipt.status).name}")
+    try:
+        receipt = (
+            TransferTransaction()
+            .add_approved_nft_transfer(nft_id, owner_id, receiver_id)
+            .execute(spender_client)
+        )
+
+        if receipt.status == ResponseCode.SPENDER_DOES_NOT_HAVE_ALLOWANCE:
+            print("Verification SUCCEEDED: Transfer failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE as expected.")
+        elif receipt.status == ResponseCode.SUCCESS:
+            print(f"Verification FAILED: Transfer succeeded unexpectedly!")
+            sys.exit(1)
+        else:
+            print(f"Verification FAILED: Transfer failed with an unexpected status: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+    except Exception as e:
+        print(f"Verification exception while attempting transfer as spender: {e}")
         sys.exit(1)
 
 def main():
