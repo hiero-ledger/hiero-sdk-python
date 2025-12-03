@@ -26,6 +26,47 @@ def test_custom_fixed_fee():
     assert new_fee.fee_collector_account_id == AccountId(0, 0, 456)
     assert new_fee.all_collectors_are_exempt is True
 
+def test_custom_fractional_fee_str():
+    """Test the string representation of CustomFractionalFee."""
+    fee = CustomFractionalFee(
+        numerator=1,
+        denominator=5,
+        min_amount=10,
+        max_amount=1000,
+        assessment_method=FeeAssessmentMethod.INCLUSIVE,
+        fee_collector_account_id=AccountId(0, 0, 789),
+        all_collectors_are_exempt=False,
+    )
+
+    fee_str = fee.__str__()
+
+    assert "CustomFractionalFee" in fee_str
+    assert "Fee Collector Account Id  = 0.0.789" in fee_str
+    assert "Numerator                 = 1" in fee_str
+    assert "Denominator               = 5" in fee_str
+    assert "Assessment Method         = FeeAssessmentMethod.INCLUSIVE" in fee_str
+    assert "Min Amount                = 10" in fee_str
+    assert "Max Amount                = 1000" in fee_str
+
+    kv = {}
+    for ln in fee_str.splitlines()[1:]:
+        if "=" in ln:
+            key, val = ln.split("=", 1)
+            kv[key.strip()] = val.strip()
+
+    expected = {
+        "Numerator": "1",
+        "Denominator": "5",
+        "Min Amount": "10",
+        "Max Amount": "1000",
+    }
+    for key, val in expected.items():
+        assert kv[key] == val, f"{key} incorrect in string representation"
+
+    assert "INCLUSIVE" in kv["Assessment Method"]
+    assert "0.0.789" in kv["Fee Collector Account Id"]
+    assert kv["All Collectors Are Exempt"] in ("False", "false")
+
 def test_custom_fractional_fee():
     fee = CustomFractionalFee(
         numerator=1,

@@ -1,0 +1,73 @@
+name: PythonBot - Office Hour Reminder
+
+on:
+  # push:
+  schedule:
+    - cron: '0 10 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  office-hour-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 
+        with:
+          egress-policy: audit
+
+      - name: Check Schedule and Notify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ANCHOR_DATE="2025-12-03"
+          MEETING_LINK="https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338"
+          CALENDAR_LINK="https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week"
+
+          IS_MEETING_WEEK=$(python3 -c "from datetime import date; import os; d1=date.fromisoformat('$ANCHOR_DATE'); d2=date.today(); print('true' if (d2-d1).days % 14 == 0 else 'false')")
+
+          if [ "$IS_MEETING_WEEK" = "false" ]; then
+            echo "Not a fortnightly meeting week. Skipping execution."
+            exit 0
+          fi
+
+          echo "Meeting week detected. Proceeding to notify open PRs."
+
+          REPO="${{ github.repository }}"
+          PR_LIST=$(gh pr list --repo $REPO --state open --json number --jq '.[].number')
+
+          if [ -z "$PR_LIST" ]; then
+            echo "No open PRs found."
+            exit 0
+          fi
+
+          COMMENT_BODY=$(cat <<EOF
+          Hello, this is the Office Hour Bot.
+
+          This is a reminder that the Hiero Python SDK Office Hours are scheduled in approximately 4 hours (14:00 UTC).
+
+          This session provides an opportunity to ask questions regarding this Pull Request or receive assistance from a maintainer.
+
+          Details:
+          - Time: 14:00 UTC
+          - Join Link: [Zoom Meeting]($MEETING_LINK)
+
+          Disclaimer: This is an automated reminder. Please verify the schedule [here]($CALENDAR_LINK) to be notified of any changes.
+          EOF
+          )
+
+          for PR_NUM in $PR_LIST; do
+            echo "Processing PR #$PR_NUM"
+            
+            ALREADY_COMMENTED=$(gh pr view $PR_NUM --repo $REPO --json comments --jq '.comments[].body' | grep -F "Office Hour Bot" || true)
+
+            if [ -z "$ALREADY_COMMENTED" ]; then
+              gh pr comment $PR_NUM --repo $REPO --body "$COMMENT_BODY"
+              echo "Reminder posted to PR #$PR_NUM"
+            else
+              echo "PR #$PR_NUM already notified. Skipping."
+            fi
+          done

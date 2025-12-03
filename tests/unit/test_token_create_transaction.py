@@ -145,6 +145,38 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenCreation.kycKey == private_key_kyc.public_key()._to_proto()
     assert transaction_body.tokenCreation.fee_schedule_key == private_key_fee_schedule.public_key()._to_proto()
 
+# This test uses fixture mock_account_ids as parameter
+def test_build_transaction_body_with_metadata(mock_account_ids):
+    """Test building a token creation transaction body with metadata bytes set."""
+    treasury_account, _, node_account_id, _, _ = mock_account_ids
+
+    token_tx = TokenCreateTransaction()
+    token_tx.set_token_name("MyTokenWithMetadata")
+    token_tx.set_token_symbol("MTKM")
+    token_tx.set_decimals(2)
+    token_tx.set_initial_supply(1000)
+    token_tx.set_treasury_account_id(treasury_account)
+
+    metadata = b"Example on-ledger token metadata"
+    token_tx.set_metadata(metadata)
+
+    token_tx.transaction_id = generate_transaction_id(treasury_account)
+    token_tx.node_account_id = node_account_id
+
+    transaction_body = token_tx.build_transaction_body()
+
+    assert transaction_body.tokenCreation.name == "MyTokenWithMetadata"
+    assert transaction_body.tokenCreation.symbol == "MTKM"
+    assert transaction_body.tokenCreation.metadata == metadata
+
+def test_set_metadata_raises_when_over_100_bytes():
+    """set_metadata must reject metadata longer than 100 bytes."""
+    token_tx = TokenCreateTransaction()
+    too_long_metadata = b"x" * 101  # 101 bytes
+
+    with pytest.raises(ValueError, match="Metadata must not exceed 100 bytes"):
+        token_tx.set_metadata(too_long_metadata)
+
 @pytest.mark.parametrize(
     "token_name, token_symbol, decimals, initial_supply, token_type, expected_error",
     [

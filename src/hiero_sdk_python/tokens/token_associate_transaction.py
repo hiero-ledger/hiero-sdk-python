@@ -5,17 +5,19 @@ hiero_sdk_python.tokens.token_associate_transaction.py
 Provides TokenAssociateTransaction, a subclass of Transaction for associating
 tokens with accounts on the Hedera network using the Hedera Token Service (HTS) API.
 """
-from typing import Optional, List
+
+from typing import Optional, List, Union
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import token_associate_pb2, transaction_pb2
-from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
-    SchedulableTransactionBody,
-)
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
+
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction import Transaction
+
+TokenIdLike = Union[TokenId, str]
 
 
 class TokenAssociateTransaction(Transaction):
@@ -24,7 +26,7 @@ class TokenAssociateTransaction(Transaction):
 
     This transaction associates the specified tokens with an account,
     allowing the account to hold and transact with those tokens.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token association transaction.
     """
@@ -47,7 +49,7 @@ class TokenAssociateTransaction(Transaction):
         self._default_transaction_fee: int = 500_000_000
 
     def set_account_id(self, account_id: AccountId) -> "TokenAssociateTransaction":
-        """        
+        """
         Sets the account ID for the token association transaction.
         Args:
             account_id (AccountId): The account ID to associate tokens with.
@@ -64,13 +66,41 @@ class TokenAssociateTransaction(Transaction):
         self.token_ids.append(token_id)
         return self
 
+    def set_token_ids(self, token_ids: List[TokenId]) -> "TokenAssociateTransaction":
+        """
+        Sets the list of token IDs for the token association transaction.
+
+        This mirrors the JavaScript SDK's `setTokenIds()` API,
+        providing a convenient way to associate multiple tokens at once.
+
+        Args:
+            token_ids: Iterable of TokenId instances or string representations.
+
+        Returns:
+            TokenAssociateTransaction.
+        """
+        self._require_not_frozen()
+        tokens_to_add: List[TokenId] = []
+        for token_id in token_ids:
+            if isinstance(token_id, TokenId):
+                tokens_to_add.append(token_id)
+            elif isinstance(token_id, str):
+                tokens_to_add.append(TokenId.from_string(token_id))
+            else:
+                raise TypeError(
+                    f"Invalid token_id type: expected TokenId or str, got {type(token_id).__name__}"
+                )
+
+        self.token_ids = tokens_to_add
+        return self
+
     def _build_proto_body(self) -> token_associate_pb2.TokenAssociateTransactionBody:
         """
         Returns the protobuf body for the token associate transaction.
-        
+
         Returns:
             TokenAssociateTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If account ID or token IDs are not set.
         """
@@ -81,7 +111,26 @@ class TokenAssociateTransaction(Transaction):
             account=self.account_id._to_proto(),
             tokens=[token_id._to_proto() for token_id in self.token_ids]
         )
-        
+
+    @classmethod
+    def _from_proto(
+        cls, body: token_associate_pb2.TokenAssociateTransactionBody
+    ) -> "TokenAssociateTransaction":
+        """
+        Construct a TokenAssociateTransaction from its protobuf.
+        """
+        account_id = AccountId._from_proto(body.account)
+        token_ids: List[TokenId] = []
+
+        for proto_token in body.tokens:
+            token_id = TokenId._from_proto(proto_token)
+            token_ids.append(token_id)
+
+        return cls(
+            account_id=account_id,
+            token_ids=token_ids,
+        )
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token association.
@@ -94,7 +143,7 @@ class TokenAssociateTransaction(Transaction):
         transaction_body.tokenAssociate.CopyFrom(token_associate_body)
 
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token associate transaction.
@@ -106,6 +155,19 @@ class TokenAssociateTransaction(Transaction):
         schedulable_body = self.build_base_scheduled_body()
         schedulable_body.tokenAssociate.CopyFrom(token_associate_body)
         return schedulable_body
+
+    def _validate_checksums(self, client) -> None:
+        """
+        Validate the checksums for all IDs (account + tokens) in this transaction.
+
+        Mirrors the style used across the SDK: each ID calls its own
+        validate_checksum(client) method.
+        """
+        if self.account_id is not None:
+            self.account_id.validate_checksum(client)
+
+        for token_id in self.token_ids:
+            token_id.validate_checksum(client)
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
