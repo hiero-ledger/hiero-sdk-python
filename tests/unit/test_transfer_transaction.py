@@ -7,6 +7,8 @@ import pytest
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.hbar_unit import HbarUnit
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
@@ -510,3 +512,150 @@ def test_approved_token_transfer_validation(mock_account_ids):
     # Test zero amount
     with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
         transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 0, 6)
+
+
+def test_add_hbar_transfer_with_hbar_object(mock_account_ids):
+    """Test adding HBAR transfers using Hbar objects."""
+    account_id_sender, account_id_recipient, _, _, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    hbar_amount_sender = Hbar(-5, HbarUnit.HBAR)
+    hbar_amount_recipient = Hbar(5, HbarUnit.HBAR)
+
+    transfer_tx.add_hbar_transfer(account_id_sender, hbar_amount_sender)
+    transfer_tx.add_hbar_transfer(account_id_recipient, hbar_amount_recipient)
+
+    sender_transfer = next(
+        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender
+    )
+    recipient_transfer = next(
+        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_recipient
+    )
+
+    assert sender_transfer.amount == hbar_amount_sender.to_tinybars()
+    assert recipient_transfer.amount == hbar_amount_recipient.to_tinybars()
+
+
+def test_add_hbar_transfer_with_hbar_tinybars(mock_account_ids):
+    """Test adding HBAR transfers using Hbar objects with tinybar unit."""
+    account_id_sender, account_id_recipient, _, _, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    tinybar_amount_sender = Hbar(-5_000_000_000, HbarUnit.TINYBAR)
+    tinybar_amount_recipient = Hbar(5_000_000_000, HbarUnit.TINYBAR)
+
+    transfer_tx.add_hbar_transfer(account_id_sender, tinybar_amount_sender)
+    transfer_tx.add_hbar_transfer(account_id_recipient, tinybar_amount_recipient)
+
+    sender_transfer = next(
+        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender
+    )
+    recipient_transfer = next(
+        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_recipient
+    )
+
+    assert sender_transfer.amount == -5_000_000_000
+    assert recipient_transfer.amount == 5_000_000_000
+
+
+def test_add_approved_hbar_transfer_with_hbar_object(mock_account_ids):
+    """Test adding approved HBAR transfers using Hbar objects."""
+    account_id_1, account_id_2, _, _, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    hbar_amount_1 = Hbar(10, HbarUnit.HBAR)
+    hbar_amount_2 = Hbar(-10, HbarUnit.HBAR)
+
+    transfer_tx.add_approved_hbar_transfer(account_id_1, hbar_amount_1)
+    transfer_tx.add_approved_hbar_transfer(account_id_2, hbar_amount_2)
+
+    transfer_1 = next(
+        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_1
+    )
+    transfer_2 = next(
+        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_2
+    )
+
+    assert transfer_1.amount == hbar_amount_1.to_tinybars()
+    assert transfer_1.is_approved is True
+    assert transfer_2.amount == hbar_amount_2.to_tinybars()
+    assert transfer_2.is_approved is True
+
+
+def test_hbar_accumulation_with_hbar_objects(mock_account_ids):
+    """Test that HBAR transfers accumulate correctly with Hbar objects."""
+    account_id_1, _, _, _, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    hbar_amount_1 = Hbar(5, HbarUnit.HBAR)
+    hbar_amount_2 = Hbar(3, HbarUnit.HBAR)
+
+    transfer_tx.add_hbar_transfer(account_id_1, hbar_amount_1)
+    transfer_tx.add_hbar_transfer(account_id_1, hbar_amount_2)
+
+    transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_1)
+
+    expected_amount = (hbar_amount_1.to_tinybars() + hbar_amount_2.to_tinybars())
+    assert transfer.amount == expected_amount
+    assert len(transfer_tx.hbar_transfers) == 1
+
+
+def test_hbar_and_int_accumulation_mixed(mock_account_ids):
+    """Test that HBAR objects and integer amounts accumulate together."""
+    account_id_1, _, _, _, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    hbar_amount = Hbar(5, HbarUnit.HBAR)
+    int_amount = 3_000_000_000
+
+    transfer_tx.add_hbar_transfer(account_id_1, hbar_amount)
+    transfer_tx.add_hbar_transfer(account_id_1, int_amount)
+
+    transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_1)
+
+    expected_amount = hbar_amount.to_tinybars() + int_amount
+    assert transfer.amount == expected_amount
+    assert len(transfer_tx.hbar_transfers) == 1
+
+
+def test_zero_hbar_transfer_validation(mock_account_ids):
+    """Test that zero Hbar objects are rejected."""
+    account_id_1, _, _, _, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    zero_hbar = Hbar(0, HbarUnit.HBAR)
+
+    with pytest.raises(ValueError, match="Amount must be a non-zero value"):
+        transfer_tx.add_hbar_transfer(account_id_1, zero_hbar)
+
+
+def test_invalid_hbar_type_validation(mock_account_ids):
+    """Test that invalid types are rejected."""
+    account_id_1, _, _, _, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    with pytest.raises(TypeError, match="Amount must be of type int or Hbar"):
+        transfer_tx.add_hbar_transfer(account_id_1, "invalid")
+
+    with pytest.raises(TypeError, match="Amount must be of type int or Hbar"):
+        transfer_tx.add_hbar_transfer(account_id_1, 5.5)
+
+
+def test_hbar_transfer_conversion_accuracy(mock_account_ids):
+    """Test that Hbar objects are accurately converted to tinybars."""
+    account_id_1, account_id_2, _, _, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    hbar_value = Hbar(1.5, HbarUnit.HBAR)
+    expected_tinybars = 1_500_000_000
+
+    transfer_tx.add_hbar_transfer(account_id_1, hbar_value)
+
+    transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_1)
+    assert transfer.amount == expected_tinybars
+
+    micro_hbar_value = Hbar(1_500_000, HbarUnit.MICROBAR)
+    transfer_tx.add_hbar_transfer(account_id_2, micro_hbar_value)
+
+    transfer_2 = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_2)
+    assert transfer_2.amount == expected_tinybars

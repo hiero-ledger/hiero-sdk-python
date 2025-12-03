@@ -8,15 +8,24 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Add `max_automatic_token_associations`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to `AccountUpdateTransaction` (#801)
+- Added docs/sdk_developers/training/setup: a training to set up as a developer to the python sdk
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
+- Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.
+- feat: Implement account creation with EVM-style alias transaction example.
 - Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased]
+- feat: Allow `add_hbar_transfer`, `add_approved_hbar_transfer`, and internal `_add_hbar_transfer` to accept `Hbar` objects in addition to raw tinybar integers, with internal normalization to tinybars. Added tests validating the new behavior.
 
 ### Changed
 
+- bot workflows to include new changelog entry
 - Removed duplicate import of transaction_pb2 in transaction.py
+- feat: Add string representation method for `CustomFractionalFee` class and update `custom_fractional_fee.py` example.
 
 ### Fixed
+
+- fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
 
 ## [0.1.9] - 2025-11-26
 
