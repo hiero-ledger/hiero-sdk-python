@@ -107,6 +107,9 @@ class Query(_Executable):
         """
         self.operator = self.operator or client.operator
 
+        if not getattr(self, "node_account_ids", None):
+            self.node_account_ids = client.get_node_account_ids()
+            
         # If no payment amount was specified and payment is required for this query,
         # get the cost from the network and set it as the payment amount
         if self.payment_amount is None and self._is_payment_required():
@@ -374,4 +377,3 @@ class Query(_Executable):
             bool: True if payment is required, False otherwise
         """
         return True
-        
