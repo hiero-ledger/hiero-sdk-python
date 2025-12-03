@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- chore: add `scripts/src_vs_proto` and contents to pull fields from the proto and compare them to the setters and attributes we provide functionality in our token transactions, thus enabling more automatic issue management"
 
 - Added Improved NFT allowance deletion flow with receipt-based status checks and strict `SPENDER_DOES_NOT_HAVE_ALLOWANCE` verification.
 - Add `max_automatic_token_associations`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to `AccountUpdateTransaction` (#801)
