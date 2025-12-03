@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
+- Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
 ### Changed
 -
 
@@ -30,7 +31,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - feat: Implement account creation with EVM-style alias transaction example.
 - Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased].
 - Support for message chunking in `TopicSubmitMessageTransaction`.
-- Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
 
 ### Changed
 
