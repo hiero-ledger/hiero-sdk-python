@@ -20,6 +20,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - bot workflows to include new changelog entry
 - Removed duplicate import of transaction_pb2 in transaction.py
 - Refactor `TokenInfo` into an immutable dataclass, remove all setters, and rewrite `_from_proto` as a pure factory for consistent parsing [#800]
+- feat: Add string representation method for `CustomFractionalFee` class and update `custom_fractional_fee.py` example.
+- Moved query examples to their respective domain folders to improve structure matching.
 
 
 ### Fixed
