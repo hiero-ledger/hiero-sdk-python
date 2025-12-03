@@ -28,7 +28,7 @@ from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.hapi.services import token_get_info_pb2 as hapi_pb
 
 
-@dataclass
+@dataclass(frozen=True)
 class TokenInfo:
     """Data class for basic token details: ID, name, and symbol."""
     token_id: Optional[TokenId]      = None
@@ -70,119 +70,21 @@ class TokenInfo:
     )
 
 
-    # === setter methods ===
-    def set_admin_key(self, admin_key: PublicKey) -> "TokenInfo":
-        """Set the admin key."""
-        self.admin_key = admin_key
-        return self
-
-
-    def set_kyc_key(self, kyc_key: PublicKey) -> "TokenInfo":
-        """Set the KYC key."""
-        self.kyc_key = kyc_key
-        return self
-
-
-    def set_freeze_key(self, freeze_key: PublicKey) -> "TokenInfo":
-        """Set the freeze key."""
-        self.freeze_key = freeze_key
-        return self
-
-
-    def set_wipe_key(self, wipe_key: PublicKey) -> "TokenInfo":
-        """Set the wipe key."""
-        self.wipe_key = wipe_key
-        return self
-
-
-    def set_supply_key(self, supply_key: PublicKey) -> "TokenInfo":
-        """Set the supply key."""
-        self.supply_key = supply_key
-        return self
-
-
-    def set_metadata_key(self, metadata_key: PublicKey) -> "TokenInfo":
-        """Set the metadata key."""
-        self.metadata_key = metadata_key
-        return self
-
-    def set_fee_schedule_key(self, fee_schedule_key: PublicKey) -> "TokenInfo":
-        """Set the fee schedule key."""
-        self.fee_schedule_key = fee_schedule_key
-        return self
-
-    def set_default_freeze_status(self, freeze_status: TokenFreezeStatus) -> "TokenInfo":
-        """Set the default freeze status."""
-        self.default_freeze_status = freeze_status
-        return self
-
-
-    def set_default_kyc_status(self, kyc_status: TokenKycStatus) -> "TokenInfo":
-        """Set the default KYC status."""
-        self.default_kyc_status = kyc_status
-        return self
-
-
-    def set_auto_renew_account(self, account: AccountId) -> "TokenInfo":
-        """Set the auto-renew account."""
-        self.auto_renew_account = account
-        return self
-
-
-    def set_auto_renew_period(self, period: Duration) -> "TokenInfo":
-        """Set the auto-renew period."""
-        self.auto_renew_period = period
-        return self
-
-
-    def set_expiry(self, expiry: Timestamp) -> "TokenInfo":
-        """Set the token expiry."""
-        self.expiry = expiry
-        return self
-
-    def set_pause_key(self, pause_key: PublicKey) -> "TokenInfo":
-        """Set the pause key."""
-        self.pause_key = pause_key
-        return self
-
-    def set_pause_status(self, pause_status: TokenPauseStatus) -> "TokenInfo":
-        """Set the pause status."""
-        self.pause_status = pause_status
-        return self
-
-
-    def set_supply_type(self, supply_type: SupplyType | int) -> "TokenInfo":
-        """Set the supply type."""
-        self.supply_type = (
-            supply_type
-            if isinstance(supply_type, SupplyType)
-            else SupplyType(supply_type)
-        )
-        return self
-
-
-    def set_metadata(self, metadata: bytes) -> "TokenInfo":
-        """Set the token metadata."""
-        self.metadata = metadata
-        return self
-
-    def set_custom_fees(self, custom_fees: List[Any]) -> "TokenInfo":
-        """Set the custom fees."""
-        self.custom_fees = custom_fees
-        return self
-
-
-    # === helpers ===
-
-    
-
-   
     @staticmethod
     def _get(proto_obj, *names):
         """Get the first present attribute from a list of possible names (camelCase/snake_case)."""
         for n in names:
             if hasattr(proto_obj, n):
                 return getattr(proto_obj, n)
+        return None
+
+    @staticmethod
+    def _public_key_from_oneof(key_msg) -> Optional[PublicKey]:
+        """
+        Extract a PublicKey from a key oneof, or None if not present.
+        """
+        if key_msg is not None and hasattr(key_msg, "WhichOneof") and key_msg.WhichOneof("key"):
+            return PublicKey._from_proto(key_msg)
         return None
 
     # === conversions ===
@@ -193,60 +95,56 @@ class TokenInfo:
         :param proto_obj: The token_get_info_pb2.TokenInfo object.
         :return: An instance of TokenInfo.
         """
-        tokenInfoObject = TokenInfo(
-            token_id=TokenId._from_proto(proto_obj.tokenId),
-            name=proto_obj.name,
-            symbol=proto_obj.symbol,
-            decimals=proto_obj.decimals,
-            total_supply=proto_obj.totalSupply,
-            treasury=AccountId._from_proto(proto_obj.treasury),
-            is_deleted=proto_obj.deleted,
-            memo=proto_obj.memo,
-            token_type=TokenType(proto_obj.tokenType),
-            max_supply=proto_obj.maxSupply,
-            ledger_id=proto_obj.ledger_id,
-            metadata=proto_obj.metadata,
-        )
-
-        tokenInfoObject.set_custom_fees(cls._parse_custom_fees(proto_obj))
+        kwargs: Dict[str, Any] = {
+            "token_id": TokenId._from_proto(proto_obj.tokenId),
+            "name": proto_obj.name,
+            "symbol": proto_obj.symbol,
+            "decimals": proto_obj.decimals,
+            "total_supply": proto_obj.totalSupply,
+            "treasury": AccountId._from_proto(proto_obj.treasury),
+            "is_deleted": proto_obj.deleted,
+            "memo": proto_obj.memo,
+            "token_type": TokenType(proto_obj.tokenType),
+            "max_supply": proto_obj.maxSupply,
+            "ledger_id": proto_obj.ledger_id,
+            "metadata": proto_obj.metadata,
+            "custom_fees": cls._parse_custom_fees(proto_obj),
+        }
 
         key_sources = [
-            (("adminKey",),                         "set_admin_key"),
-            (("kycKey",),                           "set_kyc_key"),
-            (("freezeKey",),                        "set_freeze_key"),
-            (("wipeKey",),                          "set_wipe_key"),
-            (("supplyKey",),                        "set_supply_key"),
-            (("metadataKey", "metadata_key"),       "set_metadata_key"),
-            (("feeScheduleKey", "fee_schedule_key"),"set_fee_schedule_key"),
-            (("pauseKey", "pause_key"),             "set_pause_key"),
+            (("adminKey",),                         "admin_key"),
+            (("kycKey",),                           "kyc_key"),
+            (("freezeKey",),                        "freeze_key"),
+            (("wipeKey",),                          "wipe_key"),
+            (("supplyKey",),                        "supply_key"),
+            (("metadataKey", "metadata_key"),       "metadata_key"),
+            (("feeScheduleKey", "fee_schedule_key"),"fee_schedule_key"),
+            (("pauseKey", "pause_key"),             "pause_key"),
         ]
-        for names, setter in key_sources:
+        for names, attr_name in key_sources:
             key_msg = cls._get(proto_obj, *names)
-            cls._copy_key_if_present(tokenInfoObject, setter, key_msg)
+            public_key = cls._public_key_from_oneof(key_msg)
+            if public_key is not None:
+                kwargs[attr_name] = public_key
 
         conv_map = [
-            (("defaultFreezeStatus",), tokenInfoObject.set_default_freeze_status, TokenFreezeStatus._from_proto),
-            (("defaultKycStatus",),    tokenInfoObject.set_default_kyc_status,    TokenKycStatus._from_proto),
-            (("autoRenewAccount",),    tokenInfoObject.set_auto_renew_account,    AccountId._from_proto),
-            (("autoRenewPeriod",),     tokenInfoObject.set_auto_renew_period,     Duration._from_proto),
-            (("expiry",),              tokenInfoObject.set_expiry,                Timestamp._from_protobuf),
-            (("pauseStatus", "pause_status"), tokenInfoObject.set_pause_status,   TokenPauseStatus._from_proto),
-            (("supplyType",),          tokenInfoObject.set_supply_type,           SupplyType),
+            (("defaultFreezeStatus",), "default_freeze_status", TokenFreezeStatus._from_proto),
+            (("defaultKycStatus",),    "default_kyc_status",    TokenKycStatus._from_proto),
+            (("autoRenewAccount",),    "auto_renew_account",    AccountId._from_proto),
+            (("autoRenewPeriod",),     "auto_renew_period",     Duration._from_proto),
+            (("expiry",),              "expiry",                Timestamp._from_protobuf),
+            (("pauseStatus", "pause_status"), "pause_status",   TokenPauseStatus._from_proto),
+            (("supplyType",),          "supply_type",           SupplyType),
         ]
-        for names, setter, conv in conv_map:
+
+        for names, attr_name, conv in conv_map:
             val = cls._get(proto_obj, *names)
             if val is not None:
-                setter(conv(val))
+                kwargs[attr_name] = conv(val)
 
-        return tokenInfoObject
+        return cls(**kwargs)
 
     # === helpers ===
-    @staticmethod
-    def _copy_key_if_present(dst: "TokenInfo", setter: str, key_msg) -> None:
-        # In proto3, keys are a oneof; check presence via WhichOneof
-        if key_msg is not None and hasattr(key_msg, "WhichOneof") and key_msg.WhichOneof("key"):
-            getattr(dst, setter)(PublicKey._from_proto(key_msg))
-
     @staticmethod
     def _parse_custom_fees(proto_obj) -> List[CustomFee]:
         out: List[CustomFee] = []

@@ -1,5 +1,7 @@
 import pytest
 
+from dataclasses import FrozenInstanceError, replace
+
 import hiero_sdk_python.hapi.services.basic_types_pb2
 from hiero_sdk_python.tokens.token_info import TokenInfo, TokenId, AccountId, Timestamp
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -77,50 +79,10 @@ def test_token_info_initialization(token_info):
     assert token_info.expiry is None
     assert token_info.pause_key is None
 
-def test_setters(token_info):
-    public_key = PrivateKey.generate_ed25519().public_key()
-    token_info.set_admin_key(public_key)
-    assert token_info.admin_key == public_key
-
-    token_info.set_kyc_key(public_key)
-    assert token_info.kyc_key == public_key
-
-    token_info.set_freeze_key(public_key)
-    assert token_info.freeze_key == public_key
-
-    token_info.set_wipe_key(public_key)
-    assert token_info.wipe_key == public_key
-
-    token_info.set_supply_key(public_key)
-    assert token_info.supply_key == public_key
-
-    token_info.set_fee_schedule_key(public_key)
-    assert token_info.fee_schedule_key == public_key
-
-    token_info.set_default_freeze_status(TokenFreezeStatus.FROZEN)
-    assert token_info.default_freeze_status == TokenFreezeStatus.FROZEN
-
-    token_info.set_default_kyc_status(TokenKycStatus.GRANTED)
-    assert token_info.default_kyc_status == TokenKycStatus.GRANTED
-
-    token_info.set_auto_renew_account(AccountId(0, 0, 300))
-    assert token_info.auto_renew_account == AccountId(0, 0, 300)
-
-    token_info.set_auto_renew_period(Duration(3600))
-    assert token_info.auto_renew_period == Duration(3600)
-
-    expiry = Timestamp(1625097600, 0)
-    token_info.set_expiry(expiry)
-    assert token_info.expiry == expiry
-
-    token_info.set_pause_key(public_key)
-    assert token_info.pause_key == public_key
-
-    token_info.set_pause_status(TokenPauseStatus.PAUSED)
-    assert token_info.pause_status == TokenPauseStatus.PAUSED
-
-    token_info.set_supply_type(SupplyType.INFINITE)
-    assert token_info.supply_type == SupplyType.INFINITE
+def test_token_info_is_immutable(token_info):
+    """TokenInfo deve essere immutabile (dataclass frozen)."""
+    with pytest.raises(FrozenInstanceError):
+        token_info.name = "Changed"
 
 def test_from_proto(proto_token_info):
     public_key = PrivateKey.generate_ed25519().public_key()
@@ -165,27 +127,31 @@ def test_from_proto(proto_token_info):
     assert token_info.auto_renew_period == Duration(3600)
     assert token_info.expiry == Timestamp(1625097600, 0)
     assert token_info.pause_key.to_bytes_raw() == public_key.to_bytes_raw()
-    assert token_info.pause_status == TokenPauseStatus.PAUSED.value
-    assert token_info.supply_type.value == SupplyType.INFINITE.value
+    assert token_info.pause_status == TokenPauseStatus.PAUSED
+    assert token_info.supply_type == SupplyType.INFINITE
 
 def test_to_proto(token_info):
     public_key = PrivateKey.generate_ed25519().public_key()
-    token_info.set_admin_key(public_key)
-    token_info.set_kyc_key(public_key)
-    token_info.set_freeze_key(public_key)
-    token_info.set_wipe_key(public_key)
-    token_info.set_supply_key(public_key)
-    token_info.set_fee_schedule_key(public_key)
-    token_info.set_pause_key(public_key)
-    token_info.set_default_freeze_status(TokenFreezeStatus.FROZEN)
-    token_info.set_default_kyc_status(TokenKycStatus.GRANTED)
-    token_info.set_auto_renew_account(AccountId(0, 0, 300))
-    token_info.set_auto_renew_period(Duration(3600))
-    token_info.set_expiry(Timestamp(1625097600, 0))
-    token_info.set_pause_status(TokenPauseStatus.PAUSED)
-    token_info.set_supply_type(SupplyType.INFINITE)
 
-    proto = token_info._to_proto()
+    full_token_info = replace(
+        token_info,
+        admin_key=public_key,
+        kyc_key=public_key,
+        freeze_key=public_key,
+        wipe_key=public_key,
+        supply_key=public_key,
+        fee_schedule_key=public_key,
+        pause_key=public_key,
+        default_freeze_status=TokenFreezeStatus.FROZEN,
+        default_kyc_status=TokenKycStatus.GRANTED,
+        auto_renew_account=AccountId(0, 0, 300),
+        auto_renew_period=Duration(3600),
+        expiry=Timestamp(1625097600, 0),
+        pause_status=TokenPauseStatus.PAUSED,
+        supply_type=SupplyType.INFINITE,
+    )
+
+    proto = full_token_info._to_proto()
 
     assert proto.tokenId == TokenId(0, 0, 100)._to_proto()
     assert proto.name == "TestToken"
@@ -212,7 +178,7 @@ def test_to_proto(token_info):
     assert proto.autoRenewPeriod == Duration(3600)._to_proto()
     assert proto.expiry == Timestamp(1625097600, 0)._to_protobuf()
     assert proto.pause_key.ed25519 == public_key.to_bytes_raw()
-    assert proto.pause_status == TokenPauseStatus.PAUSED.value
+    assert proto.pause_status == TokenPauseStatus.PAUSED
 
 def test_str_representation(token_info):
     expected = (
