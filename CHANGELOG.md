@@ -13,7 +13,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 -
 
 ### Fixed
--
+- Fix: get_receipt() now raises ReceiptStatusError when transaction status is not SUCCESS (#930)
 
 ### Breaking Change
 -
