@@ -12,7 +12,6 @@ permissions:
   pull-requests: write
 
 concurrency:
-  # If it's a PR, group by PR number. If it's a push to main, group by the branch ref.
   group: "check-conflicts-${{ github.event.pull_request.number || github.ref }}"
   cancel-in-progress: true
 
@@ -35,11 +34,9 @@ jobs:
 
           # 1. Determine which PRs to check
           if [ "$EVENT" = "pull_request_target" ]; then
-            # If triggered by a PR update, only check that specific PR
             PR_NUMBERS="${{ github.event.pull_request.number }}"
             echo "Triggered by PR update. Checking PR #$PR_NUMBERS"
           else
-            # If triggered by a push to main, check ALL open PRs
             echo "Triggered by push to main. Fetching all open PRs..."
             PR_NUMBERS=$(gh pr list --repo $REPO --state open --json number --jq '.[].number')
           fi
@@ -68,25 +65,12 @@ jobs:
             if [ "$MERGEABLE_STATE" = "dirty" ]; then
               echo "Conflict detected in PR #$PR_NUMBER!"
               
-              COMMENT=$(cat <<EOF
-              Hi, this is MergeConflictBot.
-              Your pull request cannot be merged because it contains **merge conflicts**.
-              
-              Please resolve these conflicts locally and push the changes.
-
-              To assist you, please read:
-              - [Resolving Merge Conflicts](docs/sdk_developers/merge_conflicts.md)
-              - [Rebasing Guide](docs/sdk_developers/rebasing.md)
-
-              Thank you for contributing!
-
-              From the Hiero Python SDK Team
-          EOF
-              )
+              # Using a standard string with newlines (\n) to avoid EOF indentation errors
+              COMMENT="Hi, this is MergeConflictBot.\n\nYour pull request cannot be merged because it contains **merge conflicts**.\n\nPlease resolve these conflicts locally and push the changes.\n\nTo assist you, please read:\n- [Resolving Merge Conflicts](docs/sdk_developers/merge_conflicts.md)\n- [Rebasing Guide](docs/sdk_developers/rebasing.md)\n\nThank you for contributing!\n\nFrom the Hiero Python SDK Team"
 
               # Anti-Spam Check: Only comment if "MergeConflictBot" hasn't commented yet
               gh pr view $PR_NUMBER --repo $REPO --json comments --jq '.comments[].body' | grep -F "MergeConflictBot" >/dev/null || \
-              (gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT" && echo "Comment added to PR #$PR_NUMBER")
+              (gh pr comment $PR_NUMBER --repo $REPO --body "$(echo -e "$COMMENT")" && echo "Comment added to PR #$PR_NUMBER")
             
             else
               echo "No merge conflicts detected for PR #$PR_NUMBER (State: $MERGEABLE_STATE)."
