@@ -7,7 +7,22 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
+- Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
+### Changed
+-
 
+### Fixed
+-
+
+### Breaking Change
+-
+
+## [0.1.10] - 2025-12-03
+
+### Added
+- Added docs/sdk_developers/training/workflow: a training for developers to learn the workflow to contribute to the python SDK.
+- Added Improved NFT allowance deletion flow with receipt-based status checks and strict `SPENDER_DOES_NOT_HAVE_ALLOWANCE` verification.
 - Add `max_automatic_token_associations`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to `AccountUpdateTransaction` (#801)
 - Added docs/sdk_developers/training/setup: a training to set up as a developer to the python sdk
 - Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
@@ -21,7 +36,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - bot workflows to include new changelog entry
 - Removed duplicate import of transaction_pb2 in transaction.py
+- Refactor `TokenInfo` into an immutable dataclass, remove all setters, and rewrite `_from_proto` as a pure factory for consistent parsing [#800]
 - feat: Add string representation method for `CustomFractionalFee` class and update `custom_fractional_fee.py` example.
+- Moved query examples to their respective domain folders to improve structure matching.
+
 
 ### Fixed
 

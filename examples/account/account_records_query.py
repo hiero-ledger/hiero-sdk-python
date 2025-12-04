@@ -1,7 +1,7 @@
 """
 Example demonstrating account records query on the network.
-uv run examples/query/account_records_query.py
-python examples/query/account_records_query.py
+uv run examples/account/account_records_query.py
+python examples/account/account_records_query.py
 """
 
 import os
