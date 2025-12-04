@@ -108,7 +108,7 @@ class AccountCreateTransaction(Transaction):
     def set_key_with_alias(
         self,
         key: Key,
-        ecdsa_key: Optional[PublicKey]=None
+        ecdsa_key: Optional[Key]=None
     ) -> "AccountCreateTransaction":
         """
         Sets the key for the new account and assigns an alias derived from an ECDSA key.
