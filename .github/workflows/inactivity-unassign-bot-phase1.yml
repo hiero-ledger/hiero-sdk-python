@@ -1,0 +1,77 @@
+name: PythonBot - Inactivity Unassign Bot (Phase 1)
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  inactivity-unassign:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2
+        with:
+          egress-policy: audit
+
+      - name: Unassign inactive assignees with NO PRs (Phase 1 - test mode)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          echo "Running Phase 1 inactivity check on $REPO (TEST MODE: 5 minutes)..."
+          NOW_TS=$(date +%s)
+
+          ISSUES=$(gh api "repos/$REPO/issues" \
+            --paginate \
+            --jq '.[] | select(.state=="open" and (.assignees | length > 0)) | .number')
+
+          if [ -z "$ISSUES" ]; then
+            echo "No open issues with assignees found."
+            exit 0
+          fi
+
+          for ISSUE in $ISSUES; do
+            echo "Issue #$ISSUE"
+
+            ISSUE_JSON=$(gh api "repos/$REPO/issues/$ISSUE")
+            CREATED_AT=$(echo "$ISSUE_JSON" | jq -r '.created_at')
+            CREATED_TS=$(date -d "$CREATED_AT" +%s)
+            DIFF_MIN=$(( (NOW_TS - CREATED_TS) / 60 ))
+
+            ASSIGNEES=$(echo "$ISSUE_JSON" | jq -r '.assignees[].login')
+
+            for USER in $ASSIGNEES; do
+              echo "  - Assignee: $USER"
+
+              USER_PRS=$(gh pr list --repo "$REPO" --search "author:$USER" \
+                --json number --jq '.[].number')
+
+              if [ -n "$USER_PRS" ]; then
+                echo "      → has PR(s) → SKIP"
+                continue
+              fi
+
+              if [ "$DIFF_MIN" -ge 5 ]; then
+                echo "      → NO PR & assigned for $DIFF_MIN minutes → UNASSIGNING $USER"
+                gh api "repos/$REPO/issues/$ISSUE/assignees" \
+                  -X DELETE \
+                  -f assignees[]="$USER"
+              else
+                echo "      → NO PR but only $DIFF_MIN minutes → not stale yet."
+              fi
+
+            done
+
+            echo
+          done
+
+          echo "Phase 1 inactivity unassign check complete (TEST MODE)"
