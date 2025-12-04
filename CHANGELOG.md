@@ -14,7 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
 - Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.
 - feat: Implement account creation with EVM-style alias transaction example.
-- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased]
+- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new changelog entries are added under [Unreleased]
 - feat: Allow `add_hbar_transfer`, `add_approved_hbar_transfer`, and internal `_add_hbar_transfer` to accept `Hbar` objects in addition to raw tinybar integers, with internal normalization to tinybars. Added tests validating the new behavior.
 
 ### Changed
