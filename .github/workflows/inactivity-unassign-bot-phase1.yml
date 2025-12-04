@@ -31,7 +31,8 @@ jobs:
           echo "Running Phase 1 inactivity check on $REPO (threshold: $DAYS days)..."
           NOW_TS=$(date +%s)
 
-          # Get all open issues with at least one assignee
+          # Get all open issues (and PRs) with at least one assignee.
+          # PRs are filtered out below after we inspect each item.
           ISSUES=$(gh api "repos/$REPO/issues" \
             --paginate \
             --jq '.[] | select(.state=="open" and (.assignees | length > 0)) | .number')
@@ -45,6 +46,15 @@ jobs:
             echo "Issue #$ISSUE"
 
             ISSUE_JSON=$(gh api "repos/$REPO/issues/$ISSUE")
+
+            # Skip pull requests – this bot should only unassign from issues.
+            IS_PR=$(echo "$ISSUE_JSON" | jq 'has("pull_request")')
+            if [ "$IS_PR" = "true" ]; then
+              echo "  → This item is a pull request, not an issue. Skipping."
+              echo
+              continue
+            fi
+
             CREATED_AT=$(echo "$ISSUE_JSON" | jq -r '.created_at')
             CREATED_TS=$(date -d "$CREATED_AT" +%s)
             DIFF_DAYS=$(( (NOW_TS - CREATED_TS) / 86400 ))
