@@ -5,6 +5,8 @@ transaction_response.py
 Represents the response from a transaction submitted to the Hedera network.
 Provides methods to retrieve the receipt and access core transaction details.
 """
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.exceptions import ReceiptStatusError
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 # pylint: disable=too-few-public-methods
@@ -34,6 +36,8 @@ class TransactionResponse:
         Returns:
             TransactionReceipt: The receipt from the network, containing the status
                                and any entities created by the transaction
+        Raises:
+            ReceiptStatusError: If the receipt status is not SUCCESS
         """
         # TODO: Decide how to avoid circular imports
         from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
@@ -43,5 +47,7 @@ class TransactionResponse:
             .set_transaction_id(self.transaction_id)
             .execute(client)
         )
+        if receipt.status != ResponseCode.SUCCESS:
+            raise ReceiptStatusError(receipt.status, self.transaction_id, receipt)
 
         return receipt
