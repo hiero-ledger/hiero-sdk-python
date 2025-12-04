@@ -27,6 +27,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
 
+### Breaking Changes
+
+- Changed error message in `TransferTransaction._add_hbar_transfer()` and `AbstractTokenTransferTransaction._add_token_transfer()` when amount is zero from "Amount must be a non-zero integer" to "Amount must be a non-zero value." for clarity and consistency.
+
 ## [0.1.9] - 2025-11-26
 
 ### Added
