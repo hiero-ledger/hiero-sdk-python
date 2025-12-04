@@ -20,16 +20,18 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Unassign inactive assignees with NO PRs (Phase 1 - test mode)
+      - name: Unassign inactive assignees with NO PRs (Phase 1)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          DAYS: 21
         run: |
           set -euo pipefail
 
-          echo "Running Phase 1 inactivity check on $REPO (TEST MODE: 5 minutes)..."
+          echo "Running Phase 1 inactivity check on $REPO (threshold: $DAYS days)..."
           NOW_TS=$(date +%s)
 
+          # Get all open issues with at least one assignee
           ISSUES=$(gh api "repos/$REPO/issues" \
             --paginate \
             --jq '.[] | select(.state=="open" and (.assignees | length > 0)) | .number')
@@ -45,28 +47,34 @@ jobs:
             ISSUE_JSON=$(gh api "repos/$REPO/issues/$ISSUE")
             CREATED_AT=$(echo "$ISSUE_JSON" | jq -r '.created_at')
             CREATED_TS=$(date -d "$CREATED_AT" +%s)
-            DIFF_MIN=$(( (NOW_TS - CREATED_TS) / 60 ))
+            DIFF_DAYS=$(( (NOW_TS - CREATED_TS) / 86400 ))
 
             ASSIGNEES=$(echo "$ISSUE_JSON" | jq -r '.assignees[].login')
 
             for USER in $ASSIGNEES; do
               echo "  - Assignee: $USER"
 
+              # Does this user have ANY PRs in this repo?
               USER_PRS=$(gh pr list --repo "$REPO" --search "author:$USER" \
                 --json number --jq '.[].number')
 
               if [ -n "$USER_PRS" ]; then
-                echo "      → has PR(s) → SKIP"
+                echo "      → has PR(s) in repo → skip in Phase 1."
                 continue
               fi
 
-              if [ "$DIFF_MIN" -ge 5 ]; then
-                echo "      → NO PR & assigned for $DIFF_MIN minutes → UNASSIGNING $USER"
+              if [ "$DIFF_DAYS" -ge "$DAYS" ]; then
+                echo "      → NO PR & assigned for $DIFF_DAYS days → UNASSIGNING $USER"
+
+                # Unassign the user
                 gh api "repos/$REPO/issues/$ISSUE/assignees" \
                   -X DELETE \
                   -f assignees[]="$USER"
+
+                # Leave a friendly comment on the issue
+                gh issue comment "$ISSUE" --repo "$REPO" --body "Hi @$USER, you were automatically unassigned from this issue because there has been no linked pull request for **$DAYS days**. This helps keep issues available for contributors who are currently active. You're very welcome to get re-assigned to this issue or pick up another one whenever you have availability 🚀"
               else
-                echo "      → NO PR but only $DIFF_MIN minutes → not stale yet."
+                echo "      → NO PR but only $DIFF_DAYS days → not stale yet."
               fi
 
             done
@@ -74,4 +82,4 @@ jobs:
             echo
           done
 
-          echo "Phase 1 inactivity unassign check complete (TEST MODE)"
+          echo "Phase 1 inactivity unassign check complete."
