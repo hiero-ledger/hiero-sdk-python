@@ -7,6 +7,7 @@ from hiero_sdk_python.account.account_create_transaction import AccountCreateTra
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.hbar_unit import HbarUnit
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
@@ -446,5 +447,49 @@ def test_integration_transfer_transaction_approved_token_transfer():
             transfer_receipt.status == ResponseCode.SUCCESS
         ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
 
+    finally:
+        env.close()
+
+
+@pytest.mark.integration
+def test_integration_transfer_transaction_with_hbar_units():
+    env = IntegrationTestEnv()
+
+    try:
+        new_account_private_key = PrivateKey.generate()
+        new_account_public_key = new_account_private_key.public_key()
+
+        initial_balance = Hbar(1)
+
+        account_transaction = AccountCreateTransaction(
+            key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
+        )
+
+        receipt = account_transaction.execute(env.client)
+
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+
+        account_id = receipt.account_id
+        assert account_id is not None
+
+        transfer_transaction = TransferTransaction()
+        transfer_transaction.add_hbar_transfer(env.operator_id, Hbar(-1.5, HbarUnit.HBAR))
+        transfer_transaction.add_hbar_transfer(account_id, Hbar(1.5, HbarUnit.HBAR))
+
+        receipt = transfer_transaction.execute(env.client)
+
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"Transfer failed with status: {ResponseCode(receipt.status).name}"
+
+        query_transaction = CryptoGetAccountBalanceQuery(account_id)
+        balance = query_transaction.execute(env.client)
+
+        expected_balance_tinybars = Hbar(1).to_tinybars() + Hbar(1.5, HbarUnit.HBAR).to_tinybars()
+        assert (
+            balance and balance.hbars.to_tinybars() == expected_balance_tinybars
+        ), f"Expected balance: {expected_balance_tinybars}, actual balance: {balance.hbars.to_tinybars()}"
     finally:
         env.close()
