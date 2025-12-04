@@ -284,11 +284,11 @@ def test_zero_amount_validation(mock_account_ids):
     transfer_tx = TransferTransaction()
 
     # Test zero HBAR amount should raise ValueError
-    with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
+    with pytest.raises(ValueError, match="Amount must be a non-zero value"):
         transfer_tx.add_hbar_transfer(account_id_1, 0)
 
     # Test zero token amount should raise ValueError
-    with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
+    with pytest.raises(ValueError, match="Amount must be a non-zero value"):
         transfer_tx.add_token_transfer(token_id_1, account_id_1, 0)
 
 
