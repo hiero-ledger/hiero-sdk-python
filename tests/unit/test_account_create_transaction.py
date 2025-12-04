@@ -423,7 +423,7 @@ def test_account_create_transaction_build_with_private_key(mock_account_ids):
 
 # This test uses fixture mock_account_ids as parameter
 def test_create_account_transaction_set_key_with_alias_private_keys(mock_account_ids):
-    """set_key_with_alias should work alsoi with PrivateKey ECDSA (account key + alias key)."""
+    """set_key_with_alias should work also with PrivateKey ECDSA (account key + alias key)."""
     operator_id, node_id = mock_account_ids
 
     # Account key(ECDSA)
