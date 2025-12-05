@@ -3,6 +3,7 @@ import pytest
 
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
@@ -15,6 +16,7 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 private_key = PrivateKey.generate()
@@ -914,5 +916,197 @@ def test_integation_token_update_fee_schedule_key_nft():
         assert len(token_info.custom_fees) == 1
         assert token_info.custom_fees[0].amount == 1
         assert token_info.custom_fees[0].fee_collector_account_id == env.client.operator_account_id
+    finally:
+        env.close()
+
+
+@pytest.mark.integration
+def test_integration_token_update_with_public_key():
+    """Test updating token keys with PublicKey directly (not PrivateKey)."""
+    env = IntegrationTestEnv()
+    
+    try:
+        token_id = create_fungible_token(env)
+        
+        # Generate a new key pair for the freeze key
+        freeze_private_key = PrivateKey.generate_ed25519()
+        freeze_public_key = freeze_private_key.public_key()
+        
+        # Update token with PublicKey
+        receipt = (
+            TokenUpdateTransaction()
+            .set_token_id(token_id)
+            .set_token_name("UpdatedWithPublicKey")
+            .set_freeze_key(freeze_public_key)  # Using PublicKey directly
+            .freeze_with(env.client)
+            .execute(env.client)
+        )
+        
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        
+        # Query the token and verify the freeze key matches the public key
+        info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
+        
+        assert info.name == "UpdatedWithPublicKey", "Token name failed to update"
+        assert info.freeze_key is not None
+        
+        # info.freeze_key is already a PublicKey object, so we can compare directly
+        assert info.freeze_key.to_bytes_raw() == freeze_public_key.to_bytes_raw(), "Freeze key on network should match the PublicKey used in transaction"
+    finally:
+        env.close()
+
+
+@pytest.mark.integration
+def test_integration_token_update_non_custodial_workflow():
+    """
+    Test the non-custodial workflow where:
+    1. Operator builds a TokenUpdateTransaction using only a PublicKey
+    2. Operator gets the transaction bytes
+    3. User (with the PrivateKey) signs the bytes
+    4. Operator executes the signed transaction
+    """
+    env = IntegrationTestEnv()
+    
+    try:
+        token_id = create_fungible_token(env)
+        
+        # 1. SETUP: Create a new key pair for the "user"
+        user_private_key = PrivateKey.generate_ed25519()
+        user_public_key = user_private_key.public_key()
+        
+        # =================================================================
+        # STEP 1 & 2: OPERATOR (CLIENT) BUILDS THE TRANSACTION
+        # =================================================================
+        
+        tx = (
+            TokenUpdateTransaction()
+            .set_token_id(token_id)
+            .set_token_name("NonCustodialToken")
+            .set_freeze_key(user_public_key)  # <-- Using PublicKey!
+            .freeze_with(env.client)
+        )
+        
+        tx_bytes = tx.to_bytes()
+        
+        # =================================================================
+        # STEP 3: USER (SIGNER) SIGNS THE TRANSACTION
+        # =================================================================
+        
+        tx_from_bytes = Transaction.from_bytes(tx_bytes)
+        tx_from_bytes.sign(user_private_key)
+        
+        # =================================================================
+        # STEP 4: OPERATOR (CLIENT) EXECUTES THE SIGNED TX
+        # =================================================================
+        
+        receipt = tx_from_bytes.execute(env.client)
+        
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        
+        # PROOF: Query the token and check if the freeze key matches
+        token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+        
+        assert token_info.freeze_key is not None
+        
+        # This is the STRONG assertion:
+        # Compare the bytes of the key from the network
+        # with the bytes of the key we originally used.
+        # token_info.freeze_key is already a PublicKey object, so we can compare directly
+        assert token_info.freeze_key.to_bytes_raw() == user_public_key.to_bytes_raw(), "Freeze key on network should match the PublicKey used in transaction"
+        assert token_info.name == "NonCustodialToken", "Token name should be updated"
+    finally:
+        env.close()
+
+
+@pytest.mark.integration
+def test_integration_token_update_with_ecdsa_public_key():
+    """Test updating token keys with ECDSA PublicKey."""
+    env = IntegrationTestEnv()
+    
+    try:
+        token_id = create_fungible_token(env)
+        
+        # Generate a new ECDSA key pair for the admin key
+        admin_private_key = PrivateKey.generate_ecdsa()
+        admin_public_key = admin_private_key.public_key()
+        
+        # Update token with ECDSA PublicKey
+        # Note: When updating admin_key, we need to sign with the new admin key
+        receipt = (
+            TokenUpdateTransaction()
+            .set_token_id(token_id)
+            .set_token_name("UpdatedWithECDSA")
+            .set_admin_key(admin_public_key)  # Using ECDSA PublicKey
+            .freeze_with(env.client)
+            .sign(admin_private_key)  # Sign with the new admin key
+            .execute(env.client)
+        )
+        
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        
+        # Query the token and verify the admin key matches the public key
+        token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+        assert token_info is not None
+        assert token_info.admin_key is not None
+        
+        # token_info.admin_key is already a PublicKey object, so we can compare directly
+        assert token_info.admin_key.to_bytes_raw() == admin_public_key.to_bytes_raw(), "Admin key on network should match the ECDSA PublicKey used in transaction"
+        assert token_info.name == "UpdatedWithECDSA", "Token name should be updated"
+    finally:
+        env.close()
+
+
+@pytest.mark.integration
+def test_integration_token_update_with_mixed_key_types():
+    """Test updating token with mixed PrivateKey and PublicKey types."""
+    env = IntegrationTestEnv()
+    
+    try:
+        token_id = create_fungible_token(env)
+        
+        # Generate keys - mix of PrivateKey and PublicKey
+        admin_private_key = PrivateKey.generate_ed25519()
+        freeze_public_key = PrivateKey.generate_ed25519().public_key()
+        wipe_private_key = PrivateKey.generate_ecdsa()
+        supply_public_key = PrivateKey.generate_ecdsa().public_key()
+        
+        # Update token with mixed key types
+        # Note: When updating admin_key, we need to sign with the new admin key
+        receipt = (
+            TokenUpdateTransaction()
+            .set_token_id(token_id)
+            .set_token_name("MixedKeysToken")
+            .set_admin_key(admin_private_key)      # PrivateKey
+            .set_freeze_key(freeze_public_key)      # PublicKey
+            .set_wipe_key(wipe_private_key)        # PrivateKey
+            .set_supply_key(supply_public_key)     # PublicKey
+            .freeze_with(env.client)
+            .sign(admin_private_key)  # Sign with the new admin key
+            .execute(env.client)
+        )
+        
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        
+        # Query the token and verify all keys are correctly set
+        token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+        
+        assert token_info.name == "MixedKeysToken", "Token name should be updated"
+        assert token_info.admin_key is not None
+        assert token_info.freeze_key is not None
+        assert token_info.wipe_key is not None
+        assert token_info.supply_key is not None
+        
+        # token_info keys are already PublicKey objects, so we can compare directly
+        # Verify admin key (from PrivateKey)
+        assert token_info.admin_key.to_bytes_raw() == admin_private_key.public_key().to_bytes_raw()
+        
+        # Verify freeze key (from PublicKey)
+        assert token_info.freeze_key.to_bytes_raw() == freeze_public_key.to_bytes_raw()
+        
+        # Verify wipe key (from PrivateKey)
+        assert token_info.wipe_key.to_bytes_raw() == wipe_private_key.public_key().to_bytes_raw()
+        
+        # Verify supply key (from PublicKey)
+        assert token_info.supply_key.to_bytes_raw() == supply_public_key.to_bytes_raw()
     finally:
         env.close()
