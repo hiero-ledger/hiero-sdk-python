@@ -91,7 +91,7 @@ jobs:
             if (context.eventName === 'push') {
               console.log("Triggered by Push to Main. Fetching all open PRs...");
               const { data: openPrs } = await github.rest.pulls.list({
-                owner, repo, state: 'open', base: 'main'
+                owner, repo, state: 'open', base: 'merge-conflict-bot-main-trigger'
               });
               prsToCheck = openPrs.map(pr => pr.number);
             } 
