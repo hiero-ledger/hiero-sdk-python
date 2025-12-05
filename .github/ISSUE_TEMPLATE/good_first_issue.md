@@ -19,6 +19,75 @@ AT THIS SECTION YOU NEED TO DESCRIBE THE ISSUE IN A WAY THAT IS UNDERSTANDABLE T
 YOU MUST NOT ASSUME THAT SUCH CONTRIBUTORS HAVE ANY KNOWLEDGE ABOUT THE CODEBASE OR HIERO.
 IT IS HELPFUL TO ADD LINKS TO THE RELEVANT DOCUMENTATION AND/OR CODE SECTIONS.
 
+<!-- Example (commented out so you cannot see this on publish)
+The example for Token Associate Transaction located at examples/tokens/token_associate_transaction.py correctly illustrates how to associate a token, however, it does so all from one function main()
+
+As everything is grouped together in main(), it is difficult for a user to understand all the individual steps required to associate a token.
+
+For example:
+```python
+
+def run_demo():
+    """Monolithic token association demo."""
+    print(f"🚀 Connecting to Hedera {network_name} network!")    
+    client = Client(Network(network_name))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
+    client.set_operator(operator_id, operator_key)
+    print(f"✅ Client ready (operator {operator_id})")
+
+    test_key = PrivateKey.generate_ed25519()
+    receipt = (
+        AccountCreateTransaction()
+        .set_key(test_key.public_key())
+        .set_initial_balance(Hbar(1))
+        .set_account_memo("Test account for token association demo")
+        .freeze_with(client)
+        .sign(operator_key)
+        .execute(client)
+    )
+    if receipt.status != ResponseCode.SUCCESS:
+        raise Exception(receipt.status)
+    account_id = receipt.account_id
+    print(f"✅ Created test account {account_id}")
+
+    # Create tokens
+    tokens = []
+    for i in range(3):
+        try:
+            receipt = (
+                TokenCreateTransaction()
+                .set_token_name(f"DemoToken{i}")
+                .set_token_symbol(f"DTK{i}")
+                .set_decimals(2)
+                .set_initial_supply(100_000)
+                .set_treasury_account_id(operator_id)
+                .freeze_with(client)
+                .sign(operator_key)
+                .execute(client)
+            )
+            if receipt.status != ResponseCode.SUCCESS:
+                raise Exception(receipt.status)
+            token_id = receipt.token_id
+            tokens.append(token_id)
+            print(f"✅ Created token {token_id}")
+        except Exception as e:
+            print(f"❌ Token creation failed: {e}")
+            sys.exit(1)
+
+    # Associate first token
+    try:
+        TokenAssociateTransaction().set_account_id(account_id).add_token_id(tokens[0]).freeze_with(client).sign(test_key).execute(client)
+        print(f"✅ Token {tokens[0]} associated with account {account_id}")
+    except Exception as e:
+        print(f"❌ Token association failed: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    run_demo()
+```
+ -->
+
 ## 💡 Solution
 
 EDIT THIS SECTION
@@ -27,6 +96,11 @@ AT THIS SECTION YOU NEED TO DESCRIBE THE STEPS NEEDED TO SOLVE THE ISSUE.
 PLEASE BREAK DOWN THE STEPS AS MUCH AS POSSIBLE AND MAKE SURE THAT THEY ARE EASY TO FOLLOW.
 IF POSSIBLE, ADD LINKS TO THE RELEVANT DOCUMENTATION AND/OR CODE SECTIONS.
 
+<!-- Example (commented out so you cannot see this on publish)
+The solution is to split the monolithic main() function for illustrating TokenAssociateTransaction into separate smaller functions which are called from main().
+
+ -->
+
 ### 👩‍💻 Implementation
 
 EDIT THIS SECTION
@@ -34,6 +108,51 @@ EDIT THIS SECTION
 AT THIS SECTION YOU NEED TO DESCRIBE THE TECHNICAL STEPS NEEDED TO SOLVE THE ISSUE.
 PLEASE BREAK DOWN THE STEPS AS MUCH AS POSSIBLE AND MAKE SURE THAT THEY ARE EASY TO FOLLOW.
 IF POSSIBLE, ADD LINKS TO THE RELEVANT DOCUMENTATION AND/OR CODE.
+
+<!-- Example (commented out so you cannot see this on publish)
+
+To break down the monolithic main function, you need to:
+- [ ] Extract the Key Steps (set up a client, create a test account, create a token, associate the token)
+- [ ] Copy and paste the functionality for each key step into its own function
+- [ ] Pass to each function the variables you need to run it
+- [ ] Call each function in main()
+- [ ] Ensure you return the values you'll need to pass on to the next step in main
+- [ ] Ensure the example still runs and has the same output!
+
+For example:
+```python
+
+def setup_client():
+    """
+    Initialize and set up the client with operator account.
+    """
+
+def create_test_account(client, operator_key):
+    """
+    Create a new test account for demonstration.
+    """
+
+
+def create_fungible_token(client, operator_id, operator_key):
+    """
+    Create a fungible token for association with test account.
+    """
+
+def associate_token_with_account(client, token_id, account_id, account_key):
+    """
+    Associate the token with the test account.
+    """
+
+
+def main():
+    client, operator_id, operator_key = setup_client()
+    account_id, account_private_key = create_test_account(client, operator_key)
+    token_id = create_fungible_token(client, operator_id, operator_key)
+    associate_token_with_account(client, token_id, account_id, account_private_key)
+
+if __name__ == "__main__":
+    main()
+ -->
 
 ## 📋 Step by step guide to do a contribution
 
