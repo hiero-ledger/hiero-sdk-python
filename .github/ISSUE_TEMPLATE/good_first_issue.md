@@ -1,3 +1,10 @@
+name: Good First Issue Template
+description: A Python SDK-specific template to quickly create excellent good first issues
+title: "Good First Issue: Add Your Title Here"
+labels: "good first issue"
+assignees: ''
+---
+
 ## 🆕🐥 First Timers Only
 
 This issue is reserved for people who have never contributed or have made minimal contributions to [Hiero Python SDK](https://hiero.org).
