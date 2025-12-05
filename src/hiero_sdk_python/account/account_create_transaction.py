@@ -303,23 +303,6 @@ class AccountCreateTransaction(Transaction):
         self.decline_staking_reward = decline_staking_reward
         return self
 
-    def _to_proto_key(self, key: Optional[Key]) -> Optional[basic_types_pb2.Key]:
-        """
-        Helper method to convert a PrivateKey or PublicKey to the protobuf Key format.
-
-        This ensures only public keys are serialized.
-        """
-        if key is None:
-            return None
-
-        if isinstance(key, PrivateKey):
-            return key.public_key()._to_proto()
-
-        if isinstance(key, PublicKey):
-            return key._to_proto()
-
-        raise TypeError("Key must be of type PrivateKey or PublicKey")
-
     def _build_proto_body(self) -> crypto_create_pb2.CryptoCreateTransactionBody:
         """
         Returns the protobuf body for the account create transaction.
