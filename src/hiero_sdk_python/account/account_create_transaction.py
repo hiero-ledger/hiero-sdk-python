@@ -18,11 +18,11 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = Hbar(3).to_tinybars()  # 3 Hbars
 
-Key = Union[PrivateKey, PublicKey]
 
 class AccountCreateTransaction(Transaction):
     """
@@ -127,7 +127,10 @@ class AccountCreateTransaction(Transaction):
         self._require_not_frozen()
         self.key = key
         evm_source_key: Key = ecdsa_key if ecdsa_key is not None else key
-        self.alias = self._derive_evm_address(evm_source_key)
+        if isinstance(evm_source_key, PrivateKey):
+            evm_source_key = evm_source_key.public_key()
+
+        self.alias = evm_source_key.to_evm_address()
         return self
 
     def set_initial_balance(self, balance: Union[Hbar, int]) -> "AccountCreateTransaction":
@@ -300,16 +303,6 @@ class AccountCreateTransaction(Transaction):
         self.decline_staking_reward = decline_staking_reward
         return self
 
-    def _derive_evm_address(self, key: Key) -> EvmAddress:
-        """
-        Derive the EVM address from either a PublicKey or a PrivateKey.
-        """
-        if isinstance(key, PublicKey):
-            return key.to_evm_address()
-        if isinstance(key, PrivateKey):
-            return key.public_key().to_evm_address()
-        raise TypeError("Key must be of type PrivateKey or PublicKey")
-
     def _to_proto_key(self, key: Optional[Key]) -> Optional[basic_types_pb2.Key]:
         """
         Helper method to convert a PrivateKey or PublicKey to the protobuf Key format.
@@ -348,7 +341,7 @@ class AccountCreateTransaction(Transaction):
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
 
-        proto_key = self._to_proto_key(self.key)
+        proto_key = key_to_proto(self.key)
 
         proto_body = crypto_create_pb2.CryptoCreateTransactionBody(
             key=proto_key,
