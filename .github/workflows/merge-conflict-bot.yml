@@ -3,13 +3,17 @@ name: PythonBot - Check Merge Conflicts
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
   pull-requests: write
 
 concurrency:
-  group: "check-conflicts-${{ github.event.pull_request.number }}"
+  # Use PR number if available, otherwise use the Commit SHA
+  group: "check-conflicts-${{ github.event.pull_request.number || github.sha }}"
   cancel-in-progress: true
 
 jobs:
@@ -26,10 +30,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
           REPO="${{ github.repository }}"
+          # 1. Determine which PRs to check
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "Triggered by push to main. Fetching all open PRs..."
+            PR_NUMBERS=$(gh pr list --repo $REPO --state open --json number --jq '.[].number')
+          else
+            echo "Triggered by PR update."
+            PR_NUMBERS="${{ github.event.pull_request.number }}"
+          fi
 
-          echo "Checking merge status for PR #$PR_NUMBER in repository $REPO..."
+          # 2. Loop through the list (works for 1 PR or 100 PRs)
+          for PR_NUMBER in $PR_NUMBERS; do
+            echo "---------------------------------------------------"
+            echo "Checking merge status for PR #$PR_NUMBER in repository $REPO..."
+          
 
           for i in {1..10}; do
             PR_JSON=$(gh api repos/$REPO/pulls/$PR_NUMBER)
@@ -63,9 +78,10 @@ jobs:
             )
 
             gh pr view $PR_NUMBER --repo $REPO --json comments --jq '.comments[].body' | grep -F "MergeConflictBot" >/dev/null || \
-            (gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT" && echo "Comment added to PR #$PR_NUMBER")
-            
-            exit 1
-          else
-            echo "No merge conflicts detected (State: $MERGEABLE_STATE)."
-          fi
+              (gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT" && echo "Comment added to PR #$PR_NUMBER")
+              
+              # REMOVED 'exit 1' here so the loop continues!
+            else
+              echo "No merge conflicts detected for PR #$PR_NUMBER (State: $MERGEABLE_STATE)."
+            fi
+          done
