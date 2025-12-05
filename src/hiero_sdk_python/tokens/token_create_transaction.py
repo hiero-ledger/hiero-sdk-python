@@ -26,14 +26,11 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.tokens.custom_fee import CustomFee
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
-
-Key = Union[PrivateKey, PublicKey]
 
 @dataclass
 class TokenParams:
@@ -446,38 +443,6 @@ class TokenCreateTransaction(Transaction):
         self._token_params.metadata = metadata
         return self
 
-    def _to_proto_key(self, key: Optional[Key]) -> Optional[basic_types_pb2.Key]:
-        """
-        Helper method to convert a PrivateKey or PublicKey to the protobuf Key format.
-
-        This ensures only public keys are serialized:
-        - If a PublicKey is provided, it is used directly.
-        - If a PrivateKey is provided, its corresponding public key is extracted and used.
-
-        Args:
-            key (Key, Optional): The PrivateKey or PublicKey to convert.
-            
-        Returns:
-            basic_types_pb2.Key (Optional): The protobuf key, or None.
-            
-        Raises:
-            TypeError: If the provided key is not a PrivateKey, PublicKey, or None.
-        """
-        if not key:
-            return None
-
-        # If it's a PrivateKey, get its public key first
-        if isinstance(key, PrivateKey):
-            return key.public_key()._to_proto()
-        
-        # If it's already a PublicKey, just convert it
-        if isinstance(key, PublicKey):
-            return key._to_proto()
-
-        # Safety net: This will fail if a non-key is passed
-        raise TypeError("Key must be of type PrivateKey or PublicKey")
-
-
     def freeze_with(self, client) -> "TokenCreateTransaction":
         """
         Freeze the transaction with the given client.
@@ -501,6 +466,17 @@ class TokenCreateTransaction(Transaction):
         return super().freeze_with(client)
 
 
+    def _to_proto_key(self, key: Optional[Key]):
+        """
+        Backwards-compatible wrapper around `key_to_proto` for converting SDK keys
+        (PrivateKey or PublicKey) to protobuf `Key` messages.
+
+        This exists so that existing unit tests and any external callers that rely
+        on `_to_proto_key` continue to work after centralizing the logic in
+        `hiero_sdk_python.utils.key_utils.key_to_proto`.
+        """
+        return key_to_proto(key)
+
     def _build_proto_body(self) -> token_create_pb2.TokenCreateTransactionBody:
         """
         Returns the protobuf body for the token create transaction.
@@ -518,14 +494,14 @@ class TokenCreateTransaction(Transaction):
         TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
 
         # Convert keys
-        admin_key_proto = self._to_proto_key(self._keys.admin_key)
-        supply_key_proto = self._to_proto_key(self._keys.supply_key)
-        freeze_key_proto = self._to_proto_key(self._keys.freeze_key)
-        wipe_key_proto = self._to_proto_key(self._keys.wipe_key)
-        metadata_key_proto = self._to_proto_key(self._keys.metadata_key)
-        pause_key_proto = self._to_proto_key(self._keys.pause_key)
-        kyc_key_proto = self._to_proto_key(self._keys.kyc_key)
-        fee_schedules_key_proto = self._to_proto_key(self._keys.fee_schedule_key);
+        admin_key_proto = key_to_proto(self._keys.admin_key)
+        supply_key_proto = key_to_proto(self._keys.supply_key)
+        freeze_key_proto = key_to_proto(self._keys.freeze_key)
+        wipe_key_proto = key_to_proto(self._keys.wipe_key)
+        metadata_key_proto = key_to_proto(self._keys.metadata_key)
+        pause_key_proto = key_to_proto(self._keys.pause_key)
+        kyc_key_proto = key_to_proto(self._keys.kyc_key)
+        fee_schedules_key_proto = key_to_proto(self._keys.fee_schedule_key)
 
         # Resolve enum values with defaults
         token_type_value = (

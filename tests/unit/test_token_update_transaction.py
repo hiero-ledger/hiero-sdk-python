@@ -12,6 +12,8 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateKeys, TokenUpdateParams, TokenUpdateTransaction
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -256,3 +258,192 @@ def test_build_scheduled_body(mock_account_ids, private_key, new_token_data):
     assert schedulable_body.tokenUpdate.autoRenewAccount == operator_id._to_proto()
     assert schedulable_body.tokenUpdate.treasury == operator_id._to_proto()
     assert schedulable_body.tokenUpdate.adminKey.HasField("ed25519")
+
+
+# Helper functions for key generation and verification
+def create_key(key_type, use_private):
+    """
+    Create a key based on type and whether to use private or public.
+    
+    Args:
+        key_type: "ed25519" or "ecdsa"
+        use_private: True for PrivateKey, False for PublicKey
+    
+    Returns:
+        The created key (PrivateKey or PublicKey)
+    """
+    if key_type == "ed25519":
+        private_key = PrivateKey.generate_ed25519()
+    else:  # ecdsa
+        private_key = PrivateKey.generate_ecdsa()
+    
+    return private_key if use_private else private_key.public_key()
+
+
+def get_expected_public_key(key):
+    """
+    Get the public key from either PrivateKey or PublicKey.
+    
+    Args:
+        key: PrivateKey or PublicKey
+    
+    Returns:
+        PublicKey
+    """
+    return key if isinstance(key, PublicKey) else key.public_key()
+
+
+def verify_key_in_proto(proto_key, expected_public_key, key_type):
+    """
+    Verify the proto key matches expected public key.
+    
+    Args:
+        proto_key: The proto key from the transaction body
+        expected_public_key: The expected PublicKey
+        key_type: "ed25519" or "ecdsa"
+    """
+    if key_type == "ed25519":
+        assert proto_key.ed25519 == expected_public_key.to_bytes_raw()
+    else:  # ecdsa
+        assert proto_key.HasField("ECDSA_secp256k1")
+        assert proto_key.ECDSA_secp256k1 == expected_public_key.to_bytes_raw()
+
+
+# Tests for PrivateKey and PublicKey support (ED25519 and ECDSA)
+@pytest.mark.parametrize("key_type,use_private", [
+    ("ed25519", True),
+    ("ed25519", False),
+    ("ecdsa", True),
+    ("ecdsa", False),
+])
+@pytest.mark.parametrize("field_name,setter_name,proto_path", [
+    ("admin_key", "set_admin_key", "adminKey"),
+    ("freeze_key", "set_freeze_key", "freezeKey"),
+    ("wipe_key", "set_wipe_key", "wipeKey"),
+    ("supply_key", "set_supply_key", "supplyKey"),
+    ("metadata_key", "set_metadata_key", "metadata_key"),
+    ("pause_key", "set_pause_key", "pause_key"),
+    ("kyc_key", "set_kyc_key", "kycKey"),
+    ("fee_schedule_key", "set_fee_schedule_key", "fee_schedule_key"),
+])
+def test_single_key_fields(mock_account_ids, key_type, use_private, field_name, setter_name, proto_path):
+    """Test single key fields with different key types (PrivateKey and PublicKey)."""
+    operator_id, _, node_account_id, token_id, _ = mock_account_ids
+    
+    # Create the key
+    key = create_key(key_type, use_private)
+    expected_public_key = get_expected_public_key(key)
+    
+    # Create transaction and set the key
+    tx = TokenUpdateTransaction()
+    tx.set_token_id(token_id)
+    getattr(tx, setter_name)(key)
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+    
+    # Build transaction body
+    transaction_body = tx.build_transaction_body()
+    
+    # Get the proto key from the transaction body
+    proto_key = getattr(transaction_body.tokenUpdate, proto_path)
+    
+    # Verify the proto key matches the expected public key
+    verify_key_in_proto(proto_key, expected_public_key, key_type)
+
+
+@pytest.mark.parametrize("key_type,use_private", [
+    ("ed25519", True),
+    ("ed25519", False),
+    ("ecdsa", True),
+    ("ecdsa", False),
+])
+def test_constructor_with_public_key(mock_account_ids, key_type, use_private, new_token_data):
+    """Test constructor with PublicKey in TokenUpdateKeys."""
+    operator_id, _, _, token_id, _ = mock_account_ids
+    
+    admin_key = create_key(key_type, use_private)
+    freeze_key = create_key(key_type, use_private)
+    expected_admin_public = get_expected_public_key(admin_key)
+    expected_freeze_public = get_expected_public_key(freeze_key)
+    
+    token_keys = TokenUpdateKeys(
+        admin_key=admin_key,
+        freeze_key=freeze_key,
+    )
+    
+    update_tx = TokenUpdateTransaction(
+        token_id=token_id,
+        token_keys=token_keys,
+    )
+    
+    assert update_tx.admin_key == admin_key
+    assert update_tx.freeze_key == freeze_key
+    
+    # Verify keys are correctly stored
+    update_tx.operator_account_id = operator_id
+    update_tx.node_account_id = operator_id  # Using operator_id as node_account_id for test
+    transaction_body = update_tx.build_transaction_body()
+    
+    verify_key_in_proto(transaction_body.tokenUpdate.adminKey, expected_admin_public, key_type)
+    verify_key_in_proto(transaction_body.tokenUpdate.freezeKey, expected_freeze_public, key_type)
+
+
+def test_mixed_key_types_in_constructor(mock_account_ids):
+    """Test constructor with mixed PrivateKey and PublicKey types."""
+    operator_id, _, _, token_id, _ = mock_account_ids
+    
+    ed25519_private = PrivateKey.generate_ed25519()
+    ed25519_public = PrivateKey.generate_ed25519().public_key()
+    ecdsa_private = PrivateKey.generate_ecdsa()
+    ecdsa_public = PrivateKey.generate_ecdsa().public_key()
+    
+    token_keys = TokenUpdateKeys(
+        admin_key=ed25519_private,
+        freeze_key=ed25519_public,
+        wipe_key=ecdsa_private,
+        supply_key=ecdsa_public,
+    )
+    
+    tx = TokenUpdateTransaction(
+        token_id=token_id,
+        token_keys=token_keys,
+    )
+    tx.operator_account_id = operator_id
+    tx.node_account_id = operator_id
+    
+    transaction_body = tx.build_transaction_body()
+    
+    # Verify all keys are correctly converted
+    assert transaction_body.tokenUpdate.adminKey.ed25519 == ed25519_private.public_key().to_bytes_raw()
+    assert transaction_body.tokenUpdate.freezeKey.ed25519 == ed25519_public.to_bytes_raw()
+    assert transaction_body.tokenUpdate.wipeKey.HasField("ECDSA_secp256k1")
+    assert transaction_body.tokenUpdate.supplyKey.HasField("ECDSA_secp256k1")
+
+
+@pytest.mark.parametrize("key_type,use_private", [
+    ("ed25519", True),
+    ("ed25519", False),
+    ("ecdsa", True),
+    ("ecdsa", False),
+])
+def test_build_transaction_body_with_keys(mock_account_ids, key_type, use_private, new_token_data):
+    """Test building transaction body with keys (both PrivateKey and PublicKey)."""
+    operator_id, _, node_account_id, token_id, _ = mock_account_ids
+    
+    admin_key = create_key(key_type, use_private)
+    freeze_key = create_key(key_type, use_private)
+    expected_admin_public = get_expected_public_key(admin_key)
+    expected_freeze_public = get_expected_public_key(freeze_key)
+    
+    update_tx = TokenUpdateTransaction(token_id=token_id)
+    update_tx.set_admin_key(admin_key)
+    update_tx.set_freeze_key(freeze_key)
+    update_tx.set_token_name(new_token_data["name"])
+    update_tx.operator_account_id = operator_id
+    update_tx.node_account_id = node_account_id
+    
+    transaction_body = update_tx.build_transaction_body()
+    
+    assert transaction_body.tokenUpdate.name == new_token_data["name"]
+    verify_key_in_proto(transaction_body.tokenUpdate.adminKey, expected_admin_public, key_type)
+    verify_key_in_proto(transaction_body.tokenUpdate.freezeKey, expected_freeze_public, key_type)
