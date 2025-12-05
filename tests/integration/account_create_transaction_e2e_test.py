@@ -267,3 +267,24 @@ def test_create_account_with_decline_reward(env):
     assert info.account_id == account_id
     assert info.staked_account_id == env.operator_id
     assert info.decline_staking_reward is True
+
+def test_integration_account_create_transaction_can_execute_with_private_key(env):
+    """Test AccountCreateTransaction can be executed when key is a PrivateKey."""
+    new_account_private_key = PrivateKey.generate()
+    initial_balance = Hbar(2)
+
+    assert initial_balance.to_tinybars() == 200000000
+
+    transaction = AccountCreateTransaction(
+        key=new_account_private_key,
+        initial_balance=initial_balance,
+        memo="Recipient Account With PrivateKey",
+    )
+
+    transaction.freeze_with(env.client)
+    receipt = transaction.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS
+    assert receipt.account_id is not None, (
+        "AccountID not found in receipt. Account may not have been created."
+    )
