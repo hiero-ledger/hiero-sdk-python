@@ -29,7 +29,8 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
         self,
         hbar_transfers: Optional[Dict[AccountId, int]] = None,
         token_transfers: Optional[Dict[TokenId, Dict[AccountId, int]]] = None,
-        nft_transfers: Optional[Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]]] = None,
+        nft_transfers: Optional[Dict[TokenId,
+                                     List[Tuple[AccountId, AccountId, int, bool]]]] = None,
     ) -> None:
         """
         Initializes a new TransferTransaction instance.
@@ -73,10 +74,19 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             TransferTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
+
         if not isinstance(account_id, AccountId):
             raise TypeError("account_id must be an AccountId instance.")
-        if not isinstance(amount, int) or amount == 0:
-            raise ValueError("Amount must be a non-zero integer.")
+
+        if amount is None:
+            raise TypeError("amount cannot be None.")
+
+        if not isinstance(amount, int):
+            raise TypeError("amount must be an integer.")
+
+        if amount == 0:
+            raise ValueError("amount must be a non-zero integer.")
+
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
 
@@ -85,8 +95,9 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
                 transfer.amount += amount
                 return self
 
-        self.hbar_transfers.append(HbarTransfer(account_id, amount, is_approved))
-        return self
+                self.hbar_transfers.append(
+                    HbarTransfer(account_id, amount, is_approved))
+                return self
 
     def add_hbar_transfer(self, account_id: AccountId, amount: int) -> "TransferTransaction":
         """
@@ -190,7 +201,8 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
 
             if crypto_transfer.HasField("transfers"):
                 for account_amount in crypto_transfer.transfers.accountAmounts:
-                    account_id = AccountId._from_proto(account_amount.accountID)
+                    account_id = AccountId._from_proto(
+                        account_amount.accountID)
                     amount = account_amount.amount
                     is_approved = account_amount.is_approval
                     transaction.hbar_transfers.append(
@@ -210,17 +222,21 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
                         expected_decimals = token_transfer_list.expected_decimals.value
 
                     transaction.token_transfers[token_id].append(
-                        TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved)
+                        TokenTransfer(token_id, account_id, amount,
+                                      expected_decimals, is_approved)
                     )
 
                 for nft_transfer in token_transfer_list.nftTransfers:
-                    sender_id = AccountId._from_proto(nft_transfer.senderAccountID)
-                    receiver_id = AccountId._from_proto(nft_transfer.receiverAccountID)
+                    sender_id = AccountId._from_proto(
+                        nft_transfer.senderAccountID)
+                    receiver_id = AccountId._from_proto(
+                        nft_transfer.receiverAccountID)
                     serial_number = nft_transfer.serialNumber
                     is_approved = nft_transfer.is_approval
 
                     transaction.nft_transfers[token_id].append(
-                        TokenNftTransfer(token_id, sender_id, receiver_id, serial_number, is_approved)
+                        TokenNftTransfer(
+                            token_id, sender_id, receiver_id, serial_number, is_approved)
                     )
 
         return transaction
