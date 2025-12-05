@@ -1,8 +1,8 @@
-name: PythonBot - Inactivity Unassign Bot (Phase 1)
+name: name: bot-inactivity-unassign-phase1
 
 on:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0 10 * * *"
   workflow_dispatch:
 
 permissions:
@@ -25,4 +25,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           DAYS: 21
-        run: .github/scripts/inactivity_unassign_phase1.sh
+        run: bash .github/scripts/inactivity_unassign_phase1.sh
