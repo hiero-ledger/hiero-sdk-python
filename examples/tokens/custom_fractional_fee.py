@@ -87,27 +87,30 @@ def create_token_with_fee_key(client, operator_id, fractional_fee: CustomFractio
     print(f"Token created with ID: {token_id}")
     return token_id
 
-def print_fractional_fees(token_info):
+def print_fractional_fees(token_info, fractional_fee):
     """Print all CustomFractionalFee objects from a TokenInfo."""
     if not token_info.custom_fees:
         print("No custom fees found.")
         return
+    else:
+        print("\n--- Custom Fractional Fee ---")
+        print(fractional_fee)
 
 def query_and_validate_fractional_fee(client: Client, token_id):
     """Fetch token info from Hedera and print the custom fractional fees."""
     print("\nQuerying token info to validate fractional fee...")
     token_info = TokenInfoQuery(token_id=token_id).execute(client)
-    print_fractional_fees(token_info)  
+    return token_info
 
 def main():
     client, operator_id, _ = setup_client()
     # Build fractional fee
     fractional_fee = build_fractional_fee(operator_id)
-    print("\n--- Custom Fractional Fee ---")
-    print(fractional_fee)
     token_id = create_token_with_fee_key(client, operator_id, fractional_fee)
+    
     # Query and validate fractional fee
-    query_and_validate_fractional_fee(client, token_id)
+    token_info = query_and_validate_fractional_fee(client, token_id)
+    print_fractional_fees(token_info, fractional_fee)
     print("✅ Example completed successfully.")
     
 if __name__ == "__main__":
