@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - 'merge-conflict-bot-main-trigger'
 
 permissions:
   contents: read
@@ -91,7 +90,7 @@ jobs:
             if (context.eventName === 'push') {
               console.log("Triggered by Push to Main. Fetching all open PRs...");
               const { data: openPrs } = await github.rest.pulls.list({
-                owner, repo, state: 'open', base: 'merge-conflict-bot-main-trigger'
+                owner, repo, state: 'open', base: 'main'
               });
               prsToCheck = openPrs.map(pr => pr.number);
             } 
