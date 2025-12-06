@@ -12,7 +12,8 @@ from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
     validate_checksum,
     format_to_string_with_checksum,
-    perform_query_to_mirror_node
+    perform_query_to_mirror_node,
+    to_solidity_address
 )
 
 if TYPE_CHECKING:
@@ -79,11 +80,15 @@ class AccountId:
             
             if alias_match:
                 shard, realm, alias = alias_match.groups()
+                alias_bytes = bytes.fromhex(alias)
+                is_evm_address = len(alias_bytes) == 20
+
                 return cls(
                     shard=int(shard),
                     realm=int(realm),
                     num=0,
-                    alias_key=PublicKey.from_bytes(bytes.fromhex(alias))
+                    alias_key=PublicKey.from_bytes(bytes.fromhex(alias)) if not is_evm_address else None,
+                    evm_address=EvmAddress.from_bytes(alias_bytes) if is_evm_address else None
                 )
             
             raise ValueError(
@@ -102,6 +107,10 @@ class AccountId:
             alias_key=None,
             evm_address=evm_address
         )
+    
+    @classmethod
+    def from_bytes(cls, bytes: "bytes"):
+        return cls._from_proto(basic_types_pb2.AccountID.FromString(bytes))
 
     @classmethod
     def _from_proto(cls, account_id_proto: basic_types_pb2.AccountID) -> "AccountId":
@@ -193,7 +202,10 @@ class AccountId:
         )
     
     def populate_account_num(self, client: "Client") -> "AccountId":
-        """Populate Hedera account number from an EVM address."""
+        """
+        Populate the num field of this AccountId by querying the Hedera Mirror Node.
+        This method should be used when the AccountId was initially generated from an EVM address 
+        """
         url = f"{client.network.get_mirror_node_rest_url()}/accounts/{self.evm_address.to_string()}"
         data = perform_query_to_mirror_node(url)
 
@@ -208,7 +220,7 @@ class AccountId:
             raise ValueError(f"Invalid account format received: {account_id}")
 
     def populate_evm_address(self, client: "Client") -> "AccountId":
-        """Populate EVM address from a Hedera account number."""
+        """Populates evm_address field of the AccountId extracted from the Mirror Node."""
         url = f"{client.network.get_mirror_node_rest_url()}/accounts/{self.num}"
         data = perform_query_to_mirror_node(url)
 
@@ -219,7 +231,17 @@ class AccountId:
         self.evm_address = EvmAddress.from_string(evm_addr)
         return self
 
-    def __repr__(self) -> str:
+    def to_evm_address(self) -> str:
+        """Returns EVM-compatible address representation of the entity"""
+        if self.evm_address:
+            return self.evm_address.to_string()
+
+        return to_solidity_address(self.shard,self.realm,self.num)
+    
+    def to_bytes(self):
+        self._to_proto().SerializeToString()
+            
+     def __repr__(self) -> str:
         """
         Returns the repr representation of the AccountId.
         """
@@ -245,11 +267,12 @@ class AccountId:
         """
         if not isinstance(other, AccountId):
             return False
-        return (self.shard, self.realm, self.num, self.alias_key) == (
+        return (self.shard, self.realm, self.num, self.alias_key, self.evm_address) == (
             other.shard,
             other.realm,
             other.num,
             other.alias_key,
+            other.evm_address
         )
 
     def __hash__(self) -> int:
