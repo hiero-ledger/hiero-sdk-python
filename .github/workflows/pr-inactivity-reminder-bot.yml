@@ -1,0 +1,30 @@
+# This workflow warns PRs that have had no activity for a specified amount of time(10 Days).
+
+name: PR Inactivity Reminder Bot
+
+on:
+  schedule:
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+
+
+jobs:
+  remind_inactive_prs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
+        with:
+          egress-policy: audit
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - name: Remind authors of inactive PRs
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const script = require('./.github/scripts/pr_inactivity_reminder.js')
+            console.log(script({github, context}))
