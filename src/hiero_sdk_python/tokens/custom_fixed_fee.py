@@ -61,6 +61,14 @@ class CustomFixedFee(CustomFee):
         super().__init__(fee_collector_account_id, all_collectors_are_exempt)
         self.amount = amount
         self.denominating_token_id = denominating_token_id
+        
+    def __str__(self) -> str:
+        """Return a string representation of the CustomFixedFee."""
+        max_len = max(len(k.replace('_', ' ').title()) for k in self.__dict__)
+        return f"{self.__class__.__name__}:\n" + "".join(
+            f"    {key.replace('_', ' ').title():<{max_len}} = {value}\n"
+            for key, value in self.__dict__.items()
+        )
 
     def set_amount_in_tinybars(self, amount: int) -> "CustomFixedFee":
         """Sets the fee amount in tinybars.
