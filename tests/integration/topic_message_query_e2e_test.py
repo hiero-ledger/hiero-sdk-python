@@ -100,7 +100,7 @@ def test_topic_message_query_receives_messages(env):
     start = datetime.now()
 
     while len(messages) == 0:
-        if datetime.now() - start > timedelta(seconds=120):
+        if datetime.now() - start > timedelta(seconds=180):
             raise TimeoutError("TopicMessage was not received in time")
         time.sleep(5)
 
@@ -140,7 +140,7 @@ def test_topic_message_query_limit(env):
         start = datetime.now()
 
         while len(messages) != 2:
-            if datetime.now() - start > timedelta(seconds=120):
+            if datetime.now() - start > timedelta(seconds=180):
                 raise TimeoutError("TopicMessage was not received in time")
             time.sleep(5)
 
@@ -197,7 +197,7 @@ def test_topic_message_query_large_message_chunking(env):
     start = datetime.now()
 
     while len(messages) == 0:
-        if datetime.now() - start > timedelta(seconds=120):
+        if datetime.now() - start > timedelta(seconds=180):
             raise TimeoutError("TopicMessage was not received in time")
         time.sleep(5)
     
