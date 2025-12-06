@@ -3,8 +3,9 @@ AccountId class.
 """
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Union
 
+from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
@@ -33,7 +34,7 @@ class AccountId:
     """
 
     def __init__(
-        self, shard: int = 0, realm: int = 0, num: int = 0, alias_key: PublicKey = None
+        self, shard: int = 0, realm: int = 0, num: int = 0, alias_key: Optional[PublicKey] = None, evm_address: Optional[EvmAddress] = None
     ) -> None:
         """
         Initialize a new AccountId instance.
@@ -47,6 +48,7 @@ class AccountId:
         self.realm = realm
         self.num = num
         self.alias_key = alias_key
+        self.evm_address = evm_address
         self.__checksum: str | None = None
 
     @classmethod
@@ -56,6 +58,9 @@ class AccountId:
         """
         if account_id_str is None or not isinstance(account_id_str, str):
             raise ValueError(f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'.")
+        
+        if (account_id_str.startswith('0x') and len(account_id_str) == 42) or len(account_id_str) == 40:
+            return cls.from_evm_address(account_id_str, 0, 0)
 
         try:
             shard, realm, num, checksum = parse_from_string(account_id_str)
@@ -83,6 +88,19 @@ class AccountId:
             raise ValueError(
                 f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
             ) from e
+    
+    @classmethod
+    def from_evm_address(cls, evm_address: Union[str, EvmAddress], shard: int = 0, realm: int = 0):
+        if isinstance(evm_address, str):
+            evm_address = EvmAddress.from_string(evm_address)
+        
+        return cls(
+            shard=shard,
+            realm=realm,
+            num=0,
+            alias_key=None,
+            evm_address=evm_address
+        )
 
     @classmethod
     def _from_proto(cls, account_id_proto: basic_types_pb2.AccountID) -> "AccountId":
@@ -102,7 +120,11 @@ class AccountId:
         )
         if account_id_proto.alias:
             alias = account_id_proto.alias[2:]  # remove 0x prefix
-            result.alias_key = PublicKey.from_bytes(alias)
+            if len(alias) == 20:
+                result.evm_address = EvmAddress.from_bytes(alias)
+            else:
+                result.alias_key = PublicKey.from_bytes(alias)
+        
         return result
 
     def _to_proto(self) -> basic_types_pb2.AccountID:
@@ -121,6 +143,8 @@ class AccountId:
         if self.alias_key:
             key = self.alias_key._to_proto().SerializeToString()
             account_id_proto.alias = key
+        elif self.evm_address:
+            account_id_proto.alias = self.evm_address.address_bytes
 
         return account_id_proto
 
@@ -131,8 +155,8 @@ class AccountId:
 
     def validate_checksum(self, client: "Client") -> None:
         """Validate the checksum for the accountId"""
-        if self.alias_key is not None:
-            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
+        if self.alias_key is not None or self.evm_address is not None:
+            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey or evmAddress")
 
         validate_checksum(
             self.shard,
@@ -148,15 +172,17 @@ class AccountId:
         """
         if self.alias_key:
             return f"{self.shard}.{self.realm}.{self.alias_key.to_string()}"
+        if self.evm_address:
+            return f"{self.shard}.{self.realm}.{self.evm_address.to_string()}"
         return f"{self.shard}.{self.realm}.{self.num}"
-
+    
     def to_string_with_checksum(self, client: "Client") -> str:
         """
         Returns the string representation of the AccountId with checksum 
         in 'shard.realm.num-checksum' format.
         """
-        if self.alias_key is not None:
-            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
+        if self.alias_key is not None or self.evm_address is not None:
+            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey or evmAddress")
 
         return format_to_string_with_checksum(
             self.shard,
@@ -173,6 +199,11 @@ class AccountId:
             return (
                 f"AccountId(shard={self.shard}, realm={self.realm}, "
                 f"alias_key={self.alias_key.to_string_raw()})"
+            )
+        if self.evm_address:
+            return (
+                f"AccountId(shard={self.shard}, realm={self.realm}, "
+                f"evm_address={self.evm_address.to_string()})"
             )
         return f"AccountId(shard={self.shard}, realm={self.realm}, num={self.num})"
 
