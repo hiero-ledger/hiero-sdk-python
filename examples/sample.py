@@ -24,19 +24,14 @@ def main():
     pub_key = key.public_key()
     evm_address= pub_key.to_evm_address()
 
-    ec = AccountId.from_evm_address('0xe4904257d1df556813f4715d438eafd6069d3fb4')
+    ec = AccountId.from_string('0.0.4951978')
 
     print(operator_id.__repr__())
     operator_id.populate_evm_address(client)
     print(operator_id.__repr__())
 
-    print(ec.__repr__())
-    print(ec.num)
-
-    ec.populate_account_num(client)
-
-    print(ec.__repr__())    
-    print(ec.num)
+    print(ec)
+    print(ec.to_evm_address())
 
 if __name__ == "__main__":
     main()
