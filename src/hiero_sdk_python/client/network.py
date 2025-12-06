@@ -183,3 +183,8 @@ class Network:
         Return the configured mirror node address used for mirror queries.
         """
         return self.mirror_address
+    
+    def get_mirror_node_rest_url(self) -> str:
+        """Returns the rest_url for the mirror node."""
+        base_url: Optional[str] = self.MIRROR_NODE_URLS.get(self.network)
+        return f"{base_url}/api/v1"
