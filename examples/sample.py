@@ -24,26 +24,19 @@ def main():
     pub_key = key.public_key()
     evm_address= pub_key.to_evm_address()
 
-    receipt = (
-        AccountCreateTransaction()
-        .set_key_with_alias(pub_key)
-        .set_account_memo("Demo account")
-        .freeze_with(client)
-        .execute(client)
-    )
+    ec = AccountId.from_evm_address('0xe4904257d1df556813f4715d438eafd6069d3fb4')
 
-    print(receipt.account_id)
-    print(f"Evm address: {evm_address}")
+    print(operator_id.__repr__())
+    operator_id.populate_evm_address(client)
+    print(operator_id.__repr__())
 
-    receipt = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -1)
-        .add_hbar_transfer(AccountId.from_evm_address(evm_address), 1)
-        .freeze_with(client)
-        .execute(client)
-    )
+    print(ec.__repr__())
+    print(ec.num)
 
-    print(ResponseCode(receipt.status).name)
+    ec.populate_account_num(client)
+
+    print(ec.__repr__())    
+    print(ec.num)
 
 if __name__ == "__main__":
     main()

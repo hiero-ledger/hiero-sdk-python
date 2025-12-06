@@ -11,7 +11,8 @@ from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
     validate_checksum,
-    format_to_string_with_checksum
+    format_to_string_with_checksum,
+    perform_query_to_mirror_node
 )
 
 if TYPE_CHECKING:
@@ -190,6 +191,33 @@ class AccountId:
             self.num,
             client
         )
+    
+    def populate_account_num(self, client: "Client") -> "AccountId":
+        """Populate Hedera account number from an EVM address."""
+        url = f"{client.network.get_mirror_node_rest_url()}/accounts/{self.evm_address.to_string()}"
+        data = perform_query_to_mirror_node(url)
+
+        account_id = data.get("account")
+        if not account_id:
+            raise ValueError(f"Mirror node response missing 'account': {data}")
+
+        try:
+            self.num = int(account_id.split(".")[-1])
+            return self
+        except (ValueError, AttributeError):
+            raise ValueError(f"Invalid account format received: {account_id}")
+
+    def populate_evm_address(self, client: "Client") -> "AccountId":
+        """Populate EVM address from a Hedera account number."""
+        url = f"{client.network.get_mirror_node_rest_url()}/accounts/{self.num}"
+        data = perform_query_to_mirror_node(url)
+
+        evm_addr = data.get("evm_address")
+        if not evm_addr:
+            raise ValueError(f"Mirror node response missing 'evm_address': {data}")
+
+        self.evm_address = EvmAddress.from_string(evm_addr)
+        return self
 
     def __repr__(self) -> str:
         """
