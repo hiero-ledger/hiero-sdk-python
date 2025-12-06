@@ -1,41 +1,42 @@
 // Helper to get the last commit date of a PR
-async function getLastCommitDate(github, pr, owner, repo) {
+async function fetchHeadCommitDate(github, pr, owner, repo) {
+  const headRepoOwner = pr.head.repo?.owner?.login || owner;
+  const headRepoName = pr.head.repo?.name || repo;
   try {
-     // Prefer fetching the head commit via the PR head SHA — this reliably gives the latest commit
-    if (pr.head && pr.head.sha) {
-      const headRepoOwner = pr.head.repo?.owner?.login || owner;
-      const headRepoName = pr.head.repo?.name || repo;
-      try {
-        const commitRes = await github.rest.repos.getCommit({
-          owner: headRepoOwner,
-          repo: headRepoName,
-          ref: pr.head.sha,
-        });
-        const commit = commitRes.data?.commit;
-        return new Date(commit?.author?.date || commit?.committer?.date || pr.updated_at);
-      } catch (getCommitErr) {
-         // fallback to listing commits if getCommit fails (e.g., missing permissions on fork)
-        console.log(`Failed to fetch head commit ${pr.head.sha} for PR #${pr.number}:`, getCommitErr.message || getCommitErr);
-        const commits = await github.rest.pulls.listCommits({ owner, repo, pull_number: pr.number, per_page: 100 });
-        if (commits.data?.length) {
-          const last = commits.data[commits.data.length - 1].commit;
-          return new Date(last?.author?.date || last?.committer?.date || pr.updated_at);
-        }
-        return new Date(pr.updated_at);
-      }
-    } else {
-     // No head sha available - list commits and take the most recent
-      const commits = await github.rest.pulls.listCommits({ owner, repo, pull_number: pr.number, per_page: 100 });
-      if (commits.data?.length) {
-        const last = commits.data[commits.data.length - 1].commit;
-        return new Date(last?.author?.date || last?.committer?.date || pr.updated_at);
-      }
-      return new Date(pr.updated_at);
-    }
-  } catch (err) {
-    console.log(`Failed to fetch commit info for PR #${pr.number}:`, err.message || err);
-    return new Date(pr.updated_at);
+    const commitRes = await github.rest.repos.getCommit({
+      owner: headRepoOwner,
+      repo: headRepoName,
+      ref: pr.head.sha,
+    });
+    const commit = commitRes.data?.commit;
+    return commit?.author?.date || commit?.committer?.date || pr.updated_at;
+  } catch (getCommitErr) {
+    console.log(`Failed to fetch head commit ${pr.head.sha} for PR #${pr.number}:`, getCommitErr.message || getCommitErr);
+    return null; // Signal fallback needed
   }
+}
+ // fallback to listing commits if getCommit fails (e.g., missing permissions on fork)
+async function fetchLastPRCommitDate(github, pr, owner, repo) {
+  const commits = await github.rest.pulls.listCommits({ owner, repo, pull_number: pr.number, per_page: 100 });
+  if (commits.data?.length) {
+    const last = commits.data[commits.data.length - 1].commit;
+    return last?.author?.date || last?.committer?.date || pr.updated_at;
+  }
+  return pr.updated_at;
+}
+
+async function getLastCommitDate(github, pr, owner, repo) {
+  // Prefer fetching the head commit via the PR head SHA — this reliably gives the latest commit
+  if (pr.head && pr.head.sha) {
+    const headCommitDate = await fetchHeadCommitDate(github, pr, owner, repo);
+    if (headCommitDate) return new Date(headCommitDate);
+    // If failed, fallback to PR commit list
+    const fallbackCommitDate = await fetchLastPRCommitDate(github, pr, owner, repo);
+    return new Date(fallbackCommitDate);
+  }
+  // If no head SHA, just get last PR commit
+  const lastCommitDate = await fetchLastPRCommitDate(github, pr, owner, repo);
+  return new Date(lastCommitDate);
 }
 
 // Look for an existing bot comment using our unique marker.
