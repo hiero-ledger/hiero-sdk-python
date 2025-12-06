@@ -2,11 +2,12 @@
 Defines TransferTransaction for transferring HBAR or tokens between accounts.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.hapi.services import basic_types_pb2, crypto_transfer_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -59,14 +60,14 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             self.add_hbar_transfer(account_id, amount)
 
     def _add_hbar_transfer(
-        self, account_id: AccountId, amount: int, is_approved: bool = False
+        self, account_id: AccountId, amount: Union[int, Hbar], is_approved: bool = False
     ) -> "TransferTransaction":
         """
         Internal method to add a HBAR transfer to the transaction.
 
         Args:
             account_id (AccountId): The account ID of the sender or receiver.
-            amount (int): The amount of the HBAR to transfer.
+            amount (Union[int, Hbar]): The amount of the HBAR to transfer (in tinybars if int, or as Hbar object).
             is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
 
         Returns:
@@ -75,26 +76,31 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
         self._require_not_frozen()
         if not isinstance(account_id, AccountId):
             raise TypeError("account_id must be an AccountId instance.")
-        if not isinstance(amount, int) or amount == 0:
-            raise ValueError("Amount must be a non-zero integer.")
+        if not isinstance(amount, (int, Hbar)):
+            raise TypeError("Amount must be of type int or Hbar.")
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
 
+        tinybar = amount if isinstance(amount, int) else amount.to_tinybars()
+
+        if tinybar == 0:
+            raise ValueError("Amount must be a non-zero value.")
+
         for transfer in self.hbar_transfers:
             if transfer.account_id == account_id:
-                transfer.amount += amount
+                transfer.amount += tinybar
                 return self
 
-        self.hbar_transfers.append(HbarTransfer(account_id, amount, is_approved))
+        self.hbar_transfers.append(HbarTransfer(account_id, tinybar, is_approved))
         return self
 
-    def add_hbar_transfer(self, account_id: AccountId, amount: int) -> "TransferTransaction":
+    def add_hbar_transfer(self, account_id: AccountId, amount: Union[int, Hbar]) -> "TransferTransaction":
         """
         Adds a HBAR transfer to the transaction.
 
         Args:
             account_id (AccountId): The account ID of the sender or receiver.
-            amount (int): The amount of the HBAR to transfer.
+            amount (Union[int, Hbar]): The amount of the HBAR to transfer (in tinybars if int, or as Hbar object).
 
         Returns:
             TransferTransaction: The current instance of the transaction for chaining.
@@ -103,14 +109,14 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
         return self
 
     def add_approved_hbar_transfer(
-        self, account_id: AccountId, amount: int
+        self, account_id: AccountId, amount: Union[int, Hbar]
     ) -> "TransferTransaction":
         """
         Adds a HBAR transfer with approval to the transaction.
 
         Args:
             account_id (AccountId): The account ID of the sender or receiver.
-            amount (int): The amount of the HBAR to transfer.
+            amount (Union[int, Hbar]): The amount of the HBAR to transfer (in tinybars if int, or as Hbar object).
 
         Returns:
             TransferTransaction: The current instance of the transaction for chaining.
