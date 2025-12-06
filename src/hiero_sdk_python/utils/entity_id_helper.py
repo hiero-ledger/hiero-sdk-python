@@ -1,6 +1,7 @@
 import re
+import requests
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
@@ -123,3 +124,12 @@ def format_to_string_with_checksum(shard: int, realm: int, num: int, client: "Cl
 
     base_str = format_to_string(shard, realm, num)
     return f"{base_str}-{generate_checksum(ledger_id, format_to_string(shard, realm, num))}"
+
+def perform_query_to_mirror_node(url: str) -> Dict[str, Any]:
+    try:
+        response: requests.Response = requests.get(url, timeout=30) # timeout for request
+        response.raise_for_status()
+
+        return response.json()
+    except requests.RequestException as e:
+        raise RuntimeError(f"Failed to fetch from mirror node: {e}")
