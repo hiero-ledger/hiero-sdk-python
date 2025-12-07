@@ -16,7 +16,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
 - Add inactivity bot workflow to unassign stale issue assignees (#952)
 - Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
-- Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
 - Made custom fraction fee end to end
 
 ### Changed
