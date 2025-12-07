@@ -61,6 +61,30 @@ class CustomFixedFee(CustomFee):
         super().__init__(fee_collector_account_id, all_collectors_are_exempt)
         self.amount = amount
         self.denominating_token_id = denominating_token_id
+        
+    def __str__(self) -> str:
+        """Return a user-friendly string representation of the CustomFixedFee.
+
+        Displays all fields in insertion order with aligned formatting.
+        TokenId and AccountId objects are displayed in Hedera notation (e.g., 0.0.123).
+        """
+
+        fields = {
+            key.replace("_", " ").title(): value
+            for key, value in self.__dict__.items()
+        }
+
+        if not fields:
+            return f"{self.__class__.__name__}()"
+
+        max_len = max(len(name) for name in fields)
+
+        lines = [f"{self.__class__.__name__}:"]
+        for name, value in fields.items():  # preserves insertion order
+            lines.append(f"    {name:<{max_len}} = {value}")  # uses __str__()
+
+        return "\n".join(lines)
+
 
     def set_amount_in_tinybars(self, amount: int) -> "CustomFixedFee":
         """Sets the fee amount in tinybars.
