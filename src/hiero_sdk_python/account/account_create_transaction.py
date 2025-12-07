@@ -103,6 +103,7 @@ class AccountCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.key = key
+        self.alias = None
         return self
 
     def set_key_with_alias(

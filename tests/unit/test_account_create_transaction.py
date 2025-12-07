@@ -451,3 +451,75 @@ def test_create_account_transaction_set_key_with_alias_private_keys(mock_account
     assert tx_body.cryptoCreateAccount.key == account_public_key._to_proto()
     # Alias should be the address bytes from the key for the alias
     assert tx_body.cryptoCreateAccount.alias == expected_evm_address.address_bytes
+
+# This test uses fixture mock_account_ids as parameter
+def test_create_account_transaction_set_key_with_alias_private_key_without_ecdsa_key(mock_account_ids):
+    """set_key_with_alias should work also without ecdsa_key."""
+    operator_id, node_id = mock_account_ids
+
+    # Account key(ECDSA)
+    account_private_key = PrivateKey.generate_ecdsa()
+    account_public_key = account_private_key.public_key()
+
+    expected_evm_address = account_public_key.to_evm_address()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_with_alias(account_private_key)
+    )
+
+    assert tx.key == account_private_key
+    assert tx.alias == expected_evm_address
+
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_id
+    tx_body = tx.build_transaction_body()
+
+    # In the proto we should have account public key
+    assert tx_body.cryptoCreateAccount.key == account_public_key._to_proto()
+    # Alias should be the address bytes from the key for the alias
+    assert tx_body.cryptoCreateAccount.alias == expected_evm_address.address_bytes
+
+def test_set_key_without_alias_then_with_alias_overrides_alias():
+    """set_key_with_alias should ovveride set_key_without_alias"""
+    # Account key(ECDSA)
+    account_private_key = PrivateKey.generate_ecdsa()
+    account_public_key = account_private_key.public_key()
+
+    # Alias key (ECDSA)
+    alias_private_key = PrivateKey.generate_ecdsa()
+    alias_public_key = alias_private_key.public_key()
+    expected_evm_address = alias_public_key.to_evm_address()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(account_private_key)
+    )
+
+    assert tx.alias is None
+
+    tx.set_key_with_alias(account_private_key, alias_private_key)
+
+    assert tx.alias == expected_evm_address
+
+def test_set_key_with_alias_then_without_alias_overrides_alias():
+    """set_key_without_alias should ovveride set_key_with_alias"""
+    # Account key(ECDSA)
+    account_private_key = PrivateKey.generate_ecdsa()
+    account_public_key = account_private_key.public_key()
+
+    # Alias key (ECDSA)
+    alias_private_key = PrivateKey.generate_ecdsa()
+    alias_public_key = alias_private_key.public_key()
+    expected_evm_address = alias_public_key.to_evm_address()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_with_alias(account_private_key, alias_private_key)
+    )
+
+    assert tx.alias == expected_evm_address
+
+    tx.set_key_without_alias(account_private_key)
+
+    assert tx.alias is None
