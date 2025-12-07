@@ -2,7 +2,7 @@ name: PythonBot - Verify PR Commits
 
 on:
   pull_request_target:
-    types: [opened, synchronize]
+    types: [opened, synchronize, ready_for_review]
 
 permissions:
   contents: read
@@ -16,6 +16,7 @@ concurrency:
 jobs:
   verify-commits:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
