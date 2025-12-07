@@ -1,4 +1,4 @@
-name: bot-inactivity-unassign-phase1
+name: bot-inactivity-unassign-phase2
 
 on:
   schedule:
@@ -8,10 +8,10 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: write 
+  pull-requests: write
 
 jobs:
-  inactivity-unassign:
+  inactivity-unassign-phase2:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,17 +20,8 @@ jobs:
 
       - name: Harden the runner
         uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2
-        with:
-          egress-policy: audit
 
-      - name: Phase 1 – unassign assignees with NO PRs
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          DAYS: 21
-        run: bash .github/scripts/inactivity_unassign_phase1.sh
-
-      - name: Phase 2 – unassign assignees with stale PRs
+      - name: Unassign stale PR contributors (Phase 2)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
