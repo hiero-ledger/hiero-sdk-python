@@ -14,11 +14,9 @@ def custom_fixed_fee():
         fee_collector_account_id=AccountId(0, 0, 456),
         all_collectors_are_exempt=False,
     )
-    print("CustomFixedFee:")
-    print(f"Amount: {fixed_fee.amount}")
-    print(f"Denominating Token ID: {fixed_fee.denominating_token_id}")
-    print(f"Fee Collector Account ID: {fixed_fee.fee_collector_account_id}")
-    print(f"All Collectors Exempt: {fixed_fee.all_collectors_are_exempt}")
+    print("\n--- Custom Fixed Fee ---")
+    print(fixed_fee)
+
     # Convert to protobuf
     fixed_fee_proto = fixed_fee._to_proto()
     
