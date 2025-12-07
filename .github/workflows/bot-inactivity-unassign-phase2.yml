@@ -20,10 +20,12 @@ jobs:
 
       - name: Harden the runner
         uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2
+        with:
+          egress-policy: audit
 
       - name: Unassign stale PR contributors (Phase 2)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          DAYS: 0
+          DAYS: 21
         run: bash .github/scripts/inactivity_unassign_phase2.sh
