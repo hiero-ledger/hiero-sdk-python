@@ -151,7 +151,7 @@ class CustomRoyaltyFee(CustomFee):
             fee_collector_account_id=fee_collector_account_id,
             all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
         )
-    
+
     def __str__(self) -> str:
         """Returns a string representation of the CustomRoyaltyFee.
 
@@ -172,5 +172,5 @@ class CustomRoyaltyFee(CustomFee):
             f"   Fallback Fee Denominating Token ID = {fallback_fee_token_id}",
             f"   Fee Collector Account ID = {self.fee_collector_account_id}",
             f"   All Collectors Are Exempt = {self.all_collectors_are_exempt}",
-        ] 
+        ]
         return "\n".join(lines)
