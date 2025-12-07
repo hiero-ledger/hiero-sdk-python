@@ -200,6 +200,7 @@ body:
       required: true
 
   - type: textarea
+    id: information
     attributes:
       label: 🤔 Additional Information
       description: Provide any extra resources or context for contributors to solve this good first issue
