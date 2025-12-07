@@ -151,3 +151,29 @@ class CustomRoyaltyFee(CustomFee):
             fee_collector_account_id=fee_collector_account_id,
             all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
         )
+    
+    def __str__(self) -> str:
+        """Returns a string representation of the CustomRoyaltyFee.
+
+        Includes the numerator, denominator, fallback fee details (if any),
+        fee collector account ID, and exemption status.
+
+        Returns:
+            str: A human-readable string representation of the royalty fee.
+        """
+        fallback_fee_amount = "None"
+        fallback_fee_token_id = "None"
+        if self.fallback_fee:
+            fallback_fee_amount = self.fallback_fee.amount
+            fallback_fee_token_id = self.fallback_fee.denominating_token_id
+
+        lines = [
+            f"CustomRoyaltyFee:",
+            f"   Numerator = {self.numerator}",
+            f"   Denominator = {self.denominator}",
+            f"   Fallback Fee Amount = {fallback_fee_amount}",
+            f"   Fallback Fee Denominating Token ID = {fallback_fee_token_id}",
+            f"   Fee Collector Account ID = {self.fee_collector_account_id}",
+            f"   All Collectors Are Exempt = {self.all_collectors_are_exempt}",
+        ] 
+        return "\n".join(lines)
