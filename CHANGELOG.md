@@ -7,20 +7,24 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-- Added __str__() to CustomFixedFee and updated examples and tests accordingly.
+
+- Added **str**() to CustomFixedFee and updated examples and tests accordingly.
 - Added a github template for good first issues
 - Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
-- Added all missing fields to __str__() method and updated `test_tokem_info.py`
+- Added all missing fields to **str**() method and updated `test_tokem_info.py`
 - Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
 - Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
 - Add inactivity bot workflow to unassign stale issue assignees (#952)
+- Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
 - Made custom fraction fee end to end
 
 ### Changed
+
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
 
 ### Fixed
+
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
