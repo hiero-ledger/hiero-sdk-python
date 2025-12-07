@@ -161,8 +161,8 @@ class CustomRoyaltyFee(CustomFee):
         Returns:
             str: A human-readable string representation of the royalty fee.
         """
-        fallback_fee_amount = self.fallback_fee.amount if self.fallback_fee.amount else "None"
-        fallback_fee_token_id = self.fallback_fee.denominating_token_id if self.fallback_fee.amount else "None"
+        fallback_fee_amount = self.fallback_fee.amount if self.fallback_fee else "None"
+        fallback_fee_token_id = self.fallback_fee.denominating_token_id if self.fallback_fee else "None"
 
         lines = [
             f"CustomRoyaltyFee:",
