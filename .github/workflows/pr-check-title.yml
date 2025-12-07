@@ -26,7 +26,7 @@ jobs:
   title-check:
     name: Title Check
     runs-on: ubuntu-latest
-    if: ${{ !github.event.pull_request.base.repo.fork && github.event.pull_request.draft == false }}
+    if: ${{ !github.event.pull_request.base.repo.fork && (github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false) }}
     permissions:
       checks: write
       statuses: write
