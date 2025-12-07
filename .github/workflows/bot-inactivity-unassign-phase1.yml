@@ -34,5 +34,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          DAYS: 21
+          DAYS: 0
         run: bash .github/scripts/inactivity_unassign_phase2.sh
