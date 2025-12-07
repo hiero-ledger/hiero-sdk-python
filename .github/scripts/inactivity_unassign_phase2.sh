@@ -94,11 +94,17 @@ for ISSUE in $ISSUES; do
         continue
       fi
 
-      # Last commit date on the PR
-      LAST_COMMIT_DATE=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" \
-        --jq '.[-1].commit.committer.date // .[-1].commit.author.date' 2>/dev/null || echo "")
+      # Last commit date on the PR: pick the truly latest by timestamp
+      COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate 2>/dev/null || echo "[]")
 
-      if [ -z "$LAST_COMMIT_DATE" ]; then
+      LAST_COMMIT_DATE=$(echo "$COMMITS_JSON" \
+        | jq -r '
+            select(length > 0)
+            | max_by(.commit.committer.date // .commit.author.date)
+            | (.commit.committer.date // .commit.author.date)
+          ')
+
+      if [ -z "$LAST_COMMIT_DATE" ] || [ "$LAST_COMMIT_DATE" = "null" ]; then
         echo "    [WARN] Could not determine last commit date for PR #$PR_NUM, skipping."
         continue
       fi
