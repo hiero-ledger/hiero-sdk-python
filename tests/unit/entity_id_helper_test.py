@@ -1,8 +1,13 @@
+from unittest.mock import MagicMock, patch
 import pytest
+import struct
+import requests
 
 from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
     generate_checksum,
+    perform_query_to_mirror_node,
+    to_solidity_address,
     validate_checksum,
     format_to_string,
     format_to_string_with_checksum
@@ -117,3 +122,45 @@ def test_parse_and_format_without_checksum():
     formatted = format_to_string(shard, realm, num)
 
     assert formatted == original
+
+def test_to_solidity_address_valid():
+    shard, realm, num = 0, 0, 1001
+    result = to_solidity_address(shard, realm, num)
+
+    # Expect raw packed bytes
+    expected = struct.pack(">iqq", shard, realm, num).hex()
+
+    assert result == expected
+    assert len(result) == 40  # exactly 20 bytes
+    assert result.islower()
+
+def test_to_solidity_address_zero_values():
+    assert to_solidity_address(0, 0, 0) == ("00" * 20)
+
+def test_to_solidity_address_out_of_range():
+    shard, realm, num = 2**31, 0, 0
+    with pytest.raises(ValueError):
+        to_solidity_address(shard, realm, num)
+
+def test_perform_query_to_mirror_node_success():
+    """Test successful mirror node response without requests_mock."""
+    
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"account": "0.0.777"}
+    mock_response.raise_for_status.return_value = None
+
+    with patch("hiero_sdk_python.utils.entity_id_helper.requests.get", return_value=mock_response):
+        result = perform_query_to_mirror_node("http://mirror-node/accounts/123")
+        assert result == {"account": "0.0.777"}
+
+def test_perform_query_to_mirror_node_failure():
+    """Test mirror node failure handling."""
+    
+    with patch("hiero_sdk_python.utils.entity_id_helper.requests.get") as mock_get:
+        mock_get.side_effect = requests.RequestException("boom")
+
+        try:
+            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+            assert False, "Should have raised RuntimeError"
+        except RuntimeError as e:
+            assert "Failed to fetch from mirror node" in str(e)
