@@ -151,3 +151,52 @@ def test_custom_royalty_fee():
     assert isinstance(new_fee.fallback_fee, CustomFixedFee)
     assert new_fee.fallback_fee.amount == 50
     assert new_fee.fallback_fee.denominating_token_id == TokenId(0, 0, 789)
+
+@pytest.mark.parametrize(
+        "custom_royalty_fee, expected_str",
+        [
+            (
+                CustomRoyaltyFee(
+                   numerator=3,
+                   denominator=20,
+                   fallback_fee=None,
+                   fee_collector_account_id=None,
+                   all_collectors_are_exempt=True,
+                ),
+                "\n".join([
+                    "CustomRoyaltyFee:",
+                    "   Numerator = 3",
+                    "   Denominator = 20",
+                    "   Fallback Fee Amount = None",
+                    "   Fallback Fee Denominating Token ID = None",
+                    "   Fee Collector Account ID = None",
+                    "   All Collectors Are Exempt = True",
+                ])
+            ),
+            (
+                CustomRoyaltyFee(
+                    numerator=7,
+                    denominator=100,
+                    fallback_fee=CustomFixedFee(
+                        amount=30,
+                        denominating_token_id=TokenId(0, 0, 123),
+                    ),
+                    fee_collector_account_id=AccountId(0, 0, 456),
+                    all_collectors_are_exempt=False,
+                ),
+                "\n".join([
+                    "CustomRoyaltyFee:",
+                    "   Numerator = 7",
+                    "   Denominator = 100",
+                    "   Fallback Fee Amount = 30",
+                    "   Fallback Fee Denominating Token ID = 0.0.123",
+                    "   Fee Collector Account ID = 0.0.456",
+                    "   All Collectors Are Exempt = False",
+                ])
+            )
+        ]
+)
+def test_custom_royalty_fee_str(custom_royalty_fee: CustomRoyaltyFee, expected_str: str):
+    """Test the string representation of CustomRoyaltyFee."""
+    fee_str = str(custom_royalty_fee)
+    assert fee_str == expected_str
