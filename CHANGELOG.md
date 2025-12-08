@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -9,19 +9,23 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Added
 - Phase 2 of the inactivity-unassign bot:Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added __str__() to CustomFixedFee and updated examples and tests accordingly.
+- Added **str**() to CustomFixedFee and updated examples and tests accordingly.
 - Added a github template for good first issues
 - Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
-- Added all missing fields to __str__() method and updated `test_tokem_info.py`
+- Added all missing fields to **str**() method and updated `test_tokem_info.py`
 - Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
 - Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
 - Add inactivity bot workflow to unassign stale issue assignees (#952)
 - Made custom fraction fee end to end
+- Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
 
 ### Changed
+
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
 
 ### Fixed
+
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
