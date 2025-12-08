@@ -18,6 +18,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Made custom fraction fee end to end
 - Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
 - Added __str__() to CustomRoyaltyFee and updated examples and tests accordingly (#986)
+- Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 
 ### Changed
 
