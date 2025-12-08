@@ -1,5 +1,5 @@
-# uv run examples/account/account_create_transaction_evm_alias.py
-# python examples/account/account_create_transaction_evm_alias.py
+# uv run -m examples.account.account_create_transaction_evm_alias
+# python -m examples.account.account_create_transaction_evm_alias
 """
 Example: Create an account using an EVM-style alias (evm_address).
 """
@@ -8,6 +8,8 @@ import os
 import sys
 import json
 from dotenv import load_dotenv
+
+from examples.utils import info_to_dict
 
 from hiero_sdk_python import (
     Client,
@@ -39,22 +41,6 @@ def setup_client():
     except Exception:
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
-
-def info_to_dict(info):
-    """Convert AccountInfo to dictionary for easy printing."""
-    out = {}
-    for name in dir(info):
-        if name.startswith("_"):
-            continue
-        try:
-            val = getattr(info, name)
-        except Exception as error:
-            out[name] = f"Error retrieving value: {error}"
-            continue
-        if callable(val):
-            continue
-        out[name] = str(val)
-    return out
 
 def create_account_with_alias(client):
     """Create an account with an alias transaction."""
