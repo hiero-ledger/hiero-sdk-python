@@ -187,4 +187,6 @@ class Network:
     def get_mirror_node_rest_url(self) -> str:
         """Returns the rest_url for the mirror node."""
         base_url: Optional[str] = self.MIRROR_NODE_URLS.get(self.network)
+        if not base_url:
+            raise ValueError(f"Mirror node URL not found for network '{self.network}'")
         return f"{base_url}/api/v1"
