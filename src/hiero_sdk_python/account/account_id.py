@@ -67,8 +67,7 @@ class AccountId:
         if account_id_str is None or not isinstance(account_id_str, str):
             raise ValueError(f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'.")
         
-        account_id_str = account_id_str[2:] if account_id_str.startswith('0x') else account_id_str
-        if len(account_id_str) == 40:
+        if (account_id_str.startswith('0x') and len(account_id_str) == 42) or len(account_id_str) == 40:
             return cls.from_evm_address(account_id_str, 0, 0)
 
         try:
