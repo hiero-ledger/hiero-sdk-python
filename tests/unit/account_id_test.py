@@ -2,9 +2,11 @@
 Unit tests for the AccountId class.
 """
 
+from unittest.mock import MagicMock, patch
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
@@ -28,6 +30,10 @@ def alias_key_ecdsa():
     """Returns an ECDSA alias key."""
     return PrivateKey.generate_ecdsa().public_key()
 
+@pytest.fixture
+def evm_address():
+    """Returns an EVM Address."""
+    return PrivateKey.generate_ecdsa().public_key().to_evm_address()
 
 @pytest.fixture
 def account_id_100():
@@ -56,6 +62,7 @@ def test_default_initialization():
     assert account_id.num == 0
     assert account_id.alias_key is None
     assert account_id.checksum is None
+    assert account_id.evm_address is None
 
 
 def test_custom_initialization(account_id_100):
@@ -65,6 +72,7 @@ def test_custom_initialization(account_id_100):
     assert account_id_100.num == 100
     assert account_id_100.alias_key is None
     assert account_id_100.checksum is None
+    assert account_id_100.evm_address is None
 
 
 def test_initialization_with_alias_key(alias_key):
@@ -76,6 +84,19 @@ def test_initialization_with_alias_key(alias_key):
     assert account_id.num == 0
     assert account_id.alias_key == alias_key
     assert account_id.checksum is None
+    assert account_id.evm_address is None
+
+def test_initialization_with_evm_address(evm_address):
+    """Test AccountId initialization with alias key."""
+    account_id = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
+
+    assert account_id.shard == 0
+    assert account_id.realm == 0
+    assert account_id.num == 0
+    assert account_id.alias_key == None
+    assert account_id.checksum is None
+    assert account_id.evm_address == evm_address
+
 
 
 def test_str_representation(account_id_100):
@@ -102,7 +123,7 @@ def test_str_representation_with_checksum_if_alias_key_present(
 
     with pytest.raises(
         ValueError,
-        match="Cannot calculate checksum with an account ID that has a aliasKey",
+        match="Cannot calculate checksum with an account ID that has a aliasKey or evmAddress",
     ):
         account_id.to_string_with_checksum(client)
 
@@ -129,9 +150,29 @@ def test_repr_representation_with_alias_key(alias_key):
     assert repr(account_id) == expected
 
 
-def test_from_string_valid():
+@pytest.mark.parametrize(
+    'account_str, expected', 
+    [
+        ('0.0.100', (0, 0, 100, None, None, None)),
+        ('0.0.100-abcde', (0, 0, 100, 'abcde', None, None)),
+        (
+            '302a300506032b6570032100114e6abc371b82da',
+            (0, 0, 0, None, None, EvmAddress.from_string('302a300506032b6570032100114e6abc371b82da'))
+        ),
+        (
+            '0x302a300506032b6570032100114e6abc371b82da',
+            (0, 0, 0, None, None, EvmAddress.from_string('302a300506032b6570032100114e6abc371b82da'))
+        ),
+        (
+            '0.0.302a300506032b6570032100114e6abc371b82da',
+            (0, 0, 0, None, None, EvmAddress.from_string('302a300506032b6570032100114e6abc371b82da'))
+        )
+    ]
+)
+def test_from_string_valid(account_str, expected):
     """Test creating AccountId from valid string format."""
-    account_id = AccountId.from_string("0.0.100")
+    shard, realm, num, checksum, alias_key, evm_address = expected
+    account_id = AccountId.from_string(account_str)
 
     assert account_id.shard == 0
     assert account_id.realm == 0
@@ -164,12 +205,32 @@ def test_from_string_with_checksum():
 
 def test_from_string_with_alias_key(alias_key):
     account_id_str = f"0.0.{alias_key.to_string()}"
+    assert account_id.shard == shard
+    assert account_id.realm == realm
+    assert account_id.num == num
+    assert account_id.checksum == checksum
+    assert account_id.alias_key == alias_key
+    assert account_id.evm_address == evm_address
+
+
+@pytest.mark.parametrize(
+    "alias_fixture",
+    [
+        "alias_key",
+        "alias_key_ecdsa",
+        "evm_address"
+    ]
+)
+def test_from_string_with_alias(request, alias_fixture):
+    """Test create AccountId from string with different alias."""
+    alias = request.getfixturevalue(alias_fixture)
+
+    account_id_str = f"0.0.{alias.to_string()}"
     account_id = AccountId.from_string(account_id_str)
 
     assert account_id.shard == 0
     assert account_id.realm == 0
     assert account_id.num == 0
-    assert account_id.alias_key.__eq__(alias_key)
     assert account_id.checksum is None
 
 
@@ -182,6 +243,13 @@ def test_from_string_with_alias_key_ecdsa(alias_key_ecdsa):
     assert account_id.num == 0
     assert account_id.alias_key.__eq__(alias_key_ecdsa)
     assert account_id.checksum is None
+    
+    if isinstance(alias, EvmAddress):
+        assert account_id.evm_address == alias
+        assert account_id.alias_key is None
+    else:
+        assert account_id.alias_key.__eq__(alias)
+        assert account_id.evm_address is None
 
 
 @pytest.mark.parametrize(
@@ -203,6 +271,18 @@ def test_from_string_with_alias_key_ecdsa(alias_key_ecdsa):
         "0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777g",
         "0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777",
     ],
+        '0.0.-1',
+        'abc.def.ghi',
+        '0.0.1-ad',
+        '0.0.1-addefgh',
+        '0.0.1 - abcde',
+        ' 0.0.100 ',
+        '0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777g',
+        '0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777',
+        '0.0.302a300506032b6570032100114e6abc371b82d',
+        '302a300506032b6570032100114e6abc371b82d',
+        '0x302a300506032b6570032100114e6abc371b82d'
+    ]
 )
 def test_from_string_for_invalid_format(invalid_id):
     """Should raise error when creating AccountId from invalid string input."""
@@ -258,6 +338,17 @@ def test_to_proto_with_ecdsa_alias_key(alias_key_ecdsa):
     assert proto.accountNum == 0
     assert proto.alias == alias_key_ecdsa._to_proto().SerializeToString()
 
+def test_to_proto_with_evm_address(evm_address):
+    """Test converting AccountId with evm_address to protobuf format."""
+    account_id = AccountId(shard=0, realm=0, num=100, evm_address=evm_address)
+    proto = account_id._to_proto()
+
+    assert isinstance(proto, basic_types_pb2.AccountID)
+    assert proto.shardNum == 0
+    assert proto.realmNum == 0
+    assert proto.accountNum == 0
+    assert proto.alias == evm_address.address_bytes
+
 
 def test_from_proto():
     """Test creating AccountId from protobuf format."""
@@ -269,6 +360,7 @@ def test_from_proto():
     assert account_id.realm == 0
     assert account_id.num == 100
     assert account_id.alias_key is None
+    assert account_id.evm_address is None
 
 
 def test_from_proto_zero_values():
@@ -281,6 +373,7 @@ def test_from_proto_zero_values():
     assert account_id.realm == 0
     assert account_id.num == 0
     assert account_id.alias_key is None
+    assert account_id.evm_address is None
 
 
 def test_from_proto_with_alias(alias_key):
@@ -296,6 +389,7 @@ def test_from_proto_with_alias(alias_key):
     assert account_id.shard == 0
     assert account_id.realm == 0
     assert account_id.num == 0
+    assert account_id.evm_address is None
     assert account_id.alias_key is not None
     # Compare the raw bytes
     assert account_id.alias_key.to_bytes_raw() == alias_key.to_bytes_raw()
@@ -314,9 +408,28 @@ def test_from_proto_with_ecdsa_alias(alias_key_ecdsa):
     assert account_id.shard == 0
     assert account_id.realm == 0
     assert account_id.num == 0
+    assert account_id.evm_address is None
     assert account_id.alias_key is not None
     # Compare the raw bytes
     assert account_id.alias_key.to_bytes_raw() == alias_key_ecdsa.to_bytes_raw()
+
+
+def test_from_proto_with_evm_address_as_alias(evm_address):
+    """Test creating AccountId from protobuf format with evm_address."""
+    proto = basic_types_pb2.AccountID(
+        shardNum=0,
+        realmNum=0,
+        accountNum=3,
+        alias=evm_address.address_bytes,
+    )
+
+    account_id = AccountId._from_proto(proto)
+    assert account_id.shard == 0
+    assert account_id.realm == 0
+    assert account_id.num == 0
+    assert account_id.alias_key is None
+    assert account_id.evm_address is not None
+    assert account_id.evm_address == evm_address
 
 
 def test_roundtrip_proto_conversion(account_id_100):
@@ -369,6 +482,7 @@ def test_roundtrip_string_conversion(account_id_100):
     assert account_id_100.realm == reconstructed.realm
     assert account_id_100.num == reconstructed.num
     assert account_id_100.alias_key == reconstructed.alias_key
+    assert account_id_100.evm_address == reconstructed.evm_address
 
 
 def test_equality(account_id_100, account_id_101):
@@ -395,6 +509,17 @@ def test_equality_with_alias_key(alias_key, alias_key2):
     # None alias key should not be equal to one with alias key
     assert account_id1 != account_id4
 
+def test_equality_with_evm_address(evm_address):
+    """Test AccountId equality comparison with alias keys."""
+    account_id1 = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
+    account_id2 = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
+    account_id3 = AccountId(shard=0, realm=0, num=0, evm_address=EvmAddress.from_string("302a300506032b6570032100114e6abc371b82da"))
+    account_id4 = AccountId(shard=0, realm=0, num=0, evm_address=None)
+
+    assert account_id1 == account_id2
+    assert account_id1 != account_id3
+    assert account_id1 != account_id4
+
 
 def test_equality_different_types(account_id_100):
     """Test AccountId equality with different types."""
@@ -413,6 +538,15 @@ def test_hash(account_id_100, account_id_101):
     # Different values should have different hashes
     assert hash(account_id_100) != hash(account_id_101)
 
+
+def test_hash_with_evm_address(evm_address):
+    """Test AccountId hash with evm_address."""
+    account_id1 = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
+    account_id2 = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
+    account_id3 = AccountId(shard=0, realm=0, num=0, evm_address=EvmAddress.from_string("302a300506032b6570032100114e6abc371b82da"))
+
+    assert hash(account_id1) == hash(account_id2)
+    assert hash(account_id1) != hash(account_id3)
 
 def test_hash_with_alias_key(alias_key, alias_key2):
     """Test AccountId hash with alias keys."""
@@ -459,7 +593,6 @@ def test_alias_key_deserialization_from_proto(alias_key):
     assert account_id.alias_key is not None
     assert account_id.alias_key.to_bytes_raw() == alias_key.to_bytes_raw()
 
-
 def test_alias_key_deserialization_from_empty_proto():
     """Test that empty alias in proto results in None alias_key."""
     proto = basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=100, alias=b"")
@@ -470,7 +603,6 @@ def test_alias_key_deserialization_from_empty_proto():
     assert account_id.realm == 0
     assert account_id.num == 0
     assert account_id.alias_key is None
-
 
 def test_alias_key_affects_string_representation(alias_key, alias_key2, account_id_100):
     """Test that alias key changes string representation behavior."""
@@ -495,6 +627,19 @@ def test_alias_key_affects_string_representation(alias_key, alias_key2, account_
     assert str3 == "0.0.100"
 
 
+def test_evm_address_affects_string_representation(evm_address):
+    """Test that evm_address changes string representation behavior."""
+    account_id1 = AccountId(shard=0, realm=0, num=0,  evm_address=evm_address)
+    account_id2 = AccountId(shard=0, realm=0, num=100)
+
+    str1 = str(account_id1)
+    str2 = str(account_id2)
+
+    assert str1 != str2
+
+    assert evm_address.to_string() in str1
+    assert str2 == "0.0.100"
+
 def test_validate_checksum_for_id(client):
     """Test validateChecksum for accountId"""
     account_id = AccountId.from_string("0.0.100-hhghj")
@@ -510,8 +655,16 @@ def test_validate_checksum_with_alias_key_set(client, alias_key):
         ValueError,
         match="Cannot calculate checksum with an account ID that has a aliasKey",
     ):
+    with pytest.raises(ValueError, match="Cannot calculate checksum with an account ID that has a aliasKey or evmAddres"):
         account_id.validate_checksum(client)
 
+def test_validate_checksum_with_evm_address_key_set(client, evm_address):
+    """Test validateChecksum should raise ValueError if evm_address is set"""
+    account_id = AccountId.from_string("0.0.100-hhghj")
+    account_id.evm_address = evm_address
+
+    with pytest.raises(ValueError, match="Cannot calculate checksum with an account ID that has a aliasKey or evmAddres"):
+        account_id.validate_checksum(client)
 
 def test_validate_checksum_for_invalid_checksum(client):
     """Test Invalid Checksum for Id should raise ValueError"""
@@ -519,3 +672,129 @@ def test_validate_checksum_for_invalid_checksum(client):
 
     with pytest.raises(ValueError, match="Checksum mismatch for 0.0.100"):
         account_id.validate_checksum(client)
+
+def test_populate_account_num(evm_address):
+    """Test that populate_account_num correctly queries the mirror node."""
+    mock_client = MagicMock()
+    mock_client.network.get_mirror_node_rest_url.return_value = "http://mirror_node_rest_url"
+    
+    account_id = AccountId.from_evm_address(evm_address)
+
+    response = {"account": "0.0.100"}
+
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
+        mock_query.return_value = response
+        account_id.populate_account_num(mock_client)
+
+    assert account_id.num == 100
+
+def test_populate_account_num_missing_account(evm_address):
+    """
+    Test that populate_account_num raises a ValueError when the mirror node
+    query does not return an account number.
+    """
+    account_id = AccountId.from_evm_address(evm_address)
+    mock_client = MagicMock()
+    mock_client.network.get_mirror_node_rest_url.return_value = "http://mirror_node_rest_url"
+
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
+        mock_query.return_value = {}
+        with pytest.raises(ValueError):
+            account_id.populate_account_num(mock_client)
+
+def test_populate_account_num_missing_evm_address():
+    """Test that populate_account_num raises a ValueError when evm_address is none."""
+    account_id = AccountId.from_string("0.0.100")
+    mock_client = MagicMock()
+    
+    with pytest.raises(ValueError):
+        account_id.populate_account_num(mock_client)
+
+def test_populate_account_evm_address(evm_address):
+    """Test that populate_evm_address correctly queries the mirror node."""
+    mock_client = MagicMock()
+    mock_client.network.get_mirror_node_rest_url.return_value = "http://mirror_node_rest_url"
+    
+    account_id = AccountId.from_string('0.0.100')
+
+    response = {"evm_address": evm_address.to_string()}
+
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
+        mock_query.return_value = response
+        account_id.populate_evm_address(mock_client)
+
+    assert account_id.evm_address == evm_address
+
+def test_populate_account_num_missing_evm_address():
+    """
+    Test that populate_evm_address raises a ValueError when the mirror node
+    query does not return an account evm_address.
+    """
+    account_id = AccountId.from_string('0.0.100')
+    mock_client = MagicMock()
+    mock_client.network.get_mirror_node_rest_url.return_value = "http://mirror_node_rest_url"
+
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
+        mock_query.return_value = {}
+        with pytest.raises(ValueError):
+            account_id.populate_evm_address(mock_client)
+
+def test_populate_account_num_missing_num(evm_address):
+    """Test that populate_account_num raises a ValueError when num is none."""
+    account_id = AccountId.from_evm_address(evm_address) # num == 0
+    mock_client = MagicMock()
+    
+    with pytest.raises(ValueError):
+        account_id.populate_evm_address(mock_client)
+
+def test_to_bytes_and_from_bytes_roundtrip():
+    """Ensure basic numeric AccountId converts to bytes and back."""
+    account_id = AccountId(0, 0, 100)
+    account_id_bytes = account_id.to_bytes()
+    
+    assert account_id_bytes is not None
+
+    # Verify
+    new_account_id = AccountId.from_bytes(account_id_bytes)
+    assert new_account_id is not None
+
+    assert new_account_id.shard == account_id.shard
+    assert new_account_id.realm == account_id.realm
+    assert new_account_id.num == account_id.num
+    assert new_account_id.alias_key == account_id.alias_key
+    assert new_account_id.evm_address == account_id.evm_address
+
+def test_to_bytes_and_from_bytes_with_alias_key(alias_key):
+    """Ensure alias key survives byte round-trip."""
+    account_id = AccountId(0, 0, 0, alias_key=alias_key)
+    account_id_bytes = account_id.to_bytes()
+    
+    assert account_id_bytes is not None
+
+    # Verify
+    new_account_id = AccountId.from_bytes(account_id_bytes)
+    assert new_account_id is not None
+
+    assert new_account_id.shard == account_id.shard
+    assert new_account_id.realm == account_id.realm
+    # account.num is set to 0 as alias is set
+    assert new_account_id.alias_key.__eq__(account_id.alias_key)
+    assert new_account_id.evm_address == account_id.evm_address
+
+def test_to_bytes_and_from_bytes_with_evm_address(evm_address):
+    """Ensure EVM address survives byte round-trip."""
+    account_id = AccountId(0, 0, 0, evm_address=evm_address)
+    account_id_bytes = account_id.to_bytes()
+    
+    assert account_id_bytes is not None
+
+    # Verify
+    new_account_id = AccountId.from_bytes(account_id_bytes)
+    assert new_account_id is not None
+
+    assert new_account_id.shard == account_id.shard
+    assert new_account_id.realm == account_id.realm
+    # account.num is set to 0 as alias is set
+    assert new_account_id.alias_key == account_id.alias_key
+    assert new_account_id.evm_address == account_id.evm_address
+
