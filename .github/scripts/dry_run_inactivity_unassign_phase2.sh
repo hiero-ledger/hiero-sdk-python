@@ -93,12 +93,11 @@ for ISSUE in $ISSUES; do
         continue
       fi
 
-      # Use the same "max by timestamp" logic as the real bot
-      COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" 2>/dev/null || echo "")
+      # Use the same "last commit" logic as the real bot (with pagination)
+      COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate 2>/dev/null || echo "")
 
       LAST_COMMIT_DATE=$(echo "$COMMITS_JSON" \
-        | jq -r 'max_by(.commit.committer.date // .commit.author.date)
-                 | (.commit.committer.date // .commit.author.date)' 2>/dev/null || echo "")
+        | jq -r 'last | (.commit.committer.date // .commit.author.date)' 2>/dev/null || echo "")
 
       if [ -z "$LAST_COMMIT_DATE" ] || [ "$LAST_COMMIT_DATE" = "null" ]; then
         echo "    [WARN] Could not determine last commit date for PR #$PR_NUM, skipping."
