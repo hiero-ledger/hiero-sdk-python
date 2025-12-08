@@ -180,6 +180,22 @@ body:
         ```
 
   - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ Acceptance Criteria
+      description: |
+        EDIT OR EXPAND THE CHECKLIST ON WHAT IS REQUIRED TO BE ABLE TO MERGE A PULL REQUEST FOR THIS ISSUE
+      value: |
+        To be able to merge a pull request for this issue, we need:
+        - [ ] **Changelog Entry:** Correct changelog entry (please link to the documentation - [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md))
+        - [ ] **Signed commits:** commits must be DCO and GPG key signed ([see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md))
+        - [ ] **All Tests Pass:** our workflow checks like unit and integration tests must pass
+        - [ ] **Issue is Solved:** The implementation fully addresses the issue requirements as described above
+        - [ ] **No Further Changes are Made:** Code review feedback has been addressed and no further changes are requested
+    validations:
+      required: true
+
+  - type: textarea
     id: contribution_steps
     attributes:
       label: 📋 Step-by-Step Contribution Guide
