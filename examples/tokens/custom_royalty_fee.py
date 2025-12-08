@@ -20,13 +20,7 @@ def custom_royalty_fee():
         fee_collector_account_id=AccountId(0, 0, 456),
         all_collectors_are_exempt=True,
     )
-    print("\nCustomRoyaltyFee:")
-    print(f"Numerator: {royalty_fee.numerator}")
-    print(f"Denominator: {royalty_fee.denominator}")
-    print(f"Fallback Fee Amount: {royalty_fee.fallback_fee.amount if royalty_fee.fallback_fee is not None else 'None'}")
-    print(f"Fallback Fee Denominating Token ID: {royalty_fee.fallback_fee.denominating_token_id if royalty_fee.fallback_fee is not None else 'None'}")
-    print(f"Fee Collector Account ID: {royalty_fee.fee_collector_account_id}")
-    print(f"All Collectors Exempt: {royalty_fee.all_collectors_are_exempt}")
+    print(royalty_fee)
 
     # Convert to protobuf
     royalty_fee_proto = royalty_fee._to_proto()
