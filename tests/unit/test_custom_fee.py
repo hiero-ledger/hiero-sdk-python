@@ -9,7 +9,8 @@ from hiero_sdk_python.tokens.token_id import TokenId
 
 pytestmark = pytest.mark.unit
 
-def test_custom_fixed_fee():
+def test_custom_fixed_fee_proto_round_trip():
+    """Ensure CustomFixedFee protobuf serialization and deserialization behave correctly."""
     fee = CustomFixedFee(
         amount=100,
         denominating_token_id=TokenId(0, 0, 123),
@@ -17,14 +18,50 @@ def test_custom_fixed_fee():
         all_collectors_are_exempt=True,
     )
 
-    proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomFixedFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
+    proto = fee._to_proto()
+    new_fee = CustomFixedFee._from_proto(proto)
 
     assert isinstance(new_fee, CustomFixedFee)
     assert new_fee.amount == 100
     assert new_fee.denominating_token_id == TokenId(0, 0, 123)
     assert new_fee.fee_collector_account_id == AccountId(0, 0, 456)
     assert new_fee.all_collectors_are_exempt is True
+
+def test_custom_fixed_fee_str():
+    """Test the string representation of CustomFixedFee."""
+    fee = CustomFixedFee(
+        amount=100,
+        denominating_token_id=TokenId(0, 0, 123),
+        fee_collector_account_id=AccountId(0, 0, 456),
+        all_collectors_are_exempt=False,
+    )
+
+    fee_str = fee.__str__()
+
+    # Basic checks
+    assert "CustomFixedFee" in fee_str
+    assert "Amount" in fee_str
+    assert "Denominating Token Id" in fee_str
+    assert "Fee Collector Account Id" in fee_str
+    assert "All Collectors Are Exempt" in fee_str
+
+    # Key-value extraction
+    kv = {}
+    for ln in fee_str.splitlines()[1:]:
+        if "=" in ln:
+            key, val = ln.split("=", 1)
+            kv[key.strip()] = val.strip()
+
+    expected = {
+        "Amount": "100",
+        "Denominating Token Id": "0.0.123",
+        "Fee Collector Account Id": "0.0.456",
+        "All Collectors Are Exempt": "False",
+    }
+
+    for key, val in expected.items():
+        assert kv[key] == val, f"{key} incorrect in string representation"
+
 
 def test_custom_fractional_fee_str():
     """Test the string representation of CustomFractionalFee."""
@@ -114,3 +151,52 @@ def test_custom_royalty_fee():
     assert isinstance(new_fee.fallback_fee, CustomFixedFee)
     assert new_fee.fallback_fee.amount == 50
     assert new_fee.fallback_fee.denominating_token_id == TokenId(0, 0, 789)
+
+@pytest.mark.parametrize(
+        "custom_royalty_fee, expected_str",
+        [
+            (
+                CustomRoyaltyFee(
+                   numerator=3,
+                   denominator=20,
+                   fallback_fee=None,
+                   fee_collector_account_id=None,
+                   all_collectors_are_exempt=True,
+                ),
+                "\n".join([
+                    "CustomRoyaltyFee:",
+                    "   Numerator = 3",
+                    "   Denominator = 20",
+                    "   Fallback Fee Amount = None",
+                    "   Fallback Fee Denominating Token ID = None",
+                    "   Fee Collector Account ID = None",
+                    "   All Collectors Are Exempt = True",
+                ])
+            ),
+            (
+                CustomRoyaltyFee(
+                    numerator=7,
+                    denominator=100,
+                    fallback_fee=CustomFixedFee(
+                        amount=30,
+                        denominating_token_id=TokenId(0, 0, 123),
+                    ),
+                    fee_collector_account_id=AccountId(0, 0, 456),
+                    all_collectors_are_exempt=False,
+                ),
+                "\n".join([
+                    "CustomRoyaltyFee:",
+                    "   Numerator = 7",
+                    "   Denominator = 100",
+                    "   Fallback Fee Amount = 30",
+                    "   Fallback Fee Denominating Token ID = 0.0.123",
+                    "   Fee Collector Account ID = 0.0.456",
+                    "   All Collectors Are Exempt = False",
+                ])
+            )
+        ]
+)
+def test_custom_royalty_fee_str(custom_royalty_fee: CustomRoyaltyFee, expected_str: str):
+    """Test the string representation of CustomRoyaltyFee."""
+    fee_str = str(custom_royalty_fee)
+    assert fee_str == expected_str

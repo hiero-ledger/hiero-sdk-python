@@ -1,0 +1,12 @@
+blank_issues_enabled: true
+
+# Only show specific issue templates
+# issue_templates:
+#   - name: Good First Issue
+#     filename: 01-good_first_issue.yml
+
+# Test contact links
+contact_links:
+  - name: Hiero Discord
+    url: https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md
+    about: Please ask and answer questions here.
