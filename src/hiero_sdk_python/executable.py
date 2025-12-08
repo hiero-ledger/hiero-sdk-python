@@ -306,5 +306,4 @@ def _execute_method(method, proto_request):
         return method.transaction(proto_request)
     elif method.query is not None:
         return method.query(proto_request)
-    raise Exception("No method to execute")
-    
+    raise Exception("No method to execute") 
