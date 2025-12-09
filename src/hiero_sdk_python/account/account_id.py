@@ -3,14 +3,17 @@ AccountId class.
 """
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Union
 
+from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
     validate_checksum,
-    format_to_string_with_checksum
+    format_to_string_with_checksum,
+    perform_query_to_mirror_node,
+    to_solidity_address
 )
 
 if TYPE_CHECKING:
@@ -33,7 +36,12 @@ class AccountId:
     """
 
     def __init__(
-        self, shard: int = 0, realm: int = 0, num: int = 0, alias_key: PublicKey = None
+        self,
+        shard: int = 0,
+        realm: int = 0,
+        num: int = 0,
+        alias_key: Optional[PublicKey] = None,
+        evm_address: Optional[EvmAddress] = None
     ) -> None:
         """
         Initialize a new AccountId instance.
@@ -42,11 +50,13 @@ class AccountId:
             realm (int): The realm number of the account.
             num (int): The account number.
             alias_key (PublicKey): The public key of the account.
+            evm_address (EvmAddress): The public evm_address of the account.
         """
         self.shard = shard
         self.realm = realm
         self.num = num
         self.alias_key = alias_key
+        self.evm_address = evm_address
         self.__checksum: str | None = None
 
     @classmethod
@@ -56,6 +66,9 @@ class AccountId:
         """
         if account_id_str is None or not isinstance(account_id_str, str):
             raise ValueError(f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'.")
+        
+        if (account_id_str.startswith('0x') and len(account_id_str) == 42) or len(account_id_str) == 40:
+            return cls.from_evm_address(account_id_str, 0, 0)
 
         try:
             shard, realm, num, checksum = parse_from_string(account_id_str)
@@ -73,16 +86,39 @@ class AccountId:
             
             if alias_match:
                 shard, realm, alias = alias_match.groups()
+                alias_bytes = bytes.fromhex(alias)
+                is_evm_address = len(alias_bytes) == 20
+
                 return cls(
                     shard=int(shard),
                     realm=int(realm),
                     num=0,
-                    alias_key=PublicKey.from_bytes(bytes.fromhex(alias))
+                    alias_key=PublicKey.from_bytes(bytes.fromhex(alias)) if not is_evm_address else None,
+                    evm_address=EvmAddress.from_bytes(alias_bytes) if is_evm_address else None
                 )
-            
+
             raise ValueError(
                 f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
             ) from e
+
+    @classmethod
+    def from_evm_address(cls, evm_address: Union[str, EvmAddress], shard: int = 0, realm: int = 0):
+        if isinstance(evm_address, str):
+            evm_address = EvmAddress.from_string(evm_address)
+
+        return cls(
+            shard=shard,
+            realm=realm,
+            num=0,
+            alias_key=None,
+            evm_address=evm_address
+        )
+
+    @classmethod
+    def from_bytes(cls, bytes: "bytes"):
+        """Creates an AccountId instance from a potobuff bytes."""
+        print(basic_types_pb2.AccountID.FromString(bytes))
+        return cls._from_proto(basic_types_pb2.AccountID.FromString(bytes))
 
     @classmethod
     def _from_proto(cls, account_id_proto: basic_types_pb2.AccountID) -> "AccountId":
@@ -101,8 +137,13 @@ class AccountId:
             num=account_id_proto.accountNum,
         )
         if account_id_proto.alias:
-            alias = account_id_proto.alias[2:]  # remove 0x prefix
-            result.alias_key = PublicKey.from_bytes(alias)
+            alias = account_id_proto.alias 
+            if len(alias) == 20:
+                result.evm_address = EvmAddress.from_bytes(alias)
+            else:
+                alias = alias[2:] # remove 0x prefix
+                result.alias_key = PublicKey.from_bytes(alias)
+
         return result
 
     def _to_proto(self) -> basic_types_pb2.AccountID:
@@ -121,6 +162,8 @@ class AccountId:
         if self.alias_key:
             key = self.alias_key._to_proto().SerializeToString()
             account_id_proto.alias = key
+        elif self.evm_address:
+            account_id_proto.alias = self.evm_address.address_bytes
 
         return account_id_proto
 
@@ -131,8 +174,8 @@ class AccountId:
 
     def validate_checksum(self, client: "Client") -> None:
         """Validate the checksum for the accountId"""
-        if self.alias_key is not None:
-            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
+        if self.alias_key is not None or self.evm_address is not None:
+            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey or evmAddress")
 
         validate_checksum(
             self.shard,
@@ -148,6 +191,8 @@ class AccountId:
         """
         if self.alias_key:
             return f"{self.shard}.{self.realm}.{self.alias_key.to_string()}"
+        if self.evm_address:
+            return f"{self.shard}.{self.realm}.{self.evm_address.to_string()}"
         return f"{self.shard}.{self.realm}.{self.num}"
 
     def to_string_with_checksum(self, client: "Client") -> str:
@@ -155,8 +200,8 @@ class AccountId:
         Returns the string representation of the AccountId with checksum 
         in 'shard.realm.num-checksum' format.
         """
-        if self.alias_key is not None:
-            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey")
+        if self.alias_key is not None or self.evm_address is not None:
+            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey or evmAddress")
 
         return format_to_string_with_checksum(
             self.shard,
@@ -164,6 +209,53 @@ class AccountId:
             self.num,
             client
         )
+
+    def populate_account_num(self, client: "Client") -> "AccountId":
+        """
+        Populate the num field of this AccountId by querying the Hedera Mirror Node.
+        This method should be used when the AccountId was initially generated from an EVM address 
+        """
+        if not self.evm_address:
+            raise ValueError("Account evm_address is required before populating num")
+
+        url = f"{client.network.get_mirror_node_rest_url()}/accounts/{self.evm_address.to_string()}"
+        data = perform_query_to_mirror_node(url)
+
+        account_id = data.get("account")
+        if not account_id:
+            raise ValueError(f"Mirror node response missing 'account': {data}")
+
+        try:
+            self.num = int(account_id.split(".")[-1])
+            return self
+        except (ValueError, AttributeError):
+            raise ValueError(f"Invalid account format received: {account_id}")
+
+    def populate_evm_address(self, client: "Client") -> "AccountId":
+        """Populates evm_address field of the AccountId extracted from the Mirror Node."""
+        if not self.num:
+            raise ValueError("Account number is required before populating evm_address")
+
+        url = f"{client.network.get_mirror_node_rest_url()}/accounts/{self.num}"
+        data = perform_query_to_mirror_node(url)
+
+        evm_addr = data.get("evm_address")
+        if not evm_addr:
+            raise ValueError(f"Mirror node response missing 'evm_address': {data}")
+
+        self.evm_address = EvmAddress.from_string(evm_addr)
+        return self
+
+    def to_evm_address(self) -> str:
+        """Returns EVM-compatible address representation of the entity"""
+        if self.evm_address:
+            return self.evm_address.to_string()
+
+        return to_solidity_address(self.shard,self.realm,self.num)
+
+    def to_bytes(self) -> bytes:
+        """Returns AccountId as bytes."""
+        return self._to_proto().SerializeToString()
 
     def __repr__(self):
         """
@@ -173,6 +265,11 @@ class AccountId:
             return (
                 f"AccountId(shard={self.shard}, realm={self.realm}, "
                 f"alias_key={self.alias_key.to_string_raw()})"
+            )
+        if self.evm_address:
+            return (
+                f"AccountId(shard={self.shard}, realm={self.realm}, "
+                f"evm_address={self.evm_address.to_string()})"
             )
         return f"AccountId(shard={self.shard}, realm={self.realm}, num={self.num})"
 
@@ -186,13 +283,14 @@ class AccountId:
         """
         if not isinstance(other, AccountId):
             return False
-        return (self.shard, self.realm, self.num, self.alias_key) == (
+        return (self.shard, self.realm, self.num, self.alias_key, self.evm_address) == (
             other.shard,
             other.realm,
             other.num,
             other.alias_key,
+            other.evm_address
         )
 
     def __hash__(self) -> int:
         """Returns a hash value for the AccountId instance."""
-        return hash((self.shard, self.realm, self.num, self.alias_key))
+        return hash((self.shard, self.realm, self.num, self.alias_key, self.evm_address))
