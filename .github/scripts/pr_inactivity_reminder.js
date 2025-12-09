@@ -46,9 +46,9 @@ async function hasExistingBotComment(github, pr, owner, repo, marker) {
 }
 
 // Helper to post an inactivity comment
-async function postInactivityComment(github, pr, owner, repo, marker, inactivityThresholdDays, discordLink, office_hours_calendar) {
+async function postInactivityComment(github, pr, owner, repo, marker, inactivityDays, discordLink, office_hours_calendar) {
   const comment = `${marker}
-Hi @${pr.user.login},\n\nThis pull request has had no commit activity for ${inactivityThresholdDays} days. Are you still working on the issue? please push a commit to keep the PR active or it will be closed due to inactivity.
+Hi @${pr.user.login},\n\nThis pull request has had no commit activity for ${inactivityDays} days. Are you still working on the issue? please push a commit to keep the PR active or it will be closed due to inactivity.
 Reach out on discord or join our office hours if you need assistance.\n\n- ${discordLink}\n- ${office_hours_calendar} \n\nFrom the Python SDK Team`;
   if (dryRun) {
     console.log(`DRY-RUN: Would comment on PR #${pr.number} (${pr.html_url}) with body:\n---\n${comment}\n---`);
@@ -98,6 +98,9 @@ module.exports = async ({github, context}) => {
   for (const pr of prs) {
     // 1. Check inactivity
     const lastCommitDate = await getLastCommitDate(github, pr, owner, repo);
+    const inactivityDays = Math.floor((Date.now() - (lastCommitDate ? lastCommitDate.getTime() : new Date(pr.created_at).getTime())) / (1000 * 60 * 60 * 24));
+
+
     if (lastCommitDate > cutoff) {
       skippedCount++;
       console.log(`PR #${pr.number} has recent commit on ${lastCommitDate.toISOString()} - skipping`);
@@ -114,7 +117,7 @@ module.exports = async ({github, context}) => {
     }
 
     // 3. Post inactivity comment
-    const commented = await postInactivityComment(github, pr, owner, repo, marker, inactivityThresholdDays, discordLink, office_hours_calendar);
+    const commented = await postInactivityComment(github, pr, owner, repo, marker, inactivityDays, discordLink, office_hours_calendar);
     if (commented) commentedCount++;
   }
 
