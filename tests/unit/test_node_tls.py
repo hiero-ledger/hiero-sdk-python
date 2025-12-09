@@ -205,7 +205,7 @@ def test_node_validate_tls_certificate_hash_mismatch(mock_node_with_address_book
     node._address_book._cert_hash = wrong_hash
     
     with patch.object(node, '_fetch_server_certificate_pem', return_value=pem_cert):
-        with pytest.raises(ValueError, match="Failed to confirm"):
+        with pytest.raises(ValueError, match="Failed to confirm the server's certificate"):
             node._validate_tls_certificate_with_trust_manager()
 
 

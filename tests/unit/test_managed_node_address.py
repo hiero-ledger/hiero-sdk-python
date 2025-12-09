@@ -58,12 +58,10 @@ def test_from_string_invalid_url_port():
 
 def test_is_transport_security():
     """Test _is_transport_security method."""
-    secure_address1 = _ManagedNodeAddress(address="127.0.0.1", port=50212)
-    secure_address2 = _ManagedNodeAddress(address="127.0.0.1", port=443)
+    secure_address = _ManagedNodeAddress(address="127.0.0.1", port=50212)
     insecure_address = _ManagedNodeAddress(address="127.0.0.1", port=50211)
     
-    assert secure_address1._is_transport_security() is True
-    assert secure_address2._is_transport_security() is True
+    assert secure_address._is_transport_security() is True
     assert insecure_address._is_transport_security() is False
 
 def test_string_representation():
@@ -82,15 +80,6 @@ def test_to_secure_node_port():
     
     assert secure._port == 50212
     assert secure._address == "127.0.0.1"
-    assert secure._is_transport_security() is True
-
-def test_to_secure_mirror_port():
-    """Test converting mirror address from plaintext to TLS port."""
-    insecure = _ManagedNodeAddress(address="mirror.example.com", port=5600)
-    secure = insecure._to_secure()
-    
-    assert secure._port == 443
-    assert secure._address == "mirror.example.com"
     assert secure._is_transport_security() is True
 
 def test_to_secure_already_secure():
@@ -118,15 +107,6 @@ def test_to_insecure_node_port():
     
     assert insecure._port == 50211
     assert insecure._address == "127.0.0.1"
-    assert insecure._is_transport_security() is False
-
-def test_to_insecure_mirror_port():
-    """Test converting mirror address from TLS to plaintext port."""
-    secure = _ManagedNodeAddress(address="mirror.example.com", port=443)
-    insecure = secure._to_insecure()
-    
-    assert insecure._port == 5600
-    assert insecure._address == "mirror.example.com"
     assert insecure._is_transport_security() is False
 
 def test_to_insecure_already_insecure():

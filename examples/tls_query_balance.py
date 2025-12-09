@@ -54,8 +54,17 @@ def setup_client() -> Client:
     network = Network(network_name)
     client = Client(network)
 
-    # Disable TLS for consensus nodes. Mirror nodes already require TLS.
-    client.set_transport_security(False)
+    # Enable TLS for hosted networks (mainnet, testnet, previewnet)
+    # Disable TLS for local networks (localhost, solo, local)
+    hosted_networks = ("mainnet", "testnet", "previewnet")
+    local_networks = ("localhost", "solo", "local")
+    
+    if network_name.lower() in hosted_networks:
+        client.set_transport_security(True)
+    elif network_name.lower() in local_networks:
+        client.set_transport_security(False)
+    # For custom networks, use Network's default (disabled)
+    
     client.set_verify_certificates(verify_certs)
     return client
 

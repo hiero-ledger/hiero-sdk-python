@@ -1,5 +1,4 @@
 import hashlib
-import io
 import socket
 import ssl  # Python's ssl module implements TLS (despite the name)
 import grpc
@@ -8,6 +7,10 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.managed_node_address import _ManagedNodeAddress
+
+
+# Timeout for fetching server certificates during TLS validation
+CERT_FETCH_TIMEOUT_SECONDS = 10
 
 
 class _HederaTrustManager:
@@ -245,18 +248,10 @@ class _Node:
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
 
-        with socket.create_connection((host, port), timeout=10) as sock:
+        with socket.create_connection((host, port), timeout=CERT_FETCH_TIMEOUT_SECONDS) as sock:
             with context.wrap_socket(sock, server_hostname=server_hostname) as tls_socket:
                 der_cert = tls_socket.getpeercert(True)
 
         # Convert DER to PEM format (matching Java's PEM encoding)
         pem_cert = ssl.DER_cert_to_PEM_cert(der_cert).encode('utf-8')
         return pem_cert
-    
-    def _fetch_server_certificate_hash(self) -> str:
-        """
-        Perform a TLS handshake and compute the SHA-384 hash of the server certificate PEM.
-        (Kept for backwards compatibility)
-        """
-        pem_cert = self._fetch_server_certificate_pem()
-        return hashlib.sha384(pem_cert).hexdigest()
