@@ -18,6 +18,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Made custom fraction fee end to end
 - Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
 - Added __str__() to CustomRoyaltyFee and updated examples and tests accordingly (#986)
+- Restore bug and feature request issue templates (#996)(https://github.com/hiero-ledger/hiero-sdk-python/issues/996)
+
 
 ### Changed
 
