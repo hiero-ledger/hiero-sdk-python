@@ -167,3 +167,24 @@ Thank you for contributing to the Hiero Python SDK! 🎉
 - **Quick Links:**
     - Join the main [Linux Foundation Decentralized Trust (LFDT) Discord Server](https://discord.gg/hyperledger).
     - Go directly to the [#hiero-python-sdk channel](https://discord.com/channels/905194001349627914/1336494517544681563)
+
+---
+
+## Running tests locally
+
+During development you may want to run a single test file in isolation to avoid importing the project's package-level `__init__` (which imports generated protobuf modules). To run a single test file without loading project-wide fixtures, use the project's virtualenv Python and run pytest on the path:
+
+PowerShell example:
+```powershell
+# activate virtualenv (if not already active)
+C:/Users/Giannis/OneDrive/Programming/hiero-sdk-python/.venv/Scripts/Activate.ps1
+
+# install test deps if needed
+python -m pip install -U pip
+python -m pip install pytest
+
+# run a single test file
+python -m pytest -q tests/test_subscription_handle.py
+```
+
+If you want to run a subset of tests, use `-k` with a keyword expression or provide a directory/file path. This helps avoid heavy `conftest.py` imports during quick iteration.
