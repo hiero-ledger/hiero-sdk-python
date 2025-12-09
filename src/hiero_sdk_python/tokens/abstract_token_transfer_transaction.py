@@ -148,10 +148,10 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError("token_id must be a TokenId instance.")
         if not isinstance(account_id, AccountId):
             raise TypeError("account_id must be an AccountId instance.")
-        if not isinstance(amount, int) or amount == 0:
-            raise ValueError("Amount must be a integer.")
+        if not isinstance(amount, int):
+            raise TypeError("Amount must be an integer.")
         if amount == 0:
-            raise ValueError("amount must be a non-zero value.")
+            raise ValueError("Amount must be a non-zero value.")
         if expected_decimals is not None and not isinstance(expected_decimals, int):
             raise TypeError("expected_decimals must be an integer.")
         if not isinstance(is_approved, bool):
