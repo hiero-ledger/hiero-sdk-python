@@ -7,7 +7,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-
+- Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
+- Phase 2 of the inactivity-unassign bot:Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added **str**() to CustomFixedFee and updated examples and tests accordingly.
 - Added a github template for good first issues
 - Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
@@ -19,6 +20,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - feat: AccountCreateTransaction now supports both PrivateKey and PublicKey [#939](https://github.com/hiero-ledger/hiero-sdk-python/issues/939)
 - Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
 - Added __str__() to CustomRoyaltyFee and updated examples and tests accordingly (#986)
+- Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
+- Restore bug and feature request issue templates (#996)(https://github.com/hiero-ledger/hiero-sdk-python/issues/996)
+- Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
+- Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 
 ### Changed
