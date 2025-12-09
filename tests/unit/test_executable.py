@@ -46,7 +46,7 @@ def test_retry_success_before_max_attempts():
     # First server gives 2 BUSY responses then OK on the 3rd try
     response_sequences = [[busy_response, busy_response, ok_response, receipt_response]]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         # Configure client to allow 3 attempts - should succeed on the last try
         client.max_attempts = 3
 
@@ -70,7 +70,7 @@ def test_retry_failure_after_max_attempts():
 
     response_sequences = [[busy_response, busy_response]]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         client.max_attempts = 2
 
         transaction = (
@@ -112,7 +112,7 @@ def test_node_switching_after_single_grpc_error():
         [error],
     ]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -149,7 +149,7 @@ def test_node_switching_after_multiple_grpc_errors():
         [ok_response, receipt_response],
     ]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -185,7 +185,7 @@ def test_transaction_with_expired_error_not_retried():
         [error_response]
     ]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -216,7 +216,7 @@ def test_transaction_with_fatal_error_not_retried():
         [error_response]
     ]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -248,7 +248,7 @@ def test_exponential_backoff_retry():
     response_sequences = [[busy_response, busy_response, busy_response, ok_response, receipt_response]]
 
     # Use a mock for time.sleep to capture the delay values
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep') as mock_sleep:
         client.max_attempts = 5
 
         transaction = (
@@ -288,7 +288,7 @@ def test_retriable_error_does_not_switch_node():
         )
     )
     response_sequences = [[busy_response, ok_response, receipt_response]]
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
             .set_key(PrivateKey.generate().public_key())
@@ -333,7 +333,7 @@ def test_topic_create_transaction_retry_on_busy():
         [busy_response, ok_response, receipt_response],
     ]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep') as mock_sleep:
         client.max_attempts = 3
 
         tx = (
@@ -367,7 +367,7 @@ def test_topic_create_transaction_fails_on_nonretriable_error():
         [error_response],
     ]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         tx = (
             TopicCreateTransaction()
             .set_memo("Test with error")
@@ -400,7 +400,7 @@ def test_transaction_node_switching_body_bytes():
         [ok_response, receipt_response],
     ]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         # We set the current node to 0
         client.network._node_index = 0
         client.network.current_node = client.network.nodes[0]
@@ -467,8 +467,9 @@ def test_query_retry_on_busy():
         [ok_response],
     ]
 
-    with mock_hedera_servers(response_sequences) as client, patch('time.sleep') as mock_sleep:
+    with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep') as mock_sleep:
         # We set the current node to the first node so we are sure it will return BUSY response
+        client.network._node_index = 0
         client.network.current_node = client.network.nodes[0]
 
         query = CryptoGetAccountBalanceQuery()
