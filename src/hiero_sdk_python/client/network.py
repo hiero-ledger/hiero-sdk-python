@@ -177,6 +177,21 @@ class Network:
         self._node_index = (self._node_index + 1) % len(self.nodes)
         self.current_node = self.nodes[self._node_index]
         return self.current_node
+    
+    def _get_node(self, account_id: AccountId) -> Optional[_Node]:
+        """
+        Get a node matching the given account ID.
+
+        Args:
+            account_id (AccountId): The account ID of the node to locate.
+
+        Returns:
+            Optional[_Node]: The matching node, or None if not found.
+        """
+        for node in self.nodes:
+            if node._account_id == account_id:
+                return node
+        return None
 
     def get_mirror_address(self) -> str:
         """
