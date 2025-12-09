@@ -19,8 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - feat: AccountCreateTransaction now supports both PrivateKey and PublicKey [#939](https://github.com/hiero-ledger/hiero-sdk-python/issues/939)
 - Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
 - Added __str__() to CustomRoyaltyFee and updated examples and tests accordingly (#986)
-Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
-
+- Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
 
 ### Changed
 
