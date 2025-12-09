@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
 - Added __str__() to CustomRoyaltyFee and updated examples and tests accordingly (#986)
 - Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
+- Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 
 ### Changed
 
