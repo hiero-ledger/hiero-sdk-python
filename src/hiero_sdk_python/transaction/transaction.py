@@ -9,9 +9,10 @@ from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2, transaction_pb2)
+from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -61,8 +62,9 @@ class Transaction(_Executable):
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
-        self._default_transaction_fee = 2_000_000
-        self.operator_account_id = None
+        # changed from int: 2_000_000 to Hbar: 0.02
+        self._default_transaction_fee = Hbar(0.02)
+        self.operator_account_id = None  
         self.batch_key: Optional[PrivateKey] = None
 
     def _make_request(self):
@@ -419,7 +421,11 @@ class Transaction(_Executable):
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
 
-        transaction_body.transactionFee = self.transaction_fee or self._default_transaction_fee
+        fee = self.transaction_fee or self._default_transaction_fee
+        if hasattr(fee, "to_tinybars"):
+            transaction_body.transactionFee = int(fee.to_tinybars())
+        else:
+            transaction_body.transactionFee = int(fee)
 
         transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration
         transaction_body.generateRecord = self.generate_record
@@ -441,9 +447,13 @@ class Transaction(_Executable):
                 The protobuf SchedulableTransactionBody message with common fields set.
         """
         schedulable_body = SchedulableTransactionBody()
-        schedulable_body.transactionFee = (
-            self.transaction_fee or self._default_transaction_fee
-        )
+
+        fee = self.transaction_fee or self._default_transaction_fee
+        if hasattr(fee, "to_tinybars"):
+            schedulable_body.transactionFee = int(fee.to_tinybars())
+        else:
+            schedulable_body.transactionFee = int(fee)
+
         schedulable_body.memo = self.memo
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         schedulable_body.max_custom_fees.extend(custom_fee_limits)

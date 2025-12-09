@@ -1,12 +1,13 @@
 name: PythonBot - Verify PR Commits
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize]
 
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 concurrency:
   group: "verify-commits-${{ github.event.pull_request.number }}"
@@ -18,13 +19,10 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
         with:
           egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-
+      
       - name: Check for unverified commits
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,8 +38,16 @@ jobs:
 
           echo "Unverified commits: $UNVERIFIED_COUNT"
 
+          EXISTING_BOT_COMMENT_COUNT=$(gh pr view $PR_NUMBER --repo $REPO --json comments | jq '[.comments[] | select(.author.login == "github-actions" and (.body | contains("[commit-verification-bot]")))] | length')
+
+          echo "Existing verification commit bot comments: $EXISTING_BOT_COMMENT_COUNT"
+    
           if [ "$UNVERIFIED_COUNT" -gt 0 ]; then
-            COMMENT=$(cat <<EOF
+            if [ "$EXISTING_BOT_COMMENT_COUNT" -ge 1 ]; then   
+              echo "VerificationBot already commented. Skipping additional comments."
+            else 
+              COMMENT=$(cat <<EOF
+            [commit-verification-bot]
             Hi, this is VerificationBot. 
             Your pull request cannot be merged as it has **unverified commits**. 
             View your commit verification status: [Commits Tab]($COMMITS_URL).
@@ -60,9 +66,11 @@ jobs:
           EOF
             )
 
-            gh pr view $PR_NUMBER --repo $REPO --json comments --jq '.comments[].body' | grep -F "PythonBot" >/dev/null || \
-            (gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT" && echo "Comment added to PR #$PR_NUMBER")
+              gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT"
+              echo "Comment added to PR #$PR_NUMBER"
+            fi
+
+            exit 1
           else
             echo "All commits in PR #$PR_NUMBER are verified."
           fi
- 

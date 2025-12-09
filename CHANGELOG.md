@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -8,9 +8,71 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Added **str**() to CustomFixedFee and updated examples and tests accordingly.
+- Added a github template for good first issues
+- Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
+- Added all missing fields to **str**() method and updated `test_tokem_info.py`
+- Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
+- Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
+- Add inactivity bot workflow to unassign stale issue assignees (#952)
+- Made custom fraction fee end to end
+- feat: AccountCreateTransaction now supports both PrivateKey and PublicKey [#939](https://github.com/hiero-ledger/hiero-sdk-python/issues/939)
+- Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
+- Added __str__() to CustomRoyaltyFee and updated examples and tests accordingly (#986)
+
+### Changed
+
+- Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
+- Bump protobuf toml to protobuf==6.33.2
+
+### Fixed
+
+- Fixed inactivity bot workflow not checking out repository before running (#964)
+- Fixed the topic_message_query integarion test
+- good first issue template yaml rendering
+
+### Breaking Change
+
+-
+
+## [0.1.10] - 2025-12-03
+
+### Added
+
+- Added docs/sdk_developers/training/workflow: a training for developers to learn the workflow to contribute to the python SDK.
+- Added Improved NFT allowance deletion flow with receipt-based status checks and strict `SPENDER_DOES_NOT_HAVE_ALLOWANCE` verification.
+- Add `max_automatic_token_associations`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to `AccountUpdateTransaction` (#801)
+- Added docs/sdk_developers/training/setup: a training to set up as a developer to the python sdk
+- Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
+- Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
+- Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.
+- feat: Implement account creation with EVM-style alias transaction example.
+- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased].
+- Support for message chunking in `TopicSubmitMessageTransaction`.
+
+### Changed
+
+- bot workflows to include new changelog entry
+- Removed duplicate import of transaction_pb2 in transaction.py
+- Refactor `TokenInfo` into an immutable dataclass, remove all setters, and rewrite `_from_proto` as a pure factory for consistent parsing [#800]
+- feat: Add string representation method for `CustomFractionalFee` class and update `custom_fractional_fee.py` example.
+- Moved query examples to their respective domain folders to improve structure matching.
+
+### Fixed
+
+- fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
+
+## [0.1.9] - 2025-11-26
+
+### Added
+
+- Add a limit of one comment for PR to the commit verification bot. [#892]
+- Removed `actions/checkout@v4` from `bot-verified-commits.yml`
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
 - Document error handling patterns and best practices for transaction receipts
+- fix `pull_request` to `pull_request_target` in `bot-verified-commits.yml`
+- Add more robust receipt checks and removed fallback to `examples/tokens/token_delete_transaction.py`
 - Add detail to `token_airdrop.py` and `token_airdrop_cancel.py`
 - Add workflow: github bot to respond to unverified PR commits (#750)
 - Add workflow: bot workflow which notifies developers of workflow failures in their pull requests.
@@ -23,20 +85,25 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `examples/token_create_transaction_freeze_key.py` showcasing freeze key behavior, expected failures without the key, and the effect of freezing/unfreezing on transfers.
 - Add `examples/account_info.py` to demonstrate `AccountInfo` opeartions
 - Added `HbarUnit` class and Extend `Hbar` class to handle floating-point numbers
+- Add `examples/topic_info.py` to demonstrate `TopicInfo` operations.
 - feat: Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - EvmAddress class
 - `alias`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountCreateTransaction
 - `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to AccountInfo
 - Added `examples/token_create_transaction_supply_key.py` to demonstrate token creation with and without a supply key.
 - Added `examples/token_create_transaction_kyc_key.py` to demonstrate KYC key functionality, including creating tokens with/without KYC keys, granting/revoking KYC status, and understanding KYC requirements for token transfers.
+- Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
 - Added BatchTransaction class
 - Add support for token metadata (bytes, max 100 bytes) in `TokenCreateTransaction`, including a new `set_metadata` setter, example, and tests. [#799]
 - Added `examples/token_create_transaction_token_fee_schedule.py` to demonstrate creating tokens with custom fee schedules and the consequences of not having it.
 - Added `examples/token_create_transaction_wipe_key.py` to demonstrate token wiping and the role of the wipe key.
 - Added `examples/account_allowance_approve_transaction_hbar.py` and `examples/account_allowance_delete_transaction_hbar.py`, deleted `examples/account_allowance_hbar.py`. [#775]
 - Added `docs\sdk_developers\training\receipts.md` as a training guide for users to understand hedera receipts.
+- Add `set_token_ids`, `_from_proto`, `_validate_checksum` to TokenAssociateTransaction [#795]
+- docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
 
 ### Changed
+
 - Upgraded step-security/harden-runner v2.13.2
 - bumped actions/checkout from 5.0.0 to 6.0.0
 - Limit workflow bot to one message per PR
@@ -48,14 +115,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allow `PrivateKey` to be used for keys in `TopicCreateTransaction` for consistency.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
+- feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
 
 ### Fixed
 
+- chore: updated solo action to avoid v5
 - chore: fix test.yml workflow to log import errors (#740)
 - chore: fixed integration test names without a test prefix or postfix
 - Staked node ID id issue in the account_create_transationt_e2e_test
 - workflow: verified commits syntax for verfication bot
-
 
 ## [0.1.8] - 2025-11-07
 
@@ -86,6 +154,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
 
 ### Changed
+
 - chore: renamed examples to match src where possible
 - Moved examples/ to be inside subfiles to match src structure
 - changed example script workflow to run on new subdirectory structure
@@ -154,6 +223,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
 ### Changed
+
 - Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
 - Updated all occurrences of non-functional Discord invite links throughout the documentation with the new, stable Hyperledger and Hedera invite links (#603).
 - Refactored TopicId class to use @dataclass decorator for reducing boilerplate code
