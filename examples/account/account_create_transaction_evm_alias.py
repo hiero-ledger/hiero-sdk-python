@@ -15,6 +15,7 @@ from hiero_sdk_python import (
     Client,
     PrivateKey,
     AccountCreateTransaction,
+    AccountInfo,
     AccountInfoQuery,
     Network,
     AccountId,
@@ -103,7 +104,7 @@ def create_account_with_alias(client: Client, private_key: PrivateKey) -> Accoun
     return new_account_id
 
 
-def fetch_account_info(client: Client, account_id: AccountId):
+def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
     """Fetch account information from the network.
 
     Args:
@@ -118,7 +119,7 @@ def fetch_account_info(client: Client, account_id: AccountId):
     return account_info
 
 
-def print_account_summary(account_info) -> None:
+def print_account_summary(account_info: AccountInfo) -> None:
     """Print a summary of the account information.
 
     Args:
