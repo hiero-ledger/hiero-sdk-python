@@ -111,9 +111,9 @@ def fetch_account_info(client: Client, account_id: AccountId):
         account_id: The account ID to query.
 
     Returns:
-        The account info object.
+        AccountInfo: The account info object.
     """
-    print("STEP 3: Fetching account information...")
+    print("\nSTEP 3: Fetching account information...")
     account_info = AccountInfoQuery().set_account_id(account_id).execute(client)
     return account_info
 
@@ -140,7 +140,8 @@ def main():
     1- Setup client
     2- Generate ECDSA key pair and EVM address alias
     3- Create account with alias
-    4- Print account info
+    4- Fetch account information
+    5- Print account summary
     """
     try:
         client = setup_client()
