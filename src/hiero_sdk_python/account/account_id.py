@@ -218,7 +218,7 @@ class AccountId:
         if not self.evm_address:
             raise ValueError("Account evm_address is required before populating num")
 
-        url = f"{client.network.get_mirror_node_rest_url()}/accounts/{self.evm_address.to_string()}"
+        url = f"{client.network.get_mirror_rest_url()}/accounts/{self.evm_address.to_string()}"
         data = perform_query_to_mirror_node(url)
 
         account_id = data.get("account")
@@ -236,7 +236,7 @@ class AccountId:
         if not self.num:
             raise ValueError("Account number is required before populating evm_address")
 
-        url = f"{client.network.get_mirror_node_rest_url()}/accounts/{self.num}"
+        url = f"{client.network.get_mirror_rest_url()}/accounts/{self.num}"
         data = perform_query_to_mirror_node(url)
 
         evm_addr = data.get("evm_address")
