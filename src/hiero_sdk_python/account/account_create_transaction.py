@@ -9,14 +9,16 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_pb2, basic_types_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = Hbar(3).to_tinybars()  # 3 Hbars
@@ -29,7 +31,7 @@ class AccountCreateTransaction(Transaction):
 
     def __init__(
         self,
-        key: Optional[PublicKey] = None,
+        key: Optional[Key] = None,
         initial_balance: Union[Hbar, int] = 0,
         receiver_signature_required: Optional[bool] = None,
         auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD,
@@ -59,7 +61,7 @@ class AccountCreateTransaction(Transaction):
                 staking reward (default is False).
         """
         super().__init__()
-        self.key: Optional[PublicKey] = key
+        self.key: Optional[Key] = key
         self.initial_balance: Union[Hbar, int] = initial_balance
         self.receiver_signature_required: Optional[bool] = receiver_signature_required
         self.auto_renew_period: Optional[Duration] = auto_renew_period
@@ -71,12 +73,12 @@ class AccountCreateTransaction(Transaction):
         self.staked_node_id: Optional[int] = staked_node_id
         self.decline_staking_reward = decline_staking_reward
 
-    def set_key(self, key: PublicKey) -> "AccountCreateTransaction":
+    def set_key(self, key: Key) -> "AccountCreateTransaction":
         """
-        Sets the public key for the new account.
+        Sets the key for the new account (accepts both PrivateKey or PublicKey).
 
         Args:
-            key (PublicKey): The public key to assign to the account.
+            key (Key): The key to assign to the account.
 
         Returns:
             AccountCreateTransaction: The current transaction instance for method chaining.
@@ -89,33 +91,34 @@ class AccountCreateTransaction(Transaction):
         self.key = key
         return self
 
-    def set_key_without_alias(self, key: PublicKey) -> "AccountCreateTransaction":
+    def set_key_without_alias(self, key: Key) -> "AccountCreateTransaction":
         """
-        Sets the public key for the new account without alias.
+        Sets the key for the new account without alias (accepts both PrivateKey or PublicKey).
 
         Args:
-            key (PublicKey): The public key to assign to the account.
+            key (Key): The key to assign to the account.
 
         Returns:
             AccountCreateTransaction: The current transaction instance for method chaining.
         """
         self._require_not_frozen()
         self.key = key
+        self.alias = None
         return self
 
     def set_key_with_alias(
         self,
-        key: PublicKey,
-        ecdsa_key: Optional[PublicKey]=None
+        key: Key,
+        ecdsa_key: Optional[Key]=None
     ) -> "AccountCreateTransaction":
         """
-        Sets the public key for the new account and assigns an alias derived from an ECDSA key.
+        Sets the key for the new account and assigns an alias derived from an ECDSA key.
         
         If `ecdsa_key` is provided, its corresponding EVM address will be used as the account alias.
         Otherwise, the alias will be derived from the provided `key`.
 
         Args:
-            key (PublicKey): The public key to assign to the account.
+            key (Key): The key to assign to the account (PrivateKey or PublicKey).
             ecdsa_key (Optional[PublicKey]): An optional ECDSA public key used 
                 to derive the account alias.
 
@@ -124,7 +127,11 @@ class AccountCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.key = key
-        self.alias = ecdsa_key.to_evm_address() if ecdsa_key is not None else key.to_evm_address()
+        evm_source_key: Key = ecdsa_key if ecdsa_key is not None else key
+        if isinstance(evm_source_key, PrivateKey):
+            evm_source_key = evm_source_key.public_key()
+
+        self.alias = evm_source_key.to_evm_address()
         return self
 
     def set_initial_balance(self, balance: Union[Hbar, int]) -> "AccountCreateTransaction":
@@ -318,8 +325,10 @@ class AccountCreateTransaction(Transaction):
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
 
+        proto_key = key_to_proto(self.key)
+
         proto_body = crypto_create_pb2.CryptoCreateTransactionBody(
-            key=self.key._to_proto(),
+            key=proto_key,
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
