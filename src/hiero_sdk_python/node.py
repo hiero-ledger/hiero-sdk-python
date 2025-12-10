@@ -2,7 +2,7 @@ import hashlib
 import socket
 import ssl  # Python's ssl module implements TLS (despite the name)
 import grpc
-from typing import Optional, Callable
+from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.address_book.node_address import NodeAddress
@@ -92,6 +92,7 @@ class _Node:
         self._verify_certificates: bool = True
         self._root_certificates: Optional[bytes] = None
         self._authority_override: Optional[str] = self._determine_authority_override()
+        self._node_pem_cert: Optional[bytes] = None
     
     def _close(self):
         """
@@ -115,13 +116,21 @@ class _Node:
             return self._channel
         
         if self._address._is_transport_security():
+            if self._root_certificates:
+                # Use the certificate that provider
+                self._node_pem_cert = self._root_certificates;
+            
+            else:
+                # Fetch pem_cert for the node
+                self._node_pem_cert = self._fetch_server_certificate_pem()
+            
             # Validate certificate if verification is enabled
             if self._verify_certificates:
                 self._validate_tls_certificate_with_trust_manager()
             
             options = self._build_channel_options()
             credentials = grpc.ssl_channel_credentials(
-                root_certificates=self._root_certificates,
+                root_certificates=self._node_pem_cert,
                 private_key=None,
                 certificate_chain=None,
             )
@@ -141,7 +150,9 @@ class _Node:
             return
         if not enabled and not self._address._is_transport_security():
             return
+        
         self._close()
+        
         if enabled:
             self._address = self._address._to_secure()
         else:
@@ -154,13 +165,16 @@ class _Node:
         self._root_certificates = root_certificates
         if self._channel and self._address._is_transport_security():
             self._close()
+            
     def _set_verify_certificates(self, verify: bool):
         """
         Set whether TLS certificates should be verified.
         """
         if self._verify_certificates == verify:
             return
+        
         self._verify_certificates = verify
+        
         if verify and self._channel and self._address._is_transport_security():
             # Force channel recreation to ensure certificates are revalidated.
             self._close()
@@ -173,20 +187,25 @@ class _Node:
             return None
         for endpoint in self._address_book._addresses:  # pylint: disable=protected-access
             domain = endpoint.get_domain_name()
+            
             if domain:
                 return domain
+        
         return None
 
     def _build_channel_options(self):
         """
         Build gRPC channel options for TLS connections.
         """
-        if not self._authority_override:
-            return None
-        host = self._address._get_host()
-        if host == self._authority_override:
-            return None
-        return [('grpc.ssl_target_name_override', self._authority_override)]
+        options = [
+            ("grpc.default_authority", "127.0.0.1"),
+            ("grpc.ssl_target_name_override", "127.0.0.1"),
+            ("grpc.keepalive_time_ms", 100000),
+            ("grpc.keepalive_timeout_ms", 10000),
+            ("grpc.keepalive_permit_without_calls", 1)
+        ]
+
+        return options
 
     def _validate_tls_certificate_with_trust_manager(self):
         """
@@ -197,9 +216,7 @@ class _Node:
         Note: If verification is enabled but no cert hash is available (e.g., in unit tests
         without address books), validation is skipped rather than raising an error.
         """
-        if not self._address._is_transport_security():
-            return
-        if not self._verify_certificates:
+        if not self._address._is_transport_security() or not self._verify_certificates:
             return
         
         cert_hash = None
@@ -214,10 +231,7 @@ class _Node:
         
         # Create trust manager and validate certificate
         trust_manager = _HederaTrustManager(cert_hash, self._verify_certificates)
-        
-        # Fetch server certificate and validate
-        pem_cert = self._fetch_server_certificate_pem()
-        trust_manager.check_server_trusted(pem_cert)
+        trust_manager.check_server_trusted(self._node_pem_cert)
 
     @staticmethod
     def _normalize_cert_hash(cert_hash: bytes) -> str:
@@ -228,6 +242,7 @@ class _Node:
             decoded = cert_hash.decode('utf-8').strip().lower()
             if decoded.startswith("0x"):
                 decoded = decoded[2:]
+
             return decoded
         except UnicodeDecodeError:
             return cert_hash.hex()
@@ -239,6 +254,9 @@ class _Node:
         Returns:
             bytes: PEM-encoded certificate bytes
         """
+        if not self._address_book:
+            return None
+
         host = self._address._get_host()
         port = self._address._get_port()
         server_hostname = self._authority_override or host
