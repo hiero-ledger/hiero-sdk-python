@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
 - Phase 2 of the inactivity-unassign bot:Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added **str**() to CustomFixedFee and updated examples and tests accordingly.
