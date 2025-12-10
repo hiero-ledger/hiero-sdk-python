@@ -23,6 +23,7 @@ from hiero_sdk_python import (
     Client,
     PrivateKey,
     AccountCreateTransaction,
+    AccountInfo,
     AccountInfoQuery,
     Network,
     AccountId,
@@ -124,7 +125,7 @@ def create_account_with_ecdsa_alias(
     return new_account_id
 
 
-def fetch_account_info(client: Client, account_id: AccountId):
+def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
     """Fetch account information from the network.
 
     Args:
@@ -132,9 +133,9 @@ def fetch_account_info(client: Client, account_id: AccountId):
         account_id: The account ID to query.
 
     Returns:
-        The account info object.
+        AccountInfo: The account info object.
     """
-    print("STEP 3: Fetching account information...")
+    print("\nSTEP 3: Fetching account information...")
     account_info = (
         AccountInfoQuery()
         .set_account_id(account_id)
@@ -143,7 +144,7 @@ def fetch_account_info(client: Client, account_id: AccountId):
     return account_info
 
 
-def print_account_summary(account_info) -> None:
+def print_account_summary(account_info: AccountInfo) -> None:
     """Print a summary of the account information.
 
     Args:
