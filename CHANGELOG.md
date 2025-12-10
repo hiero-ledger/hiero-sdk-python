@@ -24,6 +24,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
 - Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
+- Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
 
 ### Changed
 
