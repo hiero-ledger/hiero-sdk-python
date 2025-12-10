@@ -1,5 +1,6 @@
 """Unit tests for crypto_utils module."""
 from cryptography.hazmat.primitives.asymmetric import ec
+import pytest
 
 from hiero_sdk_python.utils.crypto_utils import (
     compress_point_unchecked,
@@ -7,6 +8,8 @@ from hiero_sdk_python.utils.crypto_utils import (
     decompress_point,
     keccak256,
 )
+
+pytestmark = pytest.mark.unit
 
 
 def test_keccak256():
