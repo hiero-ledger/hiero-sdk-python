@@ -8,7 +8,7 @@ on:
       dry_run:
         description: "Run in dry-run mode (no unassign / close / comment)"
         required: true
-        default:  true
+        default: "true"
         type: boolean
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
       - name: Harden the runner
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2
         with:
           egress-policy: audit
 
@@ -34,8 +34,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           DAYS: 21
-          # Default behaviour:
-          # - schedule: DRY_RUN=0 (real actions)
-          # - workflow_dispatch: DRY_RUN comes from the "dry_run" input (true → 1, false → 0)
+          # Behaviour:
+          # - schedule: DRY_RUN = 0 (real actions)
+          # - workflow_dispatch: DRY_RUN derived from the "dry_run" input
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.dry_run == 'true' && '1' || '0') || '0' }}
         run: bash .github/scripts/inactivity_unassign.sh

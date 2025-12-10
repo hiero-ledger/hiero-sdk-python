@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # Unified Inactivity Bot (Phase 1 + Phase 2)
-# DRY_RUN:
-#   1 → simulate only (no changes)
-#   0 → real actions
+# DRY_RUN controls behaviour:
+#   DRY_RUN = 1 → simulate only (no changes, just logs)
+#   DRY_RUN = 0 → real actions (comments, closes, unassigns)
 
 REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
 DAYS="${DAYS:-21}"
@@ -25,36 +25,32 @@ fi
 
 echo "------------------------------------------------------------"
 echo " Unified Inactivity Unassign Bot"
-echo " Repo:      $REPO"
-echo " Threshold: $DAYS days"
-echo " DRY_RUN:   $DRY_RUN"
+echo " Repo:     $REPO"
+echo " Threshold $DAYS days"
+echo " DRY_RUN:  $DRY_RUN"
 echo "------------------------------------------------------------"
 
 NOW_TS=$(date +%s)
 
-# Convert GitHub timestamp → unix epoch
+# Convert GitHub ISO timestamp → epoch seconds
 parse_ts() {
   local ts="$1"
   if date --version >/dev/null 2>&1; then
-    # GNU date
+    # GNU date (Linux)
     date -d "$ts" +%s
   else
-    # macOS / BSD
+    # BSD / macOS
     date -j -f "%Y-%m-%dT%H:%M:%SZ" "$ts" +"%s"
   fi
 }
 
-# Fetch all open issues with assignees (non-PRs)
+# Fetch all open issues with assignees (no PRs)
 ISSUES=$(
   gh api "repos/$REPO/issues" --paginate \
-    --jq '.[] 
-      | select(.state=="open" and (.assignees|length>0) and (.pull_request|not))
+    --jq '.[]
+      | select(.state=="open" and (.assignees | length > 0) and (.pull_request | not))
       | .number'
 )
-
-if [[ -z "$ISSUES" ]]; then
-  echo "[INFO] No open issues with assignees found."
-fi
 
 for ISSUE in $ISSUES; do
   echo "============================================================"
@@ -63,53 +59,48 @@ for ISSUE in $ISSUES; do
 
   ISSUE_JSON=$(gh api "repos/$REPO/issues/$ISSUE")
   ISSUE_CREATED_AT=$(echo "$ISSUE_JSON" | jq -r '.created_at')
-  ISSUE_CREATED_TS=$(parse_ts "$ISSUE_CREATED_AT")
-
   ASSIGNEES=$(echo "$ISSUE_JSON" | jq -r '.assignees[].login')
 
   echo "  [INFO] Issue created at: $ISSUE_CREATED_AT"
+  echo
 
-  # Fetch timeline once per issue (used for assignment + PR links)
-  TIMELINE=$(gh api \
-    -H "Accept: application/vnd.github.mockingbird-preview+json" \
-    "repos/$REPO/issues/$ISSUE/timeline"
+  # Fetch timeline once (used for assignment events + PR links)
+  TIMELINE=$(
+    gh api \
+      -H "Accept: application/vnd.github.mockingbird-preview+json" \
+      "repos/$REPO/issues/$ISSUE/timeline"
   )
 
   for USER in $ASSIGNEES; do
-    echo
     echo "  → Checking assignee: $USER"
 
-    # -------------------------------
-    # Determine assignment time for USER
-    # -------------------------------
-    ASSIGNED_AT_STR=$(
-      echo "$TIMELINE" | jq -r --arg user "$USER" '
+    # Determine assignment timestamp for this user
+    ASSIGN_EVENT_JSON=$(
+      echo "$TIMELINE" | jq -c --arg user "$USER" '
         [ .[]
-          | select(.event=="assigned" and .assignee.login==$user)
-          | .created_at
-        ] 
-        | sort 
-        | last // "null"
+          | select(.event == "assigned")
+          | select(.assignee.login == $user)
+        ]
+        | last // empty
       '
     )
 
-    ASSIGNMENT_SOURCE="assignment_event"
-
-    if [[ -z "$ASSIGNED_AT_STR" || "$ASSIGNED_AT_STR" == "null" ]]; then
-      # Fallback: no explicit assignment event -> use issue creation time
-      ASSIGNED_AT_STR="$ISSUE_CREATED_AT"
-      ASSIGNMENT_SOURCE="issue_created_at (no explicit assignment event)"
+    if [[ -n "$ASSIGN_EVENT_JSON" && "$ASSIGN_EVENT_JSON" != "null" ]]; then
+      ASSIGNED_AT=$(echo "$ASSIGN_EVENT_JSON" | jq -r '.created_at')
+      ASSIGN_SOURCE="assignment_event"
+    else
+      # Fallback: use issue creation time when no explicit assignment event
+      ASSIGNED_AT="$ISSUE_CREATED_AT"
+      ASSIGN_SOURCE="issue_created_at (no explicit assignment event)"
     fi
 
-    ASSIGNED_TS=$(parse_ts "$ASSIGNED_AT_STR")
+    ASSIGNED_TS=$(parse_ts "$ASSIGNED_AT")
     ASSIGNED_AGE_DAYS=$(( (NOW_TS - ASSIGNED_TS) / 86400 ))
 
-    echo "    [INFO] Assignment source: $ASSIGNMENT_SOURCE"
-    echo "    [INFO] Assigned at:      $ASSIGNED_AT_STR (~${ASSIGNED_AGE_DAYS} days ago)"
+    echo "    [INFO] Assignment source: $ASSIGN_SOURCE"
+    echo "    [INFO] Assigned at:      $ASSIGNED_AT (~${ASSIGNED_AGE_DAYS} days ago)"
 
-    # -------------------------------
-    # Find linked PRs for THIS user in THIS repo
-    # -------------------------------
+    # Determine PRs linked to this issue for this user
     PR_NUMBERS=$(
       echo "$TIMELINE" | jq -r --arg repo "$REPO" --arg user "$USER" '
         .[]
@@ -121,40 +112,50 @@ for ISSUE in $ISSUES; do
       '
     )
 
+    # ===========================
+    # PHASE 1: ISSUE HAS NO PR(s)
+    # ===========================
     if [[ -z "$PR_NUMBERS" ]]; then
       echo "    [INFO] Linked PRs: none"
-    else
-      echo "    [INFO] Linked PRs: $PR_NUMBERS"
-    fi
 
-    # ============================================================
-    # PHASE 1: ISSUE HAS NO PR FOR THIS USER
-    # ============================================================
-    if [[ -z "$PR_NUMBERS" ]]; then
       if (( ASSIGNED_AGE_DAYS >= DAYS )); then
-        echo "    [RESULT] Phase 1 → no PR linked + stale (>= $DAYS days)"
+        echo "    [RESULT] Phase 1 → stale assignment (>= $DAYS days, no PR)"
 
         if (( DRY_RUN == 0 )); then
+          MESSAGE=$(
+            cat <<EOF
+Hi @$USER, this is InactivityBot 👋
+
+You were assigned to this issue **${ASSIGNED_AGE_DAYS} days** ago, and there is currently no open pull request linked to it.
+To keep the backlog available for active contributors, I'm unassigning you for now.
+
+If you'd like to continue working on this later, feel free to get re-assigned or comment here and we'll gladly assign it back to you. 🙂
+EOF
+          )
+
+          gh issue comment "$ISSUE" --repo "$REPO" --body "$MESSAGE"
           gh issue edit "$ISSUE" --repo "$REPO" --remove-assignee "$USER"
-          echo "    [ACTION] Unassigned @$USER from issue #$ISSUE"
+          echo "    [ACTION] Commented and unassigned @$USER from issue #$ISSUE"
         else
-          echo "    [DRY RUN] Would unassign @$USER from issue #$ISSUE"
+          echo "    [DRY RUN] Would comment + unassign @$USER from issue #$ISSUE (Phase 1 stale)"
         fi
       else
         echo "    [RESULT] Phase 1 → no PR linked but not stale (< $DAYS days) → KEEP"
       fi
 
-      # No PRs means no Phase 2 work required for this user
+      echo
       continue
     fi
 
-    # ============================================================
-    # PHASE 2: ISSUE HAS PR(s) → check last commit activity
-    # ============================================================
-    PHASE2_TOOK_ACTION=0
+    # ===========================
+    # PHASE 2: ISSUE HAS PR(s)
+    # ===========================
+    echo "    [INFO] Linked PRs: $PR_NUMBERS"
+
+    PHASE2_TOUCHED=0
 
     for PR_NUM in $PR_NUMBERS; do
-      # Ensure PR exists in this repo
+      # Safe PR existence check
       if ! PR_STATE=$(gh pr view "$PR_NUM" --repo "$REPO" --json state --jq '.state' 2>/dev/null); then
         echo "    [SKIP] #$PR_NUM is not a valid PR in $REPO"
         continue
@@ -167,40 +168,48 @@ for ISSUE in $ISSUES; do
         continue
       fi
 
-      # Fetch all commits & take the last one (API order + paginate)
-      COMMITS=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate)
-      LAST_TS_STR=$(echo "$COMMITS" | jq -r 'last | (.commit.committer.date // .commit.author.date)')
+      COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate)
+      LAST_TS_STR=$(echo "$COMMITS_JSON" | jq -r 'last | (.commit.committer.date // .commit.author.date)')
       LAST_TS=$(parse_ts "$LAST_TS_STR")
       PR_AGE_DAYS=$(( (NOW_TS - LAST_TS) / 86400 ))
 
       echo "    [INFO] PR #$PR_NUM last commit: $LAST_TS_STR (~${PR_AGE_DAYS} days ago)"
 
       if (( PR_AGE_DAYS >= DAYS )); then
+        PHASE2_TOUCHED=1
         echo "    [RESULT] Phase 2 → PR #$PR_NUM is stale (>= $DAYS days since last commit)"
-        PHASE2_TOOK_ACTION=1
 
         if (( DRY_RUN == 0 )); then
+          MESSAGE=$(
+            cat <<EOF
+Hi @$USER, this is InactivityBot 👋
+
+This pull request has had no new commits for **${PR_AGE_DAYS} days**, so I'm closing it and unassigning you from the linked issue to keep the backlog healthy.
+
+You're very welcome to open a new PR or ask to be re-assigned when you're ready to continue working on this. 🚀
+EOF
+          )
+
+          gh pr comment "$PR_NUM" --repo "$REPO" --body "$MESSAGE"
           gh pr close "$PR_NUM" --repo "$REPO"
           gh issue edit "$ISSUE" --repo "$REPO" --remove-assignee "$USER"
-          echo "    [ACTION] Closed PR #$PR_NUM and unassigned @$USER from issue #$ISSUE"
-        else
-          echo "    [DRY RUN] Would close PR #$PR_NUM and unassign @$USER from issue #$ISSUE"
-        fi
 
-        # Per current spec, first stale PR per user/issue is enough
-        break
+          echo "    [ACTION] Commented on PR #$PR_NUM, closed it, and unassigned @$USER from issue #$ISSUE"
+        else
+          echo "    [DRY RUN] Would comment, close PR #$PR_NUM, and unassign @$USER from issue #$ISSUE"
+        fi
       else
         echo "    [INFO] PR #$PR_NUM is active (< $DAYS days) → KEEP"
       fi
     done
 
-    if (( PHASE2_TOOK_ACTION == 0 )); then
+    if (( PHASE2_TOUCHED == 0 )); then
       echo "    [RESULT] Phase 2 → all linked PRs active or not applicable → KEEP"
     fi
 
+    echo
   done
 
-  echo
 done
 
 echo "------------------------------------------------------------"
