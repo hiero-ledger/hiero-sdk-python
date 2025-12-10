@@ -26,26 +26,26 @@ graph TD;
 
 ## Execution Flow
 
--How _execute(client) works in the Hedera SDK?
+ - How _execute(client) works in the Hedera SDK?
 
- The typical execution flow for transactions and queries using the Executable interface follows these steps:
+  The typical execution flow for transactions and queries using the Executable interface follows these steps:
 
- 1. **Build** → Create the transaction/query with required parameters
- 2. **FreezeWith(client)** → Locks the transaction for signing
- 3. **Sign(privateKey)** → Add required signatures
- 4. **Execute(client)** → Submit to the network
- 5. **GetReceipt(client)** → Confirm success/failure
+   1. **Build** → Create the transaction/query with required parameters
+   2. **FreezeWith(client)** → Locks the transaction for signing
+   3. **Sign(privateKey)** → Add required signatures
+   4. **Execute(client)** → Submit to the network
+   5. **GetReceipt(client)** → Confirm success/failure
 
 
-Here’s how child classes hook into the execution pipeline:
+ - Here’s how child classes hook into the execution pipeline:
 
-| Command | Description |
-| --- | --- |
-| `_make_request` | Build the protobuf request for this operation. Example: a transaction class serializes its body into a Transaction proto; a query class builds the appropriate query proto. |
-| `_get_method(channel: _Channel) -> _Method` | Choose which gRPC stub method to call. You get service stubs from channel, then return _Method(transaction_func=...) for transactions or _Method(query_func=...) for queries. The executor calls _execute_method, which picks transaction if present, otherwise query. |
-| `_map_status_error(response)` | Inspect the network response status and convert it to an appropriate exception (precheck/receipt). This lets the executor decide whether to raise or retry based on _should_retry. |
-| `_should_retry(response) -> _ExecutionState` | _ExecutionState: Decide the execution state from the response/status: RETRY, FINISHED, ERROR, or EXPIRED. This drives the retry loop and backoff. |
-| `_map_response(response, node_id, proto_request)` | Convert the raw gRPC/Proto response into the SDK’s response type (e.g., TransactionResponse, Query result) that gets returned to the caller. |
+  | Command | Description |
+  | --- | --- |
+  | `_make_request` | Build the protobuf request for this operation. Example: a transaction class serializes its body into a Transaction proto; a query class builds the appropriate query proto. |
+  | `_get_method(channel: _Channel) -> _Method` | Choose which gRPC stub method to call. You get service stubs from channel, then return _Method(transaction_func=...) for transactions or _Method(query_func=...) for queries. The executor calls _execute_method, which picks transaction if present, otherwise query. |
+  | `_map_status_error(response)` | Inspect the network response status and convert it to an appropriate exception (precheck/receipt). This lets the executor decide whether to raise or retry based on _should_retry. |
+  | `_should_retry(response) -> _ExecutionState` | _ExecutionState: Decide the execution state from the response/status: RETRY, FINISHED, ERROR, or EXPIRED. This drives the retry loop and backoff. |
+  | `_map_response(response, node_id, proto_request)` | Convert the raw gRPC/Proto response into the SDK’s response type (e.g., TransactionResponse, Query result) that gets returned to the caller. |
 
 
 ## Retry Logic
@@ -91,37 +91,37 @@ Key Steps:
 ## Error Handling
 
  * Mapping network errors to Python exceptions
- Abstract method that child classes implement:
- ```python
- @abstractmethod
- def _map_status_error(self, response):
-     """Maps a response status code to an appropriate error object."""
-     raise NotImplementedError(...)
- ```
+   Abstract method that child classes implement:
+   ```python
+   @abstractmethod
+   def _map_status_error(self, response):
+       """Maps a response status code to an appropriate error object."""
+       raise NotImplementedError(...)
+   ```
 
- * Precheck errors --> PrecheckError (e.g., invalid account, insufficient balance)
- * Receipt errors --> ReceiptStatusError (e.g., transaction executed but failed)
- * Other statuses --> Appropriate exception types based on the status code
+   - Precheck errors --> PrecheckError (e.g., invalid account, insufficient balance)
+   - Receipt errors --> ReceiptStatusError (e.g., transaction executed but failed)
+   - Other statuses --> Appropriate exception types based on the status code
 
 
- *Retryable vs Fatal Errors
+* Retryable vs Fatal Errors
   Determined by `_should_retry(response) → _ExecutionState`:
 
- ```python
- @abstractmethod
- def _should_retry(self, response) -> _ExecutionState:
-     """Determine whether the operation should be retried based on the response."""
-     raise NotImplementedError(...)
- ```
+   ```python
+   @abstractmethod
+   def _should_retry(self, response) -> _ExecutionState:
+       """Determine whether the operation should be retried based on the response."""
+       raise NotImplementedError(...)
+   ```
 
   The response is checked via `_should_retry()` which returns one of four `Execution States`:
 
-| State          | Action                                  |                                        
-| :--------------| :---------------------------------------| 
-| **RETRY**      | `Wait (backoff), then loop again`       | 
-| **FINISHED**   | `Success! Return the response`          | 
-| **ERROR**      | `Permanent failure, raise exception`    |
-| **EXPIRED**    | `Request expired, raise exception`      | 
+    | State          | Action                                  |                                        
+    | :--------------| :---------------------------------------| 
+    | **RETRY**      | `Wait (backoff), then loop again`       | 
+    | **FINISHED**   | `Success! Return the response`          | 
+    | **ERROR**      | `Permanent failure, raise exception`    |
+    | **EXPIRED**    | `Request expired, raise exception`      | 
 
 
 
