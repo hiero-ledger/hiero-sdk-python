@@ -725,7 +725,7 @@ def test_populate_account_evm_address(evm_address):
 
     assert account_id.evm_address == evm_address
 
-def test_populate_account_num_missing_evm_address():
+def test_populate_evm_address_response_missing_evm_address():
     """
     Test that populate_evm_address raises a ValueError when the mirror node
     query does not return an account evm_address.
@@ -739,7 +739,7 @@ def test_populate_account_num_missing_evm_address():
         with pytest.raises(ValueError):
             account_id.populate_evm_address(mock_client)
 
-def test_populate_account_num_missing_num(evm_address):
+def test_populate_evm_address_missing_num(evm_address):
     """Test that populate_account_num raises a ValueError when num is none."""
     account_id = AccountId.from_evm_address(evm_address) # num == 0
     mock_client = MagicMock()
@@ -763,6 +763,11 @@ def test_to_bytes_and_from_bytes_roundtrip():
     assert new_account_id.num == account_id.num
     assert new_account_id.alias_key == account_id.alias_key
     assert new_account_id.evm_address == account_id.evm_address
+
+def test_get_evm_address_from_account_num():
+    """Test to_evm_address return the evm_address using the account num"""
+    account_id = AccountId.from_string("0.0.100")
+    assert account_id.to_evm_address() is not None
 
 def test_to_bytes_and_from_bytes_with_alias_key(alias_key):
     """Ensure alias key survives byte round-trip."""
