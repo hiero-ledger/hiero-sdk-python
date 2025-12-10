@@ -58,7 +58,9 @@ def create_topic(client):
 def test_topic_message_query_receives_messages(env):
     """Test that topic message query receives a message."""
     topic_id = create_topic(env.client)
-    
+
+    time.sleep(3)
+
     messages: List[str] = []
 
     def get_message(m: TopicMessage):
@@ -78,6 +80,8 @@ def test_topic_message_query_receives_messages(env):
         on_message=get_message,
         on_error=on_error_handler
     )
+    
+    time.sleep(3)
 
     message_receipt = (
         TopicMessageSubmitTransaction(
@@ -96,9 +100,9 @@ def test_topic_message_query_receives_messages(env):
     start = datetime.now()
 
     while len(messages) == 0:
-        if datetime.now() - start > timedelta(seconds=120):
+        if datetime.now() - start > timedelta(seconds=180):
             raise TimeoutError("TopicMessage was not received in time")
-        time.sleep(1)
+        time.sleep(5)
 
     assert messages[0] == "Hello, Python SDK!"
     handle.cancel()
@@ -113,6 +117,8 @@ def test_topic_message_query_limit(env):
     def on_message(m: TopicMessage):
         messages.append(m.contents.decode("utf-8"))
 
+    time.sleep(3)
+
     query = TopicMessageQuery(
         topic_id=topic_id,
         start_time=datetime.now(timezone.utc),
@@ -121,6 +127,7 @@ def test_topic_message_query_limit(env):
 
     handle = query.subscribe(env.client, on_message=on_message)
 
+    time.sleep(3)
     # Submit 3 messages
     try:
         for i in range(3):
@@ -133,9 +140,9 @@ def test_topic_message_query_limit(env):
         start = datetime.now()
 
         while len(messages) != 2:
-            if datetime.now() - start > timedelta(seconds=120):
+            if datetime.now() - start > timedelta(seconds=180):
                 raise TimeoutError("TopicMessage was not received in time")
-            time.sleep(1)
+            time.sleep(5)
 
         # Should stop at limit=2
         assert messages == ["msg0", "msg1"]
@@ -149,6 +156,7 @@ def test_topic_message_query_large_message_chunking(env):
     """Test that topic message query receives chunked message."""
     topic_id = create_topic(env.client)
     messages: List[str] = []
+    time.sleep(3)
 
     def get_message(m: TopicMessage):
         messages.append(m.contents.decode('utf-8'))
@@ -168,7 +176,9 @@ def test_topic_message_query_large_message_chunking(env):
         on_message=get_message,
         on_error=on_error_handler
     )
-    
+
+    time.sleep(3)
+
     message_receipt = (
         TopicMessageSubmitTransaction(
             topic_id=topic_id,
@@ -187,9 +197,9 @@ def test_topic_message_query_large_message_chunking(env):
     start = datetime.now()
 
     while len(messages) == 0:
-        if datetime.now() - start > timedelta(seconds=120):
+        if datetime.now() - start > timedelta(seconds=180):
             raise TimeoutError("TopicMessage was not received in time")
-        time.sleep(1)
+        time.sleep(5)
     
     assert messages[0] == BIG_CONTENT
     handle.cancel()

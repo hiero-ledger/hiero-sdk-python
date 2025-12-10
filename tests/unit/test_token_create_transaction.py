@@ -1187,71 +1187,24 @@ def test_token_info_query_structure():
 
     print("✅ TokenInfoQuery structure test passed")
 
-# --- Tests for _to_proto_key (Proof of Safety) ---
+# --- Tests for _to_proto_key (backward compatibility wrapper) ---
+# Note: Core functionality tests for key_to_proto are in test_key_utils.py
 
-def test_to_proto_key_with_ed25519_public_key():
-    """Tests _to_proto_key with an Ed25519 PublicKey (New Happy Path)."""
+def test_to_proto_key_wrapper_still_works():
+    """Tests that _to_proto_key wrapper method still works for backward compatibility."""
     tx = TokenCreateTransaction()
     private_key = PrivateKey.generate_ed25519()
     public_key = private_key.public_key()
     
-    expected_proto = public_key._to_proto()
+    # Test that the wrapper method still exists and works
     result_proto = tx._to_proto_key(public_key)
-    
-    assert result_proto == expected_proto
+    assert result_proto is not None
     assert isinstance(result_proto, basic_types_pb2.Key)
-
-def test_to_proto_key_with_ecdsa_public_key():
-    """Tests _to_proto_key with an ECDSA PublicKey (New Happy Path)."""
-    tx = TokenCreateTransaction()
-    private_key = PrivateKey.generate_ecdsa()
-    public_key = private_key.public_key()
     
-    expected_proto = public_key._to_proto()
-    result_proto = tx._to_proto_key(public_key)
+    # Test with None
+    assert tx._to_proto_key(None) is None
     
-    assert result_proto == expected_proto
-    assert isinstance(result_proto, basic_types_pb2.Key)
-
-def test_to_proto_key_with_ed25519_private_key():
-    """Tests _to_proto_key with an Ed25519 PrivateKey (Backward-Compatibility)."""
-    tx = TokenCreateTransaction()
-    private_key = PrivateKey.generate_ed25519()
-    public_key = private_key.public_key()
-    
-    # We expect the *public key's* proto, even though we passed a private key
-    expected_proto = public_key._to_proto()
-    
-    # Call the function with the PrivateKey
-    result_proto = tx._to_proto_key(private_key)
-    
-    # Assert it correctly converted it to the public key proto
-    assert result_proto == expected_proto
-    assert isinstance(result_proto, basic_types_pb2.Key)
-
-def test_to_proto_key_with_ecdsa_private_key():
-    """Tests _to_proto_key with an ECDSA PrivateKey (Backward-Compatibility)."""
-    tx = TokenCreateTransaction()
-    private_key = PrivateKey.generate_ecdsa()
-    public_key = private_key.public_key()
-    
-    expected_proto = public_key._to_proto()
-    result_proto = tx._to_proto_key(private_key)
-    
-    assert result_proto == expected_proto
-    assert isinstance(result_proto, basic_types_pb2.Key)
-
-def test_to_proto_key_with_none():
-    """Tests the _to_proto_key function with None (Non-Happy Path)."""
-    tx = TokenCreateTransaction()
-    result = tx._to_proto_key(None)
-    assert result is None
-
-def test_to_proto_key_with_invalid_string_raises_error():
-    """Tests the _to_proto_key safety net with a string (Non-Happy Path)."""
-    tx = TokenCreateTransaction()
-    
+    # Test error handling
     with pytest.raises(TypeError) as e:
         tx._to_proto_key("this is not a key")
-        
     assert "Key must be of type PrivateKey or PublicKey" in str(e.value)

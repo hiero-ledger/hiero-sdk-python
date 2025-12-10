@@ -21,10 +21,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.crypto.public_key import PublicKey
-
-Key = Union[PrivateKey, PublicKey]
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 
 class TopicCreateTransaction(Transaction):
@@ -174,25 +171,16 @@ class TopicCreateTransaction(Transaction):
         self.fee_exempt_keys = keys
         return self
 
-    def _to_proto_key(self, key: Optional[Key]) -> Optional[basic_types_pb2.Key]:
+    def _to_proto_key(self, key: Optional[Key]):
         """
-        Helper method to convert a key (PrivateKey or PublicKey) to protobuf Key format.
+        Backwards-compatible wrapper around `key_to_proto` for converting SDK keys
+        (PrivateKey or PublicKey) to protobuf `Key` messages.
 
-        Args:
-            key (Optional[Key]): The key to convert (PrivateKey or PublicKey), or None
-            
-        Returns:
-            basic_types_pb2.Key (Optional): The protobuf key or None if key is None
+        This exists so that existing unit tests and any external callers that rely
+        on `_to_proto_key` continue to work after centralizing the logic in
+        `hiero_sdk_python.utils.key_utils.key_to_proto`.
         """
-        if not key:
-            return None
-
-        # If it's a PrivateKey, get the public key first, then convert to proto
-        if isinstance(key, PrivateKey):
-            return key.public_key()._to_proto()
-        
-        # If it's a PublicKey, convert directly to proto
-        return key._to_proto()
+        return key_to_proto(key)
 
     def _build_proto_body(self) -> consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody:
         """
@@ -202,8 +190,8 @@ class TopicCreateTransaction(Transaction):
             ConsensusCreateTopicTransactionBody: The protobuf body for this transaction.
         """
         return consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
-            adminKey=self._to_proto_key(self.admin_key),
-            submitKey=self._to_proto_key(self.submit_key),
+            adminKey=key_to_proto(self.admin_key),
+            submitKey=key_to_proto(self.submit_key),
             autoRenewPeriod=(
                 self.auto_renew_period._to_proto()
                 if self.auto_renew_period is not None
@@ -214,8 +202,8 @@ class TopicCreateTransaction(Transaction):
                 else None),
             memo=self.memo,
             custom_fees=[custom_fee._to_topic_fee_proto() for custom_fee in self.custom_fees],
-            fee_schedule_key=self._to_proto_key(self.fee_schedule_key),
-            fee_exempt_key_list=[self._to_proto_key(key) for key in self.fee_exempt_keys],
+            fee_schedule_key=key_to_proto(self.fee_schedule_key),
+            fee_exempt_key_list=[key_to_proto(key) for key in self.fee_exempt_keys],
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
