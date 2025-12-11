@@ -24,7 +24,7 @@ if [[ -z "$REPO" ]]; then
 fi
 
 echo "------------------------------------------------------------"
-echo " Unified Inactivity Unassign Bot"
+echo " Unified Inactivity Bot"
 echo " Repo:     $REPO"
 echo " Threshold $DAYS days"
 echo " DRY_RUN:  $DRY_RUN"
