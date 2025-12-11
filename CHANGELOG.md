@@ -51,6 +51,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
 - Fixed solo workflow defaulting to zero
+- TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 
 ### Breaking Change
 
