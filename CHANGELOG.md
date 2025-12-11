@@ -45,6 +45,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
 - Fixed solo workflow defaulting to zero
+- Fix unit test tet_query.py
 
 ### Breaking Change
 
