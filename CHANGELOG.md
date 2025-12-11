@@ -6,6 +6,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Changed
+
+- Change the label from `Good First Issue` to `Good First Issue Candidate` and changed
+description from `Create a Good First Issue for new contributors` to `Create a Good First Issue Candidate for new contributors` at `.github/ISSUE_TEMPLATE/01_good_first_issue.yml` (#1010)
+
 ### Added
 
 - Added **str**() to CustomFixedFee and updated examples and tests accordingly.

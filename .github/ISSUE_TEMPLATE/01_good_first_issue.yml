@@ -1,7 +1,7 @@
 name: Good First Issue Template
-description: Create a Good First Issue for new contributors
+description: Create a Good First Issue Candidate for new contributors
 title: "[Good First Issue]: "
-labels: ["Good First Issue"]
+labels: ["Good First Issue Candidate"]
 assignees: []
 body:
   - type: textarea
