@@ -108,7 +108,33 @@ jobs:
           integration_failed="${{ steps.integration.outputs.integration_failed }}"
           unit_failed="${{ steps.unit.outputs.unit_failed }}"
 
-          if [ "$integration_failed" != "0" ] || [ "$unit_failed" != "0" ]; then
+          # Begin summary message
+          echo ""
+          echo "==================== TEST SUMMARY ===================="
+
+          any_failed=false
+
+          if [ "$integration_failed" != "0" ]; then
+            echo "❌ Integration tests FAILED"
+            echo "   → Check the integration test logs above for details."
+            any_failed=true
+          else
+            echo "✅ Integration tests passed"
+          fi
+
+          if [ "$unit_failed" != "0" ]; then
+            echo "❌ Unit tests FAILED"
+            echo "   → Check the unit test logs above for details."
+            any_failed=true
+          else
+            echo "✅ Unit tests passed"
+          fi
+
+          echo "======================================================"
+          echo ""
+
+          # Final outcome
+          if [ "$any_failed" = true ]; then
             echo "❌ Some tests failed. Failing workflow."
             exit 1
           else
