@@ -133,6 +133,11 @@ jobs:
           if [ "$integration_failed" != "0" ]; then
             echo "❌ Integration tests FAILED"
             echo "   → Check the integration test logs above for details."
+            if [ -f result_integration.log ]; then
+              grep -E 'FAILED ' result_integration.log || echo "   (No FAILED lines found)"
+            else
+              echo "   (Integration log not found)"
+            fi
             any_failed=true
           else
             echo "✅ Integration tests passed"
@@ -141,6 +146,11 @@ jobs:
           if [ "$unit_failed" != "0" ]; then
             echo "❌ Unit tests FAILED"
             echo "   → Check the unit test logs above for details."
+            if [ -f result_unit.log ]; then
+              grep -E 'FAILED ' result_unit.log || echo "   (No FAILED lines found)"
+            else
+              echo "   (Unit log not found)"
+            fi
             any_failed=true
           else
             echo "✅ Unit tests passed"
