@@ -44,6 +44,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
+- Fixed solo workflow defaulting to zero
 
 ### Breaking Change
 
