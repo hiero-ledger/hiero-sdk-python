@@ -38,12 +38,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
 - Added more tests to the CustomFee class for different functionalities (#991)
+- Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
 
 ### Fixed
 
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
+- Fixed solo workflow defaulting to zero
 
 ### Breaking Change
 
