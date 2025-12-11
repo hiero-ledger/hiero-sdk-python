@@ -139,14 +139,16 @@ def associate_tokens(client, recipient_id, recipient_key, tokens):
         assocciate_tx.sign(recipient_key)
         assocciate_tx.execute(client)
 
-        balance_before = (
-            CryptoGetAccountBalanceQuery(account_id=recipient_id)
-            .execute(client)
-            .token_balances
-        )
-        print("Tokens associated with recipient:")
-        print(f"{tokens[0]}: {balance_before.get(tokens[0])}")
-        print(f"{tokens[1]}: {balance_before.get(tokens[1])}")
+        balances = CryptoGetAccountBalanceQuery(
+            account_id=recipient_id
+        ).execute(client)
+
+        token_balances = balances.token_balances
+
+        print("\nTokens associated with recipient:")
+        for token_id in tokens:
+            associated = token_id in token_balances
+            print(f"  {token_id}: {'Associated' if associated else 'NOT Associated'}")
 
         print("\n✅ Success! Token association complete.")
 
