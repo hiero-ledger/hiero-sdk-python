@@ -15,6 +15,7 @@ Usage:
 import os
 import sys
 import json
+from typing import Tuple, Optional
 from dotenv import load_dotenv
 
 from examples.utils import info_to_dict
@@ -22,6 +23,7 @@ from examples.utils import info_to_dict
 from hiero_sdk_python import (
     Client,
     PrivateKey,
+    PublicKey,
     AccountCreateTransaction,
     AccountInfoQuery,
     Network,
@@ -33,7 +35,7 @@ load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
+def setup_client() -> Client:
     """Setup Client."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
@@ -49,8 +51,9 @@ def setup_client():
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-def create_account_with_separate_ecdsa_alias(client: Client) -> None:
-    """Create an account whose alias comes from a separate ECDSA key."""
+
+def generate_main_and_alias_keys() -> Tuple[PrivateKey, PublicKey, PrivateKey]:
+    """Generate the main key and the ECDSA alias key."""
     try:
         print("\nSTEP 1: Generating main account key and separate ECDSA alias key...")
 
@@ -64,13 +67,27 @@ def create_account_with_separate_ecdsa_alias(client: Client) -> None:
         alias_evm_address = alias_public_key.to_evm_address()
 
         if alias_evm_address is None:
-            print("❌ Error: Failed to generate EVM address from alias ECDSA key.")
-            sys.exit(1)
+            raise RuntimeError("Failed to generate EVM address from alias ECDSA key.")
 
         print(f"✅ Main account public key:  {main_public_key}")
         print(f"✅ Alias ECDSA public key:   {alias_public_key}")
         print(f"✅ Alias EVM address:        {alias_evm_address}")
 
+        return main_private_key, alias_public_key, alias_private_key
+
+    except Exception as error:
+        print(f"❌ Error in key generation: {error}")
+        sys.exit(1)
+
+
+def create_account(
+    client: Client,
+    main_private_key: PrivateKey,
+    alias_public_key: PublicKey,
+    alias_private_key: PrivateKey,
+) -> AccountId:
+    """Create the account with the EVM alias from the ECDSA key."""
+    try:
         print("\nSTEP 2: Creating the account with the EVM alias from the ECDSA key...")
 
         # Use the helper that accepts both the main key and the ECDSA alias key
@@ -98,11 +115,22 @@ def create_account_with_separate_ecdsa_alias(client: Client) -> None:
                 "AccountID not found in receipt. Account may not have been created."
             )
 
-        print(f"✅ Account created with ID: {new_account_id}\n")
+        print(f"✅ Account created with ID: {new_account_id}")
+        return new_account_id
 
+    except Exception as error:
+        print(f"❌ Error in account creation: {error}")
+        sys.exit(1)
+
+
+def print_account_info(client: Client, account_id: AccountId) -> None:
+    """Print account information."""
+    try:
+        print("\nSTEP 3: Verifying account info...")
+        
         account_info = (
             AccountInfoQuery()
-            .set_account_id(new_account_id)
+            .set_account_id(account_id)
             .execute(client)
         )
 
@@ -119,13 +147,24 @@ def create_account_with_separate_ecdsa_alias(client: Client) -> None:
             print("❌ Error: Contract Account ID (alias) does not exist.")
 
     except Exception as error:
-        print(f"❌ Error: {error}")
+        print(f"❌ Error fetching account info: {error}")
         sys.exit(1)
+
 
 def main():
     """Main entry point."""
     client = setup_client()
-    create_account_with_separate_ecdsa_alias(client)
+
+    # Step 1: Generate keys
+    main_private_key, alias_public_key, alias_private_key = generate_keys()
+
+    # Step 2: Create account
+    new_account_id = create_account(
+        client, main_private_key, alias_public_key, alias_private_key
+    )
+
+    # Step 3: Print account info
+    print_account_info(client, new_account_id)
 
 
 if __name__ == "__main__":
