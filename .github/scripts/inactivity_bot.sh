@@ -73,11 +73,9 @@ for ISSUE in $ISSUES; do
   echo
 
   # Fetch timeline once (used for assignment events + PR links).
-  # If gh fails, default to a valid empty JSON array so jq never blocks.
   TIMELINE=$(gh api -H "Accept: application/vnd.github.mockingbird-preview+json" "repos/$REPO/issues/$ISSUE/timeline" 2>/dev/null || echo "[]")
-  TIMELINE=${TIMELINE:-'[]'}   # defensive default (ensures valid JSON)
+  TIMELINE=${TIMELINE:-'[]'}   # defensive default
 
-  # if there are no assignees, skip (defensive)
   if [[ -z "${ASSIGNEES// }" ]]; then
     echo "  [INFO] No assignees for this issue, skipping."
     echo
@@ -87,8 +85,7 @@ for ISSUE in $ISSUES; do
   for USER in $ASSIGNEES; do
     echo "  → Checking assignee: $USER"
 
-    # Determine assignment timestamp for this user: find last assigned event for this user
-    # Use here-string to pass TIMELINE into jq (prevents jq from reading stdin unexpectedly).
+    # Determine assignment timestamp
     ASSIGN_EVENT_JSON=$(jq -c --arg user "$USER" '
       [ .[] | select(.event == "assigned") | select(.assignee.login == $user) ] | last // empty' <<<"$TIMELINE" 2>/dev/null || echo "")
 
@@ -96,12 +93,10 @@ for ISSUE in $ISSUES; do
       ASSIGNED_AT=$(echo "$ASSIGN_EVENT_JSON" | jq -r '.created_at // empty')
       ASSIGN_SOURCE="assignment_event"
     else
-      # fallback: use issue creation time
       ASSIGNED_AT="${ISSUE_CREATED_AT:-}"
       ASSIGN_SOURCE="issue_created_at (no explicit assignment event)"
     fi
 
-    # compute assignment age safely (if no timestamp, set to 0)
     if [[ -n "$ASSIGNED_AT" ]]; then
       ASSIGNED_TS=$(parse_ts "$ASSIGNED_AT")
       ASSIGNED_AGE_DAYS=$(( (NOW_TS - ASSIGNED_TS) / 86400 ))
@@ -120,7 +115,6 @@ for ISSUE in $ISSUES; do
       select(.source.issue.repository.full_name == $repo) |
       .source.issue.number' <<<"$TIMELINE" 2>/dev/null || true)
 
-    # Defensive normalization: remove blank lines and spaces
     PR_NUMBERS=$(echo "$PR_NUMBERS" | sed '/^[[:space:]]*$/d' || true)
 
     # PHASE 1: no PRs attached
@@ -131,8 +125,8 @@ for ISSUE in $ISSUES; do
         echo "    [RESULT] Phase 1 -> stale assignment (>= $DAYS days, no PR)"
 
         if (( DRY_RUN == 0 )); then
-          MESSAGE=$(
-            cat <<EOF
+          # NOTE: The EOF must be at the very start of the line!
+          MESSAGE=$(cat <<EOF
 Hi @$USER, this is InactivityBot 👋
 
 You were assigned to this issue **${ASSIGNED_AGE_DAYS} days** ago, and there is currently no open pull request linked to it.
@@ -140,8 +134,7 @@ To keep the backlog available for active contributors, I'm unassigning you for n
 
 If you'd like to continue working on this later, feel free to get re-assigned or comment here and we'll gladly assign it back to you. 🙂
 EOF
-          )
-
+)
           gh issue comment "$ISSUE" --repo "$REPO" --body "$MESSAGE" || echo "WARN: couldn't post comment (gh error)"
           gh issue edit "$ISSUE" --repo "$REPO" --remove-assignee "$USER" || echo "WARN: couldn't remove assignee (gh error)"
           echo "    [ACTION] Commented and unassigned @$USER from issue #$ISSUE"
@@ -161,27 +154,24 @@ EOF
     PHASE2_TOUCHED=0
 
     for PR_NUM in $PR_NUMBERS; do
-      # Safe check: verify PR exists in this repo
       if ! PR_STATE=$(gh pr view "$PR_NUM" --repo "$REPO" --json state --jq '.state' 2>/dev/null); then
         echo "    [SKIP] #$PR_NUM is not a valid PR in $REPO"
         continue
       fi
 
-      # log state and continue only if open
       echo "    [INFO] PR #$PR_NUM state: $PR_STATE"
       if [[ "$PR_STATE" != "OPEN" ]]; then
         echo "    [SKIP] PR #$PR_NUM is not open"
         continue
       fi
 
-      # get last commit time safely
       COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate 2>/dev/null || echo "[]")
       LAST_TS_STR=$(jq -r 'last? | (.commit.committer.date // .commit.author.date) // empty' <<<"$COMMITS_JSON" 2>/dev/null || echo "")
       if [[ -n "$LAST_TS_STR" ]]; then
         LAST_TS=$(parse_ts "$LAST_TS_STR")
         PR_AGE_DAYS=$(( (NOW_TS - LAST_TS) / 86400 ))
       else
-        PR_AGE_DAYS=$((DAYS+1))   # treat as stale if we cannot find commit timestamp
+        PR_AGE_DAYS=$((DAYS+1))
       fi
 
       echo "    [INFO] PR #$PR_NUM last commit: ${LAST_TS_STR:-(unknown)} (~${PR_AGE_DAYS} days ago)"
@@ -191,16 +181,15 @@ EOF
         echo "    [RESULT] Phase 2 -> PR #$PR_NUM is stale (>= $DAYS days since last commit)"
 
         if (( DRY_RUN == 0 )); then
-          MESSAGE=$(
-            cat <<EOF
+          # NOTE: The EOF must be at the very start of the line!
+          MESSAGE=$(cat <<EOF
 Hi @$USER, this is InactivityBot 👋
 
 This pull request has had no new commits for **${PR_AGE_DAYS} days**, so I'm closing it and unassigning you from the linked issue to keep the backlog healthy.
 
 You're very welcome to open a new PR or ask to be re-assigned when you're ready to continue working on this. 🚀
 EOF
-          )
-
+)
           gh pr comment "$PR_NUM" --repo "$REPO" --body "$MESSAGE" || echo "WARN: couldn't comment on PR"
           gh pr close "$PR_NUM" --repo "$REPO" || echo "WARN: couldn't close PR"
           gh issue edit "$ISSUE" --repo "$REPO" --remove-assignee "$USER" || echo "WARN: couldn't remove assignee"
@@ -219,7 +208,6 @@ EOF
 
     echo
   done
-
 done
 
 echo "------------------------------------------------------------"
