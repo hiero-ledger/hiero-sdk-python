@@ -8,8 +8,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
+
+- Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
+
+
+- Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
+- 
 - Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
-- Phase 2 of the inactivity-unassign bot:Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
+- Phase 2 of the inactivity-unassign bot: Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added `__str__()` to CustomFixedFee and updated examples and tests accordingly.
 - Added unit tests for `crypto_utils` (#993)
 - Added a github template for good first issues
@@ -26,6 +32,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
 - Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
+- Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
 
 ### Changed
 
