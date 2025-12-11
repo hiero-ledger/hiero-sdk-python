@@ -4,6 +4,11 @@ blank_issues_enabled: true
 # issue_templates:
 #   - name: Good First Issue
 #     filename: 01-good_first_issue.yml
+#- name: Bug Report
+#    filename: 02_bug_report.yml
+
+#  - name: Feature Request
+#    filename: 03_feature_request.yml
 
 # Test contact links
 contact_links:

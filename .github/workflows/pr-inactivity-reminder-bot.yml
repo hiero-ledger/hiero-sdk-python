@@ -1,0 +1,42 @@
+# This workflow warns PRs that have had no activity for a specified amount of time(10 Days).
+
+name: PR Inactivity Reminder Bot
+
+on:
+  schedule:
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'If true, do not post comments (dry run). Accepts "true" or "false". Default true for manual runs.'
+        required: false
+        default: 'true'
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+
+jobs:
+  remind_inactive_prs:
+    runs-on: ubuntu-latest
+    env:
+      DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 
+      - name: Remind authors of inactive PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ env.DRY_RUN }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const script = require('./.github/scripts/pr_inactivity_reminder.js')
+            await script({ github, context });

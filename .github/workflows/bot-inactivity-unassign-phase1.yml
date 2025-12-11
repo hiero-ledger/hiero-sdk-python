@@ -8,7 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write 
 
 jobs:
   inactivity-unassign:
@@ -17,14 +17,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
       - name: Harden the runner
-        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76
         with:
           egress-policy: audit
 
-      - name: Unassign inactive assignees with NO PRs (Phase 1)
+      - name: Phase 1 – unassign assignees with NO PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           DAYS: 21
         run: bash .github/scripts/inactivity_unassign_phase1.sh
+
+      - name: Phase 2 – unassign assignees with stale PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          DAYS: 21
+        run: bash .github/scripts/inactivity_unassign_phase2.sh

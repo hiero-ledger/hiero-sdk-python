@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           egress-policy: audit
 
@@ -105,7 +105,14 @@ jobs:
       - name: Fail workflow if any tests failed
         shell: bash
         run: |
-          if [ "${{ steps.integration.outputs.integration_failed }}" != "0" ] || [ "${{ steps.unit.outputs.unit_failed }}" != "0" ]; then
+          integration_failed="${{ steps.integration.outputs.integration_failed }}"
+          unit_failed="${{ steps.unit.outputs.unit_failed }}"
+
+          # Default to 0 if empty
+          integration_failed="${integration_failed:-0}"
+          unit_failed="${unit_failed:-0}"
+
+          if [ "$integration_failed" != "0" ] || [ "$unit_failed" != "0" ]; then
             echo "❌ Some tests failed. Failing workflow."
             exit 1
           else
