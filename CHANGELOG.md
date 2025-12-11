@@ -34,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Refactor account_create_transaction_with_fallback_alias.py into modular functions including setup_client(), create_account_with_fallback_alias(), fetch_account_info(), and print_account_summary() for improved readability and structure (#1018)
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
 - Added more tests to the CustomFee class for different functionalities (#991)

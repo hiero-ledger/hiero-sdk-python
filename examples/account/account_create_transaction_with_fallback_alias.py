@@ -48,70 +48,73 @@ def setup_client():
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-def create_account_with_fallback_alias(client: Client) -> None:
-    """Create an account whose alias is derived from the main ECDSA key."""
-    try:
-        print("\nSTEP 1: Generating a single ECDSA key pair for the account...")
-        account_private_key = PrivateKey.generate("ecdsa")
-        account_public_key = account_private_key.public_key()
-        evm_address = account_public_key.to_evm_address()
+def generate_fallback_key() -> PrivateKey: 
+    """Generate a ECDSA key pair and validate its EVM address."""
+    print("\nSTEP 1: Generating a single ECDSA key pair for the account...")
+    account_private_key = PrivateKey.generate("ecdsa")
+    account_public_key = account_private_key.public_key()
+    evm_address = account_public_key.to_evm_address()
 
-        if evm_address is None:
-            print("❌ Error: Failed to generate EVM address from ECDSA public key.")
-            sys.exit(1)
-
-        print(f"✅ Account ECDSA public key: {account_public_key}")
-        print(f"✅ Derived EVM address:      {evm_address}")
-
-        print("\nSTEP 2: Creating the account using the fallback alias behaviour...")
-        transaction = (
-            AccountCreateTransaction(
-                initial_balance=Hbar(5),
-                memo="Account with alias derived from main ECDSA key",
-            )
-            # Fallback path: only one ECDSA key is provided
-            .set_key_with_alias(account_private_key)
-        )
-
-        # Freeze & sign with the account key as well
-        transaction = (
-            transaction.freeze_with(client)
-            .sign(account_private_key)
-        )
-
-        response = transaction.execute(client)
-        new_account_id = response.account_id
-
-        if new_account_id is None:
-            raise RuntimeError(
-                "AccountID not found in receipt. Account may not have been created."
-            )
-
-        print(f"✅ Account created with ID: {new_account_id}\n")
-
-        account_info = (
-            AccountInfoQuery()
-            .set_account_id(new_account_id)
-            .execute(client)
-        )
-
-        out = info_to_dict(account_info)
-        print("Account Info:")
-        print(json.dumps(out, indent=2) + "\n")
-
-        print(
-            "✅ contract_account_id (EVM alias on-chain): "
-            f"{account_info.contract_account_id}"
-        )
-
-    except Exception as error:
-        print(f"❌ Error: {error}")
+    if evm_address is None:
+        print("❌ Error: Failed to generate EVM address from ECDSA public key.")
         sys.exit(1)
+
+    print(f"✅ Account ECDSA public key: {account_public_key}")
+    print(f"✅ Derived EVM address:      {evm_address}")
+    return account_private_key
+
+
+def create_account_with_fallback_alias(client: Client, account_private_key: PrivateKey) -> AccountId:
+    """Create an account whose alias is derived from the provided ECDSA key."""
+    print("\nSTEP 2: Creating the account using the fallback alias behaviour...")
+    transaction = (
+        AccountCreateTransaction(
+            initial_balance=Hbar(5),
+            memo="Account with alias derived from main ECDSA key",
+        )
+        .set_key_with_alias(account_private_key)
+    )
+
+    transaction = transaction.freeze_with(client).sign(account_private_key)
+
+    response = transaction.execute(client)
+    new_account_id = response.account_id
+
+    if new_account_id is None:
+        raise RuntimeError(
+            "AccountID not found in receipt. Account may not have been created."
+        )
+
+    print(f"✅ Account created with ID: {new_account_id}\n")
+    return new_account_id
+
+
+def fetch_account_info(client: Client, account_id: AccountId):
+    """Fetch account info for the given account id."""
+    return AccountInfoQuery().set_account_id(account_id).execute(client)
+
+
+def print_account_summary(account_info) -> None:
+    """Print an account summary (including EVM alias)."""
+    out = info_to_dict(account_info)
+    print("Account Info:")
+    print(json.dumps(out, indent=2) + "\n")
+    print(
+        "✅ contract_account_id (EVM alias on-chain): "
+        f"{account_info.contract_account_id}"
+    )
 
 def main():
     """Main entry point."""
     client = setup_client()
-    create_account_with_fallback_alias(client)
+    try:
+        account_private_key = generate_fallback_key()
+        new_account_id = create_account_with_fallback_alias(client, account_private_key)
+        account_info = fetch_account_info(client, new_account_id)
+        print_account_summary(account_info)
+    except Exception as error:
+        print(f"❌ Error: {error}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
