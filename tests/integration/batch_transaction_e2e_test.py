@@ -2,6 +2,7 @@ import datetime
 import pytest
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
@@ -352,3 +353,153 @@ def test_batch_transaction_with_inner_schedule_transaction(env):
 
     batch_receipt = batch_tx.execute(env.client)
     assert batch_receipt.status == ResponseCode.BATCH_TRANSACTION_IN_BLACKLIST
+
+
+def test_batch_transaction_with_public_key_as_batch_key(env):
+    """Test batch transaction can use PublicKey as batch_key."""
+    # Generate a key pair - we'll use the PublicKey as batch_key
+    batch_private_key = PrivateKey.generate()
+    batch_public_key = batch_private_key.public_key()
+    
+    receiver_id = create_account_tx(PrivateKey.generate().public_key(), env.client)
+
+    # Use PublicKey in batchify
+    transfer_tx = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=env.operator_id, amount=-1)
+        .add_hbar_transfer(account_id=receiver_id, amount=1)
+        .batchify(env.client, batch_public_key)  # Using PublicKey!
+    )
+
+    # Verify batch_key was set to PublicKey
+    assert isinstance(transfer_tx.batch_key, PublicKey)
+    assert transfer_tx.batch_key == batch_public_key
+
+    # Sign and execute with PrivateKey
+    batch_tx = (
+        BatchTransaction()
+        .add_inner_transaction(transfer_tx)
+        .freeze_with(env.client)
+        .sign(batch_private_key)  # Sign with corresponding PrivateKey
+    )
+
+    batch_receipt = batch_tx.execute(env.client)
+    assert batch_receipt.status == ResponseCode.SUCCESS
+
+    # Inner Transaction Receipt
+    transfer_tx_id = batch_tx.get_inner_transaction_ids()[0]
+    transfer_tx_receipt = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(transfer_tx_id)
+        .execute(env.client)
+    )
+    assert transfer_tx_receipt.status == ResponseCode.SUCCESS
+
+
+def test_batch_transaction_with_mixed_public_and_private_keys(env):
+    """Test batch transaction can handle inner transactions with mixed PrivateKey and PublicKey."""
+    # Generate different keys
+    batch_key1_private = PrivateKey.generate()
+    batch_key2_private = PrivateKey.generate()
+    batch_key2_public = batch_key2_private.public_key()
+    batch_key3_private = PrivateKey.generate()
+    batch_key3_public = batch_key3_private.public_key()
+
+    # Create receivers
+    receiver_id1 = create_account_tx(PrivateKey.generate().public_key(), env.client)
+    receiver_id2 = create_account_tx(PrivateKey.generate().public_key(), env.client)
+    receiver_id3 = create_account_tx(PrivateKey.generate().public_key(), env.client)
+
+    # First inner transaction uses PrivateKey
+    transfer_tx1 = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=env.operator_id, amount=-1)
+        .add_hbar_transfer(account_id=receiver_id1, amount=1)
+        .batchify(env.client, batch_key1_private)  # PrivateKey
+    )
+
+    # Second inner transaction uses PublicKey
+    transfer_tx2 = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=env.operator_id, amount=-1)
+        .add_hbar_transfer(account_id=receiver_id2, amount=1)
+        .batchify(env.client, batch_key2_public)  # PublicKey
+    )
+
+    # Third inner transaction uses PublicKey
+    transfer_tx3 = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=env.operator_id, amount=-1)
+        .add_hbar_transfer(account_id=receiver_id3, amount=1)
+        .batchify(env.client, batch_key3_public)  # PublicKey
+    )
+
+    # Verify key types
+    assert isinstance(transfer_tx1.batch_key, PrivateKey)
+    assert isinstance(transfer_tx2.batch_key, PublicKey)
+    assert isinstance(transfer_tx3.batch_key, PublicKey)
+
+    # Assemble and sign batch transaction
+    batch_tx = (
+        BatchTransaction()
+        .add_inner_transaction(transfer_tx1)
+        .add_inner_transaction(transfer_tx2)
+        .add_inner_transaction(transfer_tx3)
+        .freeze_with(env.client)
+        .sign(batch_key1_private)
+        .sign(batch_key2_private)  # Sign with PrivateKey for PublicKey batch_key
+        .sign(batch_key3_private)  # Sign with PrivateKey for PublicKey batch_key
+    )
+
+    batch_receipt = batch_tx.execute(env.client)
+    assert batch_receipt.status == ResponseCode.SUCCESS
+
+    # Verify all inner transactions succeeded
+    for transfer_tx_id in batch_tx.get_inner_transaction_ids():
+        transfer_tx_receipt = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transfer_tx_id)
+            .execute(env.client)
+        )
+        assert transfer_tx_receipt.status == ResponseCode.SUCCESS
+
+
+def test_batch_transaction_set_batch_key_with_public_key(env):
+    """Test batch transaction inner transaction can use set_batch_key with PublicKey."""
+    # Generate a key pair
+    batch_private_key = PrivateKey.generate()
+    batch_public_key = batch_private_key.public_key()
+    
+    receiver_id = create_account_tx(PrivateKey.generate().public_key(), env.client)
+
+    # Use set_batch_key with PublicKey instead of batchify
+    transfer_tx = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=env.operator_id, amount=-1)
+        .add_hbar_transfer(account_id=receiver_id, amount=1)
+        .set_batch_key(batch_public_key)  # Using set_batch_key with PublicKey
+        .freeze_with(env.client)
+    )
+
+    # Verify batch_key was set correctly
+    assert transfer_tx.batch_key == batch_public_key
+    assert isinstance(transfer_tx.batch_key, PublicKey)
+
+    batch_tx = (
+        BatchTransaction()
+        .add_inner_transaction(transfer_tx)
+        .freeze_with(env.client)
+        .sign(batch_private_key)
+    )
+
+    batch_receipt = batch_tx.execute(env.client)
+    assert batch_receipt.status == ResponseCode.SUCCESS
+
+    # Inner Transaction Receipt
+    transfer_tx_id = batch_tx.get_inner_transaction_ids()[0]
+    transfer_tx_receipt = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(transfer_tx_id)
+        .execute(env.client)
+    )
+    assert transfer_tx_receipt.status == ResponseCode.SUCCESS
