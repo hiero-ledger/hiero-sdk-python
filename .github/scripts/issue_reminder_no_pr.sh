@@ -5,9 +5,11 @@ set -euo pipefail
 #   GH_TOKEN  - provided by GitHub Actions
 #   REPO      - owner/repo (fallback to GITHUB_REPOSITORY)
 #   DAYS      - reminder threshold in days (default 7)
+#   DRY_RUN   - if "true", only log actions without posting comments
 
 REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
 DAYS="${DAYS:-7}"
+DRY_RUN="${DRY_RUN:-false}"
 
 if [ -z "$REPO" ]; then
   echo "ERROR: REPO environment variable not set."
@@ -18,6 +20,7 @@ echo "------------------------------------------------------------"
 echo " Issue Reminder Bot (No PR)"
 echo " Repo:      $REPO"
 echo " Threshold: $DAYS days"
+echo " Dry Run:   $DRY_RUN"
 echo "------------------------------------------------------------"
 echo
 
@@ -71,20 +74,20 @@ for ISSUE in $ISSUES; do
     continue
   fi
 
-  # Get assignment time (use the last assigned event or issue creation time)
+  # Get assignment time (use the last assigned event)
   ASSIGN_TS=$(gh api "repos/$REPO/issues/$ISSUE/events" \
     --jq ".[] | select(.event==\"assigned\") | .created_at" \
     | tail -n1)
 
   if [ -z "$ASSIGN_TS" ]; then
-    echo "[WARN] No assignment event found, falling back to issue creation."
-    ASSIGN_TS=$(echo "$ISSUE_JSON" | jq -r '.created_at')
+    echo "[WARN] No assignment event found. Skipping."
+    continue
   fi
 
   ASSIGN_TS_SEC=$(parse_ts "$ASSIGN_TS")
   DIFF_DAYS=$(( (NOW_TS - ASSIGN_TS_SEC) / 86400 ))
 
-  echo "[INFO] Assigned/Created at: $ASSIGN_TS"
+  echo "[INFO] Assigned at: $ASSIGN_TS"
   echo "[INFO] Days since assignment: $DIFF_DAYS"
 
   # Check if any open PRs are linked to this issue
@@ -129,9 +132,13 @@ for ISSUE in $ISSUES; do
 
 From the Python SDK Team"
 
-  gh issue comment "$ISSUE" --repo "$REPO" --body "$MESSAGE"
-
-  echo "[DONE] Posted reminder comment on issue #$ISSUE."
+  if [ "$DRY_RUN" = "true" ]; then
+    echo "[DRY RUN] Would post comment on issue #$ISSUE:"
+    echo "$MESSAGE"
+  else
+    gh issue comment "$ISSUE" --repo "$REPO" --body "$MESSAGE"
+    echo "[DONE] Posted reminder comment on issue #$ISSUE."
+  fi
   echo
 done
 

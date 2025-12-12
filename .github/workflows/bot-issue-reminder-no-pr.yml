@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "0 10 * * *"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (log only, do not post comments)"
+        required: false
+        default: "true"
+        type: boolean
 
 permissions:
   contents: read
@@ -21,11 +27,12 @@ jobs:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@11bd71901afe3a2e8f79ce2a49e69702a58361bd
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #6.0.1
 
       - name: Post reminder on assigned issues with no PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           DAYS: 7
+          DRY_RUN: ${{ inputs.dry_run }}
         run: bash .github/scripts/issue_reminder_no_pr.sh
