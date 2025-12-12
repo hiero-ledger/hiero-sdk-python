@@ -34,6 +34,33 @@ body:
   - type: markdown
     attributes:
       value: |
+        ---
+        **Thanks for contributing!**  
+        We really appreciate your time and help. If this is your first open-source contribution, welcome — we've written this template to help you create a good first issue (GFI). Good first issues are small, well-scoped tasks that newcomers can complete to learn the codebase and the contribution workflow.
+        ---
+  - type: markdown
+    attributes:
+      value: |
+        ### Good First Issue (GFI) — What we accept
+        We usually accept small, focused contributions that can be validated with an existing test or simple change. Examples include:
+        - Small string / formatting fixes (e.g., `__repr__`, `__str__` changes)
+        - Typing or return-type hint fixes
+        - Small refactors of existing examples (splitting monolithic examples into functions)
+        - Improvements to example documentation or inline comments
+        - Small, local changes that do not require cross-module knowledge
+        - Additions or clarifications to docstrings or function comments
+
+        ### What we usually *do not* accept as GFI
+        - Creation of large new examples or heavy new features
+        - New integration tests or large test suites
+        - Changes requiring deep knowledge across multiple subsystems
+        - Changes to core protocol/serialization functions
+
+        For a more detailed guide, see `docs/maintainers/good_first_issues.md` (once available).
+
+  - type: markdown
+    attributes:
+      value: |
         <!-- Example for problem (hidden in submission) -->
         ## 👾 Description of the issue - Example
 
