@@ -1,0 +1,41 @@
+name: 'PR Formatting'
+on:
+  workflow_dispatch:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+  checks: write
+  statuses: write
+
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  title-check:
+    name: Title Check
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.base.repo.fork }}
+    permissions:
+      checks: write
+      statuses: write
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Check PR Title
+        uses: step-security/conventional-pr-title-action@cb1c5657ccf4c42f5c0a6c0708cb8251b960d902 # v3.2.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,12 +1,13 @@
 from os import error
 import time
-from typing import Callable, Optional, Any, TYPE_CHECKING
+from typing import Callable, Optional, Any, TYPE_CHECKING, List
 import grpc
 from abc import ABC, abstractmethod
 from enum import IntEnum
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
+from hiero_sdk_python.account.account_id import AccountId
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
 
@@ -74,6 +75,33 @@ class _Executable(ABC):
         self._min_backoff = DEFAULT_MIN_BACKOFF
         self._grpc_deadline = DEFAULT_GRPC_DEADLINE
         self.node_account_id = None
+
+        self.node_account_ids: List[AccountId] = []
+        self._used_node_account_id: Optional[AccountId] = None
+        self._node_account_ids_index: int = 0
+
+    def set_node_account_ids(self, node_account_ids: List[AccountId]):
+        """Select node account IDs for sending the request."""
+        self.node_account_ids = node_account_ids
+        return self
+
+    def set_node_account_id(self, node_account_id: AccountId):
+        """Convenience wrapper to set a single node account ID."""
+        return self.set_node_account_ids([node_account_id])
+
+    def _select_node_account_id(self) -> Optional[AccountId]:
+        """Pick the current node from the list if available, otherwise None."""
+        if self.node_account_ids:
+            # Use modulo to cycle through the list
+            selected = self.node_account_ids[self._node_account_ids_index % len(self.node_account_ids)]
+            self._used_node_account_id = selected
+            return selected
+        return None
+
+    def _advance_node_index(self):
+        """Advance to the next node in the list."""
+        if self.node_account_ids:
+            self._node_account_ids_index += 1
 
     @abstractmethod
     def _should_retry(self, response) -> _ExecutionState:
@@ -176,10 +204,20 @@ class _Executable(ABC):
             if attempt > 0 and current_backoff < self._max_backoff:
                 current_backoff *= 2
                         
-            # Set the node account id to the client's node account id
-            node = client.network.current_node
+            # Select preferred node if provided, fallback to client's default
+            selected = self._select_node_account_id()
+
+            if selected is not None:
+                node = client.network._get_node(selected)
+            else:
+                node = client.network.current_node
+
+            #Store for logging and receipts
             self.node_account_id = node._account_id
-  
+
+            # Advance to next node for the next attempt (if using explicit node list)
+            self._advance_node_index()
+
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
             
@@ -210,6 +248,10 @@ class _Executable(ABC):
                     case _ExecutionState.RETRY:
                         # If we should retry, wait for the backoff period and try again
                         err_persistant = status_error
+                        # If not using explicit node list, switch to next node for retry
+                        if not self.node_account_ids:
+                            node = client.network._select_node()
+                            logger.trace("Switched to a different node for retry", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id)
                         _delay_for_attempt(self._get_request_id(), current_backoff, attempt, logger, err_persistant)
                         continue
                     case _ExecutionState.EXPIRED:
@@ -223,8 +265,11 @@ class _Executable(ABC):
             except grpc.RpcError as e:
                 # Save the error
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
-                node = client.network._select_node()
-                logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id)
+                # If not using explicit node list, switch to next node for retry
+                if not self.node_account_ids:
+                    node = client.network._select_node()
+                    logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id)
+                _delay_for_attempt(self._get_request_id(), current_backoff, attempt, logger, err_persistant)
                 continue
             
         logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
