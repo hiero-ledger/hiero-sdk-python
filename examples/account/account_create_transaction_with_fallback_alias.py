@@ -90,7 +90,7 @@ def create_account_with_fallback_alias(client: Client, account_private_key: Priv
 
 
 def fetch_account_info(client: Client, account_id: AccountId):
-    """Fetch account info for the given account id."""
+    """Fetch account info for the given account ID."""
     return AccountInfoQuery().set_account_id(account_id).execute(client)
 
 
