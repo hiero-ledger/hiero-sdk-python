@@ -17,7 +17,6 @@ from hiero_sdk_python import (
  TokenAirdropTransaction,
  TokenAssociateTransaction,
  TokenMintTransaction,
- CryptoGetAccountBalanceQuery,
  TokenType,
  ResponseCode,
  NftId,
@@ -285,6 +284,7 @@ def verify_post_airdrop_balances(
 ):
     """
     Verify post-airdrop balances and NFT ownership to confirm successful transfer.
+    Uses AccountInfoQuery for robust token association and balance verification.
     Accepts a `balances_before` mapping with keys 'sender' and 'recipient'.
     Returns (fully_verified_bool, details_dict)
     """
@@ -301,18 +301,20 @@ def verify_post_airdrop_balances(
         "record_checks": record_verification,
     }
 
-    # Get current balances (fail-fast is not desired; capture errors in details)
+    # Get current account info and balances using AccountInfoQuery (more robust)
     try:
-        sender_current = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
+        sender_info = AccountInfoQuery(account_id=operator_id).execute(client)
+        sender_current = {rel.token_id: rel.balance for rel in sender_info.token_relationships}
     except Exception as e:
-        details["error"] = f"Error fetching sender balance: {e}"
+        details["error"] = f"Error fetching sender account info: {e}"
         details["fully_verified"] = False
         return False, details
 
     try:
-        recipient_current = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+        recipient_info = AccountInfoQuery(account_id=recipient_id).execute(client)
+        recipient_current = {rel.token_id: rel.balance for rel in recipient_info.token_relationships}
     except Exception as e:
-        details["error"] = f"Error fetching recipient balance: {e}"
+        details["error"] = f"Error fetching recipient account info: {e}"
         details["fully_verified"] = False
         return False, details
 
@@ -352,16 +354,24 @@ def verify_post_airdrop_balances(
 
 
 def _log_balances_before(client, operator_id, recipient_id, token_id, nft_id):
-    """Fetch and print sender/recipient token balances before airdrop."""
-    print("\nStep 5: Checking balances before airdrop...")
-    sender_balances_before = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
-    recipient_balances_before = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+    """Fetch and print sender/recipient token balances and associations before airdrop."""
+    print("\nStep 5: Checking balances and associations before airdrop...")
+    
+    # Get account info to verify associations
+    sender_info = AccountInfoQuery(account_id=operator_id).execute(client)
+    recipient_info = AccountInfoQuery(account_id=recipient_id).execute(client)
+    
+    # Build dictionaries for balances from token_relationships (more robust than balance query)
+    sender_balances_before = {rel.token_id: rel.balance for rel in sender_info.token_relationships}
+    recipient_balances_before = {rel.token_id: rel.balance for rel in recipient_info.token_relationships}
+    
     print(f"Sender ({operator_id}) balances before airdrop:")
     print(f"  {token_id}: {sender_balances_before.get(token_id, 0)}")
     print(f"  {nft_id}: {sender_balances_before.get(nft_id, 0)}")
     print(f"Recipient ({recipient_id}) balances before airdrop:")
     print(f"  {token_id}: {recipient_balances_before.get(token_id, 0)}")
     print(f"  {nft_id}: {recipient_balances_before.get(nft_id, 0)}")
+    
     return sender_balances_before, recipient_balances_before
 
 
@@ -380,8 +390,18 @@ def _print_verification_summary(record_result, verification_details, operator_id
 
 def _print_final_summary(client, operator_id, recipient_id, token_id, nft_id, serial_number, verification_details):
     """Print final balances after airdrop and a small summary table."""
-    sender_balances_after = verification_details.get("sender_balances_after") or CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
-    recipient_balances_after = verification_details.get("recipient_balances_after") or CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+    # Use AccountInfoQuery for accurate balance retrieval if not already cached
+    if verification_details.get("sender_balances_after") is None:
+        sender_info = AccountInfoQuery(account_id=operator_id).execute(client)
+        sender_balances_after = {rel.token_id: rel.balance for rel in sender_info.token_relationships}
+    else:
+        sender_balances_after = verification_details.get("sender_balances_after")
+    
+    if verification_details.get("recipient_balances_after") is None:
+        recipient_info = AccountInfoQuery(account_id=recipient_id).execute(client)
+        recipient_balances_after = {rel.token_id: rel.balance for rel in recipient_info.token_relationships}
+    else:
+        recipient_balances_after = verification_details.get("recipient_balances_after")
 
     print("\nBalances after airdrop:")
     print(f"Sender ({operator_id}):")
