@@ -15,6 +15,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 )
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services.transaction_pb2 import AtomicBatchTransactionBody
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.system.freeze_transaction import FreezeTransaction
@@ -366,3 +367,115 @@ def test_batch_transaction_execute_successful(mock_account_ids, mock_client):
 
         receipt = transaction.execute(client)
         assert receipt.status == ResponseCode.SUCCESS, f"Transaction should have succeeded, got {receipt.status}"
+
+
+def test_batch_key_accepts_public_key(mock_client, mock_account_ids):
+    """Test that batch_key can accept PublicKey (not just PrivateKey)."""
+    sender, receiver, _, _, _ = mock_account_ids
+    
+    # Generate a key pair
+    private_key = PrivateKey.generate_ed25519()
+    public_key = private_key.public_key()
+    
+    # Test using PublicKey as batch_key
+    tx = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=sender, amount=-1)
+        .add_hbar_transfer(account_id=receiver, amount=1)
+        .set_batch_key(public_key)  # Using PublicKey instead of PrivateKey
+    )
+    
+    # Verify batch_key was set correctly
+    assert tx.batch_key == public_key
+    assert isinstance(tx.batch_key, type(public_key))
+
+
+def test_batchify_with_public_key(mock_client, mock_account_ids):
+    """Test that batchify method accepts PublicKey."""
+    sender, receiver, _, _, _ = mock_account_ids
+    
+    # Generate a key pair
+    private_key = PrivateKey.generate_ed25519()
+    public_key = private_key.public_key()
+    
+    # Test using PublicKey in batchify
+    tx = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=sender, amount=-1)
+        .add_hbar_transfer(account_id=receiver, amount=1)
+        .batchify(mock_client, public_key)  # Using PublicKey
+    )
+    
+    # Verify batch_key was set and transaction was frozen
+    assert tx.batch_key == public_key
+    assert tx._transaction_body_bytes  # Should be frozen
+
+
+def test_batch_transaction_with_public_key_inner_transactions(mock_client, mock_account_ids):
+    """Test BatchTransaction can accept inner transactions with PublicKey batch_keys."""
+    sender, receiver, _, _, _ = mock_account_ids
+    
+    # Generate key pairs
+    batch_key1 = PrivateKey.generate_ed25519()
+    public_key1 = batch_key1.public_key()
+    
+    batch_key2 = PrivateKey.generate_ecdsa()
+    public_key2 = batch_key2.public_key()
+    
+    # Create inner transactions with PublicKey batch_keys
+    inner_tx1 = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=sender, amount=-1)
+        .add_hbar_transfer(account_id=receiver, amount=1)
+        .set_batch_key(public_key1)
+        .freeze_with(mock_client)
+    )
+    
+    inner_tx2 = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=sender, amount=-1)
+        .add_hbar_transfer(account_id=receiver, amount=1)
+        .set_batch_key(public_key2)
+        .freeze_with(mock_client)
+    )
+    
+    # BatchTransaction should accept these inner transactions
+    batch_tx = BatchTransaction(inner_transactions=[inner_tx1, inner_tx2])
+    
+    assert len(batch_tx.inner_transactions) == 2
+    assert batch_tx.inner_transactions[0].batch_key == public_key1
+    assert batch_tx.inner_transactions[1].batch_key == public_key2
+
+
+def test_batch_key_mixed_private_and_public_keys(mock_client, mock_account_ids):
+    """Test that BatchTransaction can handle inner transactions with mixed PrivateKey and PublicKey."""
+    sender, receiver, _, _, _ = mock_account_ids
+    
+    # Generate keys
+    private_key = PrivateKey.generate_ed25519()
+    public_key = PrivateKey.generate_ecdsa().public_key()
+    
+    # Inner transaction with PrivateKey
+    inner_tx1 = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=sender, amount=-1)
+        .add_hbar_transfer(account_id=receiver, amount=1)
+        .set_batch_key(private_key)
+        .freeze_with(mock_client)
+    )
+    
+    # Inner transaction with PublicKey
+    inner_tx2 = (
+        TransferTransaction()
+        .add_hbar_transfer(account_id=sender, amount=-1)
+        .add_hbar_transfer(account_id=receiver, amount=1)
+        .set_batch_key(public_key)
+        .freeze_with(mock_client)
+    )
+    
+    # BatchTransaction should accept mixed key types
+    batch_tx = BatchTransaction(inner_transactions=[inner_tx1, inner_tx2])
+    
+    assert len(batch_tx.inner_transactions) == 2
+    assert isinstance(batch_tx.inner_transactions[0].batch_key, PrivateKey)
+    assert isinstance(batch_tx.inner_transactions[1].batch_key, type(public_key))
