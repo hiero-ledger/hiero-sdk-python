@@ -1,11 +1,14 @@
 """
-Refactored example demonstrating transaction byte serialization and deserialization.
+Example demonstrating transaction byte serialization and deserialization.
 
 This example shows how to:
 - Create and freeze a transaction
 - Serialize to bytes (for storage, transmission, or signing)
 - Deserialize from bytes
 - Sign a deserialized transaction
+
+Run with:
+  python examples/transaction/transaction_to_bytes.py
 """
 
 import os
@@ -38,11 +41,11 @@ def setup_client() -> Client:
 
         client.set_operator(operator_id, operator_key)
 
-        print(f"Connected to Hedera {NETWORK} as {operator_id}")
+        print(f"Connected to network '{NETWORK}' as {operator_id}")
         return client
 
-    except Exception:
-        print("❌ Error: Could not initialize client. Check your .env file.")
+    except Exception as e:
+        print(f"❌ Error initializing client: {e}")
         sys.exit(1)
 
 
@@ -56,54 +59,67 @@ def create_and_freeze_transaction(client: Client, sender: AccountId, receiver: A
     )
 
     tx.freeze_with(client)
+    # print a concise confirmation for the user
+    print(f"✅ Transaction frozen with ID: {tx.transaction_id}")
     return tx
 
 
 def serialize_transaction(transaction: Transaction) -> bytes:
     """Serialize transaction to bytes."""
-    return transaction.to_bytes()
+    tx_bytes = transaction.to_bytes()
+    print(f"✅ Transaction serialized: {len(tx_bytes)} bytes")
+    print(f" Preview (first 40 bytes hex): {tx_bytes[:40].hex()}")
+    return tx_bytes
 
 
 def deserialize_transaction(bytes_data: bytes) -> Transaction:
     """Restore a transaction from its byte representation."""
-    return Transaction.from_bytes(bytes_data)
+    restored = Transaction.from_bytes(bytes_data)
+    print("✅ Transaction restored from bytes")
+    print(f" Restored ID: {restored.transaction_id}")
+    print(f" Memo: {restored.memo}")
+    return restored
 
 
 def main():
+    # Initialize client (exits with message if fails)
     client = setup_client()
+
+    # obtain operator information from the client
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key
 
+    # receiver example (adjust as needed)
     receiver_id = AccountId.from_string("0.0.3")
 
-    print("\nSTEP 1 — Creating and freezing transaction...")
-    tx = create_and_freeze_transaction(client, operator_id, receiver_id)
-    print(f"Transaction ID: {tx.transaction_id}")
+    try:
+        print("\nSTEP 1 — Creating and freezing transaction...")
+        tx = create_and_freeze_transaction(client, operator_id, receiver_id)
 
-    print("\nSTEP 2 — Serializing transaction...")
-    tx_bytes = serialize_transaction(tx)
-    print(f"Serialized size: {len(tx_bytes)} bytes")
-    print(f"Preview (hex): {tx_bytes[:40].hex()}")
+        print("\nSTEP 2 — Serializing transaction...")
+        tx_bytes = serialize_transaction(tx)
 
-    print("\nSTEP 3 — Deserializing transaction...")
-    restored_tx = deserialize_transaction(tx_bytes)
-    print(f"Restored ID: {restored_tx.transaction_id}")
-    print(f"Memo: {restored_tx.memo}")
+        print("\nSTEP 3 — Deserializing transaction...")
+        restored_tx = deserialize_transaction(tx_bytes)
 
-    print("\nSTEP 4 — Signing restored transaction...")
-    restored_tx.sign(operator_key)
-    print("Signed successfully.")
+        print("\nSTEP 4 — Signing restored transaction...")
+        restored_tx.sign(operator_key)
+        print("✅ Signed restored transaction successfully.")
 
-    print("\nSTEP 5 — Verifying round-trip...")
-    original_signed_bytes = tx.sign(operator_key).to_bytes()
-    restored_signed_bytes = restored_tx.to_bytes()
+        print("\nSTEP 5 — Verifying round-trip (signed bytes comparison)...")
+        # Sign the original transaction as well to compare the signed bytes
+        original_signed_bytes = tx.sign(operator_key).to_bytes()
+        restored_signed_bytes = restored_tx.to_bytes()
 
-    if original_signed_bytes == restored_signed_bytes:
-        print("✅ Round-trip serialization successful.")
-    else:
-        print("❌ Round-trip mismatch!")
+        if original_signed_bytes == restored_signed_bytes:
+            print("✅ Round-trip serialization successful.")
+        else:
+            print("❌ Round-trip mismatch!")
 
-    print("\nExample completed.")
+        print("\nExample completed.")
+
+    except Exception as e:
+        print(f"❌ Error in example flow: {e}")
 
 
 if __name__ == "__main__":
