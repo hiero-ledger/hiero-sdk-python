@@ -3,7 +3,7 @@ name: Hiero Solo Integration & Unit Tests
 on:
   push:
     branches:
-      - '**'
+      - "**"
   pull_request: {}
   workflow_dispatch: {}
 
@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           egress-policy: audit
 
@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          cache: "pip"
 
       - name: Install uv
         uses: astral-sh/setup-uv@2ddd2b9cb38ad8efd50337e8ab201519a34c9f24 # v7.1.1
@@ -62,6 +62,11 @@ jobs:
 
       - name: Install your package
         run: pip install -e .
+
+      ##############################################
+      # INTEGRATION TESTS
+      ##############################################
+
       - name: Run all integration tests
         id: integration
         continue-on-error: true
@@ -77,13 +82,19 @@ jobs:
           echo "🚀 Running integration tests..."
           uv run pytest tests/integration -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_integration.log
           pytest_exit=${PIPESTATUS[0]}
-          echo "integration_failed=$pytest_exit" >> "$GITHUB_OUTPUT"
+          echo "integration_failed=$pytest_exit" >> $GITHUB_OUTPUT
           cat result_integration.log
           if [ $pytest_exit -ne 0 ]; then
             echo "❌ Some integration tests failed"
+            echo "Failed tests:"
+            grep -E 'FAILED ' result_integration.log || true
           else
             echo "✅ All integration tests passed"
           fi
+
+      ##############################################
+      # UNIT TESTS
+      ##############################################
 
       - name: Run all unit tests
         id: unit
@@ -94,13 +105,19 @@ jobs:
           echo "🚀 Running unit tests..."
           uv run pytest tests/unit -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_unit.log
           pytest_exit=${PIPESTATUS[0]}
-          echo "unit_failed=$pytest_exit" >> "$GITHUB_OUTPUT"
+          echo "unit_failed=$pytest_exit" >> $GITHUB_OUTPUT
           cat result_unit.log
           if [ $pytest_exit -ne 0 ]; then
             echo "❌ Some unit tests failed"
+            echo "Failed tests:"
+            grep -E 'FAILED ' result_unit.log || true
           else
             echo "✅ All unit tests passed"
           fi
+
+      ##############################################
+      # SUMMARY & FAIL CONDITIONS
+      ##############################################
 
       - name: Fail workflow if any tests failed
         shell: bash
@@ -108,11 +125,42 @@ jobs:
           integration_failed="${{ steps.integration.outputs.integration_failed }}"
           unit_failed="${{ steps.unit.outputs.unit_failed }}"
 
-          # Default to 0 if empty
-          integration_failed="${integration_failed:-0}"
-          unit_failed="${unit_failed:-0}"
+          echo ""
+          echo "==================== TEST SUMMARY ===================="
 
-          if [ "$integration_failed" != "0" ] || [ "$unit_failed" != "0" ]; then
+          any_failed=false
+
+          if [ "$integration_failed" != "0" ]; then
+            echo "❌ Integration tests FAILED"
+            echo "   → Check the integration test logs above for details."
+            if [ -f result_integration.log ]; then
+              grep -E 'FAILED ' result_integration.log || echo "   (No FAILED lines found)"
+            else
+              echo "   (Integration log not found)"
+            fi
+            any_failed=true
+          else
+            echo "✅ Integration tests passed"
+          fi
+
+          if [ "$unit_failed" != "0" ]; then
+            echo "❌ Unit tests FAILED"
+            echo "   → Check the unit test logs above for details."
+            if [ -f result_unit.log ]; then
+              grep -E 'FAILED ' result_unit.log || echo "   (No FAILED lines found)"
+            else
+              echo "   (Unit log not found)"
+            fi
+            any_failed=true
+          else
+            echo "✅ Unit tests passed"
+          fi
+
+          echo "======================================================"
+          echo ""
+
+          # Final outcome
+          if [ "$any_failed" = true ]; then
             echo "❌ Some tests failed. Failing workflow."
             exit 1
           else
