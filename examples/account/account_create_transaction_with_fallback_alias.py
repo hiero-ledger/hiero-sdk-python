@@ -49,7 +49,7 @@ def setup_client():
         sys.exit(1)
 
 def generate_fallback_key() -> PrivateKey: 
-    """Generate a ECDSA key pair and validate its EVM address."""
+    """Generate an ECDSA key pair and validate its EVM address."""
     print("\nSTEP 1: Generating a single ECDSA key pair for the account...")
     account_private_key = PrivateKey.generate("ecdsa")
     account_public_key = account_private_key.public_key()
