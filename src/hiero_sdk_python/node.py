@@ -19,7 +19,7 @@ class _HederaTrustManager:
     Validates server certificates by comparing SHA-384 hashes of PEM-encoded certificates
     against expected hashes from the address book.
     """
-    
+
     def __init__(self, cert_hash: Optional[bytes], verify_certificate: bool):
         """
         Initialize the trust manager.
@@ -43,7 +43,7 @@ class _HederaTrustManager:
                     self.cert_hash = self.cert_hash[2:]
             except UnicodeDecodeError:
                 self.cert_hash = cert_hash.hex().lower()
-    
+
     def check_server_trusted(self, pem_cert: bytes) -> bool:
         """
         Validate a server certificate by comparing its hash to the expected hash.
@@ -59,22 +59,22 @@ class _HederaTrustManager:
         """
         if self.cert_hash is None:
             return True
-        
+
         # Compute SHA-384 hash of PEM certificate (matching Java implementation)
         cert_hash_bytes = hashlib.sha384(pem_cert).digest()
         actual_hash = cert_hash_bytes.hex().lower()
-        
+
         if actual_hash != self.cert_hash:
             raise ValueError(
                 f"Failed to confirm the server's certificate from a known address book. "
                 f"Expected hash: {self.cert_hash}, received hash: {actual_hash}"
             )
-        
+
         return True
 
 
 class _Node:
-    
+
     def __init__(self, account_id: AccountId, address: str, address_book: NodeAddress):
         """
         Initialize a new Node instance.
@@ -84,7 +84,7 @@ class _Node:
             address (str): The address of the node.
             min_backoff (int): The minimum backoff time in seconds.
         """
-        
+
         self._account_id: AccountId = account_id
         self._channel: Optional[_Channel] = None
         self._address_book: NodeAddress = address_book
@@ -113,7 +113,7 @@ class _Node:
         """
         if self._channel:
             return self._channel
-        
+
         if self._address._is_transport_security():
             if self._root_certificates:
                 # Use the certificate that is provided
@@ -138,9 +138,9 @@ class _Node:
             channel = grpc.secure_channel(str(self._address), credentials, options=options)
         else:
             channel = grpc.insecure_channel(str(self._address))
-        
+
         self._channel = _Channel(channel)
-        
+
         return self._channel
 
     def _apply_transport_security(self, enabled: bool):
@@ -220,17 +220,17 @@ class _Node:
         """
         if not self._address._is_transport_security() or not self._verify_certificates:
             return
-        
+
         cert_hash = None
         if self._address_book:  # pylint: disable=protected-access
             cert_hash = self._address_book._cert_hash  # pylint: disable=protected-access
-        
+
         # Skip validation if no cert hash is available (e.g., in unit tests)
         # This allows tests to run without address books while still enabling
         # verification in production where address books are available.
         if cert_hash is None or len(cert_hash) == 0:
             return
-        
+
         # Create trust manager and validate certificate
         trust_manager = _HederaTrustManager(cert_hash, self._verify_certificates)
         trust_manager.check_server_trusted(self._node_pem_cert)
