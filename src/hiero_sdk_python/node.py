@@ -118,7 +118,7 @@ class _Node:
         if self._address._is_transport_security():
             if self._root_certificates:
                 # Use the certificate that provider
-                self._node_pem_cert = self._root_certificates;
+                self._node_pem_cert = self._root_certificates
             
             else:
                 # Fetch pem_cert for the node
