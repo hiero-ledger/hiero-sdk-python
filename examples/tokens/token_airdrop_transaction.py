@@ -24,6 +24,7 @@ from hiero_sdk_python import (
  TransactionRecordQuery,
  TokenNftInfoQuery
 )
+from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 
 load_dotenv()
 network_name = os.getenv('NETWORK', 'testnet').lower()
@@ -139,15 +140,15 @@ def associate_tokens(client, recipient_id, recipient_key, tokens):
         assocciate_tx.sign(recipient_key)
         assocciate_tx.execute(client)
 
-        balances = CryptoGetAccountBalanceQuery(
-            account_id=recipient_id
-        ).execute(client)
-
-        token_balances = balances.token_balances
+        # Use AccountInfoQuery to check token associations
+        info = AccountInfoQuery(account_id=recipient_id).execute(client)
+        
+        # Get the list of associated token IDs from token_relationships
+        associated_token_ids = [rel.token_id for rel in info.token_relationships]
 
         print("\nTokens associated with recipient:")
         for token_id in tokens:
-            associated = token_id in token_balances
+            associated = token_id in associated_token_ids
             print(f"  {token_id}: {'Associated' if associated else 'NOT Associated'}")
 
         print("\n✅ Success! Token association complete.")
