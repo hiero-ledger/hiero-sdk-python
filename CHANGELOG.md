@@ -6,9 +6,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Changed
 
-- Renamed example files to match src naming (#1053)
 
 ### Added
 
@@ -44,6 +42,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Bump protobuf toml to protobuf==6.33.2
 - Added more tests to the CustomFee class for different functionalities (#991)
 - Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
+- Renamed example files to match src naming (#1053)
 
 ### Fixed
 
