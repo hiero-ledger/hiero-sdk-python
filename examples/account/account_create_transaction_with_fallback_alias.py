@@ -91,11 +91,13 @@ def create_account_with_fallback_alias(client: Client, account_private_key: Priv
 
 def fetch_account_info(client: Client, account_id: AccountId):
     """Fetch account info for the given account ID."""
+    print("\nSTEP 3: Fetching account information...")
     return AccountInfoQuery().set_account_id(account_id).execute(client)
 
 
 def print_account_summary(account_info) -> None:
     """Print an account summary (including EVM alias)."""
+    print("\nSTEP 4: Printing account EVM alias and summary...")
     out = info_to_dict(account_info)
     print("Account Info:")
     print(json.dumps(out, indent=2) + "\n")
