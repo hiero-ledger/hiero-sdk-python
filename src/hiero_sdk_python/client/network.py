@@ -1,6 +1,6 @@
 """Network module for managing Hedera SDK connections."""
 import secrets
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 
 import requests
 
@@ -15,20 +15,18 @@ class Network:
     Manages the network configuration for connecting to the Hedera network.
     """
 
-    # Mirror node gRPC addresses (always use TLS, port 443 for HTTPS)
     MIRROR_ADDRESS_DEFAULT: Dict[str,str] = {
         'mainnet': 'mainnet.mirrornode.hedera.com:443',
         'testnet': 'testnet.mirrornode.hedera.com:443',
         'previewnet': 'previewnet.mirrornode.hedera.com:443',
-        'solo': 'localhost:5600'  # Local development only
+        'solo': 'localhost:5600'
     }
 
-    # Mirror node REST API base URLs (HTTPS for production networks, HTTP for localhost)
     MIRROR_NODE_URLS: Dict[str,str] = {
         'mainnet': 'https://mainnet-public.mirrornode.hedera.com',
         'testnet': 'https://testnet.mirrornode.hedera.com',
         'previewnet': 'https://previewnet.mirrornode.hedera.com',
-        'solo': 'http://localhost:8080'  # Local development only
+        'solo': 'http://localhost:8080'
     }
 
     DEFAULT_NODES: Dict[str,List[_Node]] = {
@@ -94,12 +92,6 @@ class Network:
             mirror_address (str, optional): A mirror node address (host:port) for topic queries.
                             If not provided,
                             we'll use a default from MIRROR_ADDRESS_DEFAULT[network].
-        
-        Note:
-            TLS is enabled by default for hosted networks (mainnet, testnet, previewnet).
-            For local networks (solo, localhost) and custom networks, TLS is disabled by default.
-            Certificate verification is enabled by default for all networks.
-            Use Client.set_transport_security() and Client.set_verify_certificates() to customize.
         """
         self.network: str = network or 'testnet'
         self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(
@@ -107,12 +99,6 @@ class Network:
         )
 
         self.ledger_id = ledger_id or self.LEDGER_ID.get(network, bytes.fromhex('03'))
-        
-        # Default TLS configuration: enabled for hosted networks, disabled for local/custom
-        hosted_networks = ('mainnet', 'testnet', 'previewnet')
-        self._transport_security: bool = self.network in hosted_networks
-        self._verify_certificates: bool = True  # Always enabled by default
-        self._root_certificates: Optional[bytes] = None
 
         if nodes is not None:
             final_nodes = nodes
@@ -128,12 +114,6 @@ class Network:
                 raise ValueError(f"No default nodes for network='{self.network}'")
 
         self.nodes: List[_Node] = final_nodes
-        
-        # Apply TLS configuration to all nodes
-        for node in self.nodes:
-            node._apply_transport_security(self._transport_security)  # pylint: disable=protected-access
-            node._set_verify_certificates(self._verify_certificates)  # pylint: disable=protected-access
-            node._set_root_certificates(self._root_certificates)  # pylint: disable=protected-access
 
         self._node_index: int = secrets.randbelow(len(self.nodes))
         self.current_node: _Node = self.nodes[self._node_index]
@@ -215,130 +195,6 @@ class Network:
 
     def get_mirror_address(self) -> str:
         """
-        Return the configured mirror node address used for mirror gRPC queries.
-        Mirror nodes always use TLS, so addresses should use port 443 for HTTPS.
+        Return the configured mirror node address used for mirror queries.
         """
         return self.mirror_address
-    
-    def _parse_mirror_address(self) -> Tuple[str, int]:
-        """
-        Parse mirror_address into host and port.
-        
-        Returns:
-            Tuple[str, int]: (host, port) tuple
-        """
-        mirror_addr = self.mirror_address
-        if ':' in mirror_addr:
-            host, port_str = mirror_addr.rsplit(':', 1)
-            try:
-                port = int(port_str)
-            except ValueError:
-                port = 443
-        else:
-            host = mirror_addr
-            port = 443
-        return (host, port)
-    
-    def _determine_scheme_and_port(self, host: str, port: int) -> Tuple[str, int]:
-        """
-        Determine the scheme (http/https) and port for the REST URL.
-        
-        Args:
-            host: The hostname
-            port: The port number
-            
-        Returns:
-            Tuple[str, int]: (scheme, port) tuple
-        """
-        is_localhost = host in ('localhost', '127.0.0.1')
-        
-        if is_localhost:
-            scheme = 'http'
-            if port == 443:
-                port = 8080  # Default REST port for localhost
-        else:
-            scheme = 'https'
-            if port == 5600:  # gRPC port, use 443 for REST
-                port = 443
-        
-        return (scheme, port)
-    
-    def _build_rest_url(self, scheme: str, host: str, port: int) -> str:
-        """
-        Build the final REST URL with optional port.
-        
-        Args:
-            scheme: URL scheme (http or https)
-            host: Hostname
-            port: Port number
-            
-        Returns:
-            str: Complete REST URL with /api/v1 suffix
-        """
-        is_default_port = (scheme == 'https' and port == 443) or (scheme == 'http' and port == 80)
-        
-        if is_default_port:
-            return f"{scheme}://{host}/api/v1"
-        return f"{scheme}://{host}:{port}/api/v1"
-    
-    def get_mirror_rest_url(self) -> str:
-        """
-        Get the REST API base URL for the mirror node.
-        Returns the URL in format: scheme://host[:port]/api/v1
-        For non-localhost networks, defaults to https:// with port 443.
-        """
-        base_url = self.MIRROR_NODE_URLS.get(self.network)
-        if base_url:
-            # MIRROR_NODE_URLS contains base URLs, append /api/v1
-            return f"{base_url}/api/v1"
-        
-        # Fallback: construct from mirror_address
-        host, port = self._parse_mirror_address()
-        scheme, port = self._determine_scheme_and_port(host, port)
-        return self._build_rest_url(scheme, host, port)
-
-    def set_transport_security(self, enabled: bool) -> None:
-        """
-        Enable or disable TLS for consensus node connections.
-        """
-        if self._transport_security == enabled:
-            return
-        for node in self.nodes:
-            node._apply_transport_security(enabled)  # pylint: disable=protected-access
-        self._transport_security = enabled
-
-    def is_transport_security(self) -> bool:
-        """
-        Determine if TLS is enabled for consensus node connections.
-        """
-        return self._transport_security
-
-    def set_verify_certificates(self, verify: bool) -> None:
-        """
-        Enable or disable server certificate verification when TLS is enabled.
-        """
-        if self._verify_certificates == verify:
-            return
-        for node in self.nodes:
-            node._set_verify_certificates(verify)  # pylint: disable=protected-access
-        self._verify_certificates = verify
-
-    def set_tls_root_certificates(self, root_certificates: Optional[bytes]) -> None:
-        """
-        Provide custom root certificates to use when establishing TLS channels.
-        """
-        self._root_certificates = root_certificates
-        for node in self.nodes:
-            node._set_root_certificates(root_certificates)  # pylint: disable=protected-access
-
-    def get_tls_root_certificates(self) -> Optional[bytes]:
-        """
-        Retrieve the configured root certificates used for TLS channels.
-        """
-        return self._root_certificates
-
-    def is_verify_certificates(self) -> bool:
-        """
-        Determine if certificate verification is enabled.
-        """
-        return self._verify_certificates

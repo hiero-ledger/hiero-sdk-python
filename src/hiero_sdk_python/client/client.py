@@ -2,7 +2,7 @@
 Client module for interacting with the Hedera network.
 """
 
-from typing import NamedTuple, List, Union, Optional
+from typing import NamedTuple, List, Union
 
 import grpc
 
@@ -50,8 +50,7 @@ class Client:
     def _init_mirror_stub(self) -> None:
         """
         Connect to a mirror node for topic message subscriptions.
-        Mirror nodes always use TLS (mandatory). We use self.network.get_mirror_address()
-        for a configurable mirror address, which should use port 443 for HTTPS connections.
+        We now use self.network.get_mirror_address() for a configurable mirror address.
         """
         mirror_address = self.network.get_mirror_address()
         if mirror_address.endswith(':50212') or mirror_address.endswith(':443'):
@@ -106,54 +105,6 @@ class Client:
             self.mirror_channel = None
 
         self.mirror_stub = None
-
-    def set_transport_security(self, enabled: bool) -> "Client":
-        """
-        Enable or disable TLS for consensus node connections.
-        
-        Note:
-            TLS is enabled by default for hosted networks (mainnet, testnet, previewnet).
-            For local networks (solo, localhost) and custom networks, TLS is disabled by default.
-            Use this method to override the default behavior.
-        """
-        self.network.set_transport_security(enabled)
-        return self
-
-    def is_transport_security(self) -> bool:
-        """
-        Determine if TLS is enabled for consensus node connections.
-        """
-        return self.network.is_transport_security()
-
-    def set_verify_certificates(self, verify: bool) -> "Client":
-        """
-        Enable or disable verification of server certificates when TLS is enabled.
-        
-        Note:
-            Certificate verification is enabled by default for all networks.
-            Use this method to disable verification (e.g., for testing with self-signed certificates).
-        """
-        self.network.set_verify_certificates(verify)
-        return self
-
-    def is_verify_certificates(self) -> bool:
-        """
-        Determine if certificate verification is enabled.
-        """
-        return self.network.is_verify_certificates()
-
-    def set_tls_root_certificates(self, root_certificates: Optional[bytes]) -> "Client":
-        """
-        Provide custom root certificates for TLS connections.
-        """
-        self.network.set_tls_root_certificates(root_certificates)
-        return self
-
-    def get_tls_root_certificates(self) -> Optional[bytes]:
-        """
-        Retrieve the configured root certificates for TLS connections.
-        """
-        return self.network.get_tls_root_certificates()
 
     def __enter__(self) -> "Client":
         """
