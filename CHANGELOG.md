@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 
+8c3b9b5 (docs(changelog): add entry for transaction_to_bytes refactor (#1012))
 ### Added
 
 - Fix inactivity bot execution for local dry-run testing.
@@ -38,7 +39,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
 
 ### Changed
-
+- refactor(example): sync `transaction_to_bytes` example with main (#1012)
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
 - Added more tests to the CustomFee class for different functionalities (#991)
