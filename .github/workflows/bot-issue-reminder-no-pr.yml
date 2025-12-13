@@ -6,7 +6,7 @@ on:
       dry_run:
         description: "Dry run (log only, do not post comments)"
         required: false
-        default: true
+        default: false
         type: boolean
   schedule:
     - cron: "*/5 * * * *"
