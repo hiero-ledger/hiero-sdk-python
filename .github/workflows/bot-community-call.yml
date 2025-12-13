@@ -1,0 +1,73 @@
+name: PythonBot - Community Call Reminder
+
+on:
+  # push:
+  schedule:
+    - cron: '0 10 * * 3'  # 10:00 UTC on Wednesdays (4 hours before 2PM UTC meeting)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  community-call-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 
+        with:
+          egress-policy: audit
+
+      - name: Check Schedule and Notify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ANCHOR_DATE="2025-12-04"  # Wednesday anchor date for fortnightly calculation
+          MEETING_LINK="https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581"
+          CALENDAR_LINK="https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week"
+
+          IS_MEETING_WEEK=$(python3 -c "from datetime import date; import os; d1=date.fromisoformat('$ANCHOR_DATE'); d2=date.today(); print('true' if (d2-d1).days % 14 == 0 else 'false')")
+
+          if [ "$IS_MEETING_WEEK" = "false" ]; then
+            echo "Not a fortnightly meeting week. Skipping execution."
+            exit 0
+          fi
+
+          echo "Meeting week detected. Proceeding to notify open issues."
+
+          REPO="${{ github.repository }}"
+          ISSUE_LIST=$(gh issue list --repo $REPO --state open --json number --jq '.[].number')
+
+          if [ -z "$ISSUE_LIST" ]; then
+            echo "No open issues found."
+            exit 0
+          fi
+
+          COMMENT_BODY=$(cat <<EOF
+          Hello, this is the Community Call Bot.
+
+          This is a reminder that the Hiero Python SDK Community Call is scheduled in approximately 4 hours (14:00 UTC).
+
+          We host fortnightly community calls where we want to hear about the community all things related to the Python SDK. This is a great opportunity to discuss this issue, ask questions, or provide feedback directly to the maintainers and community.
+
+          Details:
+          - Time: 14:00 UTC (2:00 PM UTC)
+          - Join Link: [Zoom Meeting]($MEETING_LINK)
+
+          Disclaimer: This is an automated reminder. Please subscribe to the meeting to be notified of any changes and check the Hiero calendar [here]($CALENDAR_LINK).
+          EOF
+          )
+
+          for ISSUE_NUM in $ISSUE_LIST; do
+            echo "Processing Issue #$ISSUE_NUM"
+            
+            ALREADY_COMMENTED=$(gh issue view $ISSUE_NUM --repo $REPO --json comments --jq '.comments[].body' | grep -F "Community Call Bot" || true)
+
+            if [ -z "$ALREADY_COMMENTED" ]; then
+              gh issue comment $ISSUE_NUM --repo $REPO --body "$COMMENT_BODY"
+              echo "Reminder posted to Issue #$ISSUE_NUM"
+            else
+              echo "Issue #$ISSUE_NUM already notified. Skipping."
+            fi
+          done

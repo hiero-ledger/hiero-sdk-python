@@ -33,6 +33,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 - Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
 - Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
+- Added `.github/workflows/bot-community-call.yml` to automate fortnightly community call reminders on open issues 4 hours before the scheduled time (14:00 UTC Wednesdays)
 
 ### Changed
 
