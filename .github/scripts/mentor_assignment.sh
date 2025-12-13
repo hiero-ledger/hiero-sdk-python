@@ -1,8 +1,18 @@
 #!/bin/bash
+set -euo pipefail
 
 # Mentor Assignment Script for New Contributors
 # This script automatically assigns a mentor from the triage team to new contributors
 # working on "good first issue" labeled issues.
+#
+# Environment Variables:
+#   ASSIGNEE     - GitHub username of the issue assignee
+#   ISSUE_NUMBER - Issue number
+#   REPO         - Repository in format owner/repo
+#   DRY_RUN      - If set to "1", only logs actions without posting comments
+
+# Default DRY_RUN to 0 if not set
+DRY_RUN="${DRY_RUN:-0}"
 
 if [ -z "$ASSIGNEE" ] || [ -z "$ISSUE_NUMBER" ] || [ -z "$REPO" ]; then
   echo "Error: Missing required environment variables (ASSIGNEE, ISSUE_NUMBER, REPO)."
@@ -10,6 +20,12 @@ if [ -z "$ASSIGNEE" ] || [ -z "$ISSUE_NUMBER" ] || [ -z "$REPO" ]; then
 fi
 
 echo "Processing mentor assignment for user $ASSIGNEE on issue #$ISSUE_NUMBER"
+echo "DRY_RUN mode: $DRY_RUN"
+
+# Triage team configuration
+TRIAGE_ORG="hiero-ledger"
+TRIAGE_TEAM_SLUG="hiero-sdk-python-triage"
+TRIAGE_TEAM="$TRIAGE_ORG/$TRIAGE_TEAM_SLUG"
 
 # Check if the issue has "good first issue" label
 LABELS_JSON=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json labels)
@@ -43,13 +59,8 @@ fi
 
 echo "User $ASSIGNEE is a new contributor. Assigning a mentor..."
 
-# Get list of triage team members
-# Note: GitHub API for team members requires org-level permissions
-# Using a fallback list of known mentors as a backup
-TRIAGE_TEAM="hiero-ledger/hiero-sdk-python-triage"
-
 # Try to get team members via API (requires appropriate permissions)
-MENTORS_JSON=$(gh api "orgs/hiero-ledger/teams/hiero-sdk-python-triage/members" 2>/dev/null || echo "[]")
+MENTORS_JSON=$(gh api "orgs/$TRIAGE_ORG/teams/$TRIAGE_TEAM_SLUG/members" 2>/dev/null || echo "[]")
 MENTORS_COUNT=$(echo "$MENTORS_JSON" | jq '. | length')
 
 if [ "$MENTORS_COUNT" -eq 0 ]; then
@@ -58,7 +69,7 @@ if [ "$MENTORS_COUNT" -eq 0 ]; then
   MENTOR_MENTION="$TRIAGE_TEAM"
 else
   # Select a random mentor from the list (excluding the assignee)
-  AVAILABLE_MENTORS=$(echo "$MENTORS_JSON" | jq -r --arg assignee "$ASSIGNEE" '[.[] | select(.login != $assignee) | .login] | @json')
+  AVAILABLE_MENTORS=$(echo "$MENTORS_JSON" | jq -r --arg assignee "$ASSIGNEE" '[.[] | select(.login != $assignee) | .login]')
   AVAILABLE_COUNT=$(echo "$AVAILABLE_MENTORS" | jq '. | length')
   
   if [ "$AVAILABLE_COUNT" -eq 0 ]; then
@@ -103,14 +114,27 @@ EOF
 )
 
 # Check if we've already posted a welcome message for this user on this issue
-EXISTING_WELCOME=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --comments --json comments -q ".comments[] | select(.body | contains(\"Welcome to the Hiero Python SDK, @$ASSIGNEE\")) | .id" | head -1)
+# Uses the bot's username and checks for the welcome message pattern
+EXISTING_WELCOME=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --comments --json comments \
+  | jq -r --arg assignee "$ASSIGNEE" '
+      .comments[]
+      | select(.body | test("Welcome to the Hiero Python SDK,?\\s*@" + $assignee))
+      | .id' | head -1)
 
 if [ -n "$EXISTING_WELCOME" ]; then
   echo "Welcome message already posted for $ASSIGNEE on issue #$ISSUE_NUMBER. Skipping."
   exit 0
 fi
 
-echo "Posting welcome message..."
-gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "$WELCOME_MSG"
-
-echo "Mentor assignment complete!"
+if [ "$DRY_RUN" = "1" ]; then
+  echo "=== DRY RUN MODE ==="
+  echo "Would post the following welcome message to issue #$ISSUE_NUMBER:"
+  echo "---"
+  echo "$WELCOME_MSG"
+  echo "---"
+  echo "DRY RUN: No comment posted."
+else
+  echo "Posting welcome message..."
+  gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "$WELCOME_MSG"
+  echo "Mentor assignment complete!"
+fi

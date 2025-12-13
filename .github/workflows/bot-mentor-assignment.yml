@@ -3,9 +3,29 @@ name: PythonBot - Mentor Assignment
 on:
   issues:
     types: [assigned]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run in dry-run mode (logs only, no comments posted)"
+        required: true
+        default: true
+        type: boolean
+      issue_number:
+        description: "Issue number to test with (required for workflow_dispatch)"
+        required: false
+        type: string
+      assignee:
+        description: "Assignee username to test with (required for workflow_dispatch)"
+        required: false
+        type: string
 
 permissions:
   issues: write
+  members: read
+
+concurrency:
+  group: mentor-assignment-${{ github.event.issue.number || github.event.inputs.issue_number }}
+  cancel-in-progress: false
 
 jobs:
   assign-mentor:
@@ -22,12 +42,10 @@ jobs:
       - name: Assign Mentor to New Contributors
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSIGNEE: ${{ github.event.assignee.login }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ASSIGNEE: ${{ github.event.assignee.login || github.event.inputs.assignee }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
           REPO: ${{ github.repository }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.dry_run == 'true' && '1' || '0') || '0' }}
         run: |
-          # Make script executable
           chmod +x .github/scripts/mentor_assignment.sh
-
-          # Run the mentor assignment script
           ./.github/scripts/mentor_assignment.sh
