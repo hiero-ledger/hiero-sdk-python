@@ -8,6 +8,7 @@ This example shows how to:
 - Sign a deserialized transaction
 
 Run with:
+  uv run examples/transaction/transaction_to_bytes.py
   python examples/transaction/transaction_to_bytes.py
 """
 
