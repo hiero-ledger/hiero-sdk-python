@@ -6,8 +6,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+
+
 ### Added
 
+- Fix inactivity bot execution for local dry-run testing.
 - Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
 - Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
@@ -41,6 +44,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Bump protobuf toml to protobuf==6.33.2
 - Added more tests to the CustomFee class for different functionalities (#991)
 - Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
+- Renamed example files to match src naming (#1053)
 
 ### Fixed
 

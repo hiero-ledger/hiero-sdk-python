@@ -72,9 +72,9 @@ for ISSUE in $ISSUES; do
   echo "  [INFO] Issue created at: ${ISSUE_CREATED_AT:-(unknown)}"
   echo
 
-  # Fetch timeline once (used for assignment events + PR links).
-  TIMELINE=$(gh api -H "Accept: application/vnd.github.mockingbird-preview+json" "repos/$REPO/issues/$ISSUE/timeline" 2>/dev/null || echo "[]")
-  TIMELINE=${TIMELINE:-'[]'}   # defensive default
+  # Fetch full timeline with pagination and flatten array 
+  TIMELINE=$(gh api --paginate -H "Accept: application/vnd.github.mockingbird-preview+json" "repos/$REPO/issues/$ISSUE/timeline" 2>/dev/null | jq -s 'add' || echo "[]")
+  TIMELINE=${TIMELINE:-'[]'}
 
   if [[ -z "${ASSIGNEES// }" ]]; then
     echo "  [INFO] No assignees for this issue, skipping."
@@ -93,15 +93,18 @@ for ISSUE in $ISSUES; do
       ASSIGNED_AT=$(echo "$ASSIGN_EVENT_JSON" | jq -r '.created_at // empty')
       ASSIGN_SOURCE="assignment_event"
     else
-      ASSIGNED_AT="${ISSUE_CREATED_AT:-}"
-      ASSIGN_SOURCE="issue_created_at (no explicit assignment event)"
+      # FIX: Do not fallback to issue creation date
+      ASSIGNED_AT=""
+      ASSIGN_SOURCE="not_found"
     fi
 
     if [[ -n "$ASSIGNED_AT" ]]; then
       ASSIGNED_TS=$(parse_ts "$ASSIGNED_AT")
       ASSIGNED_AGE_DAYS=$(( (NOW_TS - ASSIGNED_TS) / 86400 ))
     else
-      ASSIGNED_AGE_DAYS=0
+      # Safety valve: if assignment event is missing, skip checking to prevent false positives
+      echo "    [WARN] Could not find 'assigned' event in timeline. Skipping inactivity check for safety."
+      continue
     fi
 
     echo "    [INFO] Assignment source: $ASSIGN_SOURCE"
@@ -125,7 +128,6 @@ for ISSUE in $ISSUES; do
         echo "    [RESULT] Phase 1 -> stale assignment (>= $DAYS days, no PR)"
 
         if (( DRY_RUN == 0 )); then
-          # NOTE: The EOF must be at the very start of the line!
           MESSAGE=$(cat <<EOF
 Hi @$USER, this is InactivityBot 👋
 
@@ -181,7 +183,6 @@ EOF
         echo "    [RESULT] Phase 2 -> PR #$PR_NUM is stale (>= $DAYS days since last commit)"
 
         if (( DRY_RUN == 0 )); then
-          # NOTE: The EOF must be at the very start of the line!
           MESSAGE=$(cat <<EOF
 Hi @$USER, this is InactivityBot 👋
 
