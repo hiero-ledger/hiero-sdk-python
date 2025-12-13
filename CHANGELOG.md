@@ -10,6 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Added automatic mentor assignment bot for new contributors on good first issues (`.github/workflows/bot-mentor-assignment.yml`) (#1063)
 - Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
 - Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
