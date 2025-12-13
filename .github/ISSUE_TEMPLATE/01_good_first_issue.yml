@@ -4,6 +4,14 @@ title: "[Good First Issue]: "
 labels: ["Good First Issue"]
 assignees: []
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ### Thanks for contributing 😊
+        We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
+        This template is designed to help you create a Good First Issue (GFI) : a small, well-scoped task that helps new contributors learn the codebase and workflow.
+        ---
   - type: textarea
     id: intro
     attributes:
@@ -15,6 +23,38 @@ body:
         The goal of this issue and all other issues in [**find a good first issue**](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+) is to help you make your first contribution to the Hiero Python SDK.
     validations:
       required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > ### 📋 Good First Issue (GFI) Guidelines
+        > 
+        > **What we generally consider good first issues:**
+        >
+        > - **Narrow changes or additions to `src` functionality** that use generic Python skills which can be tested by adding to an existing test. For example:
+        >   - `__str__` functions
+        >   - `__repr__` functions
+        >   - Typing fixes, like return type hints or basic type conflicts
+        > - **Refactors of existing examples:**
+        >   - Separating existing examples into separate functions
+        >   - Or, conversely, taking a split example into a monolithic function
+        > - **Improvements to documentation** in examples and source code:
+        >   - Docstrings: module docstrings, function docstrings
+        >   - Inline comments
+        >   - Addition or changes to print statements to improve clarity
+        > - **Functional improvements to examples:**
+        >   - Additional steps that would help to illustrate functionality
+        > - **Specific additions to existing unit or integration tests**
+        >
+        > **What we generally do NOT consider good first issues:**
+        >
+        > - Creation of new examples
+        > - Creation of new unit and integration tests
+        > - Changes to DLT functionality, like `to_proto` and `from_proto`
+        > - Anything requiring knowledge of multiple areas of the codebase
+        >
+        > 📖 *For a more detailed explanation, see `docs/maintainers/good_first_issues.md` (this document will be merged soon).*
 
   - type: textarea
     id: issue
@@ -30,43 +70,6 @@ body:
 
     validations:
       required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        ---
-        Thanks for contributing 😊
-        We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
-        This template is designed to help you create a Good First Issue (GFI) : a small, well-scoped task that helps new contributors learn the codebase and workflow.
-        ---
-  - type: markdown
-    attributes:
-      value: |
-        ### Good First Issue (GFI) — What we accept
-        We usually accept narrow, well-scoped contributions that rely on general Python skills and can be validated using an existing test. Examples include:
-
-        - Narrow changes or additions to `src` functionality that can be tested with an existing test
-        - Small string / formatting fixes (e.g., `__repr__`, `__str__` changes)
-        - Typing fixes, such as adjusting return type hints or resolving basic type conflicts
-        - Refactors of existing examples
-        - Separating existing examples into smaller functions
-        - Or, conversely, combining split examples into a single monolithic function
-        - Improvements to documentation in examples or source code
-        - Docstrings: module docstrings, function docstrings
-        - Inline comments
-        - Additions or changes to print statements to improve clarity
-        - Functional improvements to examples
-        - Additional steps that better illustrate functionality
-        - Specific additions to existing unit or integration tests
-
-        ### What we usually *do not* accept as GFI
-        - Creation of new examples
-        - Creation of new unit or integration tests
-        - Changes to DLT functionality (e.g., `to_proto`, `from_proto`)
-        - Changes requiring knowledge across multiple areas of the codebase
-
-        For a more detailed explanation, see  
-        `docs/maintainers/good_first_issues.md` (this document will be merged soon).
 
   - type: markdown
     attributes:
