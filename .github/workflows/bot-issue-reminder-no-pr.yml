@@ -1,15 +1,15 @@
 name: bot-issue-reminder-no-pr
 
 on:
-  schedule:
-    - cron: "/5 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:
         description: "Dry run (log only, do not post comments)"
         required: false
-        default: "true"
+        default: true
         type: boolean
+  schedule:
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: read
