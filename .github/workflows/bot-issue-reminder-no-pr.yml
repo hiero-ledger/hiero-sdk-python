@@ -2,7 +2,7 @@ name: bot-issue-reminder-no-pr
 
 on:
   schedule:
-    - cron: "0 10 * * *"
+    - cron: "/5 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:

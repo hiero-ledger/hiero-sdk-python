@@ -8,7 +8,7 @@ set -euo pipefail
 #   DRY_RUN   - if "true", only log actions without posting comments
 
 REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
-DAYS="${DAYS:-7}"
+DAYS="${DAYS:-0}"
 DRY_RUN="${DRY_RUN:-false}"
 
 if [ -z "$REPO" ]; then
