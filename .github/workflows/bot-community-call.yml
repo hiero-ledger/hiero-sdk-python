@@ -16,7 +16,7 @@ on:
       dry_run:
         description: 'Run in dry run mode (simulate without posting comments)'
         required: false
-        default: 'false'
+        default: 'true'
         type: choice
         options:
           - 'true'
