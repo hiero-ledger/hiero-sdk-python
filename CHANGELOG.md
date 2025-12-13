@@ -14,7 +14,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
 - Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
-- 
 - Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
 - Phase 2 of the inactivity-unassign bot: Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added `__str__()` to CustomFixedFee and updated examples and tests accordingly.
@@ -35,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 - Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
 - Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
+- Added Issue Reminder (no-PR) bot, `.github/scripts/issue_reminder_no_pr.sh` and `.github/workflows/bot-issue-reminder-no-pr.yml` to automatically detect assigned issues with no linked pull requests for 7+ days and post a gentle ReminderBot comment.(#951)
 
 ### Changed
 
