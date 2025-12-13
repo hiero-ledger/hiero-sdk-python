@@ -74,9 +74,6 @@ else
   fi
 fi
 
-# Get issue title for the welcome message
-ISSUE_TITLE=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json title -q '.title')
-
 # Post welcome message with mentor assignment
 WELCOME_MSG=$(cat <<EOF
 👋 **Welcome to the Hiero Python SDK, @$ASSIGNEE!**
