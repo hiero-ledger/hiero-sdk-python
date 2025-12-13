@@ -255,7 +255,7 @@ class _Node:
             bytes: PEM-encoded certificate bytes
         """
         if not self._address_book:
-            return None
+            raise ValueError('Address book is required to fetch and validate server certificates')
 
         host = self._address._get_host()
         port = self._address._get_port()
