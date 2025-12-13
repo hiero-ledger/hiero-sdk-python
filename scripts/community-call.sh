@@ -6,9 +6,10 @@
 set -e
 
 # Configuration - Consider moving to repository variables for easier maintenance
-# Anchor date: Date of the first Hiero Python SDK Community Call (Wednesday, December 11, 2025)
+# Anchor date: Date of the first Hiero Python SDK Community Call (Friday, December 13, 2025)
 # This date is used as the reference point for fortnightly meeting calculations
-ANCHOR_DATE="${ANCHOR_DATE:-2025-12-11}"  # Fixed to be a Wednesday
+# NOTE: Using today's date for testing purposes - change to actual meeting date for production
+ANCHOR_DATE="${ANCHOR_DATE:-2025-12-13}"  # Set to today for testing
 MEETING_LINK="${MEETING_LINK:-https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581}"
 CALENDAR_LINK="${CALENDAR_LINK:-https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week}"
 DRY_RUN="${DRY_RUN:-false}"
@@ -60,18 +61,31 @@ if [ -z "$LATEST_ISSUES" ]; then
 fi
 
 # Prepare comment body
+# Calculate the meeting time (4 hours from now for testing)
+CURRENT_TIME=$(date -u +"%H:%M UTC")
+MEETING_TIME=$(date -u -d "+4 hours" +"%H:%M UTC (%I:%M %p UTC)")
+
 COMMENT_BODY=$(cat <<EOF
 Hello, this is the Community Call Bot.
 
-This is a reminder that the Hiero Python SDK Community Call is scheduled in approximately 4 hours (14:00 UTC).
+🗓️ **Community Call Reminder** 🗓️
+
+This is a reminder that the Hiero Python SDK Community Call is scheduled in approximately 4 hours at **$MEETING_TIME**.
 
 We host fortnightly community calls where we want to hear from the community about all things related to the Python SDK. This is a great opportunity to discuss this issue, ask questions, or provide feedback directly to the maintainers and community.
 
-Details:
-- Time: 14:00 UTC (2:00 PM UTC)
-- Join Link: [Zoom Meeting]($MEETING_LINK)
+📋 **Meeting Details:**
+- 🕐 Time: $MEETING_TIME
+- 🔗 Join Link: [Zoom Meeting]($MEETING_LINK)
+- 📅 Calendar: [Hiero Calendar]($CALENDAR_LINK)
 
-Disclaimer: This is an automated reminder. Please subscribe to the meeting to be notified of any changes and check the Hiero calendar [here]($CALENDAR_LINK).
+💡 **What to expect:**
+- Discussion of open issues and feature requests
+- Q&A with maintainers
+- Community feedback and suggestions
+- Updates on SDK development
+
+⚠️ **Disclaimer:** This is an automated reminder. Please subscribe to the meeting to be notified of any changes and check the Hiero calendar for the most up-to-date information.
 EOF
 )
 
