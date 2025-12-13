@@ -12,6 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Fix inactivity bot execution for local dry-run testing.
 - Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
+- Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 - Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
 - Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
@@ -32,7 +33,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `__str__()` to CustomRoyaltyFee and updated examples and tests accordingly (#986)
 - Restore bug and feature request issue templates (#996)(https://github.com/hiero-ledger/hiero-sdk-python/issues/996)
 - Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
-- Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 - Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
 - Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
@@ -46,7 +46,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Renamed example files to match src naming (#1053)
 
 ### Fixed
-
+- reverted: TLS support merged in this release but caused problems connecting to testnet (#855)
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
@@ -268,7 +268,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Fixed
-
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
 - Type hinting for `Topic` related transactions.
