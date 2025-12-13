@@ -35,7 +35,7 @@ body:
     attributes:
       value: |
         ---
-        **Thanks for contributing**
+        Thanks for contributing 😊
         We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
         This template is designed to help you create a Good First Issue (GFI) : a small, well-scoped task that helps new contributors learn the codebase and workflow.
         ---
