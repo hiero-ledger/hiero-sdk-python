@@ -264,9 +264,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - renamed docs/sdk_developers/changelog.md to docs/sdk_developers/changelog_entry.md for clarity.
 - Refactor `query_balance.py` into modular, reusable functions with `setup_client()`, `create_account()`, `get_balance()`, `transfer_hbars()`, and `main()` for improved readability, maintainability, and error handling.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
+- reverted: TLS support merged in this release but caused problems connecting to testnet
 
 ### Fixed
-- 
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
 - Type hinting for `Topic` related transactions.
