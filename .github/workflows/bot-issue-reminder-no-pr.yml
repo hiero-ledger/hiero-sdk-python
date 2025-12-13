@@ -33,6 +33,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          DAYS: 7
-          DRY_RUN: ${{ inputs.dry_run }}
+          DAYS: 0
+          DRY_RUN: false
+          # DRY_RUN: ${{ inputs.dry_run }
         run: bash .github/scripts/issue_reminder_no_pr.sh
