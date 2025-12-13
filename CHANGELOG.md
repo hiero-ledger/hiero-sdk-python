@@ -266,7 +266,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Unified balance and transfer logging format — both now consistently display values in hbars for clarity.
 
 ### Fixed
-
+- 
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
 - Type hinting for `Topic` related transactions.
