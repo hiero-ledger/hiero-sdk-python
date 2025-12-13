@@ -6,8 +6,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+
+
 ### Added
 
+- Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
 - Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
 - Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
@@ -31,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 - Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
+- Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
 
 ### Changed
 
@@ -39,6 +43,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Bump protobuf toml to protobuf==6.33.2
 - Added more tests to the CustomFee class for different functionalities (#991)
 - Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
+- Renamed example files to match src naming (#1053)
 
 ### Fixed
 
