@@ -1,9 +1,16 @@
 name: PythonBot - Community Call Reminder
 
 on:
+  # Uncomment push for testing - remove for production
   # push:
+  
+  # Scheduled to run every Wednesday at 10:00 UTC (4 hours before 14:00 UTC meeting time)
+  # This gives community members advance notice of the upcoming call
   schedule:
     - cron: '0 10 * * 3'  # 10:00 UTC on Wednesdays (4 hours before 2PM UTC meeting)
+  
+  # Manual trigger for testing and emergency notifications
+  # Allows maintainers to test the bot or send manual reminders
   workflow_dispatch:
     inputs:
       dry_run:
@@ -15,27 +22,33 @@ on:
           - 'true'
           - 'false'
 
+# Required permissions for the bot to function
 permissions:
-  contents: read
-  issues: write
+  contents: read    # Read repository contents and scripts
+  issues: write     # Post comments on issues
 
 jobs:
   community-call-reminder:
     runs-on: ubuntu-latest
     steps:
+      # Security hardening - monitors for suspicious activity during workflow execution
       - name: Harden the runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 
         with:
           egress-policy: audit
 
+      # Checkout the repository to access our bot script
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+      # Execute the community call reminder bot
+      # The bot checks if it's a meeting week and posts reminders to open issues
       - name: Run Community Call Bot
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
-          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}           # GitHub token for API access
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}  # Test mode flag
+          REPO: ${{ github.repository }}                  # Current repository name
         run: |
+          # Make the script executable and run it
           chmod +x scripts/community-call.sh
           ./scripts/community-call.sh "$REPO"
