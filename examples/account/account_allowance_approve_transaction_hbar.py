@@ -1,7 +1,5 @@
 """
 Example demonstrating hbar allowance approval and usage.
-Run:
-uv run examples/account/account_allowance_approve_transaction_hbar.py
 """
 
 import os
@@ -18,24 +16,25 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
 
-def setup_client():
-    """Initialize and set up the client with operator account"""
+
+def setup_client() -> Client:
+    """Initialize and set up the client with operator account using env vars."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID",""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY",""))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client
 
 
-def create_account(client):
-    """Create an account"""
+def create_account(client: Client):
+    """Create a new Hedera account with initial balance."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -48,7 +47,10 @@ def create_account(client):
     )
 
     if account_receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode(account_receipt.status).name}")
+        print(
+            "Account creation failed with status: "
+            f"{ResponseCode(account_receipt.status).name}"
+        )
         sys.exit(1)
 
     account_account_id = account_receipt.account_id
@@ -56,8 +58,13 @@ def create_account(client):
     return account_account_id, account_private_key
 
 
-def approve_hbar_allowance(client, owner_account_id, spender_account_id, amount):
-    """Approve Hbar allowance for spender"""
+def approve_hbar_allowance(
+    client: Client,
+    owner_account_id: AccountId,
+    spender_account_id: AccountId,
+    amount: Hbar,
+):
+    """Approve Hbar allowance for spender."""
     receipt = (
         AccountAllowanceApproveTransaction()
         .approve_hbar_allowance(owner_account_id, spender_account_id, amount)
@@ -65,60 +72,55 @@ def approve_hbar_allowance(client, owner_account_id, spender_account_id, amount)
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Hbar allowance approval failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            "Hbar allowance approval failed with status: "
+            f"{ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
     print(f"Hbar allowance of {amount} approved for spender {spender_account_id}")
     return receipt
 
 
-def delete_hbar_allowance(client, owner_account_id, spender_account_id):
-    """Delete hbar allowance by setting amount to 0"""
+def transfer_hbar_with_allowance(
+    client: Client,
+    owner_account_id: AccountId,
+    spender_account_id: AccountId,
+    spender_private_key: PrivateKey,
+    receiver_account_id: AccountId,
+    amount: Hbar,
+):
+    """Transfer hbars using a previously approved allowance."""
     receipt = (
-        AccountAllowanceApproveTransaction()
-        .approve_hbar_allowance(owner_account_id, spender_account_id, Hbar(0))
+        TransferTransaction()
+        # Transaction is paid for / initiated by spender
+        .set_transaction_id(TransactionId.generate(spender_account_id))
+        .add_approved_hbar_transfer(owner_account_id, -amount.to_tinybars())
+        .add_approved_hbar_transfer(receiver_account_id, amount.to_tinybars())
+        .freeze_with(client)
+        .sign(spender_private_key)
         .execute(client)
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Hbar allowance deletion failed with status: {ResponseCode(receipt.status).name}")
+        print(f"Hbar transfer failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
-    print(f"Hbar allowance deleted for spender {spender_account_id}")
+    print(
+        f"Successfully transferred {amount} from {owner_account_id} "
+        f"to {receiver_account_id} using allowance"
+    )
+
     return receipt
 
 
-def transfer_hbar_without_allowance(client, spender_account_id, spender_private_key, amount):
-    """Transfer hbars without allowance"""
-    print("Trying to transfer hbars without allowance...")
-    owner_account_id = client.operator_account_id
-    client.set_operator(spender_account_id, spender_private_key)  # Set operator to spender
-
-    receipt = (
-        TransferTransaction()
-        .add_approved_hbar_transfer(owner_account_id, -amount.to_tinybars())
-        .add_approved_hbar_transfer(spender_account_id, amount.to_tinybars())
-        .execute(client)
-    )
-
-    if receipt.status != ResponseCode.SPENDER_DOES_NOT_HAVE_ALLOWANCE:
-        print(
-            f"Hbar transfer should have failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE "
-            f"status but got: {ResponseCode(receipt.status).name}"
-        )
-
-    print(f"Hbar transfer successfully failed with {ResponseCode(receipt.status).name} status")
-
-
-def hbar_allowance():
+def main():
     """
     Demonstrates hbar allowance functionality by:
     1. Setting up client with operator account
     2. Creating spender and receiver accounts
     3. Approving hbar allowance for spender
     4. Transferring hbars using the allowance
-    5. Deleting the allowance
-    6. Attempting to transfer hbars without allowance (should fail)
     """
     client = setup_client()
 
@@ -131,33 +133,20 @@ def hbar_allowance():
 
     # Approve hbar allowance for spender
     allowance_amount = Hbar(2)
+    owner_account_id = client.operator_account_id
 
-    approve_hbar_allowance(client, client.operator_account_id, spender_id, allowance_amount)
+    approve_hbar_allowance(client, owner_account_id, spender_id, allowance_amount)
 
     # Transfer hbars using the allowance
-    receipt = (
-        TransferTransaction()
-        .set_transaction_id(TransactionId.generate(spender_id))
-        .add_approved_hbar_transfer(client.operator_account_id, -allowance_amount.to_tinybars())
-        .add_approved_hbar_transfer(receiver_id, allowance_amount.to_tinybars())
-        .freeze_with(client)
-        .sign(spender_private_key)
-        .execute(client)
+    transfer_hbar_with_allowance(
+        client=client,
+        owner_account_id=owner_account_id,
+        spender_account_id=spender_id,
+        spender_private_key=spender_private_key,
+        receiver_account_id=receiver_id,
+        amount=allowance_amount,
     )
-
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Hbar transfer failed with status: {ResponseCode(receipt.status).name}")
-        sys.exit(1)
-
-    print(f"Successfully transferred {allowance_amount} from", end=" ")
-    print(f"{client.operator_account_id} to {receiver_id} using allowance")
-
-    # Delete allowance
-    delete_hbar_allowance(client, client.operator_account_id, spender_id)
-
-    # Try to transfer hbars without allowance
-    transfer_hbar_without_allowance(client, spender_id, spender_private_key, allowance_amount)
 
 
 if __name__ == "__main__":
-    hbar_allowance()
+    main()
