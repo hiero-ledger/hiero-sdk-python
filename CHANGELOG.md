@@ -6,15 +6,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
-
-
 ### Added
 
-- Fix inactivity bot execution for local dry-run testing.
-- Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
-- Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
+
+
 - Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
 - 
 - Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
@@ -36,22 +32,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 - Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
-- Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
 
 ### Changed
-- refactor(example): sync `transaction_to_bytes` example with main (#1012)
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
 - Added more tests to the CustomFee class for different functionalities (#991)
-- Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
-- Renamed example files to match src naming (#1053)
+- changed transaction_to_bytes example to have modular functions for improved clarity
+y
 
 ### Fixed
 
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
-- Fixed solo workflow defaulting to zero
 
 ### Breaking Change
 
