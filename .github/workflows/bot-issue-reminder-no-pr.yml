@@ -2,19 +2,19 @@ name: bot-issue-reminder-no-pr
 
 on:
   schedule:
-    - cron: "0 10 * * *"
+    - cron: "0 10 * * *" #runs daily at 10:00 UTC
   workflow_dispatch:
     inputs:
       dry_run:
         description: "Dry run (log only, do not post comments)"
         required: false
-        default: "true"
+        default: true #safe default for manual testing
         type: boolean
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: read
+  issues: write #needed to comment on issues
+  pull-requests: read #needed to check PR state
 
 jobs:
   reminder:
