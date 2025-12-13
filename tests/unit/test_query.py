@@ -43,7 +43,9 @@ def test_before_execute_payment_not_required(query, mock_client):
     # payment_amount is None, should not set payment_amount
     query._before_execute(mock_client)
     
-    assert query.node_account_ids == mock_client.get_node_account_ids()
+    # since node_account_ids is not set it will be empty
+    # query internally use node form client
+    assert query.node_account_ids == []
     assert query.operator == mock_client.operator
     assert query.payment_amount is None
 
@@ -56,8 +58,10 @@ def test_before_execute_payment_required(query_requires_payment, mock_client):
     
     # payment_amount is None, should set payment_amount to 2 Hbars
     query_requires_payment._before_execute(mock_client)
-    
-    assert query_requires_payment.node_account_ids == mock_client.get_node_account_ids()
+
+    # since node_account_ids is not set it will be empty
+    # query internally use node form client
+    assert query_requires_payment.node_account_ids == []
     assert query_requires_payment.operator == mock_client.operator
     assert query_requires_payment.payment_amount.to_tinybars() == Hbar(2).to_tinybars()
 
