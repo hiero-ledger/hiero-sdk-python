@@ -242,7 +242,7 @@ When evaluating whether to label an issue as a Good First Issue, consider:
 
 ## Additional Resources
 
-- [Contributing Guide](../CONTRIBUTING.md)
+- [Contributing Guide](../../CONTRIBUTING.md)
 - [DCO Signing Guide](../sdk_developers/signing.md)
 - [Changelog Entry Guide](../sdk_developers/changelog_entry.md)
 - [Discord Community](../discord.md)
