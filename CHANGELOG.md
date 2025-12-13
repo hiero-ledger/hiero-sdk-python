@@ -8,7 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 
-8c3b9b5 (docs(changelog): add entry for transaction_to_bytes refactor (#1012))
+
 ### Added
 
 - Fix inactivity bot execution for local dry-run testing.
