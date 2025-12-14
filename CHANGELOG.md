@@ -49,6 +49,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Renamed workflow files for consistent PR check naming:
   `examples.yml` → `pr-check-examples.yml`,
   `test.yml` → `pr-check-test.yml` (#1043)
+- Cleaned up `token_airdrop_claim_auto` example for pylint compliance (no functional changes). (#1079)
 
 
 ### Fixed
