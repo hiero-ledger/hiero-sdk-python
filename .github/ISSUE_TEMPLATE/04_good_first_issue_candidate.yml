@@ -7,13 +7,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        ⚠️ Good First Issue — Candidate
-        
-        This issue is not yet a confirmed Good First Issue.
-        It is being evaluated for suitability and may require
-        clarification or refinement before it is ready to be picked up.
-        
-        Please wait for maintainer confirmation before starting work.
+        > ⚠️ Good First Issue — Candidate
+        > 
+        > This issue is not yet a confirmed Good First Issue.
+        > It is being evaluated for suitability and may require
+        > clarification or refinement before it is ready to be picked up.
+        > 
+        > Please wait for maintainer confirmation before starting work.
     validations:
       required: false
 
@@ -31,23 +31,23 @@ body:
     validations:
       required: false
 
-- type: markdown
-  attributes:
-    value: |
-      <!-- Example of 🌱 Why this is a Good First Issue candidate? (hidden in submission) -->
-      ### 🌱 Why this is a Good First Issue candidate — Example
-
-      This issue is suitable for a first-time contributor because:
-
-      - The scope is small and clearly defined (refactoring a single example file).
-      - The relevant code is isolated and easy to locate.
-      - No prior knowledge of the Hiero SDK internals is required.
-      - The expected outcome is clear.
-      - The change does not affect core SDK logic.
-
-      A contributor can focus on learning the contribution workflow
-      (forking, branching, signing commits, submitting a PR)
-      without being blocked by complex technical decisions.
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example (hidden in submission) -->
+        ### 🌱 Why this is a Good First Issue candidate — Example
+  
+        This issue is suitable for a first-time contributor because:
+  
+        - The scope is small and clearly defined (refactoring a single example file).
+        - The relevant code is isolated and easy to locate.
+        - No prior knowledge of the Hiero SDK internals is required.
+        - The expected outcome is clear.
+        - The change does not affect core SDK logic.
+  
+        A contributor can focus on learning the contribution workflow
+        (forking, branching, signing commits, submitting a PR)
+        without being blocked by complex technical decisions.
 
   - type: checkboxes
     id: gfi_checklist
