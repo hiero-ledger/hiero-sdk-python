@@ -3,7 +3,7 @@
 # Community Call Reminder Bot Script
 # This script checks if it's a meeting week and posts reminders to open issues
 
-set -e
+set -euo pipefail  # Exit on error, undefined vars, pipe failures
 
 # Configuration - Consider moving to repository variables for easier maintenance
 # Anchor date: Date of the first Hiero Python SDK Community Call (Friday, December 13, 2025)
