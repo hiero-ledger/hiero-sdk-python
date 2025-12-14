@@ -1,0 +1,21 @@
+name: Test Files Naming Check
+
+on:
+  push
+
+jobs:
+  check-test-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch main branch
+        run: |
+          git fetch origin main
+
+      - name: Check added test file names
+        run: |
+          chmod +x .github/scripts/check_test_files.sh
+          .github/scripts/check_test_files.sh
