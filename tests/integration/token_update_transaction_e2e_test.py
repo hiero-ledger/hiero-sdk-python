@@ -17,7 +17,7 @@ from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransact
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transaction import Transaction
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 private_key = PrivateKey.generate()
 

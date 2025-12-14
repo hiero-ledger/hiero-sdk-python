@@ -1,7 +1,7 @@
 import pytest
 
 from hiero_sdk_python.hbar import Hbar
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token 
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
