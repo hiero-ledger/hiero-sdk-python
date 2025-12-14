@@ -1,7 +1,7 @@
 name: Good First Issue Candidate Template
 description: Propose a potential Good First Issue (candidate)
-title: "[GFI Candiadate]:"
-labels: ["good first issue: candidate"]
+title: "[Good First Issue]:"
+labels: ["Good First Issue Candidate"]
 assignees: []
 body:
   - type: markdown
@@ -14,54 +14,12 @@ body:
         > clarification or refinement before it is ready to be picked up.
         > 
         > Please wait for maintainer confirmation before starting work.
+        >
+        > Maintainers and reviewers can read more about Good First Issues:
+        > docs/maintainers/good_first_issue_guidelines.md
+
     validations:
       required: false
-
-  - type: textarea
-    id: gfi_rationale
-    attributes:
-      label: 🌱 Why this is a Good First Issue candidate?
-      description: |
-        Explain why this issue is suitable for new contributors.
-      placeholder: |
-        Example:
-        - The scope is limited and well-defined
-        - The relevant code is easy to locate
-        - No prior knowledge of the SDK internals is required
-    validations:
-      required: false
-
-  - type: markdown
-    attributes:
-      value: |
-        <!-- Example (hidden in submission) -->
-        ### 🌱 Why this is a Good First Issue candidate - Example
-  
-        This issue is suitable for a first-time contributor because:
-  
-        - The scope is small and clearly defined (refactoring a single example file).
-        - The relevant code is isolated and easy to locate.
-        - No prior knowledge of the Hiero SDK internals is required.
-        - The expected outcome is clear.
-        - The change does not affect core SDK logic.
-  
-        A contributor can focus on learning the contribution workflow
-        (forking, branching, signing commits, submitting a PR)
-        without being blocked by complex technical decisions.
-
-  - type: checkboxes
-    id: gfi_checklist
-    attributes:
-      label: ✅ Good First Issue suitability checklist
-      description: |
-        This helps maintainers validate if
-        this issue is appropriate for first-time contributors.
-      options:
-        - label: This issue has a description
-        - label: This issue has a known solution
-        - label: This issue has a proposed solution
-        - label: This issue has implemetation steps
-        - label: This issue has acceptance criteria
 
   - type: textarea
     id: intro
