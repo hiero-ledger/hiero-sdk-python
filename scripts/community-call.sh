@@ -62,7 +62,6 @@ fi
 
 # Prepare comment body
 # Calculate the meeting time (4 hours from now for testing)
-CURRENT_TIME=$(date -u +"%H:%M UTC")
 MEETING_TIME=$(date -u -d "+4 hours" +"%H:%M UTC (%I:%M %p UTC)")
 
 COMMENT_BODY=$(cat <<EOF
