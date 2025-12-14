@@ -62,7 +62,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## Added
 
-- - Enhanced Good First Issue template (`.github/ISSUE_TEMPLATE/01_good_first_issue.yml`) with markdown sections providing welcoming message and detailed acceptance criteria for contributors creating GFIs
+- Enhanced Good First Issue template (`.github/ISSUE_TEMPLATE/01_good_first_issue.yml`) with markdown sections providing welcoming message and detailed acceptance criteria for contributors creating GFIs
 - Added welcoming markdown section to Good First Issue template thanking first time contributors for helping create GFIs
 - Explained what generally  are  not considered good first issues.
 - Added reference to docs/maintainers/good_first_issues.md for detailed GFI guidelines
