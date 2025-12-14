@@ -25,8 +25,10 @@ jobs:
 
       - name: Convert PR to draft and notify author
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          REVIEWBOT_TOKEN: ${{ secrets.REVIEWBOT_TOKEN || '' }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.REVIEWBOT_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const prNumber = context.payload.pull_request.number;
             const owner = context.repo.owner;
@@ -35,6 +37,8 @@ jobs:
             const isDraft = context.payload.pull_request.draft;
 
             const marker = '<!-- review-bot-draft-marker -->';
+            const usingCustomToken = !!process.env.REVIEWBOT_TOKEN;
+            console.log(`ReviewBot using ${usingCustomToken ? 'REVIEWBOT_TOKEN secret' : 'GITHUB_TOKEN'} for API calls.`);
 
             // Skip if already a draft
             if (isDraft) {
@@ -43,6 +47,7 @@ jobs:
             }
 
             // Convert to draft using GraphQL (REST API doesn't support this)
+            let convertedToDraft = false;
             try {
               await github.graphql(`
                 mutation($pullRequestId: ID!) {
@@ -54,8 +59,12 @@ jobs:
                 }
               `, { pullRequestId: prNodeId });
               console.log(`Converted PR #${prNumber} to draft.`);
+              convertedToDraft = true;
             } catch (err) {
               console.log(`Failed to convert PR #${prNumber} to draft:`, err.message || err);
+              if (!usingCustomToken) {
+                console.log('Hint: Add a repo secret named REVIEWBOT_TOKEN with "repo" scope so ReviewBot can convert PRs from forked branches.');
+              }
               // Continue to post comment even if conversion fails
             }
 
@@ -74,7 +83,9 @@ jobs:
             }
 
             // Post the notification comment
-            const comment = `${marker}
+            let comment;
+            if (convertedToDraft) {
+              comment = `${marker}
             Hi @${context.payload.pull_request.user.login}, this is **ReviewBot**.
 
             I have changed the status of your PR to **draft** as a reviewer requested changes.
@@ -84,6 +95,20 @@ jobs:
             Thank you for contributing!
 
             From the Hiero Python SDK Team`;
+            } else {
+              comment = `${marker}
+            Hi @${context.payload.pull_request.user.login}, this is **ReviewBot**.
+
+            A reviewer requested changes, but I could not convert this PR to **draft** automatically.
+
+            Please mark it as draft manually and click **"Ready for Review"** after applying the updates.
+
+            Maintainers: Add a **REVIEWBOT_TOKEN** secret (with \`repo\` scope) to enable automatic draft conversion.
+
+            Thank you for contributing!
+
+            From the Hiero Python SDK Team`;
+            }
 
             await github.rest.issues.createComment({
               owner,
