@@ -36,6 +36,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 - Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
 - Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
+-Added new `.github/ISSUE_TEMPLATE/04_good_first_issue_candidate.yml` file (1068)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1068)
 
 ### Changed
 
