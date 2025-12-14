@@ -7,13 +7,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        > ⚠️ Good First Issue — Candidate
-        >
-        > This issue is not yet a confirmed Good First Issue.
-        > It is being evaluated for suitability and may require
-        > clarification or refinement before it is ready to be picked up.
-        >
-        > Please wait for maintainer confirmation before starting work.
+        ⚠️ Good First Issue — Candidate
+        
+        This issue is not yet a confirmed Good First Issue.
+        It is being evaluated for suitability and may require
+        clarification or refinement before it is ready to be picked up.
+        
+        Please wait for maintainer confirmation before starting work.
     validations:
       required: false
 
