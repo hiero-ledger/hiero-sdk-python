@@ -55,6 +55,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 -
 
+## [0.1.11] - 2025-12-14
+
+## Added
+
+- Added welcoming markdown section to Good First Issue template thanking first time contributors for helping create GFIs
+- Added criteria markdown section explaining what qualifies as a good first issue.
+- Explained what generally  are  not considered good first issues.
+- Added reference to docs/maintainers/good_first_issues.md for detailed GFI guidelines
+
 ## [0.1.10] - 2025-12-03
 
 ### Added
@@ -616,3 +625,4 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
+
