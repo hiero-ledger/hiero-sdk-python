@@ -56,7 +56,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Breaking Change
 
--
 
 ## [0.1.11] - 2025-12-14
 
@@ -66,6 +65,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added welcoming markdown section to Good First Issue template thanking first time contributors for helping create GFIs
 - Explained what generally  are  not considered good first issues.
 - Added reference to docs/maintainers/good_first_issues.md for detailed GFI guidelines
+
+## Changed 
+- Renamed workflow files for consistent PR check naming: `examples.yml` → `pr-check-examples.yml`, `test.yml` → `pr-check-test.yml`
 
 ## [0.1.10] - 2025-12-03
 
