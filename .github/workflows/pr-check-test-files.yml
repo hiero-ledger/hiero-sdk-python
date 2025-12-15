@@ -3,13 +3,17 @@ name: Test Files Naming Check
 on:
   push
 
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   check-test-files:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
       - name: Fetch main branch
         run: |
