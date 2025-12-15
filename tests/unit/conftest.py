@@ -1,15 +1,16 @@
+import hashlib
 import time
 
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.node import _Node
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -17,6 +18,12 @@ from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
+
+FAKE_CERT_PEM = b"""-----BEGIN CERTIFICATE-----
+MIIBszCCAVmgAwIBAgIUQFakeFakeFakeFakeFakeFakeFakewCgYIKoZIzj0EAwIw
+-----END CERTIFICATE-----"""
+
+FAKE_CERT_HASH = hashlib.sha384(FAKE_CERT_PEM).hexdigest().encode("utf-8")
 
 @pytest.fixture
 def mock_account_ids():
@@ -78,7 +85,16 @@ def contract_id():
 @pytest.fixture
 def mock_client():
     """Fixture to provide a mock client with hardcoded nodes for testing purposes."""
-    nodes = [_Node(AccountId(0, 0, 3), "node1.example.com:50211", None)]
+    # Mock Node
+    node = _Node(
+        AccountId(0, 0, 3),
+        "node1.example.com:50211",
+        address_book=NodeAddress(cert_hash=FAKE_CERT_HASH, addresses=[])
+    )
+    node._fetch_server_certificate_pem = lambda: FAKE_CERT_PEM
+    
+    nodes = [node]
+
     network = Network(nodes=nodes)
     client = Client(network)
     client.logger.set_level(LogLevel.DISABLED)

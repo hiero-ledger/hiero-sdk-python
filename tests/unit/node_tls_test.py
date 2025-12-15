@@ -1,10 +1,8 @@
 """Unit tests for TLS functionality in _Node."""
 import hashlib
-import socket
-import ssl
 from unittest.mock import Mock, patch, MagicMock
 import pytest
-from src.hiero_sdk_python.node import _Node, _HederaTrustManager
+from src.hiero_sdk_python.node import _Node
 from src.hiero_sdk_python.account.account_id import AccountId
 from src.hiero_sdk_python.address_book.node_address import NodeAddress
 from src.hiero_sdk_python.address_book.endpoint import Endpoint
@@ -322,3 +320,10 @@ def test_node_set_root_certificates_closes_channel(mock_node_with_address_book):
         # Channel should be closed to force recreation
         assert node._channel is None
 
+def test_secure_coonect_raise_error_if_no_certificate_is_available(mock_node_without_address_book):
+    """Test get channel raise error if no certificate available if transport security true."""
+    node = mock_node_without_address_book
+    node._apply_transport_security(True)
+    
+    with pytest.raises(ValueError, match="No certificate available."):
+        node._get_channel()

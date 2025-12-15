@@ -119,7 +119,6 @@ class _Node:
             if self._root_certificates:
                 # Use the certificate that provider
                 self._node_pem_cert = self._root_certificates
-            
             else:
                 # Fetch pem_cert for the node
                 self._node_pem_cert = self._fetch_server_certificate_pem()
@@ -127,6 +126,9 @@ class _Node:
             # Validate certificate if verification is enabled
             if self._verify_certificates:
                 self._validate_tls_certificate_with_trust_manager()
+
+            if not self._node_pem_cert:
+                raise ValueError("No certificate available.")
             
             options = self._build_channel_options()
             credentials = grpc.ssl_channel_credentials(
@@ -255,7 +257,7 @@ class _Node:
             bytes: PEM-encoded certificate bytes
         """
         if not self._address_book:
-            raise ValueError('Address book is required to fetch and validate server certificates')
+            return None
 
         host = self._address._get_host()
         port = self._address._get_port()
