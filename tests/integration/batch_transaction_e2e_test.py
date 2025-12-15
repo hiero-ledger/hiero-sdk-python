@@ -479,6 +479,7 @@ def test_batch_transaction_set_batch_key_with_public_key(env):
         .add_hbar_transfer(account_id=receiver_id, amount=1)
         .set_batch_key(batch_public_key)  # Using set_batch_key with PublicKey
         .freeze_with(env.client)
+        .sign(env.operator_key)  # Sign inner transaction with operator key
     )
 
     # Verify batch_key was set correctly
@@ -489,7 +490,7 @@ def test_batch_transaction_set_batch_key_with_public_key(env):
         BatchTransaction()
         .add_inner_transaction(transfer_tx)
         .freeze_with(env.client)
-        .sign(batch_private_key)
+        .sign(batch_private_key)  # Sign batch transaction with batch key
     )
 
     batch_receipt = batch_tx.execute(env.client)
