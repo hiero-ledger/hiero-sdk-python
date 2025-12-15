@@ -118,7 +118,11 @@ EOF
 EXISTING_WELCOME=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --comments --json comments \
   | jq -r --arg assignee "$ASSIGNEE" '
       .comments[]
-      | select(.body | test("Welcome to the Hiero Python SDK,?\\s*@" + $assignee))
+      | select(
+          (.body | contains("Welcome to the Hiero Python SDK, @" + $assignee))
+          or
+          (.body | contains("Welcome to the Hiero Python SDK @" + $assignee))
+        )
       | .id' | head -1)
 
 if [ -n "$EXISTING_WELCOME" ]; then
