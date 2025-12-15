@@ -74,7 +74,8 @@ def transfer_hbar(client, recipient_evm_address):
     print("\nSTEP 2: Transferring HBAR using EVM address...")
 
     try:
-        recipient_id = AccountId.from_evm_address(recipient_evm_address)
+        # Set shard and realm to 0 if not known
+        recipient_id = AccountId.from_evm_address(recipient_evm_address, 0, 0)
 
         tx = (
             TransferTransaction()
