@@ -30,6 +30,7 @@ body:
         This issue is reserved for people who have never contributed or have made minimal contributions to [Hiero Python SDK](https://hiero.org).
         We know that creating a pull request (PR) is a major barrier for new contributors.
         The goal of this issue and all other issues in [**find a good first issue**](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+) is to help you make your first contribution to the Hiero Python SDK.
+        ⚠️  If you see the "Good First Issue Candidate" label on this issue it means it's under maintainers review. Please don't work on it yet ⚠️ 
     validations:
       required: false
 
