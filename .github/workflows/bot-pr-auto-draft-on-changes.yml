@@ -88,26 +88,22 @@ jobs:
               comment = `${marker}
             Hi @${context.payload.pull_request.user.login}, this is **ReviewBot**.
 
-            I have changed the status of your PR to **draft** as a reviewer requested changes.
+            I moved this PR to **draft** after a reviewer requested changes.
 
-            Once you apply the changes, please click **"Ready for Review"** again. This helps avoid notifications for users following the project while the PR is still being worked on.
+            Please push your updates and click **"Ready for review"** when it's ready—this helps us focus on PRs that are prepared for another pass.
 
-            Thank you for contributing!
-
-            From the Hiero Python SDK Team`;
+            Thanks! — The Hiero Python SDK Team`;
             } else {
               comment = `${marker}
             Hi @${context.payload.pull_request.user.login}, this is **ReviewBot**.
 
-            A reviewer requested changes, but I could not convert this PR to **draft** automatically.
+            A reviewer requested changes, but I couldn't switch this PR to **draft** automatically.
 
-            Please mark it as draft manually and click **"Ready for Review"** after applying the updates.
+            Please set it to draft while you work and click **"Ready for review"** once it's ready.
 
-            Maintainers: Add a **REVIEWBOT_TOKEN** secret (with \`repo\` scope) to enable automatic draft conversion.
+            Maintainers: add a **REVIEWBOT_TOKEN** secret (with \`repo\` scope) so I can handle this automatically next time.
 
-            Thank you for contributing!
-
-            From the Hiero Python SDK Team`;
+            Thanks! — The Hiero Python SDK Team`;
             }
 
             await github.rest.issues.createComment({
