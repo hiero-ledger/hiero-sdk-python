@@ -127,7 +127,7 @@ def format_to_string_with_checksum(shard: int, realm: int, num: int, client: "Cl
     return f"{base_str}-{generate_checksum(ledger_id, format_to_string(shard, realm, num))}"
 
 def perform_query_to_mirror_node(url: str) -> Dict[str, Any]:
-    """"""
+    """Perform a GET request to the Hedera Mirror Node REST API."""
     try:
         response: requests.Response = requests.get(url, timeout=30)
         response.raise_for_status()
@@ -137,7 +137,7 @@ def perform_query_to_mirror_node(url: str) -> Dict[str, Any]:
         raise RuntimeError(f"Failed to fetch from mirror node: {e}")
     
 def to_solidity_address(shard: int, realm: int, num: int) -> str:
-    """"""
+    """Convert EVM address bytes to hex string or account num to long-zero EVM address."""
     # Check shard fits in 32-bit range
     if shard.bit_length() > 31:
         raise ValueError(f"shard out of 32-bit range {shard}")

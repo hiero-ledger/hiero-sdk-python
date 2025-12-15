@@ -678,7 +678,7 @@ def test_populate_account_num(evm_address):
     mock_client = MagicMock()
     mock_client.network.get_mirror_node_rest_url.return_value = "http://mirror_node_rest_url"
     
-    account_id = AccountId.from_evm_address(evm_address)
+    account_id = AccountId.from_evm_address(evm_address, 0, 0)
 
     response = {"account": "0.0.100"}
 
@@ -693,7 +693,7 @@ def test_populate_account_num_missing_account(evm_address):
     Test that populate_account_num raises a ValueError when the mirror node
     query does not return an account number.
     """
-    account_id = AccountId.from_evm_address(evm_address)
+    account_id = AccountId.from_evm_address(evm_address, 0, 0)
     mock_client = MagicMock()
     mock_client.network.get_mirror_node_rest_url.return_value = "http://mirror_node_rest_url"
 
@@ -741,7 +741,7 @@ def test_populate_evm_address_response_missing_evm_address():
 
 def test_populate_evm_address_missing_num(evm_address):
     """Test that populate_account_num raises a ValueError when num is none."""
-    account_id = AccountId.from_evm_address(evm_address) # num == 0
+    account_id = AccountId.from_evm_address(evm_address, 0, 0) # num == 0
     mock_client = MagicMock()
     
     with pytest.raises(ValueError):
