@@ -1,0 +1,115 @@
+name: PythonBot - Auto Draft on Changes Requested
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: "auto-draft-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
+jobs:
+  convert-to-draft:
+    if: ${{ github.event.review.state == 'changes_requested' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Convert PR to draft and notify author
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          REVIEWBOT_TOKEN: ${{ secrets.REVIEWBOT_TOKEN || '' }}
+        with:
+          github-token: ${{ secrets.REVIEWBOT_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNodeId = context.payload.pull_request.node_id;
+            const isDraft = context.payload.pull_request.draft;
+
+            const marker = '<!-- review-bot-draft-marker -->';
+            const usingCustomToken = !!process.env.REVIEWBOT_TOKEN;
+            console.log(`ReviewBot using ${usingCustomToken ? 'REVIEWBOT_TOKEN secret' : 'GITHUB_TOKEN'} for API calls.`);
+
+            // Skip if already a draft
+            if (isDraft) {
+              console.log(`PR #${prNumber} is already a draft. Skipping conversion.`);
+              return;
+            }
+
+            // Convert to draft using GraphQL (REST API doesn't support this)
+            let convertedToDraft = false;
+            try {
+              await github.graphql(`
+                mutation($pullRequestId: ID!) {
+                  convertPullRequestToDraft(input: { pullRequestId: $pullRequestId }) {
+                    pullRequest {
+                      isDraft
+                    }
+                  }
+                }
+              `, { pullRequestId: prNodeId });
+              console.log(`Converted PR #${prNumber} to draft.`);
+              convertedToDraft = true;
+            } catch (err) {
+              console.log(`Failed to convert PR #${prNumber} to draft:`, err.message || err);
+              if (!usingCustomToken) {
+                console.log('Hint: Add a repo secret named REVIEWBOT_TOKEN with "repo" scope so ReviewBot can convert PRs from forked branches.');
+              }
+              // Continue to post comment even if conversion fails
+            }
+
+            // Check for existing bot comment
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+
+            const existingComment = comments.find(c => c.body && c.body.includes(marker));
+            if (existingComment) {
+              console.log(`PR #${prNumber} already has a ReviewBot comment. Skipping.`);
+              return;
+            }
+
+            // Post the notification comment
+            let comment;
+            if (convertedToDraft) {
+              comment = `${marker}
+            Hi @${context.payload.pull_request.user.login}, this is **ReviewBot**.
+
+            I moved this PR to **draft** after a reviewer requested changes.
+
+            Please push your updates and click **"Ready for review"** when it's ready—this helps us focus on PRs that are prepared for another pass.
+
+            Thanks! — The Hiero Python SDK Team`;
+            } else {
+              comment = `${marker}
+            Hi @${context.payload.pull_request.user.login}, this is **ReviewBot**.
+
+            A reviewer requested changes, but I couldn't switch this PR to **draft** automatically.
+
+            Please set it to draft while you work and click **"Ready for review"** once it's ready.
+
+            Maintainers: add a **REVIEWBOT_TOKEN** secret (with \`repo\` scope) so I can handle this automatically next time.
+
+            Thanks! — The Hiero Python SDK Team`;
+            }
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: comment,
+            });
+            console.log(`Posted ReviewBot comment on PR #${prNumber}.`);
