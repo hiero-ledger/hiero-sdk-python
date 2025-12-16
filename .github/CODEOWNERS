@@ -41,6 +41,7 @@ pyproject.toml                                 @hiero-ledger/hiero-sdk-python/py
 
 # Documentation & legal
 /README.md                                     @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
+/CONTRIBUTING.md                               @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
 **/LICENSE                                     @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Git ignore definitions
