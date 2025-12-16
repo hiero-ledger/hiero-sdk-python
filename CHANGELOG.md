@@ -53,6 +53,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   `examples.yml` → `pr-check-examples.yml`,
   `test.yml` → `pr-check-test.yml` (#1043)
 - Cleaned up `token_airdrop_claim_auto` example for pylint compliance (no functional changes). (#1079)
+- Update team notification script and workflow for P0 issues 'p0_issues_notify_team.js'
 
 
 ### Fixed

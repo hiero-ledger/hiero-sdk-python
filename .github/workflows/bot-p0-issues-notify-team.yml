@@ -13,7 +13,7 @@ permissions:
 jobs: 
   p0_notify_team:
     runs-on: ubuntu-latest
-    # Only run for workflow_dispatch, issues opened, or issues labeled with 'p0' (case-insensitive)
+    # Only run for issues labeled with 'p0' (case-insensitive)
     if: >
       (github.event_name == 'issues' && (
           (github.event.label.name == 'p0' || github.event.label.name == 'P0'))
@@ -26,12 +26,12 @@ jobs:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
 
       - name: Notify team of P0 issues
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
         with:
           script: |
             const script = require('./.github/scripts/p0_issues_notify_team.js');      
