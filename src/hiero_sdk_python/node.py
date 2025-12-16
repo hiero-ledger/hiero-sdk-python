@@ -91,7 +91,6 @@ class _Node:
         self._address: _ManagedNodeAddress = _ManagedNodeAddress._from_string(address)
         self._verify_certificates: bool = True
         self._root_certificates: Optional[bytes] = None
-        self._authority_override: Optional[str] = self._determine_authority_override()
         self._node_pem_cert: Optional[bytes] = None
     
     def _close(self):
@@ -117,18 +116,18 @@ class _Node:
         
         if self._address._is_transport_security():
             if self._root_certificates:
-                # Use the certificate that provider
+                # Use the certificate that is provided
                 self._node_pem_cert = self._root_certificates
             else:
                 # Fetch pem_cert for the node
                 self._node_pem_cert = self._fetch_server_certificate_pem()
-            
-            # Validate certificate if verification is enabled
-            if self._verify_certificates:
-                self._validate_tls_certificate_with_trust_manager()
 
             if not self._node_pem_cert:
                 raise ValueError("No certificate available.")
+            
+            # Validate certificate if verification is enabled
+            if self._verify_certificates:
+                self._validate_tls_certificate_with_trust_manager()            
             
             options = self._build_channel_options()
             credentials = grpc.ssl_channel_credentials(
@@ -180,20 +179,6 @@ class _Node:
         if verify and self._channel and self._address._is_transport_security():
             # Force channel recreation to ensure certificates are revalidated.
             self._close()
-
-    def _determine_authority_override(self) -> Optional[str]:
-        """
-        Determine the hostname to use for TLS authority override.
-        """
-        if not self._address_book or not self._address_book._addresses:  # pylint: disable=protected-access
-            return None
-        for endpoint in self._address_book._addresses:  # pylint: disable=protected-access
-            domain = endpoint.get_domain_name()
-            
-            if domain:
-                return domain
-        
-        return None
 
     def _build_channel_options(self):
         """
@@ -261,7 +246,7 @@ class _Node:
 
         host = self._address._get_host()
         port = self._address._get_port()
-        server_hostname = self._authority_override or host
+        server_hostname = host
 
         # Create TLS context that accepts any certificate (we validate hash ourselves)
         context = ssl.create_default_context()

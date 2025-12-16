@@ -320,7 +320,7 @@ def test_node_set_root_certificates_closes_channel(mock_node_with_address_book):
         # Channel should be closed to force recreation
         assert node._channel is None
 
-def test_secure_coonect_raise_error_if_no_certificate_is_available(mock_node_without_address_book):
+def test_secure_connect_raise_error_if_no_certificate_is_available(mock_node_without_address_book):
     """Test get channel raise error if no certificate available if transport security true."""
     node = mock_node_without_address_book
     node._apply_transport_security(True)
