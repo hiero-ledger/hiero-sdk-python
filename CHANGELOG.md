@@ -6,31 +6,62 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+
+
 ### Added
 
-- Added **str**() to CustomFixedFee and updated examples and tests accordingly.
+- Fix inactivity bot execution for local dry-run testing.
+- Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
+- Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
+- Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
+- Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
+- Added `.github/workflows/bot-pr-auto-draft-on-changes.yml` to automatically convert PRs to draft and notify authors when reviewers request changes.
+- 
+- Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
+- Phase 2 of the inactivity-unassign bot: Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
+- Added `__str__()` to CustomFixedFee and updated examples and tests accordingly.
+- Added unit tests for `crypto_utils` (#993)
 - Added a github template for good first issues
 - Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
-- Added all missing fields to **str**() method and updated `test_tokem_info.py`
+- Added all missing fields to `__str__()` method and updated `test_tokem_info.py`
 - Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
 - Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
 - Add inactivity bot workflow to unassign stale issue assignees (#952)
 - Made custom fraction fee end to end
+- feat: AccountCreateTransaction now supports both PrivateKey and PublicKey [#939](https://github.com/hiero-ledger/hiero-sdk-python/issues/939)
 - Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
-- Added __str__() to CustomRoyaltyFee and updated examples and tests accordingly (#986)
+- Added `__str__()` to CustomRoyaltyFee and updated examples and tests accordingly (#986)
 - Restore bug and feature request issue templates (#996)(https://github.com/hiero-ledger/hiero-sdk-python/issues/996)
+- Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
+- Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
+- Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
+- Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
+- Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
+-Added new `.github/ISSUE_TEMPLATE/04_good_first_issue_candidate.yml` file (1068)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1068)
+- Enhanced `.github/ISSUE_TEMPLATE/01_good_first_issue.yml` with welcoming message and acceptance criteria sections to guide contributors in creating quality GFIs (#1052)
 
 
 ### Changed
-
+- Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
+- Added more tests to the CustomFee class for different functionalities (#991)
+- Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
+- Renamed example files to match src naming (#1053)
+- Updated bot naming conventions in `.github/workflows` to be consistent (#1042)
+- Renamed workflow files for consistent PR check naming:
+  `examples.yml` → `pr-check-examples.yml`,
+  `test.yml` → `pr-check-test.yml` (#1043)
+- Cleaned up `token_airdrop_claim_auto` example for pylint compliance (no functional changes). (#1079)
+
 
 ### Fixed
 
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
+- Fixed solo workflow defaulting to zero
+- Fix unit test tet_query.py
 
 ### Breaking Change
 
@@ -597,3 +628,4 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
+
