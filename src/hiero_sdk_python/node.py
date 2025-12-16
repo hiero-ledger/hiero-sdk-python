@@ -183,6 +183,21 @@ class _Node:
     def _build_channel_options(self):
         """
         Build gRPC channel options for TLS connections.
+
+        The options `grpc.default_authority` and `grpc.ssl_target_name_override`
+        are intentionally set to a fixed value ("127.0.0.1") to bypass standard
+        TLS hostname verification.
+
+        This is REQUIRED because Hedera nodes are connected to via IP addresses 
+        from the address book, while their TLS certificates are not issued for 
+        those IPs. As a result, standard hostname verification would fail even 
+        for legitimate nodes.
+
+        Although hostname verification is disabled, transport security is NOT
+        weakened. Instead of relying on hostnames, the SDK validates the server
+        by performing certificate hash pinning. This guarantees the client is 
+        communicating with the correct Hedera node regardless of the hostname 
+        or IP address used to connect.
         """
         options = [
             ("grpc.default_authority", "127.0.0.1"),
