@@ -52,3 +52,31 @@ class AccountBalance:
                 token_balances[token_id] = balance
 
         return cls(hbars=hbars, token_balances=token_balances)
+
+    def __str__(self) -> str:
+        """
+        Returns a human-friendly string representation of the account balance.
+        
+        Returns:
+            str: A string showing HBAR balance and token balances.
+        """
+        lines = [f"💰 HBAR Balance: {self.hbars} hbars"]
+        if self.token_balances:
+            lines.append("💎 Token Balances:")
+            for token_id, balance in self.token_balances.items():
+                lines.append(f" - Token ID {token_id}: {balance} units")
+        return "\n".join(lines)
+
+    def __repr__(self) -> str:
+        """
+        Returns a developer-friendly string representation of the account balance.
+        
+        Returns:
+            str: A string representation that shows the key attributes.
+        """
+        token_balances_repr = (
+            f"{{{', '.join(f'{token_id!r}: {balance}' for token_id, balance in self.token_balances.items())}}}"
+            if self.token_balances
+            else "{}"
+        )
+        return f"AccountBalance(hbars={self.hbars!r}, token_balances={token_balances_repr})"
