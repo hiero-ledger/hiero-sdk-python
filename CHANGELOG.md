@@ -41,6 +41,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhanced `.github/ISSUE_TEMPLATE/01_good_first_issue.yml` with welcoming message and acceptance criteria sections to guide contributors in creating quality GFIs (#1052)
 - Add workflow to notify team about P0 issues `bot-p0-issues-notify-team.yml`
 - Added Issue Reminder (no-PR) bot, .github/scripts/issue_reminder_no_pr.sh and .github/workflows/bot-issue-reminder-no-pr.yml to automatically detect assigned issues with no linked pull requests for 7+ days and post a gentle ReminderBot comment.(#951)
+- Add support for include_children in TransactionGetReceiptQuery (#1100)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1100)
 
 ### Changed
 - Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
