@@ -4,7 +4,7 @@ const marker = '<!-- P0 Issue Notification -->';
 
   async function notifyTeam(github, owner, repo, issue, marker) {
     const comment = `${marker} :rotating_light: Attention Team :rotating_light: 
-@team-python-sdk/maintainers  @team-python-sdk/committers @team-python-sdk/triage
+@hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-triage
 
 A new P0 issue has been created: #${issue.number} - ${issue.title || '(no title)'}
 Please prioritize this issue accordingly.
