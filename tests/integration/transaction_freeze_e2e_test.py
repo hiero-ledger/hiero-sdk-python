@@ -6,7 +6,7 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 @pytest.mark.integration
 def test_transaction_executes_successfully(env):
@@ -55,7 +55,7 @@ def test_transaction_executes_successfully_after_manual_freeze(env):
     
     # Manually set Node and ID
     tx.set_transaction_id(tx_id)
-    tx.set_node_account_id(AccountId.from_string("0.0.3")) # Explicitly set to 0.0.3
+    tx.node_account_id = AccountId.from_string("0.0.3") # Explicitly set to 0.0.3
     
     # Manual Freeze (Generates body ONLY for 0.0.3)
     tx.freeze() 
