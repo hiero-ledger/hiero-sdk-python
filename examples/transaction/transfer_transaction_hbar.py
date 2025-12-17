@@ -3,6 +3,7 @@ uv run examples/transaction/transfer_transaction_hbar.py
 python examples/transaction/transfer_transaction_hbar.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -15,11 +16,13 @@ from hiero_sdk_python import (
     TransferTransaction,
     AccountCreateTransaction,
     Hbar,
-    CryptoGetAccountBalanceQuery
+    CryptoGetAccountBalanceQuery,
 )
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
+
 def setup_client():
     """Initialize and set up the client with operator account"""
     network = Network(network_name)
@@ -27,8 +30,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID',''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY',''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
 
@@ -52,10 +55,11 @@ def create_account(client, operator_key):
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
         return recipient_id, recipient_key
-    
+
     except Exception as e:
         print(f"Error creating new account: {e}")
         sys.exit(1)
+
 
 def transfer_hbar(client, operator_id, recipient_id):
     """Transfer HBAR from operator account to recipient account"""
@@ -69,7 +73,7 @@ def transfer_hbar(client, operator_id, recipient_id):
             .freeze_with(client)
         )
         transfer_tx.execute(client)
-        
+
         print("\n✅ Success! HBAR transfer successful.\n")
     except Exception as e:
         print(f"❌ HBAR transfer failed: {str(e)}")
@@ -80,9 +84,7 @@ def account_balance_query(client, account_id, when=""):
     """Query and display account balance"""
     try:
         balance = (
-            CryptoGetAccountBalanceQuery(account_id=account_id)
-            .execute(client)
-            .hbars
+            CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
         )
         print(f"Recipient account balance{when}: {balance} hbars")
         return balance
@@ -109,6 +111,7 @@ def main():
 
     # Check balance after HBAR transfer
     account_balance_query(client, recipient_id, " after transfer")
+
 
 if __name__ == "__main__":
     main()
