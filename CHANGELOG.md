@@ -12,7 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Codecov workflow
 - Added unit tests for `key_format.py` to improve coverage.
 - Fix inactivity bot execution for local dry-run testing.
-- Added comprehensive Good First Issue guidelines documentation (`docs/maintainers/good_first_issue_candidate_guidelines.md`) (#1066)
+- Added comprehensive Good First Issue guidelines documentation (`docs/maintainers/good_first_issue_candidate_guidelines.md`) (#1070)
 - Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
 - Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
