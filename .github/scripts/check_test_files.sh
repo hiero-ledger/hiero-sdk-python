@@ -29,8 +29,8 @@ function check_test_file_name() {
         return 0
       fi
     done
-    if [[ $(basename "$filename") != test_* && $(basename "$filename") != *_test.py ]]; then
-      ERRORS+=("${RED}ERROR${RESET}: Test file '$filename' neither starts with 'test_' nor ends with '_test'. ${YELLOW}It has to follow the pytest naming convention.")
+    if [[ $(basename "$filename") != *_test.py ]]; then
+      ERRORS+=("${RED}ERROR${RESET}: Test file '$filename' doesn't end with '_test'. ${YELLOW}It has to follow the pytest naming convention.")
       return 1
     fi
   fi
