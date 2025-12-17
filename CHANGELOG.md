@@ -674,3 +674,4 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
+
