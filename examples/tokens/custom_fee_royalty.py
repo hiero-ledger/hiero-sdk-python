@@ -1,12 +1,14 @@
 """
-Run with: 
+Run with:
 uv run examples/tokens/custom_royalty_fee.py
 python examples/tokens/custom_royalty_fee.py
 """
+
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 def custom_royalty_fee():
     fallback_fee = CustomFixedFee(
@@ -26,6 +28,7 @@ def custom_royalty_fee():
     royalty_fee_proto = royalty_fee._to_proto()
 
     print("Royalty Fee Protobuf:", royalty_fee_proto)
+
 
 if __name__ == "__main__":
     custom_royalty_fee()

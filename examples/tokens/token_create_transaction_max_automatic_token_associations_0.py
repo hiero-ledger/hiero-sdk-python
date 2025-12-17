@@ -81,9 +81,13 @@ def create_demo_token(
     return receipt.token_id
 
 
-def create_max_account(client: Client, operator_key: PrivateKey) -> Tuple[AccountId, PrivateKey]:
+def create_max_account(
+    client: Client, operator_key: PrivateKey
+) -> Tuple[AccountId, PrivateKey]:
     """Create an account whose max automatic associations equals zero."""
-    print("\nSTEP 2: Creating account 'max' with max automatic associations set to 0...")
+    print(
+        "\nSTEP 2: Creating account 'max' with max automatic associations set to 0..."
+    )
     max_key = PrivateKey.generate()
     # Configure the new account to require explicit associations before accepting tokens.
     tx = (
@@ -237,6 +241,7 @@ def main() -> None:
                 "\nTransfer still failed after associating the token. "
                 "Verify balances, association status, and token configuration."
             )
+
 
 if __name__ == "__main__":
     main()
