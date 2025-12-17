@@ -1,4 +1,6 @@
 """
+Transfer HBAR or tokens to a Hedera account using their public-address.
+
 uv run examples/transaction/transfer_transaction_hbar_with_evm_address.py
 python examples/transaction/transfer_transaction_hbar_with_evm_address.py
 
@@ -21,16 +23,24 @@ from hiero_sdk_python import (
 
 load_dotenv()
 network_name = os.getenv('NETWORK', 'testnet').lower()
+operator_id_env = os.getenv("OPERATOR_ID")
+operator_key_env = os.getenv("OPERATOR_KEY")
 
 def setup_client():
     """Initialize a Hedera client with operator credentials from .env."""
     print(f"Connecting to Hedera {network_name} network...")
+
+    if not operator_id_env or not operator_key_env:
+        print("OPERATOR_ID or OPERATOR_KEY not set in .env")
+        sys.exit(1)
+
     network = Network(network_name)
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
+        operator_id = AccountId.from_string(operator_id_env)
+        operator_key = PrivateKey.from_string(operator_key_env)
+        
     except Exception:
         print("Invalid OPERATOR_ID or OPERATOR_KEY in .env")
         sys.exit(1)
@@ -94,12 +104,14 @@ def transfer_hbar(client, recipient_evm_address):
 def account_balance_query(client, account_id, label = "") -> Hbar:
     """Query and print the HBAR balance of an account."""
     try:
-        balance = (
+        balance_query = (
             CryptoGetAccountBalanceQuery(account_id=account_id)
             .execute(client)
-            .hbars
         )
+
+        balance = balance_query.hbars
         print(f"Balance {label}: {balance} hbars")
+
         return balance
     except Exception as e:
         print(f"Balance query failed: {e}")
