@@ -45,6 +45,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
+- chore: Move account allowance example to correct folder
 - Added more tests to the CustomFee class for different functionalities (#991)
 - Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
 - Renamed example files to match src naming (#1053)
@@ -53,10 +54,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   `examples.yml` → `pr-check-examples.yml`,
   `test.yml` → `pr-check-test.yml` (#1043)
 - Cleaned up `token_airdrop_claim_auto` example for pylint compliance (no functional changes). (#1079)
+- Update team notification script and workflow for P0 issues 'p0_issues_notify_team.js'
 
 
 ### Fixed
 
+- Fix token association verification in `token_airdrop_transaction.py` to correctly check if tokens are associated by using `token_id in token_balances` instead of incorrectly displaying zero balances which was misleading (#[815])
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
 - good first issue template yaml rendering
