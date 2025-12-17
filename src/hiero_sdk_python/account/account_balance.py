@@ -60,9 +60,9 @@ class AccountBalance:
         Returns:
             str: A string showing HBAR balance and token balances.
         """
-        lines = [f"💰 HBAR Balance: {self.hbars} hbars"]
+        lines = [f"HBAR Balance: {self.hbars} hbars"]
         if self.token_balances:
-            lines.append("💎 Token Balances:")
+            lines.append("Token Balances:")
             for token_id, balance in self.token_balances.items():
                 lines.append(f" - Token ID {token_id}: {balance} units")
         return "\n".join(lines)
