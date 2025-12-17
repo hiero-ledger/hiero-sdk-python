@@ -16,11 +16,11 @@ def test_account_balance_str_with_hbars_only():
     
     result = str(account_balance)
     
-    assert "💰 HBAR Balance:" in result
+    assert "HBAR Balance:" in result
     assert "10.00000000 ℏ" in result
-    assert " hbars" in result
+    assert "hbars" in result
     # Should not include token balances section when empty
-    assert "💎 Token Balances:" not in result
+    assert "Token Balances:" not in result
 
 
 def test_account_balance_str_with_token_balances():
@@ -33,10 +33,10 @@ def test_account_balance_str_with_token_balances():
     
     result = str(account_balance)
     
-    assert "💰 HBAR Balance:" in result
+    assert "HBAR Balance:" in result
     assert "10.00000000 ℏ" in result
     assert " hbars" in result
-    assert "💎 Token Balances:" in result
+    assert "Token Balances:" in result
     assert " - Token ID 0.0.100: 1000 units" in result
     assert " - Token ID 0.0.200: 500 units" in result
 
@@ -48,11 +48,11 @@ def test_account_balance_str_with_empty_token_balances():
     
     result = str(account_balance)
     
-    assert "💰 HBAR Balance:" in result
+    assert "HBAR Balance:" in result
     assert "5.50000000 ℏ" in result
     assert " hbars" in result
     # Should not include token balances section when empty
-    assert "💎 Token Balances:" not in result
+    assert "Token Balances:" not in result
 
 
 def test_account_balance_repr_with_hbars_only():
