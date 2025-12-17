@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
 - Codecov workflow
 - Fix inactivity bot execution for local dry-run testing.
 - Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
