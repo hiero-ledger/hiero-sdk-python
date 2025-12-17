@@ -12,6 +12,7 @@ Run with:
   python examples/query/account_balance_query.py
 
 """
+
 import os
 import sys
 import time
@@ -30,7 +31,8 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """
@@ -47,12 +49,13 @@ def setup_client():
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id_str = os.getenv('OPERATOR_ID')
-    operator_key_str = os.getenv('OPERATOR_KEY')
+    operator_id_str = os.getenv("OPERATOR_ID")
+    operator_key_str = os.getenv("OPERATOR_KEY")
 
     if not operator_id_str or not operator_key_str:
         raise ValueError(
-            "OPERATOR_ID and OPERATOR_KEY environment variables must be set")
+            "OPERATOR_ID and OPERATOR_KEY environment variables must be set"
+        )
 
     operator_id = AccountId.from_string(operator_id_str)
     operator_key = PrivateKey.from_string(operator_key_str)
@@ -82,9 +85,7 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
 
     # Create the account creation transaction
     transaction = AccountCreateTransaction(
-        key=new_account_public_key,
-        initial_balance=initial_balance,
-        memo="New Account"
+        key=new_account_public_key, initial_balance=initial_balance, memo="New Account"
     ).freeze_with(client)
 
     # Sign and execute the transaction
@@ -95,7 +96,8 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
     print(f"✓ Account created successfully")
     print(f"  Account ID: {new_account_id}")
     print(
-        f"  Initial balance: {initial_balance.to_hbars()} hbars ({initial_balance.to_tinybars()} tinybars)\n")
+        f"  Initial balance: {initial_balance.to_hbars()} hbars ({initial_balance.to_tinybars()} tinybars)\n"
+    )
 
     return new_account_id, new_account_private_key
 
@@ -136,7 +138,8 @@ def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
         str: The status of the transfer transaction.
     """
     print(
-        f"Transferring {amount.to_tinybars()} tinybars ({amount.to_hbars()} hbars) from {operator_id} to {recipient_id}...")
+        f"Transferring {amount.to_tinybars()} tinybars ({amount.to_hbars()} hbars) from {operator_id} to {recipient_id}..."
+    )
 
     # Create transfer transaction
     transfer_transaction = (
@@ -166,7 +169,8 @@ def main():
 
         #  Create a new account with initial balance
         new_account_id, new_account_private_key = create_account(
-            client, operator_key, initial_balance=Hbar(10))
+            client, operator_key, initial_balance=Hbar(10)
+        )
 
         #  Query and display the initial balance
         print("=" * 60)
@@ -182,7 +186,8 @@ def main():
         print("=" * 60)
         transfer_amount = Hbar(5)
         transfer_status = transfer_hbars(
-            client, operator_id, operator_key, new_account_id, transfer_amount)
+            client, operator_id, operator_key, new_account_id, transfer_amount
+        )
         print(f"Transfer transaction status: {transfer_status}")
         print("=" * 60 + "\n")
 
