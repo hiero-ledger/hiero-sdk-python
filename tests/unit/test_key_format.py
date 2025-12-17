@@ -4,7 +4,7 @@ import pytest
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import key_to_proto
 from hiero_sdk_python.utils.key_format import format_key
 
 pytestmark = pytest.mark.unit
