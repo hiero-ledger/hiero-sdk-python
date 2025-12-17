@@ -14,7 +14,7 @@ from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 
 @pytest.mark.integration

@@ -8,7 +8,7 @@ from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 @pytest.mark.integration
 def test_transaction_record_query_can_execute():

@@ -13,7 +13,7 @@ from hiero_sdk_python.consensus.topic_message_submit_transaction import (
 )
 from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 BIG_CONTENT = """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur aliquam augue sem, ut mattis dui laoreet a. Curabitur consequat est euismod, scelerisque metus et, tristique dui. Nulla commodo mauris ut faucibus ultricies. Quisque venenatis nisl nec augue tempus, at efficitur elit eleifend. Duis pharetra felis metus, sed dapibus urna vehicula id. Duis non venenatis turpis, sit amet ornare orci. Donec non interdum quam. Sed finibus nunc et risus finibus, non sagittis lorem cursus. Proin pellentesque tempor aliquam. Sed congue nisl in enim bibendum, condimentum vehicula nisi feugiat.
