@@ -5,7 +5,7 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.integration.utils import IntegrationTestEnv
 
 @pytest.mark.integration
 def test_token_create_with_custom_fee_e2e():

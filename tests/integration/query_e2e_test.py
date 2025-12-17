@@ -8,7 +8,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token
 
 @pytest.mark.integration
 def test_integration_free_query_no_cost():

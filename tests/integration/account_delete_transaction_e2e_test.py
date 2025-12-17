@@ -14,7 +14,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-from tests.integration.utils_for_test import (
+from tests.integration.utils import (
     create_fungible_token,
     create_nft_token,
     env,

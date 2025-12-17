@@ -16,7 +16,7 @@ from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
-from tests.integration.utils_for_test import  env
+from tests.integration.utils import  env
 
 def create_topic(client, admin_key=None, submit_key=None, custom_fees=None):
     """Helper transaction for creating a topic."""
