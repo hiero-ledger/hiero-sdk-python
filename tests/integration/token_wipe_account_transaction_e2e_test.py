@@ -9,7 +9,7 @@ from hiero_sdk_python.account.account_create_transaction import AccountCreateTra
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token
 
 
 @pytest.mark.integration

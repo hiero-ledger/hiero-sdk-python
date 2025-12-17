@@ -7,7 +7,7 @@ import pytest
 from hiero_sdk_python.prng_transaction import PrngTransaction
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 
 @pytest.mark.integration

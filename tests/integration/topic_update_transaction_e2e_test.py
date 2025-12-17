@@ -7,7 +7,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.integration.utils import IntegrationTestEnv
 
 
 @pytest.mark.integration

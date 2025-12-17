@@ -1188,7 +1188,7 @@ def test_token_info_query_structure():
     print("✅ TokenInfoQuery structure test passed")
 
 # --- Tests for _to_proto_key (backward compatibility wrapper) ---
-# Note: Core functionality tests for key_to_proto are in test_key_utils.py
+# Note: Core functionality tests for key_to_proto are in key_utils_test.py
 
 def test_to_proto_key_wrapper_still_works():
     """Tests that _to_proto_key wrapper method still works for backward compatibility."""

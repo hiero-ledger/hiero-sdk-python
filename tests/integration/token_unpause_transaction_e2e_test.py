@@ -6,7 +6,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
-from tests.integration.utils_for_test import env, create_fungible_token
+from tests.integration.utils import env, create_fungible_token
 
 pause_key = PrivateKey.generate()
 

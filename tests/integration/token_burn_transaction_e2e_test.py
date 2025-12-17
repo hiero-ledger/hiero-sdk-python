@@ -4,7 +4,7 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 
 @pytest.mark.integration
