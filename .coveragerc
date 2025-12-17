@@ -1,0 +1,8 @@
+[run]
+source = src
+
+omit =
+    */hiero_sdk_python/hapi/*
+    */__pycache__/*
+    */cache/*
+    */.cache/*
