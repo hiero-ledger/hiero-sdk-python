@@ -44,21 +44,21 @@ parse_ts() {
 }
 
 # Fetch open ISSUES (not PRs) that have assignees
-ISSUES=$(gh api "repos/$REPO/issues" \
+ALL_ISSUES_JSON=$(gh api "repos/$REPO/issues" \
   --paginate \
-  --jq '.[] | select(.state=="open" and (.assignees | length > 0) and (.pull_request | not)) | .number')
+  --jq '.[] | select(.state=="open" and (.assignees | length > 0) and (.pull_request | not))')
 
-if [ -z "$ISSUES" ]; then
+if [ -z "$ALL_ISSUES_JSON" ]; then
   echo "No open issues with assignees found."
   exit 0
 fi
 
-for ISSUE in $ISSUES; do
+echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
+  ISSUE=$(echo "$ISSUE_JSON" | jq -r '.number')
   echo "============================================================"
   echo " ISSUE #$ISSUE"
   echo "============================================================"
 
-  ISSUE_JSON=$(gh api "repos/$REPO/issues/$ISSUE")
   ASSIGNEES=$(echo "$ISSUE_JSON" | jq -r '.assignees[].login')
 
   if [ -z "$ASSIGNEES" ]; then
