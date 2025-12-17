@@ -10,7 +10,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 #Mint NFT and return serial_number
 def mint_nft(env: IntegrationTestEnv, nft_id):

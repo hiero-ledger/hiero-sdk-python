@@ -11,7 +11,7 @@ from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransact
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 
