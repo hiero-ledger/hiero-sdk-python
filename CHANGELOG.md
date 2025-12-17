@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Added Good First Issue (GFI) management and frequency documentation to clarify maintainer expectations and SDK-level GFI governance.
 - Added SDK-level Good First Issue (GFI) guidelines for maintainers to clarify what qualifies as a good first issue.
 - Codecov workflow
 - Added unit tests for `key_format.py` to improve coverage.
