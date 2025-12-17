@@ -52,6 +52,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added __str__ and __repr__ to AccountBalance
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
 - Added advanced issue template for contributors `.github/ISSUE_TEMPLATE/06_advanced_issue.yml`.
+- Added first-class support for EVM address aliases in AccountId, including parsing, serialization, Mirror Node population helpers, and examples for transferring HBAR using an EVM address.mprove `AccountId` alias handling and extend functionalities
 
 ### Changed
 - Reduce office-hours reminder spam by posting only on each user's most recent open PR, grouping by author and sorting by creation time (#1121)
