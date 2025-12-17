@@ -28,14 +28,16 @@ def test_populate_account_id_num(env):
     account_id = tx_receipt.account_id
     assert account_id is not None
 
-    # Wait for mirronode to update
+    # Wait for mirrornode to update
     time.sleep(5)
 
     mirro_acc_id = AccountId.from_evm_address(evm_address, 0, 0)
     assert mirro_acc_id.num == 0
 
     mirro_acc_id.populate_account_num(env.client)
-
+    
+    assert mirro_acc_id.shard == account_id.shard
+    assert mirro_acc_id.realm == account_id.realm
     assert mirro_acc_id.num != 0
     assert mirro_acc_id.num == account_id.num
 
@@ -59,7 +61,7 @@ def test_populate_account_id_evm_address(env):
     account_id = tx_receipt.account_id
     assert account_id is not None
 
-    # Wait for mirronode to update
+    # Wait for mirrornode to update
     time.sleep(5)
 
     mirro_acc_id = AccountId.from_string(f"{account_id.shard}.{account_id.realm}.{account_id.num}")
