@@ -327,3 +327,45 @@ def test_secure_connect_raise_error_if_no_certificate_is_available(mock_node_wit
     
     with pytest.raises(ValueError, match="No certificate available."):
         node._get_channel()
+
+
+@patch("grpc.secure_channel")
+def test_node_get_channel_with_root_certificates(mock_secure, mock_node_with_address_book):
+    """Test secure channel uses provided root certificates."""
+    node = mock_node_with_address_book
+    node._address = node._address._to_secure()
+
+    # Skip certificate verification (consistent with other tests)
+    node._verify_certificates = False
+
+    root_certs = b"custom_root_certificates"
+    node._set_root_certificates(root_certs)
+
+    with patch.object(node, "_fetch_server_certificate_pem") as mock_fetch:
+        mock_channel = Mock()
+        mock_secure.return_value = mock_channel
+
+        channel = node._get_channel()
+
+        # Root certificates should be used directly
+        assert node._node_pem_cert == root_certs
+
+        # Server certificate should not be fetched
+        mock_fetch.assert_not_called()
+        assert channel is not None
+
+@pytest.mark.parametrize(
+    "cert_hash, expected",
+    [
+        (b"TestCertHashABC", "testcerthashabc"),
+        # Remove 0x prefix
+        (b"0xABCDEF1234", "abcdef1234"),
+        (b"  AbCdEf  ", "abcdef"),
+        (b"abcdef123456", "abcdef123456"),
+        (b"\xff\xfe\xfd\xfc", "fffefdfc")
+    ],
+)
+def test_normalize_cert_hash(cert_hash, expected):
+    """Test certificate hash normalization."""
+    result = _Node._normalize_cert_hash(cert_hash)
+    assert result == expected
