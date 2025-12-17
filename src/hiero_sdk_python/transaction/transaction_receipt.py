@@ -226,19 +226,6 @@ class TransactionReceipt:
         """
         self._children = children
 
-    # def _map_receipt_list(self, receipts: list[transaction_receipt_pb2.TransactionReceipt]) -> list["TransactionReceipt"]:
-    #     """
-    #     Returns the list of child_receipts converted to TransactionReceipt list
-
-    #     Return:
-    #         list["TransactionReceipt"]
-    #     """
-    #     children: list["TransactionReceipt"] = []
-    #     for receipt in receipts:
-    #         children.append(TransactionReceipt._from_proto(receipt, self.transaction_id))
-
-     #    return children
-
     def _to_proto(self):
         """
         Returns the underlying protobuf transaction receipt.
