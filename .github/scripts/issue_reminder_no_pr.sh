@@ -11,6 +11,13 @@ REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
 DAYS="${DAYS:-7}"
 DRY_RUN="${DRY_RUN:-false}"
 
+# Normalize DRY_RUN to "true" or "false"
+if [[ "$DRY_RUN" == "true" || "$DRY_RUN" == "yes" || "$DRY_RUN" == "1" ]]; then
+  DRY_RUN="true"
+else
+  DRY_RUN="false"
+fi
+
 if [ -z "$REPO" ]; then
   echo "ERROR: REPO environment variable not set."
   exit 1
