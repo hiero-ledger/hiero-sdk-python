@@ -5,7 +5,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-from tests.integration.utils_for_test import IntegrationTestEnv, create_nft_token
+from tests.integration.utils import IntegrationTestEnv, create_nft_token
 from hiero_sdk_python.tokens.nft_id import NftId
 
 @pytest.mark.integration

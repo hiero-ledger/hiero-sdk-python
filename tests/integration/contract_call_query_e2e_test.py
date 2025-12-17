@@ -21,7 +21,7 @@ from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 
 @pytest.mark.integration

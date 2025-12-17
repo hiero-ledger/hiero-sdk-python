@@ -8,7 +8,7 @@ from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.integration.utils import IntegrationTestEnv
 
 load_dotenv(override=True)
 
