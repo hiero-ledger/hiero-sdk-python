@@ -3,6 +3,7 @@ uv run examples/query/token_nft_info_query.py
 python examples/query/token_nft_info_query.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -23,7 +24,8 @@ from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -32,12 +34,13 @@ def setup_client():
     client = Client(network)
 
     # Set up operator account
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
+
 
 def create_nft(client, operator_id, operator_key):
     """Create a non-fungible token"""
@@ -56,17 +59,18 @@ def create_nft(client, operator_id, operator_key):
         .set_freeze_key(operator_key)
         .execute(client)
     )
-    
+
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-    
+
     # Get token ID from receipt
     nft_token_id = receipt.token_id
     print(f"NFT created with ID: {nft_token_id}")
-    
+
     return nft_token_id
+
 
 def mint_nft(client, nft_token_id):
     """Mint a non-fungible token"""
@@ -76,14 +80,15 @@ def mint_nft(client, nft_token_id):
         .set_metadata(b"My NFT Metadata 1")
         .execute(client)
     )
-    
+
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-    
+
     print(f"NFT minted with serial number: {receipt.serial_numbers[0]}")
-    
+
     return NftId(nft_token_id, receipt.serial_numbers[0])
+
 
 def query_nft_info():
     """
@@ -95,9 +100,10 @@ def query_nft_info():
     client, operator_id, operator_key = setup_client()
     token_id = create_nft(client, operator_id, operator_key)
     nft_id = mint_nft(client, token_id)
-        
+
     info = TokenNftInfoQuery(nft_id=nft_id).execute(client)
     print(f"NFT info: {info}")
+
 
 if __name__ == "__main__":
     query_nft_info()

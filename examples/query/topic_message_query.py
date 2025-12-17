@@ -1,8 +1,9 @@
 """
-uv run examples/query/topic_message_query.py 
-python examples/query/topic_message_query.py 
+uv run examples/query/topic_message_query.py
+python examples/query/topic_message_query.py
 
 """
+
 import os
 import time
 import sys
@@ -15,11 +16,13 @@ from hiero_sdk_python import (
     AccountId,
     PrivateKey,
     TopicCreateTransaction,
-    TopicMessageQuery
+    TopicMessageQuery,
 )
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
+
 def setup_client():
     """Initialize and set up the client with operator account"""
     network = Network(network_name)
@@ -28,8 +31,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
 
@@ -38,14 +41,14 @@ def setup_client():
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
 
+
 def create_topic(client, operator_key):
     """Create a new topic"""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
             TopicCreateTransaction(
-                memo="Python SDK created topic",
-                admin_key=operator_key.public_key()
+                memo="Python SDK created topic", admin_key=operator_key.public_key()
             )
             .freeze_with(client)
             .sign(operator_key)
@@ -59,18 +62,20 @@ def create_topic(client, operator_key):
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
 
+
 def query_topic_messages():
     """
     A full example that creates a topic and perform query topic messages.
     """
     # Config Client
     client, _, operator_key = setup_client()
-    
+
     # Create Topic
     topic_id = create_topic(client, operator_key)
 
     # Query Topic Messages
     print("\nSTEP 2: Query Topic Messages...")
+
     def on_message_handler(topic_message):
         print(f"Received topic message: {topic_message}")
 
@@ -81,25 +86,24 @@ def query_topic_messages():
         topic_id=topic_id,
         start_time=datetime.now(timezone.utc),
         limit=0,
-        chunking_enabled=True
+        chunking_enabled=True,
     )
 
     handle = query.subscribe(
-        client,
-        on_message=on_message_handler,
-        on_error=on_error_handler
+        client, on_message=on_message_handler, on_error=on_error_handler
     )
 
     print("Subscription started. Will auto-cancel after 10 seconds or on Ctrl+C...")
     try:
-        startTime = time.time();
+        startTime = time.time()
         while time.time() - startTime < 10:
-            time.sleep(1);
+            time.sleep(1)
     except KeyboardInterrupt:
         print("✋ Ctrl+C detected. Cancelling subscription...")
     finally:
         handle.cancel()
         print("✅ Subscription cancelled. Exiting.")
+
 
 if __name__ == "__main__":
     query_topic_messages()

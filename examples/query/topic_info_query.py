@@ -3,6 +3,7 @@ uv run examples/query/topic_info_query.py
 python examples/query/topic_info_query.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -13,11 +14,12 @@ from hiero_sdk_python import (
     AccountId,
     PrivateKey,
     TopicInfoQuery,
-    TopicCreateTransaction
+    TopicCreateTransaction,
 )
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -26,15 +28,16 @@ def setup_client():
     client = Client(network)
 
     try:
-            operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-            operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
-            client.set_operator(operator_id, operator_key)
-            print(f"Client set up with operator id {client.operator_account_id}")
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
+        client.set_operator(operator_id, operator_key)
+        print(f"Client set up with operator id {client.operator_account_id}")
 
-            return client, operator_id, operator_key
+        return client, operator_id, operator_key
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
+
 
 def create_topic(client, operator_key):
     """Create a new topic"""
@@ -42,8 +45,7 @@ def create_topic(client, operator_key):
     try:
         topic_tx = (
             TopicCreateTransaction(
-                memo="Python SDK created topic",
-                admin_key=operator_key.public_key()
+                memo="Python SDK created topic", admin_key=operator_key.public_key()
             )
             .freeze_with(client)
             .sign(operator_key)
@@ -57,13 +59,14 @@ def create_topic(client, operator_key):
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
 
+
 def query_topic_info():
     """
     A full example that create a topic and query topic info for that topic.
     """
     # Config Client
     client, _, operator_key = setup_client()
-   
+
     # Create a new Topic
     topic_id = create_topic(client, operator_key)
 
@@ -72,6 +75,7 @@ def query_topic_info():
     query = TopicInfoQuery().set_topic_id(topic_id)
     topic_info = query.execute(client)
     print("✅ Success! Topic Info:", topic_info)
+
 
 if __name__ == "__main__":
     query_topic_info()
