@@ -37,7 +37,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
 - Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
 - Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
--Added new `.github/ISSUE_TEMPLATE/04_good_first_issue_candidate.yml` file (1068)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1068)
+- Added new `.github/ISSUE_TEMPLATE/04_good_first_issue_candidate.yml` file (1068)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1068)
 - Enhanced `.github/ISSUE_TEMPLATE/01_good_first_issue.yml` with welcoming message and acceptance criteria sections to guide contributors in creating quality GFIs (#1052)
 - Add workflow to notify team about P0 issues `bot-p0-issues-notify-team.yml`
 
@@ -54,6 +54,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
   `examples.yml` → `pr-check-examples.yml`,
   `test.yml` → `pr-check-test.yml` (#1043)
 - Cleaned up `token_airdrop_claim_auto` example for pylint compliance (no functional changes). (#1079)
+- Formatted `examples/query` using black (#1082)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1082)
 - Update team notification script and workflow for P0 issues 'p0_issues_notify_team.js'
 - Rename test files across the repository to ensure they consistently end with _test.py (#1055)
 
