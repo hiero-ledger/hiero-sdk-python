@@ -7,7 +7,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.transaction.transaction import Transaction
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.integration.utils import IntegrationTestEnv
 
 topic_memo = "Python SDK created topic"
 

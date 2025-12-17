@@ -1,6 +1,6 @@
 import pytest
 
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.response_code import ResponseCode
 
