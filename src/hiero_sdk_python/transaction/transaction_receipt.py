@@ -50,7 +50,7 @@ class TransactionReceipt:
         self._transaction_id: Optional[TransactionId] = transaction_id
         self.status: Optional[response_code_pb2.ResponseCodeEnum] = receipt_proto.status
         self._receipt_proto: transaction_receipt_pb2.TransactionReceipt = receipt_proto
-        self._children: list["TransactionReceitp"] = children or []
+        self._children: list["TransactionReceipt"] = children or []
 
     @property
     def token_id(self) -> Optional[TokenId]:

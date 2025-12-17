@@ -19,7 +19,7 @@ from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 
 def _extract_tx_id(tx, receipt):
@@ -55,8 +55,8 @@ def _submit_simple_transfer(env):
 
     tx = (
         TransferTransaction()
-        .add_hbar_transfer(env.operator_id, Hbar(-0.01))
-        .add_hbar_transfer(receiver.id, Hbar(0.01))
+        .add_hbar_transfer(env.operator_id, Hbar(-0.01).to_tinybars())
+        .add_hbar_transfer(receiver.id, Hbar(0.01).to_tinybars())
     )
 
     receipt = tx.execute(env.client)
@@ -179,7 +179,6 @@ def test_get_receipt_query_children_with_contract_execute_e2e(env):
 
     if len(queried.children) > 0:
         for child in queried.children:
-            __import__('pdb').set_trace()
             assert child.status is not None
 
     assert isinstance(queried.children, list)
