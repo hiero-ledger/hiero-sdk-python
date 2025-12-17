@@ -262,11 +262,16 @@ class Transaction(_Executable):
         if self.transaction_id is None:
             raise ValueError("Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id().")
         
-        if self.node_account_id is None:
-            raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_id.")
+        if self.node_account_id is None and len(self.node_account_ids) == 0:
+            raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids.")
         
+        # Ensure if node_account_id is used
+        if self.node_account_id:
+            self.set_node_account_id(self.node_account_id)
+
         # Build the transaction body for the single node
-        self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+        for node_account_id in self.node_account_ids:
+            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
         
         return self
 
@@ -293,19 +298,27 @@ class Transaction(_Executable):
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
 
-        if self.batch_key is None:
-            for node in client.network.nodes:
-                self.node_account_id = node._account_id
-                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
-        
-            # Set the node account id to the current node in the network
-            self.node_account_id = client.network.current_node._account_id
-        else:
+        if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
             self.node_account_id = AccountId(0,0,0)
             self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
+            return self
         
+        if self.node_account_id:
+            self.set_node_account_id(self.node_account_id)
+
+        if len(self.node_account_ids) > 0:
+            for node_account_id in self.node_account_ids:
+                self.node_account_id = node_account_id
+                self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
+
+        else:
+            for node in client.network.nodes:
+                self.node_account_id = node._account_id
+                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+
         return self
+        
 
     def execute(self, client):
         """
@@ -801,6 +814,7 @@ class Transaction(_Executable):
             ]
 
         if transaction.node_account_id:
+            transaction.set_node_account_id(transaction.node_account_id)
             transaction._transaction_body_bytes[transaction.node_account_id] = body_bytes
 
         if sig_map and sig_map.sigPair:
