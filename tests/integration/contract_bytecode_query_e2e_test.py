@@ -17,7 +17,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 
 @pytest.mark.integration

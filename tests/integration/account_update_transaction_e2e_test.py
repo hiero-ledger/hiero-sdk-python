@@ -14,7 +14,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 
 @pytest.mark.integration

@@ -20,7 +20,7 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils_for_test import create_fungible_token, env
+from tests.integration.utils import create_fungible_token, env
 
 
 @pytest.mark.integration

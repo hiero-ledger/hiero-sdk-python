@@ -11,7 +11,7 @@ from hiero_sdk_python.system.freeze_type import FreezeType
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.batch_transaction import BatchTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 def create_account_tx(key, client):
     """Helper transaction to create an account."""
