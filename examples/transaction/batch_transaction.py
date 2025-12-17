@@ -1,6 +1,7 @@
 """
 uv run examples/transaction/batch_transaction.py
 """
+
 import os
 import sys
 
@@ -19,10 +20,11 @@ from hiero_sdk_python import (
     TokenType,
     TokenUnfreezeTransaction,
     BatchTransaction,
-    TransferTransaction
+    TransferTransaction,
 )
 
 load_dotenv()
+
 
 def get_balance(client, account_id, token_id):
     tokens_balance = (
@@ -33,27 +35,29 @@ def get_balance(client, account_id, token_id):
 
     print(f"Account: {account_id}: {tokens_balance[token_id] if tokens_balance else 0}")
 
+
 def setup_client():
     """
     Set up and configure a Hedera client for testnet operations.
     """
-    network_name = os.getenv('NETWORK', 'testnet').lower()
+    network_name = os.getenv("NETWORK", "testnet").lower()
 
     print(f"Connecting to Hedera {network_name} network!")
 
-    try :
+    try:
         network = Network(network_name)
         client = Client(network)
-        
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID',''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY',''))
-        
+
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
+
         client.set_operator(operator_id, operator_key)
         print(f"Client initialized with operator: {operator_id}")
         return client
     except Exception as e:
         print(f"Failed to set up client: {e}")
         sys.exit(1)
+
 
 def create_account(client):
     """
@@ -65,18 +69,21 @@ def create_account(client):
         tx = (
             AccountCreateTransaction()
             .set_key_without_alias(key.public_key())
-            .set_max_automatic_token_associations(2) # to transfer token without associating it
+            .set_max_automatic_token_associations(
+                2
+            )  # to transfer token without associating it
             .set_initial_balance(1)
         )
-        
+
         receipt = tx.freeze_with(client).execute(client)
         recipient_id = receipt.account_id
-        
+
         print(f"New account created: {receipt.account_id}")
         return recipient_id
     except Exception as e:
         print(f"Error creating new account: {e}")
         sys.exit(1)
+
 
 def create_fungible_token(client, freeze_key):
     """
@@ -106,6 +113,7 @@ def create_fungible_token(client, freeze_key):
         print(f"Error creating token: {e}")
         sys.exit(1)
 
+
 def freeze_token(client, account_id, token_id, freeze_key):
     """
     Freeze token for an account.
@@ -121,15 +129,16 @@ def freeze_token(client, account_id, token_id, freeze_key):
         )
 
         receipt = tx.execute(client)
-        
+
         if receipt.status != ResponseCode.SUCCESS:
             print(f"Freeze failed: {ResponseCode(receipt.status).name})")
             sys.exit(1)
-        
+
         print("Token freeze successful!")
     except Exception as e:
         print(f"Error freezing token for account: {e}")
         sys.exit(1)
+
 
 def transfer_token(client, sender, recipient, token_id):
     """
@@ -149,6 +158,7 @@ def transfer_token(client, sender, recipient, token_id):
     except Exception as e:
         print(f"Error transfering token: {e}")
         sys.exit(1)
+
 
 def perform_batch_tx(client, sender, recipient, token_id, freeze_key):
     """
@@ -193,6 +203,7 @@ def perform_batch_tx(client, sender, recipient, token_id, freeze_key):
     receipt = batch.execute(client)
     print(f"Batch transaction status: {ResponseCode(receipt.status).name}")
 
+
 def main():
     client = setup_client()
     freeze_key = PrivateKey.generate()
@@ -210,19 +221,21 @@ def main():
     else:
         print("\nExpected freeze to block transfer!")
         sys.exit(1)
-    
+
     # Show balances
     print("\nBalances before batch:")
     get_balance(client, client.operator_account_id, token_id)
     get_balance(client, recipient_id, token_id)
 
     # Batch unfreeze → transfer → freeze
-    perform_batch_tx(client, client.operator_account_id, recipient_id, token_id, freeze_key)
+    perform_batch_tx(
+        client, client.operator_account_id, recipient_id, token_id, freeze_key
+    )
 
     print("\nBalances after batch:")
     get_balance(client, client.operator_account_id, token_id)
-    get_balance(client, recipient_id,token_id)
-    
+    get_balance(client, recipient_id, token_id)
+
     # Should fail again Verify that token is again freeze for account
     receipt = transfer_token(client, client.operator_account_id, recipient_id, token_id)
     if receipt.status == ResponseCode.ACCOUNT_FROZEN_FOR_TOKEN:
