@@ -265,6 +265,13 @@ class _Node:
 
         # Create TLS context that accepts any certificate (we validate hash ourselves)
         context = ssl.create_default_context()
+        # Restrict SSL/TLS versions to TLSv1.2+ only for security
+        if hasattr(context, 'minimum_version') and hasattr(ssl, 'TLSVersion'):
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+        else:
+            # Backwards compatibility for Python <3.7 that lacks minimum_version
+            context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
 
