@@ -1,7 +1,7 @@
 // Script to notify the team when a GFI issue is labeled.
 
 const marker = '<!-- GFI Issue Notification -->';
-const TEAM_ALIAS = '@hiero-ledger/hiero-sdk-python-good-first-issue-support';
+const TEAM_ALIAS = '@hiero-ledger/hiero-sdk-good-first-issue-support';
 
 async function notifyTeam(github, owner, repo, issue, message, marker) {
   const comment = `${marker} :wave: Hello Team :wave:
@@ -9,10 +9,10 @@ ${TEAM_ALIAS}
 
 ${message}
 
-Issue: #${issue.number} - ${issue.title || '(no title)'}
+Repository: ${owner}/${repo} : Issue: #${issue.number} - ${issue.title || '(no title)'}
 
 Best Regards,
-Automated Notification System`;
+Python SDK team`;
 
   try {
     await github.rest.issues.createComment({
@@ -41,9 +41,9 @@ module.exports = async ({ github, context }) => {
 
     let message = '';
     if (labelName === 'Good First Issue') {
-      message = 'There is a new GFI which is ready to be assigned.';
+      message = 'There is a new GFI in the Python SDK which is ready to be assigned';
     } else if (labelName === 'Good First Issue Candidate') {
-      message = 'This issue requires immediate attention to verify if it is a GFI and label it appropriately.';
+      message = 'An issue in the Python SDK requires immediate attention to verify if it is a GFI and label it appropriately';
     } else {
       return;
     }
@@ -57,13 +57,15 @@ module.exports = async ({ github, context }) => {
     }
 
     // Post notification
-    await notifyTeam(github, owner, repo, issue, message, marker);
+    const success = await notifyTeam(github, owner, repo, issue, message, marker);
 
-    console.log('=== Summary ===');
-    console.log(`Repository: ${owner}/${repo}`);
-    console.log(`Issue Number: ${issue.number}`);
-    console.log(`Label: ${labelName}`);
-    console.log(`Message: ${message}`);
+    if (success) {
+      console.log('=== Summary ===');
+      console.log(`Repository: ${owner}/${repo}`);
+      console.log(`Issue Number: ${issue.number}`);
+      console.log(`Label: ${labelName}`);
+      console.log(`Message: ${message}`);
+    }
 
   } catch (err) {
     console.log('❌ Error:', err.message);
