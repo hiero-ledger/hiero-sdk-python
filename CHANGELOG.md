@@ -10,6 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
+- Added Good First Issue (GFI) management and frequency documentation to clarify maintainer expectations and SDK-level GFI governance.
 - Added SDK-level Good First Issue (GFI) guidelines for maintainers to clarify what qualifies as a good first issue.
 - Codecov workflow
 - Added unit tests for `key_format.py` to improve coverage.
@@ -63,6 +64,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update team notification script and workflow for P0 issues 'p0_issues_notify_team.js'
 - Rename test files across the repository to ensure they consistently end with _test.py (#1055)
 - Cleaned up `token_airdrop_claim_signature_required` example for pylint compliance (no functional changes). (#1080)
+- Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with _test.py as all other test files.(#1117)
 
 
 ### Fixed
