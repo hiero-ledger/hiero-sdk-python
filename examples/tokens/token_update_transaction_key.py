@@ -62,7 +62,7 @@ def create_fungible_token(client, operator_id, admin_key, wipe_key):
     # Check if token creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Fungible token creation failed with status: {ResponseCode.get_name(receipt.status)}"
+            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 
@@ -106,7 +106,7 @@ def update_wipe_key_full_validation(client, token_id, old_wipe_key):
 
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+            f"Token update failed with status: {ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 
