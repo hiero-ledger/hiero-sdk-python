@@ -70,7 +70,7 @@ def create_fungible_token(client, operator_id, operator_key, metadata_key):
     # Check if token creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Fungible token creation failed with status: {ResponseCode.get_name(receipt.status)}"
+            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 
@@ -109,7 +109,7 @@ def update_token_data(
 
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Token metadata update failed with status: {ResponseCode.get_name(receipt.status)}"
+            f"Token metadata update failed with status: {ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 

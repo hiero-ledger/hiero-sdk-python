@@ -92,7 +92,7 @@ def associate_token(client, token_id, account_id, account_private_key):
 
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+            f"Token association failed with status: {ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 
@@ -118,7 +118,7 @@ def create_test_account(client):
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 
@@ -142,7 +142,7 @@ def grant_kyc(client, token_id, account_id, kyc_private_key):
 
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Token grant KYC failed with status: {ResponseCode.get_name(receipt.status)}"
+            f"Token grant KYC failed with status: {ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 
@@ -189,7 +189,7 @@ def token_revoke_kyc():
     # Check if the transaction was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Token revoke KYC failed with status: {ResponseCode.get_name(receipt.status)}"
+            f"Token revoke KYC failed with status: {ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 
