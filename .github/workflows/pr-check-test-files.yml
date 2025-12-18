@@ -16,6 +16,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      
+      - name: Set up Hiero SDK Upstream
+        run: |
+          git remote set-url origin https://github.com/hiero-ledger/hiero-sdk-python.git
 
       - name: Fetch main branch
         run: |
