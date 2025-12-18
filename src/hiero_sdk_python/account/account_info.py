@@ -153,3 +153,56 @@ class AccountInfo:
                 decline_reward=self.decline_staking_reward
             ),
         )
+
+    def __str__(self) -> str:
+        """Returns a user-friendly string representation of the AccountInfo."""
+        # Define simple fields to print if they exist
+        # Format: (value_to_check, label)
+        simple_fields = [
+            (self.account_id, "Account ID"),
+            (self.contract_account_id, "Contract Account ID"),
+            (self.balance, "Balance"),
+            (self.key, "Key"),
+            (self.account_memo, "Memo"),
+            (self.owned_nfts, "Owned NFTs"),
+            (self.max_automatic_token_associations, "Max Automatic Token Associations"),
+            (self.staked_account_id, "Staked Account ID"),
+            (self.staked_node_id, "Staked Node ID"),
+            (self.proxy_received, "Proxy Received"),
+            (self.expiration_time, "Expiration Time"),
+            (self.auto_renew_period, "Auto Renew Period"),
+        ]
+
+        # Use a list comprehension to process simple fields (reduces complexity score)
+        lines = [f"{label}: {val}" for val, label in simple_fields if val is not None]
+
+        # 2. Handle booleans and special cases explicitly
+        if self.is_deleted is not None:
+            lines.append(f"Deleted: {self.is_deleted}")
+
+        if self.receiver_signature_required is not None:
+            lines.append(f"Receiver Signature Required: {self.receiver_signature_required}")
+            
+        if self.decline_staking_reward is not None:
+            lines.append(f"Decline Staking Reward: {self.decline_staking_reward}")
+
+        if self.token_relationships:
+            lines.append(f"Token Relationships: {len(self.token_relationships)}")
+
+        return "\n".join(lines)
+
+    def __repr__(self) -> str:
+        """Returns a string representation of the AccountInfo object for debugging."""
+        return (
+            f"AccountInfo("
+            f"account_id={self.account_id!r}, "
+            f"contract_account_id={self.contract_account_id!r}, "
+            f"is_deleted={self.is_deleted!r}, "
+            f"balance={self.balance!r}, "
+            f"receiver_signature_required={self.receiver_signature_required!r}, "
+            f"owned_nfts={self.owned_nfts!r}, "
+            f"account_memo={self.account_memo!r}, "
+            f"staked_node_id={self.staked_node_id!r}, "
+            f"staked_account_id={self.staked_account_id!r}"
+            f")"
+        )

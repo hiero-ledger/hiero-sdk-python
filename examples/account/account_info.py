@@ -53,14 +53,8 @@ def build_mock_account_info() -> AccountInfo:
 
 def print_account_info(info: AccountInfo) -> None:
     """Pretty-print key AccountInfo fields."""
-    print("📜 AccountInfo Example (Mock Data)")
-    print(f"Account ID: {info.account_id}")
-    print(f"Key: {info.key}")
-    print(f"Balance: {info.balance}")
-    print(f"Expiration Time: {info.expiration_time}")
-    print(f"Auto Renew Period: {info.auto_renew_period}")
-    print(f"Token Relationships: {info.token_relationships}")
-    print(f"Memo: {info.account_memo}")
+    print("📜 AccountInfo String Representation:")
+    print(info)
 
 def main():
     """Run the AccountInfo example."""
