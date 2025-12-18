@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
           
       - name: Install uv
-        uses: astral-sh/setup-uv@1781c6eb42f98d67097986d30130a8ff6879fda2
+        uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867
 
       - name: Install dependencies
         run: uv sync
