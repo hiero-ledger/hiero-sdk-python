@@ -46,8 +46,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add workflow to notify team about P0 issues `bot-p0-issues-notify-team.yml`
 - Added Issue Reminder (no-PR) bot, .github/scripts/issue_reminder_no_pr.sh and .github/workflows/bot-issue-reminder-no-pr.yml to automatically detect assigned issues with no linked pull requests for 7+ days and post a gentle ReminderBot comment.(#951)
 - Add new `.github/ISSUE_TEMPLATE/05_intermediate_issue.yml` file (1072)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1072)
+- Add a workflow to notify the team when issues are labeled as “good first issues” or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
 
 ### Changed
+- Move `account_allowance_delete_transaction_hbar.py` from `examples/` to `examples/account/` for better organization (#1003)
 - Improved consistency of transaction examples (#1120)
 - Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
@@ -66,6 +68,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Rename test files across the repository to ensure they consistently end with _test.py (#1055)
 - Cleaned up `token_airdrop_claim_signature_required` example for pylint compliance (no functional changes). (#1080)
 - Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with _test.py as all other test files.(#1117)
+- Format token examples with Black for consistent code style and improved readability (#1119)
 
 
 ### Fixed
