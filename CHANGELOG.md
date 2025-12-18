@@ -42,6 +42,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add workflow to notify team about P0 issues `bot-p0-issues-notify-team.yml`
 
 ### Changed
+- Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
 - Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
@@ -58,7 +59,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Fixed
--Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15) 
+
 - Fix token association verification in `token_airdrop_transaction.py` to correctly check if tokens are associated by using `token_id in token_balances` instead of incorrectly displaying zero balances which was misleading (#[815])
 - Fixed inactivity bot workflow not checking out repository before running (#964)
 - Fixed the topic_message_query integarion test
