@@ -53,6 +53,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
 
 ### Changed
+- Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
 - Move `account_allowance_delete_transaction_hbar.py` from `examples/` to `examples/account/` for better organization (#1003)
 - Improved consistency of transaction examples (#1120)
 - Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
