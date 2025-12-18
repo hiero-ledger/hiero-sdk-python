@@ -271,6 +271,11 @@ def test_from_string_with_alias_key_ecdsa(alias_key_ecdsa):
         "0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777g",
         "0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777",
     ],
+        '1.2',  # Too few parts
+        '1.2.3.4',  # Too many parts
+        'a.b.c',  # Non-numeric parts
+        '',  # Empty string
+        '1.a.3',  # Partial numeric
         '0.0.-1',
         'abc.def.ghi',
         '0.0.1-ad',
@@ -288,7 +293,26 @@ def test_from_string_for_invalid_format(invalid_id):
     """Should raise error when creating AccountId from invalid string input."""
     with pytest.raises(
         ValueError,
-        match=f"Invalid account ID string '{invalid_id}'. Expected format 'shard.realm.num'.",
+        match=f"Invalid account ID string '{invalid_id}'."
+                "Supported formats: "
+                "'shard.realm.num', "
+                "'shard.realm.num-checksum', "
+                "'shard.realm.<hex-alias>', "
+                "or a 20-byte EVM address."
+    ):
+        AccountId.from_string(invalid_id)
+
+@pytest.mark.parametrize(
+    'invalid_id', 
+    [
+        123,
+        None
+    ]
+)
+def test_from_string_for_invalid_types(invalid_id):
+    """Should raise error when creating AccountId from invalid types."""
+    with pytest.raises(
+        ValueError, match=f"AccountId must be a string, got {type(invalid_id).__name__}."
     ):
         AccountId.from_string(invalid_id)
 

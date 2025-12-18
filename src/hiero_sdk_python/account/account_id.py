@@ -79,9 +79,13 @@ class AccountId:
             ValueError: If the string format is invalid
         """
         if account_id_str is None or not isinstance(account_id_str, str):
-            raise ValueError(f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'.")
+            raise ValueError(f"AccountId must be a string, got {type(account_id_str).__name__}.")
         
-        if (account_id_str.startswith('0x') and len(account_id_str) == 42) or len(account_id_str) == 40:
+        if _is_evm_address(account_id_str):
+            # Detect EVM address input (raw 20-byte hex or 0x-prefixed).
+            # EVM addresses do not encode shard or realm information, so both
+            # values default to 0. The numeric account ID can later be resolved
+            # via the mirror node using populate_account_num().
             return cls.from_evm_address(account_id_str, 0, 0)
 
         try:
@@ -103,6 +107,8 @@ class AccountId:
                 alias_bytes = bytes.fromhex(alias)
                 is_evm_address = len(alias_bytes) == 20
 
+                # num is set to 0 because the numeric account ID is unknown at creation time.
+                # It can later be populated via the mirror node using populate_account_num().
                 return cls(
                     shard=int(shard),
                     realm=int(realm),
@@ -112,7 +118,12 @@ class AccountId:
                 )
 
             raise ValueError(
-                f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'."
+                f"Invalid account ID string '{account_id_str}'."
+                "Supported formats: "
+                "'shard.realm.num', "
+                "'shard.realm.num-checksum', "
+                "'shard.realm.<hex-alias>', "
+                "or a 20-byte EVM address."
             ) from e
 
     @classmethod
@@ -122,7 +133,7 @@ class AccountId:
         In case shard and realm are unknown, they should be set to zero
         
         Args:
-            evm_address (UNion[str, EvmAddress]): EVM address string or object
+            evm_address (Union[str, EvmAddress]): EVM address string or object
             shard (int): Shard number
             realm (int): Realm number
             
@@ -146,7 +157,7 @@ class AccountId:
         Deserialize an AccountId from protobuf-encoded bytes.
         
         Args:
-           data (butes): Protobuf bytes
+           data (bytes): Protobuf bytes
 
         Returns:
             AccountId: An instance of AccountId
@@ -330,3 +341,18 @@ class AccountId:
     def __hash__(self) -> int:
         """Returns a hash value for the AccountId instance."""
         return hash((self.shard, self.realm, self.num, self.alias_key, self.evm_address))
+
+def _is_evm_address(value: str) -> bool:
+    """Check if the given string value is an evm_address"""
+    if value.startswith("0x"):
+        value = value[2:]
+
+    if len(value) != 40:
+        return False
+
+    try:
+        bytes.fromhex(value)
+    except ValueError:
+        return False
+
+    return True
