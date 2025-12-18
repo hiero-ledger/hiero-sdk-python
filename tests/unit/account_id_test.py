@@ -209,8 +209,6 @@ def test_from_string_with_alias(request, alias_fixture):
         'a.b.c',  # Non-numeric parts
         '',  # Empty string
         '1.a.3',  # Partial numeric
-        123,
-        None,
         '0.0.-1',
         'abc.def.ghi',
         '0.0.1-ad',
@@ -227,7 +225,27 @@ def test_from_string_with_alias(request, alias_fixture):
 def test_from_string_for_invalid_format(invalid_id):
     """Should raise error when creating AccountId from invalid string input."""
     with pytest.raises(
-        ValueError, match=f"Invalid account ID string '{invalid_id}'. Expected format 'shard.realm.num'."
+        ValueError,
+        match=f"Invalid account ID string '{invalid_id}'."
+                "Supported formats: "
+                "'shard.realm.num', "
+                "'shard.realm.num-checksum', "
+                "'shard.realm.<hex-alias>', "
+                "or a 20-byte EVM address."
+    ):
+        AccountId.from_string(invalid_id)
+
+@pytest.mark.parametrize(
+    'invalid_id', 
+    [
+        123,
+        None
+    ]
+)
+def test_from_string_for_invalid_types(invalid_id):
+    """Should raise error when creating AccountId from invalid types."""
+    with pytest.raises(
+        ValueError, match=f"AccountId must be a string, got {type(invalid_id).__name__}."
     ):
         AccountId.from_string(invalid_id)
 
