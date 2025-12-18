@@ -19,13 +19,13 @@ from hiero_sdk_python import (
     TokenCreateTransaction,
     TokenMintTransaction,
     TokenInfoQuery,
-    ResponseCode
-
+    ResponseCode,
 )
 
 # Load environment variables from .env file
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Setup Client"""
@@ -34,8 +34,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
@@ -44,13 +44,13 @@ def setup_client():
         sys.exit(1)
 
 
-
 def generate_supply_key():
     """Generate a new supply key for the token."""
     print("\nSTEP 1: Generating a new supply key...")
-    supply_key = PrivateKey.generate(os.getenv('KEY_TYPE', 'ed25519'))
+    supply_key = PrivateKey.generate(os.getenv("KEY_TYPE", "ed25519"))
     print("✅ Supply key generated.")
     return supply_key
+
 
 def create_new_token():
     """
@@ -83,7 +83,7 @@ def create_new_token():
 
         # Confirm the token has a supply key set
         info = TokenInfoQuery().set_token_id(token_id).execute(client)
-        if getattr(info, 'supply_key', None):
+        if getattr(info, "supply_key", None):
             print("✅ Verified: Token has a supply key set.")
         else:
             print("❌ Warning: Token does not have a supply key set.")
@@ -102,7 +102,7 @@ def token_mint_fungible(client, token_id, supply_key):
     Only the holder of the supply key can perform these actions.
     """
 
-    mint_amount = 5000 # This is 50.00 tokens because decimals is 2
+    mint_amount = 5000  # This is 50.00 tokens because decimals is 2
     print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
 
     # Confirm total supply before minting
@@ -120,7 +120,9 @@ def token_mint_fungible(client, token_id, supply_key):
             .sign(supply_key)  # Must be signed by the supply key
             .execute(client)
         )
-        print(f"✅ Success! Token minting complete, Status: {ResponseCode(receipt.status).name}")
+        print(
+            f"✅ Success! Token minting complete, Status: {ResponseCode(receipt.status).name}"
+        )
 
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
@@ -128,6 +130,7 @@ def token_mint_fungible(client, token_id, supply_key):
     except (ValueError, TypeError) as e:
         print(f"❌ Error minting tokens: {e}")
         sys.exit(1)
+
 
 def main():
     """
@@ -138,6 +141,7 @@ def main():
     """
     client, token_id, supply_key = create_new_token()
     token_mint_fungible(client, token_id, supply_key)
+
 
 if __name__ == "__main__":
     main()

@@ -19,6 +19,7 @@ Run with:
   python examples/tokens/token_create_transaction_kyc_key.py
 
 """
+
 import os
 import sys
 import time
@@ -35,16 +36,20 @@ from hiero_sdk_python import (
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_associate_transaction import (
+    TokenAssociateTransaction,
+)
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
-from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
+from hiero_sdk_python.tokens.token_revoke_kyc_transaction import (
+    TokenRevokeKycTransaction,
+)
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
@@ -58,8 +63,8 @@ def setup_client():
     client = Client(Network(network=network_name))
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
         client.set_operator(operator_id, operator_key)
         print(f" Client configured with operator: {operator_id}\n")
         return client, operator_id, operator_key
@@ -95,7 +100,8 @@ def create_account(client, operator_key, initial_balance=Hbar(2)):
 
         if receipt.status != ResponseCode.SUCCESS:
             print(
-                f" Account creation failed with status: {ResponseCode(receipt.status).name}")
+                f" Account creation failed with status: {ResponseCode(receipt.status).name}"
+            )
             sys.exit(1)
 
         account_id = receipt.account_id
@@ -139,7 +145,8 @@ def create_token_without_kyc_key(client, operator_id, operator_key):
 
         if receipt.status != ResponseCode.SUCCESS:
             print(
-                f" Token creation failed with status: {ResponseCode(receipt.status).name}")
+                f" Token creation failed with status: {ResponseCode(receipt.status).name}"
+            )
             sys.exit(1)
 
         token_id = receipt.token_id
@@ -221,7 +228,8 @@ def create_token_with_kyc_key(client, operator_id, operator_key, kyc_private_key
 
         if receipt.status != ResponseCode.SUCCESS:
             print(
-                f" Token creation failed with status: {ResponseCode(receipt.status).name}")
+                f" Token creation failed with status: {ResponseCode(receipt.status).name}"
+            )
             sys.exit(1)
 
         token_id = receipt.token_id
@@ -250,7 +258,8 @@ def associate_token_to_account(client, token_id, account_id, account_private_key
 
         if receipt.status != ResponseCode.SUCCESS:
             print(
-                f" Token association failed with status: {ResponseCode(receipt.status).name}")
+                f" Token association failed with status: {ResponseCode(receipt.status).name}"
+            )
             sys.exit(1)
 
         print(f" Token {token_id} associated with account {account_id}")
@@ -259,7 +268,9 @@ def associate_token_to_account(client, token_id, account_id, account_private_key
         sys.exit(1)
 
 
-def attempt_transfer_without_kyc(client, token_id, operator_id, recipient_id, operator_key):
+def attempt_transfer_without_kyc(
+    client, token_id, operator_id, recipient_id, operator_key
+):
     """
     Attempt to transfer tokens to an account that has not been granted KYC.
     Depending on token configuration, this may fail.
@@ -279,8 +290,7 @@ def attempt_transfer_without_kyc(client, token_id, operator_id, recipient_id, op
             .token_balances
         )
         recipient_balance_before = balance_before.get(token_id, 0)
-        print(
-            f"Recipient's token balance before transfer: {recipient_balance_before}")
+        print(f"Recipient's token balance before transfer: {recipient_balance_before}")
 
         # Attempt transfer
         transfer_tx = (
@@ -308,7 +318,8 @@ def attempt_transfer_without_kyc(client, token_id, operator_id, recipient_id, op
             )
             recipient_balance_after = balance_after.get(token_id, 0)
             print(
-                f"Recipient's token balance after transfer: {recipient_balance_after}\n")
+                f"Recipient's token balance after transfer: {recipient_balance_after}\n"
+            )
             return True
     except Exception as e:
         print(f" Error during transfer attempt: {e}\n")
@@ -335,8 +346,7 @@ def grant_kyc_to_account(client, token_id, account_id, kyc_private_key):
         )
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f" KYC grant failed with status: {ResponseCode(receipt.status).name}")
+            print(f" KYC grant failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         print(f" KYC granted for account {account_id} on token {token_id}\n")
@@ -362,8 +372,7 @@ def transfer_token_after_kyc(client, token_id, operator_id, recipient_id, operat
             .token_balances
         )
         recipient_balance_before = balance_before.get(token_id, 0)
-        print(
-            f"Recipient's token balance before transfer: {recipient_balance_before}")
+        print(f"Recipient's token balance before transfer: {recipient_balance_before}")
 
         # Perform transfer
         transfer_tx = (
@@ -390,8 +399,7 @@ def transfer_token_after_kyc(client, token_id, operator_id, recipient_id, operat
             .token_balances
         )
         recipient_balance_after = balance_after.get(token_id, 0)
-        print(
-            f"Recipient's token balance after transfer: {recipient_balance_after}\n")
+        print(f"Recipient's token balance after transfer: {recipient_balance_after}\n")
     except Exception as e:
         print(f" Error transferring token: {e}")
         sys.exit(1)
@@ -418,7 +426,8 @@ def revoke_kyc_from_account(client, token_id, account_id, kyc_private_key):
 
         if receipt.status != ResponseCode.SUCCESS:
             print(
-                f" KYC revoke failed with status: {ResponseCode(receipt.status).name}")
+                f" KYC revoke failed with status: {ResponseCode(receipt.status).name}"
+            )
             return False
 
         print(f" KYC revoked for account {account_id} on token {token_id}")
@@ -450,30 +459,31 @@ def main():
 
         # ===== PART 1: Token WITHOUT KYC Key =====
         token_without_kyc = create_token_without_kyc_key(
-            client, operator_id, operator_key)
+            client, operator_id, operator_key
+        )
 
         # Create test account for failed KYC attempt
-        test_account_1, test_account_key_1 = create_account(
-            client, operator_key)
+        test_account_1, test_account_key_1 = create_account(client, operator_key)
         associate_token_to_account(
-            client, token_without_kyc, test_account_1, test_account_key_1)
+            client, token_without_kyc, test_account_1, test_account_key_1
+        )
 
         # Try to grant KYC (should fail)
-        attempt_kyc_without_key(client, token_without_kyc,
-                                test_account_1, operator_key)
+        attempt_kyc_without_key(client, token_without_kyc, test_account_1, operator_key)
 
         # ===== PART 2: Token WITH KYC Key =====
         token_with_kyc = create_token_with_kyc_key(
-            client, operator_id, operator_key, kyc_private_key)
+            client, operator_id, operator_key, kyc_private_key
+        )
 
         # Create and associate an account for KYC testing
         print("\n" + "=" * 70)
         print("STEP 4: Creating a new account for KYC testing")
         print("=" * 70)
-        test_account_2, test_account_key_2 = create_account(
-            client, operator_key)
+        test_account_2, test_account_key_2 = create_account(client, operator_key)
         associate_token_to_account(
-            client, token_with_kyc, test_account_2, test_account_key_2)
+            client, token_with_kyc, test_account_2, test_account_key_2
+        )
 
         # Try to transfer without KYC (may fail)
         transfer_without_kyc_result = attempt_transfer_without_kyc(
@@ -481,19 +491,18 @@ def main():
         )
 
         # Grant KYC
-        grant_kyc_to_account(client, token_with_kyc,
-                             test_account_2, kyc_private_key)
+        grant_kyc_to_account(client, token_with_kyc, test_account_2, kyc_private_key)
 
         # Wait a moment for state to be consistent
         time.sleep(1)
 
         # Transfer after KYC (should succeed)
         transfer_token_after_kyc(
-            client, token_with_kyc, operator_id, test_account_2, operator_key)
+            client, token_with_kyc, operator_id, test_account_2, operator_key
+        )
 
         # ===== BONUS: Revoke KYC =====
-        revoke_kyc_from_account(client, token_with_kyc,
-                                test_account_2, kyc_private_key)
+        revoke_kyc_from_account(client, token_with_kyc, test_account_2, kyc_private_key)
 
         # Print summary
         print("\n" + "=" * 70)

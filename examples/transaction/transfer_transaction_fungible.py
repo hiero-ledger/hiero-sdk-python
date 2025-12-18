@@ -3,6 +3,7 @@ uv run examples/transaction/transfer_transaction_fungible.py
 python examples/transaction/transfer_transaction_fungible.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -17,11 +18,12 @@ from hiero_sdk_python import (
     Hbar,
     TokenCreateTransaction,
     CryptoGetAccountBalanceQuery,
-    TokenAssociateTransaction
+    TokenAssociateTransaction,
 )
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 # --------------------------
 #  CLIENT SETUP
@@ -33,8 +35,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID',''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY',''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
 
@@ -42,6 +44,7 @@ def setup_client():
     except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
+
 
 # --------------------------
 #  ACCOUNT CREATION
@@ -60,11 +63,12 @@ def create_account(client, operator_key):
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
         return recipient_id, recipient_key
-    
+
     except Exception as e:
         print(f"Error creating new account: {e}")
         sys.exit(1)
-        
+
+
 # --------------------------
 #  TOKEN CREATION
 # --------------------------
@@ -89,6 +93,7 @@ def create_token(client, operator_id, operator_key):
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
+
 # --------------------------
 #  TOKEN ASSOCIATION
 # --------------------------
@@ -107,8 +112,9 @@ def associate_token(client, recipient_id, recipient_key, token_id):
         print(f"❌ Error associating token: {e}")
         sys.exit(1)
 
+
 # --------------------------
-#  ACCOUNT BALANCE QUERY 
+#  ACCOUNT BALANCE QUERY
 # --------------------------
 def account_balance_query(client, account_id):
     """Query and return token balances for an account."""
@@ -119,8 +125,9 @@ def account_balance_query(client, account_id):
         print(f"❌ Error fetching account balance: {e}")
         sys.exit(1)
 
+
 # --------------------------
-#  TRANSFER TRANSACTION 
+#  TRANSFER TRANSACTION
 # --------------------------
 def transfer_transaction(client, operator_id, operator_key, recipient_id, token_id):
     """Execute a token transfer transaction."""
@@ -140,6 +147,7 @@ def transfer_transaction(client, operator_id, operator_key, recipient_id, token_
     except Exception as e:
         print(f"❌ Error transferring token: {e}")
         sys.exit(1)
+
 
 # --------------------------
 #  MAIN ORCHESTRATOR (RENAMED)
@@ -173,7 +181,6 @@ def main():
     balance_after = account_balance_query(client, recipient_id)
     print("Token balance AFTER transfer:")
     print(f"{token_id}: {balance_after.get(token_id)}")
-        
 
 
 if __name__ == "__main__":

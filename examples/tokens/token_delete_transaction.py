@@ -17,18 +17,19 @@ from hiero_sdk_python import (
 
 # Load environment variables from .env file
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
-    """Setup Client """
+    """Setup Client"""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
     # Get the operator account from the .env file
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         # Set the operator (payer) account for the client
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
@@ -36,7 +37,7 @@ def setup_client():
     except (TypeError, ValueError):
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
-    
+
 
 def generate_admin_key():
     """Generate a new admin key within the script:
@@ -44,12 +45,13 @@ def generate_admin_key():
     """
 
     print("\nGenerating a new admin key for the token...")
-    admin_key = PrivateKey.generate(os.getenv('KEY_TYPE', 'ed25519'))
+    admin_key = PrivateKey.generate(os.getenv("KEY_TYPE", "ed25519"))
     print("Admin key generated successfully.")
     return admin_key
 
+
 def create_new_token(client, operator_id, operator_key, admin_key):
-    """ Create the Token"""
+    """Create the Token"""
     token_id_to_delete = None
 
     try:
@@ -62,7 +64,7 @@ def create_new_token(client, operator_id, operator_key, admin_key):
             .set_treasury_account_id(operator_id)
             .set_admin_key(admin_key)  # Use the newly generated admin key
             .freeze_with(client)
-            .sign(operator_key) # Operator (treasury) must sign
+            .sign(operator_key)  # Operator (treasury) must sign
             .sign(admin_key)  # The new admin key must also sign
         )
 
@@ -92,10 +94,10 @@ def delete_token(admin_key, token_id_to_delete, client, operator_key):
         print(f"\nSTEP 2: Deleting token {token_id_to_delete}...")
         delete_tx = (
             TokenDeleteTransaction()
-            .set_token_id(token_id_to_delete) # Use the ID from the token we just made
+            .set_token_id(token_id_to_delete)  # Use the ID from the token we just made
             .freeze_with(client)  # Use the ID from the token we just made
-            .sign(operator_key) # Operator must sign
-            .sign(admin_key) # Sign with the same admin key used to create it
+            .sign(operator_key)  # Operator must sign
+            .sign(admin_key)  # Sign with the same admin key used to create it
         )
 
         delete_receipt = delete_tx.execute(client)
@@ -112,6 +114,7 @@ def delete_token(admin_key, token_id_to_delete, client, operator_key):
         print(f"❌ Error deleting token: {repr(e)}")
         sys.exit(1)
 
+
 def main():
     """
     1. Call create_new_token() to create a new token and get its admin key, token ID, client, and operator key.
@@ -125,6 +128,7 @@ def main():
     admin_key = generate_admin_key()
     token_id_to_delete = create_new_token(client, operator_id, operator_key, admin_key)
     delete_token(admin_key, token_id_to_delete, client, operator_key)
+
 
 if __name__ == "__main__":
     main()

@@ -1,11 +1,13 @@
 """
-Run with: 
+Run with:
 uv run examples/tokens/custom_fixed_fee.py
 python examples/tokens/custom_fixed_fee.py
 """
+
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 def custom_fixed_fee():
     fixed_fee = CustomFixedFee(
@@ -19,9 +21,9 @@ def custom_fixed_fee():
 
     # Convert to protobuf
     fixed_fee_proto = fixed_fee._to_proto()
-    
+
     print("Fixed Fee Protobuf:", fixed_fee_proto)
-    
-    
+
+
 if __name__ == "__main__":
     custom_fixed_fee()

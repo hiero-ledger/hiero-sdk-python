@@ -3,6 +3,7 @@ uv run examples/query/token_info_query_nft.py
 python examples/token_info_query_nft.py
 
 """
+
 import os
 import sys
 
@@ -22,7 +23,8 @@ from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransact
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -30,12 +32,13 @@ def setup_client():
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
+
 
 def create_nft(client, operator_id, operator_key):
     """Create a non-fungible token"""
@@ -54,17 +57,18 @@ def create_nft(client, operator_id, operator_key):
         .set_freeze_key(operator_key)
         .execute(client)
     )
-    
+
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-    
+
     # Get token ID from receipt
     nft_token_id = receipt.token_id
     print(f"NFT created with ID: {nft_token_id}")
-    
+
     return nft_token_id
+
 
 def query_token_info():
     """
@@ -75,9 +79,10 @@ def query_token_info():
     """
     client, operator_id, operator_key = setup_client()
     token_id = create_nft(client, operator_id, operator_key)
-    
+
     info = TokenInfoQuery().set_token_id(token_id).execute(client)
     print(f"Non-fungible token info: {info}")
+
 
 if __name__ == "__main__":
     query_token_info()

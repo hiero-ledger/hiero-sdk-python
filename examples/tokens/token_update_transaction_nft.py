@@ -3,6 +3,7 @@ uv run examples/tokens/token_update_transaction_nft.py
 python examples/tokens/token_update_transaction_nft.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -21,7 +22,8 @@ from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransact
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -29,22 +31,23 @@ def setup_client():
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
 
+
 def create_nft(client, operator_id, operator_key, metadata_key):
     """
     Create a non-fungible token
-    
+
     If we want to update metadata later using TokenUpdateTransaction:
     1. Set a metadata_key and sign the update transaction with it, or
     2. Sign the update transaction with the admin_key
-    
-    Note: If no Admin Key was assigned during token creation (immutable token), 
+
+    Note: If no Admin Key was assigned during token creation (immutable token),
     token updates will fail with TOKEN_IS_IMMUTABLE.
     """
     receipt = (
@@ -63,29 +66,36 @@ def create_nft(client, operator_id, operator_key, metadata_key):
         .set_metadata_key(metadata_key)
         .execute(client)
     )
-    
+
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT creation failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(
+            f"NFT creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        )
         sys.exit(1)
-    
+
     # Get token ID from receipt
     nft_token_id = receipt.token_id
     print(f"NFT created with ID: {nft_token_id}")
-    
+
     return nft_token_id
+
 
 def get_nft_info(client, nft_token_id):
     """Get information about an NFT"""
-    info = (
-        TokenInfoQuery()
-        .set_token_id(nft_token_id)
-        .execute(client)
-    )
-    
+    info = TokenInfoQuery().set_token_id(nft_token_id).execute(client)
+
     return info
 
-def update_nft_data(client, nft_token_id, update_metadata, update_token_name, update_token_symbol, update_token_memo):
+
+def update_nft_data(
+    client,
+    nft_token_id,
+    update_metadata,
+    update_token_name,
+    update_token_symbol,
+    update_token_memo,
+):
     """Update data for an NFT"""
     receipt = (
         TokenUpdateTransaction()
@@ -96,12 +106,15 @@ def update_nft_data(client, nft_token_id, update_metadata, update_token_name, up
         .set_token_memo(update_token_memo)
         .execute(client)
     )
-    
+
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT data update failed with status: {ResponseCode.get_name(receipt.status)}")
+        print(
+            f"NFT data update failed with status: {ResponseCode.get_name(receipt.status)}"
+        )
         sys.exit(1)
-    
+
     print(f"Successfully updated NFT data")
+
 
 def token_update_nft():
     """
@@ -113,27 +126,35 @@ def token_update_nft():
     5. Verifying the updated NFT info
     """
     client, operator_id, operator_key = setup_client()
-    
+
     # Create metadata key
     metadata_private_key = PrivateKey.generate_ed25519()
-    
+
     nft_token_id = create_nft(client, operator_id, operator_key, metadata_private_key)
-    
+
     print("\nNFT info before update:")
     nft_info = get_nft_info(client, nft_token_id)
     print(nft_info)
-    
+
     # New data to update the NFT
     update_metadata = b"Updated metadata"
     update_token_name = "Updated NFT"
     update_token_symbol = "UPD"
     update_token_memo = "Updated memo"
-    
-    update_nft_data(client, nft_token_id, update_metadata, update_token_name, update_token_symbol, update_token_memo)
-    
+
+    update_nft_data(
+        client,
+        nft_token_id,
+        update_metadata,
+        update_token_name,
+        update_token_symbol,
+        update_token_memo,
+    )
+
     print("\nNFT info after update:")
     nft_info = get_nft_info(client, nft_token_id)
     print(nft_info)
-    
+
+
 if __name__ == "__main__":
     token_update_nft()

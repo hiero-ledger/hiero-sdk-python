@@ -78,7 +78,7 @@ def create_revenue_generating_topic(client: Client, operator_id: AccountId):
         print("This topic charges a fixed fee of 1 HBAR per message.")
 
         return topic_id
-    except Exception as e:   # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         print(f"Failed to create topic: {e}")
         return None
 
@@ -124,7 +124,7 @@ def submit_message_with_custom_fee_limit(
 
         print("Message submitted successfully!")
         print(f"Transaction status: {submit_receipt.status}")
-    except Exception as e:    # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         print(f"Transaction failed: {e}")
 
 
