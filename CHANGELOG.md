@@ -64,6 +64,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Rename test files across the repository to ensure they consistently end with _test.py (#1055)
 - Cleaned up `token_airdrop_claim_signature_required` example for pylint compliance (no functional changes). (#1080)
 - Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with _test.py as all other test files.(#1117)
+- Format token examples with Black for consistent code style and improved readability (#1119)
 
 
 ### Fixed
