@@ -86,6 +86,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - good first issue template yaml rendering
 - Fixed solo workflow defaulting to zero
 - Fix unit test tet_query.py
+- TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 
 ### Breaking Change
 
