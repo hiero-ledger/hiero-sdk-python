@@ -5,7 +5,7 @@ RESET="\033[0m"
 
 # Base directories where test files should reside
 TEST_DIRS=("tests/unit" "tests/integration")
-EXCEPTION_NAMES=("conftest.py" "init.py" "__init__.py" "mock_server.py")
+EXCEPTION_NAMES=("conftest.py" "init.py" "__init__.py" "mock_server.py" "utils.py")
 DIFF_FILES=$(git diff --name-status origin/main)
 ERRORS=()
 
