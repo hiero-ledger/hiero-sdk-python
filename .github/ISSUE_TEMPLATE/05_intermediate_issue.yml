@@ -9,18 +9,35 @@ body:
     attributes:
       value: |
         ---
-        ## 👋 Thanks for contributing!
+        ## **Thanks for contributing!** 😊
 
-        This issue is classified as **Intermediate**.
+        We truly appreciate your time and effort. 
+        This template is designed to help you create an Intermediate issue.
 
-        It is intended for contributors who already have:
+        The goal is to create an issue for users that have:
         - basic familiarity with the Hiero Python SDK codebase
         - experience following our contribution workflow
         - confidence navigating existing source code and examples
-
-        If you are brand new to the project, we recommend starting with a few
-        **Good First Issues** before picking this up.
         ---
+
+  - type: textarea
+    id: intro
+    attributes:
+      label: 🧩 Intermediate Contributors
+      description: Who is this issue for?
+      value: |
+        This issue is intended for contributors who already have some familiarity with the
+        [Hiero Python SDK](https://hiero.org) codebase and contribution workflow.
+  
+        You should feel comfortable:
+        - navigating existing source code and examples
+        - understanding SDK concepts without step-by-step guidance
+        - following the standard PR workflow without additional onboarding
+  
+        If this is your very first contribution to the project, we recommend starting with a few
+        **Good First Issues** before working on this one.
+    validations:
+      required: false
 
   - type: markdown
     attributes:
