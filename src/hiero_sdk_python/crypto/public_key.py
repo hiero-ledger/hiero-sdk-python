@@ -547,6 +547,17 @@ class PublicKey:
         data_hash = keccak256(data)
         self._public_key.verify(signature_der, data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
 
+    def to_evm_address(self) -> "EvmAddress":
+        if self.is_ed25519():
+            raise ValueError("")
+        
+        uncompressed = self.to_bytes_ecdsa(False)
+        keccak_bytes = keccak256(uncompressed[1:])
+
+        evm_address = keccak_bytes[-20:]
+
+        return EvmAddress.from_bytes(evm_address)
+
     def __repr__(self) -> str:
         """
         Returns a string representation of the PublicKey.
