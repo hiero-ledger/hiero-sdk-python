@@ -62,9 +62,26 @@ def create_account(client, operator_key):
         sys.exit(1)
 
 
+def _print_receipt_with_children(queried_receipt):
+    """Pretty-print receipt status and any child receipts."""
+    print(f"✅ Queried transaction status: {ResponseCode(queried_receipt.status).name}")
+
+    children = queried_receipt.children
+    print(f"Child receipts count: {len(children)}")
+
+    if not children:
+        print("No child receipts returned (this can be normal depending on transaction type).")
+        return
+
+    print("Child receipts:")
+    for idx, child in enumerate(children, start=1):
+        print(f"  {idx}. status={ResponseCode(child.status).name}")
+
+
 def query_receipt():
     """
-    A full example that include account creation, Hbar transfer, and receipt querying
+    A full example that include account creation, Hbar transfer, and receipt querying.
+    Demonstrates include_child_receipts support (SDK API: set_include_children).
     """
     # Config Client
     client, operator_id, operator_key = setup_client()
@@ -80,7 +97,7 @@ def query_receipt():
         .add_hbar_transfer(operator_id, -Hbar(amount).to_tinybars())
         .add_hbar_transfer(recipient_id, Hbar(amount).to_tinybars())
         .freeze_with(client)
-        .sign(operator_key)
+       .sign(operator_key)
     )
 
     receipt = transaction.execute(client)
@@ -91,13 +108,15 @@ def query_receipt():
     )
 
     # Query Transaction Receipt
-    print("\nSTEP 3: Querying transaction receipt...")
-    receipt_query = TransactionGetReceiptQuery().set_transaction_id(transaction_id)
+    print("\nSTEP 3: Querying transaction receipt (include child receipts)...")
+    receipt_query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True)
     queried_receipt = receipt_query.execute(client)
     print(
         f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}"
     )
 
+
+    _print_receipt_with_children(queried_receipt)
 
 if __name__ == "__main__":
     query_receipt()
