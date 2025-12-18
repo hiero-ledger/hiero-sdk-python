@@ -22,6 +22,10 @@ uv run examples/tokens/token_airdrop_claim_signature_required.py
 python examples/tokens/token_airdrop_claim_signature_required.py
 """
 
+# pylint: disable=import-error,
+# pylint: disable=too-many-arguments,
+# pylint: disable=protected-access,
+# pylint: disable=broad-except
 import os
 import sys
 from typing import Iterable, List, Dict
@@ -48,12 +52,16 @@ from hiero_sdk_python import (
     PendingAirdropId,
     TransactionRecordQuery,
     TransactionRecord,
-    TransactionId
+    TransactionId,
 )
 
 load_dotenv()
 
+
 def setup_client():
+    """
+    Sets up the Hedera client using environment variables.
+    """
     network_name = os.getenv("NETWORK", "testnet")
 
     # Validate environment variables
@@ -66,22 +74,24 @@ def setup_client():
         print(f"Connecting to Hedera {network_name} network!")
         client = Client(network)
 
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ''))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
 
-    except Exception as e:
-        raise ConnectionError(f'Error initializing client: {e}') from e
+    except Exception as exc:
+        raise ConnectionError(f"Error initializing client: {exc}") from exc
 
     print(f"✅ Connected to Hedera {network_name} network as operator: {operator_id}")
     return client, operator_id, operator_key
 
+
 def create_receiver(
-        client: Client,
-        signature_required: bool =True,
-        max_auto_assoc: int = 0
-    ):
+    client: Client, signature_required: bool = True, max_auto_assoc: int = 0
+):
+    """
+    Creates a receiver account with specific configurations.
+    """
     receiver_key = PrivateKey.generate()
     receiver_public_key = receiver_key.public_key()
 
@@ -106,18 +116,22 @@ def create_receiver(
             f"(auto-assoc={max_auto_assoc}, sig_required={signature_required})"
         )
         return receiver_id, receiver_key
-    except Exception as e:
-        raise RuntimeError(f"❌ Error creating receiver account: {e}") from e
+    except Exception as exc:
+        raise RuntimeError(f"❌ Error creating receiver account: {exc}") from exc
+
 
 def create_fungible_token(
-        client: Client,
-        operator_id: AccountId,
-        operator_key: PrivateKey,
-        name: str ="My Fungible Token",
-        symbol: str ="MFT",
-        initial_supply: int =50,
-        max_supply: int = 1000,
-    ):
+    client: Client,
+    operator_id: AccountId,
+    operator_key: PrivateKey,
+    name: str = "My Fungible Token",
+    symbol: str = "MFT",
+    initial_supply: int = 50,
+    max_supply: int = 1000,
+):
+    """
+    Creates a fungible token.
+    """
     try:
         receipt = (
             TokenCreateTransaction()
@@ -139,17 +153,21 @@ def create_fungible_token(
 
         print(f"✅ Fungible token created: {token_id}")
         return token_id
-    except Exception as e:
-        raise RuntimeError(f"❌ Error creating fungible token: {e}") from e
+    except Exception as exc:
+        raise RuntimeError(f"❌ Error creating fungible token: {exc}") from exc
+
 
 def create_nft_token(
-        client: Client,
-        operator_id: AccountId,
-        operator_key: PrivateKey,
-        name: str ="My NFT Token",
-        symbol: str ="MNT",
-        max_supply: int = 100
-    ):
+    client: Client,
+    operator_id: AccountId,
+    operator_key: PrivateKey,
+    name: str = "My NFT Token",
+    symbol: str = "MNT",
+    max_supply: int = 100,
+):
+    """
+    Creates an NFT token.
+    """
     try:
         receipt = (
             TokenCreateTransaction()
@@ -172,14 +190,18 @@ def create_nft_token(
 
         print(f"✅ NFT token created: {token_id}")
         return token_id
-    except Exception as e:
-        raise RuntimeError(f"❌ Error creating NFT token: {e}") from e
+    except Exception as exc:
+        raise RuntimeError(f"❌ Error creating NFT token: {exc}") from exc
+
 
 def mint_nft_token(
-        client: Client,
-        operator_key: PrivateKey,
-        nft_token_id: TokenId,
-    ):
+    client: Client,
+    operator_key: PrivateKey,
+    nft_token_id: TokenId,
+):
+    """
+    Mints an NFT token.
+    """
     try:
         receipt = (
             TokenMintTransaction()
@@ -199,22 +221,26 @@ def mint_nft_token(
         print(f"✅ NFT {nft_token_id} serial {serial} minted with NFT id of {nft_id}.")
         print(f"   Total NFT supply is {total_supply}")
         return nft_id
-    except Exception as e:
-        raise RuntimeError(f"❌ Error minting NFT token: {e}") from e
+    except Exception as exc:
+        raise RuntimeError(f"❌ Error minting NFT token: {exc}") from exc
+
 
 def get_token_association_status(
-        client: Client,
-        receiver_id: AccountId,
-        token_ids: List[TokenId]
-    ) -> Dict[TokenId, bool]:
+    client: Client, receiver_id: AccountId, token_ids: List[TokenId]
+) -> Dict[TokenId, bool]:
+    """
+    Checks if the receiver account is associated with the given tokens.
+    """
     try:
         # Query the receiver's balance, which includes token associations
-        balance = CryptoGetAccountBalanceQuery()\
-                    .set_account_id(receiver_id)\
-                    .execute(client)
+        balance = (
+            CryptoGetAccountBalanceQuery().set_account_id(receiver_id).execute(client)
+        )
 
         associated_tokens = set(balance.token_balances.keys())
-        association_status = {token_id: token_id in associated_tokens for token_id in token_ids}
+        association_status = {
+            token_id: token_id in associated_tokens for token_id in token_ids
+        }
 
         print(f"✅ Association status for account {receiver_id}:")
         for tid, associated in association_status.items():
@@ -222,10 +248,15 @@ def get_token_association_status(
 
         return association_status
 
-    except Exception as e:
-        print(f"❌ Failed to fetch token associations for account {receiver_id}: {e}")
+    except Exception as exc:
+        print(f"❌ Failed to fetch token associations for account {receiver_id}: {exc}")
         return {token_id: False for token_id in token_ids}
-def log_fungible_balances(account_id: AccountId, balances: dict, token_ids: Iterable[TokenId]):
+
+
+def log_fungible_balances(balances: dict, token_ids: Iterable[TokenId]):
+    """
+    Logs the balances of fungible tokens.
+    """
     print("  Fungible tokens:")
     for token_id in token_ids:
         amount = balances.get(token_id, 0)
@@ -233,6 +264,9 @@ def log_fungible_balances(account_id: AccountId, balances: dict, token_ids: Iter
 
 
 def log_nft_balances(client: Client, account_id: AccountId, nft_ids: Iterable[NftId]):
+    """
+    Logs the ownership of NFTs.
+    """
     print("  NFTs:")
     owned_nfts = []
     for nft_id in nft_ids:
@@ -240,8 +274,8 @@ def log_nft_balances(client: Client, account_id: AccountId, nft_ids: Iterable[Nf
             info = TokenNftInfoQuery().set_nft_id(nft_id).execute(client)
             if info.account_id == account_id:
                 owned_nfts.append(str(nft_id))
-        except Exception as e:
-            print(f"    ⚠️ Error fetching NFT {nft_id}: {e}")
+        except Exception as exc:
+            print(f"    ⚠️ Error fetching NFT {nft_id}: {exc}")
 
     if owned_nfts:
         for nft in owned_nfts:
@@ -256,15 +290,22 @@ def log_balances(
     receiver_id: AccountId,
     fungible_ids: Iterable[TokenId],
     nft_ids: Iterable[NftId],
-    prefix: str = ""
+    prefix: str = "",
 ):
+    """
+    Logs the balances of both the operator and receiver accounts.
+    """
     print(f"\n===== {prefix} Balances =====")
 
     try:
-        operator_balance = CryptoGetAccountBalanceQuery().set_account_id(operator_id).execute(client)
-        receiver_balance = CryptoGetAccountBalanceQuery().set_account_id(receiver_id).execute(client)
-    except Exception as e:
-        print(f"❌ Failed to fetch balances: {e}")
+        operator_balance = (
+            CryptoGetAccountBalanceQuery().set_account_id(operator_id).execute(client)
+        )
+        receiver_balance = (
+            CryptoGetAccountBalanceQuery().set_account_id(receiver_id).execute(client)
+        )
+    except Exception as exc:
+        print(f"❌ Failed to fetch balances: {exc}")
         return
 
     operator_balances = dict(operator_balance.token_balances)
@@ -274,60 +315,66 @@ def log_balances(
     # SENDER BALANCES
     # ------------------------------
     print(f"\nSender ({operator_id}):")
-    log_fungible_balances(operator_id, operator_balances, fungible_ids)
+    log_fungible_balances(operator_balances, fungible_ids)
     log_nft_balances(client, operator_id, nft_ids)
 
     # ------------------------------
     # RECEIVER BALANCES
     # ------------------------------
     print(f"\nReceiver ({receiver_id}):")
-    log_fungible_balances(receiver_id, receiver_balances, fungible_ids)
+    log_fungible_balances(receiver_balances, fungible_ids)
     log_nft_balances(client, receiver_id, nft_ids)
 
     print("=============================================\n")
 
+
 def perform_airdrop(
-        client: Client,
-        operator_id: AccountId,
-        operator_key: PrivateKey,
-        receiver_id: AccountId,
-        fungible_ids: Iterable[TokenId],
-        nft_ids: Iterable[NftId],
-        ft_amount: int = 100
-    ):
+    client: Client,
+    operator_id: AccountId,
+    operator_key: PrivateKey,
+    receiver_id: AccountId,
+    fungible_ids: Iterable[TokenId],
+    nft_ids: Iterable[NftId],
+    ft_amount: int = 100,
+):
+    """
+    Performs an airdrop of fungible and NFT tokens.
+    """
 
     try:
-        tx = TokenAirdropTransaction()
+        transaction = TokenAirdropTransaction()
 
         for fungible_id in fungible_ids:
-            tx.add_token_transfer(fungible_id, operator_id, -ft_amount)
-            tx.add_token_transfer(fungible_id, receiver_id, ft_amount)
+            transaction.add_token_transfer(fungible_id, operator_id, -ft_amount)
+            transaction.add_token_transfer(fungible_id, receiver_id, ft_amount)
             print(f"📤 Transferring {ft_amount} of fungible token {fungible_id}")
             print(f"   from {operator_id} → {receiver_id}")
 
         for nft_id in nft_ids:
-            tx.add_nft_transfer(nft_id, operator_id, receiver_id)
+            transaction.add_nft_transfer(nft_id, operator_id, receiver_id)
             print(f"🎨 Transferring NFT {nft_id} from {operator_id} → {receiver_id}")
 
         print("\n⏳ Submitting airdrop transaction...")
-        receipt = tx.freeze_with(client).sign(operator_key).execute(client)
+        receipt = transaction.freeze_with(client).sign(operator_key).execute(client)
 
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode(receipt.status).name
-            raise RuntimeError(f"Airdrop transaction failed with status: {status_message}")
+            raise RuntimeError(
+                f"Airdrop transaction failed with status: {status_message}"
+            )
 
         transaction_id = receipt.transaction_id
         print(f"✅ Airdrop executed successfully! Transaction ID: {transaction_id}")
 
         return transaction_id
-    except Exception as e:
-        print(f"❌ Airdrop failed: {e}")
-        raise RuntimeError("Airdrop execution failed") from e
+    except Exception as exc:
+        print(f"❌ Airdrop failed: {exc}")
+        raise RuntimeError("Airdrop execution failed") from exc
+
 
 def fetch_pending_airdrops(
-        client: Client,
-        transaction_id: TransactionId
-    ) -> List[PendingAirdropId]:
+    client: Client, transaction_id: TransactionId
+) -> List[PendingAirdropId]:
     """
     Retrieve all pending airdrop IDs generated by a specific transaction.
 
@@ -336,7 +383,9 @@ def fetch_pending_airdrops(
     `new_pending_airdrops` field.
     """
     try:
-        record: TransactionRecord = TransactionRecordQuery(transaction_id).execute(client)
+        record: TransactionRecord = TransactionRecordQuery(transaction_id).execute(
+            client
+        )
         pending_airdrops = record.new_pending_airdrops  # List of PendingAirdropRecord
 
         pending_airdrop_ids = [p.pending_airdrop_id for p in pending_airdrops]
@@ -347,15 +396,16 @@ def fetch_pending_airdrops(
 
         return pending_airdrop_ids
 
-    except Exception as e:
-        print(f"❌ Failed to fetch pending airdrops for transaction {transaction_id}: {e}")
+    except Exception as exc:
+        print(
+            f"❌ Failed to fetch pending airdrops for transaction {transaction_id}: {exc}"
+        )
         return []
 
+
 def claim_airdrop(
-        client: Client,
-        receiver_key: PrivateKey,
-        pending_airdrops: List[PendingAirdropId]
-    ):
+    client: Client, receiver_key: PrivateKey, pending_airdrops: List[PendingAirdropId]
+):
     """
     Claims one or more pending airdrops on behalf of the receiver.
 
@@ -364,26 +414,30 @@ def claim_airdrop(
     safely retrieve and display the list of pending airdrop IDs before execution
     """
     try:
-        tx = (
+        transaction = (
             TokenClaimAirdropTransaction()
             .add_pending_airdrop_ids(pending_airdrops)
             .freeze_with(client)
-            .sign(receiver_key) # Signing with receiver is required
+            .sign(receiver_key)  # Signing with receiver is required
         )
-        print(f"{tx}")
+        print(f"{transaction}")
 
-        receipt = tx.execute(client)
+        receipt = transaction.execute(client)
 
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode(receipt.status).name
             raise RuntimeError(f"❌ Airdrop claim failed: {status_message}")
 
-        print(f"✅ airdrop claimed")
+        print("✅ airdrop claimed")
         return receipt
-    except Exception as e:
-        raise RuntimeError(f"❌ Error claiming airdrop: {e}") from e
+    except Exception as exc:
+        raise RuntimeError(f"❌ Error claiming airdrop: {exc}") from exc
+
 
 def main():
+    """
+    Main function to execute the airdrop claim example.
+    """
     # Set up client and return client, operator_id, operator_key
     client, operator_id, operator_key = setup_client()
 
@@ -396,7 +450,7 @@ def main():
         name="My Fungible Token",
         symbol="123",
         initial_supply=50,
-        max_supply = 2000
+        max_supply=2000,
     )
 
     # Create and return an nft token to airdrop
@@ -405,35 +459,25 @@ def main():
         operator_id,
         operator_key,
         name="My NFT Token",
-        symbol = "MNFT",
-        max_supply=1000
+        symbol="MNFT",
+        max_supply=1000,
     )
 
     # Mint and return an nft to airdrop
-    nft_serial = mint_nft_token(
-        client,
-        operator_key,
-        nft_token_id
-    )
+    nft_serial = mint_nft_token(client, operator_key, nft_token_id)
 
     # Create a receiver that will require signature to claim the airdrop
-        # Ensure true for signature required (for the receiver)
-        # 0 max association slots
+    # Ensure true for signature required (for the receiver)
+    # 0 max association slots
     # Return the receiver id and receiver private key
     print("Creating the account that will receive the airdropped tokens on signing")
-    receiver_id, receiver_key = create_receiver(
-        client,
-        True,
-        0
-    )
+    receiver_id, receiver_key = create_receiver(client, True, 0)
 
     # Verify this receiver does NOT have any of the fungible or NFT tokens associated
     # Claim airdrop will work regardless
     token_ids_to_check = [fungible_id, nft_token_id]
     association_status = get_token_association_status(
-        client,
-        receiver_id,
-        token_ids_to_check
+        client, receiver_id, token_ids_to_check
     )
     print(association_status)
 
@@ -445,22 +489,23 @@ def main():
         receiver_id,
         [fungible_id],
         [nft_serial],
-        prefix="Before airdrop"
+        prefix="Before airdrop",
     )
 
     # Initiate airdrop of 20 fungible tokens and 1 nft token id
     transaction_id = perform_airdrop(
-        client,
-        operator_id,
-        operator_key,
-        receiver_id,
-        [fungible_id],
-        [nft_serial],
-        20
+        client, operator_id, operator_key, receiver_id, [fungible_id], [nft_serial], 20
     )
 
     print("\n🔍 Verifying no balance change as airdrop is not yet claimed:")
-    log_balances(client,operator_id,receiver_id,[fungible_id],[nft_serial],prefix="After airdrop")
+    log_balances(
+        client,
+        operator_id,
+        receiver_id,
+        [fungible_id],
+        [nft_serial],
+        prefix="After airdrop",
+    )
 
     # Get a list of pending airdrops
     pending_airdrop_ids = fetch_pending_airdrops(client, transaction_id)
@@ -471,16 +516,28 @@ def main():
     # Claiming will work even without association and available auto-association slots
     # This is because the signing itself causes the Hedera network to associate the tokens.
     print("Claiming airdrop:")
-    claim_airdrop(client,receiver_key,pending_airdrop_ids) #Pass the receiver key which is needed to sign
+    claim_airdrop(
+        client, receiver_key, pending_airdrop_ids
+    )  # Pass the receiver key which is needed to sign
 
     # Check airdrop has resulted in transfers
     print("\n🔍 Verifying balances have now changed after claim:")
-    log_balances(client,operator_id,receiver_id,[fungible_id],[nft_serial],prefix="After claim")
+    log_balances(
+        client,
+        operator_id,
+        receiver_id,
+        [fungible_id],
+        [nft_serial],
+        prefix="After claim",
+    )
 
     # Check Hedera network has associated these tokens behind the scenes
     token_ids_to_check = [fungible_id, nft_token_id]
-    association_status = get_token_association_status(client,receiver_id,token_ids_to_check)
+    association_status = get_token_association_status(
+        client, receiver_id, token_ids_to_check
+    )
     print(association_status)
+
 
 if __name__ == "__main__":
     main()

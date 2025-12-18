@@ -106,7 +106,9 @@ def attempt_pause_should_fail(client, token_id, operator_key):
     receipt = tx.execute(client)
 
     if receipt.status == ResponseCode.TOKEN_HAS_NO_PAUSE_KEY:
-        print("✅ Expected failure: token cannot be paused because no pause key exists.\n")
+        print(
+            "✅ Expected failure: token cannot be paused because no pause key exists.\n"
+        )
     else:
         print(f"❌ Unexpected status: {ResponseCode(receipt.status).name}\n")
 
@@ -210,8 +212,9 @@ def create_temp_account(client, operator_key):
     return account_id, new_key
 
 
-
-def test_transfer_while_paused(client, operator_id, operator_key, recipient_id, token_id):
+def test_transfer_while_paused(
+    client, operator_id, operator_key, recipient_id, token_id
+):
     print("🔹 Attempting transfer WHILE token is paused (expected failure)...")
 
     tx = (
@@ -228,6 +231,7 @@ def test_transfer_while_paused(client, operator_id, operator_key, recipient_id, 
         print("✅ Transfer failed as expected: TOKEN_IS_PAUSED\n")
     else:
         print(f"⚠️ Unexpected status: {ResponseCode(receipt.status).name}\n")
+
 
 # -------------------------------------------------------
 # MAIN

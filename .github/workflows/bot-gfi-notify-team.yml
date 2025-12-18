@@ -1,0 +1,37 @@
+# This workflow notifies the GFI support team when an issue is labeled as a GFI or GFI Candidate.
+name: GFI Issue Notification
+on:
+  issues:
+    types:
+      - labeled
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  gfi_notify_team:
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'issues' && (
+          github.event.label.name == 'Good First Issue' ||
+          github.event.label.name == 'Good First Issue Candidate'
+      ))
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
+
+      - name: Notify team of GFI issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/gfi_notify_team.js');
+            await script({ github, context});

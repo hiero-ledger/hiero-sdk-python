@@ -34,7 +34,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
@@ -44,8 +44,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
@@ -68,8 +68,8 @@ def create_token_no_supply_key(client, operator_id, operator_key):
         TokenCreateTransaction()
         .set_token_name("Fixed Supply Token")
         .set_token_symbol("FST")
-        .set_token_type(TokenType.FUNGIBLE_COMMON) 
-        .set_initial_supply(1000) 
+        .set_token_type(TokenType.FUNGIBLE_COMMON)
+        .set_initial_supply(1000)
         .set_decimals(0)
         .set_treasury_account_id(operator_id)
         .freeze_with(client)
@@ -77,16 +77,18 @@ def create_token_no_supply_key(client, operator_id, operator_key):
 
     transaction.sign(operator_key)
 
-    try: 
+    try:
         reciept = transaction.execute(client)
         if reciept.status != ResponseCode.SUCCESS:
-            print(f"Token creation failed with status: {ResponseCode(reciept.status).name}")
+            print(
+                f"Token creation failed with status: {ResponseCode(reciept.status).name}"
+            )
             sys.exit(1)
-        
+
         token_id = reciept.token_id
         print(f" ✅ Token created successfully with ID: {token_id}")
         return token_id
-    
+
     except Exception as e:
         print(f"Error during token creation as: {e}.")
         sys.exit(1)
@@ -102,17 +104,19 @@ def demonstrate_mint_fail(client, token_id):
     transaction = (
         TokenMintTransaction()
         .set_token_id(token_id)
-        .set_amount(100) # Trying to mint 100 more fungible tokens
+        .set_amount(100)  # Trying to mint 100 more fungible tokens
         .freeze_with(client)
     )
-    
+
     try:
         receipt = transaction.execute(client)
         if receipt.status == ResponseCode.TOKEN_HAS_NO_SUPPLY_KEY:
-             print(f" -->  Mint failed as expected! Status: {ResponseCode(receipt.status).name}")
+            print(
+                f" -->  Mint failed as expected! Status: {ResponseCode(receipt.status).name}"
+            )
         else:
-             print(f"Mint failed with status: {ResponseCode(receipt.status).name}")
-        
+            print(f"Mint failed with status: {ResponseCode(receipt.status).name}")
+
     except Exception as e:
         print(f"✅ Mint failed as expected! Error: {e}")
 
@@ -122,7 +126,7 @@ def create_token_with_supply_key(client, operator_id, operator_key):
     Create a Non-Fungible token (NFT) WITH a supply key.
     """
     print("\n--- Scenario 2: Token WITH Supply Key ---")
-    
+
     # Generate a specific supply key
     supply_key = PrivateKey.generate_ed25519()
     print(" ---> Generated new Supply Key.")
@@ -141,21 +145,23 @@ def create_token_with_supply_key(client, operator_id, operator_key):
         .freeze_with(client)
     )
 
-    # Sign with operator  and supply key 
+    # Sign with operator  and supply key
     transaction.sign(operator_key)
     transaction.sign(supply_key)
-    
+
     try:
         receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
-            print(f"Token creation failed with status: {ResponseCode(receipt.status).name}")
+            print(
+                f"Token creation failed with status: {ResponseCode(receipt.status).name}"
+            )
             sys.exit(1)
 
         token_id = receipt.token_id
         print(f" ✅ Token created successfully with ID: {token_id}")
         return token_id, supply_key
-    
-    except Exception as e: 
+
+    except Exception as e:
         print(f"Error during token Creation as :{e}.")
         sys.exit(1)
 
@@ -178,7 +184,7 @@ def demonstrate_mint_success(client, token_id, supply_key):
     transaction.sign(supply_key)
 
     receipt = transaction.execute(client)
-    
+
     if receipt.status != ResponseCode.SUCCESS:
         print(f" ❌ Mint failed with status: {ResponseCode(receipt.status).name}")
         return
@@ -190,7 +196,7 @@ def verify_token_info(client, token_id):
     """Query token info to see total supply."""
     print(f"Querying Token Info for {token_id}...")
     info = TokenInfoQuery().set_token_id(token_id).execute(client)
-    
+
     print(f"  - Total Supply: {info.total_supply}")
     print(f"  - Supply Key Set: {info.supply_key is not None}")
 
@@ -207,7 +213,9 @@ def main():
     demonstrate_mint_fail(client, token_id_no_key)
 
     # 2. Demonstrate Success (With Supply Key)
-    token_id_with_key, supply_key = create_token_with_supply_key(client, operator_id, operator_key)
+    token_id_with_key, supply_key = create_token_with_supply_key(
+        client, operator_id, operator_key
+    )
     demonstrate_mint_success(client, token_id_with_key, supply_key)
     verify_token_info(client, token_id_with_key)
 
