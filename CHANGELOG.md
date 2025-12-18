@@ -46,6 +46,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added Issue Reminder (no-PR) bot, .github/scripts/issue_reminder_no_pr.sh and .github/workflows/bot-issue-reminder-no-pr.yml to automatically detect assigned issues with no linked pull requests for 7+ days and post a gentle ReminderBot comment.(#951)
 
 ### Changed
+- Reduce office-hours reminder spam by posting only on each user's most recent open PR, grouping by author and sorting by creation time (#1121)
 - Move `account_allowance_delete_transaction_hbar.py` from `examples/` to `examples/account/` for better organization (#1003)
 - Improved consistency of transaction examples (#1120)
 - Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
