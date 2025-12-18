@@ -118,8 +118,6 @@ def get_account_balance(client: Client, account_id: AccountId):
         print("✅ Account balance retrieved successfully!")
         # Print account balance with account_id context
         print(f"💰 HBAR Balance for {account_id}: {account_balance.hbars} hbars")
-        # Display token balances
-        print(account_balance)
         # Alternatively, you can use: print(account_balance)
         return account_balance
     except (ValueError, TypeError, RuntimeError, ConnectionError) as error:
