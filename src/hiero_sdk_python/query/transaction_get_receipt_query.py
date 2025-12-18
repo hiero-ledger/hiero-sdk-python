@@ -24,7 +24,11 @@ class TransactionGetReceiptQuery(Query):
 
     """
 
-    def __init__(self, transaction_id: Optional[TransactionId] = None) -> None:
+    def __init__(
+        self,
+        transaction_id: Optional[TransactionId] = None,
+        include_children: bool = False,
+    ) -> None:
         """
         Initializes a new instance of the TransactionGetReceiptQuery class.
 
@@ -34,6 +38,7 @@ class TransactionGetReceiptQuery(Query):
         super().__init__()
         self.transaction_id: Optional[TransactionId] = transaction_id
         self._frozen: bool = False
+        self.include_children = include_children
 
     def _require_not_frozen(self) -> None:
         """
@@ -60,6 +65,25 @@ class TransactionGetReceiptQuery(Query):
         """
         self._require_not_frozen()
         self.transaction_id = transaction_id
+        return self
+
+    def set_include_children(
+        self, include_children: bool
+    ) -> "TransactionGetReceiptQuery":
+        """
+        Sets include_children for which to retrieve the child transaction receipts.
+
+        Args:
+            include_children: bool.
+
+        Returns:
+            TransactionGetReceiptQuery: The current instance for method chaining.
+
+        Raises:
+            ValueError: If the query is frozen and cannot be modified.
+        """
+        self._require_not_frozen()
+        self.include_children = include_children
         return self
 
     def freeze(self) -> "TransactionGetReceiptQuery":
@@ -99,6 +123,8 @@ class TransactionGetReceiptQuery(Query):
             transaction_get_receipt = transaction_get_receipt_pb2.TransactionGetReceiptQuery()
             transaction_get_receipt.header.CopyFrom(query_header)
             transaction_get_receipt.transactionID.CopyFrom(self.transaction_id._to_proto())
+
+            transaction_get_receipt.include_child_receipts = self.include_children
 
             query = query_pb2.Query()
             if not hasattr(query, "transactionGetReceipt"):
@@ -219,8 +245,18 @@ class TransactionGetReceiptQuery(Query):
         """
         self._before_execute(client)
         response = self._execute(client)
+        parent = TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id)
 
-        return TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id)
+        if self.include_children:
+            children = []
+
+            for child_proto in response.transactionGetReceipt.child_transaction_receipts:
+                child_receipt = TransactionReceipt._from_proto(child_proto, self.transaction_id)
+                children.append(child_receipt)
+
+            parent._set_children(children)
+
+        return parent 
 
     def _get_query_response(
         self, response: response_pb2.Response
