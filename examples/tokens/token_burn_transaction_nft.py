@@ -1,8 +1,9 @@
 """
-uv run examples/tokens/token_burn_transaction_nft.py 
+uv run examples/tokens/token_burn_transaction_nft.py
 python examples/tokens/token_burn_transaction_nft.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -23,7 +24,8 @@ from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -31,12 +33,13 @@ def setup_client():
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
+
 
 def create_nft(client, operator_id, operator_key):
     """Create a non-fungible token"""
@@ -54,17 +57,18 @@ def create_nft(client, operator_id, operator_key):
         .set_supply_key(operator_key)
         .execute(client)
     )
-    
+
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-    
+
     # Get token ID from receipt
     nft_token_id = receipt.token_id
     print(f"NFT created with ID: {nft_token_id}")
-    
+
     return nft_token_id
+
 
 def mint_nfts(client, nft_token_id, metadata_list):
     """Mint a non-fungible token"""
@@ -74,24 +78,22 @@ def mint_nfts(client, nft_token_id, metadata_list):
         .set_metadata(metadata_list)
         .execute(client)
     )
-    
+
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-    
+
     print(f"NFT minted with serial numbers: {receipt.serial_numbers}")
-    
+
     return receipt.serial_numbers
+
 
 def get_token_info(client, token_id):
     """Get token info for the token"""
-    token_info = (
-        TokenInfoQuery()
-        .set_token_id(token_id)
-        .execute(client)
-    )
-    
+    token_info = TokenInfoQuery().set_token_id(token_id).execute(client)
+
     print(f"Token supply: {token_info.total_supply}")
+
 
 def token_burn_nft():
     """
@@ -107,15 +109,15 @@ def token_burn_nft():
 
     # Create a fungible token with the treasury account as owner and signer
     token_id = create_nft(client, operator_id, operator_key)
-    
+
     # Mint 4 NFTs
-    metadata_list = [b'metadata1', b'metadata2', b'metadata3', b'metadata4']
+    metadata_list = [b"metadata1", b"metadata2", b"metadata3", b"metadata4"]
     serial_numbers = mint_nfts(client, token_id, metadata_list)
-    
+
     # Get and print token balances before burn to show the initial state
     print("\nToken balances before burn:")
     get_token_info(client, token_id)
-    
+
     # Burn first 2 NFTs from the minted collection (serials 1 and 2)
     receipt = (
         TokenBurnTransaction()
@@ -123,16 +125,19 @@ def token_burn_nft():
         .set_serials(serial_numbers[0:2])
         .execute(client)
     )
-    
+
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT burn failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-        
-    print(f"Successfully burned NFTs with serial numbers {serial_numbers[0:2]} from {token_id}")
+
+    print(
+        f"Successfully burned NFTs with serial numbers {serial_numbers[0:2]} from {token_id}"
+    )
 
     # Get and print token balances after burn to show the final state
     print("\nToken balances after burn:")
     get_token_info(client, token_id)
-    
+
+
 if __name__ == "__main__":
     token_burn_nft()

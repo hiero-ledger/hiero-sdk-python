@@ -115,7 +115,7 @@ def try_update_metadata_without_key(client, operator_key, token_id):
             )
             sys.exit(1)
         else:
-                print(f"✅ Expected failure: metadata update rejected -> status={status}")
+            print(f"✅ Expected failure: metadata update rejected -> status={status}")
 
     except Exception as e:
         print(f"Failed: {e}")
@@ -216,7 +216,7 @@ def demonstrate_metadata_length_validation(client, operator_key, operator_id):
             print(
                 "Error: Expected ValueError for metadata > 100 bytes, but none was raised."
             )
-            
+
         sys.exit(1)
     except ValueError as exc:
         print("Expected error raised for metadata > 100 bytes")
