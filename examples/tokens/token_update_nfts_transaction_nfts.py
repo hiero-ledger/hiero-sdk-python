@@ -3,6 +3,7 @@ uv run examples/tokens/token_update_transaction_nfts.py
 python examples/tokens/token_update_transaction_nfts.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -19,11 +20,14 @@ from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-from hiero_sdk_python.tokens.token_update_nfts_transaction import TokenUpdateNftsTransaction
+from hiero_sdk_python.tokens.token_update_nfts_transaction import (
+    TokenUpdateNftsTransaction,
+)
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -31,12 +35,13 @@ def setup_client():
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
+
 
 def create_nft(client, operator_id, operator_key, metadata_key):
     """Create a non-fungible token"""
@@ -56,17 +61,18 @@ def create_nft(client, operator_id, operator_key, metadata_key):
         .set_metadata_key(metadata_key)  # Needed to update NFTs
         .execute(client)
     )
-    
+
     # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-    
+
     # Get token ID from receipt
     nft_token_id = receipt.token_id
     print(f"NFT created with ID: {nft_token_id}")
-    
+
     return nft_token_id
+
 
 def mint_nfts(client, nft_token_id, metadata_list):
     """Mint a non-fungible token"""
@@ -76,31 +82,33 @@ def mint_nfts(client, nft_token_id, metadata_list):
         .set_metadata(metadata_list)
         .execute(client)
     )
-    
+
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-    
+
     print(f"NFT minted with serial numbers: {receipt.serial_numbers}")
-    
-    return [NftId(nft_token_id, serial_number) for serial_number in receipt.serial_numbers], receipt.serial_numbers
+
+    return [
+        NftId(nft_token_id, serial_number) for serial_number in receipt.serial_numbers
+    ], receipt.serial_numbers
+
 
 def get_nft_info(client, nft_id):
     """Get information about an NFT"""
-    info = (
-        TokenNftInfoQuery()
-        .set_nft_id(nft_id)
-        .execute(client)
-    )
-    
+    info = TokenNftInfoQuery().set_nft_id(nft_id).execute(client)
+
     return info
 
-def update_nft_metadata(client, nft_token_id, serial_numbers, new_metadata, metadata_private_key):
+
+def update_nft_metadata(
+    client, nft_token_id, serial_numbers, new_metadata, metadata_private_key
+):
     """Update metadata for NFTs in a collection"""
     receipt = (
         TokenUpdateNftsTransaction()
         .set_token_id(nft_token_id)
-        .set_serial_numbers(serial_numbers) 
+        .set_serial_numbers(serial_numbers)
         .set_metadata(new_metadata)
         .freeze_with(client)
         .sign(metadata_private_key)  # Has to be signed here by metadata_key
@@ -108,10 +116,15 @@ def update_nft_metadata(client, nft_token_id, serial_numbers, new_metadata, meta
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"NFT metadata update failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"NFT metadata update failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
-    print(f"Successfully updated metadata for NFTs with serial numbers: {serial_numbers}")
+    print(
+        f"Successfully updated metadata for NFTs with serial numbers: {serial_numbers}"
+    )
+
 
 def token_update_nfts():
     """
@@ -124,38 +137,45 @@ def token_update_nfts():
     6. Verifying the updated NFT metadata
     """
     client, operator_id, operator_key = setup_client()
-    
+
     # Create metadata key
     metadata_private_key = PrivateKey.generate_ed25519()
-    
+
     # Create a new NFT collection with the treasury account as owner
     nft_token_id = create_nft(client, operator_id, operator_key, metadata_private_key)
-    
+
     # Initial metadata for our NFTs
     initial_metadata = [b"Initial metadata 1", b"Initial metadata 2"]
-    
+
     # New metadata to update the first NFT
     new_metadata = b"Updated metadata1"
-    
+
     # Mint 2 NFTs in the collection with initial metadata
     nft_ids, serial_numbers = mint_nfts(client, nft_token_id, initial_metadata)
-    
+
     # Get and print information about the NFTs
     print("\nCheck that the NFTs have the initial metadata")
     for nft_id in nft_ids:
         nft_info = get_nft_info(client, nft_id)
         print(f"NFT ID: {nft_info.nft_id}, Metadata: {nft_info.metadata}")
-    
+
     # Update metadata for specific NFTs by providing their id and serial numbers
     # Only the NFTs with the provided serial numbers will have their metadata updated
     serial_numbers_to_update = [serial_numbers[0]]
-    update_nft_metadata(client, nft_token_id, serial_numbers_to_update, new_metadata, metadata_private_key)
-    
+    update_nft_metadata(
+        client,
+        nft_token_id,
+        serial_numbers_to_update,
+        new_metadata,
+        metadata_private_key,
+    )
+
     # Get and print information about the NFTs
     print("\nCheck that only the first NFT has the updated metadata")
     for nft_id in nft_ids:
         nft_info = get_nft_info(client, nft_id)
         print(f"NFT ID: {nft_info.nft_id}, Metadata: {nft_info.metadata}")
-    
+
+
 if __name__ == "__main__":
     token_update_nfts()

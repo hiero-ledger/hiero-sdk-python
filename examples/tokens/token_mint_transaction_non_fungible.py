@@ -25,7 +25,8 @@ from hiero_sdk_python import (
 
 # Load environment variables from .env file
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Setup and return a Hedera client."""
@@ -34,8 +35,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
@@ -47,12 +48,13 @@ def setup_client():
 def generate_supply_key():
     """Generate a new supply key for the token."""
     print("\nSTEP 1: Generating a new supply key...")
-    supply_key = PrivateKey.generate(os.getenv('HSDK_KEY_TYPE', 'ed25519'))
+    supply_key = PrivateKey.generate(os.getenv("HSDK_KEY_TYPE", "ed25519"))
     print("✅ Supply key generated")
     return supply_key
 
+
 def create_nft_collection():
-    """ Create the NFT Collection (Token) """
+    """Create the NFT Collection (Token)"""
     client, operator_id, operator_key = setup_client()
     supply_key = generate_supply_key()
     print("\nSTEP 2: Creating a new NFT collection...")
@@ -79,6 +81,8 @@ def create_nft_collection():
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
+
+
 def token_mint_non_fungible(client, token_id, supply_key):
     """
     Mint new NFTs with metadata
@@ -104,20 +108,23 @@ def token_mint_non_fungible(client, token_id, supply_key):
         receipt = (
             TokenMintTransaction()
             .set_token_id(token_id)
-            .set_metadata(metadata_list) # Set the list of metadata
+            .set_metadata(metadata_list)  # Set the list of metadata
             .freeze_with(client)
             .sign(supply_key)  # Must be signed by the supply key
             .execute(client)
         )
 
         # THE FIX: The receipt confirms status, it does not contain serial numbers.
-        print(f"✅ Success! NFT minting complete, Status: {ResponseCode(receipt.status).name}")
+        print(
+            f"✅ Success! NFT minting complete, Status: {ResponseCode(receipt.status).name}"
+        )
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"Total supply after minting: {info_after.total_supply}")
     except (ValueError, TypeError) as e:
         print(f"❌ Error minting NFTs: {e}")
         sys.exit(1)
+
 
 def main():
     """
@@ -129,6 +136,7 @@ def main():
     """
     client, token_id, supply_key = create_nft_collection()
     token_mint_non_fungible(client, token_id, supply_key)
+
 
 if __name__ == "__main__":
     main()

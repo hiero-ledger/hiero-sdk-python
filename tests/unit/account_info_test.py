@@ -169,3 +169,20 @@ def test_proto_conversion(account_info):
     assert converted_account_info.token_relationships == account_info.token_relationships
     assert converted_account_info.account_memo == account_info.account_memo
     assert converted_account_info.owned_nfts == account_info.owned_nfts
+
+def test_str_and_repr(account_info):
+    """Test the __str__ and __repr__ methods"""
+    info_str = str(account_info)
+    info_repr = repr(account_info)
+
+    # __str__ checks (User-friendly output)
+    assert "Account ID: 0.0.100" in info_str
+    assert "Contract Account ID: 0.0.100" in info_str
+    assert "Balance: 0.05000000 ℏ" in info_str
+    assert "Memo: Test account memo" in info_str
+
+    # __repr__ checks (Debug output)
+    assert info_repr.startswith("AccountInfo(")
+    assert "account_id=AccountId(shard=0, realm=0, num=100" in info_repr
+    assert "contract_account_id='0.0.100'" in info_repr
+    assert "account_memo='Test account memo'" in info_repr
