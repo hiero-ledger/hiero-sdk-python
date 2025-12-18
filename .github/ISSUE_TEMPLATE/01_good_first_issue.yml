@@ -9,7 +9,7 @@ body:
       value: |
         ---
         ## **Thanks for contributing!** 😊
-        
+
         We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
         This template is designed to help you create a Good First Issue (GFI) : a small, well-scoped task that helps new contributors learn the codebase and workflow.
         ---
@@ -55,7 +55,8 @@ body:
         > - Changes to DLT functionality, like `to_proto` and `from_proto`
         > - Anything requiring knowledge of multiple areas of the codebase
         >
-        > 📖 *For a more detailed explanation, refer to  `docs/maintainers/good_first_issues_guidelines.md`.*
+        > 📖 *For a more detailed explanation, refer to:  
+        > [`docs/maintainers/good_first_issues_guidelines.md`](docs/maintainers/good_first_issues_guidelines.md).*
 
   - type: textarea
     id: issue

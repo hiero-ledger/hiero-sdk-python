@@ -9,7 +9,7 @@ This document explains the purpose of the **`good first issue: candidate`** labe
 - [What a Candidate Is NOT](#-what-a-candidate-is-not)
 - [Promoting a Candidate to GFI](#-promoting-a-candidate-to-gfi)
 - [Workflow Summary](#-workflow-summary)
-- [Important Considerations](#-important-considerations)
+- [Important Considerations](#important-considerations)
 
 ---
 
@@ -167,7 +167,7 @@ A candidate should be promoted to a full **Good First Issue** when:
 
 ---
 
-## ⚠️ Important Considerations
+## Important Considerations
 
 ### Why This Matters
 
