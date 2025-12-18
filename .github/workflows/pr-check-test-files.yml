@@ -1,7 +1,9 @@
 name: Test Files Naming Check
 
 on:
-  push
+  push:
+    branches-ignore:
+      - main
 
 concurrency:
   group: pr-checks-${{ github.workflow }}-${{ github.ref || github.run_id }}
