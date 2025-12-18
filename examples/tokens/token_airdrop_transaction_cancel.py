@@ -131,11 +131,11 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
             account_id=recipient_id
             ).execute(client).token_balances
 
-        print("\nBalances after airdrop:")  # ← FIXED: Changed to "after"
+        print("\nBalances after airdrop:")  
         for t in token_ids:
             # token_ids elements are TokenId objects (not strings), so use them as dict keys
-            sender_balance = sender_balances_after.get(t, 0)  # ← FIXED: Use AFTER balances
-            recipient_balance = recipient_balances_after.get(t, 0)  # ← FIXED: Use AFTER balances
+            sender_balance = sender_balances_after.get(t, 0) 
+            recipient_balance = recipient_balances_after.get(t, 0)  
             print(f" {str(t)}: sender={sender_balance} recipient={recipient_balance}")
 
         return pending
