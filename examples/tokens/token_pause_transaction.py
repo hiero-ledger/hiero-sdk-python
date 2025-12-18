@@ -3,16 +3,12 @@ uv run examples/tokens/token_pause_transaction.py
 python examples/tokens/token_pause_transaction.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
 
-from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network
-)
+from hiero_sdk_python import Client, AccountId, PrivateKey, Network
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType
@@ -22,7 +18,8 @@ from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransact
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -32,12 +29,13 @@ def setup_client():
     client = Client(network)
 
     # Set up operator account
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
+
 
 def assert_success(receipt, action: str):
     """
@@ -55,6 +53,7 @@ def assert_success(receipt, action: str):
         name = ResponseCode(receipt.status).name
         raise RuntimeError(f"{action!r} failed with status {name}")
 
+
 def create_token(client, operator_id, admin_key, pause_key):
     """Create a fungible token"""
     # Create fungible token
@@ -68,19 +67,20 @@ def create_token(client, operator_id, admin_key, pause_key):
         .set_token_type(TokenType.FUNGIBLE_COMMON)
         .set_supply_type(SupplyType.FINITE)
         .set_max_supply(100)
-        .set_admin_key(admin_key)         # Required for token delete
-        .set_pause_key(pause_key)         # Required for pausing tokens
+        .set_admin_key(admin_key)  # Required for token delete
+        .set_pause_key(pause_key)  # Required for pausing tokens
         .freeze_with(client)
     )
-    
+
     receipt = create_token_transaction.execute(client)
     assert_success(receipt, "Token creation")
-    
+
     # Get token ID from receipt
     token_id = receipt.token_id
     print(f"Token created with ID: {token_id}")
-    
+
     return token_id
+
 
 def pause_token(client, token_id, pause_key):
     """Pause token"""
@@ -91,11 +91,12 @@ def pause_token(client, token_id, pause_key):
         .freeze_with(client)
         .sign(pause_key)
     )
-    
+
     receipt = pause_transaction.execute(client)
-    assert_success(receipt, "Token pause")    
+    assert_success(receipt, "Token pause")
 
     print(f"Successfully paused token {token_id}")
+
 
 def check_pause_status(client, token_id):
     """
@@ -103,7 +104,8 @@ def check_pause_status(client, token_id):
     """
     info = TokenInfoQuery().set_token_id(token_id).execute(client)
     print(f"Token status is now: {info.pause_status.name}")
-    
+
+
 def delete_token(client, token_id, admin_key):
     """Delete token"""
     # Note: This requires the admin key that was specified during token creation
@@ -115,9 +117,10 @@ def delete_token(client, token_id, admin_key):
     )
 
     receipt = delete_transaction.execute(client)
-    assert_success(receipt, "Token delete")  
+    assert_success(receipt, "Token delete")
 
     print(f"Successfully deleted token {token_id}")
+
 
 def token_pause():
     """
@@ -129,12 +132,12 @@ def token_pause():
     """
     client, operator_id, operator_key = setup_client()
 
-    pause_key = operator_key  # for token pause 
-    admin_key = operator_key  # for token delete 
+    pause_key = operator_key  # for token pause
+    admin_key = operator_key  # for token delete
 
     # Create token with required keys for pause and delete.
     token_id = create_token(client, operator_id, admin_key, pause_key)
-    
+
     # Pause token using pause key – should succeed
     pause_token(client, token_id, pause_key)
 
@@ -144,9 +147,12 @@ def token_pause():
     # Try deleting token with admin key – should fail with TOKEN_IS_PAUSED
     try:
         delete_token(client, token_id, admin_key)
-        print("❌ Whoops, delete succeeded—but it should have failed on a paused token!")
+        print(
+            "❌ Whoops, delete succeeded—but it should have failed on a paused token!"
+        )
     except RuntimeError as e:
         print(f"✅ Unable to delete token as expected as it is paused: {e}")
+
 
 if __name__ == "__main__":
     token_pause()

@@ -35,15 +35,17 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 
 def parse_optional_key(key_str):
     """Parse an optional private key from environment variables."""
-    if not key_str or key_str.startswith('<') or key_str.endswith('>'):
+    if not key_str or key_str.startswith("<") or key_str.endswith(">"):
         return None
     try:
         return PrivateKey.from_string_ed25519(key_str)
     except Exception:
         return None
 
+
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -51,8 +53,8 @@ def setup_client():
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-    operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"Client set up with operator id {client.operator_account_id}")
 
@@ -61,10 +63,10 @@ def setup_client():
 
 def load_optional_keys():
     """Load optional keys (admin, supply, freeze, pause)."""
-    admin_key = parse_optional_key(os.getenv('ADMIN_KEY'))
-    supply_key = parse_optional_key(os.getenv('SUPPLY_KEY'))
-    freeze_key = parse_optional_key(os.getenv('FREEZE_KEY'))
-    pause_key = parse_optional_key(os.getenv('PAUSE_KEY'))
+    admin_key = parse_optional_key(os.getenv("ADMIN_KEY"))
+    supply_key = parse_optional_key(os.getenv("SUPPLY_KEY"))
+    freeze_key = parse_optional_key(os.getenv("FREEZE_KEY"))
+    pause_key = parse_optional_key(os.getenv("PAUSE_KEY"))
     return admin_key, supply_key, freeze_key, pause_key
 
 
@@ -108,7 +110,9 @@ def execute_transaction(transaction, client, operator_key, admin_key):
         if receipt and receipt.token_id:
             print(f"Finite fungible token created with ID: {receipt.token_id}")
         else:
-            print("Finite fungible token creation failed: Token ID not returned in receipt.")
+            print(
+                "Finite fungible token creation failed: Token ID not returned in receipt."
+            )
             sys.exit(1)
     except Exception as e:
         print(f"Token creation failed: {str(e)}")

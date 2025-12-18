@@ -24,7 +24,8 @@ from hiero_sdk_python import (
 
 # Load environment variables from .env file
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Setup Client"""
@@ -33,8 +34,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
@@ -47,14 +48,14 @@ def setup_client():
 def create_new_account(client, operator_id, operator_key):
     """Create a new account to associate/dissociate with tokens"""
     print("\nSTEP 1: Creating a new account...")
-    recipient_key = PrivateKey.generate(os.getenv('KEY_TYPE', 'ed25519'))
+    recipient_key = PrivateKey.generate(os.getenv("KEY_TYPE", "ed25519"))
 
     try:
         # Build the transaction
         tx = (
             AccountCreateTransaction()
-            .set_key(recipient_key.public_key()) # <-- THE FIX: Call as a method
-            .set_initial_balance(Hbar.from_tinybars(100_000_000)) # 1 Hbar
+            .set_key(recipient_key.public_key())  # <-- THE FIX: Call as a method
+            .set_initial_balance(Hbar.from_tinybars(100_000_000))  # 1 Hbar
         )
 
         # Freeze the transaction, sign with the operator, then execute
@@ -66,8 +67,10 @@ def create_new_account(client, operator_id, operator_key):
     except (ValueError, RuntimeError) as e:
         print(f"❌ Error creating new account: {e}")
         sys.exit(1)
+
+
 def create_token(client, operator_key, recipient_id, recipient_key, operator_id):
-    """Create two new tokens (one NFT and one fungible) for demonstration purposes. """
+    """Create two new tokens (one NFT and one fungible) for demonstration purposes."""
     print("\nSTEP 2: Creating two new tokens...")
     try:
         # Generate supply key for NFT
@@ -93,17 +96,24 @@ def create_token(client, operator_key, recipient_id, recipient_key, operator_id)
             .set_initial_supply(1)
             .set_treasury_account_id(operator_id)
         )
-        fungible_receipt = fungible_tx.freeze_with(client).sign(operator_key).execute(client)
+        fungible_receipt = (
+            fungible_tx.freeze_with(client).sign(operator_key).execute(client)
+        )
         fungible_token_id = fungible_receipt.token_id
 
-        print(f"✅ Success! Created NFT token: {nft_token_id} and fungible token: {fungible_token_id}")
+        print(
+            f"✅ Success! Created NFT token: {nft_token_id} and fungible token: {fungible_token_id}"
+        )
         return client, nft_token_id, fungible_token_id, recipient_id, recipient_key
 
     except (ValueError, RuntimeError) as e:
         print(f"❌ Error creating tokens: {e}")
         sys.exit(1)
 
-def token_associate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key):
+
+def token_associate(
+    client, nft_token_id, fungible_token_id, recipient_id, recipient_key
+):
     """
     Associate the tokens with the new account.
 
@@ -111,8 +121,12 @@ def token_associate(client, nft_token_id, fungible_token_id, recipient_id, recip
     Association is a prerequisite for holding, transferring, or later dissociating tokens.
     """
 
-    print(f"\nSTEP 3: Associating NFT and fungible tokens with account {recipient_id}...")
-    print("Note: Tokens must be associated with an account before they can be used or dissociated.")
+    print(
+        f"\nSTEP 3: Associating NFT and fungible tokens with account {recipient_id}..."
+    )
+    print(
+        "Note: Tokens must be associated with an account before they can be used or dissociated."
+    )
     try:
         receipt = (
             TokenAssociateTransaction()
@@ -129,17 +143,26 @@ def token_associate(client, nft_token_id, fungible_token_id, recipient_id, recip
         print(f"❌ Error associating tokens: {e}")
         sys.exit(1)
 
+
 def verify_dissociation(client, nft_token_id, fungible_token_id, recipient_id):
     """Verify that the specified tokens are dissociated from the account."""
     print("\nVerifying token dissociation...")
     info = AccountInfoQuery().set_account_id(recipient_id).execute(client)
-    associated_tokens = [rel.token_id for rel in getattr(info, 'token_relationships', [])]
-    if nft_token_id not in associated_tokens and fungible_token_id not in associated_tokens:
+    associated_tokens = [
+        rel.token_id for rel in getattr(info, "token_relationships", [])
+    ]
+    if (
+        nft_token_id not in associated_tokens
+        and fungible_token_id not in associated_tokens
+    ):
         print("✅ Verified: Both tokens are dissociated from the account.")
     else:
         print("❌ Verification failed: Some tokens are still associated.")
 
-def token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key):
+
+def token_dissociate(
+    client, nft_token_id, fungible_token_id, recipient_id, recipient_key
+):
     """
     Dissociate the tokens from the new account.
 
@@ -150,21 +173,26 @@ def token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, reci
     - To comply with business or regulatory requirements
     """
 
-    print(f"\nSTEP 4: Dissociating NFT and fungible tokens from account {recipient_id}...")
+    print(
+        f"\nSTEP 4: Dissociating NFT and fungible tokens from account {recipient_id}..."
+    )
     try:
         receipt = (
             TokenDissociateTransaction()
             .set_account_id(recipient_id)
             .set_token_ids([nft_token_id, fungible_token_id])
             .freeze_with(client)
-            .sign(recipient_key) # Recipient must sign to approve
+            .sign(recipient_key)  # Recipient must sign to approve
             .execute(client)
         )
-        print(f"✅ Success! Token dissociation complete for both NFT and fungible tokens, Status: {ResponseCode(receipt.status).name}")
+        print(
+            f"✅ Success! Token dissociation complete for both NFT and fungible tokens, Status: {ResponseCode(receipt.status).name}"
+        )
 
     except (ValueError, RuntimeError) as e:
         print(f"❌ Error dissociating tokens: {e}")
         sys.exit(1)
+
 
 def main():
     """
@@ -175,10 +203,18 @@ def main():
     5-verify dissociation
     """
     client, operator_id, operator_key = setup_client()
-    client, operator_key, recipient_id, recipient_key, operator_id =create_new_account(client, operator_id, operator_key)
-    client, nft_token_id, fungible_token_id, recipient_id, recipient_key = create_token(client, operator_key, recipient_id, recipient_key, operator_id)
-    token_associate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key)
-    token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key)
+    client, operator_key, recipient_id, recipient_key, operator_id = create_new_account(
+        client, operator_id, operator_key
+    )
+    client, nft_token_id, fungible_token_id, recipient_id, recipient_key = create_token(
+        client, operator_key, recipient_id, recipient_key, operator_id
+    )
+    token_associate(
+        client, nft_token_id, fungible_token_id, recipient_id, recipient_key
+    )
+    token_dissociate(
+        client, nft_token_id, fungible_token_id, recipient_id, recipient_key
+    )
     # Optional: Verify dissociation
     verify_dissociation(client, nft_token_id, fungible_token_id, recipient_id)
 

@@ -29,7 +29,8 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -38,8 +39,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
@@ -87,7 +88,9 @@ def execute_transaction(transaction, client, operator_key, admin_key, supply_key
     try:
         receipt = transaction.execute(client)
         if receipt and receipt.token_id:
-            print(f"Success! Finite non-fungible token created with ID: {receipt.token_id}")
+            print(
+                f"Success! Finite non-fungible token created with ID: {receipt.token_id}"
+            )
         else:
             print("Token creation failed: Token ID not returned in receipt.")
             sys.exit(1)

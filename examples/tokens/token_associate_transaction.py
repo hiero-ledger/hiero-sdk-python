@@ -26,7 +26,7 @@ from hiero_sdk_python import (
 
 # Load environment variables from .env file
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
@@ -53,6 +53,7 @@ def setup_client():
     except (TypeError, ValueError):
         print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
+
 
 def create_test_account(client, operator_key):
     """
@@ -93,6 +94,7 @@ def create_test_account(client, operator_key):
     except Exception as e:
         print(f"❌ Error creating new account: {e}")
         sys.exit(1)
+
 
 def create_fungible_token(client, operator_id, operator_key):
     """
@@ -135,6 +137,7 @@ def create_fungible_token(client, operator_id, operator_key):
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
+
 def associate_token_with_account(client, token_id, account_id, account_key):
     """
     Associate the token with the test account.
@@ -170,7 +173,9 @@ def associate_token_with_account(client, token_id, account_id, account_key):
         sys.exit(1)
 
 
-def associate_two_tokens_mixed_types_with_set_token_ids(client, token_id_1, token_id_2, account_id, account_key):
+def associate_two_tokens_mixed_types_with_set_token_ids(
+    client, token_id_1, token_id_2, account_id, account_key
+):
     """
     Associate two tokens using set_token_ids() with mixed types:
     - first as TokenId

@@ -17,14 +17,17 @@ from hiero_sdk_python.account.account_allowance_approve_transaction import (
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_associate_transaction import (
+    TokenAssociateTransaction,
+)
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -54,7 +57,9 @@ def create_account(client):
     )
 
     if account_receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode(account_receipt.status).name}")
+        print(
+            f"Account creation failed with status: {ResponseCode(account_receipt.status).name}"
+        )
         sys.exit(1)
 
     account_account_id = account_receipt.account_id
@@ -99,13 +104,17 @@ def associate_token_with_account(client, account_id, account_private_key, token_
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"Token association failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
     print(f"Token {token_id} associated with account {account_id}")
 
 
-def approve_token_allowance(client, token_id, owner_account_id, spender_account_id, amount):
+def approve_token_allowance(
+    client, token_id, owner_account_id, spender_account_id, amount
+):
     """Approve token allowance for spender"""
     receipt = (
         AccountAllowanceApproveTransaction()
@@ -114,7 +123,9 @@ def approve_token_allowance(client, token_id, owner_account_id, spender_account_
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token allowance approval failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"Token allowance approval failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
     print(f"Token allowance of {amount} approved for spender {spender_account_id}")
@@ -130,7 +141,9 @@ def delete_token_allowance(client, token_id, owner_account_id, spender_account_i
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token allowance deletion failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"Token allowance deletion failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
     print(f"Token allowance deleted for spender {spender_account_id}")
@@ -138,12 +151,19 @@ def delete_token_allowance(client, token_id, owner_account_id, spender_account_i
 
 
 def transfer_token_without_allowance(
-    client, spender_account_id, spender_private_key, amount, receiver_account_id, token_id
+    client,
+    spender_account_id,
+    spender_private_key,
+    amount,
+    receiver_account_id,
+    token_id,
 ):
     """Transfer tokens without allowance"""
     print("Trying to transfer tokens without allowance...")
     owner_account_id = client.operator_account_id
-    client.set_operator(spender_account_id, spender_private_key)  # Set operator to spender
+    client.set_operator(
+        spender_account_id, spender_private_key
+    )  # Set operator to spender
 
     receipt = (
         TransferTransaction()
@@ -158,7 +178,9 @@ def transfer_token_without_allowance(
             f"status but got: {ResponseCode(receipt.status).name}"
         )
 
-    print(f"Token transfer successfully failed with {ResponseCode(receipt.status).name} status")
+    print(
+        f"Token transfer successfully failed with {ResponseCode(receipt.status).name} status"
+    )
 
 
 def token_allowance():
@@ -198,7 +220,9 @@ def token_allowance():
     receipt = (
         TransferTransaction()
         .set_transaction_id(TransactionId.generate(spender_id))
-        .add_approved_token_transfer(token_id, client.operator_account_id, -allowance_amount)
+        .add_approved_token_transfer(
+            token_id, client.operator_account_id, -allowance_amount
+        )
         .add_approved_token_transfer(token_id, receiver_id, allowance_amount)
         .freeze_with(client)
         .sign(spender_private_key)
