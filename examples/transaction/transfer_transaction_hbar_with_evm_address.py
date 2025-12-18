@@ -1,10 +1,16 @@
 """
-Transfer HBAR or tokens to a Hedera account using their public-address.
+Transfer HBAR to a Hedera account using an EVM (public) address.
 
-uv run examples/transaction/transfer_transaction_hbar_with_evm_address.py
-python examples/transaction/transfer_transaction_hbar_with_evm_address.py
-
+Steps:
+1. Create an ECDSA private key
+2. Extract the ECDSA public key
+3. Derive the Ethereum (EVM) address
+4. Transfer HBAR to the EVM address (auto-creates a hollow account)
+5. Get the child receipt to obtain the new Hedera AccountId
+6. Query AccountInfo to verify it is a hollow account (no public key)
+7. (Optional) Complete the hollow account by signing a transaction
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -15,131 +21,129 @@ from hiero_sdk_python import (
     PrivateKey,
     Network,
     TransferTransaction,
-    AccountCreateTransaction,
     Hbar,
-    CryptoGetAccountBalanceQuery,
-    ResponseCode
+    ResponseCode,
+    AccountInfoQuery,
+    TransactionGetReceiptQuery,
 )
 
+# ---------------------------------------------------------------------------
+# Environment setup
+# ---------------------------------------------------------------------------
+
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
-operator_id_env = os.getenv("OPERATOR_ID")
-operator_key_env = os.getenv("OPERATOR_KEY")
 
-def setup_client():
-    """Initialize a Hedera client with operator credentials from .env."""
-    print(f"Connecting to Hedera {network_name} network...")
+NETWORK_NAME = os.getenv("NETWORK", "testnet").lower()
+OPERATOR_ID = os.getenv("OPERATOR_ID")
+OPERATOR_KEY = os.getenv("OPERATOR_KEY")
 
-    if not operator_id_env or not operator_key_env:
+
+def setup_client() -> Client:
+    """
+    Initialize and return a Hedera Client using operator credentials.
+    """
+    if not OPERATOR_ID or not OPERATOR_KEY:
         print("OPERATOR_ID or OPERATOR_KEY not set in .env")
         sys.exit(1)
 
-    network = Network(network_name)
+    network = Network(NETWORK_NAME)
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(operator_id_env)
-        operator_key = PrivateKey.from_string(operator_key_env)
-        
-    except Exception:
-        print("Invalid OPERATOR_ID or OPERATOR_KEY in .env")
+        operator_id = AccountId.from_string(OPERATOR_ID)
+        operator_key = PrivateKey.from_string(OPERATOR_KEY)
+    except ValueError as e:
+        print(f"Invalid operator credentials: {e}")
         sys.exit(1)
 
     client.set_operator(operator_id, operator_key)
-    print(f"Client initialized with operator {client.operator_account_id}")
-    
+
+    print(f"Connected to {NETWORK_NAME}")
+    print(f"Operator: {operator_id}")
+
     return client
 
 
-def create_account(client, ecdsa_key):
-    """Create a new account using an alias (EVM compatible)."""
-    print("\nSTEP 1: Creating a recipient account...")
 
-    try:
-        tx = (
-            AccountCreateTransaction()
-            .set_key_without_alias(PrivateKey.generate().public_key())
-            .set_alias(ecdsa_key.public_key().to_evm_address())
-            .set_initial_balance(Hbar(1))
-            .freeze_with(client)
-            .sign(client.operator_private_key)
-            .sign(ecdsa_key)
-        )
+def transfer_hbar_to_evm_address(client: Client, evm_address: bytes) -> AccountId:
+    """
+    Transfer HBAR to an EVM address.
+    This auto-creates a hollow account if the address does not already exist.
+    """
+    print("\nSTEP 4: Transferring HBAR to EVM address...")
 
-        receipt = tx.execute(client)
+    recipient_id = AccountId.from_evm_address(
+        evm_address=evm_address,
+        shard=0,
+        realm=0,
+    )
 
-        if receipt.status != ResponseCode.SUCCESS:
-            print(f"Account creation failed: {ResponseCode(receipt.status).name}")
-            sys.exit(1)
+    tx = (
+        TransferTransaction()
+        .add_hbar_transfer(client.operator_account_id, Hbar(-1).to_tinybars())
+        .add_hbar_transfer(recipient_id, Hbar(1).to_tinybars())
+    )
 
-        print(f"Recipient account created: {receipt.account_id}")
-        return receipt.account_id
+    tx_response = tx.execute(client)
 
-    except Exception as e:
-        print(f"Exception during account creation: {e}")
-        sys.exit(1)
+    receipt = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(tx_response.transaction_id)
+        .set_include_children(True)
+        .execute(client)
+    )
 
-def transfer_hbar(client, recipient_evm_address):
-    """Transfer HBAR using only an EVM address."""
-    print("\nSTEP 2: Transferring HBAR using EVM address...")
+    if receipt.status != ResponseCode.SUCCESS:
+        raise RuntimeError(f"Transfer failed: {receipt.status}")
 
-    try:
-        # Set shard and realm to 0 if not known
-        recipient_id = AccountId.from_evm_address(recipient_evm_address, 0, 0)
+    # Child receipt contains the auto-created account
+    new_account_id = receipt.children[0].account_id
+    print(f"New account created: {new_account_id}")
 
-        tx = (
-            TransferTransaction()
-            .add_hbar_transfer(client.operator_account_id, Hbar(-1).to_tinybars())
-            .add_hbar_transfer(recipient_id, Hbar(1).to_tinybars())
-            .freeze_with(client)
-        )
+    return new_account_id
 
-        tx.execute(client)
-        print("HBAR transfer completed successfully!")
 
-    except Exception as e:
-        print(f"HBAR transfer failed: {e}")
-        sys.exit(1)
+def show_account_info(client: Client, account_id: AccountId) -> None:
+    """
+    Query AccountInfo and print whether the account is hollow or complete.
+    """
+    info = (
+        AccountInfoQuery()
+        .set_account_id(account_id)
+        .execute(client)
+    )
 
-def account_balance_query(client, account_id, label = "") -> Hbar:
-    """Query and print the HBAR balance of an account."""
-    try:
-        balance_query = (
-            CryptoGetAccountBalanceQuery(account_id=account_id)
-            .execute(client)
-        )
+    print(info)
+    # if info.key is None:
+    #     print(f"Account {account_id} has no public key → hollow account")
+    # else:
+    #     print(f"Account {account_id} has public key → complete account")
+    #     print(f"Public key: {info.key}")
 
-        balance = balance_query.hbars
-        print(f"Balance {label}: {balance} hbars")
-
-        return balance
-    except Exception as e:
-        print(f"Balance query failed: {e}")
-        sys.exit(1)
 
 
 def main():
-    """
-    Transfer Hbar to recipient account using EVM Address.:
-    1. Create an account using an ECDSA alias (EVM address)
-    2. Query its balance
-    3. Transfer HBAR using ONLY the EVM address
-    4. Query balance again
-    """
     client = setup_client()
+    client.set_transport_security(False)
 
-    # Generate a fresh ECDSA key for alias/EVM address
-    ecdsa_key = PrivateKey.generate("ecdsa")
-    evm_address = ecdsa_key.public_key().to_evm_address()
+    try:
+        private_key = PrivateKey.generate("ecdsa")
+        print(f"\nSTEP 1: Generated ECDSA private key")
 
-    recipient_id = create_account(client, ecdsa_key)
+        public_key = private_key.public_key()
+        print("STEP 2: Extracted public key")
 
-    account_balance_query(client, recipient_id, "before transfer")
+        evm_address = public_key.to_evm_address()
+        print(f"STEP 3: EVM address: 0x{evm_address.to_string()}")
 
-    transfer_hbar(client, evm_address)
+        new_account_id = transfer_hbar_to_evm_address(client, evm_address)
 
-    account_balance_query(client, recipient_id, "after transfer")
+        print("\nSTEP 6: Querying account info...")
+        show_account_info(client, new_account_id)
+
+    finally:
+        client.close()
+
 
 if __name__ == "__main__":
     main()
-
