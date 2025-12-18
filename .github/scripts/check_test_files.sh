@@ -24,7 +24,7 @@ function is_in_test_dir() {
 function check_test_file_name() {
   local filename="$1"
   if is_in_test_dir "$filename"; then
-    if [[ $(basename "$filename") != "*.py"]]; then
+    if [[ $(basename "$filename") != *.py ]]; then
       return 0
     fi
     for exception in "${EXCEPTION_NAMES[@]}"; do
