@@ -1,5 +1,6 @@
 """Unit tests for TLS functionality in _Node."""
 import hashlib
+import ssl
 from unittest.mock import Mock, patch, MagicMock
 import pytest
 from src.hiero_sdk_python.node import _Node
@@ -118,7 +119,7 @@ def test_node_set_verify_certificates_idempotent(mock_node_with_address_book):
     assert node._verify_certificates == initial_state
 
 
-def test_node_build_channel_options_with_hostname_not_override(mock_address_book):
+def test_node_build_channel_options_with_hostname_not_override():
     """Test channel options include hostname override when domain differs from address."""
     endpoint = Endpoint(address=b"127.0.0.1", port=50212, domain_name="node.example.com")
     address_book = NodeAddress(
@@ -133,7 +134,7 @@ def test_node_build_channel_options_with_hostname_not_override(mock_address_book
     assert ('grpc.ssl_target_name_override', 'node.example.com') not in options
 
 
-def test_node_build_channel_options_no_override_when_same(mock_address_book):
+def test_node_build_channel_options_no_override_when_same():
     """Test channel options don't include override when hostname matches address."""
     endpoint = Endpoint(address=b"node.example.com", port=50212, domain_name="node.example.com")
     address_book = NodeAddress(
@@ -369,3 +370,39 @@ def test_normalize_cert_hash(cert_hash, expected):
     """Test certificate hash normalization."""
     result = _Node._normalize_cert_hash(cert_hash)
     assert result == expected
+
+def test_validate_tls_skipped_when_not_secure(mock_node_with_address_book):
+    """Test skip validate_certificate when insrcure connection is use"""
+    node = mock_node_with_address_book
+    # Force insecure transport
+    node._address = node._address._to_insecure()
+    node._verify_certificates = True
+
+    # Should return early and NOT raise
+    node._validate_tls_certificate_with_trust_manager()
+
+@patch("socket.create_connection")
+@patch("ssl.create_default_context")
+def test_fetch_server_certificate_legacy_tls_path(mock_ssl_context, mock_socket):
+    """Test ssl_context with enforce TLS verison restiction."""
+    node = _Node(AccountId(0, 0, 3), "127.0.0.1:50212", Mock())
+
+    mock_context = MagicMock()
+    # Simulate Python < 3.7
+    delattr(mock_context, "minimum_version")
+    mock_context.options = 0
+
+    mock_ssl_context.return_value = mock_context
+
+    mock_tls_socket = MagicMock()
+    mock_tls_socket.getpeercert.return_value = b"DER_CERT"
+
+    mock_context.wrap_socket.return_value.__enter__.return_value = mock_tls_socket
+    mock_socket.return_value.__enter__.return_value = MagicMock()
+
+    with patch("ssl.DER_cert_to_PEM_cert", return_value="PEM"):
+        node._fetch_server_certificate_pem()
+
+    # Assert legacy flags applied
+    assert mock_context.options & ssl.OP_NO_TLSv1
+    assert mock_context.options & ssl.OP_NO_TLSv1_1
