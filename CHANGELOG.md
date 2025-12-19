@@ -75,6 +75,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with _test.py as all other test files.(#1117)
 - Format token examples with Black for consistent code style and improved readability (#1119)
 - Transformed `examples/tokens/custom_fee_fixed.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
+- Format token examples with Black for consistent code style and improved readability (#1119) 
+- Replaced `ResponseCode.get_name(receipt.status)` with the  `ResponseCode(receipt.status).name` across examples and integration tests for consistency. (#1136)
+
+
 
 ### Fixed
 
@@ -84,6 +88,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - good first issue template yaml rendering
 - Fixed solo workflow defaulting to zero
 - Fix unit test tet_query.py
+- TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 
 ### Breaking Change
 
