@@ -80,6 +80,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Transformed `examples/tokens/custom_fee_fixed.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
 - Format token examples with Black for consistent code style and improved readability (#1119) 
 - Replaced `ResponseCode.get_name(receipt.status)` with the  `ResponseCode(receipt.status).name` across examples and integration tests for consistency. (#1136)
+- Moved helpful references to Additional Context section and added clickable links.
 
 
 
