@@ -163,4 +163,4 @@ def test_perform_query_to_mirror_node_failure():
             perform_query_to_mirror_node("http://mirror-node/accounts/123")
             assert False, "Should have raised RuntimeError"
         except RuntimeError as e:
-            assert "Failed to fetch from mirror node" in str(e)
+            assert "Unexpected error while querying mirror node:" in str(e)

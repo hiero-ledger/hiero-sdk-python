@@ -549,7 +549,7 @@ class PublicKey:
 
     def to_evm_address(self) -> "EvmAddress":
         if self.is_ed25519():
-            raise ValueError("")
+            raise ValueError("Cannot derive an EVM address")
         
         uncompressed = self.to_bytes_ecdsa(False)
         keccak_bytes = keccak256(uncompressed[1:])
