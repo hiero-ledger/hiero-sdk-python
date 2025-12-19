@@ -31,10 +31,6 @@ def setup_client():
     print(f"Connecting to the Hedera {network_name} network")
     client = Client(network)
 
-    # # Development: Bypass SSL verification for local environment compatibility
-    # client.set_transport_security(False)
-    # client.set_verify_certificates(False)
-
     try:
         operator_id_str = os.getenv('OPERATOR_ID')
         operator_key_str = os.getenv('OPERATOR_KEY')
