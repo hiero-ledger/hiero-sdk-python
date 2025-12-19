@@ -29,7 +29,7 @@ def test_integration_file_update_transaction_can_execute(env):
     )
     assert (
         receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode.get_name(receipt.status)}"
+    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -53,7 +53,7 @@ def test_integration_file_update_transaction_can_execute(env):
     )
     assert (
         receipt.status == ResponseCode.SUCCESS
-    ), f"File update failed with status: {ResponseCode.get_name(receipt.status)}"
+    ), f"File update failed with status: {ResponseCode(receipt.status).name}"
 
     # Query file info and check if everything is updated
     info = FileInfoQuery().set_file_id(file_id).execute(env.client)
@@ -85,7 +85,7 @@ def test_integration_file_update_transaction_cannot_update_immutable_file(env):
     receipt = FileCreateTransaction().set_contents("Immutable file").execute(env.client)
     assert (
         receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode.get_name(receipt.status)}"
+    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -121,7 +121,7 @@ def test_integration_file_update_transaction_fails_when_key_is_invalid(env):
     )
     assert (
         receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode.get_name(receipt.status)}"
+    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"

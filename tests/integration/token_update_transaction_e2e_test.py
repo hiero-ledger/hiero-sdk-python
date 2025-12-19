@@ -39,7 +39,7 @@ def test_integration_token_update_transaction_can_execute():
            .freeze_with(env.client)
            .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
         
         info = (
             TokenInfoQuery()
@@ -73,7 +73,7 @@ def test_integration_token_update_preserves_fields_without_updating_parameters()
             .set_token_id(token_id)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
         
         info = (
             TokenInfoQuery()
@@ -114,7 +114,7 @@ def test_integration_token_update_transaction_different_keys():
             .set_initial_balance(Hbar(2))
         )
         receipt = tx.execute(env.client)
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         
         # Create fungible token with initial metadata and pause keys both set to the first key
         token_id = create_fungible_token(env, opts=[
@@ -141,7 +141,7 @@ def test_integration_token_update_transaction_different_keys():
             .set_fee_schedule_key(keys[7])
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
         
         # Query token info and verify updates
         info = (
@@ -178,7 +178,7 @@ def test_integration_token_update_transaction_treasury():
             .set_initial_balance(Hbar(2))
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         account_id = receipt.account_id
         
         # Create fungible token
@@ -191,7 +191,7 @@ def test_integration_token_update_transaction_treasury():
             .freeze_with(env.client)
         )
         receipt = tx.sign(new_private_key).execute(env.client)
-        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token association failed with status: {ResponseCode(receipt.status).name}"
         
         # Update token with new treasury account
         receipt = (
@@ -203,7 +203,7 @@ def test_integration_token_update_transaction_treasury():
             .sign(new_private_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
         
         # Query token info and verify updates
         info = (
@@ -227,7 +227,7 @@ def test_integration_token_update_transaction_fail_invalid_token_id():
 
         receipt = tx.execute(env.client)
         
-        assert receipt.status == ResponseCode.INVALID_TOKEN_ID, f"Token update should have failed with INVALID_TOKEN_ID status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INVALID_TOKEN_ID, f"Token update should have failed with INVALID_TOKEN_ID status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -256,7 +256,7 @@ def test_integration_token_update_transaction_fungible_metadata():
             .set_metadata(new_metadata)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
         
         # Query token info and verify updated metadata
         info = (
@@ -294,7 +294,7 @@ def test_integration_token_update_transaction_nft_metadata():
             .set_metadata(new_metadata)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
         
         # Query token info and verify updated metadata
         info = (
@@ -342,7 +342,7 @@ def test_integration_token_update_transaction_metadata_immutable_fungible_token(
             .sign(metadata_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
         
         # Query token info and verify updated metadata
         info = (
@@ -390,7 +390,7 @@ def test_integration_token_update_transaction_metadata_immutable_nft():
             .sign(metadata_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
         
         # Query token info and verify updated metadata
         info = (
@@ -426,7 +426,7 @@ def test_token_update_transaction_cannot_update_metadata_fungible():
             .set_token_memo("updated memo")
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
         
         # Query token info and verify metadata remains unchanged
         info = (
@@ -462,7 +462,7 @@ def test_integration_token_update_transaction_cannot_update_metadata_nft():
             .set_token_memo("asdf")
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
         
         # Query token info and verify metadata remains unchanged
         info = (
@@ -498,7 +498,7 @@ def test_integration_token_update_transaction_erase_metadata_fungible_token():
             .set_metadata(b"")
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
 
         # Query token info and verify metadata was erased
         info = (
@@ -534,7 +534,7 @@ def test_integration_token_update_transaction_erase_metadata_nft():
             .set_metadata(b"")
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
 
         # Query token info and verify metadata was erased
         info = (
@@ -571,7 +571,7 @@ def test_integration_token_update_transaction_cannot_update_metadata_without_key
             .execute(env.client)
         )
         
-        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"Token update should have failed with INVALID_SIGNATURE status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"Token update should have failed with INVALID_SIGNATURE status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
         
@@ -600,7 +600,7 @@ def test_integration_token_update_transaction_cannot_update_metadata_without_key
             .execute(env.client)
         )
 
-        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"Token update should have failed with INVALID_SIGNATURE status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE, f"Token update should have failed with INVALID_SIGNATURE status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -624,7 +624,7 @@ def test_integration_token_update_transaction_cannot_update_immutable_fungible_t
             .execute(env.client)
         )
         
-        assert receipt.status == ResponseCode.TOKEN_IS_IMMUTABLE, f"Token update should have failed with TOKEN_IS_IMMUTABLE status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.TOKEN_IS_IMMUTABLE, f"Token update should have failed with TOKEN_IS_IMMUTABLE status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -647,7 +647,7 @@ def test_integration_token_update_transaction_cannot_update_immutable_nft():
             .execute(env.client)
         )
         
-        assert receipt.status == ResponseCode.TOKEN_IS_IMMUTABLE, f"Token update should have failed with TOKEN_IS_IMMUTABLE status but got: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.TOKEN_IS_IMMUTABLE, f"Token update should have failed with TOKEN_IS_IMMUTABLE status but got: {ResponseCode(receipt.status).name}"
     finally:
         env.close()
 
@@ -675,7 +675,7 @@ def test_integration_token_update_auto_renew_account():
            .sign(recipient.key)
            .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
         
         new_info = (
             TokenInfoQuery()
@@ -710,7 +710,7 @@ def test_integration_token_update_expiration_time():
            .freeze_with(env.client)
            .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
         
         new_info = (
             TokenInfoQuery()
@@ -756,7 +756,7 @@ def test_integration_token_update_kyc_key_fungible_token():
             .sign(new_kyc_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
 
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
         assert token_info.kyc_key.to_string() == new_kyc_key.public_key().to_string(), "Updated kyc_key mismatch"
@@ -808,7 +808,7 @@ def test_integration_token_update_kyc_key_nft():
             .sign(new_kyc_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
 
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
         assert token_info.kyc_key.to_string() == new_kyc_key.public_key().to_string(), "Updated kyc_key mismatch"
@@ -849,7 +849,7 @@ def test_integation_token_update_fee_schedule_key_fungible_token():
             .sign(admin_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
 
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
         assert token_info.fee_schedule_key.to_string() == new_fee_schedule_key.public_key().to_string(), "Updated fee_schedule_key mismatch"
@@ -895,7 +895,7 @@ def test_integation_token_update_fee_schedule_key_nft():
             .sign(admin_key)
             .execute(env.client)
         )
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
 
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
         assert token_info.fee_schedule_key.to_string() == new_fee_schedule_key.public_key().to_string(), "Updated fee_schedule_key mismatch"
@@ -942,7 +942,7 @@ def test_integration_token_update_with_public_key():
             .execute(env.client)
         )
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
         
         # Query the token and verify the freeze key matches the public key
         info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
@@ -1001,7 +1001,7 @@ def test_integration_token_update_non_custodial_workflow():
         
         receipt = tx_from_bytes.execute(env.client)
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update failed with status: {ResponseCode(receipt.status).name}"
         
         # PROOF: Query the token and check if the freeze key matches
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
@@ -1042,7 +1042,7 @@ def test_integration_token_update_with_ecdsa_public_key():
             .execute(env.client)
         )
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
         
         # Query the token and verify the admin key matches the public key
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
@@ -1085,7 +1085,7 @@ def test_integration_token_update_with_mixed_key_types():
             .execute(env.client)
         )
         
-        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode.get_name(receipt.status)}"
+        assert receipt.status == ResponseCode.SUCCESS, f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
         
         # Query the token and verify all keys are correctly set
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
