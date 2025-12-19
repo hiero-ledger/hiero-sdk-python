@@ -51,6 +51,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add a workflow to notify the team when issues are labeled as “good first issues” or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
 - Added __str__ and __repr__ to AccountBalance
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
+- Added advanced issue template for contributors `.github/ISSUE_TEMPLATE/06_advanced_issue.yml`.
 
 ### Changed
 - Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
