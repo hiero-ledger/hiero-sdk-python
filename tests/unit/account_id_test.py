@@ -260,6 +260,21 @@ def test_from_string_with_alias_key_ecdsa(alias_key_ecdsa):
 
 
 @pytest.mark.parametrize(
+    "input_str,expected",
+    [
+        ("0x1234567890abcdef1234567890abcdef12345678", True),# valid 0x-prefixed
+        ("1234567890abcdef1234567890abcdef12345678", True),# valid raw
+        ("0x123", False),# too short
+        ("1234567890abcdef1234567890abcdef1234567890", False),# too long
+        ("0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ", False),# invalid hex
+    ]
+)
+def test_is_evm_address(input_str, expected):
+    """Test _is_evm_address static method for all branches."""
+    assert AccountId._is_evm_address(input_str) == expected
+
+
+@pytest.mark.parametrize(
     "invalid_id",
     [
         "1.2",  # Too few parts
@@ -293,7 +308,9 @@ def test_from_string_with_alias_key_ecdsa(alias_key_ecdsa):
         '0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777',
         '0.0.302a300506032b6570032100114e6abc371b82d',
         '302a300506032b6570032100114e6abc371b82d',
-        '0x302a300506032b6570032100114e6abc371b82d'
+        '0x302a300506032b6570032100114e6abc371b82d',
+        '0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ' # invalid hex
+        'ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ',
     ]
 )
 def test_from_string_for_invalid_format(invalid_id):
