@@ -2,7 +2,7 @@ import re
 import struct
 import requests
 
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
@@ -126,10 +126,14 @@ def format_to_string_with_checksum(shard: int, realm: int, num: int, client: "Cl
     base_str = format_to_string(shard, realm, num)
     return f"{base_str}-{generate_checksum(ledger_id, format_to_string(shard, realm, num))}"
 
-def perform_query_to_mirror_node(url: str) -> Dict[str, Any]:
+def perform_query_to_mirror_node(url: str, timeout: float=10) -> Dict[str, Any]:
     """Perform a GET request to the Hedera Mirror Node REST API."""
+    print(url)
+    if not isinstance(url, str) or not url:
+        raise ValueError("url must be a non-empty string")
+
     try:
-        response: requests.Response = requests.get(url, timeout=30)
+        response: requests.Response = requests.get(url, timeout=timeout)
         response.raise_for_status()
 
         return response.json()
@@ -141,6 +145,7 @@ def perform_query_to_mirror_node(url: str) -> Dict[str, Any]:
         raise RuntimeError(f"Mirror node request timed out for {url}") from e
 
     except requests.RequestException as e:
+        print(e)
         raise RuntimeError(f"Unexpected error while querying mirror node: {url}")
     
 def to_solidity_address(shard: int, realm: int, num: int) -> str:
