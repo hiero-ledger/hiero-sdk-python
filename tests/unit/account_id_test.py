@@ -149,6 +149,13 @@ def test_repr_representation_with_alias_key(alias_key):
     expected = f"AccountId(shard=0, realm=0, alias_key={alias_key.to_string_raw()})"
     assert repr(account_id) == expected
 
+def test_repr_representation_with_evm_address(evm_address):
+    """Test repr representation of AccountId with evm_address."""
+    account_id = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
+
+    expected = f"AccountId(shard=0, realm=0, evm_address={evm_address.to_string()})"
+    assert repr(account_id) == expected
+
 
 @pytest.mark.parametrize(
     'account_str, expected', 
@@ -726,6 +733,23 @@ def test_populate_account_num_missing_account(evm_address):
         with pytest.raises(ValueError):
             account_id.populate_account_num(mock_client)
 
+def test_populate_account_num_invalid_account_format(evm_address):
+    """Test populate_account_num raises ValueError for invalid account format."""
+    account_id = AccountId.from_evm_address(evm_address, 0, 0)
+    mock_client = MagicMock()
+    mock_client.network.get_mirror_rest_url.return_value = "http://mirror_node_rest_url"
+
+    # account value cannot be split into a valid int
+    response = {"account": "invalid.account.format"}
+
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
+        mock_query.return_value = response
+        with pytest.raises(
+            ValueError,
+            match="Invalid account format received: invalid.account.format"
+        ):
+            account_id.populate_account_num(mock_client)
+
 def test_populate_account_num_missing_evm_address():
     """Test that populate_account_num raises a ValueError when evm_address is none."""
     account_id = AccountId.from_string("0.0.100")
@@ -826,4 +850,12 @@ def test_to_bytes_and_from_bytes_with_evm_address(evm_address):
     # account.num is set to 0 as alias is set
     assert new_account_id.alias_key == account_id.alias_key
     assert new_account_id.evm_address == account_id.evm_address
+
+def test_to_evm_address_returns_existing_evm_address(evm_address):
+    """Test to_evm_address returns stored evm_address if present."""
+    account_id = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
+
+    result = account_id.to_evm_address()
+
+    assert result == evm_address.to_string()
 

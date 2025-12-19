@@ -81,7 +81,7 @@ class AccountId:
         if account_id_str is None or not isinstance(account_id_str, str):
             raise ValueError(f"AccountId must be a string, got {type(account_id_str).__name__}.")
         
-        if _is_evm_address(account_id_str):
+        if cls._is_evm_address(account_id_str):
             # Detect EVM address input (raw 20-byte hex or 0x-prefixed).
             # EVM addresses do not encode shard or realm information, so both
             # values default to 0. The numeric account ID can later be resolved
@@ -105,6 +105,7 @@ class AccountId:
             if alias_match:
                 shard, realm, alias = alias_match.groups()
                 alias_bytes = bytes.fromhex(alias)
+                
                 is_evm_address = len(alias_bytes) == 20
 
                 # num is set to 0 because the numeric account ID is unknown at creation time.
@@ -228,6 +229,23 @@ class AccountId:
             self.__checksum,
             client,
         )
+    
+    @staticmethod
+    def _is_evm_address(value: str) -> bool:
+        """Check if the given string value is an evm_address"""
+        if value.startswith("0x"):
+            value = value[2:]
+
+        if len(value) != 40:
+            return False
+
+        try:
+            bytes.fromhex(value)
+        except ValueError:
+            return False
+
+        return True
+
 
     def __str__(self) -> str:
         """
@@ -342,17 +360,3 @@ class AccountId:
         """Returns a hash value for the AccountId instance."""
         return hash((self.shard, self.realm, self.num, self.alias_key, self.evm_address))
 
-def _is_evm_address(value: str) -> bool:
-    """Check if the given string value is an evm_address"""
-    if value.startswith("0x"):
-        value = value[2:]
-
-    if len(value) != 40:
-        return False
-
-    try:
-        bytes.fromhex(value)
-    except ValueError:
-        return False
-
-    return True
