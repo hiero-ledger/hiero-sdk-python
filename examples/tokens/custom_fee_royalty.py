@@ -25,7 +25,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 def setup_client():
     """
-    Initilise and set up the client with the operator account
+    Initialize and set up the client with the operator account
     """
     
     network = Network(network_name)
