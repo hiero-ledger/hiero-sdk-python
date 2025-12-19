@@ -78,7 +78,7 @@ def custom_royalty_fee_example():
     print(f"Royalty Fee Configured: 5/100 (5%)")
     print(f"Fallback Fee: 1 HBAR")
     
-    print(f"\n--- Creating TOken with Royalty Fee ---")
+    print(f"\n--- Creating Token with Royalty Fee ---")
     transaction = (
         TokenCreateTransaction()
         .set_token_name("Royalty NFT Collection")
