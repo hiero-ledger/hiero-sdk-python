@@ -30,7 +30,7 @@ def setup_client():
     """
     
     network = Network(network_name)
-    print(f"Connecting to the HEdera {network_name} network")
+    print(f"Connecting to the Hedera {network_name} network")
     client = Client(network)
     
     try:
