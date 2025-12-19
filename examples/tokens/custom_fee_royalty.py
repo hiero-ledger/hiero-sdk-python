@@ -20,7 +20,6 @@ from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
-
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
