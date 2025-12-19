@@ -51,6 +51,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add a workflow to notify the team when issues are labeled as “good first issues” or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
 - Added __str__ and __repr__ to AccountBalance
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
+- Added advanced issue template for contributors `.github/ISSUE_TEMPLATE/06_advanced_issue.yml`.
 
 ### Changed
 - Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
@@ -73,7 +74,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Rename test files across the repository to ensure they consistently end with _test.py (#1055)
 - Cleaned up `token_airdrop_claim_signature_required` example for pylint compliance (no functional changes). (#1080)
 - Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with _test.py as all other test files.(#1117)
-- Format token examples with Black for consistent code style and improved readability (#1119)
+- Format token examples with Black for consistent code style and improved readability (#1119) 
+- Replaced `ResponseCode.get_name(receipt.status)` with the  `ResponseCode(receipt.status).name` across examples and integration tests for consistency. (#1136)
+
 
 
 ### Fixed
@@ -84,6 +87,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - good first issue template yaml rendering
 - Fixed solo workflow defaulting to zero
 - Fix unit test tet_query.py
+- TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 
 ### Breaking Change
 
