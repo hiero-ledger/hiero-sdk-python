@@ -79,7 +79,7 @@ class AccountId:
             ValueError: If the string format is invalid
         """
         if account_id_str is None or not isinstance(account_id_str, str):
-            raise ValueError(f"AccountId must be a string, got {type(account_id_str).__name__}.")
+            raise ValueError(f"account_id_str must be a string, got {type(account_id_str).__name__}.")
         
         if cls._is_evm_address(account_id_str):
             # Detect EVM address input (raw 20-byte hex or 0x-prefixed).
@@ -128,7 +128,7 @@ class AccountId:
             ) from e
 
     @classmethod
-    def from_evm_address(cls, evm_address: Union[str, EvmAddress], shard: int, realm: int):
+    def from_evm_address(cls, evm_address: Union[str, EvmAddress], shard: int, realm: int) -> "AccountId":
         """
         Create an AccountId from an EVM address.
         In case shard and realm are unknown, they should be set to zero
@@ -141,19 +141,30 @@ class AccountId:
         Returns:
             AccountId: An instance of AccountId
         """
+        if evm_address is None:
+            raise ValueError("evm_address must not be None")
+
         if isinstance(evm_address, str):
-            evm_address = EvmAddress.from_string(evm_address)
+            try:
+                evm_address = EvmAddress.from_string(evm_address)
+            except Exception as e:
+                raise ValueError(f"Invalid EVM address string: {evm_address}") from e
+    
+        elif not isinstance(evm_address, EvmAddress):
+            raise ValueError(
+                f"evm_address must be a str or EvmAddress, got {type(evm_address).__name__}"
+            )
 
         return cls(
             shard=shard,
             realm=realm,
-            num=0,
+            num=0, # numeric account ID unknown at creation time
             alias_key=None,
             evm_address=evm_address
         )
 
     @classmethod
-    def from_bytes(cls, data: bytes):
+    def from_bytes(cls, data: bytes) -> "AccountId":
         """
         Deserialize an AccountId from protobuf-encoded bytes.
         
@@ -281,12 +292,20 @@ class AccountId:
             raise ValueError("Account evm_address is required before populating num")
 
         url = f"{client.network.get_mirror_rest_url()}/accounts/{self.evm_address.to_string()}"
-        data = perform_query_to_mirror_node(url)
 
-        account_id = data.get("account")
-        if not account_id:
-            raise ValueError(f"Mirror node response missing 'account': {data}")
+        try:
+            data = perform_query_to_mirror_node(url)
 
+            account_id = data.get("account")
+            if not account_id:
+                raise ValueError(f"Mirror node response missing 'account': {data}")
+        
+        except RuntimeError as e:
+            raise RuntimeError(
+                f"Failed to populate account number from mirror node for evm_address "
+                f"{self.evm_address.to_string()}"
+            ) from e    
+        
         try:
             self.num = int(account_id.split(".")[-1])
             return self
@@ -295,15 +314,21 @@ class AccountId:
 
     def populate_evm_address(self, client: "Client") -> "AccountId":
         """Populate the EVM address using the Mirror Node."""
-        if not self.num:
+        if self.num is None:
             raise ValueError("Account number is required before populating evm_address")
 
         url = f"{client.network.get_mirror_rest_url()}/accounts/{self.num}"
-        data = perform_query_to_mirror_node(url)
+        try:
+            data = perform_query_to_mirror_node(url)
 
-        evm_addr = data.get("evm_address")
-        if not evm_addr:
-            raise ValueError(f"Mirror node response missing 'evm_address': {data}")
+            evm_addr = data.get("evm_address")
+            if not evm_addr:
+                raise ValueError(f"Mirror node response missing 'evm_address': {data}")
+        
+        except RuntimeError as e:
+            raise RuntimeError(
+                f"Failed to populate evm_address from mirror node for account {self.num}"
+            ) from e
 
         self.evm_address = EvmAddress.from_string(evm_addr)
         return self
