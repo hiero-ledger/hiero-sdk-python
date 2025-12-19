@@ -59,10 +59,6 @@ body:
         > - A large architectural redesign
         > - A change requiring extensive cross-module refactors
         > - A breaking API change
-        >
-        > 📖 Helpful references:
-        > - `docs/sdk_developers/training`
-        > - `docs/sdk_developers/rebasing.md`
 
   - type: textarea
     id: problem
@@ -208,6 +204,8 @@ body:
       description: |
         Add any links, references, or extra notes that may help.
       value: |
-        Optional.
+        - [SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers)
+        - [SDK Developer Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training)
+
     validations:
       required: false
