@@ -133,8 +133,15 @@ def perform_query_to_mirror_node(url: str) -> Dict[str, Any]:
         response.raise_for_status()
 
         return response.json()
+    
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+        raise RuntimeError(f"Mirror node request failed for {url}: {e}") from e
+
+    except requests.exceptions.Timeout as e:
+        raise RuntimeError(f"Mirror node request timed out for {url}") from e
+
     except requests.RequestException as e:
-        raise RuntimeError(f"Failed to fetch from mirror node: {e}")
+        raise RuntimeError(f"Unexpected error while querying mirror node: {url}")
     
 def to_solidity_address(shard: int, realm: int, num: int) -> str:
     """Convert EVM address bytes to hex string or account num to long-zero EVM address."""
