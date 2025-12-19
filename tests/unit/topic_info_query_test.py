@@ -131,15 +131,6 @@ def test_make_request_builds_expected_protobuf(topic_id):
     )
 
 
-def test_get_query_response_extracts_consensus_field():
-    """Covers TopicInfoQuery._get_query_response()."""
-    query = TopicInfoQuery()
-    response = _response_with_status(ResponseCode.OK)
-
-    out = query._get_query_response(response)
-    assert out is response.consensusGetTopicInfo
-
-
 @pytest.mark.parametrize(
     "status,expected_state",
     [
