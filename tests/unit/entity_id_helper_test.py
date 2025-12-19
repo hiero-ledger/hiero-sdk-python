@@ -199,3 +199,13 @@ def test_perform_query_to_mirror_node_timeout():
     ):
         with pytest.raises(RuntimeError, match="Mirror node request timed out"):
             perform_query_to_mirror_node("http://mirror-node/accounts/123")
+
+def test_perform_query_to_mirror_node_invalid_url_none():
+    """Test url must be a non-empty string (None case)."""
+    with pytest.raises(ValueError, match="url must be a non-empty string"):
+        perform_query_to_mirror_node(None)
+
+def test_perform_query_to_mirror_node_invalid_url_empty():
+    """Test url must be a non-empty string (empty string case)."""
+    with pytest.raises(ValueError, match="url must be a non-empty string"):
+        perform_query_to_mirror_node("")

@@ -262,11 +262,11 @@ def test_from_string_with_alias_key_ecdsa(alias_key_ecdsa):
 @pytest.mark.parametrize(
     "input_str,expected",
     [
-        ("0x1234567890abcdef1234567890abcdef12345678", True),# valid 0x-prefixed
-        ("1234567890abcdef1234567890abcdef12345678", True),# valid raw
-        ("0x123", False),# too short
-        ("1234567890abcdef1234567890abcdef1234567890", False),# too long
-        ("0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ", False),# invalid hex
+        ("0x1234567890abcdef1234567890abcdef12345678", True), # valid 0x-prefixed
+        ("1234567890abcdef1234567890abcdef12345678", True), # valid raw
+        ("0x123", False), # too short
+        ("1234567890abcdef1234567890abcdef1234567890", False), # too long
+        ("0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ", False), # invalid hex
     ]
 )
 def test_is_evm_address(input_str, expected):
@@ -307,6 +307,7 @@ def test_is_evm_address(input_str, expected):
         '0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777g',
         '0.0.302a300506032b6570032100114e6abc371b82dab5c15ea149f02d34a012087b163516dd70f44acafabf777',
         '0.0.302a300506032b6570032100114e6abc371b82d',
+        '0.0.ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ',
         '302a300506032b6570032100114e6abc371b82d',
         '0x302a300506032b6570032100114e6abc371b82d',
         '0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ' # invalid hex
@@ -336,7 +337,7 @@ def test_from_string_for_invalid_format(invalid_id):
 def test_from_string_for_invalid_types(invalid_id):
     """Should raise error when creating AccountId from invalid types."""
     with pytest.raises(
-        ValueError, match=f"AccountId must be a string, got {type(invalid_id).__name__}."
+        ValueError, match=f"account_id_str must be a string, got {type(invalid_id).__name__}."
     ):
         AccountId.from_string(invalid_id)
 
@@ -774,6 +775,24 @@ def test_populate_account_num_missing_evm_address():
     
     with pytest.raises(ValueError):
         account_id.populate_account_num(mock_client)
+        
+def test_populate_account_num_mirror_node_failure():
+    """Test populate_account_num should wrap mirror node RuntimeError with context"""
+    evm_address = EvmAddress.from_string("0x" + "11" * 20)
+    account_id = AccountId.from_evm_address(evm_address, 0, 0)
+
+    mock_client = MagicMock()
+    mock_client.network.get_mirror_rest_url.return_value = "http://mirror-node"
+
+    with patch(
+        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node",
+        side_effect=RuntimeError("mirror node query error")
+    ):
+        with pytest.raises(
+            RuntimeError,
+            match="Failed to populate account number from mirror node for evm_address"
+        ):
+            account_id.populate_account_num(mock_client)
 
 def test_populate_account_evm_address(evm_address):
     """Test that populate_evm_address correctly queries the mirror node."""
@@ -809,7 +828,37 @@ def test_populate_evm_address_missing_num(evm_address):
     account_id = AccountId.from_evm_address(evm_address, 0, 0) # num == 0
     mock_client = MagicMock()
     
-    with pytest.raises(ValueError):
+    with pytest.raises(RuntimeError):
+        account_id.populate_evm_address(mock_client)
+
+
+def test_populate_evm_address_mirror_node_failure():
+    """Test populate_evm_address should wrap mirror node RuntimeError with context"""
+    account_id = AccountId(shard=0, realm=0, num=123)
+
+    mock_client = MagicMock()
+    mock_client.network.get_mirror_rest_url.return_value = "http://mirror-node"
+
+    with patch(
+        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node",
+        side_effect=RuntimeError("mirror node query error")
+    ):
+        with pytest.raises(
+            RuntimeError,
+            match="Failed to populate evm_address from mirror node for account 123"
+        ):
+            account_id.populate_evm_address(mock_client)
+
+def test_populate_evm_address_requires_account_num():
+    """Test populate_evm_address should raise ValueError when num is None"""
+    account_id = AccountId(shard=0, realm=0, num=None)
+
+    mock_client = MagicMock()
+
+    with pytest.raises(
+        ValueError,
+        match="Account number is required before populating evm_address"
+    ):
         account_id.populate_evm_address(mock_client)
 
 def test_to_bytes_and_from_bytes_roundtrip():
@@ -876,3 +925,45 @@ def test_to_evm_address_returns_existing_evm_address(evm_address):
 
     assert result == evm_address.to_string()
 
+def test_from_evm_address_with_hex_string():
+    """Test AccountId from a valid 0x-prefixed EVM address string should succeed."""
+    evm_str = "1234567890abcdef1234567890abcdef12345678"
+    evm_str_with_prefix = f"0x{evm_str}"
+
+    account_id = AccountId.from_evm_address(evm_str, shard=0, realm=0)
+
+    assert account_id.shard == 0
+    assert account_id.realm == 0
+    assert account_id.num == 0
+    assert account_id.alias_key is None
+    assert account_id.evm_address is not None
+    assert account_id.evm_address.to_string() == evm_str.lower()
+
+    # with prefix '0x'
+    account_id = AccountId.from_evm_address(evm_str_with_prefix, shard=0, realm=0)
+
+    assert account_id.shard == 0
+    assert account_id.realm == 0
+    assert account_id.num == 0
+    assert account_id.alias_key is None
+    assert account_id.evm_address is not None
+    assert account_id.evm_address.to_string() == evm_str.lower()
+
+def test_from_evm_address_none():
+    """Passing None as evm_address should raise ValueError."""
+    with pytest.raises(ValueError, match="evm_address must not be None"):
+        AccountId.from_evm_address(None, shard=0, realm=0)
+
+def test_from_evm_address_invalid_type():
+    """Test passing an invalid type as evm_address should raise ValueError."""
+    evm_address = 12345
+    with pytest.raises(
+        ValueError,
+        match=f"evm_address must be a str or EvmAddress, got {type(evm_address).__name__}"
+    ):
+        AccountId.from_evm_address(evm_address, shard=0, realm=0)
+
+def test_from_evm_address_invalid_string():
+    """Test passing an invalid EVM address string should raise ValueError."""
+    with pytest.raises(ValueError, match="Invalid EVM address string"):
+        AccountId.from_evm_address("0xINVALID", shard=0, realm=0)
