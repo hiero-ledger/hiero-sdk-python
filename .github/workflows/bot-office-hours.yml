@@ -37,9 +37,9 @@ jobs:
           echo "Meeting week detected. Proceeding to notify open PRs."
 
           REPO="${{ github.repository }}"
-          PR_LIST=$(gh pr list --repo $REPO --state open --json number --jq '.[].number')
+          PR_DATA=$(gh pr list --repo $REPO --state open --json number,author,createdAt)
 
-          if [ -z "$PR_LIST" ]; then
+          if [ -z "$PR_DATA" ] || [ "$PR_DATA" = "[]" ]; then
             echo "No open PRs found."
             exit 0
           fi
@@ -59,8 +59,8 @@ jobs:
           EOF
           )
 
-          for PR_NUM in $PR_LIST; do
-            echo "Processing PR #$PR_NUM"
+          echo "$PR_DATA" | jq -r 'group_by(.author.login) | .[] | sort_by(.createdAt) | reverse | .[0] | .number' | while read PR_NUM; do
+            echo "Processing most recent PR #$PR_NUM for user"
             
             ALREADY_COMMENTED=$(gh pr view $PR_NUM --repo $REPO --json comments --jq '.comments[].body' | grep -F "Office Hour Bot" || true)
 
