@@ -52,11 +52,11 @@ def setup_client():
         sys.exit(1)
 
 def custom_royalty_fee_example():
-    """
-    Demonstrates how to create a token with a custom Royalty fee.
-    """
+    """Demonstrates how to create a token with a custom royalty fee."""
     
     client, operator_id, operator_key = setup_client()
+    
+    
     
     print("\n--- Creating Custom Royalty Fee ---")
     
