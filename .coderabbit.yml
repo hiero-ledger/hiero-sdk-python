@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: false
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: true
+  review_status: true
+  collapse_walkthrough: true
+  related_issues: true
+  related_prs: true
+  auto_review:
+    enabled: true
+    drafts: false
+chat:
+  auto_reply: true
+
+instructions: >
+  You are reviewing the Hiero Python SDK. 
+  1. Ensure all new public classes and methods have Google-style docstrings.
+  2. Verify that any interaction with private keys or mnemonics follows security best practices (no logging of secrets).
+  3. Look for consistent use of the `asyncio` pattern.
+  4. Flag any breaking changes to the public API signature that aren't noted in the PR description.
+  5. Ensure that decimal precision is handled using the `decimal` module rather than `float` for transaction amounts.
