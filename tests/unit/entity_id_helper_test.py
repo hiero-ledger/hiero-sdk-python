@@ -164,3 +164,38 @@ def test_perform_query_to_mirror_node_failure():
             assert False, "Should have raised RuntimeError"
         except RuntimeError as e:
             assert "Unexpected error while querying mirror node:" in str(e)
+
+def test_perform_query_to_mirror_node_http_error():
+    """
+    Test that perform_query_to_mirror_node raises a RuntimeError when requests.get returns an HTTPError.
+    """
+    mock_response = MagicMock()
+    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP fail")
+
+    with patch("hiero_sdk_python.utils.entity_id_helper.requests.get", return_value=mock_response):
+        with pytest.raises(RuntimeError, match="Mirror node request failed"):
+            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+
+
+def test_perform_query_to_mirror_node_connection_error():
+    """
+    Test that perform_query_to_mirror_node raises a RuntimeError when requests.get raises a ConnectionError.
+    """
+    with patch(
+        "hiero_sdk_python.utils.entity_id_helper.requests.get",
+        side_effect=requests.exceptions.ConnectionError("Connection fail")
+    ):
+        with pytest.raises(RuntimeError, match="Mirror node request failed"):
+            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+
+
+def test_perform_query_to_mirror_node_timeout():
+    """
+    Test that perform_query_to_mirror_node raises a RuntimeError when requests.get raises a Timeout exception.
+    """
+    with patch(
+        "hiero_sdk_python.utils.entity_id_helper.requests.get",
+        side_effect=requests.exceptions.Timeout("Timeout")
+    ):
+        with pytest.raises(RuntimeError, match="Mirror node request timed out"):
+            perform_query_to_mirror_node("http://mirror-node/accounts/123")
