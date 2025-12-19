@@ -24,9 +24,7 @@ load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 def setup_client():
-    """
-    Initialize and set up the client with the operator account
-    """
+    """Initialize and set up the client with operator account"""
     
     network = Network(network_name)
     print(f"Connecting to the Hedera {network_name} network")
