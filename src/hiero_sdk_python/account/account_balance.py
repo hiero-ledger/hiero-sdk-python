@@ -80,3 +80,7 @@ class AccountBalance:
             else "{}"
         )
         return f"AccountBalance(hbars={self.hbars!r}, token_balances={token_balances_repr})"
+
+
+def getBalance(id):
+    return None
