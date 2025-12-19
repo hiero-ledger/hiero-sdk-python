@@ -65,7 +65,7 @@ body:
         >
         > 📖 Helpful references:
         > - `docs/sdk_developers/training`
-        > - `docs/sdk_developers/architecture.md`
+        > - `docs/sdk_developers/project_structure.md`
         > - `docs/sdk_developers/rebasing.md`
 
   - type: textarea
