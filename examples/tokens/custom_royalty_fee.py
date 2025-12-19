@@ -3,7 +3,7 @@ Run with:
 uv run examples/tokens/custom_royalty_fee.py
 python examples/tokens/custom_royalty_fee.py
 """
-
+ 
 import os
 import sys
 from dotenv import load_dotenv
