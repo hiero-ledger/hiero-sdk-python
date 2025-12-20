@@ -1,0 +1,42 @@
+name: PR Missing Linked Issue Reminder
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+permissions:
+  pull-requests: write
+  
+jobs:
+  check-linked-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body for linked issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || "";
+            const regex = /(Fixes|fixes)\s+#\d+/i;
+
+            if (!regex.test(body)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `Hi @${context.payload.pull_request.user.login}, this is **LinkBot** 👋
+                Linking pull requests to issues helps us significantly with reviewing and keeping the repository healthy.
+                🚨 **This pull request does not have an issue linked.**
+
+               Please link an issue by updating the **Related issue(s)** section of the pull request 
+               description using the following format:
+                - Fixes #123
+                
+                Please link the relevant issue following this guide:
+                👉 docs/sdk_developers/how_to_link_issue.md
+
+                If no issue exists yet, please create one and link it using the instructions here:
+                👉 docs/sdk_developers/creating_issues.md`
+
+                Thanks!`
+              });
+            }
