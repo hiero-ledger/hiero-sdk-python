@@ -39,7 +39,7 @@ pyproject.toml                                 @hiero-ledger/hiero-sdk-python/py
 # Tooling
 /mypy.ini                                      @hiero-ledger/hiero-sdk-python/python-maintainers
 /pytest.ini                                    @hiero-ledger/hiero-sdk-python/python-maintainers
-**/codecov.yml                                 @hiero-ledger/hiero-sdk-python/python-maintainers
+/codecov.yml                                   @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Self-protection
 /MAINTAINERS.md                                @hiero-ledger/hiero-sdk-python/python-maintainers
