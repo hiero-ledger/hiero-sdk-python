@@ -5,6 +5,9 @@ on:
     branches-ignore:
       - main
 
+permissions:
+  contents: read
+
 concurrency:
   group: pr-checks-${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
