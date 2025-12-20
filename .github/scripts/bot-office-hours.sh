@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DRY_RUN="${DRY_RUN:-false}"
+DRY_RUN="${DRY_RUN:-true}"
 
 ANCHOR_DATE="2025-12-03"
 MEETING_LINK="https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338"
 CALENDAR_LINK="https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week"
 
 EXCLUDED_AUTHORS=(
-  "hiero-sdk-python-maintainers"
-  "hiero-sdk-python-committers"
+"rbair23"
+"nadineloepfe"
+"exploreriii"
+"manishdait"
+"Dosik13"
+"hendrikebbers"
 )
+
+if [ "$DRY_RUN" = "true" ]; then
+  echo "=== DRY RUN MODE ENABLED ==="
+  echo "No comments will be posted."
+fi
 
 IS_MEETING_WEEK=$(python3 - <<EOF
 from datetime import date
@@ -25,7 +34,14 @@ if [ "$IS_MEETING_WEEK" = "false" ]; then
   exit 0
 fi
 
-REPO="${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner -q .nameWithOwner)}"
+if [ -z "${GITHUB_REPOSITORY:-}" ]; then
+  echo "ERROR: GITHUB_REPOSITORY is not set."
+  echo "Set it explicitly, e.g.:"
+  echo "  export GITHUB_REPOSITORY=owner/repo"
+  exit 1
+fi
+
+REPO="$GITHUB_REPOSITORY"
 
 PR_DATA=$(gh pr list --repo "$REPO" --state open --json number,author,createdAt)
 
@@ -78,7 +94,13 @@ echo "$PR_DATA" |
     fi
 
     if [ "$DRY_RUN" = "true" ]; then
+      echo "----------------------------------------"
       echo "[DRY RUN] Would comment on PR #$PR_NUM"
+      echo "[DRY RUN] Author: @$AUTHOR"
+      echo "[DRY RUN] Comment body:"
+      echo "----------------------------------------"
+      echo "$COMMENT_BODY"
+      echo "----------------------------------------"
     else
       gh pr comment "$PR_NUM" --repo "$REPO" --body "$COMMENT_BODY"
       echo "Reminder posted to PR #$PR_NUM"
