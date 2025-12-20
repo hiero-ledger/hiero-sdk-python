@@ -92,7 +92,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed solo workflow defaulting to zero
 - Fix unit test tet_query.py
 - TLS Hostname Mismatch & Certificate Verification Failure for Nodes
-- Workflow does not contain permissions for `pr-chech-test-files` and `pr-check-codecov`
+- Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
 
 ### Breaking Change
 
