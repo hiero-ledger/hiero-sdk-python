@@ -99,7 +99,7 @@ echo "$PR_DATA" |
       fi
     done
 
-    ALREADY_COMMENTED=$(gh pr view "$PR_NUM" --repo "$REPO" --json comments --jq '.comments[].body' | grep -F "Office Hour Bot" || true)
+    ALREADY_COMMENTED=$(gh pr view "$PR_NUM" --repo "$REPO" --json comments --jq '.comments[].body' | grep -F "OfficeHourBot" || true)
 
     if [ -n "$ALREADY_COMMENTED" ]; then
       echo "PR #$PR_NUM already notified. Skipping."
