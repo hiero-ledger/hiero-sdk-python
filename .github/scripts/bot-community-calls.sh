@@ -34,9 +34,9 @@ for CANCELLED in "${CANCELLED_DATES[@]}"; do
 done
 
 IS_MEETING_WEEK=$(python3 - <<EOF
-from datetime import datetime,date
+from datetime import datetime, date, timezone
 d1 = date.fromisoformat("$ANCHOR_DATE")
-d2 = datetime.utcnow().date()
+d2 = datetime.now(timezone.utc).date()
 print("true" if (d2 - d1).days % 14 == 0 else "false")
 EOF
 )
