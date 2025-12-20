@@ -7,6 +7,10 @@ ANCHOR_DATE="2025-11-12"
 MEETING_LINK="https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581"
 CALENDAR_LINK="https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week"
 
+CANCELLED_DATES=(
+  "2025-12-24"
+)
+
 EXCLUDED_AUTHORS=(
   "rbair23"
   "nadineloepfe"
@@ -20,6 +24,14 @@ if [ "$DRY_RUN" = "true" ]; then
   echo "=== DRY RUN MODE ENABLED ==="
   echo "No comments will be posted."
 fi
+
+TODAY=$(date -u +"%Y-%m-%d")
+for CANCELLED in "${CANCELLED_DATES[@]}"; do
+  if [ "$TODAY" = "$CANCELLED" ]; then
+    echo "Community Call cancelled on $TODAY. Exiting."
+    exit 0
+  fi
+done
 
 IS_MEETING_WEEK=$(python3 - <<EOF
 from datetime import date
