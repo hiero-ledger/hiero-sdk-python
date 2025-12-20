@@ -4,8 +4,6 @@ To link a pull request to an issue, add one of the following lines
 to the **pull request description**:
 
 - Fixes #ISSUE_NUMBER
-- Closes #ISSUE_NUMBER
-- Refs #ISSUE_NUMBER
 
 Example:
 

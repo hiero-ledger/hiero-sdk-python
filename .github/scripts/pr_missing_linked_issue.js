@@ -1,12 +1,26 @@
 module.exports = async ({ github, context }) => {
   const body = context.payload.pull_request.body || "";
-  const regex = /(Fixes|Closes|Refs)\b[\s\S]*?#\d+/i;
+  const regex = /\bFixes\s*:?\s*(#\d+)(\s*,\s*#\d+)*/i;
+
+  const comments = await github.rest.issues.listComments({
+  owner: context.repo.owner,
+  repo: context.repo.repo,
+  issue_number: context.payload.pull_request.number,
+  });
+
+  const alreadyCommented = comments.data.some(comment =>
+    comment.body.includes("this is LinkBot")
+  );
+
+  if (alreadyCommented) {
+    return;
+  }
 
   if (!regex.test(body)) {
     await github.rest.issues.createComment({
       owner: context.repo.owner,
       repo: context.repo.repo,
-      issue_number: context.issue.number,
+      issue_number: context.payload.pull_request.number,
       body: [
         `Hi @${context.payload.pull_request.user.login}, this is **LinkBot** 👋`,
         ``,
