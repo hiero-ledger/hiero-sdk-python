@@ -25,4 +25,4 @@ jobs:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   DRY_RUN: "false" # will post
               run: |
-                  bash ./scripts/bot-office-hours.sh
+                  bash .github/scripts/bot-office-hours.sh
