@@ -1,0 +1,23 @@
+language: "en-US" # USA English
+# Set up means coderabbit should review PRs but only provide one high level walkthrough, collapsed
+# It should not state preliminary information like: getting ready to review, draw a picture
+# It should not state additional information like: related issues, PRs, suggest reviewers
+# It should not continue a casual conversation with users that reply to it
+
+# Only documents non-default options:
+reviews:
+  profile: "assertive" # Assertive profile yields more feedback, that may be considered nitpicky.
+  high_level_summary: false # Do not summarise a pull request first as there is a walkthrough
+  review_status: false # Do not state what kind of review as performed or why (spammy)
+  commit_status: false # Do not state the review is in progress (spammy)
+  collapse_walkthrough: true # Provide a walkthrough for reviewers, but collapse it (users shouldn't use this)
+  related_issues: false # Do not suggest related issues (spammy)
+  related_prs: false # Do not suggest related PRs (spammy)
+  suggested_labels: false # Do not suggest labels for the PR (spammy)
+  suggested_reviewers: false # Do not suggest reviewers for the PR (spammy)
+  in_progress_fortune: false # Do not stall time with a message (spammy)
+  poem: false # Do not write a literal poem (spammy)
+  enable_prompt_for_ai_agents: false # Disable prompts for AI agents (spammy)
+chat:
+  art: false # Don't draw ASCII art (false)
+  auto_reply: false # Don't allow bot to converse (spammy)
