@@ -1,6 +1,6 @@
 module.exports = async ({ github, context }) => {
   const body = context.payload.pull_request.body || "";
-  const regex = /Fixes\b[\s\S]*?#\d+/i;
+  const regex = /(Fixes|Closes|Refs)\b[\s\S]*?#\d+/i;
 
   if (!regex.test(body)) {
     await github.rest.issues.createComment({
@@ -18,7 +18,7 @@ module.exports = async ({ github, context }) => {
         `- Fixes #123`,
         ``,
         `📖 Guide:`,
-        `docs/sdk_developers/how_to_link_issue.md`,
+        `docs/sdk_developers/how_to_link_issues.md`,
         ``,
         `If no issue exists yet, please create one:`,
         `docs/sdk_developers/creating_issues.md`,
