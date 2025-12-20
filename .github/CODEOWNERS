@@ -34,7 +34,7 @@
 /.github/**                                    @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Python packaging & build system
-pyproject.toml                                 @hiero-ledger/hiero-sdk-python/python-maintainers
+/pyproject.toml                                 @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Tooling
 /mypy.ini                                      @hiero-ledger/hiero-sdk-python/python-maintainers
@@ -47,8 +47,9 @@ pyproject.toml                                 @hiero-ledger/hiero-sdk-python/py
 
 # Documentation & legal
 /README.md                                     @hiero-ledger/hiero-sdk-python/python-maintainers
-**/LICENSE                                     @hiero-ledger/hiero-sdk-python/python-maintainers @hiero-ledger/tsc
+/LICENSE                                     @hiero-ledger/hiero-sdk-python/python-maintainers @hiero-ledger/tsc
 
 # Git ignore definitions
 **/.gitignore                                  @hiero-ledger/hiero-sdk-python/python-maintainers
 **/.gitignore.*                                @hiero-ledger/hiero-sdk-python/python-maintainers
+/.gitignore                                    @hiero-ledger/hiero-sdk-python/python-maintainers
