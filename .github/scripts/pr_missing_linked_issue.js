@@ -1,6 +1,6 @@
 module.exports = async ({ github, context }) => {
   const body = context.payload.pull_request.body || "";
-  const regex = /(Fixes)\s+#\d+/i;
+  const regex = /Fixes\b[\s\S]*?#\d+/i;
 
   if (!regex.test(body)) {
     await github.rest.issues.createComment({
