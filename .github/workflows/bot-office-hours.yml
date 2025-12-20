@@ -3,7 +3,7 @@ name: PythonBot - Office Hour Reminder
 on:
   # push:
   schedule:
-    - cron: '0 10 * * 3'
+    - cron: "0 10 * * 3"
   workflow_dispatch:
 
 permissions:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 #2.14.0
         with:
           egress-policy: audit
 
@@ -23,9 +23,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           ANCHOR_DATE="2025-12-03"
           MEETING_LINK="https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338"
           CALENDAR_LINK="https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week"
+
+          EXCLUDED_AUTHORS=(
+            "hiero-sdk-python-maintainers"
+            "hiero-sdk-python-committers"
+          )
 
           IS_MEETING_WEEK=$(python3 -c "from datetime import date; import os; d1=date.fromisoformat('$ANCHOR_DATE'); d2=date.today(); print('true' if (d2-d1).days % 14 == 0 else 'false')")
 
@@ -59,9 +65,29 @@ jobs:
           EOF
           )
 
-          echo "$PR_DATA" | jq -r 'group_by(.author.login) | .[] | sort_by(.createdAt) | reverse | .[0] | .number' | while read PR_NUM; do
-            echo "Processing most recent PR #$PR_NUM for user"
-            
+          echo "$PR_DATA" |
+            jq -r '
+              group_by(.author.login)
+              | .[]
+              | sort_by(.createdAt)
+              | reverse
+              | .[0]
+              | "\(.number) \(.author.login)"
+            ' |
+            while read PR_NUM AUTHOR; do
+              SKIP=false
+              for EXCLUDED in "${EXCLUDED_AUTHORS[@]}"; do
+                if [ "$AUTHOR" = "$EXCLUDED" ]; then
+                  SKIP=true
+                  break
+                fi
+              done
+
+              if [ "$SKIP" = "true" ]; then
+                echo "Skipping PR #$PR_NUM by excluded author @$AUTHOR"
+                continue
+              fi
+
             ALREADY_COMMENTED=$(gh pr view $PR_NUM --repo $REPO --json comments --jq '.comments[].body' | grep -F "Office Hour Bot" || true)
 
             if [ -z "$ALREADY_COMMENTED" ]; then
