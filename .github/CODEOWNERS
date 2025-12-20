@@ -19,13 +19,19 @@
 /examples/**                                   @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
 /docs/**                                       @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
 
+# Workflow
+/CONTRIBUTING.md                               @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
+
 #########################
 #####  Core Files  ######
 #########################
 # Must be placed last to ensure enforcement over all other rules
 
 # GitHub configuration and workflows
-/.github/                                      @hiero-ledger/hiero-sdk-python/python-maintainers
+/.github/ISSUE_TEMPLATE                        @hiero-ledger/hiero-sdk-python/python-maintainers
+/.github/scripts                               @hiero-ledger/hiero-sdk-python/python-maintainers
+/.github/workflows                             @hiero-ledger/hiero-sdk-python/python-maintainers
+/.github/**                                    @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Python packaging & build system
 pyproject.toml                                 @hiero-ledger/hiero-sdk-python/python-maintainers
@@ -40,9 +46,8 @@ pyproject.toml                                 @hiero-ledger/hiero-sdk-python/py
 /.github/CODEOWNERS                            @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Documentation & legal
-/README.md                                     @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
-/CONTRIBUTING.md                               @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
-**/LICENSE                                     @hiero-ledger/hiero-sdk-python/python-maintainers
+/README.md                                     @hiero-ledger/hiero-sdk-python/python-maintainers
+**/LICENSE                                     @hiero-ledger/hiero-sdk-python/python-maintainers @hiero-ledger/tsc
 
 # Git ignore definitions
 **/.gitignore                                  @hiero-ledger/hiero-sdk-python/python-maintainers
