@@ -35,9 +35,9 @@ done
 
 
 IS_MEETING_WEEK=$(python3 - <<EOF
-from datetime import date
+from datetime import datetime
 d1 = date.fromisoformat("$ANCHOR_DATE")
-d2 = date.today()
+d2 = datetime.utcnow().date()
 print("true" if (d2 - d1).days % 14 == 0 else "false")
 EOF
 )
