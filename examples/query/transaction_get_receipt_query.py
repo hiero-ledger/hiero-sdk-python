@@ -125,7 +125,12 @@ def query_receipt():
 
     # Query Transaction Receipt
     print("\nSTEP 3: Querying transaction receipt (include child receipts)...")
-    receipt_query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True).set_include_duplicates(True)
+    receipt_query = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(transaction_id)
+        .set_include_children(True)
+        .set_include_duplicates(True)
+    )
     queried_receipt = receipt_query.execute(client)
     print(
         f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}"

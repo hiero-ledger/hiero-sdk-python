@@ -98,8 +98,12 @@ class TransactionGetReceiptQuery(Query):
 
         Args:
             include_duplicates: bool.
+
         Returns:
             TransactionGetReceiptQuery: The current instance for method chaining.
+        
+        Raises:
+            ValueError: If the query is frozen and cannot be modified.
         """
         self._require_not_frozen()
         self.include_duplicates = include_duplicates
