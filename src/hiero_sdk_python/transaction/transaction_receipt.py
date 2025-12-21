@@ -228,6 +228,7 @@ class TransactionReceipt:
         """
         self._children = children
 
+    @property
     def duplicates(self) -> list["TransactionReceipt"]:
         """
         Returns the duplicate transaction receipts associated with this receipt.
