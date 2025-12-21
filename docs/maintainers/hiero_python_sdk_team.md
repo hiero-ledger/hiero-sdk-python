@@ -42,7 +42,7 @@ Github IDs and names are provided as on Github.
 
 ## Maintainer Members
 
-**Maintainer members** have special write acess. Their responsibilities include: provide technical leadership for the SDK, provide leadership on the overall health and direction of the project to ensure it satisfies various scaling and stakeholder needs. They also ensure a welcoming and nourishing environment for all developers and community members, laddering issues, reviewing pull requests and actively contributing code for the benefit of the Python SDK.
+**Maintainer members** have special write access. Their responsibilities include: provide technical leadership for the SDK, provide leadership on the overall health and direction of the project to ensure it satisfies various scaling and stakeholder needs. They also ensure a welcoming and nourishing environment for all developers and community members, laddering issues, reviewing pull requests and actively contributing code for the benefit of the Python SDK.
 
 ## Members
 
