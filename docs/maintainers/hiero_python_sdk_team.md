@@ -4,6 +4,7 @@ The team at the Python SDK includes: triage, committer and maintainer members.
 
 The Hiero Python SDK Team is responsible for the development, quality, and long-term maintenance of the Python SDK. The team is organized into three roles, each with increasing levels of responsibility and access.
 
+Github IDs and names are provided as on Github.
 
 ## Triage Members
 
@@ -14,9 +15,9 @@ The Hiero Python SDK Team is responsible for the development, quality, and long-
 |---------------------|--------------------|
 | Emiliyan Kadiyski   | @emiliyank         |
 | MontyPokemon        | @MonaaEid          |
-| Antonio Ceppellini | @aceppaluni        |
+| Accepaluni | @aceppaluni        |
 | AntonioCeppellini  | @AntonioCeppellini |
-| exploreriii        | @exploreriii       |
+| Sophie Bulloch        | @exploreriii       |
 | notsogod           | @Adityarya11       |
 | Priyanshu          | @tech0priyanshu    |
 | Akshat              | @Akshat8510        |
