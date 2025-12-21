@@ -20,7 +20,7 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 ### 💻 Code Contributions
 
-**Get Started By Reading:** 
+**Get Started By Reading:**
 
 - [Project Structure](docs/sdk_developers/project_structure.md)
 - [Setup](docs/sdk_developers/training/setup)
@@ -31,10 +31,10 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 1. Find/create an issue → [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
 2. Get assigned (comment "I'd like to work on this")
 3. Follow [Setup Guide](docs/sdk_developers/training/setup)
-3. Follow [Workflow Guide](docs/sdk_developers/workflow.md)
-4. GPG and DCO sign commits [Quickstart Signing](docs/sdk_developers/training/workflow/07_signing_requirements.md)
-5. Add a Changelog Entry [Quickstart Changelog](docs/sdk_developers/training/workflow/09_changelog_entry.md)
-4. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+4. Follow [Workflow Guide](docs/sdk_developers/workflow.md)
+5. GPG and DCO sign commits [Quickstart Signing](docs/sdk_developers/training/workflow/07_signing_requirements.md)
+6. Add a Changelog Entry [Quickstart Changelog](docs/sdk_developers/training/workflow/09_changelog_entry.md)
+7. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
 **Detailed Docs:**
 
