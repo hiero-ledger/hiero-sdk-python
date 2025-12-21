@@ -300,7 +300,7 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_req
 ):
     """
     Test that execute() maps duplicate_transaction_receipts into TransactionReceipt.duplicates
-    when include_duplicate_receipts is enabled and the network returns duplicate receipts.
+    when include_duplicate_receipts is enabled and the network returns empty duplicate receipts.
     """
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
@@ -334,7 +334,7 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_not
 ):
     """
     Test that execute() maps duplicate_transaction_receipts into TransactionReceipt.duplicates
-    when include_duplicate_receipts is enabled and the network returns duplicate receipts.
+    when include_duplicate_receipts is disabled and the network returns duplicate receipts.
     """
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
@@ -363,6 +363,5 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_not
 
         result = query.execute(client)
 
-        assert len(response.transactionGetReceipt.duplicateTransactionReceipts) == 0
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 0
