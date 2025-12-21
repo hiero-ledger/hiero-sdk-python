@@ -28,17 +28,21 @@ class TransactionGetReceiptQuery(Query):
         self,
         transaction_id: Optional[TransactionId] = None,
         include_children: bool = False,
+        include_duplicates: bool = False,
     ) -> None:
         """
         Initializes a new instance of the TransactionGetReceiptQuery class.
 
         Args:
             transaction_id (TransactionId, optional): The ID of the transaction.
+            include_children (bool): Whether to include child transaction receipts.
+            include_duplicates (bool): Whether to include duplicate transaction receipts.
         """
         super().__init__()
         self.transaction_id: Optional[TransactionId] = transaction_id
         self._frozen: bool = False
         self.include_children = include_children
+        self.include_duplicates = include_duplicates
 
     def _require_not_frozen(self) -> None:
         """
@@ -86,6 +90,21 @@ class TransactionGetReceiptQuery(Query):
         self.include_children = include_children
         return self
 
+    def set_include_duplicates(
+        self, include_duplicates: bool
+    ) -> "TransactionGetReceiptQuery":
+        """
+        Sets include_duplicates for which to retrieve the duplicate transaction receipts.
+
+        Args:
+            include_duplicates: bool.
+        Returns:
+            TransactionGetReceiptQuery: The current instance for method chaining.
+        """
+        self._require_not_frozen()
+        self.include_duplicates = include_duplicates
+        return self
+
     def freeze(self) -> "TransactionGetReceiptQuery":
         """
         Marks the query as frozen, preventing further modification.
@@ -125,6 +144,7 @@ class TransactionGetReceiptQuery(Query):
             transaction_get_receipt.transactionID.CopyFrom(self.transaction_id._to_proto())
 
             transaction_get_receipt.include_child_receipts = self.include_children
+            transaction_get_receipt.includeDuplicates = self.include_duplicates
 
             query = query_pb2.Query()
             if not hasattr(query, "transactionGetReceipt"):
@@ -255,6 +275,15 @@ class TransactionGetReceiptQuery(Query):
                 children.append(child_receipt)
 
             parent._set_children(children)
+        
+        if self.include_duplicates:
+            duplicates = []
+
+            for duplicate_proto in response.transactionGetReceipt.duplicateTransactionReceipts:
+                duplicate_receipt = TransactionReceipt._from_proto(duplicate_proto, self.transaction_id)
+                duplicates.append(duplicate_receipt)
+
+            parent._set_duplicates(duplicates)
 
         return parent 
 

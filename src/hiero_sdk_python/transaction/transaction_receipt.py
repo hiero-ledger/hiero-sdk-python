@@ -39,6 +39,7 @@ class TransactionReceipt:
         receipt_proto: transaction_receipt_pb2.TransactionReceipt,
         transaction_id: Optional[TransactionId] = None,
         children: Optional[list["TransactionReceipt"]] = None,
+        duplicates: Optional[list["TransactionReceipt"]] = None,
     ) -> None:
         """
         Initializes the TransactionReceipt with the provided protobuf receipt.
@@ -51,6 +52,7 @@ class TransactionReceipt:
         self.status: Optional[response_code_pb2.ResponseCodeEnum] = receipt_proto.status
         self._receipt_proto: transaction_receipt_pb2.TransactionReceipt = receipt_proto
         self._children: list["TransactionReceipt"] = children or []
+        self._duplicates: list["TransactionReceipt"] = duplicates or []
 
     @property
     def token_id(self) -> Optional[TokenId]:
@@ -225,6 +227,24 @@ class TransactionReceipt:
             children (list[TransactionReceipt]): Child receipts.
         """
         self._children = children
+
+    def duplicates(self) -> list["TransactionReceipt"]:
+        """
+        Returns the duplicate transaction receipts associated with this receipt.
+
+        Returns:
+            list[TransactionReceipt]: Duplicate receipts (empty if not requested or none exist).
+        """
+        return self._duplicates
+    
+    def _set_duplicates(self, duplicates: list["TransactionReceipt"]) -> None:
+        """
+        Internal setter for duplicate receipts (used by receipt queries).
+
+        Args:
+            duplicates (list[TransactionReceipt]): Duplicate receipts.
+        """
+        self._duplicates = duplicates
 
     def _to_proto(self):
         """
