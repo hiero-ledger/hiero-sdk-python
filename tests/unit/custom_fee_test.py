@@ -1,5 +1,6 @@
 from hiero_sdk_python.client.client import Client
 import pytest
+import warnings
 from unittest import mock
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
@@ -8,6 +9,7 @@ from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 pytestmark = pytest.mark.unit
 
@@ -253,3 +255,22 @@ def test_custom_fee_from_proto_unrecognized():
             return "unknown_fee"
     with pytest.raises(ValueError):
         CustomFee._from_proto(FakeProto())
+
+def test_set_amount_in_tinybars_deprecation():
+    """Test that set_amount_in_tinybars shows deprecation warning."""
+    from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+    
+    fee = CustomFixedFee()
+    
+    # Test that deprecation warning is raised
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        fee.set_amount_in_tinybars(100)
+        
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert "set_amount_in_tinybars() is deprecated" in str(w[0].message)
+    
+    # Verify the method still works correctly
+    assert fee.amount == 100
+    assert fee.denominating_token_id is None
