@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+import warnings
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.hbar import Hbar
 
@@ -89,6 +90,10 @@ class CustomFixedFee(CustomFee):
     def set_amount_in_tinybars(self, amount: int) -> "CustomFixedFee":
         """Sets the fee amount in tinybars.
 
+        .. deprecated:: 
+            Use :meth:`set_hbar_amount` with :meth:`Hbar.from_tinybars` instead.
+            For example: ``set_hbar_amount(Hbar.from_tinybars(amount))``
+
         Clears any previously set denominating token ID, implying the fee is in HBAR.
 
         Args:
@@ -97,6 +102,13 @@ class CustomFixedFee(CustomFee):
         Returns:
             CustomFixedFee: This CustomFixedFee instance for chaining.
         """
+        warnings.warn(
+            "set_amount_in_tinybars() is deprecated and will be removed in a future release. "
+            "Use set_hbar_amount(Hbar.from_tinybars(amount)) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.denominating_token_id = None
         self.amount = amount
         return self
 

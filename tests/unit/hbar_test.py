@@ -23,14 +23,9 @@ def test_constructor():
 
 def test_constructor_in_tinybars():
     """Test creation directly in tinybars."""
-    hbar1 = Hbar(50, in_tinybars=True)
+    hbar1 = Hbar(50, unit=HbarUnit.TINYBAR)
     assert hbar1.to_tinybars() == 50
     assert hbar1.to_hbars() == 0.0000005
-
-    # If in_tinybars is False (Default)
-    hbar2 = Hbar(50, in_tinybars=False)
-    assert hbar2.to_tinybars() == 5_000_000_000
-    assert hbar2.to_hbars() == 50
 
 def test_constructor_with_unit():
     """Test creation directly in tinybars."""
@@ -65,7 +60,7 @@ def test_constructor_with_unit():
 def test_constructor_fractional_tinybar():
     """Test creation with fractional tinybars."""
     with pytest.raises(ValueError, match="Fractional tinybar value not allowed"):
-        Hbar(0.1, in_tinybars=True)
+        Hbar(0.1, unit=HbarUnit.TINYBAR)
 
 def test_constructor_invalid_type():
     """Test creation of Hbar with invalid type."""
