@@ -1,0 +1,42 @@
+# This workflow automatically closes pull requests without a linked issue after 3 days.
+
+name: Linked Issue Enforcer
+
+on:
+  schedule:
+    - cron: '45 11 * * 1,4'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'If true, do not post comments (dry run). Accepts "true" or "false". Default true for manual runs.'
+        required: false
+        default: 'true'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  pr-linked-issue-checker:
+    runs-on: ubuntu-latest
+    env:
+      DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
+      - name: Enforce linked issues on PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ env.DRY_RUN }}
+          DAYS_BEFORE_CLOSE: '3'
+          REQUIRE_AUTHOR_ASSIGNED: 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/linked_issue_enforce.js');      
+            await script({ github, context});
