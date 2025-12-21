@@ -22,16 +22,16 @@ from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransact
 from hiero_sdk_python.tokens.token_type import TokenType
 
 load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 def setup_client():
     """Initialize and set up the client with operator account"""
     
-    network = Network(network_name)
-    print(f"Connecting to the Hedera {network_name} network")
-    client = Client(network)
-
     try:
+        network_name = os.getenv("NETWORK", "testnet").lower()
+        network = Network(network_name)
+        print(f"Connecting to the Hedera {network_name} network")
+        client = Client(network)
+
         operator_id_str = os.getenv('OPERATOR_ID')
         operator_key_str = os.getenv('OPERATOR_KEY')
 
@@ -47,36 +47,32 @@ def setup_client():
     
     except (TypeError, ValueError) as e:
         print(f"Error: {e}")
-        print("Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-def custom_royalty_fee_example():
-    """Demonstrates how to create a token with a custom royalty fee."""    
-    
-    client, operator_id, operator_key = setup_client()
-
-    with client:
-        print("\n--- Creating Custom Royalty Fee ---")
-        
-        fallback_fee = CustomFixedFee(
+def create_royalty_fee_object(operator_id):
+    """Creates the CustomRoyaltyFee object with a fallback fee."""
+    fallback_fee = CustomFixedFee(
             amount=Hbar(1).to_tinybars(),
             fee_collector_account_id=operator_id,
             all_collectors_are_exempt=False
         )
-        
-        royalty_fee = CustomRoyaltyFee(
+    
+    royalty_fee =  CustomRoyaltyFee(
             numerator=5, 
             denominator=100,
             fallback_fee=fallback_fee,
             fee_collector_account_id=operator_id,
             all_collectors_are_exempt=False
-        )
+    )
+    print(f"Royalty Fee Configured: {royalty_fee.numerator}/{royalty_fee.denominator}")
+    print(f"Fallback Fee: {Hbar.from_tinybars(fallback_fee.amount)} HBAR")
+    return royalty_fee
 
-        print(f"Royalty Fee Configured: {royalty_fee.numerator}/{royalty_fee.denominator}")
-        print(f"Fallback Fee: {Hbar.from_tinybars(fallback_fee.amount)} HBAR")
-
-        print("\n--- Creating Token with Royalty Fee ---")
-        transaction = (
+def create_token_with_fee(client, operator_id, operator_key, royalty_fee):
+    """Creates a token with the specified royalty fee attached."""
+    
+    print("\n--- Creating Token with Royalty Fee ---")
+    transaction = (
             TokenCreateTransaction()
             .set_token_name("Royalty NFT Collection")
             .set_token_symbol("RNFT")
@@ -91,33 +87,43 @@ def custom_royalty_fee_example():
             .set_custom_fees([royalty_fee])
             .freeze_with(client)
             .sign(operator_key)
-        )
+        )  
+
+    receipt = transaction.execute(client)
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"Token creation failed: {ResponseCode(receipt.status).name}")
+        raise RuntimeError(f"Token creation failed: {ResponseCode(receipt.status).name}")
         
+    token_id = receipt.token_id
+    print(f"Token created successfully with ID: {token_id}")
+    return token_id
+    
+def verify_token_fee(client, token_id):
+    """Queries the network to verify the fee exists."""
+   
+    print("\n--- Verifying Fee on Network ---")
+    token_info = TokenInfoQuery().set_token_id(token_id).execute(client)
+    retrieved_fees = token_info.custom_fees
+
+    if retrieved_fees:
+        print(f"Success! Found {len(retrieved_fees)} custom fee(s) on token.")
+        for fee in retrieved_fees:
+            print(f"Fee Collector: {fee.fee_collector_account_id}")
+            print(f"Fee Details: {fee}")
+    else:
+        print("Error: No custom fees found on the token.")
+    
+def main():
+    """Main execution flow."""
+    client, operator_id, operator_key = setup_client()
+
+    with client:
         try:
-            receipt = transaction.execute(client)
-
-            if receipt.status != ResponseCode.SUCCESS:
-                print(f"Transaction failed with status: {ResponseCode(receipt.status).name}")
-                return
-
-            token_id = receipt.token_id
-            print(f"Token created successfully with ID: {token_id}")
-
-            print("\n--- Verifying Fee on Network ---")
-            token_info = TokenInfoQuery().set_token_id(token_id).execute(client)
-
-            retrieved_fees = token_info.custom_fees
-            if retrieved_fees:
-                print(f"Success! Found {len(retrieved_fees)} custom fee(s) on token.")
-                for fee in retrieved_fees:
-                    print(f"Fee Collector: {fee.fee_collector_account_id}")
-                    print(f"Fee Details: {fee}")
-            else:
-                print("Error: No custom fees found on the token.")
-
+            royalty_fee = create_royalty_fee_object(operator_id)
+            token_id = create_token_with_fee(client, operator_id, operator_key, royalty_fee)
+            verify_token_fee(client, token_id)
         except Exception as e:
-            print(f"Transaction execution failed: {e}")
-            sys.exit(1)
-
+            print(f"Execution failed: {e}")
+            
 if __name__ == "__main__":
-    custom_royalty_fee_example()
+    main()
