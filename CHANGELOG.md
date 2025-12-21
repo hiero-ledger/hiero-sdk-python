@@ -64,6 +64,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `coding_token_transactions.md` for a high level overview training on how token transactions are created in the python sdk.
 - Added prompt for codeRabbit on how to review /examples ([#1180](https://github.com/hiero-ledger/hiero-sdk-python/issues/1180)) 
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
+- Added support for include duplicates in get transaction receipt query (#1166)
 
 ### Changed
 - Improved docstring for `account_allowance_approve_transaction_nft.py` with purpose, key concepts and required vs optional steps.
