@@ -66,6 +66,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allow `PublicKey` for batch_key in `Transaction`, enabling both `PrivateKey` and `PublicKey` for batched transactions
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
+- Improved the contributing section for sdk developers in CONTRIBUTING.md for clarity and including new documentation
 - chore: Move account allowance example to correct folder
 - Added more tests to the CustomFee class for different functionalities (#991)
 - Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
