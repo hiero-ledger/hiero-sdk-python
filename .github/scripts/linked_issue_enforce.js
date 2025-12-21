@@ -6,7 +6,7 @@ const daysBeforeClose = parseInt(process.env.DAYS_BEFORE_CLOSE || '3', 10);
 const requireAuthorAssigned = (process.env.REQUIRE_AUTHOR_ASSIGNED || 'true').toLowerCase() === 'true';
 
 const getDaysOpen = (pr) =>
-  Math.floor((Date.now() - new Date(pr.created_at)) / 86400000);
+  Math.floor((Date.now() - new Date(pr.created_at)) / (24 * 60 * 60 * 1000));
 
 // Check if the PR author is assigned to the issue
 const isAuthorAssigned = (issue, login) => {
