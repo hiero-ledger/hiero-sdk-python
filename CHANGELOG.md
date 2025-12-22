@@ -133,6 +133,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance assignment bot to guard against users with spam PRs `.github/scripts/bot-assignment-check.sh`
 - Add CodeRabbit documentation review prompts for docs, sdk_users, and sdk_developers with priorities, philosophy, and edge case checks. ([#1236](https://github.com/hiero-ledger/hiero-sdk-python/issues/1236))
 - Enhance NodeAddress tests with additional coverage for proto conversion `tests/unit/node_address_test.py`
+- Replaced deprecated `AccountCreateTransaction.set_key()` usage with `set_key_without_alias()` and `set_key_with_alias()` across examples and tests
+
 
 ### Fixed
 - GFI workflow casing 
