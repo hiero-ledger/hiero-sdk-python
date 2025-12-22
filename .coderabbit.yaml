@@ -46,7 +46,10 @@ reviews:
 
         **Priority 4 - Consistency**: 
         - Verify standard patterns: `def main()`, `if __name__ == "__main__":`, `load_dotenv()`.
-        - Ensure imports come from `hiero_sdk_python`.
+        - **IMPORT RULES**: 
+          1. Accept both top-level imports (e.g., `from hiero_sdk_python import PrivateKey`) and fully qualified imports (e.g., `from hiero_sdk_python.crypto.private_key import PrivateKey`).
+          2. STRICTLY validate that the import path actually exists in the project structure. Compare against other files in `/examples` or your knowledge of the SDK file tree.
+          3. Flag hallucinations immediately (e.g., `hiero_sdk_python.keys` does not exist).
         - Check for `try-except` blocks with `sys.exit(1)` for critical failures.
 
         **Priority 5 - User Experience**: 
