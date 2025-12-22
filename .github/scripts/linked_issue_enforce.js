@@ -17,7 +17,7 @@ const isAuthorAssigned = (issue, login) => {
 
 const baseMessage = `Hi there! I'm the LinkedIssueBot.\nThis pull request has been automatically closed due to the following reason(s):
 `;
-const messageSuffix = `Please read - [Creating Issues](../docs/sdk_developers/creating_issues.md) - [How To Link Issues](../docs/sdk_developers/how_to_link_issues.md)\n\nThank you
+const messageSuffix = `Please read - [Creating Issues](docs/sdk_developers/creating_issues.md) - [How To Link Issues](docs/sdk_developers/how_to_link_issues.md)\n\nThank you,
 From Python SDK team`
 
 const messages = {
@@ -105,7 +105,7 @@ module.exports = async ({ github, context }) => {
 
   for (const pr of prs) {
     const days = getDaysOpen(pr);
-    if (days <= daysBeforeClose)
+    if (days < daysBeforeClose)
     {
       console.log(`PR #${pr.number} link: ${pr.html_url} is only ${days} days old. Skipping.`);
       continue;
