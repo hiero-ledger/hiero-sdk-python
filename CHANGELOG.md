@@ -56,9 +56,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
 - Added advanced issue template for contributors `.github/ISSUE_TEMPLATE/06_advanced_issue.yml`.
 - Add new tests to `tests/unit/topic_info_query_test.py` (#1124)
+- Added `coding_token_transactions.md` for a high level overview training on how token transactions are created in the python sdk.
+- Added prompt for codeRabbit on how to review /examples ([#1180](https://github.com/hiero-ledger/hiero-sdk-python/issues/1180)) 
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
 
 ### Changed
+- Updated Codecov coverage thresholds in 'codecov.yml' to require 90% of project coverage and 92% of patch coverage (#1157)
 - Reduce office-hours reminder spam by posting only on each user's most recent open PR, grouping by author and sorting by creation time (#1121)
 - Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
 - Move `account_allowance_delete_transaction_hbar.py` from `examples/` to `examples/account/` for better organization (#1003)
@@ -103,9 +106,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
 
+
 ### Breaking Change
 
--
+- Remove deprecated 'in_tinybars' parameter and update related tests `/src/hiero_sdk_python/hbar.py`, `/tests/unit/hbar_test.py` and `/src/hiero_sdk_python/tokens/custom_fixed_fee.py`.
 
 ## [0.1.10] - 2025-12-03
 
