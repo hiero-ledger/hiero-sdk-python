@@ -128,6 +128,13 @@ If you believe changes are needed:
 
 ## Summary
 
+## How to Contribute
+We welcome contributions from everyone! To get started, please follow these steps:
+1. **Fork the repository:** Click the "Fork" button at the top right of this page to create your own copy of the project.
+2. 2. **Create a new branch:** Before making any changes, create a new branch to work on. This keeps your changes separate from the main project.
+   3. 3. **Make your changes:** Now you can make your changes to the code or documentation.
+      4. 4. **Commit your changes:** Once you're happy with your changes, commit them with a clear and descriptive message.
+         5. 5. **Open a pull request:    ** Finally, open a pull request to submit your changes for review.
 Good First Issues should be:
 - Small
 - Clear
