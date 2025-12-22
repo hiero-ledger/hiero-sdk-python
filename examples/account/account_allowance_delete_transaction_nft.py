@@ -70,7 +70,7 @@ def create_account(client, memo="Test Account"):
 
     tx = (
         AccountCreateTransaction()
-        .set_key(public_key)
+        .set_key_without_alias(public_key)
         .set_initial_balance(Hbar(10))
         .set_account_memo(memo)
         .execute(client)

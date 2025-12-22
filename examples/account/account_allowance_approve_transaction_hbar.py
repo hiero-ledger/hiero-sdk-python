@@ -67,7 +67,7 @@ def create_account(client: Client):
 
     account_receipt = (
         AccountCreateTransaction()
-        .set_key(account_public_key)
+        .set_key_without_alias(account_public_key)
         .set_initial_balance(Hbar(1))
         .set_account_memo("Account for hbar allowance")
         .execute(client)

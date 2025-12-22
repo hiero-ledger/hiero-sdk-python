@@ -194,7 +194,7 @@ def create_temp_account(client, operator_key):
 
     tx = (
         AccountCreateTransaction()
-        .set_key(pub_key)  # MUST use public key
+        .set_key_without_alias(pub_key)  # MUST use public key
         .set_initial_balance(Hbar.from_tinybars(1000))
         .freeze_with(client)
         .sign(operator_key)

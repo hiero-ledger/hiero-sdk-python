@@ -44,7 +44,7 @@ def create_account(client):
 
     receipt = (
         AccountCreateTransaction()
-        .set_key(account_public_key)
+        .set_key_without_alias(account_public_key)
         .set_initial_balance(Hbar(1))
         .set_account_memo("Test account for update")
         .freeze_with(client)
