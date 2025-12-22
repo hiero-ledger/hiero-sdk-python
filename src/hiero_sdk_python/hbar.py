@@ -30,8 +30,7 @@ class Hbar:
     def __init__(
             self,
             amount: Union[int, float, Decimal],
-            unit: HbarUnit=HbarUnit.HBAR,
-            in_tinybars: bool=False # Deperecated
+            unit: HbarUnit=HbarUnit.HBAR
         ) -> None:
         """
         Create an Hbar instance with the given amount designated either in hbars or tinybars.
@@ -39,15 +38,7 @@ class Hbar:
         Args:
             amount: The numeric amount of hbar or tinybar.
             unit: Unit of the provided amount.
-            in_tinybars (deprecated): If True, treat the amount as tinybars directly.
         """
-        if in_tinybars:
-            warnings.warn(
-                "The 'in_tinybars' parameter is deprecated and will be removed in a future release. "
-                "Use `unit=HbarUnit.TINYBAR` instead.",
-                DeprecationWarning
-            )
-            unit = HbarUnit.TINYBAR
 
         if  unit == HbarUnit.TINYBAR:
             if not isinstance(amount, int):
@@ -115,7 +106,7 @@ class Hbar:
         """
         if not isinstance(tinybars, int):
             raise TypeError("tinybars must be an int.")
-        return cls(tinybars, in_tinybars=True)
+        return cls(tinybars, unit=HbarUnit.TINYBAR)
 
     @classmethod
     def from_string(cls, amount: str, unit: HbarUnit = HbarUnit.HBAR) -> "Hbar":

@@ -1,13 +1,14 @@
 # codecov.yml
 coverage:
-    status:
-        project:
-            default:
-                target: 70%
-        patch:
-            default:
-                target: 80%
-                threshold: 1%
+  status:
+    project:
+      default:
+        target: 90%
+        threshold: 1%
+    patch:
+      default:
+        target: 92%
+        threshold: 2%
 
 comment:
-    layout: "reach, diff, flags"
+  layout: "reach, diff, flags"
