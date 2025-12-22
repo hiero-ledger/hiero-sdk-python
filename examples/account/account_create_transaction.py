@@ -107,7 +107,7 @@ def create_new_account(client: Client, operator_key: PrivateKey) -> None:
 
     transaction = (
         AccountCreateTransaction()
-        .set_key(new_account_public_key)
+        .set_key_without_alias(new_account_public_key)
         .set_initial_balance(100000000)  # 1 HBAR in tinybars
         .set_account_memo("My new account")
         .freeze_with(client)

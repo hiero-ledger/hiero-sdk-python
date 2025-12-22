@@ -180,7 +180,7 @@ def create_demo_account(client: Client, operator_key: PrivateKey) -> DemoAccount
     new_key = PrivateKey.generate_ed25519()
     receipt = (
         AccountCreateTransaction()
-        .set_key(new_key.public_key())
+        .set_key_without_alias(new_key.public_key())
         .set_initial_balance(Hbar(2))
         .set_account_memo("Freeze key demo account")
         .freeze_with(client)

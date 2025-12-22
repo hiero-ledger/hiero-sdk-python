@@ -19,7 +19,7 @@ def test_token_grant_kyc_transaction_can_execute():
         # Create a new account
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(Hbar(2))
             .execute(env.client)
         )
@@ -62,7 +62,7 @@ def test_token_grant_kyc_transaction_fails_with_no_kyc_key():
         # Create a new account
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(Hbar(2))
             .execute(env.client)
         )
@@ -116,7 +116,7 @@ def test_token_grant_kyc_transaction_fails_when_account_not_associated():
         # Create a new account
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(Hbar(2))
             .execute(env.client)
         )
