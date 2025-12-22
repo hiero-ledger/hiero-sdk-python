@@ -258,8 +258,6 @@ def test_custom_fee_from_proto_unrecognized():
 
 def test_set_amount_in_tinybars_deprecation():
     """Test that set_amount_in_tinybars shows deprecation warning."""
-    from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-    
     fee = CustomFixedFee()
     
     # Test that deprecation warning is raised

@@ -21,8 +21,8 @@ def test_constructor():
     assert hbar3.to_tinybars() == 50_000_000
     assert hbar3.to_hbars() == 0.5
 
-def test_constructor_in_tinybars():
-    """Test creation directly in tinybars."""
+def test_constructor_with_tinybar_unit():
+    """Test creation with unit set to HbarUnit.TINYBAR."""
     hbar1 = Hbar(50, unit=HbarUnit.TINYBAR)
     assert hbar1.to_tinybars() == 50
     assert hbar1.to_hbars() == 0.0000005

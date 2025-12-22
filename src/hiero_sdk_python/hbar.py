@@ -38,7 +38,6 @@ class Hbar:
         Args:
             amount: The numeric amount of hbar or tinybar.
             unit: Unit of the provided amount.
-            in_tinybars (deprecated): If True, treat the amount as tinybars directly.
         """
 
         if  unit == HbarUnit.TINYBAR:
