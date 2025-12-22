@@ -73,11 +73,17 @@ def create_recipient_account(client):
     Helper: Create a new account to hold tokens(wiped ones)
     """
     private_key = PrivateKey.generate_ed25519()
+    # tx = (
+    #     AccountCreateTransaction()
+    #     .set_key_without_alias(private_key.public_key())
+    #     .set_initial_balance(Hbar(2))
+    # )
     tx = (
         AccountCreateTransaction()
         .set_key_without_alias(private_key.public_key())
         .set_initial_balance(Hbar(2))
-    )
+        .freeze_with(client)
+        )
     receipt = tx.execute(client)
     if receipt.status != ResponseCode.SUCCESS:
         print(

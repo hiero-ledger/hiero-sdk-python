@@ -48,7 +48,7 @@ def create_account_with_alias(client):
         print("\nSTEP 1: Generating a new ECDSA key pair for the account alias...")
         private_key = PrivateKey.generate('ecdsa')
         public_key = private_key.public_key()
-        print(f"✅ Generated new ECDSA key pair. The EVM address alias will be automatically derived.")
+        print("✅ Generated new ECDSA key pair. The EVM address alias will be automatically derived.")
         # Create the account with the alias
         print("\nSTEP 2: Creating the account with the EVM address alias...")
         transaction = (
