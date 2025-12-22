@@ -288,6 +288,7 @@ def test_transaction_get_receipt_query_returns_duplicate_receipts_when_requested
 
         result = query.execute(client)
 
+        assert query.include_duplicates is True
         assert len(response.transactionGetReceipt.duplicateTransactionReceipts) == 2
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 2
@@ -324,6 +325,7 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_req
 
         result = query.execute(client)
 
+        assert query.include_duplicates is True
         assert len(response.transactionGetReceipt.duplicateTransactionReceipts) == 0
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 0
@@ -363,5 +365,6 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_not
 
         result = query.execute(client)
 
+        assert query.include_duplicates is False
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 0
