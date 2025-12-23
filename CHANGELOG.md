@@ -10,6 +10,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Update `pyproject.toml` with custom ruff settings including line length 120, target version py310, comprehensive lint rules, and Google docstring convention (#1138)
+
 - Removed duplicate import of transaction_pb2 in transaction.py
 
 ### Fixed
