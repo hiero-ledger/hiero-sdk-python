@@ -30,11 +30,6 @@ def setup_client():
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
-    
-    # This disables the SSL error in the local development environment (Keep commented for production) #
-    
-    # client.set_transport_security(False)
-    # client.set_verify_certificates(False)
 
     try:
         operator_id_str = os.getenv('OPERATOR_ID')
