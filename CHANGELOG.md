@@ -59,9 +59,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
 - Move `account_allowance_delete_transaction_hbar.py` from `examples/` to `examples/account/` for better organization (#1003)
 - Added `add_hbar_transfer`, `add_approved_hbar_transfer`, and internal `_add_hbar_transfer` to accept `Hbar` objects in addition to raw tinybar integers, with internal normalization to tinybars. Added tests validating the new behavior.
-
-### Changed
-
 - Improved consistency of transaction examples (#1120)
 - Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
 - Allow `PublicKey` for batch_key in `Transaction`, enabling both `PrivateKey` and `PublicKey` for batched transactions
@@ -80,21 +77,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update team notification script and workflow for P0 issues 'p0_issues_notify_team.js'
 - Rename test files across the repository to ensure they consistently end with \_test.py (#1055)
 - Cleaned up `token_airdrop_claim_signature_required` example for pylint compliance (no functional changes). (#1080)
-  <<<<<<< HEAD
 - Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with \_test.py as all other test files.(#1117)
 - Format token examples with Black for consistent code style and improved readability (#1119)
 - Transformed `examples/tokens/custom_fee_fixed.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
-- Format token examples with Black for consistent code style and improved readability (#1119)
 - Replaced `ResponseCode.get_name(receipt.status)` with the `ResponseCode(receipt.status).name` across examples and integration tests for consistency. (#1136)
 - Moved helpful references to Additional Context section and added clickable links.
 - Transformed `examples\tokens\custom_royalty_fee.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
 
-=======
-
-- Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with \_test.py as all other test files.(#1117)
-  > > > > > > > 70d7eae (feat: hbar support)
-
 ### Fixed
+
+- Reverted validation logic in `AbstractTokenTransferTransaction` to correctly handle zero amounts with `ValueError` and message "Amount must be a non-zero integer".
 
 - Fix token association verification in `token_airdrop_transaction.py` to correctly check if tokens are associated by using `token_id in token_balances` instead of incorrectly displaying zero balances which was misleading (#[815])
 - Fixed inactivity bot workflow not checking out repository before running (#964)

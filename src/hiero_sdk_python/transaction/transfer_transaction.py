@@ -88,7 +88,7 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             raise TypeError("amount must be an integer or Hbar object.")
 
         if amount == 0:
-            raise ValueError("Amount must be a non-zero value.")
+            raise ValueError("Amount must be a non-zero integer")
 
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
