@@ -14,15 +14,15 @@ jobs:
 
     steps:
       - name: Harden runner (audit outbound calls)
-        uses: step-security/harden-runner@20cf305b49e2fa9f4f60fba49b8ddebde0f4a8aa # v2.14.0
+        uses: step-security/harden-runner@v2.14.0 # v2.14.0
         with:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # replace with latest commit SHA
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Check Markdown links
-        uses: tcort/github-action-markdown-link-check@3a8992dcbb083a248671812c7027b6995ef88523 # replace with full commit SHA
+        uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # v1.1.2
         with:
           use-quiet-mode: 'yes'
           check-modified-files-only: 'yes'
