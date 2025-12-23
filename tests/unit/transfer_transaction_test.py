@@ -26,7 +26,8 @@ def test_constructor_with_parameters(mock_account_ids):
         token_id_2: {account_id_sender: -25, account_id_recipient: 25},
     }
 
-    nft_transfers = {token_id_1: [(account_id_sender, account_id_recipient, 1, True)]}
+    nft_transfers = {token_id_1: [
+        (account_id_sender, account_id_recipient, 1, True)]}
 
     # Initialize with parameters
     transfer_tx = TransferTransaction(
@@ -35,7 +36,8 @@ def test_constructor_with_parameters(mock_account_ids):
 
     # Verify all transfers were added correctly
     # Check HBAR transfers
-    hbar_amounts = {transfer.account_id: transfer.amount for transfer in transfer_tx.hbar_transfers}
+    hbar_amounts = {
+        transfer.account_id: transfer.amount for transfer in transfer_tx.hbar_transfers}
     assert hbar_amounts[account_id_sender] == -1000
     assert hbar_amounts[account_id_recipient] == 1000
 
@@ -135,7 +137,8 @@ def test_add_invalid_transfer(mock_account_ids):
         transfer_tx.add_token_transfer(12345, mock_account_ids[0], -100)
 
     with pytest.raises(TypeError):
-        transfer_tx.add_nft_transfer(12345, mock_account_ids[0], mock_account_ids[1], True)
+        transfer_tx.add_nft_transfer(
+            12345, mock_account_ids[0], mock_account_ids[1], True)
 
 
 def test_hbar_accumulation(mock_account_ids):
@@ -166,7 +169,8 @@ def test_token_accumulation(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_2, 50)
 
     # Verify accumulation
-    amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    amounts = {
+        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
     assert amounts[account_id_1] == 300  # 100 + 200
     assert amounts[account_id_2] == 50
     assert len(transfer_tx.token_transfers[token_id_1]) == 2
@@ -205,7 +209,8 @@ def test_token_negative_amounts(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_2, -100)
 
     # Verify subtraction
-    amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    amounts = {
+        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
     assert amounts[account_id_1] == 800  # 1000 - 200
     assert amounts[account_id_2] == 400  # 500 - 100
 
@@ -226,7 +231,8 @@ def test_zero_to_positive_transfers(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_1, -200)
     transfer_tx.add_token_transfer(token_id_1, account_id_1, 500)
 
-    token_amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    token_amounts = {
+        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
     assert token_amounts[account_id_1] == 300
 
 
@@ -238,12 +244,16 @@ def test_multiple_tokens_same_account(mock_account_ids):
     # Add different amounts for different tokens to the same account
     transfer_tx.add_token_transfer(token_id_1, account_id_1, 100)
     transfer_tx.add_token_transfer(token_id_2, account_id_1, 200)
-    transfer_tx.add_token_transfer(token_id_1, account_id_1, 50)  # Accumulate token1
-    transfer_tx.add_token_transfer(token_id_2, account_id_1, -50)  # Subtract from token2
+    transfer_tx.add_token_transfer(
+        token_id_1, account_id_1, 50)  # Accumulate token1
+    transfer_tx.add_token_transfer(
+        token_id_2, account_id_1, -50)  # Subtract from token2
 
     # Verify each token maintains separate balance
-    token1_amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
-    token2_amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_2]}
+    token1_amounts = {
+        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    token2_amounts = {
+        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_2]}
 
     assert token1_amounts[account_id_1] == 150  # 100 + 50
     assert token2_amounts[account_id_1] == 150  # 200 - 50
@@ -276,7 +286,8 @@ def test_edge_case_amounts(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_1, 1)
     transfer_tx.add_token_transfer(token_id_1, account_id_1, 1)
 
-    token1_amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    token1_amounts = {
+        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
     assert token1_amounts[account_id_1] == 2
 
 
@@ -285,7 +296,7 @@ def test_zero_amount_validation(mock_account_ids):
     account_id_1, _, _, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    # Test zero HBAR amount should raise ValueError
+    # Test zero HBAR amount should raise ValueError with updated message
     with pytest.raises(ValueError, match="Amount must be a non-zero value"):
         transfer_tx.add_hbar_transfer(account_id_1, 0)
 
@@ -331,7 +342,8 @@ def test_frozen_transaction(mock_account_ids, mock_client):
         transfer_tx.add_token_transfer(token_id_1, account_id_sender, -100)
 
     with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
-        transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
+        transfer_tx.add_nft_transfer(
+            NftId(token_id_1, 1), account_id_sender, account_id_recipient)
 
 
 def test_build_transaction_body(mock_account_ids):
@@ -344,7 +356,8 @@ def test_build_transaction_body(mock_account_ids):
     transfer_tx.add_hbar_transfer(account_id_recipient, 500)
     transfer_tx.add_token_transfer(token_id_1, account_id_sender, -100)
     transfer_tx.add_token_transfer(token_id_1, account_id_recipient, 100)
-    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 1), account_id_sender, account_id_recipient)
 
     # Set required fields for building transaction
     transfer_tx.node_account_id = node_account_id
@@ -403,7 +416,8 @@ def test_build_scheduled_body(mock_account_ids):
     transfer_tx.add_hbar_transfer(account_id_recipient, 500)
     transfer_tx.add_token_transfer(token_id_1, account_id_sender, -100)
     transfer_tx.add_token_transfer(token_id_1, account_id_recipient, 100)
-    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 1), account_id_sender, account_id_recipient)
 
     # Build the scheduled body
     result = transfer_tx.build_scheduled_body()
@@ -455,7 +469,8 @@ def test_approved_token_transfer_with_decimals(mock_account_ids):
     transfer_tx = TransferTransaction()
 
     # Add approved token transfer with decimals
-    transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 1000, 6)
+    transfer_tx.add_approved_token_transfer_with_decimals(
+        token_id_1, account_id_1, 1000, 6)
 
     # Verify the transfer was added correctly
     transfer = transfer_tx.token_transfers[token_id_1][0]
@@ -485,7 +500,8 @@ def test_approved_token_transfer_accumulation(mock_account_ids):
     assert transfer_2.expected_decimals is None
 
     # Add approved transfer with decimals for account_1 (accumulates)
-    transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 200, 8)
+    transfer_tx.add_approved_token_transfer_with_decimals(
+        token_id_1, account_id_1, 200, 8)
 
     # Verify accumulation
     transfer_1 = transfer_tx.token_transfers[token_id_1][0]
@@ -511,11 +527,12 @@ def test_approved_token_transfer_validation(mock_account_ids):
 
     # Test zero amount
     with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
-        transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 0, 6)
+        transfer_tx.add_approved_token_transfer_with_decimals(
+            token_id_1, account_id_1, 0, 6)
 
 
 def test_add_hbar_transfer_with_hbar_object(mock_account_ids):
-    """Test adding HBAR transfers with Hbar objects."""
+    """Test adding HBAR transfers with Hbar objects (covers Hbar normalization)."""
     account_id_sender, account_id_recipient, _, _, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
@@ -538,8 +555,10 @@ def test_add_hbar_transfer_with_hbar_tinybars(mock_account_ids):
     account_id_sender, account_id_recipient, _, _, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_hbar_transfer(account_id_sender, Hbar(-500, HbarUnit.TINYBAR))
-    transfer_tx.add_hbar_transfer(account_id_recipient, Hbar(500, HbarUnit.TINYBAR))
+    transfer_tx.add_hbar_transfer(
+        account_id_sender, Hbar(-500, HbarUnit.TINYBAR))
+    transfer_tx.add_hbar_transfer(
+        account_id_recipient, Hbar(500, HbarUnit.TINYBAR))
 
     sender_transfer = next(
         t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender
@@ -604,12 +623,12 @@ def test_add_hbar_transfer_with_various_hbar_units(mock_account_ids):
 
 
 def test_invalid_amount_type_hbar_transfer(mock_account_ids):
-    """Test that invalid amount types raise TypeError."""
+    """Test that invalid amount types raise TypeError (covers type checking)."""
     account_id_1, _, _, _, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="amount must be an int or Hbar instance"):
         transfer_tx.add_hbar_transfer(account_id_1, "invalid")
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="amount must be an int or Hbar instance"):
         transfer_tx.add_hbar_transfer(account_id_1, 123.45)
