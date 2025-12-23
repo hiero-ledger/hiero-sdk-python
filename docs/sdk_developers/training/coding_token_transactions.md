@@ -69,16 +69,19 @@ This feature enables chaining.
 
 For example:
 
-# Standard Usage
+### Standard Usage
+
+```python
 tx.set_account_id(account_id)
 tx.set_token_id(token_id)
 tx.freeze()
 tx.execute(client)
-
+```
 or
-
-# Method Chaining
+### Method Chaining
+```python
 tx.set_account_id(account_id).set_token_id(token_id).freeze().execute(client)
+```
 
 ## 4. Protobuf Conversion
 
