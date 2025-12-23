@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Check Markdown links
-        uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # v1.1.2
+        uses: tcort/github-action-markdown-link-check@3a8992dcbb083a248671812c7027b6995ef88523 # v3.14.2
         with:
           use-quiet-mode: 'yes'
           check-modified-files-only: 'yes'
