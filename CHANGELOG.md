@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Added method chaining examples to the developer training guide (`docs/sdk_developers/training/coding_token_transactions.md`) (#1194)
 - examples/mypy.ini for stricter type checking in example scripts
 - Added a GitHub Actions workflow that reminds contributors to link pull requests to issues.
 - Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
