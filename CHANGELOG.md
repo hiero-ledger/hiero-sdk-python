@@ -6,10 +6,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
-
 ### Added
-- Added Hbar object support for TransferTransaction HBAR transfers: methods now accept Union[int, Hbar] for amount parameters, with immediate normalization to tinybars. Includes comprehensive unit tests covering various Hbar units (HBAR, MICROBAR, NANOBAR, TINYBAR) and accumulation behavior with mixed int and Hbar inputs.
+
+- Added Hbar object support for TransferTransaction HBAR transfers: methods now accept Union[int, Hbar] for amount parameters, with immediate normalization to tinybars- includes comprehensive unit tests covering various Hbar units (HBAR, MICROBAR, NANOBAR, TINYBAR) and accumulation behavior with mixed int and Hbar inputs.
 - examples/mypy.ini for stricter type checking in example scripts
 - Added a GitHub Actions workflow that reminds contributors to link pull requests to issues.
 - Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
@@ -24,7 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
 - Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
 - Added `.github/workflows/bot-pr-auto-draft-on-changes.yml` to automatically convert PRs to draft and notify authors when reviewers request changes.
-- 
+-
 - Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
 - Phase 2 of the inactivity-unassign bot: Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added `__str__()` to CustomFixedFee and updated examples and tests accordingly.
@@ -44,7 +43,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
 - Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
 - Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
-- Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
+- Add comprehensive training documentation for \_Executable class `docs/sdk_developers/training/executable.md`
 - Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
 - Added new `.github/ISSUE_TEMPLATE/04_good_first_issue_candidate.yml` file (1068)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1068)
 - Enhanced `.github/ISSUE_TEMPLATE/01_good_first_issue.yml` with welcoming message and acceptance criteria sections to guide contributors in creating quality GFIs (#1052)
@@ -53,15 +52,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add support for include_children in TransactionGetReceiptQuery (#1100)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1100)
 - Add new `.github/ISSUE_TEMPLATE/05_intermediate_issue.yml` file (1072)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1072)
 - Add a workflow to notify the team when issues are labeled as “good first issues” or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
-- Added __str__ and __repr__ to AccountBalance
+- Added **str** and **repr** to AccountBalance
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
 - Added advanced issue template for contributors `.github/ISSUE_TEMPLATE/06_advanced_issue.yml`.
 - Add new tests to `tests/unit/topic_info_query_test.py` (#1124)
 - Added `coding_token_transactions.md` for a high level overview training on how token transactions are created in the python sdk.
-- Added prompt for codeRabbit on how to review /examples ([#1180](https://github.com/hiero-ledger/hiero-sdk-python/issues/1180)) 
+- Added prompt for codeRabbit on how to review /examples ([#1180](https://github.com/hiero-ledger/hiero-sdk-python/issues/1180))
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
 
 ### Changed
+
 - Updated Codecov coverage thresholds in 'codecov.yml' to require 90% of project coverage and 92% of patch coverage (#1157)
 - Reduce office-hours reminder spam by posting only on each user's most recent open PR, grouping by author and sorting by creation time (#1121)
 - Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
@@ -82,19 +82,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Cleaned up `token_airdrop_claim_auto` example for pylint compliance (no functional changes). (#1079)
 - Formatted `examples/query` using black (#1082)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1082)
 - Update team notification script and workflow for P0 issues 'p0_issues_notify_team.js'
-- Rename test files across the repository to ensure they consistently end with _test.py (#1055)
+- Rename test files across the repository to ensure they consistently end with \_test.py (#1055)
 - Cleaned up `token_airdrop_claim_signature_required` example for pylint compliance (no functional changes). (#1080)
-- Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with _test.py as all other test files.(#1117)
+- Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with \_test.py as all other test files.(#1117)
 - Format token examples with Black for consistent code style and improved readability (#1119)
 - Transformed `examples/tokens/custom_fee_fixed.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
-- Format token examples with Black for consistent code style and improved readability (#1119) 
-- Replaced `ResponseCode.get_name(receipt.status)` with the  `ResponseCode(receipt.status).name` across examples and integration tests for consistency. (#1136)
+- Format token examples with Black for consistent code style and improved readability (#1119)
+- Replaced `ResponseCode.get_name(receipt.status)` with the `ResponseCode(receipt.status).name` across examples and integration tests for consistency. (#1136)
 - Moved helpful references to Additional Context section and added clickable links.
 - Transformed `examples\tokens\custom_royalty_fee.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
 - Refactored `examples/tokens/custom_royalty_fee.py` by splitting monolithic function custom_royalty_fee_example() into modular functions create_royalty_fee_object(), create_token_with_fee(), verify_token_fee(), and main() to improve readability, cleaned up setup_client() (#1169)
-
-
-
 
 ### Fixed
 
@@ -106,7 +103,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix unit test tet_query.py
 - TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
-
 
 ### Breaking Change
 
@@ -673,4 +669,3 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
-
