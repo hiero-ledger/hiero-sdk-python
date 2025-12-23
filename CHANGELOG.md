@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Added Hbar object support for TransferTransaction HBAR transfers: methods now accept Union[int, Hbar] for amount parameters, with immediate normalization to tinybars. Includes comprehensive unit tests covering various Hbar units (HBAR, MICROBAR, NANOBAR, TINYBAR) and accumulation behavior with mixed int and Hbar inputs.
 - examples/mypy.ini for stricter type checking in example scripts
 - Added a GitHub Actions workflow that reminds contributors to link pull requests to issues.
 - Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
