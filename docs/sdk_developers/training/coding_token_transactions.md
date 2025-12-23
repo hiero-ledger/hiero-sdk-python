@@ -65,6 +65,21 @@ def set_account_id(self, account_id: AccountId) -> "TokenAssociateTransaction":
 
 ```
 
+This feature enables chaining.
+
+For example:
+
+# Standard Usage
+tx.set_account_id(account_id)
+tx.set_token_id(token_id)
+tx.freeze()
+tx.execute(client)
+
+or
+
+# Method Chaining
+tx.set_account_id(account_id).set_token_id(token_id).freeze().execute(client)
+
 ## 4. Protobuf Conversion
 
 The Hedera network communicates via Protocol Buffers (Protobuf). Your transaction class is responsible for converting its Python fields into a Protobuf message.
