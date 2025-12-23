@@ -1,0 +1,32 @@
+# Automatically pairs first-time contributors on Good First Issues with a human mentor.
+name: Mentor Assignment Bot
+
+on:
+  issues:
+    types:
+      - assigned
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  assign-mentor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Assign mentor to new starter
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const script = require('./.github/scripts/mentor_assignment.js');
+            await script({ github, context });
