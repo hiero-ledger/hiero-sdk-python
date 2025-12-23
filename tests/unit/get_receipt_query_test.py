@@ -292,8 +292,8 @@ def test_transaction_get_receipt_query_returns_duplicate_receipts_when_requested
         assert len(response.transactionGetReceipt.duplicateTransactionReceipts) == 2
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 2
-        assert result.duplicates[0].status == ResponseCode.SUCCESS
-        assert result.duplicates[1].status == ResponseCode.FAIL_INVALID
+        for idx, duplicate in enumerate(result.duplicates):
+            assert duplicate._to_proto() == response.transactionGetReceipt.duplicateTransactionReceipts[idx]
 
 
 def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_requested(
