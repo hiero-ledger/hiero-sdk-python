@@ -4,7 +4,13 @@ Example: Create an account without using any alias.
 This demonstrates:
 - Using `set_key_without_alias` so that no EVM alias is set
 - The resulting `contract_account_id` being the zero-padded value
+
+Usage:
+- uv run -m examples.account.account_create_transaction_without_alias
+- python -m examples.account.account_create_transaction_without_alias
+(we use -m because we use the util `info_to_dict`)
 """
+
 
 import os
 import sys
@@ -21,6 +27,7 @@ from hiero_sdk_python import (
     Network,
     AccountId,
     Hbar,
+    ResponseCode
 )
 
 load_dotenv()
@@ -73,24 +80,26 @@ def create_account_without_alias(client: Client, private_key: PrivateKey):
     )
 
     response = transaction.execute(client)
-    account_id = response.account_id
+    receipt = response.get_receipt(client)
 
-    if account_id is None:
-        raise RuntimeError(
-            "AccountID not found in receipt. Account may not have been created."
-        )
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"Account creation failed: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
 
+    account_id = receipt.account_id
     print(f"✅ Account created with ID: {account_id}\n")
     return account_id
 
 
-def fetch_account_info(client: Client, account_id):
-    """Fetch and return account information."""
+
+def fetch_account_info(client: Client, account_id: AccountId):
+    """Fetch and return account information for a given AccountId."""
     return (
         AccountInfoQuery()
         .set_account_id(account_id)
         .execute(client)
     )
+
 
 
 def print_account_summary(account_info) -> None:
@@ -107,7 +116,20 @@ def print_account_summary(account_info) -> None:
 
 
 def main() -> None:
-    """Main entry point."""
+    """
+    Demonstrates how to create a Hedera account without assigning an EVM alias.
+
+    This example performs the following steps:
+    1. Connects to the configured Hedera network using operator credentials.
+    2. Generates a new key pair for the account without creating an alias.
+    3. Creates the account using `set_key_without_alias`, ensuring no EVM alias is set.
+    4. Verifies successful account creation by checking the transaction receipt status.
+    5. Queries the created account and prints its details, including the zero-padded
+       `contract_account_id` that results when no alias is used.
+
+    This script is intended as a reference for developers who want explicit control
+    over account creation behavior and receipt-based error handling.
+    """
     try:
         client = setup_client()
         account_key = generate_account_key()
