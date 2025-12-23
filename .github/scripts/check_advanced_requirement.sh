@@ -1,22 +1,27 @@
 #!/bin/bash
+set -euo pipefail
 
 # 1. Check for Exemptions (Triage, Committers, Maintainers)
-# Using 'triage', 'write', or 'admin' covers all core teams.
-PERM_JSON=$(gh api repos/$REPO/collaborators/$ASSIGNEE/permission)
-PERMISSION=$(echo "$PERM_JSON" | jq -r '.permission')
+# Handle non-collaborator (404) and quote variables
+PERM_JSON=$(gh api "repos/$REPO/collaborators/$ASSIGNEE/permission" 2>/dev/null || echo '{"permission":"none"}')
+PERMISSION=$(echo "$PERM_JSON" | jq -r '.permission // "none"')
 
-if [[ "$PERMISSION" == "admin" ]] || [[ "$PERMISSION" == "write" ]] || [[ "$PERMISSION" == "triage" ]]; then
+if [[ "$PERMISSION" =~ ^(admin|write|triage)$ ]]; then
   echo "User @$ASSIGNEE is a core member ($PERMISSION). Qualification check skipped."
   exit 0
 fi
 
 # 2. Get counts of completed issues
-# IMPROVEMENT: We exclude issues closed as 'not planned' (won't fix/duplicate)
-# This ensures we only count issues that were actually "solved".
-BASE_QUERY="repo:$REPO is:issue is:closed assignee:$ASSIGNEE -reason:\"not planned\""
+#  Use -f q= to handle URL encoding for labels with spaces automatically
+GFI_QUERY="repo:$REPO is:issue is:closed assignee:$ASSIGNEE -reason:\"not planned\" label:\"good first issue\""
+INT_QUERY="repo:$REPO is:issue is:closed assignee:$ASSIGNEE -reason:\"not planned\" label:\"intermediate\""
 
-GFI_COUNT=$(gh api "search/issues?q=$BASE_QUERY+label:\"good first issue\"" --jq '.total_count')
-INT_COUNT=$(gh api "search/issues?q=$BASE_QUERY+label:\"intermediate\"" --jq '.total_count')
+GFI_COUNT=$(gh api "search/issues" -f q="$GFI_QUERY" --jq '.total_count')
+INT_COUNT=$(gh api "search/issues" -f q="$INT_QUERY" --jq '.total_count')
+
+# Ensure counts are numeric (default to 0)
+GFI_COUNT=${GFI_COUNT:-0}
+INT_COUNT=${INT_COUNT:-0}
 
 echo "Stats for @$ASSIGNEE: GFI: $GFI_COUNT, Intermediate: $INT_COUNT"
 
@@ -27,10 +32,10 @@ if (( GFI_COUNT >= 1 )) && (( INT_COUNT >= 1 )); then
 else
   echo "Qualification failed. Revoking assignment."
 
-  # Remove the assignee
-  gh issue edit $ISSUE_NUMBER --repo $REPO --remove-assignee "$ASSIGNEE"
+  # Quote variables to prevent word-splitting
+  gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --remove-assignee "$ASSIGNEE"
 
-  # 4. Message Improvement: Mentioning WHY advanced exists (Risk & Testing)
+  # 4. Message
   MSG="Hi @$ASSIGNEE, I cannot assign you to this issue yet.
 
 **Why?**
@@ -40,9 +45,10 @@ Advanced issues involve high-risk changes to the core codebase. They require sig
 - Complete at least **1** 'good first issue' (You have: **$GFI_COUNT**)
 - Complete at least **1** 'intermediate' issue (You have: **$INT_COUNT**)
 
-Please feel free to pick up an [intermediate issue](https://github.com/$REPO/labels/intermediate) to get started! We look forward to your contributions."
+Please feel free to pick up an [intermediate issue](https://github.com/hiero-ledger/hiero-sdk-python/labels/intermediate) to get started! We look forward to your contributions."
 
-  gh issue comment $ISSUE_NUMBER --repo $REPO --body "$(printf "$MSG")"
+  #  Use the variable safely without printf format vulnerabilities
+  gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "$MSG"
   
   exit 1
 fi
