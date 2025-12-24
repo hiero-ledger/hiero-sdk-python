@@ -5,7 +5,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -267,3 +267,103 @@ def test_create_account_with_decline_reward(env):
     assert info.account_id == account_id
     assert info.staked_account_id == env.operator_id
     assert info.decline_staking_reward is True
+
+def test_integration_account_create_transaction_can_execute_with_private_key(env):
+    """Test AccountCreateTransaction can be executed when key is a PrivateKey."""
+    new_account_private_key = PrivateKey.generate()
+    initial_balance = Hbar(2)
+
+    assert initial_balance.to_tinybars() == 200000000
+
+    tx = AccountCreateTransaction(
+        key=new_account_private_key,
+        initial_balance=initial_balance,
+        memo="Recipient Account With PrivateKey",
+    )
+
+    tx.freeze_with(env.client)
+    receipt = tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS
+    assert receipt.account_id is not None, (
+        "AccountID not found in receipt. Account may not have been created."
+    )
+
+def test_proto_includes_alias_from_ecdsa_key(env):
+    """Proto alias should come from the separate ECDSA key when provided."""
+    # Main account key (can be any key type)
+    account_private_key = PrivateKey.generate()
+    account_public_key = account_private_key.public_key()
+
+    # Separate ECDSA key used only for alias
+    alias_private_key = PrivateKey.generate_ecdsa()
+    alias_public_key = alias_private_key.public_key()
+    expected_evm_address = alias_public_key.to_evm_address()
+
+    tx = (
+        AccountCreateTransaction(
+            key=account_public_key,
+            initial_balance=Hbar(2),
+            memo="Account with alias from ECDSA key",
+        )
+        .set_key_with_alias(account_public_key, alias_public_key)
+        .freeze_with(env.client)
+        .sign(alias_private_key)
+    )
+
+    receipt = tx.execute(env.client)
+    tx_body = tx.build_transaction_body()
+
+    assert receipt.account_id is not None, "AccountID not found in receipt. Account may not have been created."
+    # Alias in the proto must come from the ECDSA alias key
+    assert tx_body.cryptoCreateAccount.alias == expected_evm_address.address_bytes
+    # Key in the proto must still be the main account key
+    assert tx_body.cryptoCreateAccount.key == account_public_key._to_proto()
+
+def test_proto_includes_alias_from_main_key(env):
+    """Proto alias should be derived from the main ECDSA key when no separate alias key is provided."""
+    account_private_key = PrivateKey.generate_ecdsa()
+    account_public_key = account_private_key.public_key()
+    expected_evm_address = account_public_key.to_evm_address()
+
+    tx = (
+        AccountCreateTransaction(
+            initial_balance=Hbar(2),
+            memo="Account with alias from main key",
+        )
+        .set_key_with_alias(account_private_key)  # no ecdsa_key param
+    )
+
+    tx.freeze_with(env.client)
+    receipt = tx.execute(env.client)
+    tx_body = tx.build_transaction_body()
+
+    assert receipt.account_id is not None, "AccountID not found in receipt. Account may not have been created."
+    # Alias must be derived from the main ECDSA key
+    assert tx_body.cryptoCreateAccount.alias == expected_evm_address.address_bytes
+    # Key in proto is still the public key of the account
+    assert tx_body.cryptoCreateAccount.key == account_public_key._to_proto()
+
+def test_proto_excludes_alias_when_not_set(env):
+    """Proto should not include alias when we use the 'without alias' path."""
+    account_private_key = PrivateKey.generate()
+    account_public_key = account_private_key.public_key()
+
+    tx = (
+        AccountCreateTransaction(
+            key=account_public_key,
+            initial_balance=Hbar(2),
+            memo="Account without alias",
+        )
+        .set_key_without_alias(account_public_key)
+    )
+
+    tx.freeze_with(env.client)
+    receipt = tx.execute(env.client)
+    tx_body = tx.build_transaction_body()
+
+    assert receipt.account_id is not None, "AccountID not found in receipt. Account may not have been created."
+    # No alias should be set in the proto
+    assert not tx_body.cryptoCreateAccount.alias
+    # Key must still be present
+    assert tx_body.cryptoCreateAccount.key == account_public_key._to_proto()

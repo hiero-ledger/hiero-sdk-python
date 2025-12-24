@@ -110,29 +110,30 @@ from hiero_sdk_python.account.account_create_transaction import AccountCreateTra
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import IntegrationTestEnv
+from tests.integration.utils import IntegrationTestEnv
+
 
 @pytest.mark.integration
 def test_integration_account_create_transaction_can_execute():
-    """Test that an account can be created on the network."""
-    env = IntegrationTestEnv()
-    try:
-        new_account_private_key = PrivateKey.generate()
-        new_account_public_key = new_account_private_key.public_key()
-        initial_balance = Hbar(2)
-        
-        transaction = AccountCreateTransaction(
-            key=new_account_public_key,
-            initial_balance=initial_balance,
-            memo="Test Account"
-        )
-        transaction.freeze_with(env.client)
-        receipt = transaction.execute(env.client)
-        
-        assert receipt.account_id is not None, "Account ID should be present"
-        assert receipt.status == ResponseCode.SUCCESS
-    finally:
-        env.close()
+   """Test that an account can be created on the network."""
+   env = IntegrationTestEnv()
+   try:
+      new_account_private_key = PrivateKey.generate()
+      new_account_public_key = new_account_private_key.public_key()
+      initial_balance = Hbar(2)
+
+      transaction = AccountCreateTransaction(
+         key=new_account_public_key,
+         initial_balance=initial_balance,
+         memo="Test Account"
+      )
+      transaction.freeze_with(env.client)
+      receipt = transaction.execute(env.client)
+
+      assert receipt.account_id is not None, "Account ID should be present"
+      assert receipt.status == ResponseCode.SUCCESS
+   finally:
+      env.close()
 ```
 
 ### When to Write Integration Tests
@@ -328,13 +329,13 @@ uv run pytest -m integration
 #### Run Specific Test File
 
 ```bash
-uv run pytest tests/unit/test_hbar.py
+uv run pytest tests/unit/hbar_test.py
 ```
 
 #### Run Specific Test Function
 
 ```bash
-uv run pytest tests/unit/test_hbar.py::test_hbar_conversion_to_tinybars
+uv run pytest tests/unit/hbar_test.py::test_hbar_conversion_to_tinybars
 ```
 
 #### Run Tests with Verbose Output
@@ -457,7 +458,7 @@ You may look at an already-created unit test file for better clarity:
 
 ```bash
 # Run unit tests
-uv run pytest tests/unit/tokens/test_token_transfer.py -v
+uv run pytest tests/unit/tokens/token_transfer_test.py -v
 
 # Run integration tests
 uv run pytest tests/integration/token_transfer_e2e_test.py -v
@@ -607,15 +608,16 @@ def test_with_fixtures(sample_account_id, sample_token_id):
 The `env` fixture from `utils_for_test.py` provides a configured test environment:
 
 ```python
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
+
 
 @pytest.mark.integration
 def test_with_env_fixture(env):
-    """Test using the env fixture."""
-    # env.client is already configured
-    # env.operator_id and env.operator_key are available
-    account = env.create_account()  # Helper method
-    assert account.id is not None
+   """Test using the env fixture."""
+   # env.client is already configured
+   # env.operator_id and env.operator_key are available
+   account = env.create_account()  # Helper method
+   assert account.id is not None
 ```
 
 #### 2. **Always Clean Up Resources**
@@ -720,21 +722,22 @@ The `tests/integration/utils_for_test.py` file provides essential testing utilit
 #### IntegrationTestEnv Class
 
 ```python
-from tests.integration.utils_for_test import IntegrationTestEnv, env
+from tests.integration.utils import IntegrationTestEnv, env
 
 # Create environment manually
 env = IntegrationTestEnv()
 try:
-    # Use env.client, env.operator_id, env.operator_key
-    pass
+   # Use env.client, env.operator_id, env.operator_key
+   pass
 finally:
-    env.close()
+   env.close()
+
 
 # Or use the pytest fixture (recommended)
 @pytest.mark.integration
 def test_example(env):
-    # env is automatically created and cleaned up
-    account = env.create_account()
+   # env is automatically created and cleaned up
+   account = env.create_account()
 ```
 
 **Key Methods:**
@@ -747,25 +750,26 @@ def test_example(env):
 #### Helper Functions
 
 ```python
-from tests.integration.utils_for_test import (
-    create_fungible_token,
-    create_nft_token,
-    env
+from tests.integration.utils import (
+   create_fungible_token,
+   create_nft_token,
+   env
 )
+
 
 @pytest.mark.integration
 def test_with_helpers(env):
-    # Create a fungible token with default settings
-    token_id = create_fungible_token(env)
-    
-    # Create an NFT token
-    nft_id = create_nft_token(env)
-    
-    # Use custom configuration with lambdas
-    token_id = create_fungible_token(env, [
-        lambda tx: tx.set_decimals(8),
-        lambda tx: tx.set_initial_supply(1000000)
-    ])
+   # Create a fungible token with default settings
+   token_id = create_fungible_token(env)
+
+   # Create an NFT token
+   nft_id = create_nft_token(env)
+
+   # Use custom configuration with lambdas
+   token_id = create_fungible_token(env, [
+      lambda tx: tx.set_decimals(8),
+      lambda tx: tx.set_initial_supply(1000000)
+   ])
 ```
 
 ### Pytest Markers

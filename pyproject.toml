@@ -43,6 +43,7 @@ classifiers = [
 dev = [
     "pytest>=8.3.4",
     "pytest-cov>=7.0.0",
+    "pytest-cov>=7.0.0"
 ]
 
 lint = [

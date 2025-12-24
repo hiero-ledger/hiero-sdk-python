@@ -1,5 +1,5 @@
 import hashlib
-from typing import Optional
+from typing import List, Optional
 
 from typing import TYPE_CHECKING
 
@@ -16,6 +16,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 if TYPE_CHECKING:
     from hiero_sdk_python.schedule.schedule_create_transaction import (
@@ -65,7 +66,7 @@ class Transaction(_Executable):
         # changed from int: 2_000_000 to Hbar: 0.02
         self._default_transaction_fee = Hbar(0.02)
         self.operator_account_id = None  
-        self.batch_key: Optional[PrivateKey] = None
+        self.batch_key: Optional[Key] = None
 
     def _make_request(self):
         """
@@ -434,7 +435,7 @@ class Transaction(_Executable):
         transaction_body.max_custom_fees.extend(custom_fee_limits)
 
         if self.batch_key:
-            transaction_body.batch_key.CopyFrom(self.batch_key.public_key()._to_proto())
+            transaction_body.batch_key.CopyFrom(key_to_proto(self.batch_key))
 
         return transaction_body
 
@@ -807,12 +808,12 @@ class Transaction(_Executable):
 
         return transaction
     
-    def set_batch_key(self, key: PrivateKey):
+    def set_batch_key(self, key: Key):
         """
         Set the batch key required for batch transaction.
 
         Args:
-            batch_key (PrivateKey): Private key to use as batch key.
+            batch_key (Key): Key to use as batch key (accepts both PrivateKey and PublicKey).
 
         Returns:
             Transaction: A reconstructed transaction instance of the appropriate subclass. 
@@ -821,13 +822,13 @@ class Transaction(_Executable):
         self.batch_key = key
         return self
     
-    def batchify(self, client: Client, batch_key: PrivateKey):
+    def batchify(self, client: Client, batch_key: Key):
         """
         Marks the current transaction as an inner (batched) transaction.
 
         Args:
             client (Client): The client instance to use for setting defaults.
-            batch_key (PrivateKey): Private key to use as batch key.
+            batch_key (Key): Key to use as batch key (accepts both PrivateKey and PublicKey).
         
         Returns:
             Transaction: A reconstructed transaction instance of the appropriate subclass.

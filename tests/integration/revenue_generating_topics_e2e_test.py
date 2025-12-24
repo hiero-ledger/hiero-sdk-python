@@ -21,7 +21,7 @@ from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
-from tests.integration.utils_for_test import create_fungible_token, env
+from tests.integration.utils import create_fungible_token, env
 
 TOPIC_MEMO = "Python SDK revenue generating topic"
 MESSAGE = "test_message"

@@ -15,7 +15,7 @@ from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token, create_nft_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 @pytest.mark.integration
 def test_integration_account_info_query_can_execute():

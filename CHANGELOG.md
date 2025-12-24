@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -6,22 +6,148 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+
+
 ### Added
+- Added a GitHub Actions workflow to validate broken Markdown links in pull requests.
+- Added method chaining examples to the developer training guide (`docs/sdk_developers/training/coding_token_transactions.md`) (#1194)
+- examples/mypy.ini for stricter type checking in example scripts
+- Added a GitHub Actions workflow that reminds contributors to link pull requests to issues.
+- Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
+- Added Good First Issue (GFI) management and frequency documentation to clarify maintainer expectations and SDK-level GFI governance.
+- Added SDK-level Good First Issue (GFI) guidelines for maintainers to clarify what qualifies as a good first issue.
+- Codecov workflow
+- Added unit tests for `key_format.py` to improve coverage.
+- Fix inactivity bot execution for local dry-run testing.
+- Added Good First Issue candidate guidelines documentation (`docs/maintainers/good_first_issue_candidate_guidelines.md`) and Good First Issues guidelines documentation (`docs/maintainers/good_first_issues_guidelines.md`) (#1066)
+- Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
+- Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
+- Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
+- Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
+- Added `.github/workflows/bot-pr-auto-draft-on-changes.yml` to automatically convert PRs to draft and notify authors when reviewers request changes.
+- 
+- Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
+- Phase 2 of the inactivity-unassign bot: Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
+- Added `__str__()` to CustomFixedFee and updated examples and tests accordingly.
+- Added unit tests for `crypto_utils` (#993)
+- Added a github template for good first issues
+- Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
+- Configured coderabbit with a `.coderabbit.yaml`
+- Added all missing fields to `__str__()` method and updated `test_tokem_info.py`
+- Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
+- Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
+- Add inactivity bot workflow to unassign stale issue assignees (#952)
+- Made custom fraction fee end to end
+- feat: AccountCreateTransaction now supports both PrivateKey and PublicKey [#939](https://github.com/hiero-ledger/hiero-sdk-python/issues/939)
+- Added Acceptance Criteria section to Good First Issue template for better contributor guidance (#997)
+- Added `__str__()` to CustomRoyaltyFee and updated examples and tests accordingly (#986)
+- Restore bug and feature request issue templates (#996)(https://github.com/hiero-ledger/hiero-sdk-python/issues/996)
+- Support selecting specific node account ID(s) for queries and transactions and added `Network._get_node()` with updated execution flow (#362)
+- Add TLS support with two-stage control (`set_transport_security()` and `set_verify_certificates()`) for encrypted connections to Hedera networks. TLS is enabled by default for hosted networks (mainnet, testnet, previewnet) and disabled for local networks (solo, localhost) (#855)
+- Add PR inactivity reminder bot for stale pull requests `.github/workflows/pr-inactivity-reminder-bot.yml`
+- Add comprehensive training documentation for _Executable class `docs/sdk_developers/training/executable.md`
+- Added empty `docs/maintainers/good_first_issues.md` file for maintainers to write Good First Issue guidelines (#1034)
+- Added new `.github/ISSUE_TEMPLATE/04_good_first_issue_candidate.yml` file (1068)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1068)
+- Enhanced `.github/ISSUE_TEMPLATE/01_good_first_issue.yml` with welcoming message and acceptance criteria sections to guide contributors in creating quality GFIs (#1052)
+- Add workflow to notify team about P0 issues `bot-p0-issues-notify-team.yml`
+- Added Issue Reminder (no-PR) bot, .github/scripts/issue_reminder_no_pr.sh and .github/workflows/bot-issue-reminder-no-pr.yml to automatically detect assigned issues with no linked pull requests for 7+ days and post a gentle ReminderBot comment.(#951)
+- Add support for include_children in TransactionGetReceiptQuery (#1100)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1100)
+- Add new `.github/ISSUE_TEMPLATE/05_intermediate_issue.yml` file (1072)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1072)
+- Add a workflow to notify the team when issues are labeled as “good first issues” or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
+- Added __str__ and __repr__ to AccountBalance
+- Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
+- Added advanced issue template for contributors `.github/ISSUE_TEMPLATE/06_advanced_issue.yml`.
+- Add new tests to `tests/unit/topic_info_query_test.py` (#1124)
+- Added `coding_token_transactions.md` for a high level overview training on how token transactions are created in the python sdk.
+- Added prompt for codeRabbit on how to review /examples ([#1180](https://github.com/hiero-ledger/hiero-sdk-python/issues/1180)) 
+- Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
+
+### Changed
+- Updated Codecov coverage thresholds in 'codecov.yml' to require 90% of project coverage and 92% of patch coverage (#1157)
+- Reduce office-hours reminder spam by posting only on each user's most recent open PR, grouping by author and sorting by creation time (#1121)
+- Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
+- Move `account_allowance_delete_transaction_hbar.py` from `examples/` to `examples/account/` for better organization (#1003)
+- Improved consistency of transaction examples (#1120)
+- Refactored `account_create_transaction_with_fallback_alias.py` by splitting the monolithic `create_account_with_fallback_alias` function into modular functions: `generate_fallback_key`, `fetch_account_info`, and `print_account_summary`. The existing `setup_client()` function was reused for improved readability and structure (#1018)
+- Allow `PublicKey` for batch_key in `Transaction`, enabling both `PrivateKey` and `PublicKey` for batched transactions
+- Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
+- Bump protobuf toml to protobuf==6.33.2
+- chore: Move account allowance example to correct folder
+- Added more tests to the CustomFee class for different functionalities (#991)
+- Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
+- Renamed example files to match src naming (#1053)
+- Updated bot naming conventions in `.github/workflows` to be consistent (#1042)
+- Renamed workflow files for consistent PR check naming:
+  `examples.yml` → `pr-check-examples.yml`,
+  `test.yml` → `pr-check-test.yml` (#1043)
+- Cleaned up `token_airdrop_claim_auto` example for pylint compliance (no functional changes). (#1079)
+- Formatted `examples/query` using black (#1082)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1082)
+- Update team notification script and workflow for P0 issues 'p0_issues_notify_team.js'
+- Rename test files across the repository to ensure they consistently end with _test.py (#1055)
+- Cleaned up `token_airdrop_claim_signature_required` example for pylint compliance (no functional changes). (#1080)
+- Rename the file 'test_token_fee_schedule_update_transaction_e2e.py' to make it ends with _test.py as all other test files.(#1117)
+- Format token examples with Black for consistent code style and improved readability (#1119)
+- Transformed `examples/tokens/custom_fee_fixed.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
+- Format token examples with Black for consistent code style and improved readability (#1119) 
+- Replaced `ResponseCode.get_name(receipt.status)` with the  `ResponseCode(receipt.status).name` across examples and integration tests for consistency. (#1136)
+- Moved helpful references to Additional Context section and added clickable links.
+- Transformed `examples\tokens\custom_royalty_fee.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
+- Refactored `examples/tokens/custom_royalty_fee.py` by splitting monolithic function custom_royalty_fee_example() into modular functions create_royalty_fee_object(), create_token_with_fee(), verify_token_fee(), and main() to improve readability, cleaned up setup_client() (#1169)
+
+
+
+
+### Fixed
+
+- Fix token association verification in `token_airdrop_transaction.py` to correctly check if tokens are associated by using `token_id in token_balances` instead of incorrectly displaying zero balances which was misleading (#[815])
+- Fixed inactivity bot workflow not checking out repository before running (#964)
+- Fixed the topic_message_query integarion test
+- good first issue template yaml rendering
+- Fixed solo workflow defaulting to zero
+- Fix unit test tet_query.py
+- TLS Hostname Mismatch & Certificate Verification Failure for Nodes
+- Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
+
+
+### Breaking Change
+
+- Remove deprecated 'in_tinybars' parameter and update related tests `/src/hiero_sdk_python/hbar.py`, `/tests/unit/hbar_test.py` and `/src/hiero_sdk_python/tokens/custom_fixed_fee.py`.
+
+## [0.1.10] - 2025-12-03
+
+### Added
+
+- Added docs/sdk_developers/training/workflow: a training for developers to learn the workflow to contribute to the python SDK.
+- Added Improved NFT allowance deletion flow with receipt-based status checks and strict `SPENDER_DOES_NOT_HAVE_ALLOWANCE` verification.
+- Add `max_automatic_token_associations`, `staked_account_id`, `staked_node_id` and `decline_staking_reward` fields to `AccountUpdateTransaction` (#801)
+- Added docs/sdk_developers/training/setup: a training to set up as a developer to the python sdk
+- Add example demonstrating usage of `CustomFeeLimit` in `examples/transaction/custom_fee_limit.py`
+- Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
+- Added `.github/workflows/bot-office-hours.yml` to automate the Weekly Office Hour Reminder.
+- feat: Implement account creation with EVM-style alias transaction example.
+- Added validation logic in `.github/workflows/pr-checks.yml` to detect when no new chnagelog entries are added under [Unreleased].
+- Support for message chunking in `TopicSubmitMessageTransaction`.
 
 ### Changed
 
 - Update `pyproject.toml` with custom ruff settings including line length 120, target version py310, comprehensive lint rules, and Google docstring convention (#1138)
 
+- bot workflows to include new changelog entry
 - Removed duplicate import of transaction_pb2 in transaction.py
+- Refactor `TokenInfo` into an immutable dataclass, remove all setters, and rewrite `_from_proto` as a pure factory for consistent parsing [#800]
+- feat: Add string representation method for `CustomFractionalFee` class and update `custom_fractional_fee.py` example.
+- Moved query examples to their respective domain folders to improve structure matching.
 
 ### Fixed
 
 - Improved the precision of `scripts/examples/match_examples_src.py` to correctly identify source files that have matching examples.
+- fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
 
 ## [0.1.9] - 2025-11-26
 
 ### Added
 
+- Add a limit of one comment for PR to the commit verification bot. [#892]
 - Removed `actions/checkout@v4` from `bot-verified-commits.yml`
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
 - Add practical example `examples/errors/receipt_status_error.py` demonstrating transaction error handling
@@ -71,7 +197,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update github actions checkout from 5.0.0 to 5.0.1 (#814)
 - changed to add concurrency to workflow bot
 - feat: Refactor `TokenDissociateTransaction` to use set_token_ids method and update transaction fee to Hbar, also update `transaction.py` and expand `examples/token_dissociate.py`, `tests/unit/token_dissociate.py`.
-
 
 ### Fixed
 
@@ -552,3 +677,4 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
+

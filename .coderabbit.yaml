@@ -1,0 +1,68 @@
+language: "en-US" # USA English
+# Set up means coderabbit should review PRs but only provide one high level walkthrough, collapsed
+# It should not state preliminary information like: getting ready to review, draw a picture
+# It should not state additional information like: related issues, PRs, suggest reviewers
+# It should not continue a casual conversation with users that reply to it
+
+# Only documents non-default options:
+reviews:
+  profile: "assertive" # Assertive profile yields more feedback, that may be considered nitpicky.
+  high_level_summary: false # Do not summarise a pull request first as there is a walkthrough
+  review_status: false # Do not state what kind of review as performed or why (spammy)
+  commit_status: false # Do not state the review is in progress (spammy)
+  collapse_walkthrough: true # Provide a walkthrough for reviewers, but collapse it (users shouldn't use this)
+  related_issues: false # Do not suggest related issues (spammy)
+  related_prs: false # Do not suggest related PRs (spammy)
+  suggested_labels: false # Do not suggest labels for the PR (spammy)
+  suggested_reviewers: false # Do not suggest reviewers for the PR (spammy)
+  in_progress_fortune: false # Do not stall time with a message (spammy)
+  poem: false # Do not write a literal poem (spammy)
+  enable_prompt_for_ai_agents: false # Disable prompts for AI agents (spammy)
+
+  # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
+  path_instructions:
+    - path: "examples/**/*"
+      instructions: |
+        You are acting as a senior maintainer reviewing SDK examples. Your goal is to ensure examples work verbatim for users who copy-paste them.
+
+        **Priority 1 - Correctness**: 
+        - Verify transaction lifecycle chain (construction -> freeze_with -> sign -> execute).
+        - Ensure `freeze_with(client)` is called BEFORE signing.
+        - Validate that methods referenced actually exist in the `hiero_sdk_python` codebase.
+        - Ensure response validation checks `receipt.status` against `ResponseCode` enums (e.g., `ResponseCode.SUCCESS`).
+
+        **Priority 2 - Transaction Lifecycle**: 
+        - Check method chaining logic.
+        - Verify correct signing order (especially for multi-sig).
+        - Ensure explicit `.execute(client)` calls.
+        - Verify response property extraction (e.g., using `.token_id`, `.account_id`, `.serial_numbers`).
+        - Ensure error handling uses `ResponseCode(receipt.status).name` for clarity.
+
+        **Priority 3 - Naming & Clarity**: 
+        - Enforce role-based naming: `operator_id`/`_key`, `treasury_account_id`/`_key`, `receiver_id`/`_key`.
+        - Use `_id` suffix for AccountId and `_key` suffix for PrivateKey variables.
+        - Validate negative examples explicitly check for failure codes (e.g., `TOKEN_HAS_NO_PAUSE_KEY`).
+        - Ensure logical top-to-bottom flow without ambiguity.
+
+        **Priority 4 - Consistency**: 
+        - Verify standard patterns: `def main()`, `if __name__ == "__main__":`, `load_dotenv()`.
+        - **IMPORT RULES**: 
+          1. Accept both top-level imports (e.g., `from hiero_sdk_python import PrivateKey`) and fully qualified imports (e.g., `from hiero_sdk_python.crypto.private_key import PrivateKey`).
+          2. STRICTLY validate that the import path actually exists in the project structure. Compare against other files in `/examples` or your knowledge of the SDK file tree.
+          3. Flag hallucinations immediately (e.g., `hiero_sdk_python.keys` does not exist).
+        - Check for `try-except` blocks with `sys.exit(1)` for critical failures.
+
+        **Priority 5 - User Experience**: 
+        - Ensure comments explain SDK usage patterns (for users, not contributors).
+        - Avoid nitpicking functional code.
+        - Suggest type hints or docstrings only if they significantly improve clarity.
+
+        **Philosophy**: 
+        - Examples are copied by users - prioritize explicitness over brevity.
+        - Avoid suggestions that `ruff` or linters would catch.
+        - Be concise, technical, and opinionated.
+        - Flag out-of-scope improvements as potential new issues rather than blocking.
+
+chat:
+  art: false # Don't draw ASCII art (false)
+  auto_reply: false # Don't allow bot to converse (spammy)

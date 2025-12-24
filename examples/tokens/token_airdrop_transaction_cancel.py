@@ -95,28 +95,48 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
         print("\nBalances before airdrop:")
         for t in token_ids:
             # token_ids elements are TokenId objects (not strings), so use them as dict keys
-            print(f" {str(t)}: sender={sender_balances_before.get(t, 0)} recipient={recipient_balances_before.get(t, 0)}")
-
+            sender_balance = sender_balances_before.get(t, 0)
+            recipient_balance = recipient_balances_before.get(t, 0)
+            print(f" {str(t)}: sender={sender_balance} recipient={recipient_balance}")
         tx = TokenAirdropTransaction()
         for token_id in token_ids:
-            tx.add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
-            tx.add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
-
+            tx.add_token_transfer(
+                token_id=token_id, 
+                account_id=operator_id, 
+                amount=-1
+            )
+            tx.add_token_transfer(
+                token_id=token_id, 
+                account_id=recipient_id, 
+                amount=1
+            )
+        
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
-        print(f"Token airdrop executed: status={receipt.status} transaction_id={receipt.transaction_id}")
+        print(
+            f"Token airdrop executed: status={receipt.status} "
+            f"transaction_id={receipt.transaction_id}"
+        )
 
         # Get record to inspect pending airdrops
-        airdrop_record = TransactionRecordQuery(receipt.transaction_id).execute(client)
+        airdrop_record = TransactionRecordQuery(
+            receipt.transaction_id
+            ).execute(client)
         pending = getattr(airdrop_record, "new_pending_airdrops", []) or []
 
         # Balances after airdrop
-        sender_balances_after = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client).token_balances
-        recipient_balances_after = CryptoGetAccountBalanceQuery(account_id=recipient_id).execute(client).token_balances
+        sender_balances_after = CryptoGetAccountBalanceQuery(
+            account_id=operator_id
+            ).execute(client).token_balances
+        recipient_balances_after = CryptoGetAccountBalanceQuery(
+            account_id=recipient_id
+            ).execute(client).token_balances
 
-        print("\nBalances after airdrop:")
+        print("\nBalances after airdrop:")  
         for t in token_ids:
             # token_ids elements are TokenId objects (not strings), so use them as dict keys
-            print(f" {str(t)}: sender={sender_balances_after.get(t, 0)} recipient={recipient_balances_after.get(t, 0)}")
+            sender_balance = sender_balances_after.get(t, 0) 
+            recipient_balance = recipient_balances_after.get(t, 0)  
+            print(f" {str(t)}: sender={sender_balance} recipient={recipient_balance}")
 
         return pending
     except Exception as e:
@@ -143,7 +163,9 @@ def cancel_airdrops(client, operator_key, pending_airdrops):
         cancel_airdrop_receipt = cancel_airdrop_tx.execute(client)
 
         if cancel_airdrop_receipt.status != ResponseCode.SUCCESS:
-            print(f"Failed to cancel airdrop: Status: {cancel_airdrop_receipt.status}")
+            print(f"Failed to cancel airdrop: "
+                  f"Status: {cancel_airdrop_receipt.status}"
+                 )
             sys.exit(1)
 
         print("Airdrop cancel transaction successful")
@@ -165,7 +187,6 @@ def token_airdrop_cancel():
 
     # Cancel airdrops
     cancel_airdrops(client, operator_key, pending_airdrops)
-
 
 if __name__ == "__main__":
     token_airdrop_cancel()

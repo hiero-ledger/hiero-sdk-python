@@ -17,8 +17,6 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-
-from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.hapi.services import transaction_receipt_pb2, response_code_pb2
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_id import TopicId
@@ -39,7 +37,8 @@ class TransactionReceipt:
     def __init__(
         self,
         receipt_proto: transaction_receipt_pb2.TransactionReceipt,
-        transaction_id: Optional[TransactionId] = None
+        transaction_id: Optional[TransactionId] = None,
+        children: Optional[list["TransactionReceipt"]] = None,
     ) -> None:
         """
         Initializes the TransactionReceipt with the provided protobuf receipt.
@@ -51,6 +50,7 @@ class TransactionReceipt:
         self._transaction_id: Optional[TransactionId] = transaction_id
         self.status: Optional[response_code_pb2.ResponseCodeEnum] = receipt_proto.status
         self._receipt_proto: transaction_receipt_pb2.TransactionReceipt = receipt_proto
+        self._children: list["TransactionReceipt"] = children or []
 
     @property
     def token_id(self) -> Optional[TokenId]:
@@ -183,6 +183,48 @@ class TransactionReceipt:
             int: The node ID if present; otherwise, 0.
         """
         return self._receipt_proto.node_id
+
+    @property
+    def topic_sequence_number(self) -> int:
+        """
+        Returns the topic sequence number associated with this receipt.
+
+        Returns:
+            int: The sequence number of the topic if present, otherwise 0.
+        """
+        return self._receipt_proto.topicSequenceNumber
+
+    @property
+    def topic_running_hash(self) -> Optional[bytes]:
+        """
+        Returns the topic running hash associated with this receipt.
+
+        Returns:
+            int: The running hash of the topic if present, otherwise None.
+        """
+        if self._receipt_proto.HasField('topicRunningHash'):
+            return self._receipt_proto.topicRunningHash
+
+        return None
+
+    @property
+    def children(self) -> list["TransactionReceipt"]:
+        """
+        Returns the child transaction receipts associated with this receipt.
+
+        Returns:
+            list[TransactionReceipt]: Child receipts (empty if not requested or none exist).
+        """
+        return self._children
+
+    def _set_children(self, children: list["TransactionReceipt"]) -> None:
+        """
+        Internal setter for child receipts (used by receipt queries).
+
+        Args:
+            children (list[TransactionReceipt]): Child receipts.
+        """
+        self._children = children
 
     def _to_proto(self):
         """
