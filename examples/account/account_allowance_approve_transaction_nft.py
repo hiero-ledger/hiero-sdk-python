@@ -2,25 +2,26 @@
 Example: Approving an NFT allowance and transferring the NFT using it.
 
 Why:
-    This example demonstrates how NFT allowances work on the Hedera network.
-    It shows how an owner can approve another account (the spender) to transfer
-    their NFT to a receiver. This is useful for understanding NFT permissions
-    and automated transfers in decentralized applications.
+    This example demonstrates how to use the Hiero Python SDK to approve and
+    execute an NFT allowance when interacting with the Hedera network.
 
 Key Concepts:
-    - Owner: The account that owns the NFT and grants allowance.
+    - Owner: The account that owns the NFT and grants the allowance.
     - Spender: The account approved to transfer the Owner's NFT.
     - Receiver: The account that will receive the NFT.
-    - NFT Allowance: Permission given by the Owner to the Spender to transfer NFT(s).
+    - NFT Allowance: Permission granted by the Owner to the Spender to transfer NFTs.
 
 High-Level Steps:
-    Required:
+    Pre-requisites:
         1. Create Owner, Spender, and Receiver accounts.
         2. Create and mint an NFT to the Owner.
+
+    Required:
         3. Approve the Spender to transfer the Owner's NFT.
-        4. Transfer the NFT using the approved allowance.
-    Optional:
-        - Associate the NFT with the Receiver account (depends on network/account setup).
+
+    Demonstration:
+        4. Associate the NFT with the Receiver account.
+        5. Transfer the NFT using the approved allowance.
 
 Usage:
     uv run examples/account/account_allowance_approve_transaction_nft.py
