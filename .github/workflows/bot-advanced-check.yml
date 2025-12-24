@@ -2,15 +2,20 @@ name: PythonBot - Advanced Requirement Check
 
 on:
   issues:
-    types: [assigned]
+    types: [assigned, labeled] # Added 'labeled' to catch label changes after assignment
 
 # Explicitly minimal permissions
 permissions:
   issues: write
 
+# Prevent duplicate runners/comments on the same issue
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   check-advanced-qualification:
-    # Most efficient: Skip the runner entirely if the issue isn't 'advanced'
+    # Skip the runner entirely if the issue isn't 'advanced'
     if: contains(github.event.issue.labels.*.name, 'advanced')
     runs-on: ubuntu-latest
     steps:
@@ -22,9 +27,16 @@ jobs:
       - name: Verify User Qualification
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSIGNEE: ${{ github.event.assignee.login }}
+          # Handle cases where triggered by assignment or by adding a label to an assigned issue
+          ASSIGNEE: ${{ github.event.assignee.login || github.event.issue.assignee.login }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
         run: |
+          # If no one is assigned, exit early
+          if [ -z "$ASSIGNEE" ]; then
+            echo "No assignee to check. Skipping."
+            exit 0
+          fi
+          
           chmod +x .github/scripts/check_advanced_requirement.sh
           ./.github/scripts/check_advanced_requirement.sh
