@@ -13,6 +13,6 @@ This document explains **why pinning is required**, **how to find the correct co
 GitHub Actions can be referenced in multiple ways:
 
 ```yaml
-uses: step-security/harden-runner@v2.12.0        
+uses: step-security/harden-runner@v2.12.0         
 uses: owner/action@v4
 uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
