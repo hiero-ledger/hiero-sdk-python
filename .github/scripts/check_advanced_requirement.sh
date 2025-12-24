@@ -17,11 +17,11 @@ check_user() {
   PERMISSION=$(echo "$PERM_JSON" | jq -r '.permission // "none"')
 
   if [[ "$PERMISSION" =~ ^(admin|write|triage)$ ]]; then
-    echo "[advanced-check] User @$user is core member ($PERMISSION). Skipping."
+    echo "[advanced-check] User @$user is core member ($PERMISSION). Qualification check skipped."
     return 0
   fi
 
-  # Get counts
+  # 2. Get counts
   GFI_QUERY="repo:$REPO is:issue is:closed assignee:$user -reason:\"not planned\" label:\"good first issue\""
   INT_QUERY="repo:$REPO is:issue is:closed assignee:$user -reason:\"not planned\" label:\"intermediate\""
 
@@ -32,7 +32,7 @@ check_user() {
   if ! [[ "$GFI_COUNT" =~ ^[0-9]+$ ]]; then GFI_COUNT=0; fi
   if ! [[ "$INT_COUNT" =~ ^[0-9]+$ ]]; then INT_COUNT=0; fi
 
-  # Validation Logic
+  # 3. Validation Logic
   if (( GFI_COUNT >= 1 )) && (( INT_COUNT >= 1 )); then
     echo "[advanced-check] User @$user qualified."
     return 0
@@ -47,7 +47,6 @@ check_user() {
     fi
 
     # Post the message FIRST, then unassign.
-    # This ensures the user sees the explanation even if the unassign call has issues.
     MSG="Hi @$user, I cannot assign you to this issue yet.
 
 **Why?**
@@ -72,10 +71,19 @@ if [[ -n "${TRIGGER_ASSIGNEE:-}" ]]; then
   check_user "$TRIGGER_ASSIGNEE"
 else
   log "Checking all current assignees..."
-  # Use process substitution instead of a pipe to avoid subshell issues
-  while read -r user; do
-    if [[ -n "$user" ]]; then
-      check_user "$user"
-    fi
-  done < <(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json assignees --jq '.assignees[].login')
+  
+  # Fetch assignees into a variable first. 
+  # This ensures 'set -e' catches any API failures here.
+  ASSIGNEE_LIST=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json assignees --jq '.assignees[].login')
+
+  if [[ -z "$ASSIGNEE_LIST" ]]; then
+    log "No assignees found to check."
+  else
+    # Use a here-string (<<<) to iterate over the variable safely.
+    while read -r user; do
+      if [[ -n "$user" ]]; then
+        check_user "$user"
+      fi
+    done <<< "$ASSIGNEE_LIST"
+  fi
 fi
