@@ -1,0 +1,154 @@
+const COMMENT_MARKER = process.env.INTERMEDIATE_COMMENT_MARKER || '<!-- Intermediate Issue Guard -->';
+const INTERMEDIATE_LABEL = process.env.INTERMEDIATE_LABEL?.trim() || 'intermediate';
+const GFI_LABEL = process.env.GFI_LABEL?.trim() || 'Good First Issue';
+const ORG_SLUG = process.env.GITHUB_ORG?.trim() || 'hiero-ledger';
+const EXEMPT_TEAM_SLUGS = (process.env.INTERMEDIATE_EXEMPT_TEAM_SLUGS || 'hiero-sdk-python-triage,hiero-sdk-python-committers,hiero-sdk-python-maintainers')
+  .split(',')
+  .map((entry) => entry.trim())
+  .filter(Boolean);
+
+function hasLabel(issue, labelName) {
+  if (!issue?.labels?.length) {
+    return false;
+  }
+
+  return issue.labels.some((label) => {
+    const name = typeof label === 'string' ? label : label?.name;
+    return typeof name === 'string' && name.toLowerCase() === labelName.toLowerCase();
+  });
+}
+
+async function isMemberOfAnyTeam(github, username) {
+  if (!EXEMPT_TEAM_SLUGS.length) {
+    return false;
+  }
+
+  for (const teamSlug of EXEMPT_TEAM_SLUGS) {
+    try {
+      const response = await github.rest.teams.getMembershipForUserInOrg({
+        org: ORG_SLUG,
+        team_slug: teamSlug,
+        username,
+      });
+
+      if (response?.data?.state === 'active') {
+        return true;
+      }
+    } catch (error) {
+      if (error?.status === 404) {
+        continue;
+      }
+
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`Unable to verify ${username} on team ${teamSlug}: ${message}`);
+    }
+  }
+
+  return false;
+}
+
+async function countCompletedGfiIssues(github, owner, repo, username) {
+  const query = `repo:${owner}/${repo} label:"${GFI_LABEL}" state:closed assignee:${username}`;
+
+  try {
+    const response = await github.rest.search.issuesAndPullRequests({
+      q: query,
+      per_page: 1,
+    });
+
+    return response?.data?.total_count || 0;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`Unable to count completed GFIs for ${username}: ${message}`);
+    return 0;
+  }
+}
+
+async function hasExistingGuardComment(github, owner, repo, issueNumber) {
+  const comments = await github.paginate(github.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: issueNumber,
+    per_page: 100,
+  });
+
+  return comments.some((comment) => comment.body?.includes(COMMENT_MARKER));
+}
+
+function buildRejectionComment({ mentee, completedCount }) {
+  const plural = completedCount === 1 ? '' : 's';
+
+  return `${COMMENT_MARKER}
+Hi @${mentee}! Thanks for your interest in contributing 💡
+
+This issue is labeled as intermediate, which means it requires a bit more familiarity with the SDK.
+Before you can take it on, please complete at least one Good First Issue so we can make sure you have a smooth on-ramp.
+
+You've completed **${completedCount}** Good First Issue${plural} so far.
+Once you wrap up your first GFI, feel free to come back and we’ll gladly help you get rolling here!`;
+}
+
+module.exports = async ({ github, context }) => {
+  try {
+    const issue = context.payload.issue;
+    const assignee = context.payload.assignee;
+
+    if (!issue?.number || !assignee?.login) {
+      return console.log('Missing issue or assignee in payload. Skipping intermediate guard.');
+    }
+
+    if (!hasLabel(issue, INTERMEDIATE_LABEL)) {
+      return console.log(`Issue #${issue.number} is not labeled '${INTERMEDIATE_LABEL}'. Skipping.`);
+    }
+
+    if (assignee.type === 'Bot') {
+      return console.log(`Assignee ${assignee.login} is a bot. Skipping.`);
+    }
+
+    const { owner, repo } = context.repo;
+    const mentee = assignee.login;
+
+    if (await isMemberOfAnyTeam(github, mentee)) {
+      return console.log(`${mentee} is a member of an exempt team. Skipping guard.`);
+    }
+
+    const completedCount = await countCompletedGfiIssues(github, owner, repo, mentee);
+
+    if (completedCount >= 1) {
+      return console.log(`${mentee} has completed ${completedCount} GFI(s). Assignment allowed.`);
+    }
+
+    try {
+      await github.rest.issues.removeAssignees({
+        owner,
+        repo,
+        issue_number: issue.number,
+        assignees: [mentee],
+      });
+      console.log(`Removed @${mentee} from issue #${issue.number} due to missing GFI completion.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`Unable to remove assignee ${mentee} from issue #${issue.number}: ${message}`);
+      throw error;
+    }
+
+    if (await hasExistingGuardComment(github, owner, repo, issue.number)) {
+      return console.log(`Guard comment already exists on issue #${issue.number}. Skipping duplicate message.`);
+    }
+
+    const comment = buildRejectionComment({ mentee, completedCount });
+
+    await github.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: issue.number,
+      body: comment,
+    });
+
+    console.log(`Posted guard comment for @${mentee} on issue #${issue.number}.`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`❌ Intermediate assignment guard failed: ${message}`);
+    throw error;
+  }
+};
