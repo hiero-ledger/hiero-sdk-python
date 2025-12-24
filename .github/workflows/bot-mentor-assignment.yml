@@ -28,5 +28,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
-            const script = require('./.github/scripts/mentor_assignment.js');
+            const script = require('./.github/scripts/bot-mentor-assignment.js');
             await script({ github, context });
