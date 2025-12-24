@@ -63,6 +63,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
 
 ### Changed
+- Improved docstring for `account_allowance_approve_transaction_nft.py` with purpose, key concepts and required vs optional steps.
 - Updated Codecov coverage thresholds in 'codecov.yml' to require 90% of project coverage and 92% of patch coverage (#1157)
 - Reduce office-hours reminder spam by posting only on each user's most recent open PR, grouping by author and sorting by creation time (#1121)
 - Pylint cleanup for token_airdrop_transaction_cancel.py (#1081) [@tiya-15](https://github.com/tiya-15)
