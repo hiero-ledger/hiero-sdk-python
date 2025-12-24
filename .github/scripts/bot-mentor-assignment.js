@@ -60,7 +60,7 @@ function selectMentor(roster, mentee) {
 function hasGoodFirstIssueLabel(issue) {
   return (issue.labels || []).some((label) => {
     const name = typeof label === 'string' ? label : label?.name;
-    return typeof name === 'string' && name.toLowerCase() === 'good first issue';
+    return typeof name === 'string' && name === 'Good First Issue';
   });
 }
 
