@@ -36,67 +36,23 @@ function loadMentorRoster() {
   }
 }
 
-function selectMentor(roster, mentee) {
+function selectMentor(roster) {
   if (!Array.isArray(roster) || roster.length === 0) {
     throw new Error('Mentor roster must contain at least one entry.');
   }
 
   const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
   const dayNumber = Math.floor(Date.now() / MILLISECONDS_PER_DAY); // UTC day index
-  const baseIndex = dayNumber % roster.length;
-  const normalizedMentee = typeof mentee === 'string' ? mentee.toLowerCase() : null;
+  const index = dayNumber % roster.length;
 
-  for (let offset = 0; offset < roster.length; offset += 1) {
-    const candidate = roster[(baseIndex + offset) % roster.length];
-
-    if (!normalizedMentee || candidate.toLowerCase() !== normalizedMentee) {
-      return candidate;
-    }
-  }
-
-  return null;
+  return roster[index];
 }
 
 function hasGoodFirstIssueLabel(issue) {
   return (issue.labels || []).some((label) => {
     const name = typeof label === 'string' ? label : label?.name;
-    return typeof name === 'string' && name === 'Good First Issue';
+    return typeof name === 'string' && name.toLowerCase() === 'good first issue';
   });
-}
-
-async function hasActiveMentorAssignment(github, owner, repo, mentee, currentIssueNumber) {
-  try {
-    const assignedIssues = await github.paginate(
-      github.rest.issues.listForRepo,
-      {
-        owner,
-        repo,
-        assignee: mentee,
-        state: 'open',
-        per_page: 100,
-      },
-      (response) =>
-        (response.data || []).filter((issue) => issue?.number && issue.number !== currentIssueNumber),
-    );
-
-    for (const assignedIssue of assignedIssues) {
-      const comments = await github.paginate(github.rest.issues.listComments, {
-        owner,
-        repo,
-        issue_number: assignedIssue.number,
-        per_page: 100,
-      });
-
-      if (comments.some((comment) => comment.body?.includes(COMMENT_MARKER))) {
-        return true;
-      }
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.log(`Unable to detect existing mentor assignments for ${mentee}: ${message}`);
-  }
-
-  return false;
 }
 
 async function isNewContributor(github, owner, repo, login) {
@@ -176,16 +132,8 @@ module.exports = async ({ github, context }) => {
       return console.log(`${mentee} already has merged contributions. Skipping mentor assignment.`);
     }
 
-    if (await hasActiveMentorAssignment(github, owner, repo, mentee, issue.number)) {
-      return console.log(`${mentee} already has an active mentor assignment comment on another issue. Skipping.`);
-    }
-
     const roster = loadMentorRoster();
-    const mentor = selectMentor(roster, mentee);
-
-    if (!mentor) {
-      return console.log(`No eligible mentor (excluding mentee ${mentee}) found. Skipping mentor assignment.`);
-    }
+    const mentor = selectMentor(roster);
 
     console.log(`Assigning mentor @${mentor} to mentee @${mentee} for issue #${issue.number}.`);
 
