@@ -32,7 +32,7 @@ check_user() {
   else
     echo "User @$user failed. Unassigning..."
 
-    # CodeRabbit Improvement: Tailor the suggestion based on what is missing
+    # Tailor the suggestion based on what is missing
     if (( GFI_COUNT == 0 )); then
       SUGGESTION="[good first issue](https://github.com/$REPO/labels/good%20first%20issue)"
     else
@@ -60,21 +60,19 @@ Please check out our **$SUGGESTION** tasks to build your experience first!"
 
 # --- Main Logic ---
 
-# Define a simple log function so the script doesn't crash
 log() {
   echo "[advanced-check] $1"
 }
 
-# If TRIGGER_ASSIGNEE is set (from 'assigned' event), check just that person.
-# Otherwise (from 'labeled' event), check EVERYONE currently assigned.
 if [[ -n "${TRIGGER_ASSIGNEE:-}" ]]; then
   check_user "$TRIGGER_ASSIGNEE"
 else
   log "Checking all current assignees..."
-  # Fetch all current assignees using GitHub CLI
-  ASSIGNEES=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json assignees --jq '.assignees[].login')
-  
-  for user in $ASSIGNEES; do
-    check_user "$user"
+  # Use a while loop to iterate over each line of output from gh
+  gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json assignees --jq '.assignees[].login' | while read -r user; do
+    # Only run if the line isn't empty
+    if [[ -n "$user" ]]; then
+      check_user "$user"
+    fi
   done
 fi
