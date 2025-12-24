@@ -1,27 +1,32 @@
 #!/bin/bash
 set -euo pipefail
 
-# 1. Validate required environment variables
+# 1. Define Helper Functions First
+log() {
+  echo "[advanced-check] $1"
+}
+
+# 2. Validate required environment variables
 if [[ -z "${REPO:-}" ]] || [[ -z "${ISSUE_NUMBER:-}" ]]; then
-  echo "ERROR: Required environment variables REPO and ISSUE_NUMBER must be set"
+  log "ERROR: Required environment variables REPO and ISSUE_NUMBER must be set"
   exit 1
 fi
 
-# Function to check a single user
+# 3. Function to check a single user
 check_user() {
   local user=$1
-  echo "[advanced-check] Checking qualification for @$user..."
+  log "Checking qualification for @$user..."
 
   # Permission exemption
   PERM_JSON=$(gh api "repos/$REPO/collaborators/$user/permission" 2>/dev/null || echo '{"permission":"none"}')
   PERMISSION=$(echo "$PERM_JSON" | jq -r '.permission // "none"')
 
   if [[ "$PERMISSION" =~ ^(admin|write|triage)$ ]]; then
-    echo "[advanced-check] User @$user is core member ($PERMISSION). Qualification check skipped."
+    log "User @$user is core member ($PERMISSION). Qualification check skipped."
     return 0
   fi
 
-  # 2. Get counts
+  # Get counts
   GFI_QUERY="repo:$REPO is:issue is:closed assignee:$user -reason:\"not planned\" label:\"good first issue\""
   INT_QUERY="repo:$REPO is:issue is:closed assignee:$user -reason:\"not planned\" label:\"intermediate\""
 
@@ -32,12 +37,12 @@ check_user() {
   if ! [[ "$GFI_COUNT" =~ ^[0-9]+$ ]]; then GFI_COUNT=0; fi
   if ! [[ "$INT_COUNT" =~ ^[0-9]+$ ]]; then INT_COUNT=0; fi
 
-  # 3. Validation Logic
+  # Validation Logic
   if (( GFI_COUNT >= 1 )) && (( INT_COUNT >= 1 )); then
-    echo "[advanced-check] User @$user qualified."
+    log "User @$user qualified."
     return 0
   else
-    echo "[advanced-check] User @$user failed. Unassigning..."
+    log "User @$user failed. Unassigning..."
 
     # Tailor the suggestion
     if (( GFI_COUNT == 0 )); then
@@ -65,15 +70,12 @@ Please check out our **$SUGGESTION** tasks to build your experience first!"
 
 # --- Main Logic ---
 
-log() { echo "[advanced-check] $1"; }
-
 if [[ -n "${TRIGGER_ASSIGNEE:-}" ]]; then
   check_user "$TRIGGER_ASSIGNEE"
 else
   log "Checking all current assignees..."
   
   # Fetch assignees into a variable first. 
-  # This ensures 'set -e' catches any API failures here.
   ASSIGNEE_LIST=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json assignees --jq '.assignees[].login')
 
   if [[ -z "$ASSIGNEE_LIST" ]]; then

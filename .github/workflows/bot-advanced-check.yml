@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   check-advanced-qualification:
+    # Only run if the 'advanced' label is present on the issue
     if: contains(github.event.issue.labels.*.name, 'advanced')
     runs-on: ubuntu-latest
     steps:
