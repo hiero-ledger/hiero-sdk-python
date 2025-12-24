@@ -54,7 +54,7 @@ def create_new_account(client, operator_id, operator_key):
         # Build the transaction
         tx = (
             AccountCreateTransaction()
-            .set_key(recipient_key.public_key())  # <-- THE FIX: Call as a method
+            .set_key_without_alias(recipient_key.public_key())  # <-- THE FIX: Call as a method
             .set_initial_balance(Hbar.from_tinybars(100_000_000))  # 1 Hbar
         )
 

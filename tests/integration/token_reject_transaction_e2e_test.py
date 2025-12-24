@@ -113,7 +113,7 @@ def test_integration_token_reject_transaction_can_execute_for_nft():
         new_account_public_key = new_account_private_key.public_key()
         
         receipt = (AccountCreateTransaction()
-            .set_key(new_account_public_key).set_initial_balance(Hbar(1))
+            .set_key_without_alias(new_account_public_key).set_initial_balance(Hbar(1))
             .set_account_memo("Receiver Account").execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         account_id = receipt.account_id
@@ -174,7 +174,7 @@ def test_integration_token_reject_transaction_can_execute_for_ft_and_nft_paralle
         new_account_private_key = PrivateKey.generate()
         new_account_public_key = new_account_private_key.public_key()
         
-        receipt = AccountCreateTransaction().set_key(new_account_public_key).set_initial_balance(Hbar(1)).set_account_memo("Receiver Account").execute(env.client)
+        receipt = AccountCreateTransaction().set_key_without_alias(new_account_public_key).set_initial_balance(Hbar(1)).set_account_memo("Receiver Account").execute(env.client)
         assert receipt.status == ResponseCode.SUCCESS, f"Account creation failed with status: {ResponseCode(receipt.status).name}"
         account_id = receipt.account_id
         assert account_id is not None
@@ -880,7 +880,7 @@ def test_token_reject_transaction_receiver_sig_required_nft():
         treasury_private_key = PrivateKey.generate()
         treasury_public_key = treasury_private_key.public_key()
         
-        receipt = (AccountCreateTransaction().set_key(treasury_public_key).set_initial_balance(Hbar(0))
+        receipt = (AccountCreateTransaction().set_key_without_alias(treasury_public_key).set_initial_balance(Hbar(0))
             .set_receiver_signature_required(True).set_account_memo("Treasury Account")
             .freeze_with(env.client).sign(treasury_private_key).execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Treasury account creation failed with status: {ResponseCode(receipt.status).name}"
@@ -900,7 +900,7 @@ def test_token_reject_transaction_receiver_sig_required_nft():
         receiver_private_key = PrivateKey.generate()
         receiver_public_key = receiver_private_key.public_key()
         
-        receipt = (AccountCreateTransaction().set_key(receiver_public_key).set_initial_balance(Hbar(1)).set_account_memo("Receiver Account").execute(env.client))
+        receipt = (AccountCreateTransaction().set_key_without_alias(receiver_public_key).set_initial_balance(Hbar(1)).set_account_memo("Receiver Account").execute(env.client))
         assert receipt.status == ResponseCode.SUCCESS, f"Receiver account creation failed with status: {ResponseCode(receipt.status).name}"
         receiver_id = receipt.account_id
         

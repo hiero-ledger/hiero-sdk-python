@@ -94,8 +94,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Moved helpful references to Additional Context section and added clickable links.
 - Transformed `examples\tokens\custom_royalty_fee.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
 - Refactored `examples/tokens/custom_royalty_fee.py` by splitting monolithic function custom_royalty_fee_example() into modular functions create_royalty_fee_object(), create_token_with_fee(), verify_token_fee(), and main() to improve readability, cleaned up setup_client() (#1169)
-
-
+- Replaced deprecated `AccountCreateTransaction.set_key()` usage with `set_key_without_alias()` and `set_key_with_alias()` across examples and tests
 
 
 ### Fixed

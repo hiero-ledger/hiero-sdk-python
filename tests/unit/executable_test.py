@@ -52,7 +52,7 @@ def test_retry_success_before_max_attempts():
 
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
         )
 
@@ -75,7 +75,7 @@ def test_retry_failure_after_max_attempts():
 
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
         )
 
@@ -115,7 +115,7 @@ def test_node_switching_after_single_grpc_error():
     with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
         )
 
@@ -152,7 +152,7 @@ def test_node_switching_after_multiple_grpc_errors():
     with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
         )
 
@@ -188,7 +188,7 @@ def test_transaction_with_expired_error_not_retried():
     with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
         )
 
@@ -219,7 +219,7 @@ def test_transaction_with_fatal_error_not_retried():
     with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
         )
 
@@ -253,7 +253,7 @@ def test_exponential_backoff_retry():
 
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
         )
 
@@ -291,7 +291,7 @@ def test_retriable_error_does_not_switch_node():
     with mock_hedera_servers(response_sequences) as client, patch('hiero_sdk_python.executable.time.sleep'):
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
         )
 
@@ -407,7 +407,7 @@ def test_transaction_node_switching_body_bytes():
 
         transaction = (
             AccountCreateTransaction()
-            .set_key(PrivateKey.generate().public_key())
+            .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
             .freeze_with(client)
             .sign(client.operator_private_key)

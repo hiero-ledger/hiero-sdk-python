@@ -25,7 +25,7 @@ def test_integration_account_update_transaction_can_execute(env):
 
     receipt = (
         AccountCreateTransaction()
-        .set_key(env.operator_key.public_key())
+        .set_key_without_alias(env.operator_key.public_key())
         .set_initial_balance(Hbar(2))
         .set_account_memo(initial_memo)
         .set_receiver_signature_required(False)
@@ -101,7 +101,7 @@ def test_integration_account_update_transaction_fails_with_invalid_signature(env
 
     receipt = (
         AccountCreateTransaction()
-        .set_key(initial_public_key)
+        .set_key_without_alias(initial_public_key)
         .set_initial_balance(Hbar(1))
         .execute(env.client)
     )
@@ -139,7 +139,7 @@ def test_integration_account_update_transaction_partial_update(env):
     # Create initial account
     receipt = (
         AccountCreateTransaction()
-        .set_key(env.operator_key.public_key())
+        .set_key_without_alias(env.operator_key.public_key())
         .set_initial_balance(Hbar(1))
         .set_account_memo("Initial memo")
         .set_receiver_signature_required(False)
@@ -338,7 +338,7 @@ def test_integration_account_update_transaction_with_staking_fields(env):
     # Create two accounts - one to stake to
     receipt1 = (
         AccountCreateTransaction()
-        .set_key(env.operator_key.public_key())
+        .set_key_without_alias(env.operator_key.public_key())
         .set_initial_balance(Hbar(2))
         .execute(env.client)
     )
@@ -348,7 +348,7 @@ def test_integration_account_update_transaction_with_staking_fields(env):
     # Create account to update
     receipt2 = (
         AccountCreateTransaction()
-        .set_key(env.operator_key.public_key())
+        .set_key_without_alias(env.operator_key.public_key())
         .set_initial_balance(Hbar(2))
         .execute(env.client)
     )

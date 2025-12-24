@@ -54,7 +54,7 @@ def create_account_transaction(client):
     # Create the account
     receipt = (
         AccountCreateTransaction()
-        .set_key(new_account_key.public_key())
+        .set_key_without_alias(new_account_key.public_key())
         .set_initial_balance(Hbar(1))
         .execute(client)
     )

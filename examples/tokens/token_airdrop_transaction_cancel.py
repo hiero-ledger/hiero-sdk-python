@@ -52,7 +52,7 @@ def create_account(client, operator_key, initial_balance=Hbar.from_tinybars(100_
     try:
         tx = (
             AccountCreateTransaction()
-            .set_key(recipient_key.public_key())
+            .set_key_without_alias(recipient_key.public_key())
             .set_initial_balance(initial_balance)
         )
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)

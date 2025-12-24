@@ -528,7 +528,7 @@ def test_integration_revenue_generating_topic_does_not_charge_hbars_fee_exempt_k
     # Create payer with 1 HBAR and fee exempt key
     receipt = (
         AccountCreateTransaction()
-        .set_key(fee_exempt_key1.public_key())
+        .set_key_without_alias(fee_exempt_key1.public_key())
         .set_initial_balance(Hbar(1))
         .execute(env.client)
     )
@@ -591,7 +591,7 @@ def test_integration_revenue_generating_topic_does_not_charge_tokens_fee_exempt_
 
     receipt = (
         AccountCreateTransaction()
-        .set_key(fee_exempt_key1.public_key())
+        .set_key_without_alias(fee_exempt_key1.public_key())
         .set_initial_balance(Hbar(1))
         .execute(env.client)
     )
