@@ -66,8 +66,8 @@ async function isNewContributor(github, owner, repo, login) {
     return (response.data.total_count || 0) === 0;
   } catch (error) {
     console.log(`Unable to determine merged PRs for ${login}:`, error.message || error);
-    // Return false (skip assignment) on API errors to avoid workflow failure
-    return false;
+    // Return null (skip assignment) on API errors to avoid workflow failure while preserving accurate logging
+    return null;
   }
 }
 
@@ -128,6 +128,11 @@ module.exports = async ({ github, context }) => {
     }
 
     const isNewStarter = await isNewContributor(github, owner, repo, mentee);
+
+    if (isNewStarter === null) {
+      return console.log(`Unable to confirm whether ${mentee} is a new contributor due to API error. Skipping mentor assignment.`);
+    }
+
     if (!isNewStarter) {
       return console.log(`${mentee} already has merged contributions. Skipping mentor assignment.`);
     }
