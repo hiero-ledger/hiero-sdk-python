@@ -59,6 +59,7 @@ Click the release version (for example `v2.14.0`) to open the release details pa
 From the release page, open the commit associated with the release and copy the full 40-character commit SHA.
 
 Example SHA: 20cf305ff2072d973412fa9b1e3a4f227bda3c76
+
 ### Step 5: Update the workflow
 
 Replace any floating or version-based reference:
