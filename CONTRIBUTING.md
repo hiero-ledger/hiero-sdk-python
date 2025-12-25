@@ -20,7 +20,7 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 ### 💻 Code Contributions
 
-**Get started:** See [Steup Guide](docs/sdk_developers/setup.md)
+**Get started:** See [Setup Guide](docs/sdk_developers/setup.md)
 
 **Quick workflow:**
 1. Find/create an issue → [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
@@ -155,7 +155,7 @@ git rebase main -S
 
 ## Common Issues
 
-**HELP! I have a an issue...**  
+**HELP! I have an issue...**  
 No worries, we're here to help. But please first see the [Common Issues Guide](docs/common_issues.md).
 
 
@@ -167,3 +167,4 @@ Thank you for contributing to the Hiero Python SDK! 🎉
 - **Quick Links:**
     - Join the main [Linux Foundation Decentralized Trust (LFDT) Discord Server](https://discord.gg/hyperledger).
     - Go directly to the [#hiero-python-sdk channel](https://discord.com/channels/905194001349627914/1336494517544681563)
+

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+import warnings
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.hbar import Hbar
 
@@ -61,9 +62,37 @@ class CustomFixedFee(CustomFee):
         super().__init__(fee_collector_account_id, all_collectors_are_exempt)
         self.amount = amount
         self.denominating_token_id = denominating_token_id
+        
+    def __str__(self) -> str:
+        """Return a user-friendly string representation of the CustomFixedFee.
+
+        Displays all fields in insertion order with aligned formatting.
+        TokenId and AccountId objects are displayed in Hedera notation (e.g., 0.0.123).
+        """
+
+        fields = {
+            key.replace("_", " ").title(): value
+            for key, value in self.__dict__.items()
+        }
+
+        if not fields:
+            return f"{self.__class__.__name__}()"
+
+        max_len = max(len(name) for name in fields)
+
+        lines = [f"{self.__class__.__name__}:"]
+        for name, value in fields.items():  # preserves insertion order
+            lines.append(f"    {name:<{max_len}} = {value}")  # uses __str__()
+
+        return "\n".join(lines)
+
 
     def set_amount_in_tinybars(self, amount: int) -> "CustomFixedFee":
         """Sets the fee amount in tinybars.
+
+        .. deprecated:: 
+            Use :meth:`set_hbar_amount` with :meth:`Hbar.from_tinybars` instead.
+            For example: ``set_hbar_amount(Hbar.from_tinybars(amount))``
 
         Clears any previously set denominating token ID, implying the fee is in HBAR.
 
@@ -73,6 +102,13 @@ class CustomFixedFee(CustomFee):
         Returns:
             CustomFixedFee: This CustomFixedFee instance for chaining.
         """
+        warnings.warn(
+            "set_amount_in_tinybars() is deprecated and will be removed in a future release. "
+            "Use set_hbar_amount(Hbar.from_tinybars(amount)) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.denominating_token_id = None
         self.amount = amount
         return self
 

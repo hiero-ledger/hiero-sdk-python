@@ -2,15 +2,22 @@
 uv run examples/tokens/token_fee_schedule_update_transaction_fungible.py
 python examples/tokens/token_fee_schedule_update_transaction_fungible.py
 """
+
 import os
 import sys
 from dotenv import load_dotenv
 
 from hiero_sdk_python import Client, AccountId, PrivateKey, Network
-from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenParams, TokenKeys
+from hiero_sdk_python.tokens.token_create_transaction import (
+    TokenCreateTransaction,
+    TokenParams,
+    TokenKeys,
+)
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
+from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import (
+    TokenFeeScheduleUpdateTransaction,
+)
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
@@ -19,7 +26,7 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 def setup_client():
     """Initialize client and operator credentials from .env."""
     load_dotenv()
-    network_name = os.getenv('NETWORK', 'testnet').lower()
+    network_name = os.getenv("NETWORK", "testnet").lower()
 
     try:
         network = Network(network_name)
@@ -47,15 +54,13 @@ def create_fungible_token(client, operator_id, fee_schedule_key):
         token_type=TokenType.FUNGIBLE_COMMON,
         supply_type=SupplyType.FINITE,
         max_supply=2000,
-        custom_fees=[], # No custom fees at creation
-    )
-    
-    keys = TokenKeys(
-        fee_schedule_key=fee_schedule_key
+        custom_fees=[],  # No custom fees at creation
     )
 
+    keys = TokenKeys(fee_schedule_key=fee_schedule_key)
+
     tx = TokenCreateTransaction(token_params=token_params, keys=keys)
-    
+
     tx.freeze_with(client)
     receipt = tx.execute(client)
 
@@ -82,9 +87,9 @@ def update_custom_fixed_fee(client, token_id, fee_schedule_key, treasury_account
         .set_token_id(token_id)
         .set_custom_fees(new_fees)
     )
-    
+
     # The transaction MUST be signed by the fee_schedule_key
-    tx.freeze_with(client).sign(fee_schedule_key) 
+    tx.freeze_with(client).sign(fee_schedule_key)
 
     try:
         receipt = tx.execute(client)
@@ -104,7 +109,7 @@ def query_token_info(client, token_id):
     try:
         token_info = TokenInfoQuery(token_id=token_id).execute(client)
         print("Token Info Retrieved Successfully!\n")
-        
+
         print(f"Name: {getattr(token_info, 'name', 'N/A')}")
         print(f"Symbol: {getattr(token_info, 'symbol', 'N/A')}")
         print(f"Total Supply: {getattr(token_info, 'total_supply', 'N/A')}")
@@ -118,7 +123,9 @@ def query_token_info(client, token_id):
             print(f"Found {len(custom_fees)} custom fee(s):")
             for i, fee in enumerate(custom_fees, 1):
                 print(f"  Fee #{i}: {type(fee).__name__}")
-                print(f"    Collector: {getattr(fee, 'fee_collector_account_id', 'N/A')}")
+                print(
+                    f"    Collector: {getattr(fee, 'fee_collector_account_id', 'N/A')}"
+                )
                 if isinstance(fee, CustomFixedFee):
                     print(f"    Amount: {getattr(fee, 'amount', 'N/A')}")
         else:
@@ -134,15 +141,15 @@ def main():
     token_id = None
     try:
         fee_key = operator_key
-        
+
         token_id = create_fungible_token(client, operator_id, fee_key)
-        
+
         if token_id:
-            query_token_info(client, token_id) 
+            query_token_info(client, token_id)
             # Pass the operator_id as the fee collector (which is also the treasury)
             update_custom_fixed_fee(client, token_id, fee_key, operator_id)
             query_token_info(client, token_id)
-            
+
     except Exception as e:
         print(f" Error during token operations: {e}")
     finally:
@@ -152,4 +159,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

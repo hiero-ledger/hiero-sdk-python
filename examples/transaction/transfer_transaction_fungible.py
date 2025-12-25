@@ -3,6 +3,7 @@ uv run examples/transaction/transfer_transaction_fungible.py
 python examples/transaction/transfer_transaction_fungible.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -17,12 +18,16 @@ from hiero_sdk_python import (
     Hbar,
     TokenCreateTransaction,
     CryptoGetAccountBalanceQuery,
-    TokenAssociateTransaction
+    TokenAssociateTransaction,
 )
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
 
+
+# --------------------------
+#  CLIENT SETUP
+# --------------------------
 def setup_client():
     """Initialize and set up the client with operator account"""
     network = Network(network_name)
@@ -30,8 +35,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID',''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY',''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
 
@@ -41,6 +46,9 @@ def setup_client():
         sys.exit(1)
 
 
+# --------------------------
+#  ACCOUNT CREATION
+# --------------------------
 def create_account(client, operator_key):
     """Create a new recipient account"""
     print("\nSTEP 1: Creating a new recipient account...")
@@ -55,11 +63,15 @@ def create_account(client, operator_key):
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
         return recipient_id, recipient_key
-    
+
     except Exception as e:
         print(f"Error creating new account: {e}")
         sys.exit(1)
 
+
+# --------------------------
+#  TOKEN CREATION
+# --------------------------
 def create_token(client, operator_id, operator_key):
     print("\nSTEP 2: Creating a new token...")
     try:
@@ -81,6 +93,10 @@ def create_token(client, operator_id, operator_key):
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
+
+# --------------------------
+#  TOKEN ASSOCIATION
+# --------------------------
 def associate_token(client, recipient_id, recipient_key, token_id):
     print("\nSTEP 3: Associating Token...")
     try:
@@ -96,7 +112,47 @@ def associate_token(client, recipient_id, recipient_key, token_id):
         print(f"❌ Error associating token: {e}")
         sys.exit(1)
 
-def transfer_tokens():
+
+# --------------------------
+#  ACCOUNT BALANCE QUERY
+# --------------------------
+def account_balance_query(client, account_id):
+    """Query and return token balances for an account."""
+    try:
+        result = CryptoGetAccountBalanceQuery(account_id=account_id).execute(client)
+        return result.token_balances
+    except Exception as e:
+        print(f"❌ Error fetching account balance: {e}")
+        sys.exit(1)
+
+
+# --------------------------
+#  TRANSFER TRANSACTION
+# --------------------------
+def transfer_transaction(client, operator_id, operator_key, recipient_id, token_id):
+    """Execute a token transfer transaction."""
+    print("\nSTEP 4: Transfering Token...")
+    try:
+        tx = (
+            TransferTransaction()
+            .add_token_transfer(token_id, operator_id, -1)
+            .add_token_transfer(token_id, recipient_id, 1)
+            .freeze_with(client)
+            .sign(operator_key)
+        )
+
+        tx.execute(client)
+        print("✅ Success! Token transfer complete.\n")
+
+    except Exception as e:
+        print(f"❌ Error transferring token: {e}")
+        sys.exit(1)
+
+
+# --------------------------
+#  MAIN ORCHESTRATOR (RENAMED)
+# --------------------------
+def main():
     """
     A full example to create a new recipent account, a fungible token, and
     transfer the token to that account
@@ -113,40 +169,19 @@ def transfer_tokens():
     # Associate Token
     associate_token(client, recipient_id, recipient_key, token_id)
 
-    # Transfer Token
-    print("\nSTEP 4: Transfering Token...")
-    try:
-        # Check balance before transfer
-        balance_before = (
-            CryptoGetAccountBalanceQuery(account_id=recipient_id)
-            .execute(client)
-            .token_balances
-        )
-        print("Token balance before token transfer:")
-        print(f"{token_id}: {balance_before.get(token_id)}")
+    # Balance before transfer
+    balance_before = account_balance_query(client, recipient_id)
+    print("Token balance BEFORE transfer:")
+    print(f"{token_id}: {balance_before.get(token_id)}")
 
-        transfer_tx = (
-            TransferTransaction()
-            .add_token_transfer(token_id, operator_id, -1)
-            .add_token_transfer(token_id, recipient_id, 1)
-            .freeze_with(client)
-            .sign(operator_key)
-        )
-        transfer_tx.execute(client)
-        
-        print("\n✅ Success! Token transfer complete.\n")
+    # Transfer
+    transfer_transaction(client, operator_id, operator_key, recipient_id, token_id)
 
-        # Check balance after transfer
-        balance_after = (
-            CryptoGetAccountBalanceQuery(account_id=recipient_id)
-            .execute(client)
-            .token_balances
-        )
-        print("Token balance after token transfer:")
-        print(f"{token_id}: {balance_after.get(token_id)}")
-    except Exception as e:
-        print(f"❌ Error transferring token: {str(e)}")
-        sys.exit(1)
+    # Balance after transfer
+    balance_after = account_balance_query(client, recipient_id)
+    print("Token balance AFTER transfer:")
+    print(f"{token_id}: {balance_after.get(token_id)}")
+
 
 if __name__ == "__main__":
-    transfer_tokens()
+    main()

@@ -10,7 +10,7 @@ from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.hbar import Hbar
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 FILE_CONTENT = b"Hello, World"
 FILE_MEMO = "python sdk e2e tests"

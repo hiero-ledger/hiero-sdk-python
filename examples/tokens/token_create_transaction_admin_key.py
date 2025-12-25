@@ -36,7 +36,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
@@ -46,8 +46,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID', ''))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY', ''))
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
@@ -140,8 +140,12 @@ def demonstrate_failed_supply_key_addition(client, token_id, admin_key):
     try:
         receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
-            print(f"❌ As expected, adding supply key failed: {ResponseCode(receipt.status).name}")
-            print("   Admin key cannot authorize adding keys that were not present during token creation.")
+            print(
+                f"❌ As expected, adding supply key failed: {ResponseCode(receipt.status).name}"
+            )
+            print(
+                "   Admin key cannot authorize adding keys that were not present during token creation."
+            )
             return True  # Expected failure
         else:
             print("⚠️  Unexpectedly succeeded - this shouldn't happen")
@@ -169,7 +173,9 @@ def demonstrate_admin_key_update(client, token_id, admin_key, operator_key):
 
     receipt = transaction.execute(client)
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Admin key update failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"Admin key update failed with status: {ResponseCode(receipt.status).name}"
+        )
         return False
 
     print("✅ Admin key updated successfully")
@@ -202,11 +208,7 @@ def demonstrate_token_deletion(client, token_id, operator_key):
 def get_token_info(client, token_id):
     """Query and display token information."""
     try:
-        info = (
-            TokenInfoQuery()
-            .set_token_id(token_id)
-            .execute(client)
-        )
+        info = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"\nToken Info for {token_id}:")
         print(f"  Name: {info.name}")
         print(f"  Symbol: {info.symbol}")

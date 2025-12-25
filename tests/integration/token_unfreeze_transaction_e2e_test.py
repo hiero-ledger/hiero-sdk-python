@@ -7,7 +7,7 @@ from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransact
 from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import IntegrationTestEnv, create_fungible_token
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token
 
 
 @pytest.mark.integration

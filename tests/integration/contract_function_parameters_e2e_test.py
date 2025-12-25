@@ -14,7 +14,7 @@ from hiero_sdk_python.contract.contract_function_parameters import (
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils_for_test import env
+from tests.integration.utils import env
 
 # Generate a new ECDSA key pair and extract the first 40 bytes of the public key
 # to use as a test address for the contract constructor

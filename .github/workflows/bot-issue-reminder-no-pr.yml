@@ -1,0 +1,38 @@
+name: bot-issue-reminder-no-pr
+
+on:
+  schedule:
+    - cron: "0 13 * * *" #runs daily at 13:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (log only, do not post comments)"
+        required: false
+        default: true #safe default for manual testing
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write #needed to comment on issues
+  pull-requests: read #needed to check PR state
+
+jobs:
+  reminder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #6.0.1
+
+      - name: Post reminder on assigned issues with no PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          DAYS: 7
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: bash .github/scripts/issue_reminder_no_pr.sh

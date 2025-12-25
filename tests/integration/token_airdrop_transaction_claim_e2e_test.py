@@ -10,7 +10,7 @@ from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransac
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
-from tests.integration.utils_for_test import env, create_fungible_token, create_nft_token
+from tests.integration.utils import env, create_fungible_token, create_nft_token
 from typing import List
 
 pytestmark = pytest.mark.integration
