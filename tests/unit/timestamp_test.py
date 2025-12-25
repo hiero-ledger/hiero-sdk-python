@@ -81,7 +81,7 @@ def test_from_date_max_microseconds():
 @pytest.mark.parametrize("bad_input", [None, [], {}, 3.14])
 def test_from_date_invalid_type(bad_input):
     """Ensure from_date raises ValueError for invalid input types."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid type for date"):
         Timestamp.from_date(bad_input)
 
 
@@ -189,7 +189,7 @@ def test_generate_with_jitter():
     ts = Timestamp.generate(has_jitter=True)
     delta = time.time() - ts.to_date().timestamp()
 
-    # Jitter is explicitly 3–8 seconds backward
+    # Jitter is explicitly 3-8 seconds backward
     assert 3.0 <= delta <= 9.0
 
 # Protobuf serialization tests
