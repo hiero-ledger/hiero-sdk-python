@@ -15,7 +15,7 @@ GitHub Actions can be referenced in multiple ways:
 ```yaml
 uses: owner/action@v1          # ❌ floating tag
 uses: owner/action@v4          # ⚠️ major version tag
-uses: owner/action@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # ✅ pinned commit SHA (v2.14.0)
+uses: owner/action@<commit> # ✅ pinned commit SHA (v2.14.0)
 ```
 
 ### Security and supply-chain risk
