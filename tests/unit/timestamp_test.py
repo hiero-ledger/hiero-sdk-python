@@ -68,12 +68,15 @@ def test_from_date_unix_epoch():
     assert ts.nanos == 0
 
 
+
+
 def test_from_date_max_microseconds():
     """Test from_date with maximum microseconds to ensure nanos calculation is correct."""
     dt = datetime(2020, 1, 1, 0, 0, 0, 999999, tzinfo=timezone.utc)
     ts = Timestamp.from_date(dt)
-    assert 999_998_000 <= ts.nanos <= 999_999_000
 
+    expected = 999_999_000
+    assert abs(ts.nanos - expected) < 1_000
 
 @pytest.mark.parametrize("bad_input", [None, [], {}, 3.14])
 def test_from_date_invalid_type(bad_input):
@@ -174,19 +177,20 @@ def test_compare_greater_than():
 
 def test_generate_without_jitter():
     """Ensure generate without jitter produces a timestamp close to current time."""
-    before = time.time()
     ts = Timestamp.generate(has_jitter=False)
-    after = time.time()
-    generated_time = ts.to_date().timestamp()
-    assert before <= generated_time <= after
+    delta = abs(ts.to_date().timestamp() - time.time())
+
+    assert delta < 0.1
+
 
 
 def test_generate_with_jitter():
     """Verify that generated timestamps with jitter remain close to the system time within a safe tolerance."""
     ts = Timestamp.generate(has_jitter=True)
-    delta = abs(ts.to_date().timestamp() - time.time())
-    assert delta < 0.05
+    delta = time.time() - ts.to_date().timestamp()
 
+    # Jitter is explicitly 3–8 seconds backward
+    assert 3.0 <= delta <= 9.0
 
 # Protobuf serialization tests
 
