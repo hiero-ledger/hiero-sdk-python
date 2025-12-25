@@ -68,8 +68,6 @@ def test_from_date_unix_epoch():
     assert ts.nanos == 0
 
 
-
-
 def test_from_date_max_microseconds():
     """Test from_date with maximum microseconds to ensure nanos calculation is correct."""
     dt = datetime(2020, 1, 1, 0, 0, 0, 999999, tzinfo=timezone.utc)
@@ -111,11 +109,9 @@ def test_datetime_round_trip_preserves_microseconds():
     original = datetime.now(timezone.utc).replace(microsecond=654321)
     ts = Timestamp.from_date(original)
     result = ts.to_date()
-    assert original.replace(microsecond=result.microsecond) == result
-
+    assert original == result
 
 # plus_nanos() tests
-
 
 def test_plus_nanos_simple_add():
     """Test simple addition of nanoseconds without overflow."""
