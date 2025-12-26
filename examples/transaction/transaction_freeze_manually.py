@@ -1,5 +1,14 @@
+"""
+Demonstrates how to manually freeze, serialize, deserialize, 
+sign, and execute a transaction using hiero_sdk_python.
+
+uv run examples/transaction/transaction_freeze_manually.py
+python examples/transaction/transaction_freeze_manually.py
+"""
 import os
+import sys
 from dotenv import load_dotenv
+
 from hiero_sdk_python import (
     AccountId,
     PrivateKey,
@@ -7,44 +16,97 @@ from hiero_sdk_python import (
     TransactionId,
     Client,
     Network,
-    Transaction,
+    Transaction
 )
 
-# Setup
 load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
-executor_id: AccountId = AccountId.from_string(os.getenv("OPERATOR_ID"))
-executor_key: PrivateKey = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
+NETWORK_NAME = os.getenv("NETWORK", "testnet").lower()
+OPERATOR_ID = os.getenv("OPERATOR_ID")
+OPERATOR_KEY = os.getenv("OPERATOR_KEY")
+NODE_ACCOUNT_ID = AccountId.from_string("0.0.3")
 
-# Create the client that will eventually execute the transaction
-executor_client: Client = Client(Network(network=network_name))
-executor_client.set_operator(executor_id, executor_key)
+def setup_client():
+    """
+    Initialize and return a Hedera Client using operator credentials.
+    """
+    if not OPERATOR_ID or not OPERATOR_KEY:
+        raise RuntimeError("OPERATOR_ID or OPERATOR_KEY not set in .env")
 
-# 1. Create Transaction
-tx = TopicCreateTransaction().set_memo("Test Topic Creation")
-tx_id = TransactionId.generate(executor_client.operator_account_id)
+    print(f"Connecting to Hedera {NETWORK_NAME} network!")
 
-# 2. Manually set Node and ID
-tx.set_transaction_id(tx_id)
-tx.node_account_id = AccountId.from_string("0.0.3") # Explicitly set to 0.0.3
+    try:
+        client = Client(Network(NETWORK_NAME))
 
-# 3. Manual Freeze (Generates body ONLY for 0.0.3)
-tx.freeze() 
+        operator_id = AccountId.from_string(OPERATOR_ID)
+        operator_key = PrivateKey.from_string(OPERATOR_KEY)
 
-# 4. Serialize
-unsigned_bytes = tx.to_bytes()
-print(f"Transaction bytes: {unsigned_bytes.hex()}")
+        client.set_operator(operator_id, operator_key)
 
-# 5. Deserialize
-tx2 = Transaction.from_bytes(unsigned_bytes)
-print("Transaction deserialized. Status: Unsigned.")
+    except Exception as exc:
+        raise RuntimeError(f"Failed to initialize client: {exc}") from exc
 
-# 6. Sign
-tx2.sign(executor_key)
-print("Transaction signed with operator key.")
+    print(f"Client initialized with operator {client.operator_account_id}")
+    return client
 
-# 7. Execute
-# FAILURE: executor_client selects a node other than 0.0.3 (e.g. 0.0.4 or 0.0.8)
-receipt = tx2.execute(executor_client) 
-print(receipt)
+def build_unsigned_tx(executor_client):
+    """
+    Build a Transaction, manually freeze it for a specific node, and return serialized unsigned bytes.
+    """
+    tx_id = TransactionId.generate(executor_client.operator_account_id)
+
+    tx = (
+        TopicCreateTransaction()
+        .set_memo("Test Topic Creation")
+        .set_transaction_id(tx_id)
+    )
+
+    # Explicit node binding (important for deterministic freeze)
+    tx.node_account_id = NODE_ACCOUNT_ID
+
+    # Freeze generates a body for ONLY the specified node
+    tx.freeze()
+
+    print(f"Transaction frozen for node {NODE_ACCOUNT_ID}")
+    return tx.to_bytes()
+
+def sign_and_execute(unsigned_bytes, executor_client):
+    """
+    Deserialize, sign, and execute a transaction.
+    """
+    # Deserialize
+    tx = Transaction.from_bytes(unsigned_bytes)
+    print("Transaction deserialized (unsigned).")
+
+    # Sign with executor client private key
+    tx.sign(executor_client.operator_private_key)
+    print("Transaction signed.")
+
+    receipt = tx.execute(executor_client)
+    print("Transaction executed successfully.")
+    print("Receipt:", receipt)
+
+    return receipt
+
+def main():
+    """
+    1. Set up a client.
+    2. Create a Transaction and explicitly:
+        - Set the TransactionId
+        - Set the NodeAccountId (e.g. 0.0.3)
+        - Call `freeze()` to build the TransactionBody for the specified node
+        - Serialize the unsigned transaction to bytes
+    3. Deserialize the transaction from bytes, sign it, and execute it on the network.
+    """
+    try:
+        client = setup_client()
+        unsigned_bytes = build_unsigned_tx(client)
+        sign_and_execute(unsigned_bytes, client)
+
+    except Exception as exc:
+        print(f"Error: {exc}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
