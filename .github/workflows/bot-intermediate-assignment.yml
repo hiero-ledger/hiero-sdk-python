@@ -9,9 +9,13 @@ on:
 permissions:
   issues: write
   contents: read
+  organizations: read
 
 jobs:
   enforce-intermediate-guard:
+    concurrency:
+      group: intermediate-guard-${{ github.event.issue.number || github.run_id }}
+      cancel-in-progress: false
     if: contains(github.event.issue.labels.*.name, 'intermediate')
     runs-on: ubuntu-latest
     steps:
