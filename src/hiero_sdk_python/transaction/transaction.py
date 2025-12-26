@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2)
@@ -103,7 +102,7 @@ class Transaction(_Executable):
             ValueError: If proto_request is not a Transaction
         """
         if not isinstance(proto_request, transaction_pb2.Transaction):
-            return ValueError(f"Expected Transaction but got {type(proto_request)}")
+            raise ValueError(f"Expected Transaction but got {type(proto_request)}")
 
         hash_obj = hashlib.sha384()
         hash_obj.update(proto_request.signedTransactionBytes)
@@ -428,8 +427,11 @@ class Transaction(_Executable):
 
         transaction_id_proto = self.transaction_id._to_proto()
 
-        if self.node_account_id is None:
+        if self.node_account_id is None and len(self.node_account_ids) == 0:
             raise ValueError("Node account ID is not set.")
+                             
+        if self.node_account_id is None:
+            self.node_account_id = self.node_account_ids[0]
 
         transaction_body = transaction_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)

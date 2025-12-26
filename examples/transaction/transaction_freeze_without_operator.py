@@ -1,5 +1,14 @@
+"""
+Demonstrate manually freezing with client having no operator set, 
+serializing, signing, and executing a transaction.
+
+uv run examples/transaction/transaction_freeze_without_operator.py
+python examples/transaction/transaction_freeze_without_operator.py
+"""
 import os
+import sys
 from dotenv import load_dotenv
+
 from hiero_sdk_python import (
     AccountId,
     PrivateKey,
@@ -7,48 +16,115 @@ from hiero_sdk_python import (
     TransactionId,
     Client,
     Network,
-    Transaction,
+    Transaction
 )
 
-# Setup
+
 load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
-executor_id: AccountId = AccountId.from_string(os.getenv("OPERATOR_ID"))
-executor_key: PrivateKey = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
-
-
-# Create the client that will eventually execute the transaction
-executor_client: Client = Client(Network(network=network_name))
-executor_client.set_operator(executor_id, executor_key)
+NETWORK_NAME = os.getenv("NETWORK", "testnet").lower()
+OPERATOR_ID = os.getenv("OPERATOR_ID")
+OPERATOR_KEY = os.getenv("OPERATOR_KEY")
 
 
-tx_freezer_client: Client = Client(Network(network=network_name))
+def setup_client():
+    """
+    Initialize and return the primary Hedera client using operator credentials.
+    """
+    if not OPERATOR_ID or not OPERATOR_KEY:
+        raise RuntimeError("OPERATOR_ID or OPERATOR_KEY not set in .env")
+
+    print(f"Connecting to Hedera {NETWORK_NAME} network!")
+
+    try:
+        client = Client(Network(NETWORK_NAME))
+
+        operator_id = AccountId.from_string(OPERATOR_ID)
+        operator_key = PrivateKey.from_string(OPERATOR_KEY)
+
+        client.set_operator(operator_id, operator_key)
+
+    except Exception as exc:
+        raise RuntimeError(f"Failed to initialize client: {exc}") from exc
+
+    print(f"Client initialized with operator {client.operator_account_id}")
+    return client
 
 
-# 1. Create Transaction
-tx = TopicCreateTransaction().set_memo("Test Topic Creation")
-tx_id = TransactionId.generate(executor_client.operator_account_id)
 
-# 2. Manually set Node and ID
-tx.set_transaction_id(tx_id)
+def create_client_without_operator():
+    """
+    Create a client without an operator.
+    """
+    secondary_client = Client(Network(NETWORK_NAME))
 
-# 3. Manual Freeze (Generates body ONLY for 0.0.3)
-tx.freeze_with(tx_freezer_client)
+    return secondary_client
 
-# 4. Serialize
-unsigned_bytes = tx.to_bytes()
-print(f"Transaction bytes: {unsigned_bytes.hex()}")
+def build_unsigned_bytes(executor_client, secondary_client):
+    """
+    Build a TopicCreateTransaction, manually freeze it using a secondary client,
+    and return the serialized unsigned transaction bytes.
+    """
+    tx_id = TransactionId.generate(executor_client.operator_account_id)
 
-# 5. Deserialize
-tx2 = Transaction.from_bytes(unsigned_bytes)
-print("Transaction deserialized. Status: Unsigned.")
+    tx = (
+        TopicCreateTransaction()
+        .set_memo("Test Topic Creation")
+        .set_transaction_id(tx_id)
+    )
 
-# 6. Sign
-tx2.sign(executor_key)
-print("Transaction signed with operator key.")
+    # Manually freeze the transaction using the secondary client having no operator
+    tx.freeze_with(secondary_client)
 
-# 7. Execute
-# FAILURE: executor_client selects a node other than 0.0.3 (e.g. 0.0.4 or 0.0.8)
-receipt = tx2.execute(executor_client) 
-print(receipt)
+    unsigned_bytes = tx.to_bytes()
+    print(f"Transaction frozen and serialized ({len(unsigned_bytes)} bytes).")
+
+    return unsigned_bytes
+
+def sign_and_execute(unsigned_bytes, executor_client):
+    """
+    Deserialize a transaction from bytes, sign it using the executor client,
+    and execute it on the Hedera network.
+    """
+    tx = Transaction.from_bytes(unsigned_bytes)
+    print("Transaction deserialized (unsigned).")
+
+    tx.sign(executor_client.operator_private_key)
+    print("Transaction signed by executor.")
+
+    receipt = tx.execute(executor_client)
+    print("Transaction executed successfully.")
+    print("Receipt:", receipt)
+
+    return receipt
+
+
+def main():
+    """
+    1. Setup an executor client.
+    2. Create a secondary client without an operator.
+    3. Create a Transaction and explicitly:
+        - Set the TransactionId
+        - Set the NodeAccountId (e.g. 0.0.3)
+        - Call `freezeWith()` to build the TransactionBody for the specified node with client without operator
+        - Serialize the unsigned transaction to bytes
+    4. Deserialize the transaction from bytes, sign it, and execute it on the network.
+    """
+    try:
+        executor_client = setup_client()
+        secondary_client = create_client_without_operator()
+
+        unsigned_bytes = build_unsigned_bytes(
+            executor_client,
+            secondary_client,
+        )
+
+        sign_and_execute(unsigned_bytes, executor_client)
+
+    except Exception as exc:
+        print(f"Error: {exc}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
