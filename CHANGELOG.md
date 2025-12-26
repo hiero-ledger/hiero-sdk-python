@@ -9,6 +9,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Added
+- Added a module-level docstring to the HBAR allowance approval example to clarify
+  delegated spending behavior and key concepts. [#1202](https://github.com/hiero-ledger/hiero-sdk-python/issues/1202)
 - Added a GitHub Actions workflow to validate broken Markdown links in pull requests.
 - Added method chaining examples to the developer training guide (`docs/sdk_developers/training/coding_token_transactions.md`) (#1194)
 - examples/mypy.ini for stricter type checking in example scripts
