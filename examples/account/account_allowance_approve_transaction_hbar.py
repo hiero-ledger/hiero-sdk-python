@@ -13,7 +13,7 @@ Key Concepts:
       transfer a specified amount of HBAR without taking custody of the funds.
 
 High-Level Steps:
-    Pre-requisites:
+    Prerequisites:
         1. Initialize a client with an existing operator account as the Owner.
 
     Required:
