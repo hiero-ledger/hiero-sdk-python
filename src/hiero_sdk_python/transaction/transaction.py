@@ -264,9 +264,11 @@ class Transaction(_Executable):
         if self.node_account_id is None and len(self.node_account_ids) == 0:
             raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids.")
         
-        # Ensure if node_account_id is used
+        # Populate node_account_ids for backward compatibility
         if self.node_account_id:
             self.set_node_account_id(self.node_account_id)
+            self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+            return self
 
         # Build the transaction body for the single node
         for node_account_id in self.node_account_ids:
@@ -303,15 +305,20 @@ class Transaction(_Executable):
             self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
             return self
         
+        # Single node
         if self.node_account_id:
             self.set_node_account_id(self.node_account_id)
-
+            self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+            return self
+        
+        # Multiple node
         if len(self.node_account_ids) > 0:
             for node_account_id in self.node_account_ids:
                 self.node_account_id = node_account_id
                 self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
 
         else:
+            # Use all nodes from client network
             for node in client.network.nodes:
                 self.node_account_id = node._account_id
                 self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
@@ -427,15 +434,13 @@ class Transaction(_Executable):
 
         transaction_id_proto = self.transaction_id._to_proto()
 
-        if self.node_account_id is None and len(self.node_account_ids) == 0:
+        selected_node = self.node_account_id or (self.node_account_ids[0] if self.node_account_ids else None)
+        if selected_node is None:
             raise ValueError("Node account ID is not set.")
-                             
-        if self.node_account_id is None:
-            self.node_account_id = self.node_account_ids[0]
 
         transaction_body = transaction_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
-        transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
+        transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
         fee = self.transaction_fee or self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
@@ -816,6 +821,7 @@ class Transaction(_Executable):
             ]
 
         if transaction.node_account_id:
+            # restore for the original frozen node
             transaction.set_node_account_id(transaction.node_account_id)
             transaction._transaction_body_bytes[transaction.node_account_id] = body_bytes
 
