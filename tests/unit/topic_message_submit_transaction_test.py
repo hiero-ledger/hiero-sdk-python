@@ -221,11 +221,11 @@ def test_execute_topic_message_submit_transaction(topic_id, message):
 
 # This test uses fixture topic_id as parameter
 def test_topic_message_submit_transaction_with_large_message(topic_id):
-    """Test sending a large message (close to the maximum allowed size)."""
+    """Test sending a large message (multi-chunk, same node)."""
     # Create a large message (just under the typical 4KB limit)
     large_message = "A" * 4000
-    
-    # Create success responses
+
+    # Create a single node response sequence for all chunks
     tx_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK
     )
@@ -240,27 +240,23 @@ def test_topic_message_submit_transaction_with_large_message(topic_id):
             )
         )
     )
-    
-    response_sequences = [
-        [tx_response, receipt_response],  # chunk 1
-        [tx_response, receipt_response],  # chunk 2
-        [tx_response, receipt_response],  # chunk 3
-        [tx_response, receipt_response],  # chunk 4
-    ]
 
-    
-    with mock_hedera_servers(response_sequences) as client:
+    # For simplicity, assume 4 chunks are required
+    # All chunks go to the same node, so repeat the same responses for that node
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
+
+    with mock_hedera_servers([response_sequence]) as client:
         tx = (
             TopicMessageSubmitTransaction()
             .set_topic_id(topic_id)
             .set_message(large_message)
             .freeze_with(client)
         )
-        
+
         try:
             receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
-        
+
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
