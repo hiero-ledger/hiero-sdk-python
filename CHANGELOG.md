@@ -226,6 +226,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Removed
 
 - Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
+- Transaction byte generation to respect valid `node_account_ids` during `external signing` and `manual freezing workflows`, preventing execution failures caused by node mismatches.
 
 ### Breaking Change
 
