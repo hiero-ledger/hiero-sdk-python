@@ -1,10 +1,11 @@
 """
-E2E integration tests for TransactionGetReceiptQuery include_child_receipts support.
+E2E integration tests for TransactionGetReceiptQuery support.
 
 These tests validate the full SDK flow against a real Hedera network:
 - submit a real transaction
 - query its receipt
 - verify children behavior with and without include_children flag
+- verify duplicate transactions returned with include_duplicates flag
 
 NOTE:
 The contract used in these tests (StatefulContract) does NOT deterministically
@@ -12,7 +13,9 @@ produce child receipts, so we only assert API correctness and stability,
 not children count > 0.
 """
 
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 import pytest
+import threading
 
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
@@ -47,7 +50,7 @@ def _extract_tx_id(tx, receipt):
     )
 
 
-def _submit_simple_transfer(env):
+def _submit_simple_transfer(env, node_ids=None, tx_id=None):
     """
     Submit a simple transfer transaction and return its TransactionId.
     """
@@ -58,7 +61,10 @@ def _submit_simple_transfer(env):
         .add_hbar_transfer(env.operator_id, Hbar(-0.01).to_tinybars())
         .add_hbar_transfer(receiver.id, Hbar(0.01).to_tinybars())
     )
-
+    if tx_id is not None:
+        tx.set_transaction_id(tx_id)
+    if node_ids is not None:
+        tx.set_node_account_ids(node_ids)
     receipt = tx.execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS
 
@@ -182,3 +188,33 @@ def test_get_receipt_query_children_with_contract_execute_e2e(env):
             assert child.status is not None
 
     assert isinstance(queried.children, list)
+
+@pytest.mark.integration
+def test_get_receipt_query_include_duplicates_execute_e2e(env):
+    """
+    E2E:
+    Execute a real contract transaction and query its receipt with include_duplicates enabled.
+
+    We assert:
+    - no crash
+    - receipt.duplicates exists and is a list
+    """
+    tx_id = TransactionId.generate(env.operator_id)
+    nodes = env.client.network.nodes
+    nodes = [nodes[0]._account_id, nodes[1]._account_id]
+    tx1 = threading.Thread(target=_submit_simple_transfer, args=(env, [nodes[0]], tx_id))
+    tx2 = threading.Thread(target=_submit_simple_transfer, args=(env, [nodes[1]], tx_id))
+    tx1.start()
+    tx2.start()
+    tx1.join()
+    tx2.join()
+    queried = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(tx_id)
+        .set_include_duplicates(True)
+        .execute(env.client)
+    )
+
+    assert queried.status == ResponseCode.SUCCESS
+    assert isinstance(queried.duplicates, list)
+    assert len(queried.duplicates) == 1
