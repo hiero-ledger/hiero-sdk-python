@@ -1,10 +1,8 @@
 name: PythonBot - Office Hour Reminder
 
 on:
-  # push:
   schedule:
-    - cron: '0 10 * * 3'
-  workflow_dispatch:
+    - cron: "0 10 * * 3"
 
 permissions:
   contents: read
@@ -15,59 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 #2.14.0
         with:
           egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
 
       - name: Check Schedule and Notify
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: "false" # will post
         run: |
-          ANCHOR_DATE="2025-12-03"
-          MEETING_LINK="https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338"
-          CALENDAR_LINK="https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week"
-
-          IS_MEETING_WEEK=$(python3 -c "from datetime import date; import os; d1=date.fromisoformat('$ANCHOR_DATE'); d2=date.today(); print('true' if (d2-d1).days % 14 == 0 else 'false')")
-
-          if [ "$IS_MEETING_WEEK" = "false" ]; then
-            echo "Not a fortnightly meeting week. Skipping execution."
-            exit 0
-          fi
-
-          echo "Meeting week detected. Proceeding to notify open PRs."
-
-          REPO="${{ github.repository }}"
-          PR_DATA=$(gh pr list --repo $REPO --state open --json number,author,createdAt)
-
-          if [ -z "$PR_DATA" ] || [ "$PR_DATA" = "[]" ]; then
-            echo "No open PRs found."
-            exit 0
-          fi
-
-          COMMENT_BODY=$(cat <<EOF
-          Hello, this is the Office Hour Bot.
-
-          This is a reminder that the Hiero Python SDK Office Hours are scheduled in approximately 4 hours (14:00 UTC).
-
-          This session provides an opportunity to ask questions regarding this Pull Request or receive assistance from a maintainer.
-
-          Details:
-          - Time: 14:00 UTC
-          - Join Link: [Zoom Meeting]($MEETING_LINK)
-
-          Disclaimer: This is an automated reminder. Please verify the schedule [here]($CALENDAR_LINK) to be notified of any changes.
-          EOF
-          )
-
-          echo "$PR_DATA" | jq -r 'group_by(.author.login) | .[] | sort_by(.createdAt) | reverse | .[0] | .number' | while read PR_NUM; do
-            echo "Processing most recent PR #$PR_NUM for user"
-            
-            ALREADY_COMMENTED=$(gh pr view $PR_NUM --repo $REPO --json comments --jq '.comments[].body' | grep -F "Office Hour Bot" || true)
-
-            if [ -z "$ALREADY_COMMENTED" ]; then
-              gh pr comment $PR_NUM --repo $REPO --body "$COMMENT_BODY"
-              echo "Reminder posted to PR #$PR_NUM"
-            else
-              echo "PR #$PR_NUM already notified. Skipping."
-            fi
-          done
+          bash .github/scripts/bot-office-hours.sh
