@@ -30,5 +30,5 @@ jobs:
 
       - name: Check added test file names
         run: |
-          chmod +x .github/scripts/check_test_files.sh
-          .github/scripts/check_test_files.sh
+          chmod +x .github/scripts/pr-check-test-files.sh
+          .github/scripts/pr-check-test-files.sh
