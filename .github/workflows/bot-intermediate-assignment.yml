@@ -9,7 +9,7 @@ on:
 permissions:
   issues: write
   contents: read
-  organizations: read
+  members: read
 
 jobs:
   enforce-intermediate-guard:
