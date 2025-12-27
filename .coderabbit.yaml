@@ -78,7 +78,7 @@ reviews:
         **PRIORITY 1 - Protect Against Breaking Changes**:
         - Assert public attributes exist (e.g., `assert hasattr(obj, 'account_id')`).
         - Assert return types where relevant (e.g., `assert isinstance(result, AccountId)`).
-        - Assert fluent setters return `self` (e.g., `assert tx. set_memo("test") is tx`).
+        - Assert fluent setters return `self` (e.g., `assert tx.set_memo("test") is tx`).
         - Assert backward-compatible defaults are maintained. 
         - If a breaking change is introduced, tests must assert deprecation behavior and test old behavior until removal.
 
