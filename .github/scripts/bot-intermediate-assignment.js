@@ -47,6 +47,11 @@ function buildGfiSearchQuery(owner, repo, username) {
   return `repo:${owner}/${repo} label:"${sanitizedLabel}" state:closed assignee:${username}`;
 }
 
+function buildGfiSearchQuery(owner, repo, username) {
+  const sanitizedLabel = JSON.stringify(GFI_LABEL).slice(1, -1);
+  return `repo:${owner}/${repo} label:"${sanitizedLabel}" state:closed assignee:${username}`;
+}
+
 async function countCompletedGfiIssues(github, owner, repo, username) {
   const query = buildGfiSearchQuery(owner, repo, username);
 
