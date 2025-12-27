@@ -47,9 +47,13 @@ async function isMemberOfAnyTeam(github, username) {
   return false;
 }
 
+function buildGfiSearchQuery(owner, repo, username) {
+  const sanitizedLabel = JSON.stringify(GFI_LABEL).slice(1, -1);
+  return `repo:${owner}/${repo} label:"${sanitizedLabel}" state:closed assignee:${username}`;
+}
+
 async function countCompletedGfiIssues(github, owner, repo, username) {
-  const escapedLabel = GFI_LABEL.replace(/"/g, '\\"');
-  const query = `repo:${owner}/${repo} label:"${escapedLabel}" state:closed assignee:${username}`;
+  const query = buildGfiSearchQuery(owner, repo, username);
 
   try {
     const response = await github.rest.search.issuesAndPullRequests({
