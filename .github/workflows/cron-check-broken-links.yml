@@ -91,32 +91,36 @@ jobs:
               return;
             }
 
-            // Search for existing issue
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: targetLabels.join(',')
-            });
-
-            const existingIssue = issues.find(issue => issue.title === issueTitle);
-
-            // Update existing OR Create new
-            if (existingIssue) {
-              console.log(`Updating existing issue #${existingIssue.number}`);
-              await github.rest.issues.createComment({
+            // Search for existing issue and Update/Create
+            try {
+              const { data: issues } = await github.rest.issues.listForRepo({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: existingIssue.number,
-                body: `**Update ${new Date().toISOString()}:** Still finding broken links.\nCheck new run logs: ${runUrl}`
+                state: 'open',
+                labels: targetLabels.join(',')
               });
-            } else {
-              console.log("Creating a new issue...");
-              await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: issueTitle,
-                body: body,
-                labels: targetLabels
-              });
+
+              const existingIssue = issues.find(issue => issue.title === issueTitle);
+
+              if (existingIssue) {
+                console.log(`Updating existing issue #${existingIssue.number}`);
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existingIssue.number,
+                  body: `**Update ${new Date().toISOString()}:** Still finding broken links.\nCheck new run logs: ${runUrl}`
+                });
+              } else {
+                console.log("Creating a new issue...");
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueTitle,
+                  body: body,
+                  labels: targetLabels
+                });
+              }
+            } catch (error) {
+              console.error('Failed to manage broken link issue:', error);
+              core.setFailed(`Failed to create or update issue: ${error.message}`);
             }
