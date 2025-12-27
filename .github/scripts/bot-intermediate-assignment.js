@@ -64,7 +64,7 @@ async function countCompletedGfiIssues(github, owner, repo, username) {
   }
 }
 
-async function hasExistingGuardComment(github, owner, repo, issueNumber) {
+async function hasExistingGuardComment(github, owner, repo, issueNumber, mentee) {
   const comments = await github.paginate(github.rest.issues.listComments, {
     owner,
     repo,
@@ -72,7 +72,16 @@ async function hasExistingGuardComment(github, owner, repo, issueNumber) {
     per_page: 100,
   });
 
-  return comments.some((comment) => comment.body?.includes(COMMENT_MARKER));
+  return comments.some((comment) => {
+    if (!comment?.body?.includes(COMMENT_MARKER)) {
+      return false;
+    }
+
+    const normalizedBody = comment.body.toLowerCase();
+    const normalizedMentee = `@${mentee}`.toLowerCase();
+
+    return normalizedBody.includes(normalizedMentee);
+  });
 }
 
 function buildRejectionComment({ mentee, completedCount }) {
@@ -132,7 +141,7 @@ module.exports = async ({ github, context }) => {
       throw error;
     }
 
-    if (await hasExistingGuardComment(github, owner, repo, issue.number)) {
+    if (await hasExistingGuardComment(github, owner, repo, issue.number, mentee)) {
       return console.log(`Guard comment already exists on issue #${issue.number}. Skipping duplicate message.`);
     }
 
