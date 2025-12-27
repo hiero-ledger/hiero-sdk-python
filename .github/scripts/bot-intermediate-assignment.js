@@ -48,7 +48,8 @@ async function isMemberOfAnyTeam(github, username) {
 }
 
 async function countCompletedGfiIssues(github, owner, repo, username) {
-  const query = `repo:${owner}/${repo} label:"${GFI_LABEL}" state:closed assignee:${username}`;
+  const escapedLabel = GFI_LABEL.replace(/"/g, '\\"');
+  const query = `repo:${owner}/${repo} label:"${escapedLabel}" state:closed assignee:${username}`;
 
   try {
     const response = await github.rest.search.issuesAndPullRequests({
@@ -59,8 +60,8 @@ async function countCompletedGfiIssues(github, owner, repo, username) {
     return response?.data?.total_count || 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`Unable to count completed GFIs for ${username}: ${message}`);
-    return 0;
+    console.log(`Unable to verify completed GFIs for ${username}: ${message}`);
+    return null;
   }
 }
 
@@ -122,6 +123,10 @@ module.exports = async ({ github, context }) => {
     }
 
     const completedCount = await countCompletedGfiIssues(github, owner, repo, mentee);
+
+    if (completedCount === null) {
+      return console.log(`Skipping guard for @${mentee} on issue #${issue.number} due to API error when verifying GFIs.`);
+    }
 
     if (completedCount >= 1) {
       return console.log(`${mentee} has completed ${completedCount} GFI(s). Assignment allowed.`);

@@ -30,7 +30,6 @@ jobs:
       - name: Enforce intermediate assignment guard
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INTERMEDIATE_LABEL: intermediate
           GFI_LABEL: Good First Issue
           GITHUB_ORG: hiero-ledger
