@@ -72,6 +72,9 @@ jobs:
                       color: 'ff0000',
                       description: 'Created automatically by the link checker workflow'
                     });
+                  } else {
+                    console.error(`Failed to check label '${label}':`, error);
+                    throw error;
                   }
                 }
               }
