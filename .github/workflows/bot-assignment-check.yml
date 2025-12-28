@@ -27,7 +27,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           # Make script executable (just in case permissions were lost during checkout)
-          chmod +x .github/scripts/check_assignment_limit.sh
-          
+          chmod +x .github/scripts/bot-assignment-check.sh
+
           # Run the script
-          ./.github/scripts/check_assignment_limit.sh
+          ./.github/scripts/bot-assignment-check.sh
