@@ -104,6 +104,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/tokens/custom_royalty_fee.py` by splitting monolithic function custom_royalty_fee_example() into modular functions create_royalty_fee_object(), create_token_with_fee(), verify_token_fee(), and main() to improve readability, cleaned up setup_client() (#1169)
 - Added comprehensive unit tests for Timestamp class (#1158)
 - Enhance unit and integration test review instructions for clarity and coverage `.coderabbit.yaml`.
+- Issue reminder bot now explicitly mentions assignees (e.g., `@user`) in comments. ([#1232](https://github.com/hiero-ledger/hiero-sdk-python/issues/1232))
 
 
 ### Fixed
@@ -117,6 +118,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#[1235](https://github.com/hiero-ledger/hiero-sdk-python/issues/1235))
+- Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
 
 
 ### Breaking Change
