@@ -796,3 +796,117 @@ def test_combined_transfers_reconstruction(mock_account_ids):
     assert nft.receiver_id == account_id_recipient
     assert nft.serial_number == 1
     assert nft.is_approved is True
+
+
+def test_expected_decimals_field_preservation(mock_account_ids):
+    """Test that expected_decimals field is properly preserved during protobuf round-trip."""
+    account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_token_transfer_with_decimals(
+        token_id_1, account_id_sender, -200, 8
+    )
+    transfer_tx.add_token_transfer_with_decimals(
+        token_id_1, account_id_recipient, 200, 8
+    )
+    transfer_tx.node_account_id = node_account_id
+    transfer_tx.operator_account_id = account_id_sender
+
+    body = transfer_tx.build_transaction_body()
+    body_bytes = body.SerializeToString()
+
+    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+
+    for token_transfer in reconstructed.token_transfers[token_id_1]:
+        assert token_transfer.expected_decimals is not None
+        assert token_transfer.expected_decimals == 8
+        assert isinstance(token_transfer.expected_decimals, int)
+
+
+def test_nft_transfer_fields_preservation(mock_account_ids):
+    """Test that all NFT transfer fields are preserved during protobuf round-trip."""
+    account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 42), account_id_sender, account_id_recipient, True
+    )
+    transfer_tx.node_account_id = node_account_id
+    transfer_tx.operator_account_id = account_id_sender
+
+    body = transfer_tx.build_transaction_body()
+    body_bytes = body.SerializeToString()
+
+    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+
+    nft_transfers = reconstructed.nft_transfers[token_id_1]
+    assert len(nft_transfers) == 1
+
+    nft = nft_transfers[0]
+    assert nft.token_id == token_id_1
+    assert nft.sender_id == account_id_sender
+    assert nft.receiver_id == account_id_recipient
+    assert nft.serial_number == 42
+    assert nft.is_approved is True
+
+
+def test_multiple_nft_transfers_all_fields(mock_account_ids):
+    """Test that multiple NFT transfers with varying is_approved values are preserved."""
+    account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 100), account_id_sender, account_id_recipient, True
+    )
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 101), account_id_sender, account_id_recipient, False
+    )
+    transfer_tx.add_nft_transfer(
+        NftId(token_id_1, 102), account_id_sender, account_id_recipient, True
+    )
+    transfer_tx.node_account_id = node_account_id
+    transfer_tx.operator_account_id = account_id_sender
+
+    body = transfer_tx.build_transaction_body()
+    body_bytes = body.SerializeToString()
+
+    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+
+    nft_transfers = reconstructed.nft_transfers[token_id_1]
+    assert len(nft_transfers) == 3
+
+    serial_to_approval = {nft.serial_number: nft.is_approved for nft in nft_transfers}
+    assert serial_to_approval[100] is True
+    assert serial_to_approval[101] is False
+    assert serial_to_approval[102] is True
+
+    for nft in nft_transfers:
+        assert nft.token_id == token_id_1
+        assert nft.sender_id == account_id_sender
+        assert nft.receiver_id == account_id_recipient
+
+
+def test_token_transfer_without_expected_decimals(mock_account_ids):
+    """Test token transfer reconstruction when expected_decimals is not set."""
+    account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_token_transfer(token_id_1, account_id_sender, -300)
+    transfer_tx.add_token_transfer(token_id_1, account_id_recipient, 300)
+    transfer_tx.node_account_id = node_account_id
+    transfer_tx.operator_account_id = account_id_sender
+
+    body = transfer_tx.build_transaction_body()
+    body_bytes = body.SerializeToString()
+
+    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+
+    token_transfers = reconstructed.token_transfers[token_id_1]
+    assert len(token_transfers) == 2
+
+    for token_transfer in token_transfers:
+        assert token_transfer.expected_decimals is None
+        if token_transfer.account_id == account_id_sender:
+            assert token_transfer.amount == -300
+        elif token_transfer.account_id == account_id_recipient:
+            assert token_transfer.amount == 300
