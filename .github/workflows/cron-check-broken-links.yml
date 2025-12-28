@@ -53,33 +53,6 @@ jobs:
 
             console.log(`Event: ${context.eventName}, Dry Run: ${dryRun}`);
 
-            // Ensure Labels Exist
-            if (!dryRun) {
-              for (const label of targetLabels) {
-                try {
-                  await github.rest.issues.getLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    name: label
-                  });
-                } catch (error) {
-                  if (error.status === 404) {
-                    console.log(`Label '${label}' missing. Creating it...`);
-                    await github.rest.issues.createLabel({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      name: label,
-                      color: 'ff0000',
-                      description: 'Created automatically by the link checker workflow'
-                    });
-                  } else {
-                    console.error(`Failed to check label '${label}':`, error);
-                    throw error;
-                  }
-                }
-              }
-            }
-
             // Define Issue Body
             const body = `### 🔗 Broken Links Detected\n\n` +
               `The scheduled markdown link check workflow has detected broken links.\n\n` +
