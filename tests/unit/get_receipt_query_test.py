@@ -251,3 +251,120 @@ def test_transaction_get_receipt_query_include_children_with_no_children(transac
 
         assert result.status == ResponseCode.SUCCESS
         assert result.children == []
+
+
+def test_transaction_get_receipt_query_returns_duplicate_receipts_when_requested(
+    transaction_id,
+):
+    """
+    Test that execute() maps duplicate_transaction_receipts into TransactionReceipt.duplicates
+    when include_duplicate_receipts is enabled and the network returns duplicate receipts.
+    """
+    response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            ),
+            duplicateTransactionReceipts=[
+                transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+                transaction_receipt_pb2.TransactionReceipt(
+                    status=ResponseCode.FAIL_INVALID
+                ),
+            ],
+        )
+    )
+
+    response_sequences = [[response]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+            .set_include_duplicates(True)
+        )
+
+        result = query.execute(client)
+
+        assert query.include_duplicates is True
+        assert len(response.transactionGetReceipt.duplicateTransactionReceipts) == 2
+        assert result.status == ResponseCode.SUCCESS
+        assert len(result.duplicates) == 2
+        for idx, duplicate in enumerate(result.duplicates):
+            assert duplicate._to_proto() == response.transactionGetReceipt.duplicateTransactionReceipts[idx]
+
+
+def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_requested(
+    transaction_id,
+):
+    """
+    Test that execute() maps duplicate_transaction_receipts into TransactionReceipt.duplicates
+    when include_duplicate_receipts is enabled and the network returns empty duplicate receipts.
+    """
+    response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            ),
+        ),
+    )
+
+    response_sequences = [[response]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+            .set_include_duplicates(True)
+        )
+
+        result = query.execute(client)
+
+        assert query.include_duplicates is True
+        assert len(response.transactionGetReceipt.duplicateTransactionReceipts) == 0
+        assert result.status == ResponseCode.SUCCESS
+        assert len(result.duplicates) == 0
+
+
+def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_not_requested(
+    transaction_id,
+):
+    """
+    Test that execute() maps duplicate_transaction_receipts into TransactionReceipt.duplicates
+    when include_duplicate_receipts is disabled and the network returns duplicate receipts.
+    """
+    response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            ),
+            duplicateTransactionReceipts=[
+                transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+                transaction_receipt_pb2.TransactionReceipt(
+                    status=ResponseCode.FAIL_INVALID
+                ),
+            ],
+        ),
+    )
+
+    response_sequences = [[response]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+        )
+
+        result = query.execute(client)
+
+        assert query.include_duplicates is False
+        assert result.status == ResponseCode.SUCCESS
+        assert len(result.duplicates) == 0

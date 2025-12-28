@@ -1,11 +1,11 @@
 import traceback
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.executable import _ExecutionState, _Method
-from hiero_sdk_python.hapi.services import query_header_pb2, query_pb2, response_pb2, transaction_get_receipt_pb2
+from hiero_sdk_python.hapi.services import query_header_pb2, query_pb2, response_pb2, transaction_get_receipt_pb2, transaction_receipt_pb2
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -28,17 +28,21 @@ class TransactionGetReceiptQuery(Query):
         self,
         transaction_id: Optional[TransactionId] = None,
         include_children: bool = False,
+        include_duplicates: bool = False,
     ) -> None:
         """
         Initializes a new instance of the TransactionGetReceiptQuery class.
 
         Args:
             transaction_id (TransactionId, optional): The ID of the transaction.
+            include_children (bool): Whether to include child transaction receipts.
+            include_duplicates (bool): Whether to include duplicate transaction receipts.
         """
         super().__init__()
         self.transaction_id: Optional[TransactionId] = transaction_id
         self._frozen: bool = False
         self.include_children = include_children
+        self.include_duplicates = include_duplicates
 
     def _require_not_frozen(self) -> None:
         """
@@ -86,6 +90,25 @@ class TransactionGetReceiptQuery(Query):
         self.include_children = include_children
         return self
 
+    def set_include_duplicates(
+        self, include_duplicates: bool
+    ) -> "TransactionGetReceiptQuery":
+        """
+        Sets include_duplicates for which to retrieve the duplicate transaction receipts.
+
+        Args:
+            include_duplicates: bool.
+
+        Returns:
+            TransactionGetReceiptQuery: The current instance for method chaining.
+        
+        Raises:
+            ValueError: If the query is frozen and cannot be modified.
+        """
+        self._require_not_frozen()
+        self.include_duplicates = include_duplicates
+        return self
+
     def freeze(self) -> "TransactionGetReceiptQuery":
         """
         Marks the query as frozen, preventing further modification.
@@ -125,6 +148,7 @@ class TransactionGetReceiptQuery(Query):
             transaction_get_receipt.transactionID.CopyFrom(self.transaction_id._to_proto())
 
             transaction_get_receipt.include_child_receipts = self.include_children
+            transaction_get_receipt.includeDuplicates = self.include_duplicates
 
             query = query_pb2.Query()
             if not hasattr(query, "transactionGetReceipt"):
@@ -223,6 +247,22 @@ class TransactionGetReceiptQuery(Query):
             TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id),
         )
 
+    def _map_receipt_list(self, receipts:  List[transaction_receipt_pb2.TransactionReceipt]) -> List["TransactionReceipt"]:
+        """
+        Maps a list of protobuf transaction receipts to TransactionReceipt objects.
+
+        Args:
+            receipts: A list of protobuf TransactionReceipt objects
+
+        Returns:
+            A list of TransactionReceipt objects
+        """
+        return [
+            TransactionReceipt._from_proto(receipt_proto, self.transaction_id)
+            for receipt_proto in receipts
+        ]
+
+
     def execute(self, client: Client) -> TransactionReceipt:
         """
         Executes the transaction receipt query.
@@ -248,13 +288,18 @@ class TransactionGetReceiptQuery(Query):
         parent = TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id)
 
         if self.include_children:
-            children = []
-
-            for child_proto in response.transactionGetReceipt.child_transaction_receipts:
-                child_receipt = TransactionReceipt._from_proto(child_proto, self.transaction_id)
-                children.append(child_receipt)
+            children = self._map_receipt_list(
+                response.transactionGetReceipt.child_transaction_receipts
+            )
 
             parent._set_children(children)
+        
+        if self.include_duplicates:
+            duplicates = self._map_receipt_list(
+                response.transactionGetReceipt.duplicateTransactionReceipts
+            )
+
+            parent._set_duplicates(duplicates)
 
         return parent 
 

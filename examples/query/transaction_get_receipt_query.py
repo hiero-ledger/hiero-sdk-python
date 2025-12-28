@@ -62,20 +62,36 @@ def create_account(client, operator_key):
         sys.exit(1)
 
 
-def _print_receipt_with_children(queried_receipt):
+def _print_receipt_children(queried_receipt):
     """Pretty-print receipt status and any child receipts."""
-    print(f"✅ Queried transaction status: {ResponseCode(queried_receipt.status).name}")
 
     children = queried_receipt.children
-    print(f"Child receipts count: {len(children)}")
 
     if not children:
         print("No child receipts returned (this can be normal depending on transaction type).")
         return
 
+    print(f"Child receipts count: {len(children)}")
+
     print("Child receipts:")
     for idx, child in enumerate(children, start=1):
         print(f"  {idx}. status={ResponseCode(child.status).name}")
+
+
+def _print_receipt_duplicates(queried_receipt):
+    """Pretty-print receipt status and any duplicate receipts."""
+
+    duplicates = queried_receipt.duplicates
+
+    if not duplicates:
+        print("No duplicate receipts returned (this can be normal depending on transaction type).")
+        return
+    
+    print(f"Duplicate receipts count: {len(duplicates)}")
+
+    print("Duplicate receipts:")
+    for idx, duplicate in enumerate(duplicates, start=1):
+        print(f"  {idx}. status={ResponseCode(duplicate.status).name}")
 
 
 def query_receipt():
@@ -109,14 +125,20 @@ def query_receipt():
 
     # Query Transaction Receipt
     print("\nSTEP 3: Querying transaction receipt (include child receipts)...")
-    receipt_query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True)
+    receipt_query = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(transaction_id)
+        .set_include_children(True)
+        .set_include_duplicates(True)
+    )
     queried_receipt = receipt_query.execute(client)
     print(
         f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}"
     )
 
 
-    _print_receipt_with_children(queried_receipt)
+    _print_receipt_children(queried_receipt)
+    _print_receipt_duplicates(queried_receipt)
 
 if __name__ == "__main__":
     query_receipt()
