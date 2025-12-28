@@ -13,7 +13,8 @@ concurrency:
 
 jobs:
   check-advanced-qualification:
-    # Run only for issues labeled 'advanced', triggered either by an assignment event
+    # Run only for issues labeled 'advanced', triggered by assignment or by adding
+    # the label to an issue that already has assignees
     if: >
       contains(github.event.issue.labels.*.name, 'advanced') && 
       (github.event.action == 'assigned' || (github.event.action == 'labeled' && github.event.issue.assignees[0] != null))
