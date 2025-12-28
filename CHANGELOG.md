@@ -117,6 +117,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix unit test tet_query.py
 - TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
+- Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
 
 
 ### Breaking Change
