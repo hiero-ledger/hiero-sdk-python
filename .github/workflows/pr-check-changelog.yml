@@ -23,5 +23,5 @@ jobs:
 
       - name: Run local changelog check
         run: |
-          chmod +x .github/scripts/changelog_check.sh
-          bash .github/scripts/changelog_check.sh
+          chmod +x .github/scripts/pr-check-changelog.sh
+          bash .github/scripts/pr-check-changelog.sh
