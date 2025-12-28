@@ -100,7 +100,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Transformed `examples\tokens\custom_royalty_fee.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
 - Refactored `examples/tokens/custom_royalty_fee.py` by splitting monolithic function custom_royalty_fee_example() into modular functions create_royalty_fee_object(), create_token_with_fee(), verify_token_fee(), and main() to improve readability, cleaned up setup_client() (#1169)
 - Added comprehensive unit tests for Timestamp class (#1158)
-
+- Enhance unit and integration test review instructions for clarity and coverage `.coderabbit.yaml`.
 
 
 ### Fixed
