@@ -25,28 +25,30 @@ dependencies = [
     "rlp>=4.0.0",
     "eth-keys==0.7.0",
 ]
+
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Python Modules"
+    "Topic :: Software Development :: Libraries",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=8.3.4",
-    "pytest-cov>=7.0.0"
+    "pytest-cov>=7.0.0",
 ]
-lint = [
-    "ruff>=0.8.3",
-    "typing-extensions>=4.15.0",
-    "mypy>=1.18.2",
 
+lint = [
+    "ruff>=0.14.9",
+    "mypy>=1.18.2",
+    "typing-extensions>=4.15.0",
 ]
 
 [tool.uv]
@@ -61,7 +63,7 @@ version_scheme = "python-simplified-semver"
 local_scheme = "dirty-tag"
 
 [tool.pdm]
-version = {source = "scm"}
+version = { source = "scm" }
 
 [tool.pdm.build]
 package-dir = "src"
@@ -70,9 +72,34 @@ excludes = ["**/.pytest_cache"]
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
 testpaths = ["tests"]
-
 [tool.ruff]
 line-length = 120
+target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "C", "I", "D"]
+select = [
+    "D",    # docstrings
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # import sorting
+    "B",    # bugbear (real bugs)
+    "UP",   # pyupgrade (modern syntax)
+    "SIM",  # simplify logic
+    "PERF", # performance traps
+    "ARG",  # unused function arguments
+    "RET",  # return consistency
+    "RSE",  # exception correctness
+]
+
+ignore = [
+    "D212",     # disable "summary on same line"
+    "E501",     # line length → formatter
+    "B008",     # allow function calls in defaults
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
