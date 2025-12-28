@@ -639,8 +639,10 @@ def test_token_transfer_with_expected_decimals_building(mock_account_ids):
     account_id_1, account_id_2, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_1, -100, 8)
-    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_2, 100, 8)
+    transfer_tx.add_token_transfer_with_decimals(
+        token_id_1, account_id_1, -100, 8)
+    transfer_tx.add_token_transfer_with_decimals(
+        token_id_1, account_id_2, 100, 8)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_1
 
@@ -875,7 +877,8 @@ def test_multiple_nft_transfers_all_fields(mock_account_ids):
     nft_transfers = reconstructed.nft_transfers[token_id_1]
     assert len(nft_transfers) == 3
 
-    serial_to_approval = {nft.serial_number: nft.is_approved for nft in nft_transfers}
+    serial_to_approval = {
+        nft.serial_number: nft.is_approved for nft in nft_transfers}
     assert serial_to_approval[100] is True
     assert serial_to_approval[101] is False
     assert serial_to_approval[102] is True
