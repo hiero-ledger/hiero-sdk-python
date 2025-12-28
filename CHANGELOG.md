@@ -64,6 +64,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `coding_token_transactions.md` for a high level overview training on how token transactions are created in the python sdk.
 - Added prompt for codeRabbit on how to review /examples ([#1180](https://github.com/hiero-ledger/hiero-sdk-python/issues/1180)) 
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
+- Added `.github/workflows/cron-check-broken-links.yml` workflow to perform scheduled monthly Markdown link validation across the entire repository with automatic issue creation for broken links ([#1210](https://github.com/hiero-ledger/hiero-sdk-python/issues/1210))
 
 ### Changed
 - Refactored `account_create_transaction_evm_alias.py` to improve readability by splitting the monolithic function into smaller helper functions. [#1017](https://github.com/hiero-ledger/hiero-sdk-python/issues/1017)
