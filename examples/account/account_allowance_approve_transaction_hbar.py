@@ -1,6 +1,34 @@
 """
-Example demonstrating hbar allowance approval and usage.
+Example: Approving an HBAR allowance and transferring HBAR using it.
+
+Why:
+    This example demonstrates how to approve and consume an HBAR allowance
+    using the Hiero Python SDK when interacting with the Hedera network.
+
+Key Concepts:
+    - Owner: The account that owns the HBAR and grants the allowance.
+    - Spender: The account authorized to spend HBAR on behalf of the Owner.
+    - Receiver: The account that receives the transferred HBAR.
+    - HBAR Allowance: Permission granted by the Owner allowing the Spender to
+      transfer a specified amount of HBAR without taking custody of the funds.
+
+High-Level Steps:
+    Prerequisites:
+        1. Initialize a client with an existing operator account as the Owner.
+
+    Required:
+        2. Create Spender and Receiver accounts.
+        3. Approve an HBAR allowance from the Owner to the Spender.
+        4. Submit a transfer transaction that consumes the allowance, moving
+           HBAR from the Owner to the Receiver.
+
+Notes:
+    The transfer transaction is generated, signed, and paid for by the Spender,
+    not the Owner. This reflects the delegated spending model described in the
+    Hedera allowance documentation. This example focuses solely on HBAR
+    allowances and does not demonstrate revoking allowances or token/NFT usage.
 """
+
 
 import os
 import sys
