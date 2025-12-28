@@ -8,7 +8,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
-- Added Hbar object support for TransferTransaction HBAR transfers: methods now accept Union[int, Hbar] for amount parameters, with immediate normalization to tinybars- includes comprehensive and improved unit tests covering various Hbar units (HBAR, MICROBAR, NANOBAR, TINYBAR) and accumulation behavior with mixed int and Hbar inputs.
+- Added Hbar object support for TransferTransaction HBAR transfers:
+  - Methods now accept `Union[int, Hbar]` for amount parameters with immediate normalization to tinybars
+  - Includes comprehensive unit tests covering various Hbar units (HBAR, MICROBAR, NANOBAR, TINYBAR) and accumulation behavior with mixed `int` and `Hbar` inputs
 - Added a module-level docstring to the HBAR allowance approval example to clarify
   delegated spending behavior and key concepts. [#1202](https://github.com/hiero-ledger/hiero-sdk-python/issues/1202)
 - Added a GitHub Actions workflow to validate broken Markdown links in pull requests.

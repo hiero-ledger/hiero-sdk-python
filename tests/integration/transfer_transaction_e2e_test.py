@@ -183,9 +183,11 @@ def test_integration_token_transfer_transaction_can_transfer_nft():
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
 
-        # We check if the nft has transfered to the new account
-        # For now, token_balances is a map so we check it this way
-        assert balance and balance.token_balances == {token_id: serial_number}
+        assert balance is not None, "Balance query returned None"
+        assert balance.token_balances == {token_id: serial_number}, (
+            f"Expected token_balances {{{token_id}: {serial_number}}}, "
+            f"got {balance.token_balances}"
+        )
     finally:
         env.close()
 
@@ -501,8 +503,23 @@ def test_integration_transfer_transaction_approved_nft_transfer():
             receipt.status == ResponseCode.SUCCESS
         ), f"NFT association failed with status: {ResponseCode(receipt.status).name}"
 
+        allowance_receipt = (
+            AccountAllowanceApproveTransaction()
+            .approve_token_nft_allowance(nft_id, env.operator_id, account_id)
+            .execute(env.client)
+        )
+
+        assert (
+            allowance_receipt.status == ResponseCode.SUCCESS
+        ), f"Allowance approval failed with status: {ResponseCode(allowance_receipt.status).name}"
+
+        env.client.set_operator(account_id, new_account_private_key)
+
         transfer_transaction = TransferTransaction()
+        transfer_transaction.set_transaction_id(TransactionId.generate(account_id))
         transfer_transaction.add_approved_nft_transfer(nft_id, env.operator_id, account_id)
+        transfer_transaction.freeze_with(env.client)
+        transfer_transaction.sign(new_account_private_key)
 
         receipt = transfer_transaction.execute(env.client)
 
@@ -513,6 +530,10 @@ def test_integration_transfer_transaction_approved_nft_transfer():
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
 
-        assert balance and balance.token_balances == {token_id: serial_number}
+        assert balance is not None, "Balance query returned None"
+        assert balance.token_balances == {token_id: serial_number}, (
+            f"Expected token_balances {{{token_id}: {serial_number}}}, "
+            f"got {balance.token_balances}"
+        )
     finally:
         env.close()

@@ -691,7 +691,7 @@ def test_nft_transfer_with_approval_building(mock_account_ids):
     assert nft_transfers[1].is_approval is True
 
 
-def test_nft_transfer_reconstruction_from_protobuf(mock_account_ids, mock_client):
+def test_nft_transfer_reconstruction_from_protobuf(mock_account_ids):
     """Test NFT transfer reconstruction from protobuf preserves all fields."""
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
