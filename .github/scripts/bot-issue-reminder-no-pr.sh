@@ -134,8 +134,12 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
 
   echo "[REMIND] Issue #$ISSUE assigned for $DIFF_DAYS days, posting reminder."
 
-  # Post reminder comment
-  MESSAGE="Hi, this is ReminderBot. This issue has been assigned but has had no pull request created. Are you still planning on working on the issue?
+  ASSIGNEE_MENTIONS=$(echo "$ISSUE_JSON" | jq -r '.assignees[].login | "@" + .' | xargs)
+
+  MESSAGE="Hi ${ASSIGNEE_MENTIONS} 👋
+
+This issue has been assigned but no pull request has been created yet.
+Are you still planning on working on it?
 
 From the Python SDK Team"
 
