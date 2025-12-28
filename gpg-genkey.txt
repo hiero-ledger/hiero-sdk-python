@@ -1,0 +1,11 @@
+%echo Generating GPG key
+Key-Type: RSA
+Key-Length: 4096
+Subkey-Type: RSA
+Subkey-Length: 4096
+Name-Real: kubanjaelijaheldred
+Name-Email: kubanjaelijah2037@gmail.com
+Expire-Date: 0
+%no-protection
+%commit
+%echo done

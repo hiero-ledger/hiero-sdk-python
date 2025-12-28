@@ -8,6 +8,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 
+### Changed
+- Update `pyproject.toml` with comprehensive ruff configuration including modern syntax rules, formatting settings, and Google docstring convention to improve code quality and consistency (#1138)
+
 ### Added
 - Added a GitHub Actions workflow to validate broken Markdown links in pull requests.
 - Added method chaining examples to the developer training guide (`docs/sdk_developers/training/coding_token_transactions.md`) (#1194)
