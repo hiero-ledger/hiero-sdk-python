@@ -44,8 +44,7 @@ jobs:
           script: |
             // Determine if this is a dry run
             const isManual = context.eventName === 'workflow_dispatch';
-            const isDryRun = context.payload.inputs.dry_run;
-            const dryRun = isManual ? String(isDryRun).toLowerCase() === 'true' : false;
+            const dryRun = isManual ? String(context.payload.inputs.dry_run).toLowerCase() === 'true' : false;
 
             // Labels configuration
             const targetLabels = ['broken-markdown-links', 'automated'];
