@@ -116,7 +116,7 @@ Under the existing [UNRELEASED] section, add a one-sentence description of your 
 
 See [Changelog Entry Guide](/docs/sdk_developers/changelog_entry.md)
 
-- ✅ **IMPORTANT** keep your main and branch regularly else your changelog will be out of date and it will be more difficult to reslve.
+- ✅ **IMPORTANT** keep your main and branch regularly else your changelog will be out of date and it will be more difficult to resolve.
 
 
 ### Workflow 5: Submit Your Pull Request
