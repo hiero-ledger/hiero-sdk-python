@@ -1,10 +1,9 @@
 const COMMENT_MARKER = process.env.INTERMEDIATE_COMMENT_MARKER || '<!-- Intermediate Issue Guard -->';
 const INTERMEDIATE_LABEL = process.env.INTERMEDIATE_LABEL?.trim() || 'intermediate';
 const GFI_LABEL = process.env.GFI_LABEL?.trim() || 'Good First Issue';
-const ORG_SLUG = process.env.GITHUB_ORG?.trim() || 'hiero-ledger';
-const EXEMPT_TEAM_SLUGS = (process.env.INTERMEDIATE_EXEMPT_TEAM_SLUGS || 'hiero-sdk-python-triage,hiero-sdk-python-committers,hiero-sdk-python-maintainers')
+const EXEMPT_PERMISSION_LEVELS = (process.env.INTERMEDIATE_EXEMPT_PERMISSIONS || 'admin,maintain,write,triage')
   .split(',')
-  .map((entry) => entry.trim())
+  .map((entry) => entry.trim().toLowerCase())
   .filter(Boolean);
 
 function hasLabel(issue, labelName) {
@@ -18,33 +17,29 @@ function hasLabel(issue, labelName) {
   });
 }
 
-async function isMemberOfAnyTeam(github, username) {
-  if (!EXEMPT_TEAM_SLUGS.length) {
+async function hasExemptPermission(github, owner, repo, username) {
+  if (!EXEMPT_PERMISSION_LEVELS.length) {
     return false;
   }
 
-  for (const teamSlug of EXEMPT_TEAM_SLUGS) {
-    try {
-      const response = await github.rest.teams.getMembershipForUserInOrg({
-        org: ORG_SLUG,
-        team_slug: teamSlug,
-        username,
-      });
+  try {
+    const response = await github.rest.repos.getCollaboratorPermissionLevel({
+      owner,
+      repo,
+      username,
+    });
 
-      if (response?.data?.state === 'active') {
-        return true;
-      }
-    } catch (error) {
-      if (error?.status === 404) {
-        continue;
-      }
-
-      const message = error instanceof Error ? error.message : String(error);
-      console.log(`Unable to verify ${username} on team ${teamSlug}: ${message}`);
+    const permission = response?.data?.permission?.toLowerCase();
+    return Boolean(permission) && EXEMPT_PERMISSION_LEVELS.includes(permission);
+  } catch (error) {
+    if (error?.status === 404) {
+      return false;
     }
-  }
 
-  return false;
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`Unable to verify ${username}'s repository permissions: ${message}`);
+    return false;
+  }
 }
 
 function buildGfiSearchQuery(owner, repo, username) {
@@ -122,8 +117,8 @@ module.exports = async ({ github, context }) => {
     const { owner, repo } = context.repo;
     const mentee = assignee.login;
 
-    if (await isMemberOfAnyTeam(github, mentee)) {
-      return console.log(`${mentee} is a member of an exempt team. Skipping guard.`);
+    if (await hasExemptPermission(github, owner, repo, mentee)) {
+      return console.log(`${mentee} has exempt repository permissions. Skipping guard.`);
     }
 
     const completedCount = await countCompletedGfiIssues(github, owner, repo, mentee);
@@ -147,7 +142,6 @@ module.exports = async ({ github, context }) => {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.log(`Unable to remove assignee ${mentee} from issue #${issue.number}: ${message}`);
-      throw error;
     }
 
     if (await hasExistingGuardComment(github, owner, repo, issue.number, mentee)) {
@@ -156,14 +150,19 @@ module.exports = async ({ github, context }) => {
 
     const comment = buildRejectionComment({ mentee, completedCount });
 
-    await github.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: issue.number,
-      body: comment,
-    });
+    try {
+      await github.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: issue.number,
+        body: comment,
+      });
 
-    console.log(`Posted guard comment for @${mentee} on issue #${issue.number}.`);
+      console.log(`Posted guard comment for @${mentee} on issue #${issue.number}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`Unable to post guard comment for @${mentee} on issue #${issue.number}: ${message}`);
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.log(`❌ Intermediate assignment guard failed: ${message}`);

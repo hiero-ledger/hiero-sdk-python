@@ -9,7 +9,6 @@ on:
 permissions:
   issues: write
   contents: read
-  members: read
 
 jobs:
   enforce-intermediate-guard:
@@ -32,9 +31,8 @@ jobs:
         env:
           INTERMEDIATE_LABEL: intermediate
           GFI_LABEL: Good First Issue
-          GITHUB_ORG: hiero-ledger
-          INTERMEDIATE_EXEMPT_TEAM_SLUGS: hiero-sdk-python-triage,hiero-sdk-python-committers,hiero-sdk-python-maintainers
           INTERMEDIATE_COMMENT_MARKER: "<!-- Intermediate Issue Guard -->"
+          INTERMEDIATE_EXEMPT_PERMISSIONS: admin,maintain,write,triage
         with:
           script: |
             const script = require('./.github/scripts/bot-intermediate-assignment.js');
