@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-
+- Automated assignment guard for `advanced` issues; requires completion of at least one `good first issue` and one `intermediate` issue before assignment (exempts maintainers, committers, and triage members). (#1142)
 - Added Hbar object support for TransferTransaction HBAR transfers:
   - Methods now accept `Union[int, Hbar]` for amount parameters with immediate normalization to tinybars
   - Includes comprehensive unit tests covering various Hbar units (HBAR, MICROBAR, NANOBAR, TINYBAR) and accumulation behavior with mixed `int` and `Hbar` inputs

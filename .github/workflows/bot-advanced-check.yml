@@ -1,0 +1,38 @@
+name: PythonBot - Advanced Requirement Check
+
+on:
+  issues:
+    types: [assigned, labeled]
+
+permissions:
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-advanced-qualification:
+    # Run only for issues labeled 'advanced', triggered by assignment or by adding
+    # the label to an issue that already has assignees
+    if: >
+      contains(github.event.issue.labels.*.name, 'advanced') && 
+      (github.event.action == 'assigned' || (github.event.action == 'labeled' && github.event.issue.assignees[0] != null))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scripts
+        # Pinned to v6.0.1 (8e8c483db84b4bee98b60c0593521ed34d9990e8)
+        # Followed guide: https://github.com/actions/checkout/releases
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Verify User Qualification
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TRIGGER_ASSIGNEE: ${{ github.event.assignee.login || '' }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          chmod +x .github/scripts/check_advanced_requirement.sh
+          ./.github/scripts/check_advanced_requirement.sh
