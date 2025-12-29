@@ -26,8 +26,9 @@ check_user() {
     return 0
   fi
 
-  # Get counts
-  GFI_QUERY="repo:$REPO is:issue is:closed assignee:$user -reason:\"not planned\" label:\"good first issue\""
+  # 2. Get counts
+  # Using exact repository label names ("Good First Issue" and "intermediate")
+  GFI_QUERY="repo:$REPO is:issue is:closed assignee:$user -reason:\"not planned\" label:\"Good First Issue\""
   INT_QUERY="repo:$REPO is:issue is:closed assignee:$user -reason:\"not planned\" label:\"intermediate\""
 
   GFI_COUNT=$(gh api "search/issues" -f q="$GFI_QUERY" --jq '.total_count' || echo "0")
@@ -44,9 +45,10 @@ check_user() {
   else
     log "User @$user failed. Unassigning..."
 
-    # Tailor the suggestion
+    # Tailor the suggestion based on what is missing
+    # Links and names now match exact repository labels
     if (( GFI_COUNT == 0 )); then
-      SUGGESTION="[good first issue](https://github.com/$REPO/labels/good%20first%20issue)"
+      SUGGESTION="[Good First Issue](https://github.com/$REPO/labels/Good%20First%20Issue)"
     else
       SUGGESTION="[intermediate issue](https://github.com/$REPO/labels/intermediate)"
     fi
@@ -58,7 +60,7 @@ check_user() {
 Advanced issues involve high-risk changes to the core codebase. They require significant testing and can impact automation and CI behavior.
 
 **Requirement:**
-- Complete at least **1** 'good first issue' (You have: **$GFI_COUNT**)
+- Complete at least **1** 'Good First Issue' (You have: **$GFI_COUNT**)
 - Complete at least **1** 'intermediate' issue (You have: **$INT_COUNT**)
 
 Please check out our **$SUGGESTION** tasks to build your experience first!"
