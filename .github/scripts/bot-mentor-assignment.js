@@ -58,12 +58,20 @@ function hasGoodFirstIssueLabel(issue) {
 async function isNewContributor(github, owner, repo, login) {
   const query = `repo:${owner}/${repo} type:pr state:closed is:merged author:${login}`;
 
+  const hasToken = Boolean(process.env.GITHUB_TOKEN || process.env.GH_TOKEN);
+  console.log(`Mentor assignment search query: ${query}`);
+  console.log(`GitHub token present: ${hasToken}`);
+
   try {
     const response = await github.rest.search.issuesAndPullRequests({
       q: query,
       per_page: 1,
     });
-    return (response.data.total_count || 0) === 0;
+    const totalCount = response?.data?.total_count || 0;
+    console.log(`Merged PR count for ${login}: ${totalCount}`);
+    const isNewStarter = totalCount === 0;
+    console.log(`Is ${login} considered a new starter? ${isNewStarter}`);
+    return isNewStarter;
   } catch (error) {
     console.log(`Unable to determine merged PRs for ${login}:`, error.message || error);
     // Return null (skip assignment) on API errors to avoid workflow failure while preserving accurate logging
