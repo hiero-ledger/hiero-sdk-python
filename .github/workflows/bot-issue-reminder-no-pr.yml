@@ -35,4 +35,4 @@ jobs:
           REPO: ${{ github.repository }}
           DAYS: 7
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
-        run: bash .github/scripts/issue_reminder_no_pr.sh
+        run: bash .github/scripts/bot-issue-reminder-no-pr.sh
