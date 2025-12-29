@@ -45,6 +45,25 @@ def test_transaction_executes_successfully_with_node_account_ids(env):
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
 
 @pytest.mark.integration
+def test_transaction_executes_successfully_with_single_node_account_id(env):
+    """Test transaction can be executed successfully when single node_account_id are provided."""
+    node_account_id = AccountId(0,0,3)
+    executor_client = env.client
+    executor_key = env.operator_key
+
+    tx = TopicCreateTransaction().set_memo("Test Topic Creation")
+    tx.set_node_account_id(node_account_id)
+    tx.freeze_with(executor_client) 
+    tx.sign(executor_key)
+    receipt = tx.execute(executor_client)
+
+    # Verify that the transaction_bodys are generated for the provided node_account_id only
+    assert len(tx._transaction_body_bytes) == 1
+    assert set(tx._transaction_body_bytes.keys()) == {node_account_id}
+
+    assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
+
+@pytest.mark.integration
 def test_transaction_executes_successfully_after_manual_freeze(env):
     """Test transaction can be manually frozen and then executed successfully."""
     executor_client = env.client
