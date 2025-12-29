@@ -114,7 +114,7 @@ Safe:
 ### Workflow 4: Update Changelog
 Under the existing [UNRELEASED] section, add a one-sentence description of your addition, change or fix to [CHANGELOG.md](/./CHANGELOG.md)
 
-See [Changelog Entry Guide](/docs/sdk_developers/training/workflow//changelog_entry.md)
+See [Changelog Entry Guide](/docs/sdk_developers/training/workflow/changelog_entry.md)
 
 - ✅ **IMPORTANT** keep your main and branch regularly else your changelog will be out of date and it will be more difficult to reslve.
 
