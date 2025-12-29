@@ -7,8 +7,8 @@ log() {
 }
 
 # 2. Validate required environment variables
-if [[ -z "${REPO:-}" ]] || [[ -z "${ISSUE_NUMBER:-}" ]]; then
-  log "ERROR: Required environment variables REPO and ISSUE_NUMBER must be set"
+if [[ -z "${REPO:-}" ]] || [[ -z "${ISSUE_NUMBER:-}" ]] || [[ -z "${GH_TOKEN:-}" ]]; then
+  log "ERROR: Required environment variables (REPO, ISSUE_NUMBER, GH_TOKEN) must be set"
   exit 1
 fi
 
