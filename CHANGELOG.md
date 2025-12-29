@@ -68,6 +68,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
 - Added support for include duplicates in get transaction receipt query (#1166)
 - Added `.github/workflows/cron-check-broken-links.yml` workflow to perform scheduled monthly Markdown link validation across the entire repository with automatic issue creation for broken links ([#1210](https://github.com/hiero-ledger/hiero-sdk-python/issues/1210))
+- Added `transfer_transaction_tinybar.py` example demonstrating tinybar transfers with both integer and Hbar object approaches. ([#1249]((https://github.com/hiero-ledger/hiero-sdk-python/issues/1249)))
+- Added `transfer_transaction_gigabar.py` example demonstrating `GIGABAR` unit usage for large-value transfers. ([#1249]((https://github.com/hiero-ledger/hiero-sdk-python/issues/1249)))
 
 ### Changed
 - Moved `docs/sdk_developers/how_to_link_issues.md` to `docs/sdk_developers/training/workflow/how_to_link_issues.md` and updated all references (#1222)
@@ -108,6 +110,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive unit tests for Timestamp class (#1158)
 - Enhance unit and integration test review instructions for clarity and coverage `.coderabbit.yaml`.
 - Issue reminder bot now explicitly mentions assignees (e.g., `@user`) in comments. ([#1232](https://github.com/hiero-ledger/hiero-sdk-python/issues/1232))
+- Updated `transfer_transaction_hbar.py` example to use `Hbar` objects instead of raw integers and added receipt checking with `ResponseCode` validation.([#1249]((https://github.com/hiero-ledger/hiero-sdk-python/issues/1249)))
 
 ### Fixed
 

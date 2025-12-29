@@ -1,8 +1,8 @@
-"""Example of transferring HBAR using the Hiero Python SDK.
+"""Example of transferring HBAR using the GIGABAR unit.
 
 Usage:
-    uv run examples/transaction/transfer_transaction_hbar.py
-    python examples/transaction/transfer_transaction_hbar.py
+    uv run examples/transaction/transfer_transaction_gigabar.py
+    python examples/transaction/transfer_transaction_gigabar.py
 """
 
 import os
@@ -16,6 +16,7 @@ from hiero_sdk_python import (
     Client,
     CryptoGetAccountBalanceQuery,
     Hbar,
+    HbarUnit,
     Network,
     PrivateKey,
     ResponseCode,
@@ -25,7 +26,8 @@ from hiero_sdk_python import (
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
-HBAR_TO_TRANSFER = 1
+# 0.00000001 Gigabars = 10 Hbar
+GIGABARS_TO_TRANSFER = 0.00000001
 
 
 def setup_client():
@@ -51,11 +53,7 @@ def create_account(client, operator_key):
     print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
-        tx = (
-            AccountCreateTransaction()
-            .set_key(recipient_key.public_key())
-            .set_initial_balance(Hbar.from_tinybars(100_000_000))
-        )
+        tx = AccountCreateTransaction().set_key(recipient_key.public_key()).set_initial_balance(Hbar.from_tinybars(0))
         response = tx.freeze_with(client).sign(operator_key).execute(client)
         receipt = response.get_receipt(client)
 
@@ -68,11 +66,14 @@ def create_account(client, operator_key):
         sys.exit(1)
 
 
-def transfer_hbar(client, operator_id, recipient_id):
-    """Transfer HBAR from operator account to recipient account."""
-    print("\nSTEP 2: Transferring HBAR...")
+def transfer_gigabars(client, operator_id, recipient_id):
+    """Transfer HBAR using the GIGABAR unit."""
+    print(f"\nSTEP 2: Transferring {GIGABARS_TO_TRANSFER} GIGABARS...")
+    print("(Note: 1 Gigabar = 1,000,000,000 Hbar)")
 
-    amount = Hbar(HBAR_TO_TRANSFER)  # HBAR object
+    amount = Hbar.of(GIGABARS_TO_TRANSFER, HbarUnit.GIGABAR)
+
+    print(f"Converting to Hbar: {amount}")
 
     try:
         transfer_tx = (
@@ -85,16 +86,14 @@ def transfer_hbar(client, operator_id, recipient_id):
         response = transfer_tx.execute(client)
         receipt = response.get_receipt(client)
 
-        # Validate Receipt Status
         if receipt.status == ResponseCode.SUCCESS:
-            print(f"\n✅ Success! Transferred {amount} to {recipient_id}.")
-            print(f"Transaction ID: {response.transaction_id}\n")
+            print(f"✅ Success! Transferred {amount} successfully.")
         else:
-            print(f"\n❌ Unexpected status: {receipt.status}")
+            print(f"❌ Failed with status: {receipt.status}")
             sys.exit(1)
 
     except Exception as e:
-        print(f"❌ HBAR transfer failed: {str(e)}")
+        print(f"❌ Transfer failed: {str(e)}")
         sys.exit(1)
 
 
@@ -110,21 +109,14 @@ def account_balance_query(client, account_id, when=""):
 
 
 def main():
-    """Run a full example to create a new recipient account and transfer hbar to that account."""
-    # Config Client
+    """Run example demonstrating large-value transfers using GIGABAR units."""
     client, operator_id, operator_key = setup_client()
-
-    # Create a new recipient account.
     recipient_id, _ = create_account(client, operator_key)
 
-    # Check balance before HBAR transfer
-    account_balance_query(client, recipient_id, " before transfer")
-
-    # Transfer HBAR
-    transfer_hbar(client, operator_id, recipient_id)
-
-    # Check balance after HBAR transfer
+    transfer_gigabars(client, operator_id, recipient_id)
     account_balance_query(client, recipient_id, " after transfer")
+
+    print("\n🎉 Example Finished Successfully!")
 
 
 if __name__ == "__main__":

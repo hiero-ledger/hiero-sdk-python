@@ -1,8 +1,8 @@
-"""Example of transferring HBAR using the Hiero Python SDK.
+"""Example of transferring tinybars using legacy integer and modern Hbar object approaches.
 
 Usage:
-    uv run examples/transaction/transfer_transaction_hbar.py
-    python examples/transaction/transfer_transaction_hbar.py
+    uv run examples/transaction/transfer_transaction_tinybar.py
+    python examples/transaction/transfer_transaction_tinybar.py
 """
 
 import os
@@ -25,7 +25,8 @@ from hiero_sdk_python import (
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
-HBAR_TO_TRANSFER = 1
+# 100,000,000 tinybars = 1 HBAR
+TINYBARS_TO_TRANSFER = 100_000_000
 
 
 def setup_client():
@@ -68,11 +69,37 @@ def create_account(client, operator_key):
         sys.exit(1)
 
 
-def transfer_hbar(client, operator_id, recipient_id):
-    """Transfer HBAR from operator account to recipient account."""
-    print("\nSTEP 2: Transferring HBAR...")
+def transfer_hbar_with_integer(client, operator_id, recipient_id):
+    """Demonstrate legacy approach using raw integers (tinybars)."""
+    print("\nSTEP 2: Transferring using Integers (Legacy Approach)...")
 
-    amount = Hbar(HBAR_TO_TRANSFER)  # HBAR object
+    try:
+        transfer_tx = (
+            TransferTransaction()
+            .add_hbar_transfer(operator_id, -TINYBARS_TO_TRANSFER)
+            .add_hbar_transfer(recipient_id, TINYBARS_TO_TRANSFER)
+            .freeze_with(client)
+        )
+
+        response = transfer_tx.execute(client)
+        receipt = response.get_receipt(client)
+
+        if receipt.status == ResponseCode.SUCCESS:
+            print(f"✅ Success! Transferred {TINYBARS_TO_TRANSFER} tinybars (Integer).")
+        else:
+            print(f"❌ Failed with status: {receipt.status}")
+            sys.exit(1)
+
+    except Exception as e:
+        print(f"❌ Transfer failed: {str(e)}")
+        sys.exit(1)
+
+
+def transfer_hbar_with_object(client, operator_id, recipient_id):
+    """Demonstrate modern approach using Hbar objects with Tinybar units."""
+    print("\nSTEP 3: Transferring using Hbar Objects (Tinybar Unit)...")
+
+    amount = Hbar.from_tinybars(TINYBARS_TO_TRANSFER)
 
     try:
         transfer_tx = (
@@ -85,16 +112,14 @@ def transfer_hbar(client, operator_id, recipient_id):
         response = transfer_tx.execute(client)
         receipt = response.get_receipt(client)
 
-        # Validate Receipt Status
         if receipt.status == ResponseCode.SUCCESS:
-            print(f"\n✅ Success! Transferred {amount} to {recipient_id}.")
-            print(f"Transaction ID: {response.transaction_id}\n")
+            print(f"✅ Success! Transferred {amount} (Object).")
         else:
-            print(f"\n❌ Unexpected status: {receipt.status}")
+            print(f"❌ Failed with status: {receipt.status}")
             sys.exit(1)
 
     except Exception as e:
-        print(f"❌ HBAR transfer failed: {str(e)}")
+        print(f"❌ Transfer failed: {str(e)}")
         sys.exit(1)
 
 
@@ -110,21 +135,20 @@ def account_balance_query(client, account_id, when=""):
 
 
 def main():
-    """Run a full example to create a new recipient account and transfer hbar to that account."""
-    # Config Client
+    """Run example showing both integer and object-based tinybar transfers."""
     client, operator_id, operator_key = setup_client()
 
-    # Create a new recipient account.
     recipient_id, _ = create_account(client, operator_key)
 
-    # Check balance before HBAR transfer
-    account_balance_query(client, recipient_id, " before transfer")
+    # Legacy Approach
+    transfer_hbar_with_integer(client, operator_id, recipient_id)
+    account_balance_query(client, recipient_id, " after integer transfer")
 
-    # Transfer HBAR
-    transfer_hbar(client, operator_id, recipient_id)
+    # Modern Approach
+    transfer_hbar_with_object(client, operator_id, recipient_id)
+    account_balance_query(client, recipient_id, " after object transfer")
 
-    # Check balance after HBAR transfer
-    account_balance_query(client, recipient_id, " after transfer")
+    print("\n🎉 Example Finished Successfully!")
 
 
 if __name__ == "__main__":
