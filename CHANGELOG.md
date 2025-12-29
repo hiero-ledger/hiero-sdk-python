@@ -64,9 +64,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `coding_token_transactions.md` for a high level overview training on how token transactions are created in the python sdk.
 - Added prompt for codeRabbit on how to review /examples ([#1180](https://github.com/hiero-ledger/hiero-sdk-python/issues/1180)) 
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
+- Added support for include duplicates in get transaction receipt query (#1166)
+- Added `.github/workflows/cron-check-broken-links.yml` workflow to perform scheduled monthly Markdown link validation across the entire repository with automatic issue creation for broken links ([#1210](https://github.com/hiero-ledger/hiero-sdk-python/issues/1210))
 
 ### Changed
 - Moved `how_to_link_issues.md` to the training/workflow documentation section (#1222)
+- Moved docs/sdk_developers/project_structure.md to docs/sdk_developers/training/setup/project_structure.md and ensured all previous references are updated [#1223](https://github.com/hiero-ledger/hiero-sdk-python/issues/1223)
+- Renamed workflow scripts in `.github/scripts/` to match their corresponding workflow file names for improved consistency and maintainability (#1198)
 - Refactored `account_create_transaction_evm_alias.py` to improve readability by splitting the monolithic function into smaller helper functions. [#1017](https://github.com/hiero-ledger/hiero-sdk-python/issues/1017)
 - Improved docstring for `account_allowance_approve_transaction_nft.py` with purpose, key concepts and required vs optional steps.
 - Updated Codecov coverage thresholds in 'codecov.yml' to require 90% of project coverage and 92% of patch coverage (#1157)
@@ -100,7 +104,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Transformed `examples\tokens\custom_royalty_fee.py` to be an end-to-end example, that interacts with the Hedera network, rather than a static object demo.
 - Refactored `examples/tokens/custom_royalty_fee.py` by splitting monolithic function custom_royalty_fee_example() into modular functions create_royalty_fee_object(), create_token_with_fee(), verify_token_fee(), and main() to improve readability, cleaned up setup_client() (#1169)
 - Added comprehensive unit tests for Timestamp class (#1158)
-
+- Enhance unit and integration test review instructions for clarity and coverage `.coderabbit.yaml`.
+- Issue reminder bot now explicitly mentions assignees (e.g., `@user`) in comments. ([#1232](https://github.com/hiero-ledger/hiero-sdk-python/issues/1232))
 
 
 ### Fixed
@@ -113,6 +118,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix unit test tet_query.py
 - TLS Hostname Mismatch & Certificate Verification Failure for Nodes
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
+- Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
+- Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
 
 
 ### Breaking Change
