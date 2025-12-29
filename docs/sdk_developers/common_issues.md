@@ -158,7 +158,7 @@ The Hiero Python SDK community is here to help! Here are the best ways to get su
 
 **4. Documentation Resources**
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - Complete contribution guidelines
-- [Signing Guide](../training/workflow/signing.md) - GPG and DCO setup
+- [Signing Guide](../docs/sdk_developers/training/workflow/signing.md) - GPG and DCO setup
 - [Rebasing Guide](../docs/sdk_developers/rebasing.md) - Keep your branch up to date
 - [Linting Guide](../docs/sdk_developers/linting.md) - Code quality tools
 - [Types Guide](../docs/sdk_developers/types.md) - Python type hints
