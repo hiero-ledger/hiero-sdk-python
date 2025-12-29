@@ -148,7 +148,14 @@ def mock_hedera_servers(response_sequences):
         # Configure the network with mock servers
         nodes = []
         for i, server in enumerate(servers):
-            nodes.append(_Node(AccountId(0, 0, 3 + i), server.address, None))
+            node = _Node(AccountId(0, 0, 3 + i), server.address, None)
+            
+            # force insecure transport
+            node._apply_transport_security(False)
+            node._set_verify_certificates(False)
+            
+            nodes.append(node)
+
         
         # Create network and client
         network = Network(nodes=nodes)
