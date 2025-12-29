@@ -32,7 +32,7 @@ module.exports = async ({ github, context }) => {
         `- Fixes #123`,
         ``,
         `📖 Guide:`,
-        `docs/sdk_developers/how_to_link_issues.md`,
+        `docs/sdk_developers/training/workflow/how_to_link_issues.md`,
         ``,
         `If no issue exists yet, please create one:`,
         `docs/sdk_developers/creating_issues.md`,
