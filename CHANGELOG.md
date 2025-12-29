@@ -6,6 +6,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the README account balance example to use correct SDK APIs and provide a runnable testnet setup. (#1250)
+
 ### Added
 
 - Added Hbar object support for TransferTransaction HBAR transfers:
