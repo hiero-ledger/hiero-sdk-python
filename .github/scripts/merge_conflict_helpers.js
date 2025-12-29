@@ -1,4 +1,4 @@
-// scripts/merge_conflict_helpers.js
+// .github/scripts/merge_conflict_helpers.js
 
 const BOT_SIGNATURE = '[MergeConflictBotSignature-v1]';
 
@@ -55,14 +55,14 @@ module.exports = async ({ github, context, core }) => {
   //main
   let prsToCheck = [];
 
-  //push to main
+//push to main
   if (context.eventName === 'push') {
     console.log("Triggered by Push to Main. Fetching all open PRs...");
-    const { data: openPrs } = await github.rest.pulls.list({
-      owner, repo, state: 'open', base: 'main'
+    const openPrs = await github.paginate(github.rest.pulls.list, {
+      owner, repo, state: 'open', base: 'main', per_page: 100
     });
     prsToCheck = openPrs.map(pr => pr.number);
-  } 
+  }
   //PR update
   else {
     console.log("Triggered by PR update.");
