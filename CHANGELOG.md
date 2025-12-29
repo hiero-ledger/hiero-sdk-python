@@ -70,6 +70,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `.github/workflows/cron-check-broken-links.yml` workflow to perform scheduled monthly Markdown link validation across the entire repository with automatic issue creation for broken links ([#1210](https://github.com/hiero-ledger/hiero-sdk-python/issues/1210))
 
 ### Changed
+- Updated Good First Issue notifications to trigger only after the first comment is posted, reducing noise on unassigned issues.(#1212)
 - Moved `docs/sdk_developers/how_to_link_issues.md` to `docs/sdk_developers/training/workflow/how_to_link_issues.md` and updated all references (#1222)
 - Moved docs/sdk_developers/project_structure.md to docs/sdk_developers/training/setup/project_structure.md and ensured all previous references are updated [#1223](https://github.com/hiero-ledger/hiero-sdk-python/issues/1223)
 - Renamed workflow scripts in `.github/scripts/` to match their corresponding workflow file names for improved consistency and maintainability (#1198)
