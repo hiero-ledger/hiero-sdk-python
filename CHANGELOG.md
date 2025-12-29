@@ -680,7 +680,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ### Changed
 
-- N/A
+- Move docs/sdk_developers/changelog_entry.md, checklist.md, merge_conflicts.md, signing.md, testing.md to docs/sdk_developers/training/workflow
 
 ### Fixed
 

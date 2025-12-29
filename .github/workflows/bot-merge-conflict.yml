@@ -53,7 +53,7 @@ jobs:
             Please resolve these conflicts locally and push the changes.
 
             To assist you, please read:
-            - [Resolving Merge Conflicts](docs/sdk_developers/merge_conflicts.md)
+            - [Resolving Merge Conflicts](docs/sdk_developers/training/workflow/merge_conflicts.md)
             - [Rebasing Guide](docs/sdk_developers/rebasing.md)
 
             Thank you for contributing!

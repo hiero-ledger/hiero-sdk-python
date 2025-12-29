@@ -89,7 +89,7 @@ Incorrect names:
 git commit -S -s -m "chore: your commit message"
 ```
 
-You'll need a GPG key and a tie to github explained at [signing.md](/docs/sdk_developers/signing.md)
+You'll need a GPG key and a tie to github explained at [signing.md](/docs/sdk_developers/training/workflow/signing.md)
 
 Avoid commiting the issue solution all-in-one.
 ✅ Commit key portions of work making it easier to revert sections if needed
@@ -114,7 +114,7 @@ Safe:
 ### Workflow 4: Update Changelog
 Under the existing [UNRELEASED] section, add a one-sentence description of your addition, change or fix to [CHANGELOG.md](/./CHANGELOG.md)
 
-See [Changelog Entry Guide](/docs/sdk_developers/changelog_entry.md)
+See [Changelog Entry Guide](/docs/sdk_developers/training/workflow//changelog_entry.md)
 
 - ✅ **IMPORTANT** keep your main and branch regularly else your changelog will be out of date and it will be more difficult to reslve.
 

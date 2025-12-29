@@ -1202,7 +1202,7 @@ If you encounter issues or have questions:
 ### Useful Resources
 
 - **Contributing Guide**: [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Commit Signing Guide**: [docs/sdk_developers/signing.md](docs\sdk_developers\signing.md)
+- **Commit Signing Guide**: [docs/sdk_developers/training/workflow/signing.md](docs\sdk_developers\training\workflow\signing.md)
 - **pytest Documentation**: https://docs.pytest.org/
 - **Hedera Documentation**: https://docs.hedera.com/
 - **Hiero Solo**: https://github.com/hiero-ledger/solo

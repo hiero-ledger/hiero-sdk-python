@@ -29,7 +29,7 @@ git commit -S -s -m "your commit message"
 
 **How to set up GPG signing:**
 
-1. Check our comprehensive guide: [Signing Guide](../docs/sdk_developers/signing.md)
+1. Check our comprehensive guide: [Signing Guide](../docs/sdk_developers/training/workflow/signing.md)
 2. Generate a GPG key if you don't have one
 3. Add your GPG key to your GitHub account
 4. Configure Git to use your GPG key
@@ -158,7 +158,7 @@ The Hiero Python SDK community is here to help! Here are the best ways to get su
 
 **4. Documentation Resources**
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - Complete contribution guidelines
-- [Signing Guide](../docs/sdk_developers/signing.md) - GPG and DCO setup
+- [Signing Guide](../docs/sdk_developers/training/workflow/signing.md) - GPG and DCO setup
 - [Rebasing Guide](../docs/sdk_developers/rebasing.md) - Keep your branch up to date
 - [Linting Guide](../docs/sdk_developers/linting.md) - Code quality tools
 - [Types Guide](../docs/sdk_developers/types.md) - Python type hints
