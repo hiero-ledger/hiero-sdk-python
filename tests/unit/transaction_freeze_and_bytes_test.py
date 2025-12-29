@@ -12,6 +12,11 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
+    TransactionResponse as TransactionResponseProto,
+)
+
+
 pytestmark = pytest.mark.unit
 
 
@@ -683,3 +688,20 @@ def test_transaction_freeze_without_node_ids(mock_client):
     # Verify creates transaction_bytes for client network nodes
     assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
     assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
+
+def test_map_response_raises_if_proto_request_is_not_transaction():
+    """
+    Test _map_response raises ValueError when provided proto is not a transaction_pb2.Transaction.
+    """
+    tx = TransferTransaction()
+
+    mock_response = TransactionResponseProto()
+    mock_node_id = None  
+    invalid_proto_request = object() 
+
+    with pytest.raises(ValueError, match="Expected Transaction but got"):
+        tx._map_response(
+            response=mock_response,
+            node_id=mock_node_id,
+            proto_request=invalid_proto_request,
+        )
