@@ -105,7 +105,6 @@ def main():
     2. Create a secondary client without an operator.
     3. Create a Transaction and explicitly:
         - Set the TransactionId
-        - Set the NodeAccountId (e.g. 0.0.3)
         - Call `freezeWith()` to build the TransactionBody for the specified node with client without operator
         - Serialize the unsigned transaction to bytes
     4. Deserialize the transaction from bytes, sign it, and execute it on the network.

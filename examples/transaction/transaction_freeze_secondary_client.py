@@ -118,7 +118,6 @@ def main():
     2. Created secondary client used to manually freeze a transaction.
     3. Create a Transaction and explicitly:
         - Set the TransactionId
-        - Set the NodeAccountId (e.g. 0.0.3)
         - Call `freezeWith()` to build the TransactionBody for the specified node with secondary client
         - Serialize the unsigned transaction to bytes
     4. Deserialize the transaction from bytes, sign it, and execute it on the network.
