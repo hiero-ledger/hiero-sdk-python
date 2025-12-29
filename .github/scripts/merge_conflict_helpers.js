@@ -5,7 +5,7 @@ const BOT_SIGNATURE = '[MergeConflictBotSignature-v1]';
 module.exports = async ({ github, context, core }) => {
   const { owner, repo } = context.repo;
 
-  // fetch PR with retry logic for unknown state
+// fetch PR with retry logic for unknown state
   async function getPrWithRetry(prNumber) {
     for (let i = 0; i < 10; i++) {
       const { data: pr } = await github.rest.pulls.get({
@@ -18,6 +18,9 @@ module.exports = async ({ github, context, core }) => {
       await new Promise(r => setTimeout(r, 2000));
     }
     const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+    if (pr.mergeable_state === 'unknown') {
+      console.warn(`PR #${prNumber} state still 'unknown' after 10 retries.`);
+    }
     return pr;
   }
 
@@ -32,7 +35,7 @@ module.exports = async ({ github, context, core }) => {
       return;
     }
 
-    const body = `Hi, this is MergeConflictBot.\nYour pull request cannot be merged because it contains **merge conflicts**.\n\nPlease resolve these conflicts locally and push the changes.\n\nTo assist you, please read:\n- [Resolving Merge Conflicts](docs/sdk_developers/merge_conflicts.md)\n- [Rebasing Guide](docs/sdk_developers/rebasing.md)\n\nThank you for contributing!\nFrom the Hiero Python SDK Team\n\n${BOT_SIGNATURE}`;
+    const body = `Hi, this is MergeConflictBot.\nYour pull request cannot be merged because it contains **merge conflicts**.\n\nPlease resolve these conflicts locally and push the changes.\n\nTo assist you, please read:\n- [Resolving Merge Conflicts](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/merge_conflicts.md)\n- [Rebasing Guide](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/rebasing.md)\n\nThank you for contributing!\nFrom the Hiero Python SDK Team\n\n${BOT_SIGNATURE}`;
     
     await github.rest.issues.createComment({
       owner, repo, issue_number: prNumber, body: body
@@ -66,12 +69,15 @@ module.exports = async ({ github, context, core }) => {
     prsToCheck.push(context.payload.pull_request.number);
   }
 
-  let hasFailure = false;
-
-  for (const prNumber of prsToCheck) {
+for (const prNumber of prsToCheck) {
     try {
       console.log(`Checking PR #${prNumber}...`);
       const pr = await getPrWithRetry(prNumber);
+
+      if (pr.mergeable_state === 'unknown') {
+        console.log(`PR #${prNumber} state is still 'unknown'. Skipping conflict check.`);
+        continue;
+      }
 
       if (pr.mergeable_state === 'dirty') {
         console.log(`Conflict detected in PR #${prNumber}`);
@@ -81,7 +87,6 @@ module.exports = async ({ github, context, core }) => {
           await setCommitStatus(pr.head.sha, 'failure', 'Conflicts detected with main');
         } else {
           core.setFailed(`Merge conflicts detected in PR #${prNumber}.`);
-          hasFailure = true;
         }
       } else {
         console.log(`PR #${prNumber} is clean.`);
