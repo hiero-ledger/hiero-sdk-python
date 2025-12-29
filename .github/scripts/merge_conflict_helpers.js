@@ -67,9 +67,9 @@ module.exports = async ({ github, context, core }) => {
   else {
     console.log("Triggered by PR update.");
     prsToCheck.push(context.payload.pull_request.number);
-  }
+}
 
-for (const prNumber of prsToCheck) {
+  for (const prNumber of prsToCheck) {
     try {
       console.log(`Checking PR #${prNumber}...`);
       const pr = await getPrWithRetry(prNumber);
@@ -79,21 +79,24 @@ for (const prNumber of prsToCheck) {
         continue;
       }
 
-      if (pr.mergeable_state === 'dirty') {
-        console.log(`Conflict detected in PR #${prNumber}`);
-        await notifyUser(prNumber);
+        if (pr.mergeable_state === 'dirty') {
+          console.log(`Conflict detected in PR #${prNumber}`);
+          await notifyUser(prNumber);
 
-        if (context.eventName === 'push') {
-          await setCommitStatus(pr.head.sha, 'failure', 'Conflicts detected with main');
+          // Push events: set commit status on PR head SHA
+          // PR events: fail the workflow run (creates a check on the PR)
+          if (context.eventName === 'push') {
+            await setCommitStatus(pr.head.sha, 'failure', 'Conflicts detected with main');
+          } else {
+            core.setFailed(`Merge conflicts detected in PR #${prNumber}.`);
+          }
         } else {
-          core.setFailed(`Merge conflicts detected in PR #${prNumber}.`);
+          console.log(`PR #${prNumber} is clean.`);
+          // For push events, set success status; PR events rely on workflow run success
+          if (context.eventName === 'push') {
+            await setCommitStatus(pr.head.sha, 'success', 'No conflicts detected');
+          }
         }
-      } else {
-        console.log(`PR #${prNumber} is clean.`);
-        if (context.eventName === 'push') {
-          await setCommitStatus(pr.head.sha, 'success', 'No conflicts detected');
-        }
-      }
     } catch (error) {
       console.error(`Error checking PR #${prNumber}: ${error.message}`);
       if (context.eventName !== 'push') {
