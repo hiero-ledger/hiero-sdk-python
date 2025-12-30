@@ -102,7 +102,7 @@ class Transaction(_Executable):
             ValueError: If proto_request is not a Transaction
         """
         if not isinstance(proto_request, transaction_pb2.Transaction):
-            raise ValueError(f"Expected Transaction but got {type(proto_request)}")
+            raise TypeError(f"Expected Transaction but got {type(proto_request)}")
 
         hash_obj = hashlib.sha384()
         hash_obj.update(proto_request.signedTransactionBytes)
