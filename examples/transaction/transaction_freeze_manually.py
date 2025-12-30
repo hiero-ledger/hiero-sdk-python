@@ -16,7 +16,8 @@ from hiero_sdk_python import (
     TransactionId,
     Client,
     Network,
-    Transaction
+    Transaction,
+    ResponseCode
 )
 
 load_dotenv()
@@ -74,19 +75,25 @@ def sign_and_execute(unsigned_bytes, executor_client):
     """
     Deserialize, sign, and execute a transaction.
     """
-    # Deserialize
-    tx = Transaction.from_bytes(unsigned_bytes)
-    print("Transaction deserialized (unsigned).")
+    try:
+        # Deserialize
+        tx = Transaction.from_bytes(unsigned_bytes)
+        print("Transaction deserialized (unsigned).")
 
-    # Sign with executor client private key
-    tx.sign(executor_client.operator_private_key)
-    print("Transaction signed.")
+        # Sign with executor client private key
+        tx.sign(executor_client.operator_private_key)
+        print("Transaction signed.")
 
-    receipt = tx.execute(executor_client)
-    print("Transaction executed successfully.")
-    print("Receipt:", receipt)
+        receipt = tx.execute(executor_client)
 
-    return receipt
+        if receipt.status != ResponseCode.SUCCESS:
+            raise RuntimeError(f"Transaction failed with status: {ResponseCode(receipt.status).name}")
+
+        print("Transaction executed successfully.")
+        print("Receipt:", receipt)
+    
+    except Exception as exc:
+        raise RuntimeError(f"Transaction execution failed: {exc}") from exc 
 
 def main():
     """
