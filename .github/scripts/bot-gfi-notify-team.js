@@ -30,8 +30,15 @@ Python SDK team`;
   }
 }
 
-function isValidHumanComment(comment) {
-  return comment?.user?.type !== 'Bot';
+function isHuman(comment) {
+  // Return true if the comment is by a real person, not a bot
+  if (!comment || !comment.user) return false;
+
+  const login = comment.user.login || '';
+  const type = comment.user.type || '';
+  if (type === 'Bot' || login === 'github-actions[bot]') return false;
+
+  return true;
 }
 
 function isGoodFirstIssue(issue) {
@@ -63,15 +70,17 @@ module.exports = async ({ github, context }) => {
       return console.log('No issue or comment found in payload');
     }
 
-    if (!isValidHumanComment(comment)) {
+    // Ignore bot comments
+    if (!isHuman(comment)) {
       return console.log('Ignoring bot comment');
     }
-
+    // Check if issue is labeled as Good First Issue
     if (!isGoodFirstIssue(issue)) {
-      return console.log('Issue is not a GFI');
+      return console.log('Issue is not labeled as Good First Issue');
     }
 
-    if (issue.assignees?.length > 0) {
+    // Skip if already assigned
+    if (issue.assignees && issue.assignees.length > 0) {
       return console.log('Issue already assigned');
     }
 
@@ -91,6 +100,7 @@ module.exports = async ({ github, context }) => {
       return console.log(`Notification already exists for #${issue.number}`);
     }
 
+    // Check if this is the FIRST non-bot comment
     if (!isFirstNonBotComment(comments, comment)) {
       return console.log('Not the first non-bot comment, skipping');
     }

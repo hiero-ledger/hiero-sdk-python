@@ -12,14 +12,12 @@ permissions:
 jobs:
   gfi_notify_team:
     runs-on: ubuntu-latest
-  if: >
-    github.event_name == 'issue_comment' &&
-    github.event.action == 'created' &&
-    github.event.comment.user.type != 'Bot' &&
-    contains(
-      join(github.event.issue.labels.*.name, ','),
-      'Good First Issue'
-    )
+    if: >
+      github.event.issue.labels &&
+      contains(
+        join(github.event.issue.labels.*.name, ','),
+        'Good First Issue'
+      )
 
 
     concurrency:
