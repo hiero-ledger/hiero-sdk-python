@@ -75,18 +75,19 @@ async function isNewContributor(github, owner, repo, login) {
     console.log(`Unable to check if repository is a fork: ${error.message || error}`);
   }
 
-  const query = `repo:${targetOwner}/${targetRepo} type:pr is:merged author:${login}`;
-
-  const hasToken = Boolean(process.env.GITHUB_TOKEN || process.env.GH_TOKEN);
-  console.log(`Mentor assignment search query: ${query}`);
-  console.log(`GitHub token present: ${hasToken}`);
-
   try {
-    const response = await github.rest.search.issuesAndPullRequests({
-      q: query,
-      per_page: 1,
+    console.log(`Checking for merged PRs by ${login} in ${targetOwner}/${targetRepo}`);
+    
+    const pullRequests = await github.paginate(github.rest.pulls.list, {
+      owner: targetOwner,
+      repo: targetRepo,
+      state: 'closed',
+      per_page: 100,
     });
-    const totalCount = response?.data?.total_count || 0;
+
+    const mergedPRs = pullRequests.filter(pr => pr.user?.login === login && pr.merged_at !== null);
+    const totalCount = mergedPRs.length;
+    
     console.log(`Merged PR count for ${login}: ${totalCount}`);
     const isNewStarter = totalCount === 0;
     console.log(`Is ${login} considered a new starter? ${isNewStarter}`);
