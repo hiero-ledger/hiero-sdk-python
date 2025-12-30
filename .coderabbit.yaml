@@ -184,6 +184,7 @@ reviews:
         - Workflows MUST behave safely when executed from forks.
         - YAML MUST orchestrate steps, not implement business logic.
         - Any workflow that mutates GitHub state MUST support dry-run mode.
+        - Dry-run behavior must be explicit and visible in logs.
         - Workflows MUST NOT modify repository source code outside `.github/`.
 
         ---------------------------------------------------------
@@ -225,7 +226,6 @@ reviews:
           - Function on dry run: never post, comment, label, assign or edit
           - Be easy to expand in the future
           - Exit successfully
-        - Dry-run behavior must be explicit and visible in logs.
 
         ---------------------------------------------------------
         PRIORITY 4 — SCRIPT EXTRACTION & CODE TRIM
