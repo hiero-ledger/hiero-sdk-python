@@ -30,6 +30,24 @@ Python SDK team`;
   }
 }
 
+function isValidHumanComment(comment) {
+  return comment?.user?.type !== 'Bot';
+}
+
+function isGoodFirstIssue(issue) {
+  const labels = issue.labels?.map(l => l.name) || [];
+  return labels.includes('Good First Issue');
+}
+
+function isFirstNonBotComment(comments, currentComment) {
+  return !comments.some(
+    c =>
+      c.id !== currentComment.id &&
+      c.user?.type !== 'Bot'
+  );
+}
+
+
 module.exports = async ({ github, context }) => {
   console.log('Context debug:', {
     actor: context.actor,
@@ -45,21 +63,15 @@ module.exports = async ({ github, context }) => {
       return console.log('No issue or comment found in payload');
     }
 
-    // Ignore bot comments
-    if (comment.user?.type === 'Bot') {
+    if (!isValidHumanComment(comment)) {
       return console.log('Ignoring bot comment');
     }
 
-    const labels = issue.labels?.map(l => l.name) || [];
-    
-    const isGFI = labels.includes('Good First Issue'); 
-
-    if (!isGFI) {
+    if (!isGoodFirstIssue(issue)) {
       return console.log('Issue is not a GFI');
     }
 
-    // Skip if already assigned
-    if (issue.assignees && issue.assignees.length > 0) {
+    if (issue.assignees?.length > 0) {
       return console.log('Issue already assigned');
     }
 
@@ -79,13 +91,7 @@ module.exports = async ({ github, context }) => {
       return console.log(`Notification already exists for #${issue.number}`);
     }
 
-    // Check if this is the FIRST non-bot comment
-    const earlierNonBotComments = comments.filter(c =>
-      c.id !== comment.id &&
-      c.user?.type !== 'Bot'
-    );
-
-    if (earlierNonBotComments.length > 0) {
+    if (!isFirstNonBotComment(comments, comment)) {
       return console.log('Not the first non-bot comment, skipping');
     }
 
