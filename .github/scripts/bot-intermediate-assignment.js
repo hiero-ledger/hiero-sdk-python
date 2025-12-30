@@ -144,8 +144,13 @@ module.exports = async ({ github, context }) => {
       console.log(`Unable to remove assignee ${mentee} from issue #${issue.number}: ${message}`);
     }
 
-    if (await hasExistingGuardComment(github, owner, repo, issue.number, mentee)) {
-      return console.log(`Guard comment already exists on issue #${issue.number}. Skipping duplicate message.`);
+    try {
+      if (await hasExistingGuardComment(github, owner, repo, issue.number, mentee)) {
+        return console.log(`Guard comment already exists on issue #${issue.number}. Skipping duplicate message.`);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`Unable to check for existing guard comment: ${message}. Proceeding to post comment anyway (accepting small risk of duplicate).`);
     }
 
     const comment = buildRejectionComment({ mentee, completedCount });
