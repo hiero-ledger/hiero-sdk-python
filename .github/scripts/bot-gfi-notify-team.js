@@ -56,6 +56,10 @@ function isFirstNonBotComment(comments, currentComment) {
 
 
 module.exports = async ({ github, context }) => {
+    if (context.actor === 'github-actions[bot]') {
+    console.log('Triggered by github-actions[bot], skipping');
+    return;
+    }
   console.log('Context debug:', {
     actor: context.actor,
     eventName: context.eventName,

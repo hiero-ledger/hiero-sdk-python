@@ -13,13 +13,13 @@ jobs:
   gfi_notify_team:
     runs-on: ubuntu-latest
     if: >
+      github.actor != 'github-actions[bot]' &&
       github.event.issue.labels &&
       contains(
         join(github.event.issue.labels.*.name, ','),
         'Good First Issue'
       )
-
-
+      
     concurrency:
       group: gfi-notify-issue-${{ github.event.issue.number }}
       cancel-in-progress: false
