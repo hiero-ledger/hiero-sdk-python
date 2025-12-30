@@ -16,6 +16,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added a GitHub Actions workflow to validate broken Markdown links in pull requests.
 - Added method chaining examples to the developer training guide (`docs/sdk_developers/training/coding_token_transactions.md`) (#1194)
 - Added documentation explaining how to pin GitHub Actions to specific commit SHAs (`docs/sdk_developers/how-to-pin-github-actions.md`)(#1211)
+- Added mentor assignment workflow and script to pair new Good First Issue assignees with on-call mentors.
 - examples/mypy.ini for stricter type checking in example scripts
 - Added a GitHub Actions workflow that reminds contributors to link pull requests to issues.
 - Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
@@ -26,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix inactivity bot execution for local dry-run testing.
 - Added Good First Issue candidate guidelines documentation (`docs/maintainers/good_first_issue_candidate_guidelines.md`) and Good First Issues guidelines documentation (`docs/maintainers/good_first_issues_guidelines.md`) (#1066)
 - Added documentation: "Testing GitHub Actions using Forks" (`docs/sdk_developers/training/testing_forks.md`).
+- Documentation: created docs/maintainers/hiero_python_sdk_team.md
 - Unified the inactivity-unassign bot into a single script with `DRY_RUN` support, and fixed handling of cross-repo PR references for stale detection.
 - Added unit tests for `SubscriptionHandle` class covering cancellation state, thread management, and join operations.
 - Refactored `account_create_transaction_create_with_alias.py` example by splitting monolithic function into modular functions: `generate_main_and_alias_keys()`, `create_account_with_ecdsa_alias()`, `fetch_account_info()`, `print_account_summary()` (#1016)
@@ -68,6 +70,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
 - Added support for include duplicates in get transaction receipt query (#1166)
 - Added `.github/workflows/cron-check-broken-links.yml` workflow to perform scheduled monthly Markdown link validation across the entire repository with automatic issue creation for broken links ([#1210](https://github.com/hiero-ledger/hiero-sdk-python/issues/1210))
+- Coderabbit prompt for .github
 
 ### Changed
 - Updated Good First Issue notifications to trigger only after the first comment is posted, reducing noise on unassigned issues.(#1212)
@@ -85,6 +88,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Allow `PublicKey` for batch_key in `Transaction`, enabling both `PrivateKey` and `PublicKey` for batched transactions
 - Allow `PublicKey` for `TokenUpdateKeys` in `TokenUpdateTransaction`, enabling non-custodial workflows where operators can build transactions using only public keys (#934).
 - Bump protobuf toml to protobuf==6.33.2
+- Improved the contributing section for sdk developers in CONTRIBUTING.md for clarity and including new documentation
 - chore: Move account allowance example to correct folder
 - Added more tests to the CustomFee class for different functionalities (#991)
 - Changed messaged for test failure summaries so it is clearer by extracting test failure names into summary
