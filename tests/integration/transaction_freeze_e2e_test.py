@@ -3,6 +3,7 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -19,9 +20,9 @@ def test_transaction_executes_successfully(env):
     tx.sign(executor_key)
     receipt = tx.execute(executor_client)
 
-    # Verify that the transaction_bodys are generated for all nodes pressent in client network
+    # Verify that the transaction_bodys are generated for all nodes present in client network
     assert len(tx._transaction_body_bytes) == len(env.client.network.nodes)
-    assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in env.client.network.nodes)
+    assert set(tx._transaction_body_bytes.keys()) == {node._account_id for node in env.client.network.nodes}
 
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
 
@@ -36,12 +37,12 @@ def test_transaction_executes_successfully_with_node_account_ids(env):
     tx.set_node_account_ids(node_account_ids)
     tx.freeze_with(executor_client) 
     tx.sign(executor_key)
-    receipt = tx.execute(executor_client)
 
     # Verify that the transaction_bodys are generated for the provided node_account_ids only
     assert len(tx._transaction_body_bytes) == 2
     assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
 
+    receipt = tx.execute(executor_client)
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
 
 @pytest.mark.integration
@@ -55,12 +56,12 @@ def test_transaction_executes_successfully_with_single_node_account_id(env):
     tx.set_node_account_id(node_account_id)
     tx.freeze_with(executor_client) 
     tx.sign(executor_key)
-    receipt = tx.execute(executor_client)
 
     # Verify that the transaction_bodys are generated for the provided node_account_id only
     assert len(tx._transaction_body_bytes) == 1
     assert set(tx._transaction_body_bytes.keys()) == {node_account_id}
 
+    receipt = tx.execute(executor_client)
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
 
 @pytest.mark.integration
@@ -91,7 +92,7 @@ def test_transaction_executes_successfully_after_manual_freeze(env):
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
 
 @pytest.mark.integration
-def test_transaction_with_secondary_client_can_execute_sucessfully(env):
+def test_transaction_with_secondary_client_can_execute_successfully(env):
     """Test transaction created by the secondary client and then executed successfully."""
     executor_client = env.client
     executor_key = env.operator_key
@@ -120,7 +121,7 @@ def test_transaction_with_secondary_client_can_execute_sucessfully(env):
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
 
 @pytest.mark.integration
-def test_transaction_with_secondary_client_without_operator_can_execute_sucessfully(env):
+def test_transaction_with_secondary_client_without_operator_can_execute_successfully(env):
     """Test transaction created by the secondary client without operator and then executed successfully."""
     executor_client = env.client
     executor_key = env.operator_key
@@ -144,3 +145,4 @@ def test_transaction_with_secondary_client_without_operator_can_execute_sucessfu
     receipt = tx2.execute(executor_client)
 
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
+
