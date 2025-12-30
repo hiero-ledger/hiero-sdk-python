@@ -52,7 +52,7 @@ module.exports = async ({ github, context }) => {
 
     const labels = issue.labels?.map(l => l.name) || [];
     
-    const isGFI = labels.includes('good first issue') 
+    const isGFI = labels.includes('good first issue'); 
 
     if (!isGFI) {
       return console.log('Issue is not a GFI');
