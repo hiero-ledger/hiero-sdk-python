@@ -25,7 +25,6 @@ from hiero_sdk_python import (
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
-# 100,000,000 tinybars = 1 HBAR
 TINYBARS_TO_TRANSFER = 100_000_000
 
 
@@ -57,8 +56,11 @@ def create_account(client, operator_key):
             .set_key(recipient_key.public_key())
             .set_initial_balance(Hbar.from_tinybars(100_000_000))
         )
-        response = tx.freeze_with(client).sign(operator_key).execute(client)
-        receipt = response.get_receipt(client)
+        receipt = tx.freeze_with(client).sign(operator_key).execute(client)
+
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
 
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
@@ -69,20 +71,19 @@ def create_account(client, operator_key):
         sys.exit(1)
 
 
-def transfer_hbar_with_integer(client, operator_id, recipient_id):
+def transfer_hbar_with_integer(client, operator_id, recipient_id, operator_key):
     """Demonstrate legacy approach using raw integers (tinybars)."""
     print("\nSTEP 2: Transferring using Integers (Legacy Approach)...")
 
     try:
-        transfer_tx = (
+        receipt = (
             TransferTransaction()
             .add_hbar_transfer(operator_id, -TINYBARS_TO_TRANSFER)
             .add_hbar_transfer(recipient_id, TINYBARS_TO_TRANSFER)
             .freeze_with(client)
+            .sign(operator_key)
+            .execute(client)
         )
-
-        response = transfer_tx.execute(client)
-        receipt = response.get_receipt(client)
 
         if receipt.status == ResponseCode.SUCCESS:
             print(f"✅ Success! Transferred {TINYBARS_TO_TRANSFER} tinybars (Integer).")
@@ -95,22 +96,21 @@ def transfer_hbar_with_integer(client, operator_id, recipient_id):
         sys.exit(1)
 
 
-def transfer_hbar_with_object(client, operator_id, recipient_id):
+def transfer_hbar_with_object(client, operator_id, recipient_id, operator_key):
     """Demonstrate modern approach using Hbar objects with Tinybar units."""
     print("\nSTEP 3: Transferring using Hbar Objects (Tinybar Unit)...")
 
     amount = Hbar.from_tinybars(TINYBARS_TO_TRANSFER)
 
     try:
-        transfer_tx = (
+        receipt = (
             TransferTransaction()
             .add_hbar_transfer(operator_id, -amount)
             .add_hbar_transfer(recipient_id, amount)
             .freeze_with(client)
+            .sign(operator_key)
+            .execute(client)
         )
-
-        response = transfer_tx.execute(client)
-        receipt = response.get_receipt(client)
 
         if receipt.status == ResponseCode.SUCCESS:
             print(f"✅ Success! Transferred {amount} (Object).")
@@ -123,7 +123,7 @@ def transfer_hbar_with_object(client, operator_id, recipient_id):
         sys.exit(1)
 
 
-def account_balance_query(client, account_id, when=""):
+def get_balance(client, account_id, when=""):
     """Query and display account balance."""
     try:
         balance = CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
@@ -135,18 +135,25 @@ def account_balance_query(client, account_id, when=""):
 
 
 def main():
-    """Run example showing both integer and object-based tinybar transfers."""
+    """Run example showing both integer and object-based tinybar transfers.
+
+    Steps:
+    1. Setup client.
+    2. Create recipient account.
+    3. Transfer using legacy integer method (tinybars).
+    4. Transfer using modern Hbar object method.
+    """
     client, operator_id, operator_key = setup_client()
 
     recipient_id, _ = create_account(client, operator_key)
 
     # Legacy Approach
-    transfer_hbar_with_integer(client, operator_id, recipient_id)
-    account_balance_query(client, recipient_id, " after integer transfer")
+    transfer_hbar_with_integer(client, operator_id, recipient_id, operator_key)
+    get_balance(client, recipient_id, " after integer")
 
     # Modern Approach
-    transfer_hbar_with_object(client, operator_id, recipient_id)
-    account_balance_query(client, recipient_id, " after object transfer")
+    transfer_hbar_with_object(client, operator_id, recipient_id, operator_key)
+    get_balance(client, recipient_id, " after object")
 
     print("\n🎉 Example Finished Successfully!")
 

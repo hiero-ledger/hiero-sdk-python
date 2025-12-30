@@ -56,8 +56,11 @@ def create_account(client, operator_key):
             .set_key(recipient_key.public_key())
             .set_initial_balance(Hbar.from_tinybars(100_000_000))
         )
-        response = tx.freeze_with(client).sign(operator_key).execute(client)
-        receipt = response.get_receipt(client)
+        receipt = tx.freeze_with(client).sign(operator_key).execute(client)
+
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
 
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
@@ -68,27 +71,25 @@ def create_account(client, operator_key):
         sys.exit(1)
 
 
-def transfer_hbar(client, operator_id, recipient_id):
+def transfer_hbar(client, operator_id, recipient_id, operator_key):
     """Transfer HBAR from operator account to recipient account."""
     print("\nSTEP 2: Transferring HBAR...")
 
     amount = Hbar(HBAR_TO_TRANSFER)  # HBAR object
 
     try:
-        transfer_tx = (
+        receipt = (
             TransferTransaction()
             .add_hbar_transfer(operator_id, -amount)
             .add_hbar_transfer(recipient_id, amount)
             .freeze_with(client)
+            .sign(operator_key)
+            .execute(client)
         )
 
-        response = transfer_tx.execute(client)
-        receipt = response.get_receipt(client)
-
-        # Validate Receipt Status
         if receipt.status == ResponseCode.SUCCESS:
             print(f"\n✅ Success! Transferred {amount} to {recipient_id}.")
-            print(f"Transaction ID: {response.transaction_id}\n")
+            print(f"Transaction ID: {receipt.transaction_id}\n")
         else:
             print(f"\n❌ Unexpected status: {receipt.status}")
             sys.exit(1)
@@ -98,7 +99,7 @@ def transfer_hbar(client, operator_id, recipient_id):
         sys.exit(1)
 
 
-def account_balance_query(client, account_id, when=""):
+def get_balance(client, account_id, when=""):
     """Query and display account balance."""
     try:
         balance = CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
@@ -110,21 +111,24 @@ def account_balance_query(client, account_id, when=""):
 
 
 def main():
-    """Run a full example to create a new recipient account and transfer hbar to that account."""
-    # Config Client
+    """Run a full example to create a new recipient account and transfer hbar to that account.
+
+    Steps:
+    1. Setup client with operator credentials.
+    2. Create a new account with initial balance.
+    3. Transfer HBAR from operator to new account.
+    4. Verify balance updates.
+    """
     client, operator_id, operator_key = setup_client()
 
-    # Create a new recipient account.
     recipient_id, _ = create_account(client, operator_key)
 
-    # Check balance before HBAR transfer
-    account_balance_query(client, recipient_id, " before transfer")
+    get_balance(client, recipient_id, " before transfer")
 
-    # Transfer HBAR
-    transfer_hbar(client, operator_id, recipient_id)
+    # Pass operator_key for signing
+    transfer_hbar(client, operator_id, recipient_id, operator_key)
 
-    # Check balance after HBAR transfer
-    account_balance_query(client, recipient_id, " after transfer")
+    get_balance(client, recipient_id, " after transfer")
 
 
 if __name__ == "__main__":
