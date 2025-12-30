@@ -113,6 +113,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive unit tests for Timestamp class (#1158)
 - Enhance unit and integration test review instructions for clarity and coverage `.coderabbit.yaml`.
 - Issue reminder bot now explicitly mentions assignees (e.g., `@user`) in comments. ([#1232](https://github.com/hiero-ledger/hiero-sdk-python/issues/1232))
+- Enhance assignment bot to guard against users with spam PRs `bot-assignment-check.sh`
 
 ### Fixed
 
