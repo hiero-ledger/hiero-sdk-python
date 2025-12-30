@@ -11,7 +11,7 @@ echo "Checking assignment rules for user $ASSIGNEE on issue #$ISSUE_NUMBER"
 
 # Helper functions
 get_permission() {
-  gh api "repos/$REPO/collaborators/$ASSIGNEE/permission" --jq '.permission' 2>/dev/null || echo "none"
+  gh api "repos/${REPO}/collaborators/${ASSIGNEE}/permission" --jq '.permission' 2>/dev/null || echo "none"
 
 }
 
@@ -31,16 +31,16 @@ is_spam_user() {
 
 issue_has_gfi() {
   local has
-  has=$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq 'any(.labels[]; .name=="Good First Issue")' || echo "false")
+  has=$(gh api "repos/${REPO}/issues/${ISSUE_NUMBER}" --jq 'any(.labels[]; .name=="Good First Issue")' || echo "false")
   [[ "$has" == "true" ]]
 }
 
 assignments_count() {
-  gh issue list --repo "$REPO" --assignee "$ASSIGNEE" --state open --json number --jq 'length'
+  gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number --jq 'length'
 }
 
 remove_assignee() {
-  gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --remove-assignee "$ASSIGNEE"
+  gh issue edit "${ISSUE_NUMBER}" --repo "${REPO}" --remove-assignee "${ASSIGNEE}"
 }
 
 post_comment() {
@@ -73,7 +73,7 @@ msg_spam_limit_exceeded() {
   cat <<EOF
 Hi @$ASSIGNEE, this is the Assignment Bot.
 
-⚠️ **Assignment Limit Exceeded**
+:warning: **Assignment Limit Exceeded**
 
 Your account currently has limited assignment privileges with a maximum of **1 open assignment** at a time.
 
