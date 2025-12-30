@@ -62,6 +62,7 @@ def create_secondary_client(executor_client):
         AccountCreateTransaction()
         .set_key_without_alias(private_key)
         .freeze_with(executor_client)
+        .sign(executor_client.operator_private_key)
         .execute(executor_client)
     )
 
