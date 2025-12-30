@@ -272,6 +272,7 @@ class Transaction(_Executable):
 
         # Build the transaction body for the single node
         for node_account_id in self.node_account_ids:
+            self.node_account_id = node_account_id
             self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
         
         return self
