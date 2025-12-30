@@ -75,7 +75,7 @@ async function isNewContributor(github, owner, repo, login) {
     console.log(`Unable to check if repository is a fork: ${error.message || error}`);
   }
 
-  const query = `repo:${targetOwner}/${targetRepo} type:pr state:closed is:merged author:${login}`;
+  const query = `repo:${targetOwner}/${targetRepo} type:pr is:merged author:${login}`;
 
   const hasToken = Boolean(process.env.GITHUB_TOKEN || process.env.GH_TOKEN);
   console.log(`Mentor assignment search query: ${query}`);
