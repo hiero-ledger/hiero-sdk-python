@@ -59,12 +59,17 @@ async function isNewContributor(github, owner, repo, login) {
   let targetOwner = owner;
   let targetRepo = repo;
 
+  console.log(`Checking contributor status for ${login} in ${owner}/${repo}`);
+
   try {
     const repoData = await github.rest.repos.get({ owner, repo });
+    console.log(`Repository fork status: ${repoData.data.fork}`);
     if (repoData.data.fork && repoData.data.parent) {
       targetOwner = repoData.data.parent.owner.login;
       targetRepo = repoData.data.parent.name;
       console.log(`Detected fork. Using parent repository: ${targetOwner}/${targetRepo}`);
+    } else {
+      console.log(`Not a fork or no parent found. Using current repository: ${targetOwner}/${targetRepo}`);
     }
   } catch (error) {
     console.log(`Unable to check if repository is a fork: ${error.message || error}`);
