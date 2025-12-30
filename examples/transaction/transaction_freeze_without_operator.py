@@ -16,7 +16,8 @@ from hiero_sdk_python import (
     TransactionId,
     Client,
     Network,
-    Transaction
+    Transaction,
+    ResponseCode
 )
 
 
@@ -86,17 +87,22 @@ def sign_and_execute(unsigned_bytes, executor_client):
     Deserialize a transaction from bytes, sign it using the executor client,
     and execute it on the Hedera network.
     """
-    tx = Transaction.from_bytes(unsigned_bytes)
-    print("Transaction deserialized (unsigned).")
+    try:
+        tx = Transaction.from_bytes(unsigned_bytes)
+        print("Transaction deserialized (unsigned).")
 
-    tx.sign(executor_client.operator_private_key)
-    print("Transaction signed by executor.")
+        tx.sign(executor_client.operator_private_key)
+        print("Transaction signed by executor.")
 
-    receipt = tx.execute(executor_client)
-    print("Transaction executed successfully.")
-    print("Receipt:", receipt)
+        receipt = tx.execute(executor_client)
+        if receipt.status != ResponseCode.SUCCESS:
+            raise RuntimeError(f"Transaction failed with status: {ResponseCode(receipt.status).name}")
+        
+        print("Transaction executed successfully.")
+        print("Receipt:", receipt)
 
-    return receipt
+    except Exception as exc:
+        raise RuntimeError(f"Transaction execution failed: {exc}") from exc 
 
 
 def main():
