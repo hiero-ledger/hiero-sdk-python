@@ -699,7 +699,7 @@ def test_map_response_raises_if_proto_request_is_not_transaction():
     mock_node_id = None  
     invalid_proto_request = object() 
 
-    with pytest.raises(ValueError, match="Expected Transaction but got"):
+    with pytest.raises(TypeError, match="Expected Transaction but got"):
         tx._map_response(
             response=mock_response,
             node_id=mock_node_id,
