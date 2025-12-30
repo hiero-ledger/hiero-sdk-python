@@ -78,20 +78,25 @@ async function isNewContributor(github, owner, repo, login) {
   try {
     console.log(`Checking for merged PRs by ${login} in ${targetOwner}/${targetRepo}`);
     
-    const pullRequests = await github.paginate(github.rest.pulls.list, {
+    const iterator = github.paginate.iterator(github.rest.pulls.list, {
       owner: targetOwner,
       repo: targetRepo,
       state: 'closed',
+      sort: 'updated',
+      direction: 'desc',
       per_page: 100,
     });
 
-    const mergedPRs = pullRequests.filter(pr => pr.user?.login === login && pr.merged_at !== null);
-    const totalCount = mergedPRs.length;
+    for await (const { data: pullRequests } of iterator) {
+      const mergedPR = pullRequests.find(pr => pr.user?.login === login && pr.merged_at !== null);
+      if (mergedPR) {
+        console.log(`Found merged PR #${mergedPR.number} by ${login}. Not a new contributor.`);
+        return false;
+      }
+    }
     
-    console.log(`Merged PR count for ${login}: ${totalCount}`);
-    const isNewStarter = totalCount === 0;
-    console.log(`Is ${login} considered a new starter? ${isNewStarter}`);
-    return isNewStarter;
+    console.log(`No merged PRs found for ${login}. Considered a new starter.`);
+    return true;
   } catch (error) {
     console.log(`Unable to determine merged PRs for ${login}:`, error.message || error);
     // Return null (skip assignment) on API errors to avoid workflow failure while preserving accurate logging
