@@ -56,7 +56,21 @@ function hasGoodFirstIssueLabel(issue) {
 }
 
 async function isNewContributor(github, owner, repo, login) {
-  const query = `repo:${owner}/${repo} type:pr state:closed is:merged author:${login}`;
+  let targetOwner = owner;
+  let targetRepo = repo;
+
+  try {
+    const repoData = await github.rest.repos.get({ owner, repo });
+    if (repoData.data.fork && repoData.data.parent) {
+      targetOwner = repoData.data.parent.owner.login;
+      targetRepo = repoData.data.parent.name;
+      console.log(`Detected fork. Using parent repository: ${targetOwner}/${targetRepo}`);
+    }
+  } catch (error) {
+    console.log(`Unable to check if repository is a fork: ${error.message || error}`);
+  }
+
+  const query = `repo:${targetOwner}/${targetRepo} type:pr state:closed is:merged author:${login}`;
 
   const hasToken = Boolean(process.env.GITHUB_TOKEN || process.env.GH_TOKEN);
   console.log(`Mentor assignment search query: ${query}`);
