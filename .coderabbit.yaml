@@ -114,7 +114,7 @@ reviews:
         - Unit tests protect our future selves - be defensive and forward-looking.
         - Tests should be readable by SDK developers:  clear names, brief docstrings, key inline comments.
         - When tests fail, we should immediately know what broke and why.
-    
+
     # --- INTEGRATION TESTS REVIEW INSTRUCTIONS ---
     - path: "tests/integration/**/*"
       instructions: |
@@ -167,6 +167,182 @@ reviews:
         - Tests should protect against regressions while being maintainable.
         - When tests fail in CI, developers should immediately understand what broke. 
         - Redundant setup code should be refactored, but clarity trumps abstraction.
+
+    # --- CUSTOM INSTRUCTIONS FOR .GITHUB DIRECTORY ---
+    - path: ".github/workflows/**/*"
+      instructions: |
+        Review workflows as security-sensitive infrastructure.
+
+        A good workflow is small, focused, and boring.
+        If a workflow is clever, generic, or overly flexible, it is a risk.
+
+        ---------------------------------------------------------
+        PRIORITY 0 — ABSOLUTE REQUIREMENTS 
+        ---------------------------------------------------------
+        - All third-party actions MUST be pinned to full commit SHAs, similar to other workflows.
+        - `permissions:` MUST be explicitly declared and minimally scoped.
+        - Workflows MUST behave safely when executed from forks.
+        - YAML MUST orchestrate steps, not implement business logic.
+        - Any workflow that mutates GitHub state MUST support dry-run mode.
+        - Workflows MUST NOT modify repository source code outside `.github/`.
+
+        ---------------------------------------------------------
+        PRIORITY 1 — SCOPE, FOCUS & RESTRAINT
+        ---------------------------------------------------------
+        - The title of each workflow must be relevant, match similar naming schemes, and match its script filename.
+        - Each workflow MUST have a single, clearly defined objective and SHOULD document this in a top-level comment.
+        - Flag workflows that:
+          - Attempt to be generic “frameworks”
+          - Include speculative or future-facing logic
+          - Perform actions unrelated to the stated goal
+        - Over-abstraction and excess flexibility are maintenance risks.
+
+        ---------------------------------------------------------
+        PRIORITY 2 — INPUT HARDENING
+        ---------------------------------------------------------
+        - Treat ALL GitHub event data as potentially hostile input, including:
+          - issue titles, bodies, and comments
+          - labels, usernames, branch names
+        - Free-form user input MUST NOT be passed directly into:
+          - shell commands
+          - gh CLI arguments
+          - Node.js exec / spawn calls
+        - Require strict allowlists or exact string matches.
+        - Flag any use of:
+          - eval or bash -c
+          - backticks or $(...) with user-controlled input
+
+        ---------------------------------------------------------
+        PRIORITY 3 — DRY-RUN & SAFE OPERATION
+        ---------------------------------------------------------
+        - Workflows that mutate state MUST expose:
+          workflow_dispatch:
+            inputs:
+              dry_run:
+                default: "true"
+        - When dry_run=true, workflows MUST:
+          - Log dry mode is active
+          - Function on dry run: never post, comment, label, assign or edit
+          - Be easy to expand in the future
+          - Exit successfully
+        - Dry-run behavior must be explicit and visible in logs.
+
+        ---------------------------------------------------------
+        PRIORITY 4 — SCRIPT EXTRACTION & CODE TRIM
+        ---------------------------------------------------------
+        - YAML should orchestrate execution only.
+        - All non-trivial logic MUST live in:
+          - `.github/scripts/*.sh`
+          - `.github/scripts/*.js`
+        - Workflow filenames and their primary scripts SHOULD share a clear, matching name.
+        - Scripts MUST remain:
+          - Purpose-built
+          - Trim and readable
+          - Easy to maintain
+        - Flag:
+          - Large `run: |` blocks
+          - Inline loops, conditionals, or API calls in YAML
+          - Overly generic helper scripts for narrow tasks
+
+        ---------------------------------------------------------
+        PRIORITY 5 — API EFFICIENCY & DISCIPLINE
+        ---------------------------------------------------------
+        - GitHub API usage must be intentional and minimal.
+        - Prefer:
+          - Aggregated queries over per-entity loops
+          - Server-side filtering over client-side iteration
+          - Reusing data already present in the event payload
+        - Pagination MUST:
+          - Be considered and justified
+          - Enforce hard upper bounds
+        - Flag:
+          - Repeated API calls inside loops
+          - Unbounded pagination
+          - Fetching data already available in context
+
+        ---------------------------------------------------------
+        PRIORITY 6 — CONCURRENCY & IDEMPOTENCY
+        ---------------------------------------------------------
+        - Workflows that mutate state MUST:
+          - Define a deterministic concurrency group
+          - Be safe under retries and parallel execution
+        - Duplicate prevention is REQUIRED:
+          - Marker-based comment detection
+          - Check-before-create logic for labels and assignments
+        - Assume workflows may:
+          - Run multiple times
+          - Be retried automatically
+          - Execute concurrently with other automations
+        - Workflows should avoid logic that duplicates or causes conflicts.
+
+        ---------------------------------------------------------
+        PRIORITY 7 — PERMISSION CORRECTNESS
+        ---------------------------------------------------------
+        - Requested permissions MUST exactly match behavior.
+        - Explicitly validate common cases:
+          - issues: write → comments, labels, assignments
+          - contents: read → repository checkout
+          - pull-requests: write → PR mutations
+        - Flag:
+          - Over-permissioned workflows
+          - Under-permissioned workflows that would fail at runtime
+          - Reliance on default permissions
+
+        ---------------------------------------------------------
+        PRIORITY 8 — LOGGING & OPERABILITY
+        ---------------------------------------------------------
+        - Logs should include, where applicable:
+          - repository
+          - workflow name
+          - issue or PR number
+          - triggering actor
+          - dry-run status
+          - decisions made (performed vs skipped)
+        - Avoid:
+          - Silent success or silent skips
+          - Raw payload dumps
+          - Any secret or token leakage
+
+    # ============================================================
+    # SHELL SCRIPTS
+    # ============================================================
+    - path: ".github/scripts/**/*.sh"
+      instructions: |
+        Treat shell scripts as production-grade automation.
+
+        Scripts should be small, focused, and explicit.
+        Avoid “do-everything” or overly generic scripts.
+
+        - MUST use: `set -euo pipefail`
+        - MUST validate all required environment variables
+        - MUST defensively quote variables
+        - MUST validate all untrusted input
+        - MUST have bounded loops and pagination
+        - MUST support dry-run mode if state is mutated
+        - MUST log key decisions and early exits
+
+    # ============================================================
+    # JAVASCRIPT SCRIPTS
+    # ============================================================
+    - path: ".github/scripts/**/*.js"
+      instructions: |
+        Review JavaScript scripts as long-lived automation code.
+
+        Scripts must remain:
+        - Focused
+        - Readable
+        - Purpose-built
+
+        - All `context.payload` fields MUST be validated
+        - Free-form text MUST NOT be trusted
+        - Dynamic code execution is prohibited
+        - Avoid `child_process.exec`; prefer `execFile` if needed
+        - All async operations MUST be wrapped in try/catch
+        - Errors MUST include contextual metadata
+        - Duplicate API calls MUST be avoided
+        - Marker-based deduplication is required
+        - Scripts MUST NOT assume write access
+        - Permission failures MUST be handled gracefully
 
 chat:
   art: false # Don't draw ASCII art (false)
