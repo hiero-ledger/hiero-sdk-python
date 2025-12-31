@@ -36,7 +36,7 @@ jobs:
         with:
           script: |
             const path = require('path')
-            const scriptPath = path.join(process.env.GITHUB_WORKSPACE, '.github/scripts/merge_conflict_helpers.js')
+            const scriptPath = path.join(process.env.GITHUB_WORKSPACE, '.github/scripts/bot-merge-conflict.js')
             console.log(`Loading script from: ${scriptPath}`)
             const script = require(scriptPath)
             await script({github, context, core})

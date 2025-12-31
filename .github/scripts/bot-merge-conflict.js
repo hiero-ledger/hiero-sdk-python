@@ -1,4 +1,4 @@
-// .github/scripts/merge_conflict_helpers.js
+// .github/scripts/bot-merge-conflict.js
 
 const BOT_SIGNATURE = '[MergeConflictBotSignature-v1]';
 
@@ -35,7 +35,7 @@ module.exports = async ({ github, context, core }) => {
       return;
     }
 
-    const body = `Hi, this is MergeConflictBot.\nYour pull request cannot be merged because it contains **merge conflicts**.\n\nPlease resolve these conflicts locally and push the changes.\n\nTo assist you, please read:\n- [Resolving Merge Conflicts](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/merge_conflicts.md)\n- [Rebasing Guide](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/rebasing.md)\n\nThank you for contributing!\nFrom the Hiero Python SDK Team\n\n${BOT_SIGNATURE}`;
+    const body = `Hi, this is MergeConflictBot.\nYour pull request cannot be merged because it contains **merge conflicts**.\n\nPlease resolve these conflicts locally and push the changes.\n\nTo assist you, please read:\n- [Resolving Merge Conflicts](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/merge_conflicts.md)\n- [Rebasing Guide](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/rebasing.md)\n\nThank you for contributing!\n<!-- \nFrom the Hiero Python SDK Team\n${BOT_SIGNATURE} -->`;
     
     await github.rest.issues.createComment({
       owner, repo, issue_number: prNumber, body: body
