@@ -71,6 +71,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added support for include duplicates in get transaction receipt query (#1166)
 - Added `.github/workflows/cron-check-broken-links.yml` workflow to perform scheduled monthly Markdown link validation across the entire repository with automatic issue creation for broken links ([#1210](https://github.com/hiero-ledger/hiero-sdk-python/issues/1210))
 - Coderabbit prompt for .github
+- Added convenient factory methods to `Hbar` class for easier instantiation: `from_microbars()`, `from_millibars()`, `from_hbars()`, `from_kilobars()`, `from_megabars()`, and `from_gigabars()`. [#1272](https://github.com/hiero-ledger/hiero-sdk-python/issues/1272)
 
 ### Changed
 - Moved `docs/sdk_developers/how_to_link_issues.md` to `docs/sdk_developers/training/workflow/how_to_link_issues.md` and updated all references (#1222)

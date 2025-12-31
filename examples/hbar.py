@@ -6,6 +6,22 @@ python examples/hbar.py
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.hbar_unit import HbarUnit
 
+def create_hbar_using_helpers():
+    """
+    Demonstrates creating Hbar values using the convenient factory methods.
+    """
+    print("\n=== Creating Hbar Using Helper Methods ===")
+
+    h_giga = Hbar.from_gigabars(1)
+
+    h_milli = Hbar.from_millibars(500)
+
+    h_standard = Hbar.from_hbars(10.5)
+
+    print(f"Hbar.from_gigabars(1): {h_giga}")
+    print(f"Hbar.from_millibars(500): {h_milli}")
+    print(f"Hbar.from_hbars(10.5): {h_standard}")
+
 def create_hbar_using_constructor():
     """
     Demonstrates creating Hbar values using the constructor.
@@ -144,7 +160,7 @@ def run_example():
     demonstrate_conversion_methods()
     demonstrate_negation()
     demonstrate_constants()
-
+    create_hbar_using_helpers()
 
 if __name__ == "__main__":
     run_example()

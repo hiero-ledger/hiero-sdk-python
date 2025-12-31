@@ -150,3 +150,32 @@ def test_comparison():
     assert (h1 == 5) is False
     with pytest.raises(TypeError):
         _ = h1 < 5
+        
+def test_factory_methods():
+    """Test the convenient from_X factory methods."""
+    
+    # from_microbars
+    # 1 microbar = 100 tinybars
+    assert Hbar.from_microbars(1).to_tinybars() == 100
+    assert Hbar.from_microbars(1.5).to_tinybars() == 150
+
+    # from_millibars
+    # 1 millibar = 100,000 tinybars
+    assert Hbar.from_millibars(1).to_tinybars() == 100_000
+
+    # from_hbars
+    # 1 hbar = 100,000,000 tinybars
+    assert Hbar.from_hbars(1).to_tinybars() == 100_000_000
+    assert Hbar.from_hbars(0.00000001).to_tinybars() == 1
+
+    # from_kilobars
+    # 1 kilobar = 1,000 hbars
+    assert Hbar.from_kilobars(1).to_hbars() == 1_000
+
+    # from_megabars
+    # 1 megabar = 1,000,000 hbars
+    assert Hbar.from_megabars(1).to_hbars() == 1_000_000
+
+    # from_gigabars
+    # 1 gigabar = 1,000,000,000 hbars
+    assert Hbar.from_gigabars(1).to_hbars() == 1_000_000_000

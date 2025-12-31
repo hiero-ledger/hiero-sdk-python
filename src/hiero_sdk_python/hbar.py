@@ -107,6 +107,48 @@ class Hbar:
         if not isinstance(tinybars, int):
             raise TypeError("tinybars must be an int.")
         return cls(tinybars, unit=HbarUnit.TINYBAR)
+    
+    @classmethod
+    def from_microbars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar instance from the given amount in microbars.
+        """
+        return cls(amount, unit=HbarUnit.MICROBAR)
+
+    @classmethod
+    def from_millibars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar instance from the given amount in millibars.
+        """
+        return cls(amount, unit=HbarUnit.MILLIBAR)
+
+    @classmethod
+    def from_hbars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar instance from the given amount in hbars.
+        """
+        return cls(amount, unit=HbarUnit.HBAR)
+
+    @classmethod
+    def from_kilobars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar instance from the given amount in kilobars.
+        """
+        return cls(amount, unit=HbarUnit.KILOBAR)
+
+    @classmethod
+    def from_megabars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar instance from the given amount in megabars.
+        """
+        return cls(amount, unit=HbarUnit.MEGABAR)
+
+    @classmethod
+    def from_gigabars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar instance from the given amount in gigabars.
+        """
+        return cls(amount, unit=HbarUnit.GIGABAR)
 
     @classmethod
     def from_string(cls, amount: str, unit: HbarUnit = HbarUnit.HBAR) -> "Hbar":
