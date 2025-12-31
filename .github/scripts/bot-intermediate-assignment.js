@@ -42,21 +42,37 @@ async function hasExemptPermission(github, owner, repo, username) {
   }
 }
 
-function buildGfiSearchQuery(owner, repo, username) {
-  const sanitizedLabel = JSON.stringify(GFI_LABEL).slice(1, -1);
-  return `repo:${owner}/${repo} label:"${sanitizedLabel}" state:closed assignee:${username}`;
-}
-
 async function countCompletedGfiIssues(github, owner, repo, username) {
-  const query = buildGfiSearchQuery(owner, repo, username);
-
   try {
-    const response = await github.rest.search.issuesAndPullRequests({
-      q: query,
-      per_page: 1,
+    const iterator = github.paginate.iterator(github.rest.issues.listForRepo, {
+      owner,
+      repo,
+      state: 'closed',
+      labels: GFI_LABEL,
+      assignee: username,
+      sort: 'updated',
+      direction: 'desc',
+      per_page: 100,
     });
 
-    return response?.data?.total_count || 0;
+    const normalizedAssignee = username.toLowerCase();
+
+    for await (const { data: issues } of iterator) {
+      const match = issues.find((issue) => {
+        if (issue.pull_request) {
+          return false;
+        }
+
+        const assignees = Array.isArray(issue.assignees) ? issue.assignees : [];
+        return assignees.some((assignee) => assignee?.login?.toLowerCase() === normalizedAssignee);
+      });
+
+      if (match) {
+        return 1;
+      }
+    }
+
+    return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.log(`Unable to verify completed GFIs for ${username}: ${message}`);
