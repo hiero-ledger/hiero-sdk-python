@@ -163,7 +163,6 @@ def populate_evm_address_example(client, created_account_id, evm_address):
 
 def main():
     client = setup_client()
-    client.set_transport_security(False)
 
     evm_address = generate_evm_address()
     print(f"Generated EVM address: {evm_address}")
