@@ -2,6 +2,7 @@
 Client module for interacting with the Hedera network.
 """
 
+import os
 from typing import NamedTuple, List, Union, Optional
 
 import grpc
@@ -24,7 +25,7 @@ class Operator(NamedTuple):
 
 class Client:
     """
-    Client to interact with Hedera network services including mirror nodes and transactions.
+    Client to interact with Hedera network services including mirror nodes and transactions. 
     """
     def __init__(self, network: Network = None) -> None:
         """
@@ -46,6 +47,93 @@ class Client:
         self._init_mirror_stub()
 
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
+
+    @classmethod
+    def from_env(cls, network: Optional[str] = None) -> "Client":
+        """
+        Create a Client using environment variables. 
+
+        Args:
+            network (str, optional): Override the network ("testnet", "mainnet", "previewnet").
+                                     If not provided, uses HEDERA_NETWORK env var. 
+                                     Defaults to "testnet".
+
+        Returns:
+            Client: A configured Client instance with operator set. 
+
+        Raises:
+            ValueError:  If OPERATOR_ID or OPERATOR_KEY environment variables are not set. 
+
+        Example:
+            client = Client.from_env()
+            # or with explicit network
+            client = Client.from_env("mainnet")
+        """
+        network_name = network or os.getenv("HEDERA_NETWORK", "testnet").lower()
+
+        operator_id_str = os.getenv("OPERATOR_ID")
+        operator_key_str = os.getenv("OPERATOR_KEY")
+
+        if not operator_id_str: 
+            raise ValueError("OPERATOR_ID environment variable is required for Client. from_env()")
+        if not operator_key_str:
+            raise ValueError("OPERATOR_KEY environment variable is required for Client.from_env()")
+
+        operator_id = AccountId.from_string(operator_id_str)
+        operator_key = PrivateKey.from_string(operator_key_str)
+
+        client = cls(Network(network_name))
+        client.set_operator(operator_id, operator_key)
+
+        return client
+
+    @classmethod
+    def for_testnet(cls) -> "Client":
+        """
+        Create a Client configured for Hedera Testnet. 
+        
+        Note:  Operator must be set manually using set_operator().
+
+        Returns:
+            Client: A Client instance configured for testnet. 
+
+        Example:
+            client = Client.for_testnet()
+            client.set_operator(operator_id, operator_key)
+        """
+        return cls(Network("testnet"))
+
+    @classmethod
+    def for_mainnet(cls) -> "Client":
+        """
+        Create a Client configured for Hedera Mainnet.
+        
+        Note: Operator must be set manually using set_operator().
+
+        Returns:
+            Client: A Client instance configured for mainnet.
+
+        Example:
+            client = Client.for_mainnet()
+            client.set_operator(operator_id, operator_key)
+        """
+        return cls(Network("mainnet"))
+
+    @classmethod
+    def for_previewnet(cls) -> "Client":
+        """
+        Create a Client configured for Hedera Previewnet.
+        
+        Note: Operator must be set manually using set_operator().
+
+        Returns:
+            Client: A Client instance configured for previewnet.
+
+        Example:
+            client = Client. for_previewnet()
+            client.set_operator(operator_id, operator_key)
+        """
+        return cls(Network("previewnet"))
 
     def _init_mirror_stub(self) -> None:
         """
@@ -130,7 +218,7 @@ class Client:
         Enable or disable verification of server certificates when TLS is enabled.
         
         Note:
-            Certificate verification is enabled by default for all networks.
+            Certificate verification is enabled by default for all networks. 
             Use this method to disable verification (e.g., for testing with self-signed certificates).
         """
         self.network.set_verify_certificates(verify)
