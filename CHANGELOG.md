@@ -74,6 +74,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `transfer_transaction_gigabar.py` example demonstrating `GIGABAR` unit usage for large-value transfers. ([#1249](https://github.com/hiero-ledger/hiero-sdk-python/issues/1249))
 - Coderabbit prompt for .github
 - Added merge conflict bot workflow (`.github/workflows/bot-merge-conflict.yml`) and helper script (`.github/scripts/bot-merge-conflict.js`) to detect and notify about PR merge conflicts, with retry logic for unknown mergeable states, idempotent commenting, and push-to-main recheck logic (#1247)
+- Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 
 ### Changed
 - Bumped requests from 2.32.3 to 2.32.4 to 2.32.5

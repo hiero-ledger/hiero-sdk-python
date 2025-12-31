@@ -314,7 +314,7 @@ class AccountId:
 
     def populate_evm_address(self, client: "Client") -> "AccountId":
         """Populate the EVM address using the Mirror Node."""
-        if self.num is None:
+        if self.num is None or self.num == 0:
             raise ValueError("Account number is required before populating evm_address")
 
         url = f"{client.network.get_mirror_rest_url()}/accounts/{self.num}"
