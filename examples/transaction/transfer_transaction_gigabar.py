@@ -80,7 +80,7 @@ def transfer_gigabars(client, operator_id, recipient_id, operator_key):
     try:
         receipt = (
             TransferTransaction()
-            .add_hbar_transfer(operator_id, -amount)
+            .add_hbar_transfer(operator_id, amount.negated())
             .add_hbar_transfer(recipient_id, amount)
             .freeze_with(client)
             .sign(operator_key)
