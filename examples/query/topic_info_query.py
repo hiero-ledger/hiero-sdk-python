@@ -3,7 +3,6 @@ uv run examples/query/topic_info_query.py
 python examples/query/topic_info_query.py
 
 """
-
 import sys
 from hiero_sdk_python import (
     Client,
