@@ -35,12 +35,8 @@ def query_topic_info():
     A full example that create a topic and query topic info for that topic.
     """
     # Config Client
-    try:
-        client = Client.from_env()
-        print(f"✅ Connected to Hedera {client.network.network} network! \n  Operator:  {client.operator_account_id}")
-    except ValueError as e:
-        print(f"❌ Failed to setup client: {e}")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Operator: {client.operator_account_id}")
 
     # Create a new Topic
     topic_id = create_topic(client, client.operator_private_key)

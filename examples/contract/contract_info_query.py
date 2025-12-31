@@ -83,12 +83,8 @@ def query_contract_info():
     3. Creating a contract using the file
     4. Querying the contract info
     """
-    try:
-        client = Client.from_env()
-        print(f"✅ Connected to Hedera {client.network.network} network! \n  Operator:  {client.operator_account_id}")
-    except ValueError as e:
-        print(f"❌ Failed to setup client: {e}")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Operator: {client.operator_account_id}")
 
     file_id = create_contract_file(client)
 

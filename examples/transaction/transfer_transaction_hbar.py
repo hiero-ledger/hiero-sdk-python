@@ -94,12 +94,8 @@ def main():
     3. Transfer HBAR from operator to new account.
     4. Verify balance updates.
     """
-    try:
-        client = Client.from_env()
-        print(f"Connected to network with Operator ID: {client.operator_account_id}")
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Operator: {client.operator_account_id}")
 
     # 2. Create recipient account.
     recipient_id, _ = create_account(client)

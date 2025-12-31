@@ -3,7 +3,7 @@ Client module for interacting with the Hedera network.
 """
 
 import os
-from typing import NamedTuple, List, Union, Optional
+from typing import NamedTuple, List, Union, Optional, Literal
 from dotenv import load_dotenv
 import grpc
 
@@ -50,32 +50,30 @@ class Client:
 
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
+    NetworkName = Literal["mainnet", "testnet", "previewnet"]
     @classmethod
-    def from_env(cls, network: Optional[str] = None) -> "Client":
+    def from_env(cls, network: Optional[NetworkName] = None) -> "Client":
         """
-        Create a Client using environment variables.
+        Initialize client from environment variables.
+        Automatically loads .env file if present.
 
         Args:
             network (str, optional): Override the network ("testnet", "mainnet", "previewnet").
-                                     If not provided, uses HEDERA_NETWORK env var.
-                                     Defaults to "testnet".
-
-        Returns:
-            Client: A configured Client instance with operator set.
+                                     If not provided, checks 'NETWORK' env var. 
+                                     Defaults to 'testnet' if neither is set.
 
         Raises:
             ValueError: If OPERATOR_ID or OPERATOR_KEY environment variables are not set.
 
         Example:
+            # Defaults to testnet if no env vars set
             client = Client.from_env()
-            # or with explicit network
-            client = Client.from_env("mainnet")
         """
         
         if network:
             network_name = network
         else:
-            network_name = os.getenv('HEDERA_NETWORK') or os.getenv('NETWORK') or 'testnet'
+            network_name = os.getenv('NETWORK') or 'testnet'
 
         network_name = network_name.lower()
         
