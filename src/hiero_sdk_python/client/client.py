@@ -69,7 +69,8 @@ class Client:
             # or with explicit network
             client = Client.from_env("mainnet")
         """
-        network_name = network or os.getenv("HEDERA_NETWORK", "testnet").lower()
+        network_name = os.getenv('NETWORK', 'testnet').lower()
+        client = cls(Network(network_name))
 
         operator_id_str = os.getenv("OPERATOR_ID")
         operator_key_str = os.getenv("OPERATOR_KEY")
@@ -82,7 +83,6 @@ class Client:
         operator_id = AccountId.from_string(operator_id_str)
         operator_key = PrivateKey.from_string(operator_key_str)
 
-        client = cls(Network(network_name))
         client.set_operator(operator_id, operator_key)
 
         return client

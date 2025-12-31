@@ -37,9 +37,7 @@ from hiero_sdk_python import (
     ResponseCode,
 )
 
-# Added override=True to ensure .env values take precedence
-load_dotenv(override=True)
-
+load_dotenv()
 
 def setup_client() -> Client:
     """
