@@ -139,7 +139,7 @@ def test_to_solidity_address_zero_values():
 
 def test_to_solidity_address_out_of_range():
     shard, realm, num = 2**31, 0, 0
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="shard out of 32-bit range"):
         to_solidity_address(shard, realm, num)
 
 def test_perform_query_to_mirror_node_success():
@@ -159,11 +159,9 @@ def test_perform_query_to_mirror_node_failure():
     with patch("hiero_sdk_python.utils.entity_id_helper.requests.get") as mock_get:
         mock_get.side_effect = requests.RequestException("boom")
 
-        try:
+        with pytest.raises(RuntimeError, match="Unexpected error while querying mirror node:"):
             perform_query_to_mirror_node("http://mirror-node/accounts/123")
-            assert False, "Should have raised RuntimeError"
-        except RuntimeError as e:
-            assert "Unexpected error while querying mirror node:" in str(e)
+
 
 def test_perform_query_to_mirror_node_http_error():
     """
