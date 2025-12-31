@@ -3,7 +3,7 @@ const path = require('path');
 
 const COMMENT_MARKER = process.env.COMMENT_MARKER || '<!-- Mentor Assignment Bot -->';
 const MENTOR_TEAM_ALIAS = process.env.MENTOR_TEAM_ALIAS || '@hiero-ledger/hiero-sdk-python-triage';
-const SUPPORT_TEAM_ALIAS = process.env.SUPPORT_TEAM_ALIAS || '@hiero-ledger/hiero-sdk-python-good-first-issue-support';
+const SUPPORT_TEAM_ALIAS = process.env.SUPPORT_TEAM_ALIAS || '@hiero-ledger/hiero-sdk-good-first-issue-support';
 const DEFAULT_ROSTER_FILE = '.github/mentor_roster.json';
 
 function loadMentorRoster() {
