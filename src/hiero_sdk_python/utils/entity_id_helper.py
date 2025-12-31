@@ -128,7 +128,6 @@ def format_to_string_with_checksum(shard: int, realm: int, num: int, client: "Cl
 
 def perform_query_to_mirror_node(url: str, timeout: float=10) -> Dict[str, Any]:
     """Perform a GET request to the Hedera Mirror Node REST API."""
-    print(url)
     if not isinstance(url, str) or not url:
         raise ValueError("url must be a non-empty string")
 
@@ -145,11 +144,10 @@ def perform_query_to_mirror_node(url: str, timeout: float=10) -> Dict[str, Any]:
         raise RuntimeError(f"Mirror node request timed out for {url}") from e
 
     except requests.RequestException as e:
-        print(e)
         raise RuntimeError(f"Unexpected error while querying mirror node: {url}")
     
 def to_solidity_address(shard: int, realm: int, num: int) -> str:
-    """Convert EVM address bytes to hex string or account num to long-zero EVM address."""
+    """Convert entity ID components to a 20-byte Solidity-style address (long-zero format)."""
     # Check shard fits in 32-bit range
     if shard.bit_length() > 31:
         raise ValueError(f"shard out of 32-bit range {shard}")
