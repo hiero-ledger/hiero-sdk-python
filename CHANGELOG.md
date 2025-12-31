@@ -73,6 +73,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Coderabbit prompt for .github
 - Added merge conflict bot workflow (`.github/workflows/bot-merge-conflict.yml`) and helper script (`.github/scripts/bot-merge-conflict.js`) to detect and notify about PR merge conflicts, with retry logic for unknown mergeable states, idempotent commenting, and push-to-main recheck logic (#1247)
 
+### Fixed
+- Fixed step-security/harden-runner action SHA in merge conflict bot workflow (#1278)
+
 ### Changed
 - Bumped requests from 2.32.3 to 2.32.4 to 2.32.5
 - Moved `docs/sdk_developers/how_to_link_issues.md` to `docs/sdk_developers/training/workflow/how_to_link_issues.md` and updated all references (#1222)
