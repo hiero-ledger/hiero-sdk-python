@@ -73,7 +73,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Coderabbit prompt for .github
 
 ### Changed
-- Bumped requests from 2.32.2 to 2.32.4 to 2.32.5
+- Bumped requests from 2.32.3 to 2.32.4 to 2.32.5
 - Moved `docs/sdk_developers/how_to_link_issues.md` to `docs/sdk_developers/training/workflow/how_to_link_issues.md` and updated all references (#1222)
 - Moved docs/sdk_developers/project_structure.md to docs/sdk_developers/training/setup/project_structure.md and ensured all previous references are updated [#1223](https://github.com/hiero-ledger/hiero-sdk-python/issues/1223)
 - Renamed workflow scripts in `.github/scripts/` to match their corresponding workflow file names for improved consistency and maintainability (#1198)
