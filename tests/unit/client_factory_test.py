@@ -6,9 +6,9 @@ import os
 import pytest
 from unittest.mock import patch
 
-from hiero_sdk_python. client.client import Client
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python. crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.private_key import PrivateKey
 
 
 class TestClientForTestnet:
@@ -23,8 +23,8 @@ class TestClientForTestnet:
     def test_for_testnet_network_is_testnet(self):
         """Test that for_testnet creates client with testnet network."""
         client = Client.for_testnet()
-        assert client.network. network == "testnet"
-        client. close()
+        assert client.network.network == "testnet"
+        client.close()
 
     def test_for_testnet_operator_not_set(self):
         """Test that for_testnet does not set operator automatically."""
@@ -35,7 +35,7 @@ class TestClientForTestnet:
         client.close()
 
 
-class TestClientForMainnet: 
+class TestClientForMainnet:
     """Tests for Client.for_mainnet() class method."""
 
     def test_for_mainnet_returns_client(self):
@@ -53,7 +53,7 @@ class TestClientForMainnet:
     def test_for_mainnet_operator_not_set(self):
         """Test that for_mainnet does not set operator automatically."""
         client = Client.for_mainnet()
-        assert client. operator_account_id is None
+        assert client.operator_account_id is None
         assert client.operator_private_key is None
         client.close()
 
@@ -135,7 +135,7 @@ class TestClientFromEnv:
             "HEDERA_NETWORK": "testnet",  # This should be ignored
         }
 
-        with patch. dict(os.environ, env_vars, clear=True):
+        with patch.dict(os.environ, env_vars, clear=True):
             client = Client.from_env(network="mainnet")
 
             assert client.network.network == "mainnet"
@@ -149,13 +149,13 @@ class TestClientFromEnv:
         env_vars = {
             "OPERATOR_ID": "0.0.9999",
             "OPERATOR_KEY": test_key_str,
-            "HEDERA_NETWORK":  "previewnet",
+            "HEDERA_NETWORK": "previewnet",
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
             client = Client.from_env()
 
-            assert client. network.network == "previewnet"
+            assert client.network.network == "previewnet"
             client.close()
 
     def test_from_env_defaults_to_testnet(self):
@@ -172,7 +172,7 @@ class TestClientFromEnv:
             client = Client.from_env()
 
             assert client.network.network == "testnet"
-            client. close()
+            client.close()
 
     def test_from_env_network_case_insensitive(self):
         """Test that from_env handles network name case insensitively."""
@@ -188,7 +188,7 @@ class TestClientFromEnv:
         with patch.dict(os.environ, env_vars, clear=True):
             client = Client.from_env()
 
-            assert client. network.network == "mainnet"
+            assert client.network.network == "mainnet"
             client.close()
 
     def test_from_env_sets_operator_correctly(self):
@@ -205,8 +205,8 @@ class TestClientFromEnv:
             client = Client.from_env()
 
             assert client.operator is not None
-            assert client.operator. account_id == AccountId.from_string("0.0.3333")
-            assert client.operator. private_key is not None
+            assert client.operator.account_id == AccountId.from_string("0.0.3333")
+            assert client.operator.private_key is not None
             client.close()
 
 
@@ -236,7 +236,7 @@ class TestClientFactoryMethodsIntegration:
 
         client.set_operator(operator_id, operator_key)
 
-        assert client. operator_account_id == operator_id
+        assert client.operator_account_id == operator_id
         assert client.operator_private_key == operator_key
         client.close()
 

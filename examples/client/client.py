@@ -3,19 +3,19 @@ Complete network and client setup example with detailed logging.
 
 This example demonstrates multiple ways to create a Client: 
 1. Traditional setup (Network + Client + set_operator)
-2. Client. from_env() - Automatic setup from environment variables
+2. Client.from_env() - Automatic setup from environment variables
 3. Client.for_testnet() / for_mainnet() / for_previewnet() - Network-specific factories
 
 Usage:
-    uv run examples/client/client. py
+    uv run examples/client/client.py
     python examples/client/client.py
 """
 import os
 from dotenv import load_dotenv
 
-from hiero_sdk_python. client. network import Network
+from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.account. account_id import AccountId
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
 load_dotenv()
@@ -38,7 +38,7 @@ def traditional_setup():
     client = Client(network)
 
     print("Step 3: Configuring operator credentials")
-    operator_id = AccountId. from_string(os.getenv("OPERATOR_ID", "0.0.0"))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", "0.0.0"))
     operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     client.set_operator(operator_id, operator_key)
     print(f"   Operator set:  {client.operator_account_id}")
@@ -84,14 +84,14 @@ def network_factory_setup():
     mainnet_client = Client.for_mainnet()
     previewnet_client = Client.for_previewnet()
 
-    print(f"   Client. for_testnet() -> {testnet_client.network. network}")
+    print(f"   Client.for_testnet() -> {testnet_client.network.network}")
     print(f"   Client.for_mainnet() -> {mainnet_client.network.network}")
     print(f"   Client.for_previewnet() -> {previewnet_client.network.network}")
 
     # Set operator on testnet client for demo
     print("\nSetting operator on testnet client...")
-    operator_id = AccountId. from_string(os.getenv("OPERATOR_ID", "0.0.0"))
-    operator_key = PrivateKey. from_string(os.getenv("OPERATOR_KEY", ""))
+    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", "0.0.0"))
+    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
     testnet_client.set_operator(operator_id, operator_key)
     print(f"   Operator set:  {testnet_client.operator_account_id}")
 

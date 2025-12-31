@@ -37,7 +37,8 @@ from hiero_sdk_python import (
     ResponseCode,
 )
 
-load_dotenv()
+# Added override=True to ensure .env values take precedence
+load_dotenv(override=True)
 
 
 def setup_client() -> Client:
@@ -63,7 +64,7 @@ def setup_client() -> Client:
         return client
     except ValueError as e:
         print(f"❌ Failed to setup client: {e}")
-        print("\nPlease ensure your . env file contains:")
+        print("\nPlease ensure your .env file contains:")
         print("  OPERATOR_ID=0.0.xxxxx")
         print("  OPERATOR_KEY=your_private_key")
         print("  HEDERA_NETWORK=testnet  (optional, defaults to testnet)")
@@ -100,7 +101,7 @@ def create_new_account(client: Client) -> None:
         New Account Private Key:  302e020100300506032b657004220420... 
         New Account Public Key: 302a300506032b6570032100...
     """
-    new_account_private_key = PrivateKey. generate("ed25519")
+    new_account_private_key = PrivateKey.generate("ed25519")
     new_account_public_key = new_account_private_key.public_key()
 
     # Get the operator key from the client for signing
@@ -114,6 +115,7 @@ def create_new_account(client: Client) -> None:
     )
 
     try:
+        # Explicit signing with key retrieved from client
         receipt = transaction.freeze_with(client).sign(operator_key).execute(client)
         print(f"Transaction status: {receipt.status}")
 
@@ -125,7 +127,7 @@ def create_new_account(client: Client) -> None:
         if new_account_id is not None:
             print(f"✅ Account creation successful. New Account ID: {new_account_id}")
             print(f"   New Account Private Key: {new_account_private_key.to_string()}")
-            print(f"   New Account Public Key: {new_account_public_key. to_string()}")
+            print(f"   New Account Public Key: {new_account_public_key.to_string()}")
         else:
             raise Exception("AccountID not found in receipt.  Account may not have been created.")
 
