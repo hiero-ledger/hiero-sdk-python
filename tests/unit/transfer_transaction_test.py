@@ -112,7 +112,6 @@ def test_add_hbar_transfer(mock_account_ids):
 def test_add_nft_transfer(mock_account_ids):
     """Test adding NFT transfers and ensure amounts are correctly added."""
     account_id_sender, account_id_recipient, _, token_id_1, _ = mock_account_ids
-    transfer_tx = TransferTransaction()
 
     transfer_tx.add_nft_transfer(
         NftId(token_id_1, 0), account_id_sender, account_id_recipient, True

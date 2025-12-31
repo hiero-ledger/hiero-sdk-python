@@ -111,7 +111,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - Fixed the README account balance example to use correct SDK APIs and provide a runnable testnet setup. (#1250)
 - Fix token association verification in `token_airdrop_transaction.py` to correctly check if tokens are associated by using `token_id in token_balances` instead of incorrectly displaying zero balances which was misleading (#[815])
@@ -154,7 +154,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
 
@@ -215,7 +215,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - chore: updated solo action to avoid v5
 - chore: fix test.yml workflow to log import errors (#740)
@@ -274,7 +274,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - Added explicit read permissions to examples.yml (#623)
 - Removed deprecated Logger.warn() method and legacy parameter swap logic from get_logger() (#673).
@@ -348,7 +348,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - Add type hints to `setup_client()` and `create_new_account()` functions in `examples/account_create.py` (#418)
 - Added explicit read and write permissions to test.yml
@@ -398,7 +398,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - Incompatible Types assignment in token_transfer_list.py
 - Corrected references to \_require_not_frozen() and removed the surplus \_is_frozen
@@ -468,7 +468,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - Format account_create_transaction.py and add type hints
 - Format account_balance.py and fix pylint issues
@@ -544,7 +544,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - missing ECDSA support in query.py and contract_create_transaction.py (was only creating ED25519 keys)
 - Applied linting and code formatting across the consensus module
@@ -643,7 +643,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - fixed INVALID_NODE_ACCOUNT during node switching
 - fixed ed25519 key ambiguity (PrivateKey.from_string -> PrivateKey.from_string_ed25519 in examples)
@@ -664,7 +664,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - PR checks
 - misnamed parameter (ECDSASecp256k1=pub_bytes -> ECDSA_secp256k1=pub_bytes)
@@ -703,7 +703,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ### Fixed
 
-- Fixed typo in workflow.md documentation - changed 'reslve' to 'resolve' in the changelog update section (#1248)
+
 
 - N/A
 
