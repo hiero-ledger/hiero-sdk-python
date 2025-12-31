@@ -111,12 +111,10 @@ def create_new_account(client: Client) -> None:
         .set_key(new_account_public_key)
         .set_initial_balance(100000000)  # 1 HBAR in tinybars
         .set_account_memo("My new account")
-        .freeze_with(client)
-        .sign(operator_key)
     )
 
     try:
-        receipt = transaction.execute(client)
+        receipt = transaction.freeze_with(client).sign(operator_key).execute(client)
         print(f"Transaction status: {receipt.status}")
 
         if receipt.status != ResponseCode.SUCCESS:
