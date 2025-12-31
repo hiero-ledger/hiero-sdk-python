@@ -39,36 +39,6 @@ from hiero_sdk_python import (
 
 load_dotenv()
 
-def setup_client() -> Client:
-    """
-    Set up and configure a Hedera client using environment variables. 
-
-    Uses Client.from_env() which automatically: 
-    - Reads HEDERA_NETWORK (defaults to "testnet")
-    - Reads OPERATOR_ID (required)
-    - Reads OPERATOR_KEY (required)
-    - Creates and configures the client with operator
-
-    Returns:
-        Client:  Configured Hedera client instance with operator set
-
-    Raises:
-        ValueError: If OPERATOR_ID or OPERATOR_KEY environment variables are not set
-    """
-    try:
-        client = Client.from_env()
-        print(f"✅ Connected to Hedera {client.network.network} network!")
-        print(f"   Operator:  {client.operator_account_id}")
-        return client
-    except ValueError as e:
-        print(f"❌ Failed to setup client: {e}")
-        print("\nPlease ensure your .env file contains:")
-        print("  OPERATOR_ID=0.0.xxxxx")
-        print("  OPERATOR_KEY=your_private_key")
-        print("  HEDERA_NETWORK=testnet  (optional, defaults to testnet)")
-        sys.exit(1)
-
-
 def create_new_account(client: Client) -> None:
     """
     Create a new Hedera account with generated keys and initial balance.
@@ -133,8 +103,12 @@ def create_new_account(client: Client) -> None:
         print(f"❌ Account creation failed: {str(e)}")
         sys.exit(1)
 
-
 if __name__ == "__main__": 
-    client = setup_client()
+    try:
+        client = Client.from_env()
+        print(f"✅ Connected to Hedera {client.network.network} network! \n  Operator:  {client.operator_account_id}")
+    except ValueError as e:
+        print(f"❌ Failed to setup client: {e}")
+        sys.exit(1)
     create_new_account(client)
     client.close()

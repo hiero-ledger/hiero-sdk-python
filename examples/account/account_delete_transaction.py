@@ -5,32 +5,15 @@ uv run examples/account/account_delete_transaction.py
 python examples/account/account_delete_transaction.py
 
 """
-import os
 import sys
-
-from dotenv import load_dotenv
-
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey
-from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
-from hiero_sdk_python.response_code import ResponseCode
-
-load_dotenv()
-
-network_name = os.getenv('NETWORK', 'testnet').lower()
-
-def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
-    print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client
+from hiero_sdk_python import (
+    Client, 
+    Hbar, 
+    PrivateKey,
+    AccountCreateTransaction,
+    AccountDeleteTransaction,
+    ResponseCode
+)
 
 def create_account(client):
     """Create a test account"""
@@ -66,7 +49,7 @@ def account_delete():
     2. Creating an account
     3. Deleting the account
     """
-    client = setup_client()
+    client = Client.from_env()
 
     # Create an account first
     account_id, account_private_key = create_account(client)

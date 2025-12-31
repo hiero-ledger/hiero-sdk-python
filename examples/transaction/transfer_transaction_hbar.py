@@ -5,49 +5,21 @@ Usage:
     python examples/transaction/transfer_transaction_hbar.py
 """
 
-import os
 import sys
-
-from dotenv import load_dotenv
-
 from hiero_sdk_python import (
+    Client,
+    TransferTransaction,
     AccountCreateTransaction,
     AccountId,
     Client,
     CryptoGetAccountBalanceQuery,
-    Hbar,
-    Network,
     PrivateKey,
-    ResponseCode,
-    TransferTransaction,
+    Hbar
 )
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
-HBAR_TO_TRANSFER = 1
-
-
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
-        sys.exit(1)
-
-
-def create_account(client, operator_key):
-    """Create a new recipient account."""
+def create_account(client):
+    """Create a new recipient account"""
     print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
@@ -76,6 +48,9 @@ def transfer_hbar(client, operator_id, recipient_id, operator_key):
     print("\nSTEP 2: Transferring HBAR...")
 
     amount = Hbar(HBAR_TO_TRANSFER)  # HBAR object
+
+    # We get the operator ID directly from the client now
+    operator_id = client.operator_account_id
 
     try:
         receipt = (
@@ -119,15 +94,25 @@ def main():
     3. Transfer HBAR from operator to new account.
     4. Verify balance updates.
     """
-    client, operator_id, operator_key = setup_client()
+    try:
+        client = Client.from_env()
+        print(f"Connected to network with Operator ID: {client.operator_account_id}")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
 
-    recipient_id, _ = create_account(client, operator_key)
+    # 2. Create recipient account.
+    recipient_id, _ = create_account(client)
 
-    get_balance(client, recipient_id, " before transfer")
+    # 3. Check balance
+    account_balance_query(client, recipient_id, " before transfer")
 
-    transfer_hbar(client, operator_id, recipient_id, operator_key)
+    # 4. Transfer HBAR 
+    transfer_hbar(client, recipient_id)
 
-    get_balance(client, recipient_id, " after transfer")
+    # 5. Check balance
+    account_balance_query(client, recipient_id, " after transfer")
+>>>>>>> 282a7af (Tested, its working lets see in the CI/CD.)
 
 
 if __name__ == "__main__":

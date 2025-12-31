@@ -4,7 +4,7 @@ Client module for interacting with the Hedera network.
 
 import os
 from typing import NamedTuple, List, Union, Optional
-
+from dotenv import load_dotenv
 import grpc
 
 from hiero_sdk_python.logger.logger import Logger, LogLevel
@@ -17,6 +17,8 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
 from .network import Network
+
+load_dotenv()
 
 class Operator(NamedTuple):
     """A named tuple for the operator's account ID and private key."""
@@ -69,8 +71,18 @@ class Client:
             # or with explicit network
             client = Client.from_env("mainnet")
         """
-        network_name = os.getenv('NETWORK', 'testnet').lower()
-        client = cls(Network(network_name))
+        
+        if network:
+            network_name = network
+        else:
+            network_name = os.getenv('HEDERA_NETWORK') or os.getenv('NETWORK') or 'testnet'
+
+        network_name = network_name.lower()
+        
+        try:
+            client = cls(Network(network_name))
+        except ValueError:
+            raise ValueError(f"Invalid network name: {network_name}")
 
         operator_id_str = os.getenv("OPERATOR_ID")
         operator_key_str = os.getenv("OPERATOR_KEY")
