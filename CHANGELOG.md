@@ -70,8 +70,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add Linked Issue Enforcer to automatically close PRs without linked issues `.github/workflows/bot-linked-issue-enforcer.yml`.
 - Added support for include duplicates in get transaction receipt query (#1166)
 - Added `.github/workflows/cron-check-broken-links.yml` workflow to perform scheduled monthly Markdown link validation across the entire repository with automatic issue creation for broken links ([#1210](https://github.com/hiero-ledger/hiero-sdk-python/issues/1210))
-<<<<<<< HEAD
-- Coderabbit prompt for .github
+- Coderabbit prompt for `.github`
 - Added merge conflict bot workflow (`.github/workflows/bot-merge-conflict.yml`) and helper script (`.github/scripts/bot-merge-conflict.js`) to detect and notify about PR merge conflicts, with retry logic for unknown mergeable states, idempotent commenting, and push-to-main recheck logic (#1247)
 
 ### Changed
