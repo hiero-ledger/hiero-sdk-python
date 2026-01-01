@@ -122,8 +122,8 @@ def create_account_with_ecdsa_alias(client, main_private_key, alias_private_key,
     if new_account_id is None:
         try:
             new_account_id = response.get_receipt(client).account_id
-        except Exception:
-            raise RuntimeError("AccountID not found. Account may not have been created.")
+        except Exception as err:
+            raise RuntimeError("AccountID not found. Account may not have been created.") from err
 
     print(f"✅ Account created with ID: {new_account_id}\n")
     return new_account_id
