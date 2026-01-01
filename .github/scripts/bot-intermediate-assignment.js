@@ -45,6 +45,7 @@ async function hasExemptPermission(github, owner, repo, username) {
 
 async function countCompletedGfiIssues(github, owner, repo, username) {
   try {
+    console.log(`Checking closed '${GFI_LABEL}' issues in ${owner}/${repo} for ${username}.`);
     const iterator = github.paginate.iterator(github.rest.issues.listForRepo, {
       owner,
       repo,
@@ -67,6 +68,7 @@ async function countCompletedGfiIssues(github, owner, repo, username) {
         break;
       }
 
+      console.log(`Scanning page ${pageCount} of closed '${GFI_LABEL}' issues for ${username} (items: ${issues.length}).`);
       const match = issues.find((issue) => {
         if (issue.pull_request) {
           return false;
@@ -77,6 +79,7 @@ async function countCompletedGfiIssues(github, owner, repo, username) {
       });
 
       if (match) {
+        console.log(`Found matching GFI issue #${match.number} (${match.html_url || 'no url'}) for ${username}.`);
         return 1;
       }
     }
