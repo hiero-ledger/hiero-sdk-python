@@ -18,8 +18,6 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 
 from .network import Network
 
-load_dotenv()
-
 class Operator(NamedTuple):
     """A named tuple for the operator's account ID and private key."""
     account_id: AccountId
@@ -69,6 +67,7 @@ class Client:
             # Defaults to testnet if no env vars set
             client = Client.from_env()
         """
+        load_dotenv()
         
         if network:
             network_name = network

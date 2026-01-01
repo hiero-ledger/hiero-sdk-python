@@ -67,6 +67,7 @@ class TestClientForPreviewnet:
     def test_for_previewnet_operator_not_set(self):
         client = Client.for_previewnet()
         assert client.operator_account_id is None
+        assert client.operator_private_key is None
         client.close()
 
 
@@ -128,7 +129,7 @@ class TestClientFromEnv:
         env_vars = {
             "OPERATOR_ID": "0.0.5678",
             "OPERATOR_KEY": test_key_str,
-            "NETWORK": "testnet",  # Changed from HEDERA_NETWORK
+            "NETWORK": "testnet",  # Changed from NETWORK
         }
 
         with patch.object(client_module, 'load_dotenv'):
@@ -146,7 +147,7 @@ class TestClientFromEnv:
         env_vars = {
             "OPERATOR_ID": "0.0.9999",
             "OPERATOR_KEY": test_key_str,
-            "NETWORK": "previewnet", # Changed from HEDERA_NETWORK
+            "NETWORK": "previewnet", # Changed from NETWORK
         }
 
         with patch.object(client_module, 'load_dotenv'):
@@ -181,7 +182,7 @@ class TestClientFromEnv:
         env_vars = {
             "OPERATOR_ID": "0.0.2222",
             "OPERATOR_KEY": test_key_str,
-            "NETWORK": "MAINNET", # Changed from HEDERA_NETWORK
+            "NETWORK": "MAINNET", # Changed from NETWORK
         }
 
         with patch.object(client_module, 'load_dotenv'):

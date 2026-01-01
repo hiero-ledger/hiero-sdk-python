@@ -25,7 +25,7 @@ Requirements:
 Environment Variables:
     OPERATOR_ID (str): The account ID of the operator (format: "0.0.xxxxx")
     OPERATOR_KEY (str): The private key of the operator account
-    HEDERA_NETWORK (str, optional): Network to use (default: "testnet")
+    NETWORK (str, optional): Network to use (default: "testnet")
 """
 import sys
 from dotenv import load_dotenv
