@@ -77,6 +77,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added workflow to prevent assigning intermediate issues to contributors without prior Good First Issue completion (#1143).
 
 ### Changed
+- Renamed templates for improved clarity [(#1265)]
 - Updated Good First Issue notifications to trigger only after the first comment is posted, reducing noise on unassigned issues.(#1212)
 - Bumped requests from 2.32.3 to 2.32.4 to 2.32.5
 - Moved `docs/sdk_developers/how_to_link_issues.md` to `docs/sdk_developers/training/workflow/how_to_link_issues.md` and updated all references (#1222)
