@@ -237,7 +237,7 @@ body:
         EDIT OR EXPAND THE CHECKLIST ON WHAT IS REQUIRED TO BE ABLE TO MERGE A PULL REQUEST FOR THIS ISSUE
       value: |
         To be able to merge a pull request for this issue, we need:
-        - [ ] **Changelog Entry:** Correct changelog entry (please link to the documentation - [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md))
+        - [ ] **Changelog Entry:** Correct changelog entry (please link to the documentation - [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/changelog_entry.md))
         - [ ] **Signed commits:** commits must be DCO and GPG key signed ([see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/signing.md))
         - [ ] **All Tests Pass:** our workflow checks like unit and integration tests must pass
         - [ ] **Issue is Solved:** The implementation fully addresses the issue requirements as described above

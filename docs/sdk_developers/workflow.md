@@ -89,7 +89,7 @@ Incorrect names:
 git commit -S -s -m "chore: your commit message"
 ```
 
-You'll need a GPG key and a tie to github explained at [signing.md](/docs/sdk_developers/training/workflow/signing.md)
+You'll need a GPG key and a tie to Github explained at [signing.md](/docs/sdk_developers/training/workflow/signing.md)
 
 Avoid commiting the issue solution all-in-one.
 ✅ Commit key portions of work making it easier to revert sections if needed
