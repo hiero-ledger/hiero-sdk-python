@@ -120,7 +120,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `transfer_transaction_hbar.py` example to use `Hbar` objects instead of raw integers and added receipt checking with `ResponseCode` validation.([#1249](https://github.com/hiero-ledger/hiero-sdk-python/issues/1249))
 
 ### Fixed
-
+- Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
 - Fixed step-security/harden-runner action SHA in merge conflict bot workflow (#1278)
 - Fixed the README account balance example to use correct SDK APIs and provide a runnable testnet setup. (#1250)
 - Fix token association verification in `token_airdrop_transaction.py` to correctly check if tokens are associated by using `token_id in token_balances` instead of incorrectly displaying zero balances which was misleading (#[815])
