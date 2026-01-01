@@ -5,7 +5,7 @@ on:
     workflows:
       - "PR Formatting"
       - "PR Changelog Check"
-      - "Hiero Solo Integration Tests"
+      - "Hiero Solo Integration & Unit Tests"
       - "Run Examples"
     types:
       - completed

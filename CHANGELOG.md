@@ -70,6 +70,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `.github/workflows/cron-check-broken-links.yml` workflow to perform scheduled monthly Markdown link validation across the entire repository with automatic issue creation for broken links ([#1210](https://github.com/hiero-ledger/hiero-sdk-python/issues/1210))
 
 ### Changed
+
+-Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
 - Moved docs/sdk_developers/project_structure.md to docs/sdk_developers/training/setup/project_structure.md and ensured all previous references are updated [#1223](https://github.com/hiero-ledger/hiero-sdk-python/issues/1223)
 - Renamed workflow scripts in `.github/scripts/` to match their corresponding workflow file names for improved consistency and maintainability (#1198)
 - Refactored `account_create_transaction_evm_alias.py` to improve readability by splitting the monolithic function into smaller helper functions. [#1017](https://github.com/hiero-ledger/hiero-sdk-python/issues/1017)
