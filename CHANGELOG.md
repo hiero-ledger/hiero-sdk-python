@@ -118,6 +118,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance unit and integration test review instructions for clarity and coverage `.coderabbit.yaml`.
 - Issue reminder bot now explicitly mentions assignees (e.g., `@user`) in comments. ([#1232](https://github.com/hiero-ledger/hiero-sdk-python/issues/1232))
 - Updated `transfer_transaction_hbar.py` example to use `Hbar` objects instead of raw integers and added receipt checking with `ResponseCode` validation.([#1249](https://github.com/hiero-ledger/hiero-sdk-python/issues/1249))
+- Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 
 ### Fixed
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
@@ -133,6 +134,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
 - Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
+
+### Removed
+
+- Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 
 ### Breaking Change
 
