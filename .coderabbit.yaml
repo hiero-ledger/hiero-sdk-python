@@ -168,6 +168,149 @@ reviews:
         - When tests fail in CI, developers should immediately understand what broke. 
         - Redundant setup code should be refactored, but clarity trumps abstraction.
 
+    # --- DOCUMENTATION REVIEW INSTRUCTIONS ---
+    - path: "docs/**"
+      instructions: |
+        You are reviewing documentation for the Hiero Python SDK. These pages serve both SDK users and SDK developers.
+
+        Priority 1 - Correctness (code, commands, links, facts)
+        1. Verify code snippets conceptually run and match the current SDK API, patterns, and file layout.
+        2. Check shell commands, config examples, and workflow steps against the actual project tooling and CI setup.
+        3. Validate URLs and cross-references where possible; flag clearly broken or misleading links.
+        4. For external links, ensure they remain relevant and don't introduce version mismatches with our SDK.
+        5. Flag references to deprecated SDK patterns without noting the modern alternative.
+
+        Priority 2 - Clarity and comprehensibility
+        1. Ensure each page states its purpose and expected outcome early.
+        2. Prefer concrete, step-wise explanations over vague descriptions.
+        3. Highlight missing pre-requisites or hidden assumptions that would block a reader.
+
+        Priority 3 - Completeness and usefulness
+        1. Identify critical gaps that prevent a reader from completing the described task.
+        2. For larger missing sections or conceptual overviews, suggest filing a follow-up issue instead of blocking the PR.
+        3. Encourage adding minimal examples or links when they would unlock understanding.
+
+        Priority 4 - Consistency with existing docs
+        1. Encourage consistent terminology with the SDK, examples, and tests (e.g. operator, client, network, transaction lifecycle).
+        2. Suggest aligning naming and structure with existing docs when inconsistencies could confuse readers.
+        3. Avoid bikeshedding tone or style when meaning is already clear.
+
+        Priority 5 - Accessibility and navigation
+        1. Check headings and sections form a logical reading path.
+        2. Encourage scannable sections, short paragraphs, and descriptive headings where it materially aids navigation.
+
+        Audience alignment
+        - Confirm each page makes clear which audience it serves (SDK user, SDK developer, or both) and stays focused on their goals.
+        - Flag mixed guidance that lacks transitions or pointers to the audience-specific sections.
+        - For pages serving both audiences, suggest clear signposts (e.g., "if you're an SDK user, skip to X; if you're a developer, continue here").
+
+        PHILOSOPHY
+        - Treat documentation as work-in-progress: optimize for correctness and clarity over perfection.
+        - Prefer incremental improvements and follow-up issues for bigger restructures or training gaps.
+        - Keep feedback concise, action-oriented, and focused on what most improves reader success.
+
+        CRITICAL PRINCIPLES
+        - Flag incorrect or outdated code, commands, or links.
+        - Flag steps that cannot be followed successfully as written.
+        - Do not request large-scale restructures unless current structure actively blocks understanding.
+
+        AVOID
+        - Avoid lint-style feedback on Markdown formatting or minor wording when meaning is already clear.
+        - Avoid proposing new conventions without clear benefit or alignment with existing docs.
+        - Avoid turning every high-level gap into a blocker; prefer suggesting an issue instead.
+
+    - path: "docs/sdk_users/**"
+      instructions: |
+        These documents are for SDK users who want to USE the Hiero Python SDK quickly and correctly, not learn internals or project workflow.
+
+        Priority 1 - Code snippet correctness and completeness
+        1. Ensure examples are copy-pasteable and complete enough to run (imports, client/operator setup, core logic).
+        2. Verify import paths and APIs follow current patterns, e.g. `from hiero_sdk_python... import ...`, and agree with `examples/`.
+        3. Encourage minimal, realistic error handling where it prevents user confusion, without overwhelming the reader.
+        4. Highlight platform-specific gotchas (Windows vs POSIX, Python version constraints, virtual environment steps) that could block users.
+
+        Priority 2 - Step-by-step clarity
+        1. Check that instructions form an explicit, ordered sequence from setup to successful result.
+        2. Flag vague phrases (e.g. "just configure X") and suggest concrete, actionable steps or links.
+        3. Ensure required environment variables, keys, and network choices are clearly stated or linked.
+        4. Verify prerequisites (e.g., `NETWORK`, operator credentials, .env defaults) align with our current quick-start guidance.
+        5. Highlight edge cases that could cause confusion or errors, such as handling multiple accounts or tokens.
+
+        Priority 3 - No hidden assumptions about SDK knowledge
+        1. Assume zero prior knowledge of this SDK and minimal Hedera background.
+        2. Avoid requiring knowledge of repository layout, tests, or contribution workflow.
+        3. Encourage brief explanations of key concepts only as needed to complete the task.
+
+        Priority 4 - Actionable, unambiguous instructions
+        1. Prefer specific commands, parameters, and expected outputs over high-level advice.
+        2. Flag ambiguous wording that could lead to multiple interpretations or errors.
+        3. Suggest adding small clarifications instead of large rewrites when only a step or sentence is missing.
+
+        Priority 5 - Real-world applicability
+        1. Encourage examples that reflect realistic use cases (transfers, tokens, contracts), not only trivial snippets.
+        2. Suggest cross-linking to `examples/` where it directly helps the user achieve a goal.
+
+        PHILOSOPHY
+        - Time-to-first-success is the main metric: make it easy for a new user to send a working transaction.
+        - Keep explanations concrete, self-contained, and immediately actionable.
+        - Prefer small, focused improvements that make the happy path smoother.
+
+        CRITICAL PRINCIPLES
+        - Do not assume any knowledge of how the SDK is implemented or how this repo is structured.
+        - Flag incomplete examples (missing imports, initialization, or essential parameters).
+        - Ensure examples match the current API and example patterns in this repository.
+
+        AVOID
+        - Avoid introducing contribution, CI, or workflow details; link to developer docs instead if truly needed.
+        - Avoid overloading user-facing docs with deep architectural discussion.
+        - Avoid suggesting structural changes that do not materially improve the user's ability to complete tasks.
+
+    - path: "docs/sdk_developers/**"
+      instructions: |
+        These documents are for SDK developers and contributors, including `docs/sdk_developers/training/**`. Assume mixed experience: some readers are new to the codebase, others are experienced.
+
+        Priority 1 - Accuracy of workflows and commands
+        1. Ensure contribution, branching, rebasing, signing (DCO, GPG), CI, linting, and testing instructions match the actual repo configuration.
+        2. Verify `git` and GitHub flows agree with CONTRIBUTING.md and current project practice.
+        3. Flag outdated references to scripts, make targets, directories, or configuration files.
+        4. Ensure automation references (assignment guards, dry-run toggles, required permissions) match the latest workflow behavior.
+
+        Priority 2 - Coverage of edge cases and gotchas
+        1. Encourage documentation of common pitfalls (merge conflicts, flaky tests, environment issues) when they affect contributors often.
+        2. Suggest referencing real examples (PRs, tests, workflows) when they clarify tricky behavior.
+        3. Keep warnings concrete and actionable rather than generic.
+
+        Priority 3 - Alignment with codebase conventions
+        1. Check terminology, naming, and patterns (e.g. transaction lifecycle, Executable usage, retry logic) against the actual code.
+        2. Encourage examples that reflect how the SDK is structured and tested today.
+        3. Flag inconsistencies between docs, examples, and tests that could mislead contributors.
+
+        Priority 4 - Progressive learning flow (especially training/)
+        1. For training docs, ensure a logical progression from setup → small change → tests → advanced topics.
+        2. Check that numbering, cross-links, and prerequisites between training files are coherent.
+        3. Highlight gaps where a new contributor would not know what to do next.
+        4. Encourage explicit "next steps" or pointers to subsequent modules when a lesson ends.
+        5. For each training module, confirm whether it can stand alone or silently assumes knowledge from earlier modules.
+
+        Priority 5 - References to source code and examples
+        1. Encourage deep links to relevant modules, tests, and examples when they serve as canonical patterns.
+        2. Ensure file paths and symbol names referenced in docs actually exist and are up-to-date.
+
+        PHILOSOPHY
+        - Treat these docs as a training ground for future maintainers and regular contributors.
+        - Help readers move from “I cloned the repo” to “I can safely extend and debug the SDK”.
+        - Balance approachability for beginners with enough depth for experts looking for specific architectural details.
+
+        CRITICAL PRINCIPLES
+        - Verify that all workflow and tooling instructions reflect the current CI, linting, testing, and release practices.
+        - Flag inaccurate references to internal architecture or modules (e.g. Executable, transaction pipeline, retry behavior).
+        - Ensure training materials are not misleading or internally contradictory.
+
+        AVOID
+        - Avoid demanding large structural rewrites of the training program in a single PR; prefer suggesting follow-up issues.
+        - Avoid generic documentation advice that does not consider this repository's actual patterns.
+        - Avoid blocking changes for minor stylistic issues when the technical guidance is sound.
+
     # --- CUSTOM INSTRUCTIONS FOR .GITHUB DIRECTORY ---
     - path: ".github/workflows/**/*"
       instructions: |
