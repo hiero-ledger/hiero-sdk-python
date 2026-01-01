@@ -1,5 +1,3 @@
-from platform import node
-import pytest
 import binascii
 import pytest
 from hiero_sdk_python.account.account_id import AccountId
@@ -182,6 +180,12 @@ def test_round_trip():
     assert node_address._node_id == node_address2._node_id
     assert node_address._cert_hash == node_address2._cert_hash
     assert node_address._description == node_address2._description
+    # Verify addresses match
+    assert len(node_address._addresses) == len(node_address2._addresses)
+    for i, endpoint in enumerate(node_address._addresses):
+        assert endpoint._address == node_address2._addresses[i]._address
+        assert endpoint._port == node_address2._addresses[i]._port
+        assert endpoint._domain_name == node_address2._addresses[i]._domain_name
 
 
 def test_empty_addresses():
