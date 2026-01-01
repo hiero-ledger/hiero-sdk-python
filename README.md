@@ -64,10 +64,10 @@ print(f"Balance: {balance.hbars} HBAR")
 - **[Contributing Guide](CONTRIBUTING.md)** - Start here!
 - **[Setup Guide](docs/sdk_developers/setup.md)** - First-time environment setup
 - **[Workflow Guide](docs/sdk_developers/workflow.md)** - Day-to-day development workflow
-- **[Signing Guide](docs/sdk_developers/signing.md)** - GPG and DCO commit signing (required)
-- **[Changelog Guide](docs/sdk_developers/changelog_entry.md)** - How to write changelog entries
+- **[Signing Guide](docs/sdk_developers/training/workflow/signing.md)** - GPG and DCO commit signing (required)
+- **[Changelog Guide](docs/sdk_developers/training/workflow/changelog_entry.md)** - How to write changelog entries
 - **[Rebasing Guide](docs/sdk_developers/rebasing.md)** - Keep your branch up-to-date
-- **[Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)** - Resolve conflicts
+- **[Merge Conflicts Guide](docs/sdk_developers/training/workflow/merge_conflicts.md)** - Resolve conflicts
 - **[Typing Guide](docs/sdk_developers/types.md)** - Python type hints
 - **[Linting Guide](docs/sdk_developers/linting.md)** - Code quality tools
 

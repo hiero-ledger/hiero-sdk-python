@@ -50,11 +50,11 @@ jobs:
           Your pull request cannot be merged as it is not passing all our workflow checks. 
           Please click on each check to review the logs and resolve issues so all checks pass.
           To help you:
-          - [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
-          - [Changelog guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
-          - [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
+          - [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/signing.md)
+          - [Changelog guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/changelog_entry.md)
+          - [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/merge_conflicts.md)
           - [Rebase guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
-          - [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md)
+          - [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/testing.md)
           - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
           - [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
           Thank you for contributing!

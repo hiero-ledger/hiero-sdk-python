@@ -39,11 +39,11 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 **Detailed Docs:**
 
 - [Setup Guide](docs/sdk_developers/setup.md)
-- [Signing Guide](docs/sdk_developers/signing.md)
-- [Changelog Guide](docs/sdk_developers/changelog_entry.md)
+- [Signing Guide](docs/sdk_developers/sdk_developers/training/workflow/signing.md)
+- [Changelog Guide](docs/sdk_developers/sdk_developers/training/workflow/changelog_entry.md)
 - [Rebasing Guide](docs/sdk_developers/rebasing.md)
-- [Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)
-- [Testing Guide](docs/sdk_developers/testing.md)
+- [Merge Conflicts Guide](docs/sdk_developers/sdk_developers/training/workflow/merge_conflicts.md)
+- [Testing Guide](docs/sdk_developers/sdk_developers/training/workflow/testing.md)
 
 
 #### ⚠️ A Note on Breaking Changes
@@ -105,11 +105,11 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 |-------|----------------|
 | [Setup](docs/sdk_developers/setup.md) | Fork, clone, install, configure |
 | [Workflow](docs/sdk_developers/workflow.md) | Branching, committing, PRs |
-| [Signing](docs/sdk_developers/signing.md) | GPG + DCO commit signing |
-| [Changelog](docs/sdk_developers/changelog_entry.md) | Writing changelog entries |
-| [Checklist](docs/sdk_developers/checklist.md) | Pre-submission checklist |
+| [Signing](docs/sdk_developers/training/workflow/signing.md) | GPG + DCO commit signing |
+| [Changelog](docs/sdk_developers/training/workflow/changelog_entry.md) | Writing changelog entries |
+| [Checklist](docs/sdk_developers/training/workflow/checklist.md) | Pre-submission checklist |
 | [Rebasing](docs/sdk_developers/rebasing.md) | Keeping branch updated |
-| [Merge Conflicts](docs/sdk_developers/merge_conflicts.md) | Resolving conflicts |
+| [Merge Conflicts](docs/sdk_developers/training/workflow/merge_conflicts.md) | Resolving conflicts |
 | [Types](docs/sdk_developers/types.md) | Python type hints |
 | [Linting](docs/sdk_developers/linting.md) | Code quality tools |
 

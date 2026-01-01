@@ -53,7 +53,7 @@ jobs:
             View your commit verification status: [Commits Tab]($COMMITS_URL).
             
             To achieve verified status, please read:
-            - [Signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+            - [Signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/signing.md)
             - [README](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md)
             - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
 

@@ -194,6 +194,6 @@ A candidate should be promoted to a full **Good First Issue** when:
 
 - [Good First Issue Guidelines](./good_first_issues_guidelines.md) — what qualifies as a GFI
 - [Contributing Guide](../../CONTRIBUTING.md) — how to contribute
-- [DCO Signing Guide](../sdk_developers/signing.md) — commit signing requirements
+- [DCO Signing Guide](../sdk_developers/training/workflow/signing.md) — commit signing requirements
 - [Discord Community](../discord.md) — get help from the community
 - [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) — weekly office hours
