@@ -111,42 +111,48 @@ class Hbar:
     @classmethod
     def from_microbars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
         """
-        Create an Hbar instance from the given amount in microbars.
+        Create an Hbar object representing the specified amount of microbars.
+        Example: Hbar.from_microbars(100) -> 100 μℏ
         """
         return cls(amount, unit=HbarUnit.MICROBAR)
 
     @classmethod
     def from_millibars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
         """
-        Create an Hbar instance from the given amount in millibars.
+        Create an Hbar object representing the specified amount of millibars.
+        Example: Hbar.from_millibars(500) -> 500 mℏ
         """
         return cls(amount, unit=HbarUnit.MILLIBAR)
 
     @classmethod
     def from_hbars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
         """
-        Create an Hbar instance from the given amount in hbars.
+        Create an Hbar object representing the specified amount of hbars.
+        Example: Hbar.from_hbars(10) -> 10 ℏ
         """
         return cls(amount, unit=HbarUnit.HBAR)
 
     @classmethod
     def from_kilobars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
         """
-        Create an Hbar instance from the given amount in kilobars.
+        Create an Hbar object representing the specified amount of kilobars.
+        Example: Hbar.from_kilobars(1) -> 1 kℏ
         """
         return cls(amount, unit=HbarUnit.KILOBAR)
 
     @classmethod
     def from_megabars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
         """
-        Create an Hbar instance from the given amount in megabars.
+        Create an Hbar object representing the specified amount of megabars.
+        Example: Hbar.from_megabars(1) -> 1 Mℏ
         """
         return cls(amount, unit=HbarUnit.MEGABAR)
 
     @classmethod
     def from_gigabars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
         """
-        Create an Hbar instance from the given amount in gigabars.
+        Create an Hbar object representing the specified amount of gigabars.
+        Example: Hbar.from_gigabars(1) -> 1 Gℏ
         """
         return cls(amount, unit=HbarUnit.GIGABAR)
 
