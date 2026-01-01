@@ -20,8 +20,11 @@ function hasLabel(issue, labelName) {
 
 async function hasExemptPermission(github, owner, repo, username) {
   if (!EXEMPT_PERMISSION_LEVELS.length) {
+    console.log(`No exempt permission levels configured. Skipping permission check for ${username} in ${owner}/${repo}.`);
     return false;
   }
+
+  console.log(`Checking repository permissions for ${username} in ${owner}/${repo} against exempt levels: [${EXEMPT_PERMISSION_LEVELS.join(', ')}]`);
 
   try {
     const response = await github.rest.repos.getCollaboratorPermissionLevel({
@@ -31,14 +34,19 @@ async function hasExemptPermission(github, owner, repo, username) {
     });
 
     const permission = response?.data?.permission?.toLowerCase();
-    return Boolean(permission) && EXEMPT_PERMISSION_LEVELS.includes(permission);
+    const isExempt = Boolean(permission) && EXEMPT_PERMISSION_LEVELS.includes(permission);
+
+    console.log(`Permission check for ${username} in ${owner}/${repo}: permission='${permission}', exempt=${isExempt}`);
+
+    return isExempt;
   } catch (error) {
     if (error?.status === 404) {
+      console.log(`User ${username} not found as collaborator in ${owner}/${repo} (404). Treating as non-exempt.`);
       return false;
     }
 
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`Unable to verify ${username}'s repository permissions: ${message}`);
+    console.log(`Unable to verify ${username}'s repository permissions in ${owner}/${repo}: ${message}`);
     return false;
   }
 }
@@ -138,19 +146,22 @@ module.exports = async ({ github, context }) => {
       return console.log('Missing issue or assignee in payload. Skipping intermediate guard.');
     }
 
+    const { owner, repo } = context.repo;
+    const mentee = assignee.login;
+
+    console.log(`Processing intermediate guard for issue #${issue.number} in ${owner}/${repo}: assignee=${mentee}, dry_run=${DRY_RUN}`);
+
     if (!hasLabel(issue, INTERMEDIATE_LABEL)) {
       return console.log(`Issue #${issue.number} is not labeled '${INTERMEDIATE_LABEL}'. Skipping.`);
     }
 
     if (assignee.type === 'Bot') {
-      return console.log(`Assignee ${assignee.login} is a bot. Skipping.`);
+      return console.log(`Assignee ${mentee} is a bot. Skipping.`);
     }
 
-    const { owner, repo } = context.repo;
-    const mentee = assignee.login;
-
     if (await hasExemptPermission(github, owner, repo, mentee)) {
-      return console.log(`${mentee} has exempt repository permissions. Skipping guard.`);
+      console.log(`✅ ${mentee} has exempt repository permissions in ${owner}/${repo}. Skipping guard.`);
+      return;
     }
 
     const completedCount = await countCompletedGfiIssues(github, owner, repo, mentee);
@@ -160,8 +171,11 @@ module.exports = async ({ github, context }) => {
     }
 
     if (completedCount >= 1) {
-      return console.log(`${mentee} has completed ${completedCount} GFI(s). Assignment allowed.`);
+      console.log(`✅ ${mentee} has completed ${completedCount} GFI(s). Assignment allowed.`);
+      return;
     }
+
+    console.log(`❌ ${mentee} has completed ${completedCount} GFI(s). Assignment not allowed; proceeding with removal and comment.`);
 
     try {
       if (DRY_RUN) {
