@@ -58,7 +58,7 @@ async function countCompletedGfiIssues(github, owner, repo, username) {
 
     const normalizedAssignee = username.toLowerCase();
     let pageCount = 0;
-    const MAX_PAGES = 5;
+    const MAX_PAGES = 8;
 
     for await (const { data: issues } of iterator) {
       pageCount += 1;
