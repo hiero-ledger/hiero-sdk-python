@@ -51,8 +51,8 @@ module.exports = async ({ github, context }) => {
     }
 
     const labels = issue.labels?.map(l => l.name) || [];
-    
-    const isGFI = labels.includes('good first issue') 
+
+    const isGFI = labels.includes('Good First Issue')
 
     if (!isGFI) {
       return console.log('Issue is not a GFI');
@@ -100,6 +100,6 @@ module.exports = async ({ github, context }) => {
     console.log(`Triggered by: @${comment.user.login}`);
     console.log(`Message: ${message}`);
   } catch (err) {
-     console.log('❌ Error:', err.message);
+    console.log('❌ Error:', err.message);
   }
 };

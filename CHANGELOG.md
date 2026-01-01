@@ -123,6 +123,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Renamed `pr-missing-linked-issue.yml` and `pr_missing_linked_issue.js` to `bot-pr-missing-linked-issue.yml` and `bot-pr-missing-linked-issue.js` respectively. Enhanced LinkBot PR comment with clickable hyperlinks to documentation for linking issues and creating issues. (#1264)
 
 ### Fixed
+- GFI workflow casing 
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
 - Fixed step-security/harden-runner action SHA in merge conflict bot workflow (#1278)
 - Fixed the README account balance example to use correct SDK APIs and provide a runnable testnet setup. (#1250)
