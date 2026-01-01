@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: pr-missing-linked-issue-${{ github.event.pull_request.number }}
+      group: bot-pr-missing-linked-issue-${{ github.event.pull_request.number }}
       cancel-in-progress: true
 
     steps:
@@ -31,5 +31,5 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
-            const script = require('./.github/scripts/pr_missing_linked_issue.js');
+            const script = require('./.github/scripts/bot-pr-missing-linked-issue.js');
             await script({ github, context });
