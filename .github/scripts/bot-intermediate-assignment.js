@@ -5,6 +5,7 @@ const EXEMPT_PERMISSION_LEVELS = (process.env.INTERMEDIATE_EXEMPT_PERMISSIONS ||
   .split(',')
   .map((entry) => entry.trim().toLowerCase())
   .filter(Boolean);
+const DRY_RUN = /^true$/i.test(process.env.DRY_RUN || '');
 
 function hasLabel(issue, labelName) {
   if (!issue?.labels?.length) {
@@ -56,8 +57,16 @@ async function countCompletedGfiIssues(github, owner, repo, username) {
     });
 
     const normalizedAssignee = username.toLowerCase();
+    let pageCount = 0;
+    const MAX_PAGES = 5;
 
     for await (const { data: issues } of iterator) {
+      pageCount += 1;
+      if (pageCount > MAX_PAGES) {
+        console.log(`Reached pagination safety cap (${MAX_PAGES}) while checking GFIs for ${username}.`);
+        break;
+      }
+
       const match = issues.find((issue) => {
         if (issue.pull_request) {
           return false;
@@ -115,6 +124,10 @@ Once you wrap up your first GFI, feel free to come back and we’ll gladly help 
 
 module.exports = async ({ github, context }) => {
   try {
+    if (DRY_RUN) {
+      console.log('Running intermediate guard in dry-run mode: no assignee removals or comments will be posted.');
+    }
+
     const issue = context.payload.issue;
     const assignee = context.payload.assignee;
 
@@ -148,13 +161,17 @@ module.exports = async ({ github, context }) => {
     }
 
     try {
-      await github.rest.issues.removeAssignees({
-        owner,
-        repo,
-        issue_number: issue.number,
-        assignees: [mentee],
-      });
-      console.log(`Removed @${mentee} from issue #${issue.number} due to missing GFI completion.`);
+      if (DRY_RUN) {
+        console.log(`[dry-run] Would remove @${mentee} from issue #${issue.number} due to missing GFI completion.`);
+      } else {
+        await github.rest.issues.removeAssignees({
+          owner,
+          repo,
+          issue_number: issue.number,
+          assignees: [mentee],
+        });
+        console.log(`Removed @${mentee} from issue #${issue.number} due to missing GFI completion.`);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.log(`Unable to remove assignee ${mentee} from issue #${issue.number}: ${message}`);
@@ -172,14 +189,18 @@ module.exports = async ({ github, context }) => {
     const comment = buildRejectionComment({ mentee, completedCount });
 
     try {
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issue.number,
-        body: comment,
-      });
+      if (DRY_RUN) {
+        console.log('[dry-run] Would post guard comment with body:\n', comment);
+      } else {
+        await github.rest.issues.createComment({
+          owner,
+          repo,
+          issue_number: issue.number,
+          body: comment,
+        });
 
-      console.log(`Posted guard comment for @${mentee} on issue #${issue.number}.`);
+        console.log(`Posted guard comment for @${mentee} on issue #${issue.number}.`);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.log(`Unable to post guard comment for @${mentee} on issue #${issue.number}: ${message}`);

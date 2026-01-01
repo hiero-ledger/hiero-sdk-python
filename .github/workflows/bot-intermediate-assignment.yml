@@ -5,6 +5,13 @@ on:
   issues:
     types:
       - assigned
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run without making changes'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   issues: write
@@ -33,6 +40,7 @@ jobs:
           GFI_LABEL: Good First Issue
           INTERMEDIATE_COMMENT_MARKER: "<!-- Intermediate Issue Guard -->"
           INTERMEDIATE_EXEMPT_PERMISSIONS: admin,maintain,write,triage
+          DRY_RUN: "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run != 'false' }}"
         with:
           script: |
             const script = require('./.github/scripts/bot-intermediate-assignment.js');
