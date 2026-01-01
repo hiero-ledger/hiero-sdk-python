@@ -118,6 +118,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance unit and integration test review instructions for clarity and coverage `.coderabbit.yaml`.
 - Issue reminder bot now explicitly mentions assignees (e.g., `@user`) in comments. ([#1232](https://github.com/hiero-ledger/hiero-sdk-python/issues/1232))
 - Updated `transfer_transaction_hbar.py` example to use `Hbar` objects instead of raw integers and added receipt checking with `ResponseCode` validation.([#1249](https://github.com/hiero-ledger/hiero-sdk-python/issues/1249))
+- Renamed `pr-missing-linked-issue.yml` and `pr_missing_linked_issue.js` to `bot-pr-missing-linked-issue.yml` and `bot-pr-missing-linked-issue.js` respectively. Enhanced LinkBot PR comment with clickable hyperlinks to documentation for linking issues and creating issues. (#1264)
 
 ### Fixed
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
