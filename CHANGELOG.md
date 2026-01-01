@@ -72,6 +72,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `transfer_transaction_tinybar.py` example demonstrating tinybar transfers with both integer and Hbar object approaches. ([#1249](https://github.com/hiero-ledger/hiero-sdk-python/issues/1249))
 - Added `transfer_transaction_gigabar.py` example demonstrating `GIGABAR` unit usage for large-value transfers. ([#1249](https://github.com/hiero-ledger/hiero-sdk-python/issues/1249))
 - Coderabbit prompt for .github
+- Added convenient factory methods to `Hbar` class for easier instantiation: `from_microbars()`, `from_millibars()`, `from_hbars()`, `from_kilobars()`, `from_megabars()`, and `from_gigabars()`. [#1272](https://github.com/hiero-ledger/hiero-sdk-python/issues/1272)
 - Added merge conflict bot workflow (`.github/workflows/bot-merge-conflict.yml`) and helper script (`.github/scripts/bot-merge-conflict.js`) to detect and notify about PR merge conflicts, with retry logic for unknown mergeable states, idempotent commenting, and push-to-main recheck logic (#1247)
 - Added workflow to prevent assigning intermediate issues to contributors without prior Good First Issue completion (#1143).
 
