@@ -150,3 +150,54 @@ def test_comparison():
     assert (h1 == 5) is False
     with pytest.raises(TypeError):
         _ = h1 < 5
+        
+def test_factory_methods():
+    """Test the convenient from_X factory methods."""
+    
+    # from_microbars
+    # 1 microbar = 100 tinybars
+    result = Hbar.from_microbars(1)
+    assert isinstance(result, Hbar)
+    assert result.to_tinybars() == 100
+    assert Hbar.from_microbars(1.5).to_tinybars() == 150
+    assert Hbar.from_microbars(Decimal("2.5")).to_tinybars() == 250
+    assert Hbar.from_microbars(0).to_tinybars() == 0
+    assert Hbar.from_microbars(-10).to_tinybars() == -1_000
+    # Verify equivalence with constructor
+    assert Hbar.from_microbars(5) == Hbar(5, unit=HbarUnit.MICROBAR)
+
+    # from_millibars
+    # 1 millibar = 100,000 tinybars
+    assert Hbar.from_millibars(1).to_tinybars() == 100_000
+    assert Hbar.from_millibars(0).to_tinybars() == 0
+    assert Hbar.from_millibars(-5).to_tinybars() == -500_000
+    assert Hbar.from_millibars(Decimal("1.5")).to_tinybars() == 150_000
+
+    # from_hbars
+    # 1 hbar = 100,000,000 tinybars
+    assert Hbar.from_hbars(1).to_tinybars() == 100_000_000
+    assert Hbar.from_hbars(0.00000001).to_tinybars() == 1
+    assert Hbar.from_hbars(0).to_tinybars() == 0
+    assert Hbar.from_hbars(-10).to_tinybars() == -1_000_000_000
+    assert Hbar.from_hbars(Decimal("5.5")).to_tinybars() == 550_000_000
+
+    # from_kilobars
+    # 1 kilobar = 1,000 hbars
+    assert Hbar.from_kilobars(1).to_hbars() == 1_000
+    assert Hbar.from_kilobars(0).to_hbars() == 0
+    assert Hbar.from_kilobars(-2).to_hbars() == -2_000
+    assert Hbar.from_kilobars(1).to_tinybars() == 100_000_000_000
+
+    # from_megabars
+    # 1 megabar = 1,000,000 hbars
+    assert Hbar.from_megabars(1).to_hbars() == 1_000_000
+    assert Hbar.from_megabars(0).to_hbars() == 0
+    assert Hbar.from_megabars(-1).to_hbars() == -1_000_000
+    assert Hbar.from_megabars(1).to_tinybars() == 100_000_000_000_000
+
+    # from_gigabars
+    # 1 gigabar = 1,000,000,000 hbars
+    assert Hbar.from_gigabars(1).to_hbars() == 1_000_000_000
+    assert Hbar.from_gigabars(0).to_hbars() == 0
+    assert Hbar.from_gigabars(-1).to_hbars() == -1_000_000_000
+    assert Hbar.from_gigabars(1).to_tinybars() == 100_000_000_000_000_000
