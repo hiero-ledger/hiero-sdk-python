@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Added unit test for 'endpoint.py' to increase coverage.
 - Automated assignment guard for `advanced` issues; requires completion of at least one `good first issue` and one `intermediate` issue before assignment (exempts maintainers, committers, and triage members). (#1142)
 - Added Hbar object support for TransferTransaction HBAR transfers:
   - Methods now accept `Union[int, Hbar]` for amount parameters with immediate normalization to tinybars
@@ -127,6 +128,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Renamed `pr-missing-linked-issue.yml` and `pr_missing_linked_issue.js` to `bot-pr-missing-linked-issue.yml` and `bot-pr-missing-linked-issue.js` respectively. Enhanced LinkBot PR comment with clickable hyperlinks to documentation for linking issues and creating issues. (#1264)
 - Enhance assignment bot to guard against users with spam PRs `.github/scripts/bot-assignment-check.sh`
 - Add CodeRabbit documentation review prompts for docs, sdk_users, and sdk_developers with priorities, philosophy, and edge case checks. ([#1236](https://github.com/hiero-ledger/hiero-sdk-python/issues/1236))
+- Enhance NodeAddress tests with additional coverage for proto conversion `tests/unit/node_address_test.py`
 
 ### Fixed
 - GFI workflow casing 
