@@ -271,34 +271,46 @@ Below is a complete implementation of a simple query to retrieve an account bala
 
 ```python
 from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import query_pb2, crypto_get_account_balance_pb2
+from hiero_sdk_python.hapi.services import (
+    query_pb2,
+    crypto_get_account_balance_pb2,
+)
+from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hbar import Hbar
 
-class AccountBalanceQuery(Query):
+
+class CryptoGetAccountBalanceQuery(Query):
+    """
+    Example showing how a Query subclass is structured.
+    """
+
     def __init__(self, account_id):
         super().__init__()
         self.account_id = account_id
 
-    # Required method: build the Protobuf request
     def _make_request(self):
+        if not self.account_id:
+            raise ValueError("Account ID must be set")
+
         header = self._make_request_header()
-        body = crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery(
-            header=header,
-            accountID=self.account_id._to_proto()
-        )
-        return query_pb2.Query(cryptoGetAccountBalance=body)
 
-    # Required method: extract the query response
+        body = crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery()
+        body.header.CopyFrom(header)
+        body.accountID.CopyFrom(self.account_id._to_proto())
+
+        query = query_pb2.Query()
+        query.cryptogetAccountBalance.CopyFrom(body)
+        return query
+
     def _get_query_response(self, response):
-        return response.cryptoGetAccountBalance
+        return response.cryptogetAccountBalance
 
-    # Required method: specify the gRPC method to call
     def _get_method(self, channel):
-        return _Method(query_func=channel.crypto.get_account_balance)
+        return _Method(
+            transaction_func=None,
+            query_func=channel.crypto.cryptoGetBalance,
+        )
 
-    # Optional helper: set a custom query payment
-    def set_custom_payment(self, amount: Hbar):
-        self.set_query_payment(amount)
 ```
 
 ### Usage Example
@@ -393,11 +405,10 @@ The SDK includes several production-ready query implementations that demonstrate
 
 - `examples/query/account_balance_query.py` — Simple query with minimal configuration
 - `examples/query/account_info_query.py` — Paid query with structured response
-- `examples/query/token_info_query.py` — Token metadata query
-- `examples/query/token_nft_info_query.py` — NFT-specific token query
-- `examples/query/topic_info_query.py` — Consensus topic metadata
-- `examples/query/topic_message_query.py` — Streaming-style topic message retrieval
-- `examples/query/transaction_receipt_query.py` — Transaction receipt lookup
+- `examples/query/token_info_query.py` — Fungible token metadata
+- `examples/query/token_nft_info_query.py` — NFT token metadata
+- `examples/query/topic_info_query.py` — Streaming-style topic message retrieval
+- `examples/query/transaction_get_receipt_query.py` — Transaction receipt lookup
 - `examples/query/transaction_record_query.py` — Transaction record retrieval
 
 These examples illustrate consistent usage of `_make_request()`, `_get_query_response()`, and `_get_method()` without duplicating execution or payment logic.
