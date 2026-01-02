@@ -1,27 +1,6 @@
 """
-**INTERNAL DEVELOPER REFERENCE**
-
-This example is primarily for internal SDK developers and contributors.
-
----
-
-This example demonstrates how to work with the TopicInfo class.
-
-TopicInfo represents consensus topic information on the Hedera network.
-It exposes attributes such as memo, running hash, sequence number, expiration time,
-admin key, submit key, auto-renewal configuration, and ledger ID.
-
-This example shows:
-- How to manually construct a TopicInfo instance with mock data
-- How to populate key fields
-- How to inspect or pretty-print the data with __str__ / __repr__
-- How to use _from_proto() with a mocked protobuf message
-
-No network calls or topic creation are performed.
-
-Run with:
-    uv run examples/topic_info.py
-    python examples/topic_info.py
+This example demonstrates how to query information about an existing topic on the network.
+It retrieves details such as the topic's memo, sequence number, and expiration time.
 """
 
 from hiero_sdk_python.consensus.topic_info import TopicInfo
