@@ -84,121 +84,130 @@ and you’ll be automatically assigned. Feel free to ask questions here if anyth
 
 /// START OF SCRIPT ///
 module.exports = async ({ github, context }) => {
+    try {
+        const { issue, comment } = context.payload;
+        const { owner, repo } = context.repo;
 
-    const { issue, comment } = context.payload;
-    const { owner, repo } = context.repo;
+        console.log('[gfi-assign] Payload snapshot:', {
+            issueNumber: issue?.number,
+            commenter: comment?.user?.login,
+            commenterType: comment?.user?.type,
+            commentBody: comment?.body,
+        });
 
-    console.log('[gfi-assign] Payload snapshot:', {
-        issueNumber: issue?.number,
-        commenter: comment?.user?.login,
-        commenterType: comment?.user?.type,
-        commentBody: comment?.body,
-    });
-
-    // Reject if issue, comment or comment user is missing, reject bots, or if no /assign message
-    if (!issue?.number) {
-        console.log('[gfi-assign] Exit: missing issue number');
-        return;
-    }
-
-    if (!comment?.body) {
-        console.log('[gfi-assign] Exit: missing comment body');
-        return;
-    }
-
-    if (!comment?.user?.login) {
-        console.log('[gfi-assign] Exit: missing comment user login');
-        return;
-    }
-
-    if (comment.user.type === 'Bot') {
-        console.log('[gfi-assign] Exit: comment authored by bot');
-        return;
-    }
-
-    if (!commentRequestsAssignment(comment.body)) {
-        // Only remind if:
-        // - GFI
-        // - unassigned
-        // - reminder not already posted
-        if (
-            issueIsGoodFirstIssue(issue) &&
-            !issue.assignees?.length
-        ) {
-            const comments = await github.paginate(
-                github.rest.issues.listComments,
-                {
-                    owner,
-                    repo,
-                    issue_number: issue.number,
-                    per_page: 100,
-                }
-            );
-
-            const reminderAlreadyPosted = comments.some(c =>
-                c.body?.includes(ASSIGN_REMINDER_MARKER)
-            );
-
-            if (!reminderAlreadyPosted) {
-                await github.rest.issues.createComment({
-                    owner,
-                    repo,
-                    issue_number: issue.number,
-                    body: buildAssignReminder(comment.user.login),
-                });
-
-                console.log('[gfi-assign] Posted /assign reminder');
-            }
+        // Reject if issue, comment or comment user is missing, reject bots, or if no /assign message
+        if (!issue?.number) {
+            console.log('[gfi-assign] Exit: missing issue number');
+            return;
         }
 
-        console.log('[gfi-assign] Exit: comment does not request assignment');
-        return;
-    }
+        if (!comment?.body) {
+            console.log('[gfi-assign] Exit: missing comment body');
+            return;
+        }
 
-    console.log('[gfi-assign] Assignment command detected');
+        if (!comment?.user?.login) {
+            console.log('[gfi-assign] Exit: missing comment user login');
+            return;
+        }
 
-    // Reject if issue is not a Good First Issue
-    if (!issueIsGoodFirstIssue(issue)) {
-        console.log('[gfi-assign] Exit: issue is not a Good First Issue');
-        return;
-    }
+        if (comment.user.type === 'Bot') {
+            console.log('[gfi-assign] Exit: comment authored by bot');
+            return;
+        }
 
-    console.log('[gfi-assign] Issue is labeled Good First Issue');
+        if (!commentRequestsAssignment(comment.body)) {
+            // Only remind if:
+            // - GFI
+            // - unassigned
+            // - reminder not already posted
+            if (
+                issueIsGoodFirstIssue(issue) &&
+                !issue.assignees?.length
+            ) {
+                const comments = await github.paginate(
+                    github.rest.issues.listComments,
+                    {
+                        owner,
+                        repo,
+                        issue_number: issue.number,
+                        per_page: 100,
+                    }
+                );
 
-    // Get requester username and issue number to enable comments and assignments
-    const requesterUsername = comment.user.login;
-    const issueNumber = issue.number;
+                const reminderAlreadyPosted = comments.some(c =>
+                    c.body?.includes(ASSIGN_REMINDER_MARKER)
+                );
 
-    console.log('[gfi-assign] Requester:', requesterUsername);
-    console.log('[gfi-assign] Current assignees:', issue.assignees?.map(a => a.login));
+                if (!reminderAlreadyPosted) {
+                    await github.rest.issues.createComment({
+                        owner,
+                        repo,
+                        issue_number: issue.number,
+                        body: buildAssignReminder(comment.user.login),
+                    });
 
-    // Reject if issue is already assigned
-    // Comment failure to the requester
-    if (issue.assignees?.length > 0) {
-        console.log('[gfi-assign] Exit: issue already assigned');
+                    console.log('[gfi-assign] Posted /assign reminder');
+                }
+            }
 
-        await github.rest.issues.createComment({
+            console.log('[gfi-assign] Exit: comment does not request assignment');
+            return;
+        }
+
+        console.log('[gfi-assign] Assignment command detected');
+
+        // Reject if issue is not a Good First Issue
+        if (!issueIsGoodFirstIssue(issue)) {
+            console.log('[gfi-assign] Exit: issue is not a Good First Issue');
+            return;
+        }
+
+        console.log('[gfi-assign] Issue is labeled Good First Issue');
+
+        // Get requester username and issue number to enable comments and assignments
+        const requesterUsername = comment.user.login;
+        const issueNumber = issue.number;
+
+        console.log('[gfi-assign] Requester:', requesterUsername);
+        console.log('[gfi-assign] Current assignees:', issue.assignees?.map(a => a.login));
+
+        // Reject if issue is already assigned
+        // Comment failure to the requester
+        if (issue.assignees?.length > 0) {
+            console.log('[gfi-assign] Exit: issue already assigned');
+
+            await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body: commentAlreadyAssigned(requesterUsername, issue),
+            });
+
+            console.log('[gfi-assign] Posted already-assigned comment');
+            return;
+        }
+
+        console.log('[gfi-assign] Assigning issue to requester');
+
+        // All validations passed and user has requested assignment on a GFI
+        // Assign the issue to the requester
+        // Do not comment on success
+        await github.rest.issues.addAssignees({
             owner,
             repo,
             issue_number: issueNumber,
-            body: commentAlreadyAssigned(requesterUsername, issue),
+            assignees: [requesterUsername],
         });
 
-        console.log('[gfi-assign] Posted already-assigned comment');
-        return;
+        console.log('[gfi-assign] Assignment completed successfully');
+    } catch (error) {
+        console.error('[gfi-assign] Error:', {
+            message: error.message,
+            status: error.status,
+            issueNumber: context.payload.issue?.number,
+            commenter: context.payload.comment?.user?.login,
+        });
+        throw error;
     }
-
-    console.log('[gfi-assign] Assigning issue to requester');
-
-    // All validations passed and user has requested assignment on a GFI
-    // Assign the issue to the requester
-    // Do not comment on success
-    await github.rest.issues.addAssignees({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        assignees: [requesterUsername],
-    });
-
-    console.log('[gfi-assign] Assignment completed successfully');
 };
