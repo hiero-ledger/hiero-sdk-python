@@ -62,22 +62,23 @@ def test_string_representation():
 def test_to_proto():
     """Test conversion of NodeAddress to protobuf with endpoints."""
     account_id = AccountId(0, 0, 123)
-    endpoint = Endpoint(
-        address=bytes("192.168.1.1", "utf-8"),
-        port=8080,
-        domain_name="example.com"
-    )
+    endpoints = [
+        Endpoint(address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example1.com"),
+        Endpoint(address=bytes("192.168.1.2", "utf-8"), port=8081, domain_name="example2.com"),
+        Endpoint(address=bytes("192.168.1.3", "utf-8"), port=8082, domain_name="example3.com"),
+    ]
     node_address = NodeAddress(
         public_key="sample-public-key",
         account_id=account_id,
         node_id=1234,
         cert_hash=b"sample-cert-hash",
-        addresses=[endpoint],
+        addresses=endpoints,
         description="Sample Node"
     )
 
     node_address_proto = node_address._to_proto()
-
+    # Protect against breaking changes - verify return type
+    assert isinstance(node_address_proto, NodeAddressProto)
     # Scalars
     assert node_address_proto.RSA_PubKey == "sample-public-key"
     assert node_address_proto.nodeId == 1234
@@ -90,11 +91,12 @@ def test_to_proto():
     assert node_address_proto.nodeAccountId.accountNum == 123
 
     # ServiceEndpoint
-    assert len(node_address_proto.serviceEndpoint) == 1
-    ep = node_address_proto.serviceEndpoint[0]
-    assert ep.ipAddressV4 == bytes("192.168.1.1", "utf-8")
-    assert ep.port == 8080
-    assert ep.domain_name == "example.com"
+    # Verify all endpoints are serialized
+    assert len(node_address_proto.serviceEndpoint) == 3
+    for i, ep_proto in enumerate(node_address_proto.serviceEndpoint):
+        assert ep_proto.ipAddressV4 == endpoints[i]._address
+        assert ep_proto.port == endpoints[i]._port
+        assert ep_proto.domain_name == endpoints[i]._domain_name
 
 
 def test_from_dict():
@@ -119,6 +121,22 @@ def test_from_dict():
     assert node_address._cert_hash == b"sample-cert-hash"
     assert node_address._description == "Sample Node"
     assert len(node_address._addresses) == 1
+
+
+def test_from_dict_with_0x_prefix():
+    """Test _from_dict handles cert hash with 0x prefix."""
+    node_dict = {
+        "public_key": "sample-public-key",
+        "node_account_id": "0.0.123",
+        "node_id": 1234,
+        "node_cert_hash": "0x" + binascii.hexlify(b"sample-cert-hash").decode("utf-8"),
+        "description": "Sample Node",
+        "service_endpoints": [],
+    }
+
+    node_address = NodeAddress._from_dict(node_dict)
+
+    assert node_address._cert_hash == b"sample-cert-hash"
 
 
 def test_from_proto():
@@ -201,3 +219,19 @@ def test_empty_addresses():
 
     proto = node_address._to_proto()
     assert len(proto.serviceEndpoint) == 0
+
+def test_to_proto_none_account_id():
+    """Test _to_proto handles None account_id gracefully."""
+    node_address = NodeAddress(
+        public_key="sample-public-key",
+        account_id=None,
+        node_id=1234,
+        cert_hash=b"sample-cert-hash",
+        addresses=[],
+        description="No account"
+    )
+
+    proto = node_address._to_proto()
+
+    # Should not have nodeAccountId set
+    assert not proto.HasField('nodeAccountId')
