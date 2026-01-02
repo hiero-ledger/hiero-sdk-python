@@ -115,6 +115,9 @@ def test_from_dict():
     # Create NodeAddress from dict
     node_address = NodeAddress._from_dict(node_dict)
 
+    # Protect against breaking changes - verify return type
+    assert isinstance(node_address, NodeAddress)
+
     assert node_address._public_key == "sample-public-key"
     assert node_address._account_id == AccountId.from_string("0.0.123")
     assert node_address._node_id == 1234
@@ -159,6 +162,9 @@ def test_from_proto():
     node_address_proto.serviceEndpoint.append(endpoint_proto)
 
     node_address = NodeAddress._from_proto(node_address_proto)
+
+    # Protect against breaking changes - verify return type
+    assert isinstance(node_address, NodeAddress)
 
     assert node_address._public_key == "sample-public-key"
     assert node_address._account_id == AccountId(0, 0, 123)
