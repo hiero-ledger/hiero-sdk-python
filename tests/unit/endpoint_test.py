@@ -29,6 +29,20 @@ def test_getter_setter():
     assert endpoint.get_port() == 77777
     assert endpoint.get_domain_name() == "redpanda.com"
 
+def test_serialization_roundtrip():
+    """
+    Verifies that all fields survive a full round-trip conversion:
+    Endpoint -> Protobuf -> Endpoint.
+    """
+    original = Endpoint(address=b'192.168.1.1', port=8080, domain_name="example.com")
+    
+    # Perform round-trip
+    proto = original._to_proto()
+    roundtrip = Endpoint._from_proto(proto)
+    
+    assert roundtrip.get_address() == original.get_address()
+    assert roundtrip.get_port() == original.get_port()
+    assert roundtrip.get_domain_name() == original.get_domain_name()
 
 def test_constructor_with_values():
     """Test Endpoint constructor with actual values."""
@@ -73,6 +87,29 @@ def test_from_proto_port_mapping(input_port, expected_port):
     # Protect against breaking changes - PRIORITY 1
     assert isinstance(endpoint, Endpoint), "Must return Endpoint instance"
 
+@pytest.mark.parametrize("field_to_none, attr_name, expected_default", [
+    ("address", "ipAddressV4", b""), 
+    ("port", "port", 0), 
+    ("domain_name", "domain_name", "")
+])
+def test_to_proto_with_none_values(field_to_none, attr_name, expected_default):
+    """
+    Ensures that when a field is None, _to_proto assigns the 
+    standard Protobuf default instead of crashing.
+    """
+    # Create endpoint with all values set
+    params = {"address": b'127.0.0.1', "port": 50211, "domain_name": "hiero.org"}
+    
+    # Nullify one specific field
+    params[field_to_none] = None
+    endpoint = Endpoint(**params)
+    
+    # Act
+    proto = endpoint._to_proto()
+    
+    # Assert: Check that the specific attribute is the proto default
+    assert getattr(proto, attr_name) == expected_default
+
 def test_to_proto():
 
     """Verifies that an Endpoint instance can be correctly serialized back into 
@@ -109,14 +146,6 @@ def test_str_with_none_values():
 ])
 def test_from_dict_missing_fields(invalid_data):
     """Test that from_dict raises ValueError when required fields are missing."""
-    with pytest.raises(ValueError, match="JSON data must contain"):
-        Endpoint.from_dict(invalid_data)
-
-def test_from_dict_error():
-
-    """Validates 'Guard Clause' error handling"""
-    
-    invalid_data = {"port": 77777}
     with pytest.raises(ValueError, match="JSON data must contain"):
         Endpoint.from_dict(invalid_data)
 
