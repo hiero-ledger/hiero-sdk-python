@@ -168,6 +168,71 @@ reviews:
         - When tests fail in CI, developers should immediately understand what broke. 
         - Redundant setup code should be refactored, but clarity trumps abstraction.
 
+    # --- DOCUMENTATION REVIEW INSTRUCTIONS ---
+    - path: "docs/**"
+      instructions: |
+        You are reviewing documentation for the Hiero Python SDK. These pages serve both SDK users and SDK developers.
+
+        Priority 1 - Correctness (code, commands, links)
+        1. Verify code snippets conceptually run and match the current SDK API.
+        2. Check shell commands and workflow steps against actual project tooling.
+        3. Validate URLs and cross-references; flag broken or misleading links.
+
+        Priority 2 - Clarity and completeness
+        1. Ensure each page states its purpose and expected outcome early.
+        2. Prefer concrete, step-wise explanations over vague descriptions.
+        3. Highlight missing prerequisites that would block a reader.
+        4. For larger gaps, suggest filing a follow-up issue instead of blocking.
+
+        Priority 3 - Consistency and navigation
+        1. Encourage consistent terminology with the SDK and examples.
+        2. Check headings form a logical reading path.
+        3. Confirm each page makes clear which audience it serves.
+
+        PHILOSOPHY
+        - Treat docs as work-in-progress: optimize for correctness and clarity over perfection.
+        - Keep feedback concise, action-oriented, and focused on reader success.
+        - Do not request large-scale restructures unless current structure blocks understanding.
+
+        AVOID
+        - Avoid lint-style feedback on Markdown formatting or minor wording.
+        - Avoid proposing new conventions without clear benefit.
+        - Avoid turning every high-level gap into a blocker.
+
+    - path: "docs/sdk_users/**"
+      instructions: |
+        These documents are for SDK users who want to USE the Hiero Python SDK quickly and correctly.
+
+        Priority 1 - High-level guidance
+        1. Ensure explanations are conceptual and point to `/examples` for runnable code.
+        2. Check that required environment variables and network choices are clearly stated.
+
+        Priority 2 - No hidden assumptions
+        1. Assume zero prior knowledge of this SDK and minimal Hedera background.
+        2. Avoid requiring knowledge of repository layout or contribution workflow.
+
+        PHILOSOPHY
+        - Keep explanations high-level and conceptual; defer runnable examples to `/examples`.
+        - Focus on what users need to know before diving into code examples.
+
+    - path: "docs/sdk_developers/**"
+      instructions: |
+        These documents are for SDK developers and contributors, including `docs/sdk_developers/training/**`.
+
+        Priority 1 - Workflow accuracy
+        1. Ensure contribution, branching, rebasing, signing (DCO, GPG), CI, linting, and testing instructions match the repo.
+        2. Verify `git` and GitHub flows agree with CONTRIBUTING.md and current practice.
+        3. Flag outdated references to scripts, directories, or configuration files.
+
+        Priority 2 - Training flow
+        1. For training docs, ensure logical progression and clear prerequisites.
+        2. Check that cross-links between training files are coherent.
+
+        PHILOSOPHY
+        - Treat these docs as a training ground for future maintainers and regular contributors.
+        - Help readers move from "I cloned the repo" to "I can safely extend and debug the SDK".
+        - Balance approachability for beginners with enough depth for experts.
+
     # --- CUSTOM INSTRUCTIONS FOR .GITHUB DIRECTORY ---
     - path: ".github/workflows/**/*"
       instructions: |
