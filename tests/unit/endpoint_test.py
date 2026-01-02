@@ -9,7 +9,16 @@ def test_getter_setter():
     """Test for Endpoint constructor, getters, and setters with fluent interface."""
  
     endpoint = Endpoint(address=None, port=None, domain_name=None)
-
+    endpoint.set_port(77777)  # Currently accepted but invalid
+    
+    # Test boundary conditions
+    endpoint.set_port(1)      # Minimum valid port
+    endpoint.set_port(65535)  # Maximum valid port
+    
+    # Test None values
+    endpoint.set_port(None)
+    endpoint.set_address(None)
+    endpoint.set_domain_name(None)
     
     # Test fluent interface (method chaining)
     result = endpoint.set_address(b'127.0.1.1')
@@ -40,23 +49,38 @@ def test_constructor_with_values():
     assert endpoint.get_domain_name() == "example.com"
 
 
-@pytest.mark.parametrize("input_port, expected_port", [
-    (0, 50211),      
-    (50111, 50211),  
-    (80, 80)         
-])
-
+@pytest.mark.parametrize(
+    ("input_port", "expected_port"),
+    [
+        (0, 50211),
+        (50111, 50211),
+        (80, 80),
+    ],
+)
 def test_from_proto_port_mapping(input_port, expected_port):
-
-    """ Tests the logic that converts a Protobuf ServiceEndpoint into an Endpoint object. """
+    """Tests port mapping logic when converting Protobuf ServiceEndpoint to Endpoint.
     
+    Port mapping rules:
+    - Port 0 or 50111 maps to 50211 (legacy/default behavior)
+    - Other ports pass through unchanged
+    """
+     
     mock_proto = MagicMock()
     mock_proto.port = input_port
     mock_proto.ipAddressV4 = b"127.0.1.1"
     mock_proto.domain_name = "redpanda.com"
-    
+     
     endpoint = Endpoint._from_proto(mock_proto)
+    
+    # Verify port mapping
     assert endpoint.get_port() == expected_port
+    
+    # Verify all fields are mapped correctly (not just port)
+    assert endpoint.get_address() == b"127.0.1.1", "Address must be mapped from proto"
+    assert endpoint.get_domain_name() == "redpanda.com", "Domain name must be mapped from proto"
+    
+    # Protect against breaking changes - PRIORITY 1
+    assert isinstance(endpoint, Endpoint), "Must return Endpoint instance"
 
 def test_to_proto():
 
@@ -86,6 +110,16 @@ def test_str_with_none_values():
     endpoint = Endpoint(address=None, port=None, domain_name="example.com")
     with pytest.raises(AttributeError):
         str(endpoint)
+
+@pytest.mark.parametrize("invalid_data", [
+    {"port": 77777, "domain_name": "test.com"},
+    {"ip_address_v4": "127.0.0.1", "domain_name": "test.com"},
+    {"ip_address_v4": "127.0.0.1", "port": 77777},
+])
+def test_from_dict_missing_fields(invalid_data):
+    """Test that from_dict raises ValueError when required fields are missing."""
+    with pytest.raises(ValueError, match="JSON data must contain"):
+        Endpoint.from_dict(invalid_data)
 
 def test_from_dict_error():
 
