@@ -149,3 +149,29 @@ class CustomFee(ABC):
             return NotImplemented
         
         return self.fee_collector_account_id == other.fee_collector_account_id and self.all_collectors_are_exempt == other.all_collectors_are_exempt
+
+    def __str__(self) -> str:
+        """Return a dynamic string representation including all instance attributes.
+        
+        This method dynamically inspects all instance attributes, ensuring that
+        new fields added to subclasses are automatically included without manual updates.
+        """
+        fields = []
+        for key, value in self.__dict__.items():
+            if value is None:
+                fields.append(f"{key}=None")
+            elif isinstance(value, str):
+                fields.append(f"{key}='{value}'")
+            else:
+                fields.append(f"{key}={value}")
+        
+        class_name = self.__class__.__name__
+        if len(fields) <= 3:
+            return f"{class_name}({', '.join(fields)})"
+        else:
+            fields_str = ",\n    ".join(fields)
+            return f"{class_name}(\n    {fields_str}\n)"
+
+    def __repr__(self) -> str:
+        """Return a string representation for debugging."""
+        return self.__str__()
