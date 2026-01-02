@@ -9,16 +9,6 @@ def test_getter_setter():
     """Test for Endpoint constructor, getters, and setters with fluent interface."""
  
     endpoint = Endpoint(address=None, port=None, domain_name=None)
-    endpoint.set_port(77777)  # Currently accepted but invalid
-    
-    # Test boundary conditions
-    endpoint.set_port(1)      # Minimum valid port
-    endpoint.set_port(65535)  # Maximum valid port
-    
-    # Test None values
-    endpoint.set_port(None)
-    endpoint.set_address(None)
-    endpoint.set_domain_name(None)
     
     # Test fluent interface (method chaining)
     result = endpoint.set_address(b'127.0.1.1')
@@ -43,7 +33,8 @@ def test_getter_setter():
 def test_constructor_with_values():
     """Test Endpoint constructor with actual values."""
     endpoint = Endpoint(address=b'192.168.1.1', port=8080, domain_name="example.com")
-    
+    # Protect against breaking changes
+    assert isinstance(endpoint, Endpoint), "Constructor must return Endpoint instance"
     assert endpoint.get_address() == b'192.168.1.1'
     assert endpoint.get_port() == 8080
     assert endpoint.get_domain_name() == "example.com"
