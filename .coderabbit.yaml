@@ -203,29 +203,17 @@ reviews:
       instructions: |
         These documents are for SDK users who want to USE the Hiero Python SDK quickly and correctly.
 
-        Priority 1 - Runnable examples
-        1. Ensure examples are copy-pasteable and complete (imports, setup, core logic).
-        2. Verify import paths follow current patterns and agree with `examples/`.
-        3. Highlight platform-specific gotchas (Windows vs POSIX, Python version) that could block users.
+        Priority 1 - High-level guidance
+        1. Ensure explanations are conceptual and point to `/examples` for runnable code.
+        2. Check that required environment variables and network choices are clearly stated.
 
-        Priority 2 - Step-by-step clarity
-        1. Check instructions form an explicit, ordered sequence from setup to result.
-        2. Flag vague phrases (e.g. “just configure X”) and suggest concrete steps.
-        3. Ensure required environment variables and network choices are clearly stated.
-
-        Priority 3 - No hidden assumptions
+        Priority 2 - No hidden assumptions
         1. Assume zero prior knowledge of this SDK and minimal Hedera background.
         2. Avoid requiring knowledge of repository layout or contribution workflow.
-        3. Encourage brief explanations of key concepts only as needed.
 
         PHILOSOPHY
-        - Time-to-first-success is the main metric: make it easy to send a working transaction.
-        - Keep explanations concrete, self-contained, and immediately actionable.
-        - Do not assume any knowledge of how the SDK is implemented or this repo is structured.
-
-        AVOID
-        - Avoid introducing contribution, CI, or workflow details.
-        - Avoid overloading user-facing docs with deep architectural discussion.
+        - Keep explanations high-level and conceptual; defer runnable examples to `/examples`.
+        - Focus on what users need to know before diving into code examples.
 
     - path: "docs/sdk_developers/**"
       instructions: |
@@ -236,23 +224,14 @@ reviews:
         2. Verify `git` and GitHub flows agree with CONTRIBUTING.md and current practice.
         3. Flag outdated references to scripts, directories, or configuration files.
 
-        Priority 2 - Edge cases and gotchas
-        1. Encourage documentation of common pitfalls (merge conflicts, flaky tests, environment issues).
-        2. Suggest referencing real examples (PRs, tests, workflows) when they clarify tricky behavior.
-
-        Priority 3 - Training flow
-        1. For training docs, ensure logical progression from setup → small change → tests → advanced topics.
-        2. Check that numbering, cross-links, and prerequisites between training files are coherent.
-        3. Encourage explicit “next steps” or pointers to subsequent modules when a lesson ends.
+        Priority 2 - Training flow
+        1. For training docs, ensure logical progression and clear prerequisites.
+        2. Check that cross-links between training files are coherent.
 
         PHILOSOPHY
         - Treat these docs as a training ground for future maintainers and regular contributors.
-        - Help readers move from “I cloned the repo” to “I can safely extend and debug the SDK”.
+        - Help readers move from "I cloned the repo" to "I can safely extend and debug the SDK".
         - Balance approachability for beginners with enough depth for experts.
-
-        AVOID
-        - Avoid demanding large structural rewrites of the training program in a single PR; prefer follow-up issues.
-        - Avoid generic documentation advice that does not consider this repository’s actual patterns.
 
     # --- CUSTOM INSTRUCTIONS FOR .GITHUB DIRECTORY ---
     - path: ".github/workflows/**/*"
