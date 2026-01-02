@@ -18,6 +18,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added method chaining examples to the developer training guide (`docs/sdk_developers/training/coding_token_transactions.md`) (#1194)
 - Added documentation explaining how to pin GitHub Actions to specific commit SHAs (`docs/sdk_developers/how-to-pin-github-actions.md`)(#1211)
 - examples/mypy.ini for stricter type checking in example scripts
+- Formatted examples/tokens directory using black code formatter for consistent code style
 - Added a GitHub Actions workflow that reminds contributors to link pull requests to issues.
 - Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
 - Added Good First Issue (GFI) management and frequency documentation to clarify maintainer expectations and SDK-level GFI governance.
