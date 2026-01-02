@@ -1,4 +1,4 @@
-// .github/scripts/gfi_assign_on_comment.js
+// .github/scripts/bot-gfi_assign_on_comment.js
 //
 // Assigns human user to Good First Issue when they comment "/assign".
 // Posts a comment if the issue is already assigned.
