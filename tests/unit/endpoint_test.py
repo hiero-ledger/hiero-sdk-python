@@ -87,7 +87,7 @@ def test_from_proto_port_mapping(input_port, expected_port):
     # Protect against breaking changes - PRIORITY 1
     assert isinstance(endpoint, Endpoint), "Must return Endpoint instance"
 
-@pytest.mark.parametrize("field_to_none, attr_name, expected_default", [
+@pytest.mark.parametrize(("field_to_none", "attr_name", "expected_default"), [
     ("address", "ipAddressV4", b""), 
     ("port", "port", 0), 
     ("domain_name", "domain_name", "")
