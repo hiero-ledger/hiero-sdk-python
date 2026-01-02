@@ -18,6 +18,8 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 
 from .network import Network
 
+NetworkName = Literal["mainnet", "testnet", "previewnet"]
+
 class Operator(NamedTuple):
     """A named tuple for the operator's account ID and private key."""
     account_id: AccountId
@@ -48,7 +50,6 @@ class Client:
 
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
-    NetworkName = Literal["mainnet", "testnet", "previewnet"]
     @classmethod
     def from_env(cls, network: Optional[NetworkName] = None) -> "Client":
         """

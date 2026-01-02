@@ -28,16 +28,12 @@ Environment Variables:
     NETWORK (str, optional): Network to use (default: "testnet")
 """
 import sys
-from dotenv import load_dotenv
-
 from hiero_sdk_python import (
     Client,
     PrivateKey,
     AccountCreateTransaction,
     ResponseCode,
 )
-
-load_dotenv()
 
 def create_new_account(client: Client) -> None:
     """
