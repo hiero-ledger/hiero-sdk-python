@@ -11,13 +11,12 @@ const UNASSIGNED_GFI_SEARCH_URL =
 /// HELPERS FOR ASSIGNING ///
 
 /**
- * Returns true if /assign appears at the start of a line or comment
- * Optionally preceded or followed by whitespace
+ * Returns true if /assign appears in comment
  */
 function commentRequestsAssignment(body) {
     const matches =
         typeof body === 'string' &&
-        /(^|\n)\s*\/assign(\s|$)/i.test(body);
+        /\b\/assign\b/i.test(body);
 
     console.log('[gfi-assign] commentRequestsAssignment:', {
         body,
