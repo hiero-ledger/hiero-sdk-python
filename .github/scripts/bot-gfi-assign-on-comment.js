@@ -15,17 +15,33 @@ const UNASSIGNED_GFI_SEARCH_URL =
  * Optionally preceded or followed by whitespace
  */
 function commentRequestsAssignment(body) {
-    return typeof body === 'string' &&
+    const matches =
+        typeof body === 'string' &&
         /(^|\n)\s*\/assign(\s|$)/i.test(body);
+
+    console.log('[gfi-assign] commentRequestsAssignment:', {
+        body,
+        matches,
+    });
+
+    return matches;
 }
 
 /**
  * Returns true if the issue has the good first issue label.
  */
 function issueIsGoodFirstIssue(issue) {
-    return issue?.labels?.some(label => label.name === GOOD_FIRST_ISSUE_LABEL);
-}
+    const labels = issue?.labels?.map(label => label.name) ?? [];
+    const isGfi = labels.includes(GOOD_FIRST_ISSUE_LABEL);
 
+    console.log('[gfi-assign] issueIsGoodFirstIssue:', {
+        labels,
+        expected: GOOD_FIRST_ISSUE_LABEL,
+        isGfi,
+    });
+
+    return isGfi;
+}
 /// HELPERS FOR COMMENTING ///
 
 /**
@@ -54,37 +70,77 @@ Once you find one you like, comment \`/assign\` to get started.`
 
 /// START OF SCRIPT ///
 module.exports = async ({ github, context }) => {
+
     const { issue, comment } = context.payload;
     const { owner, repo } = context.repo;
 
+    console.log('[gfi-assign] Payload snapshot:', {
+        issueNumber: issue?.number,
+        commenter: comment?.user?.login,
+        commenterType: comment?.user?.type,
+        commentBody: comment?.body,
+    });
+
     // Reject if issue, comment or comment user is missing, reject bots, or if no /assign message
-    if (
-        !issue?.number ||
-        !comment?.body ||
-        !comment?.user?.login ||
-        comment.user.type === 'Bot' ||
-        !commentRequestsAssignment(comment.body)
-    ) {
+    if (!issue?.number) {
+        console.log('[gfi-assign] Exit: missing issue number');
         return;
     }
+
+    if (!comment?.body) {
+        console.log('[gfi-assign] Exit: missing comment body');
+        return;
+    }
+
+    if (!comment?.user?.login) {
+        console.log('[gfi-assign] Exit: missing comment user login');
+        return;
+    }
+
+    if (comment.user.type === 'Bot') {
+        console.log('[gfi-assign] Exit: comment authored by bot');
+        return;
+    }
+
+    if (!commentRequestsAssignment(comment.body)) {
+        console.log('[gfi-assign] Exit: comment does not request assignment');
+        return;
+    }
+
+    console.log('[gfi-assign] Assignment command detected');
+
     // Reject if issue is not a Good First Issue
-    if (!issueIsGoodFirstIssue(issue)) return;
+    if (!issueIsGoodFirstIssue(issue)) {
+        console.log('[gfi-assign] Exit: issue is not a Good First Issue');
+        return;
+    }
+
+    console.log('[gfi-assign] Issue is labeled Good First Issue');
 
     // Get requester username and issue number to enable comments and assignments
     const requesterUsername = comment.user.login;
     const issueNumber = issue.number;
 
+    console.log('[gfi-assign] Requester:', requesterUsername);
+    console.log('[gfi-assign] Current assignees:', issue.assignees?.map(a => a.login));
+
     // Reject if issue is already assigned
     // Comment failure to the requester
     if (issue.assignees?.length > 0) {
+        console.log('[gfi-assign] Exit: issue already assigned');
+
         await github.rest.issues.createComment({
             owner,
             repo,
             issue_number: issueNumber,
             body: commentAlreadyAssigned(requesterUsername, issue),
         });
+
+        console.log('[gfi-assign] Posted already-assigned comment');
         return;
     }
+
+    console.log('[gfi-assign] Assigning issue to requester');
 
     // All validations passed and user has requested assignment on a GFI
     // Assign the issue to the requester
@@ -95,4 +151,6 @@ module.exports = async ({ github, context }) => {
         issue_number: issueNumber,
         assignees: [requesterUsername],
     });
+
+    console.log('[gfi-assign] Assignment completed successfully');
 };
