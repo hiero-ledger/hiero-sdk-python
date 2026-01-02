@@ -66,6 +66,21 @@ Once you find one you like, comment \`/assign\` to get started.`
     );
 }
 
+// HELPERS FOR PEOPLE THAT WANT TO BE ASSIGNED BUT DID NOT READ INSTRUCTIONS
+const ASSIGN_REMINDER_MARKER = '<!-- GFI assign reminder -->';
+
+function buildAssignReminder(username) {
+    return `${ASSIGN_REMINDER_MARKER}
+👋 Hi @${username}!
+
+If you’d like to work on this **Good First Issue**, just comment:
+
+\`\`\`
+/assign
+\`\`\`
+
+and you’ll be automatically assigned. Feel free to ask questions here if anything is unclear!`;
+}
 
 /// START OF SCRIPT ///
 module.exports = async ({ github, context }) => {
@@ -102,6 +117,40 @@ module.exports = async ({ github, context }) => {
     }
 
     if (!commentRequestsAssignment(comment.body)) {
+        // Only remind if:
+        // - GFI
+        // - unassigned
+        // - reminder not already posted
+        if (
+            issueIsGoodFirstIssue(issue) &&
+            !issue.assignees?.length
+        ) {
+            const comments = await github.paginate(
+                github.rest.issues.listComments,
+                {
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    per_page: 100,
+                }
+            );
+
+            const reminderAlreadyPosted = comments.some(c =>
+                c.body?.includes(ASSIGN_REMINDER_MARKER)
+            );
+
+            if (!reminderAlreadyPosted) {
+                await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    body: buildAssignReminder(comment.user.login),
+                });
+
+                console.log('[gfi-assign] Posted /assign reminder');
+            }
+        }
+
         console.log('[gfi-assign] Exit: comment does not request assignment');
         return;
     }
