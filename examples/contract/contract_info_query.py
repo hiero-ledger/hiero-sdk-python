@@ -17,12 +17,8 @@ Usage:
 
 """
 
-import os
 import sys
-
-from dotenv import load_dotenv
-
-from hiero_sdk_python import AccountId, Client, Duration, Network, PrivateKey
+from hiero_sdk_python import Client, Duration
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -33,24 +29,6 @@ from hiero_sdk_python.response_code import ResponseCode
 # Import the bytecode for a simple smart contract (SimpleContract.sol) that can be deployed
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
-
-load_dotenv()
-
-network_name = os.getenv('NETWORK', 'testnet').lower()
-
-def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
-    print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client
-
 
 def create_contract_file(client):
     """Create a file containing the simple contract bytecode"""
@@ -70,7 +48,6 @@ def create_contract_file(client):
         sys.exit(1)
 
     return file_receipt.file_id
-
 
 def create_contract(client, file_id):
     """Create a contract using the file"""
@@ -98,7 +75,6 @@ def create_contract(client, file_id):
 
     return receipt.contract_id
 
-
 def query_contract_info():
     """
     Demonstrates querying a contract info by:
@@ -107,7 +83,8 @@ def query_contract_info():
     3. Creating a contract using the file
     4. Querying the contract info
     """
-    client = setup_client()
+    client = Client.from_env()
+    print(f"Operator: {client.operator_account_id}")
 
     file_id = create_contract_file(client)
 
@@ -129,7 +106,6 @@ def query_contract_info():
     print(f"Ledger ID: {info.ledger_id}")
     print(f"Max Automatic Token Associations: {info.max_automatic_token_associations}")
     print(f"Token Relationships: {info.token_relationships}")
-
 
 if __name__ == "__main__":
     query_contract_info()
