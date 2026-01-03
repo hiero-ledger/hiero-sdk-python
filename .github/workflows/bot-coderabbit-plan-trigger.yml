@@ -4,6 +4,12 @@ on:
   issues:
     types: [opened, labeled]
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no comments will be posted)'
+        required: false
+        default: 'true'
+        type: string
 
 permissions:
   issues: write
@@ -12,6 +18,9 @@ permissions:
 jobs:
   coderabbit_plan_trigger:
     runs-on: ubuntu-latest
+    concurrency:
+      group: coderabbit-plan-${{ github.event.issue.number }}
+      cancel-in-progress: false
     # Only run for issues labeled with 'intermediate' or 'advanced' (case-insensitive)
     if: >
       (github.event_name == 'issues' && (
@@ -34,6 +43,7 @@ jobs:
       - name: Trigger CodeRabbit Plan
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
         with:
           script: |
