@@ -5,7 +5,6 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-- style: apply black formatting to examples (#1299)
 
 ### Added
 - Added unit test for 'endpoint.py' to increase coverage.
@@ -81,6 +80,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- style: apply black formatting to examples (#1299)
 -Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
 - Renamed templates for improved clarity [(#1265)]
 - Updated Good First Issue notifications to trigger only after the first comment is posted, reducing noise on unassigned issues.(#1212)
