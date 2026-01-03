@@ -2,10 +2,16 @@
 
 const marker = '<!-- CodeRabbit Plan Trigger -->';
 
-async function triggerCodeRabbitPlan(github, owner, repo, issue, marker) {
+async function triggerCodeRabbitPlan(github, owner, repo, issue, marker, dryRun) {
   const comment = `${marker} @coderabbitai plan`;
 
   try {
+    if (dryRun === 'true') {
+      console.log(`DRY RUN: Would post CodeRabbit plan comment for issue #${issue.number}`);
+      console.log(`Comment content: ${comment}`);
+      return true;
+    }
+
     await github.rest.issues.createComment({
       owner,
       repo,
@@ -24,6 +30,7 @@ module.exports = async ({ github, context }) => {
   try {
     const { owner, repo } = context.repo;
     const { issue, label } = context.payload;
+    const dryRun = process.env.DRY_RUN || 'false';
 
     // Validations
     if (!issue?.number) return console.log('No issue in payload');
@@ -50,13 +57,14 @@ module.exports = async ({ github, context }) => {
     }
 
     // Post CodeRabbit plan trigger
-    await triggerCodeRabbitPlan(github, owner, repo, issue, marker);
+    await triggerCodeRabbitPlan(github, owner, repo, issue, marker, dryRun);
 
     console.log('=== Summary ===');
     console.log(`Repository: ${owner}/${repo}`);
     console.log(`Issue Number: ${issue.number}`);
     console.log(`Issue Title: ${issue.title || '(no title)'}`);
     console.log(`Labels: ${issue.labels?.map(l => l.name).join(', ') || 'none'}`);
+    console.log(`Dry Run: ${dryRun}`);
   } catch (err) {
     console.log('❌ Error:', err.message);
   }
