@@ -23,7 +23,37 @@ Usage:
 """
 
 import dataclasses
-from typing import Any, Dict
+import enum
+from typing import Any
+
+
+def _is_enum(value: Any) -> bool:
+    """Check if a value is an Enum instance."""
+    return isinstance(value, enum.Enum)
+
+
+def _format_bytes(value: bytes) -> str:
+    """Format bytes value with truncation for display."""
+    if len(value) > 20:
+        return f"b'{value[:20].hex()}...'"
+    return f"b'{value.hex()}'"
+
+
+def _format_value_helper(value: Any) -> str:
+    """Format a field value for string representation."""
+    if value is None:
+        return "None"
+    
+    if isinstance(value, str):
+        return f"'{value}'"
+    
+    if isinstance(value, bytes):
+        return _format_bytes(value)
+    
+    if _is_enum(value):
+        return f"{value.__class__.__name__}.{value.name}"
+                
+    return str(value)
 
 
 class DataclassStringMixin:
@@ -79,33 +109,13 @@ class DataclassStringMixin:
     
     def _format_field_value(self, value: Any) -> str:
         """Format a field value for string representation."""
-        if value is None:
-            return "None"
-        
-        # Handle string values - add quotes for clarity
-        if isinstance(value, str):
-            return f"'{value}'"
-        
-        # Handle bytes - show truncated representation
-        if isinstance(value, bytes):
-            if len(value) > 20:
-                return f"b'{value[:20].hex()}...'"
-            return f"b'{value.hex()}'"
-        
-        # Handle enum values - show EnumClass.VALUE format
-        if hasattr(value, '__class__') and hasattr(value.__class__, '__mro__'):
-            for base in value.__class__.__mro__:
-                if base.__name__ == 'Enum':
-                    return f"{value.__class__.__name__}.{value.name}"
-                    
-        # For other objects, use their string representation
-        return str(value)
+        return _format_value_helper(value)
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dataclass to dictionary for serialization.
         
         Returns:
-            Dict[str, Any]: Dictionary representation of the dataclass.
+            dict[str, Any]: Dictionary representation of the dataclass.
         """
         if not dataclasses.is_dataclass(self):
             return {}
@@ -150,19 +160,7 @@ def auto_str_repr(cls):
     
     def _format_value(value: Any) -> str:
         """Format a field value for string representation."""
-        if value is None:
-            return "None"
-        if isinstance(value, str):
-            return f"'{value}'"
-        if isinstance(value, bytes):
-            if len(value) > 20:
-                return f"b'{value[:20].hex()}...'"
-            return f"b'{value.hex()}'"
-        if hasattr(value, '__class__') and hasattr(value.__class__, '__mro__'):
-            for base in value.__class__.__mro__:
-                if base.__name__ == 'Enum':
-                    return f"{value.__class__.__name__}.{value.name}"
-        return str(value)
+        return _format_value_helper(value)
     
     def __str__(self) -> str:
         """Generate string representation dynamically from dataclass fields."""

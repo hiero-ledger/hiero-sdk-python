@@ -258,3 +258,116 @@ class TestDynamicFieldInclusion:
         assert "original_field='original'" in result
         assert "new_field='new'" in result
         assert "another_new_field=42" in result
+
+class TestBoundaryConditions:
+    """Tests for boundary conditions and edge cases."""
+
+    def test_three_fields_single_line(self):
+        """Verify 3 fields produce single-line format."""
+        obj = SimpleDataclass(name="test", value=1, active=True)
+        result = str(obj)
+        assert "\n" not in result
+        assert "SimpleDataclass(" in result
+
+    def test_four_fields_multiline(self):
+        """Verify 4+ fields produce multi-line format."""
+        obj = ComplexDataclass(
+            field1="a",
+            field2=1,
+            field3="b",
+            field4=True
+        )
+        result = str(obj)
+        assert "\n" in result
+        assert "ComplexDataclass(" in result
+
+    def test_empty_dataclass(self):
+        """Verify handling of dataclass with no fields."""
+        @dataclass
+        class EmptyDataclass(DataclassStringMixin):
+            pass
+        
+        obj = EmptyDataclass()
+        result = str(obj)
+        assert result == "EmptyDataclass()"
+
+    def test_nested_dataclass_to_dict(self):
+        """Test to_dict() with nested dataclass objects."""
+        @dataclass
+        class Inner(DataclassStringMixin):
+            inner_value: str
+        
+        @dataclass
+        class Outer(DataclassStringMixin):
+            outer_value: str
+            inner: Inner
+        
+        inner_obj = Inner(inner_value="inner")
+        outer_obj = Outer(outer_value="outer", inner=inner_obj)
+        result = outer_obj.to_dict()
+        
+        assert result["outer_value"] == "outer"
+        assert isinstance(result["inner"], dict)
+        assert result["inner"]["inner_value"] == "inner"
+
+    def test_decorator_returns_same_class(self):
+        """Verify decorator modifies class in-place, not wrapping."""
+        @auto_str_repr
+        @dataclass
+        class MyClass:
+            value: int
+        
+        obj = MyClass(value=42)
+        assert type(obj).__name__ == "MyClass"
+
+    def test_decorated_methods_return_correct_types(self):
+        """Verify decorated methods return strings."""
+        obj = DecoratedDataclass(name="test", count=5)
+        assert isinstance(str(obj), str)
+        assert isinstance(repr(obj), str)
+
+    def test_mixin_repr_equals_str(self):
+        """Verify __repr__ returns same as __str__ for mixin."""
+        obj = SimpleDataclass(name="test", value=42, active=True)
+        assert repr(obj) == str(obj)
+
+    def test_decorator_repr_equals_str(self):
+        """Verify __repr__ returns same as __str__ for decorator."""
+        obj = DecoratedDataclass(name="test", count=5)
+        assert repr(obj) == str(obj)
+
+    def test_zero_value_fields(self):
+        """Test that zero and False values are properly formatted."""
+        @dataclass
+        class ZeroValuesClass(DataclassStringMixin):
+            count: int = 0
+            flag: bool = False
+            text: str = ""
+        
+        obj = ZeroValuesClass()
+        result = str(obj)
+        
+        assert "count=0" in result
+        assert "flag=False" in result
+        assert "text=''" in result
+
+    def test_special_string_characters(self):
+        """Test handling of strings with special characters."""
+        obj = SimpleDataclass(name="test'with\"quotes", value=1, active=True)
+        result = str(obj)
+        
+        assert "name=" in result
+        assert "test" in result
+
+    def test_list_and_dict_fields(self):
+        """Test handling of list and dict fields."""
+        @dataclass
+        class CollectionsClass(DataclassStringMixin):
+            items: list = None
+            mapping: dict = None
+        
+        obj = CollectionsClass(items=[1, 2, 3], mapping={"key": "value"})
+        result = str(obj)
+        
+        assert "items=" in result
+        assert "mapping=" in result

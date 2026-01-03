@@ -14,6 +14,8 @@ from __future__ import annotations
 import typing
 from abc import ABC, abstractmethod
 
+from hiero_sdk_python.utils.dataclass_strings import _format_value_helper
+
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.account.account_id import AccountId
     from hiero_sdk_python.client.client import Client
@@ -151,19 +153,19 @@ class CustomFee(ABC):
         return self.fee_collector_account_id == other.fee_collector_account_id and self.all_collectors_are_exempt == other.all_collectors_are_exempt
 
     def __str__(self) -> str:
-        """Return a dynamic string representation including all instance attributes.
+        """Return a dynamic string representation including all public instance attributes.
         
-        This method dynamically inspects all instance attributes, ensuring that
-        new fields added to subclasses are automatically included without manual updates.
+        This method dynamically inspects all public (non-underscore-prefixed) instance
+        attributes, ensuring that new fields added to subclasses are automatically
+        included without manual updates, while avoiding exposure of internal state.
         """
         fields = []
         for key, value in self.__dict__.items():
-            if value is None:
-                fields.append(f"{key}=None")
-            elif isinstance(value, str):
-                fields.append(f"{key}='{value}'")
-            else:
-                fields.append(f"{key}={value}")
+            # Skip private or internal attributes
+            if key.startswith("_"):
+                continue
+            formatted_value = _format_value_helper(value)
+            fields.append(f"{key}={formatted_value}")
         
         class_name = self.__class__.__name__
         if len(fields) <= 3:
