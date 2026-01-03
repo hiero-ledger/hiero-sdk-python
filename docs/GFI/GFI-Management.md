@@ -155,7 +155,7 @@ Updates should be treated as **process guidance**, not rigid policy.
 ## Relationship to Other GFI Documents
 
 This document complements:
-- `GFI-guidelines.md` — what qualifies as a GFI
+- `good_first_issues_guidelines` — what qualifies as a GFI (docs/maintainers/good_first_issues_guidelines.md)
 - `GFI-frequency.md` — how many GFIs to support
 - Issue templates and labeling conventions
 
