@@ -47,10 +47,18 @@ module.exports = async ({ github, context }) => {
       return console.log('Issue does not have intermediate or advanced label');
     }
 
-    // Check for existing CodeRabbit plan comment
-    const comments = await github.paginate(github.rest.issues.listComments, {
+    // Check for existing CodeRabbit plan comment (limited to first 500 comments)
+    const comments = [];
+    const iterator = github.paginate.iterator(github.rest.issues.listComments, {
       owner, repo, issue_number: issue.number, per_page: 100
     });
+    
+    let count = 0;
+    for await (const { data: page } of iterator) {
+      comments.push(...page);
+      count += page.length;
+      if (count >= 500) break; // Hard upper bound to prevent unbounded pagination
+    }
     
     if (comments.some(c => c.body?.includes('@coderabbitai plan'))) {
       return console.log(`CodeRabbit plan already triggered for #${issue.number}`);
