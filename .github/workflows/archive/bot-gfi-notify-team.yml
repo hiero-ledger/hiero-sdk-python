@@ -19,11 +19,10 @@ jobs:
         'Good First Issue'
       )
 
-
     concurrency:
       group: gfi-notify-issue-${{ github.event.issue.number }}
       cancel-in-progress: false
-      
+
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
