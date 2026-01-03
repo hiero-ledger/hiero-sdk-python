@@ -55,6 +55,7 @@ def test_before_execute_payment_required(query_requires_payment, mock_client):
     mock_get_cost = MagicMock()
     mock_get_cost.return_value = Hbar(2)
     query_requires_payment.get_cost = mock_get_cost
+    query_requires_payment.set_max_query_fee(Hbar(3))
     
     # payment_amount is None, should set payment_amount to 2 Hbars
     query_requires_payment._before_execute(mock_client)
