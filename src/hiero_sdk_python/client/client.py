@@ -7,6 +7,7 @@ from typing import NamedTuple, List, Union, Optional, Literal
 from dotenv import load_dotenv
 import grpc
 
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.logger import Logger, LogLevel
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
@@ -45,6 +46,7 @@ class Client:
         self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
 
         self.max_attempts: int = 10
+        self._default_max_query_fee: Hbar = Hbar(1)
 
         self._init_mirror_stub()
 
@@ -240,6 +242,14 @@ class Client:
         Retrieve the configured root certificates for TLS connections.
         """
         return self.network.get_tls_root_certificates()
+    
+    def set_default_max_query_fee(self, max_query_fee: Union[int, float, Hbar]):
+        """
+        """
+        if not isinstance(max_query_fee, Hbar):
+            max_query_fee = Hbar(max_query_fee)
+
+        self._default_max_query_fee = max_query_fee
 
     def __enter__(self) -> "Client":
         """
