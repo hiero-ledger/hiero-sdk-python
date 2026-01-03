@@ -117,7 +117,7 @@ def submit_topic_message_transaction(client, topic_id):
         )
         print(f"Message size:", len(BIG_CONTENT), "bytes")
         print(
-            f"Message Content: {(BIG_CONTENT[:140] + "...") if len(BIG_CONTENT) > 140 else BIG_CONTENT}"
+            f"Message Content: {(BIG_CONTENT[:140] + '...') if len(BIG_CONTENT) > 140 else BIG_CONTENT}"
         )
 
     except Exception as e:
