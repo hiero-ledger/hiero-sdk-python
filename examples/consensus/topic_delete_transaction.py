@@ -18,11 +18,11 @@ from hiero_sdk_python import (
     TopicDeleteTransaction,
     Network,
     TopicCreateTransaction,
-    ResponseCode
+    ResponseCode,
 )
 
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
@@ -33,8 +33,8 @@ def setup_client():
     client = Client(network)
 
     try:
-        operator_id_str = os.getenv('OPERATOR_ID')
-        operator_key_str = os.getenv('OPERATOR_KEY')
+        operator_id_str = os.getenv("OPERATOR_ID")
+        operator_key_str = os.getenv("OPERATOR_KEY")
         if not operator_id_str or not operator_key_str:
             print("Error: OPERATOR_ID or OPERATOR_KEY not set in .env file")
             sys.exit(1)
@@ -55,8 +55,7 @@ def create_topic(client, operator_key):
     try:
         topic_tx = (
             TopicCreateTransaction(
-                memo="Python SDK created topic",
-                admin_key=operator_key.public_key()
+                memo="Python SDK created topic", admin_key=operator_key.public_key()
             )
             .freeze_with(client)
             .sign(operator_key)
@@ -78,16 +77,16 @@ def topic_delete_transaction(client, operator_key, topic_id):
     """
     print("\nSTEP 2: Deleting Topic...")
     transaction = (
-        TopicDeleteTransaction(topic_id=topic_id)
-        .freeze_with(client)
-        .sign(operator_key)
+        TopicDeleteTransaction(topic_id=topic_id).freeze_with(client).sign(operator_key)
     )
 
     try:
         receipt = transaction.execute(client)
-        print(f"Topic Delete Transaction completed: "
-              f"(status: {ResponseCode(receipt.status).name}, "
-              f"transaction_id: {receipt.transaction_id})")
+        print(
+            f"Topic Delete Transaction completed: "
+            f"(status: {ResponseCode(receipt.status).name}, "
+            f"transaction_id: {receipt.transaction_id})"
+        )
         print(f"✅ Success! Topic {topic_id} deleted successfully.")
     except Exception as e:
         print(f"Error: Topic deletion failed: {str(e)}")

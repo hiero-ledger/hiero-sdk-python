@@ -21,7 +21,8 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -136,7 +137,7 @@ def schedule_account_create():
     print("\nChecking account balance before scheduled transaction...")
     account_balance(client, account_id)
 
-    time.sleep(5) # Wait for the scheduled transaction to execute
+    time.sleep(5)  # Wait for the scheduled transaction to execute
 
     print("\nChecking account balance after scheduled transaction...")
     account_balance(client, account_id)
@@ -145,7 +146,9 @@ def schedule_account_create():
     record_query = (
         TransactionRecordQuery().set_transaction_id(scheduled_tx_id).execute(client)
     )
-    print(f"Transaction Record receipt status: {ResponseCode(record_query.receipt.status).name}")
+    print(
+        f"Transaction Record receipt status: {ResponseCode(record_query.receipt.status).name}"
+    )
 
 
 if __name__ == "__main__":

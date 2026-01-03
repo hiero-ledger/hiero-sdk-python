@@ -33,9 +33,11 @@ from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountID, Key
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 
+
 def mock_running_hash() -> bytes:
     """Generate a mock 48-byte running hash."""
     return bytes.fromhex("00" * 48)
+
 
 def mock_admin_key() -> Key:
     """Create a mock admin key."""
@@ -44,12 +46,14 @@ def mock_admin_key() -> Key:
     key.ed25519 = public_key.to_bytes_raw()
     return key
 
+
 def mock_submit_key() -> Key:
     """Create a mock submit key."""
     public_key = PrivateKey.generate_ecdsa().public_key()
     key = Key()
     key.ECDSA_secp256k1 = public_key.to_bytes_raw()
     return key
+
 
 def mock_custom_fee() -> CustomFixedFee:
     """Create a mock custom fee."""
@@ -60,12 +64,14 @@ def mock_custom_fee() -> CustomFixedFee:
         all_collectors_are_exempt=False,
     )
 
+
 def mock_expiration_time() -> Timestamp:
     """Create a mock expiration timestamp."""
     timestamp = Timestamp()
     timestamp.seconds = 1767225600
     timestamp.nanos = 0
     return timestamp
+
 
 def mock_auto_renew_account() -> AccountID:
     """Create a mock auto-renew account ID."""
@@ -75,9 +81,11 @@ def mock_auto_renew_account() -> AccountID:
     account_id.accountNum = 100
     return account_id
 
+
 def mock_ledger_id() -> bytes:
     """Create a mock ledger ID."""
     return bytes.fromhex("01")
+
 
 def build_mock_topic_info() -> TopicInfo:
     """Manually construct a TopicInfo instance with mock data."""
@@ -97,6 +105,7 @@ def build_mock_topic_info() -> TopicInfo:
     )
     return topic_info
 
+
 def build_topic_info_from_proto() -> TopicInfo:
     """Build a TopicInfo from a mocked protobuf message using _from_proto()."""
     proto = consensus_topic_info_pb2.ConsensusTopicInfo()
@@ -110,9 +119,10 @@ def build_topic_info_from_proto() -> TopicInfo:
     proto.autoRenewAccount.CopyFrom(mock_auto_renew_account())
     proto.ledger_id = mock_ledger_id()
     proto.custom_fees.append(mock_custom_fee()._to_topic_fee_proto())
-    
+
     topic_info = TopicInfo._from_proto(proto)
     return topic_info
+
 
 def print_topic_info(topic: TopicInfo) -> None:
     """Display the key attributes of a TopicInfo instance."""
@@ -120,41 +130,43 @@ def print_topic_info(topic: TopicInfo) -> None:
     print(f"  Memo: {topic.memo}")
     print(f"  Sequence Number: {topic.sequence_number}")
     print(f"  Running Hash: {topic.running_hash.hex()}")
-    
+
     if topic.auto_renew_period:
         print(f"  Auto-Renew Period: {topic.auto_renew_period.seconds} seconds")
-    
+
     if topic.ledger_id:
         print(f"  Ledger ID: {topic.ledger_id.hex()}")
-    
+
     print(f"  Custom Fees: {len(topic.custom_fees)}")
-    
+
     # Pretty-print using __str__
     print("\nUsing __str__:")
     print(topic)
-    
+
     # Pretty-print using __repr__
     print("\nUsing __repr__:")
     print(repr(topic))
+
 
 def main():
     """Demonstrate TopicInfo functionality."""
     print("TopicInfo Example - Demonstrating topic info construction and inspection")
     print("=" * 70)
-    
+
     # Build TopicInfo directly
     print("\n1. Building TopicInfo directly:")
     topic1 = build_mock_topic_info()
     print_topic_info(topic1)
-    
+
     # Build TopicInfo from protobuf
     print("\n" + "=" * 70)
     print("\n2. Building TopicInfo from protobuf:")
     topic2 = build_topic_info_from_proto()
     print_topic_info(topic2)
-    
+
     print("\n" + "=" * 70)
     print("Example completed successfully!")
+
 
 if __name__ == "__main__":
     main()

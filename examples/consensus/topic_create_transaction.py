@@ -2,6 +2,7 @@
 uv run examples/consensus/topic_create_transaction.py
 python examples/consensus/topic_create_transaction.py
 """
+
 import os
 import sys
 from typing import Tuple
@@ -17,7 +18,7 @@ from hiero_sdk_python import (
 
 # Load environment variables from .env file
 load_dotenv()
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client() -> Tuple[Client, PrivateKey]:
@@ -29,8 +30,8 @@ def setup_client() -> Tuple[Client, PrivateKey]:
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
-    operator_id_str = os.getenv('OPERATOR_ID')
-    operator_key_str = os.getenv('OPERATOR_KEY')
+    operator_id_str = os.getenv("OPERATOR_ID")
+    operator_key_str = os.getenv("OPERATOR_KEY")
 
     # Check if the environment variables are loaded correctly
     if not operator_id_str or not operator_key_str:
@@ -58,8 +59,7 @@ def create_topic(client: Client, operator_key: PrivateKey):
     """
     transaction = (
         TopicCreateTransaction(
-            memo="Python SDK created topic",
-            admin_key=operator_key.public_key()
+            memo="Python SDK created topic", admin_key=operator_key.public_key()
         )
         .freeze_with(client)
         .sign(operator_key)

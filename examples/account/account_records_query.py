@@ -23,7 +23,8 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -54,7 +55,9 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
     account_id = receipt.account_id
@@ -69,27 +72,27 @@ def format_single_record(record, idx):
     lines.append(f"\nRecord #{idx}")
     lines.append("-" * 80)
 
-    transaction_id = getattr(record, 'transaction_id', None)
+    transaction_id = getattr(record, "transaction_id", None)
     if transaction_id:
         lines.append(f"  Transaction ID: {transaction_id}")
 
-    consensus_timestamp = getattr(record, 'consensus_timestamp', None)
+    consensus_timestamp = getattr(record, "consensus_timestamp", None)
     if consensus_timestamp:
         lines.append(f"  Consensus Timestamp: {consensus_timestamp}")
 
-    transaction_fee = getattr(record, 'transaction_fee', None)
+    transaction_fee = getattr(record, "transaction_fee", None)
     if transaction_fee:
         lines.append(f"  Transaction Fee: {transaction_fee} tinybar")
 
-    transaction_hash = getattr(record, 'transaction_hash', None)
+    transaction_hash = getattr(record, "transaction_hash", None)
     if transaction_hash:
         lines.append(f"  Transaction Hash: {transaction_hash.hex()}")
 
-    receipt = getattr(record, 'receipt', None)
+    receipt = getattr(record, "receipt", None)
     if receipt:
         lines.append(f"  Receipt Status: {ResponseCode(receipt.status).name}")
 
-    transfers = getattr(record, 'transfers', None)
+    transfers = getattr(record, "transfers", None)
     if transfers:
         lines.append(f"  Transfers:")
         for account_id, amount_in_tinybar in transfers.items():

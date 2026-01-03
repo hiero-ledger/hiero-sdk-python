@@ -1,10 +1,11 @@
 """
 This example demonstrates how to delete a file using the Python SDK.
-Run with: 
+Run with:
 uv run examples/file_delete_transaction.py
 python examples/file_delete_transaction.py
 
 """
+
 import os
 import sys
 
@@ -19,7 +20,8 @@ from hiero_sdk_python.response_code import ResponseCode
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""

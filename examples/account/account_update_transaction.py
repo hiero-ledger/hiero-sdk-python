@@ -1,6 +1,6 @@
 """
 Example demonstrating account update functionality.
-run with: 
+run with:
 uv run examples/account/account_update_transaction.py
 python examples/account/account_update_transaction.py
 """
@@ -20,7 +20,8 @@ from hiero_sdk_python.timestamp import Timestamp
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""

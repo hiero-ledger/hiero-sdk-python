@@ -48,6 +48,7 @@ def setup_client():
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
+
 def create_account_without_alias(client: Client) -> None:
     """Create an account explicitly without an alias."""
     try:
@@ -59,18 +60,12 @@ def create_account_without_alias(client: Client) -> None:
 
         print("\nSTEP 2: Creating the account without setting any alias...")
 
-        transaction = (
-            AccountCreateTransaction(
-                initial_balance=Hbar(5),
-                memo="Account created without alias",
-            )
-            .set_key_without_alias(account_private_key)
-        )
+        transaction = AccountCreateTransaction(
+            initial_balance=Hbar(5),
+            memo="Account created without alias",
+        ).set_key_without_alias(account_private_key)
 
-        transaction = (
-            transaction.freeze_with(client)
-            .sign(account_private_key)
-        )
+        transaction = transaction.freeze_with(client).sign(account_private_key)
 
         response = transaction.execute(client)
         new_account_id = response.account_id
@@ -82,11 +77,7 @@ def create_account_without_alias(client: Client) -> None:
 
         print(f"✅ Account created with ID: {new_account_id}\n")
 
-        account_info = (
-            AccountInfoQuery()
-            .set_account_id(new_account_id)
-            .execute(client)
-        )
+        account_info = AccountInfoQuery().set_account_id(new_account_id).execute(client)
 
         out = info_to_dict(account_info)
         print("Account Info:")
@@ -101,10 +92,12 @@ def create_account_without_alias(client: Client) -> None:
         print(f"❌ Error: {error}")
         sys.exit(1)
 
+
 def main():
     """Main entry point."""
     client = setup_client()
     create_account_without_alias(client)
+
 
 if __name__ == "__main__":
     main()
