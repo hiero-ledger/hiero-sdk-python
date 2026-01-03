@@ -8,13 +8,10 @@ This document defines what we **do** and **do not** consider a *Good First Issue
 - [What We Consider Good First Issues](#what-we-consider-good-first-issues)
   - [Small, Focused Source Changes](#small-focused-source-changes)
   - [Typing Improvements](#typing-improvements)
-  - [Refactors of Existing Examples](#refactors-of-existing-examples)
   - [Documentation Improvements](#documentation-improvements)
-  - [Print and Output Clarity](#print-and-output-clarity-examples-only)
-  - [Functional Improvements to Examples](#functional-improvements-to-examples)
   - [Test Improvements](#test-improvements)
-- [What Is NOT a Good First Issue](#-summary-what-is-not-a-good-first-issue)
-- [Maintainer Guidance](#-maintainer-guidance)
+- [Summary: What Is NOT a Good First Issue](#summary-what-is-not-a-good-first-issue)
+- [Maintainer Guidance](#maintainer-guidance)
 - [Additional Resources](#additional-resources)
 
 
@@ -118,7 +115,7 @@ Documentation tasks must be **explicitly scoped** and **instruction-driven**.
 
 ---
 
-## 🚫 Summary: What Is NOT a Good First Issue
+## Summary: What Is NOT a Good First Issue
 
 - ❌ Issues without a clearly defined or provided solution
 - ❌ Tasks requiring interpretation, investigation, or initiative
@@ -135,7 +132,7 @@ Documentation tasks must be **explicitly scoped** and **instruction-driven**.
 
 ---
 
-## 📌 Maintainer Guidance
+## Maintainer Guidance
 
 ### Label as GFI if the issue:
 

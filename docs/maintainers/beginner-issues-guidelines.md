@@ -132,6 +132,7 @@ Here are some examples:
 
 ---
 ## What is Not a Beginner Issue
+
 ### Rule of Thumb
 
 > If a contributor must **read code and make small decisions**,  
