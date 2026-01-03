@@ -1,0 +1,36 @@
+# This workflow notifies the GFI support team when an issue is labeled as GFI Candidate.
+
+name: Good First Issue Candidate Notification
+
+on:
+  issues:
+    types:
+      - labeled
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  gfi_candidate_notify_team:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'good first issue candidate')
+
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Notify team of GFI candidate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-gfi-candidate-notification.js');
+            await script({ github, context });
