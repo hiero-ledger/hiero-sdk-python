@@ -19,8 +19,7 @@ from hiero_sdk_python.hapi.services import (
     query_header_pb2,
     query_pb2,
     transaction_pb2,
-    transaction_contents_pb2,
-    transaction_pb2,
+    transaction_contents_pb2
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
@@ -58,7 +57,7 @@ class Query(_Executable):
         self.operator: Optional[Operator] = None
         self.node_index: int = 0
         self.payment_amount: Optional[Hbar] = None
-        self._max_query_fee: Optional[Hbar] = None
+        self.max_query_payment: Optional[Hbar] = None
 
     def _get_query_response(self, response: Any) -> query_pb2.Query:
         """
@@ -94,13 +93,35 @@ class Query(_Executable):
         self.payment_amount = payment_amount
         return self
     
-    def set_max_query_fee(self, max_query_fee: Union[int, float, Decimal, Hbar]):
+    def set_max_query_payment(self, max_query_payment: Union[int, float, Decimal, Hbar]) -> "Query":
         """
-        """
-        if not isinstance(max_query_fee, Hbar):
-            max_query_fee = Hbar(max_query_fee)
+        Sets the maximum Hbar amount that this query is allowed to cost.
 
-        self._max_query_fee = max_query_fee
+        Before executing a paid query, the SDK will fetch the actual query cost
+        from the network and compare it against this value. If the cost exceeds
+        the specified maximum, execution will fail early with an error instead
+        of submitting the query.
+        
+        Args:
+            max_query_payment (Union[int, float, Decimal, Hbar]):
+                The maximum amount of Hbar that any single query is allowed to cost.
+        
+        Returns:
+            Query: The current query instance for method chaining.
+        """
+        if not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
+            raise TypeError(
+                f"max_query_payment must be int, float, Decimal, or Hbar, got {type(max_query_payment).__name__}"
+            )
+        
+        if not isinstance(max_query_payment, Hbar):
+            if max_query_payment < 0:
+                raise ValueError(f"max_query_payment must be non-negative, got {max_query_payment}")
+                                
+            max_query_payment = Hbar(max_query_payment)
+
+        self.max_query_payment = max_query_payment
+        return self
 
     def _before_execute(self, client: Client) -> None:
         """
@@ -121,12 +142,19 @@ class Query(_Executable):
         # get the cost from the network and set it as the payment amount
         if self.payment_amount is None and self._is_payment_required():
             self.payment_amount = self.get_cost(client)
-        
-        if self._max_query_fee is None:
-            self._max_query_fee = client._default_max_query_fee
-        
-        if self.payment_amount and self.payment_amount > self._max_query_fee:
-            raise ValueError("")
+            
+            # if max_query_payment not set fall back to the client-level default max query payment
+            max_payment = (
+                self.max_query_payment 
+                if self.max_query_payment is not None 
+                else client.default_max_query_payment
+            )
+            
+            if self.payment_amount > max_payment:
+                raise ValueError(
+                    f"Query cost ${self.payment_amount.to_hbars()} HBAR "
+                    f"exceeds max set query payment: ${max_payment.to_hbars()} HBAR"
+                )
             
 
     def _make_request_header(self) -> query_header_pb2.QueryHeader:
