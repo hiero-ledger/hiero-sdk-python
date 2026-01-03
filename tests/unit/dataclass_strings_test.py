@@ -184,6 +184,11 @@ class TestIntegrationWithTokenClasses:
             balance=1000
         )
         
+        # Protect against breaking changes - verify attributes exist
+        assert hasattr(relationship, 'token_id')
+        assert hasattr(relationship, 'symbol')
+        assert hasattr(relationship, 'balance')
+        
         result = str(relationship)
         assert "TokenRelationship(" in result
         assert "0.0.123" in result
@@ -200,6 +205,10 @@ class TestIntegrationWithTokenClasses:
             token_name="Updated Token"
         )
         
+        # Protect against breaking changes - verify attributes exist
+        assert hasattr(params, 'treasury_account_id')
+        assert hasattr(params, 'token_name')
+        
         result = str(params)
         assert "TokenUpdateParams(" in result
         assert "0.0.456" in result
@@ -210,6 +219,10 @@ class TestIntegrationWithTokenClasses:
         from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateKeys
         
         keys = TokenUpdateKeys()
+        
+        # Protect against breaking changes - verify admin_key attribute exists
+        assert hasattr(keys, 'admin_key')
+        
         result = str(keys)
         
         assert "TokenUpdateKeys(" in result
@@ -217,7 +230,7 @@ class TestIntegrationWithTokenClasses:
         assert "admin_key=None" in result
 
     def test_custom_fee_subclass_str(self):
-        """Test CustomFixedFee string generation (via inheritance)."""
+        """Test CustomFixedFee string generation via CustomFee.__str__."""
         from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
         from hiero_sdk_python.account.account_id import AccountId
         
@@ -226,12 +239,19 @@ class TestIntegrationWithTokenClasses:
             fee_collector_account_id=AccountId(0, 0, 789)
         )
         
+        # Protect against breaking changes - verify inherited and specific fields exist
+        assert hasattr(fee, 'fee_collector_account_id')
+        assert hasattr(fee, 'all_collectors_are_exempt')
+        assert hasattr(fee, 'amount')
+        
         result = str(fee)
-        # CustomFixedFee has its own custom __str__ format
+        # Verify class name
         assert "CustomFixedFee" in result
-        # Should include inherited fields and own fields
-        assert "100" in result
+        # Verify inherited fields from CustomFee (custom format has title case)
         assert "0.0.789" in result
+        assert "All Collectors Are Exempt" in result or "all_collectors_are_exempt" in result
+        # Verify CustomFixedFee-specific fields
+        assert "100" in result
 
 
 class TestDynamicFieldInclusion:

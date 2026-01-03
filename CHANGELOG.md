@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-Refactored dataclass string representations: simplified enum detection with `isinstance(value, enum.Enum)`.
+Refactored dataclass string representations: simplified enum detection with `isinstance(value, enum.Enum)` and added `hasattr` in `dataclass_strings_test.py` .
 - Refactored token classes to use dataclass-driven `__str__` and `__repr__` generation. [#999](https://github.com/hiero-ledger/hiero-sdk-python/issues/999)
 - Added unit test for 'endpoint.py' to increase coverage.
 - Automated assignment guard for `advanced` issues; requires completion of at least one `good first issue` and one `intermediate` issue before assignment (exempts maintainers, committers, and triage members). (#1142)
