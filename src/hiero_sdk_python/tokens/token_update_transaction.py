@@ -23,9 +23,10 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.hapi.services import token_update_pb2, transaction_pb2
 from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.dataclass_strings import DataclassStringMixin
 
 @dataclass
-class TokenUpdateParams:
+class TokenUpdateParams(DataclassStringMixin):
     """
     Represents token attributes that can be updated.
 
@@ -46,7 +47,7 @@ class TokenUpdateParams:
     expiration_time: Optional[Timestamp] = None
 
 @dataclass
-class TokenUpdateKeys:
+class TokenUpdateKeys(DataclassStringMixin):
     """
     Represents cryptographic keys that can be updated for a token.
     Does not include treasury_key which is for transaction signing.
