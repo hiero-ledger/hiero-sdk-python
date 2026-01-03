@@ -2,8 +2,9 @@
 Base class for all network queries.
 """
 
+from decimal import Decimal
 import time
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -57,6 +58,7 @@ class Query(_Executable):
         self.operator: Optional[Operator] = None
         self.node_index: int = 0
         self.payment_amount: Optional[Hbar] = None
+        self._max_query_fee: Optional[Hbar] = None
 
     def _get_query_response(self, response: Any) -> query_pb2.Query:
         """
@@ -91,6 +93,14 @@ class Query(_Executable):
         """
         self.payment_amount = payment_amount
         return self
+    
+    def set_max_query_fee(self, max_query_fee: Union[int, float, Decimal, Hbar]):
+        """
+        """
+        if not isinstance(max_query_fee, Hbar):
+            max_query_fee = Hbar(max_query_fee)
+
+        self._max_query_fee = max_query_fee
 
     def _before_execute(self, client: Client) -> None:
         """
@@ -111,6 +121,13 @@ class Query(_Executable):
         # get the cost from the network and set it as the payment amount
         if self.payment_amount is None and self._is_payment_required():
             self.payment_amount = self.get_cost(client)
+        
+        if self._max_query_fee is None:
+            self._max_query_fee = client._default_max_query_fee
+        
+        if self.payment_amount and self.payment_amount > self._max_query_fee:
+            raise ValueError("")
+            
 
     def _make_request_header(self) -> query_header_pb2.QueryHeader:
         """
