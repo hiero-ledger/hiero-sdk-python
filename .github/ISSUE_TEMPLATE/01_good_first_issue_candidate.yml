@@ -38,30 +38,36 @@ body:
       value: |
         > [!IMPORTANT]
         > ### 📋 Good First Issue (GFI) Guidelines
-        > 
-        > **What we generally consider good first issues:**
+        > A Good First Issue generally has a narrow scope and clear instructions, with examples or solution provided.
+        >        
+        > Examples of acceptable GFI work include:
         >
-        > - **Narrow changes or additions to `src` functionality** that use generic Python skills which can be tested by adding to an existing test. For example:
-        >   - `__str__` functions
-        >   - `__repr__` functions
-        >   - Typing fixes, like return type hints or basic type conflicts
-        > - **Refactors of existing examples:**
-        >   - Separating existing examples into separate functions
-        >   - Or, conversely, taking a split example into a monolithic function
-        > - **Improvements to documentation** in examples and source code:
-        >   - Docstrings: module docstrings, function docstrings
-        >   - Inline comments
-        >   - Addition or changes to print statements to improve clarity
-        > - **Functional improvements to examples:**
-        >   - Additional steps that would help to illustrate functionality
-        > - **Specific additions to existing unit or integration tests**
+        > - **Very small, explicitly defined changes to `src` functionality**  
+        >   *(rare and mechanical only — not behavior-changing)*, such as:
+        >   - Adding or fixing `__str__` or `__repr__` methods **when the exact output is specified**
+        >   - Fully specified typing fixes (e.g. adding a known return type)
+        > - **Refactors of existing examples** that are purely structural:
+        >   - Splitting an existing example into functions
+        >   - Combining a split example into a single function  
+        >   *(when explicitly instructed)*
+        > - **Documentation improvements** that are instruction-driven:
+        >   - Fixing known typos or grammar issues
+        >   - Renaming variables when new names are provided
+        >   - Making explicitly requested changes to docstrings, comments, or print statements
+        > - **Functional improvements to examples**  
+        >   *(only when the additional steps are explicitly described)*
+        > - **Small, clearly specified edits to existing tests**
+        >   - Adding a known assertion to an existing test file
         >
-        > **What we generally do NOT consider good first issues:**
+        > **What we do NOT consider Good First Issues:**
         >
-        > - Creation of new examples
-        > - Creation of new unit and integration tests
-        > - Changes to DLT functionality, like `to_proto` and `from_proto`
-        > - Anything requiring knowledge of multiple areas of the codebase
+        > - Writing new documentation, examples, or tests
+        > - Any change that requires deciding *what* to do or *how* something should behave
+        > - Changes to SDK behavior, public APIs, or contracts
+        > - Changes to DLT or protocol logic, including `to_proto` / `from_proto`
+        > - Work spanning multiple files, modules, or subsystems
+        > - Tasks requiring domain, protocol, or architectural knowledge
+        >
         >
         > 📖 *For a more detailed explanation, refer to:  
         > [`docs/maintainers/good_first_issue_candidate_guidelines.md`](docs/maintainers/good_first_issue_candidate_guidelines.md).*
@@ -72,7 +78,7 @@ body:
       label: 👾 Description of the issue
       description: |
         DESCRIBE THE ISSUE IN A WAY THAT IS UNDERSTANDABLE TO NEW CONTRIBUTORS.
-        YOU MUST NOT ASSUME THAT SUCH CONTRIBUTORS HAVE ANY KNOWLEDGE ABOUT THE CODEBASE OR HIERO.
+        YOU MUST NOT ASSUME THAT SUCH CONTRIBUTORS HAVE ANY KNOWLEDGE ABOUT THE LANGUAGE, CODEBASE OR HIERO.
         IT IS HELPFUL TO ADD LINKS TO THE RELEVANT DOCUMENTATION AND/OR CODE SECTIONS.
         BELOW IS AN EXAMPLE.
       value: |
@@ -237,7 +243,8 @@ body:
         EDIT OR EXPAND THE CHECKLIST ON WHAT IS REQUIRED TO BE ABLE TO MERGE A PULL REQUEST FOR THIS ISSUE
       value: |
         To be able to merge a pull request for this issue, we need:
-        - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+
+        - [ ] **Assignment:** get assigned by commenting `/assign`[see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
         - [ ] **Changelog Entry:** Correct changelog entry [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
         - [ ] **Signed commits:** commits must be DCO and GPG key signed [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **All Tests Pass:** our workflow checks like unit and integration tests must pass
@@ -254,7 +261,7 @@ body:
       value: |
         If you have never contributed to an open source project at GitHub, the following step-by-step guide will introduce you to the workflow.
 
-        - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        - [ ] **Assignment:** get assigned by commenting `/assign`[see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
         - [ ] **Fork, Branch and Work on the issue:** Create a copy of the repository, create a branch for the issue and solve the problem. For instructions, please read our [Contributing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) file. Further help can be found at [Set-up Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/setup) and [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
         - [ ] **DCO and GPG key sign each commit :** each commit must be -s and -S signed. An explanation on how to do this is at [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **Add a Changelog Entry :** your pull request will require a changelog. Read [Changelog Entry Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md) to learn how.
