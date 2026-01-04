@@ -149,6 +149,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
 - Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
+- Transaction byte generation to respect valid `node_account_ids` during `external signing` and `manual freezing workflows`, preventing execution failures caused by node mismatches.
 
 ### Breaking Change
 
