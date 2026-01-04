@@ -11,7 +11,7 @@ body:
         ## **Thanks for contributing!** 😊
 
         We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
-        This template is designed to help you create a Beginner-friendly issue : an easy, well-scoped task that helps new contributors learn the codebase and build their skills.
+        This template is designed to help you create a Beginner-friendly issue: an easy, well-scoped task that helps new contributors learn the codebase and build their skills.
         ---
   - type: textarea
     id: intro
@@ -23,7 +23,7 @@ body:
         We recognize that gaining confidence and building skills are equally important steps in the open-source contributor journey.
         The purpose of this issue—and others listed under [**Find a beginner issue**](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee)—is to provide a supportive, low-pressure environment where you can learn, practice, and grow your contribution skills with confidence.
       validations:
-      required: false
+        required: false
 
   - type: markdown
     attributes:
@@ -261,7 +261,7 @@ body:
       label: 🤔 Additional Information
       description: Provide any extra resources or context for contributors to solve this good first issue
       value: |
-        For more help, we have extensive documentation attributes:
+        For more help, we have extensive documentation:
         - [SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers)
         - [SDK Developer Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training)
 
