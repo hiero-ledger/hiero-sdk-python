@@ -259,7 +259,7 @@ body:
     id: information
     attributes:
       label: 🤔 Additional Information
-      description: Provide any extra resources or context for contributors to solve this good first issue
+      description: Provide any extra resources or context for contributors to solve this beginner issue
       value: |
         For more help, we have extensive documentation:
         - [SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers)
