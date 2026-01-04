@@ -1,70 +1,59 @@
-name: Good First Issue Candidate Template
-description: Propose a potential Good First Issue (candidate)
-title: "[Good First Issue]:"
-labels: ["Good First Issue Candidate"]
+name: Beginner Issue Template
+description: Create a Beginner Issue for fairly new contributors
+title: "[Beginner]: "
+labels: ["beginner"]
 assignees: []
 body:
-  - type: textarea
-    id: intro-gfi-candidate
+  - type: markdown
     attributes:
-      label: ⚠️ Good First Issue — Candidate
       value: |
-        > This issue is not yet a confirmed Good First Issue.
-        > It is being evaluated for suitability and may require
-        > clarification or refinement before it is ready to be picked up.
-        > 
-        > Please wait for maintainer confirmation before starting work.
-        >
-        > Maintainers and reviewers can read more about Good First Issues:
-        > docs/maintainers/good_first_issue_guidelines.md
+        ---
+        ## **Thanks for contributing!** 😊
 
-    validations:
-      required: false
-
+        We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
+        This template is designed to help you create a Beginner-friendly issue: an easy, well-scoped task that helps new contributors learn the codebase and build their skills.
+        ---
   - type: textarea
     id: intro
     attributes:
-      label: 🆕🐥 First Timers Only
+      label: 🐥 Beginner Friendly
       description: Who is this issue for?
       value: |
-        This issue is reserved for people who have never contributed or have made minimal contributions to [Hiero Python SDK](https://hiero.org).
-        We know that creating a pull request (PR) is a major barrier for new contributors.
-        The goal of this issue and all other issues in [**find a good first issue**](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+) is to help you make your first contribution to the Hiero Python SDK.
-    validations:
-      required: false
+        This issue is intended for contributors who have previously completed a Good First Issue in [Hiero](https://hiero.org) and are at a beginner level.
+        We recognize that gaining confidence and building skills are equally important steps in the open-source contributor journey.
+        The purpose of this issue—and others listed under [**Find a beginner issue**](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee)—is to provide a supportive, low-pressure environment where you can learn, practice, and grow your contribution skills with confidence.
+      validations:
+        required: false
 
   - type: markdown
     attributes:
       value: |
         > [!IMPORTANT]
-        > ### 📋 Good First Issue (GFI) Guidelines
-        > 
-        > **What we generally consider good first issues:**
+        > ### 🐥 Beginner Issue Guidelines
         >
-        > - **Narrow changes or additions to `src` functionality** that use generic Python skills which can be tested by adding to an existing test. For example:
-        >   - `__str__` functions
-        >   - `__repr__` functions
-        >   - Typing fixes, like return type hints or basic type conflicts
-        > - **Refactors of existing examples:**
-        >   - Separating existing examples into separate functions
-        >   - Or, conversely, taking a split example into a monolithic function
-        > - **Improvements to documentation** in examples and source code:
-        >   - Docstrings: module docstrings, function docstrings
-        >   - Inline comments
-        >   - Addition or changes to print statements to improve clarity
-        > - **Functional improvements to examples:**
-        >   - Additional steps that would help to illustrate functionality
-        > - **Specific additions to existing unit or integration tests**
+        > Beginner Issues are intended for contributors who are familiar with the project workflow and have **some programming experience** and are wanting opportunities to build skills.
+        > These issues may require **light investigation, interpretation of existing code, and some self-initiative**, but should remain **well-scoped with a clear intent**.
         >
-        > **What we generally do NOT consider good first issues:**
+        > **What we generally consider beginner issues:**
         >
-        > - Creation of new examples
-        > - Creation of new unit and integration tests
-        > - Changes to DLT functionality, like `to_proto` and `from_proto`
-        > - Anything requiring knowledge of multiple areas of the codebase
+        > - **Small, well-scoped updates to existing tests**:
+        >   - Adjusting or extending an existing test to cover a simple case
+        > - **Narrow changes or additions to `src` functionality** using common Python skills, such as:
+        >   - Implementing or refining `__str__` methods
+        >   - Implementing or refining `__repr__` methods
+        >   - Typing improvements, such as return type hints or basic type conflicts
+        > - **Documentation improvements** in examples such as creating new examples or docstrings for existing functions
+        > - **Functional improvements to existing examples**:
+        >   - Adding steps or variations to better demonstrate functionality
         >
+        > **What we generally do NOT consider beginner issues:**
+        > - Tasks better suited for Good First Issues (purely mechanical or fully guided changes)
+        > - Creating entirely new examples or test suites
+        > - Changes to core DLT functionality (for example, `to_proto` or `from_proto`)
+        > - Work that requires deep knowledge across multiple areas of the codebase
+
         > 📖 *For a more detailed explanation, refer to:  
-        > [`docs/maintainers/good_first_issue_candidate_guidelines.md`](docs/maintainers/good_first_issue_candidate_guidelines.md).*
+        > [`docs/maintainers/beginner_issue_guidelines.md`](docs/maintainers/beginner_issue_guidelines.md).*
 
   - type: textarea
     id: issue
@@ -237,8 +226,9 @@ body:
         EDIT OR EXPAND THE CHECKLIST ON WHAT IS REQUIRED TO BE ABLE TO MERGE A PULL REQUEST FOR THIS ISSUE
       value: |
         To be able to merge a pull request for this issue, we need:
-        - [ ] **Changelog Entry:** Correct changelog entry (please link to the documentation - [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md))
-        - [ ] **Signed commits:** commits must be DCO and GPG key signed ([see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md))
+        - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        - [ ] **Changelog Entry:** Correct changelog entry [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+        - [ ] **Signed commits:** commits must be DCO and GPG key signed [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **All Tests Pass:** our workflow checks like unit and integration tests must pass
         - [ ] **Issue is Solved:** The implementation fully addresses the issue requirements as described above
         - [ ] **No Further Changes are Made:** Code review feedback has been addressed and no further changes are requested
@@ -253,14 +243,14 @@ body:
       value: |
         If you have never contributed to an open source project at GitHub, the following step-by-step guide will introduce you to the workflow.
 
-        - [ ] **Claim this issue:** Comment below that you are interested in working on the issue. Without assignment, your pull requests might be closed and the issue given to another developer.
-        - [ ] **Wait for assignment:** A community member with the given rights will add you as an assignee of the issue
+        - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
         - [ ] **Fork, Branch and Work on the issue:** Create a copy of the repository, create a branch for the issue and solve the problem. For instructions, please read our [Contributing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) file. Further help can be found at [Set-up Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/setup) and [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
         - [ ] **DCO and GPG key sign each commit :** each commit must be -s and -S signed. An explanation on how to do this is at [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **Add a Changelog Entry :** your pull request will require a changelog. Read [Changelog Entry Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md) to learn how.
         - [ ] **Push and Create a Pull Request :** Once your issue is resolved, and your commits are signed, and you have a changelog entry, push your changes and create a pull request. Detailed instructions can be found at [Submit PR Training](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md), part of [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
         - [ ] **You did it 🎉:** A maintainer or committer will review your pull request and provide feedback. If approved, we will merge the fix in the main branch. Thanks for being part of the Hiero community as an open-source contributor ❤️
 
+        ***IMPORTANT*** You will ONLY be assigned to the issue if you comment: `/assign`
         ***IMPORTANT*** Your pull request CANNOT BE MERGED until you add a changelog entry AND sign your commits each with `git commit -S -s -m "chore: your commit message"` with a GPG key setup.
     validations:
       required: true
@@ -269,9 +259,9 @@ body:
     id: information
     attributes:
       label: 🤔 Additional Information
-      description: Provide any extra resources or context for contributors to solve this good first issue
+      description: Provide any extra resources or context for contributors to solve this beginner issue
       value: |
-        For more help, we have extensive documentation attributes:
+        For more help, we have extensive documentation:
         - [SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers)
         - [SDK Developer Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training)
 

@@ -1,0 +1,47 @@
+# Prevents intermediate issues from being assigned to contributors without prior GFI experience.
+name: Intermediate Issue Assignment Guard
+
+on:
+  issues:
+    types:
+      - assigned
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run without making changes'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  enforce-intermediate-guard:
+    concurrency:
+      group: intermediate-guard-${{ github.event.issue.number || github.run_id }}
+      cancel-in-progress: false
+    if: contains(github.event.issue.labels.*.name, 'intermediate')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Enforce intermediate assignment guard
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          INTERMEDIATE_LABEL: intermediate
+          GFI_LABEL: Good First Issue
+          INTERMEDIATE_COMMENT_MARKER: "<!-- Intermediate Issue Guard -->"
+          INTERMEDIATE_EXEMPT_PERMISSIONS: admin,maintain,write,triage
+          DRY_RUN: "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run != 'false' }}"
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-intermediate-assignment.js');
+            await script({ github, context });
