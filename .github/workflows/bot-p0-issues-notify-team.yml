@@ -34,5 +34,5 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
         with:
           script: |
-            const script = require('./.github/scripts/p0_issues_notify_team.js');      
+            const script = require('./.github/scripts/bot-p0-issues-notify-team.js');      
             await script({ github, context});
