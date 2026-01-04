@@ -15,6 +15,9 @@ jobs:
   gfi_candidate_notify_team:
     runs-on: ubuntu-latest
     if: contains(github.event.issue.labels.*.name, 'good first issue candidate')
+    concurrency:
+      group: gfi-candidate-${{ github.event.issue.number }}
+      cancel-in-progress: false
 
     steps:
       - name: Harden the runner
