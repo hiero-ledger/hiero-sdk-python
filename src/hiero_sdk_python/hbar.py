@@ -107,6 +107,54 @@ class Hbar:
         if not isinstance(tinybars, int):
             raise TypeError("tinybars must be an int.")
         return cls(tinybars, unit=HbarUnit.TINYBAR)
+    
+    @classmethod
+    def from_microbars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar object representing the specified amount of microbars.
+        Example: Hbar.from_microbars(100) -> 100 μℏ
+        """
+        return cls(amount, unit=HbarUnit.MICROBAR)
+
+    @classmethod
+    def from_millibars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar object representing the specified amount of millibars.
+        Example: Hbar.from_millibars(500) -> 500 mℏ
+        """
+        return cls(amount, unit=HbarUnit.MILLIBAR)
+
+    @classmethod
+    def from_hbars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar object representing the specified amount of hbars.
+        Example: Hbar.from_hbars(10) -> 10 ℏ
+        """
+        return cls(amount, unit=HbarUnit.HBAR)
+
+    @classmethod
+    def from_kilobars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar object representing the specified amount of kilobars.
+        Example: Hbar.from_kilobars(1) -> 1 kℏ
+        """
+        return cls(amount, unit=HbarUnit.KILOBAR)
+
+    @classmethod
+    def from_megabars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar object representing the specified amount of megabars.
+        Example: Hbar.from_megabars(1) -> 1 Mℏ
+        """
+        return cls(amount, unit=HbarUnit.MEGABAR)
+
+    @classmethod
+    def from_gigabars(cls, amount: Union[int, float, Decimal]) -> "Hbar":
+        """
+        Create an Hbar object representing the specified amount of gigabars.
+        Example: Hbar.from_gigabars(1) -> 1 Gℏ
+        """
+        return cls(amount, unit=HbarUnit.GIGABAR)
 
     @classmethod
     def from_string(cls, amount: str, unit: HbarUnit = HbarUnit.HBAR) -> "Hbar":

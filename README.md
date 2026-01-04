@@ -14,6 +14,7 @@ A Python SDK for interacting with the Hedera Hashgraph platform.
 ```bash
 pip install --upgrade pip
 pip install hiero-sdk-python
+pip install python-dotenv
 ```
 
 ### Environment Configuration
@@ -30,14 +31,22 @@ A sample file is provided: [.env.example](.env.example)
 ### Basic Usage
 
 ```python
-from hiero_sdk_python import Client, AccountBalanceQuery
+import os
+from dotenv import load_dotenv
+from hiero_sdk_python import Network, Client, CryptoGetAccountBalanceQuery, AccountId, PrivateKey
 
 # Connect to testnet
-client = Client.for_testnet()
-client.set_operator(account_id, private_key)
+load_dotenv()
+network = Network("testnet")
+client = Client(network)
+
+operator_id = AccountId.from_string(os.getenv("OPERATOR_ID",""))
+operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY",""))
+
+client.set_operator(operator_id, operator_key)
 
 # Query account balance
-balance = AccountBalanceQuery(account_id=account_id).execute(client)
+balance = CryptoGetAccountBalanceQuery(account_id=operator_id).execute(client)
 print(f"Balance: {balance.hbars} HBAR")
 ```
 

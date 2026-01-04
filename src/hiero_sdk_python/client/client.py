@@ -2,8 +2,9 @@
 Client module for interacting with the Hedera network.
 """
 
-from typing import NamedTuple, List, Union, Optional
-
+import os
+from typing import NamedTuple, List, Union, Optional, Literal
+from dotenv import load_dotenv
 import grpc
 
 from hiero_sdk_python.logger.logger import Logger, LogLevel
@@ -16,6 +17,8 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
 from .network import Network
+
+NetworkName = Literal["mainnet", "testnet", "previewnet"]
 
 class Operator(NamedTuple):
     """A named tuple for the operator's account ID and private key."""
@@ -46,6 +49,89 @@ class Client:
         self._init_mirror_stub()
 
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
+
+    @classmethod
+    def from_env(cls, network: Optional[NetworkName] = None) -> "Client":
+        """
+        Initialize client from environment variables.
+        Automatically loads .env file if present.
+
+        Args:
+            network (str, optional): Override the network ("testnet", "mainnet", "previewnet").
+                                     If not provided, checks 'NETWORK' env var. 
+                                     Defaults to 'testnet' if neither is set.
+
+        Raises:
+            ValueError: If OPERATOR_ID or OPERATOR_KEY environment variables are not set.
+
+        Example:
+            # Defaults to testnet if no env vars set
+            client = Client.from_env()
+        """
+        load_dotenv()
+        
+        if network:
+            network_name = network
+        else:
+            network_name = os.getenv('NETWORK') or 'testnet'
+
+        network_name = network_name.lower()
+        
+        try:
+            client = cls(Network(network_name))
+        except ValueError:
+            raise ValueError(f"Invalid network name: {network_name}")
+
+        operator_id_str = os.getenv("OPERATOR_ID")
+        operator_key_str = os.getenv("OPERATOR_KEY")
+
+        if not operator_id_str:
+            raise ValueError("OPERATOR_ID environment variable is required for Client.from_env()")
+        if not operator_key_str:
+            raise ValueError("OPERATOR_KEY environment variable is required for Client.from_env()")
+
+        operator_id = AccountId.from_string(operator_id_str)
+        operator_key = PrivateKey.from_string(operator_key_str)
+
+        client.set_operator(operator_id, operator_key)
+
+        return client
+
+    @classmethod
+    def for_testnet(cls) -> "Client":
+        """
+        Create a Client configured for Hedera Testnet.
+        
+        Note: Operator must be set manually using set_operator().
+
+        Returns:
+            Client: A Client instance configured for testnet.
+        """
+        return cls(Network("testnet"))
+
+    @classmethod
+    def for_mainnet(cls) -> "Client":
+        """
+        Create a Client configured for Hedera Mainnet.
+        
+        Note: Operator must be set manually using set_operator().
+
+        Returns:
+            Client: A Client instance configured for mainnet.
+        """
+        return cls(Network("mainnet"))
+
+    @classmethod
+    def for_previewnet(cls) -> "Client":
+        """
+        Create a Client configured for Hedera Previewnet.
+        
+        Note: Operator must be set manually using set_operator().
+
+        Returns:
+            Client: A Client instance configured for previewnet.
+        """
+        return cls(Network("previewnet"))
 
     def _init_mirror_stub(self) -> None:
         """

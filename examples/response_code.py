@@ -1,9 +1,11 @@
 from hiero_sdk_python import ResponseCode
 
+
 # Mock of a transaction receipt object
 class TransactionReceipt:
     def __init__(self, status_code: int):
         self.status = status_code
+
 
 def response_code(receipt: "TransactionReceipt"):
     status_code = ResponseCode(receipt.status)
@@ -16,6 +18,7 @@ def response_code(receipt: "TransactionReceipt"):
     else:
         print("❌ Transaction failed!")
 
+
 def response_name(receipt: "TransactionReceipt"):
     status_code = ResponseCode(receipt.status)
     status_name = status_code.name
@@ -27,6 +30,7 @@ def response_name(receipt: "TransactionReceipt"):
         print(f"❓ Unknown transaction status: {status_name}")
     else:
         print("❌ Transaction failed!")
+
 
 def main():
     print("=== Receipt Status Demo ===\n")
@@ -45,6 +49,7 @@ def main():
     receipt_unknown_status = TransactionReceipt(999)
     response_code(receipt_unknown_status)
     response_name(receipt_unknown_status)
+
 
 if __name__ == "__main__":
     main()

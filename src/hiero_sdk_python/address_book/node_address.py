@@ -101,11 +101,8 @@ class NodeAddress:
         if self._account_id:
             node_address_proto.nodeAccountId.CopyFrom(self._account_id._to_proto())
         
-        service_endpoints: List[Endpoint] = []
         for endpoint in self._addresses:
-            service_endpoints.append(endpoint._to_proto())
-        
-        node_address_proto.serviceEndpoint = service_endpoints
+            node_address_proto.serviceEndpoint.append(endpoint._to_proto())
         
         return node_address_proto
     

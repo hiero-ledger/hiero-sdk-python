@@ -6,8 +6,10 @@ uv run examples/crypto/private_key_ed25519.py
 python examples/crypto/private_key_ed25519.py
 
 """
+
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.private_key import PrivateKey
+
 
 def example_generate_ed25519() -> None:
     """
@@ -18,7 +20,7 @@ def example_generate_ed25519() -> None:
     # 1) Generate Ed25519 by specifying in "'"
     privkey = PrivateKey.generate("ed25519")
     print("Generated Ed25519 PrivateKey (hex) =", privkey)
-    
+
     # 2) Get the public key for this ed25519 private key
     pubkey = privkey.public_key()
     print("Derived public key =", pubkey)
@@ -34,6 +36,7 @@ def example_generate_ed25519() -> None:
     except InvalidSignature:
         print("Signature is INVALID (Ed25519)!")
     print()
+
 
 def example_load_ed25519_raw() -> None:
     """
@@ -63,6 +66,7 @@ def example_load_ed25519_raw() -> None:
         print("Signature invalid?!")
     print()
 
+
 def example_load_ed25519_from_hex() -> None:
     """
     Demonstrates creating a PrivateKey from a hex-encoded string for Ed25519.
@@ -89,6 +93,7 @@ def example_load_ed25519_from_hex() -> None:
         print("Signature invalid?!")
     print()
 
+
 def example_load_ed25519_der() -> None:
     """
     Demonstrates loading an Ed25519 private key from DER bytes (hex form).
@@ -102,7 +107,7 @@ def example_load_ed25519_der() -> None:
         "302e020100300506032b657004220420"
         "0101010101010101010101010101010101010101010101010101010101010101"
     )
-    
+
     # Create private and public key
     privkey = PrivateKey.from_string_der(der_hex)
     print("Loaded Ed25519 PrivateKey from DER =", privkey)
@@ -118,11 +123,13 @@ def example_load_ed25519_der() -> None:
         print("Signature invalid?!")
     print()
 
+
 def main_ed25519():
     example_generate_ed25519()
     example_load_ed25519_raw()
     example_load_ed25519_from_hex()
     example_load_ed25519_der()
+
 
 if __name__ == "__main__":
     main_ed25519()

@@ -5,7 +5,7 @@ on:
     workflows:
       - "PR Formatting"
       - "PR Changelog Check"
-      - "Hiero Solo Integration Tests"
+      - "Hiero Solo Integration & Unit Tests"
       - "Run Examples"
     types:
       - completed
@@ -35,8 +35,8 @@ jobs:
             --repo ${{ github.repository }} \
             --json headBranch --jq '.headBranch')
           
-          # Find the PR number for this branch
-          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --state all --head "$HEAD_BRANCH" --json number --jq '.[0].number')
+          # Find the PR number for this branch (only open PRs)
+          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --state open --head "$HEAD_BRANCH" --json number --jq '.[0].number')
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
       
       - name: Comment on PR

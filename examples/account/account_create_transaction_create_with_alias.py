@@ -97,21 +97,15 @@ def create_account_with_ecdsa_alias(
     alias_public_key = alias_private_key.public_key()
 
     # Use the helper that accepts both the main key and the ECDSA alias key
-    transaction = (
-        AccountCreateTransaction(
-            initial_balance=Hbar(5),
-            memo="Account with separate ECDSA alias",
-        )
-        .set_key_with_alias(main_private_key, alias_public_key)
-    )
+    transaction = AccountCreateTransaction(
+        initial_balance=Hbar(5),
+        memo="Account with separate ECDSA alias",
+    ).set_key_with_alias(main_private_key, alias_public_key)
 
     # Freeze and sign:
     # - operator key signs as payer (via client)
     # - alias private key MUST sign to authorize the alias
-    transaction = (
-        transaction.freeze_with(client)
-        .sign(alias_private_key)
-    )
+    transaction = transaction.freeze_with(client).sign(alias_private_key)
 
     response = transaction.execute(client)
     new_account_id = response.account_id
@@ -136,11 +130,7 @@ def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
         AccountInfo: The account info object.
     """
     print("\nSTEP 3: Fetching account information...")
-    account_info = (
-        AccountInfoQuery()
-        .set_account_id(account_id)
-        .execute(client)
-    )
+    account_info = AccountInfoQuery().set_account_id(account_id).execute(client)
     return account_info
 
 
