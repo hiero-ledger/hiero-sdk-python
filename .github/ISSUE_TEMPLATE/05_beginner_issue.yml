@@ -11,7 +11,7 @@ body:
         ## **Thanks for contributing!** 😊
 
         We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
-        This template is designed to help you create a Beginner-friendly issue: an easy, well-scoped task that helps new contributors learn the codebase and build their skills.
+        This template is designed to help you create a Beginner-friendly issue: an easy, well-scoped task that helps fairly new contributors learn the codebase and build their skills.
         ---
   - type: textarea
     id: intro
@@ -22,8 +22,8 @@ body:
         This issue is intended for contributors who have previously completed a Good First Issue in [Hiero](https://hiero.org) and are at a beginner level.
         We recognize that gaining confidence and building skills are equally important steps in the open-source contributor journey.
         The purpose of this issue—and others listed under [**Find a beginner issue**](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee)—is to provide a supportive, low-pressure environment where you can learn, practice, and grow your contribution skills with confidence.
-      validations:
-        required: false
+    validations:
+      required: false
 
   - type: markdown
     attributes:
@@ -60,9 +60,10 @@ body:
     attributes:
       label: 👾 Description of the issue
       description: |
-        DESCRIBE THE ISSUE IN A WAY THAT IS UNDERSTANDABLE TO NEW CONTRIBUTORS.
-        YOU MUST NOT ASSUME THAT SUCH CONTRIBUTORS HAVE ANY KNOWLEDGE ABOUT THE CODEBASE OR HIERO.
+        DESCRIBE THE ISSUE IN A WAY THAT IS UNDERSTANDABLE AND APPROACHABLE TO BEGINNER CONTRIBUTORS.
+        ASSUME SUCH CONTRIBUTORS HAVE AT MOST BEGINNER-LEVEL KNOWLEDGE ABOUT PROGRAMMING, THE CODEBASE AND HIERO.
         IT IS HELPFUL TO ADD LINKS TO THE RELEVANT DOCUMENTATION AND/OR CODE SECTIONS.
+        SLIGHTLY CHALLENGE THEM TO ENCOURAGE LEARNING AND RESEARCH BUT MAKE SURE THE ISSUE IS STILL SIMPLE.
         BELOW IS AN EXAMPLE.
       value: |
         Edit here. Example provided below.
@@ -76,69 +77,16 @@ body:
         <!-- Example for problem (hidden in submission) -->
         ## 👾 Description of the issue - Example
 
-        The example for Token Associate Transaction located at examples/tokens/token_associate_transaction.py can be improved. It correctly illustrates how to associate a token, however, it does so all from one function main()
+        The `AccountId` class at src/hiero_sdk_python/account/account_id.py implements a `__repr__()` method which currently falls back to the default object representation, which is less helpful
+        when debugging.
 
-        As everything is grouped together in main(), it is difficult for a user to understand all the individual steps required to associate a token.
+        For example, printing an `AccountId` instance in a REPL currently produces output similar to:
 
-        For example:
         ```python
-
-        def run_demo():
-            """Monolithic token association demo."""
-            print(f"🚀 Connecting to Hedera {network_name} network!")    
-            client = Client(Network(network_name))
-            operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-            operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-            client.set_operator(operator_id, operator_key)
-            print(f"✅ Client ready (operator {operator_id})")
-
-            test_key = PrivateKey.generate_ed25519()
-            receipt = (
-                AccountCreateTransaction()
-                .set_key(test_key.public_key())
-                .set_initial_balance(Hbar(1))
-                .set_account_memo("Test account for token association demo")
-                .freeze_with(client)
-                .sign(operator_key)
-                .execute(client)
-            )
-            if receipt.status != ResponseCode.SUCCESS:
-                raise Exception(receipt.status)
-            account_id = receipt.account_id
-            print(f"✅ Created test account {account_id}")
-
-            # Create tokens
-            tokens = []
-            for i in range(3):
-                try:
-                    receipt = (
-                        TokenCreateTransaction()
-                        .set_token_name(f"DemoToken{i}")
-                        .set_token_symbol(f"DTK{i}")
-                        .set_decimals(2)
-                        .set_initial_supply(100_000)
-                        .set_treasury_account_id(operator_id)
-                        .freeze_with(client)
-                        .sign(operator_key)
-                        .execute(client)
-                    )
-                    if receipt.status != ResponseCode.SUCCESS:
-                        raise Exception(receipt.status)
-                    token_id = receipt.token_id
-                    tokens.append(token_id)
-                    print(f"✅ Created token {token_id}")
-                except Exception as e:
-                    print(f"❌ Token creation failed: {e}")
-                    sys.exit(1)
-
-            # Associate first token
-            try:
-                TokenAssociateTransaction().set_account_id(account_id).add_token_id(tokens[0]).freeze_with(client).sign(test_key).execute(client)
-                print(f"✅ Token {tokens[0]} associated with account {account_id}")
-            except Exception as e:
-                print(f"❌ Token association failed: {e}")
-                sys.exit(1)
+        <hiero.account_id.AccountId object at 0x7f9c2a3b8d60>
         ```
+
+        This makes it difficult to quickly identify the actual account ID value during debugging sessions.
 
   - type: textarea
     id: solution
@@ -159,14 +107,14 @@ body:
     attributes:
       value: |
         <!-- Example for the solution (hidden in submission) -->
-        ## 💡 Solution - Example
+        To improve this, we want to implement a more informative `__repr__()` method for the `AccountId` class that clearly displays the account ID in a recognizable format.
 
-        For the TokenAssociateTransaction example, the solution is to split the monolithic main() function for illustrating TokenAssociateTransaction into separate smaller functions which are called from main().
-        Such as:
-        - Setting up the client
-        - Creating an account
-        - Creating a token
-        - Associating the account to the token
+        After this improvement, `repr(account_id)` should return a clear and descriptive value that reflects
+        the account’s shard, realm, and number. For example:
+
+        ```python
+        AccountId(shard=0, realm=0, num=1234)
+        ```
 
   - type: textarea
     id: implementation
@@ -188,35 +136,17 @@ body:
         <!-- Example implementation (hidden in submission) -->
         ### 👩‍💻 Implementation - Example
 
-        To break down the monolithic main function, you need to:
-        - [ ] Extract the Key Steps (set up a client, create a test account, create a token, associate the token)
-        - [ ] Copy and paste the functionality for each key step into its own function
-        - [ ] Pass to each function the variables you need to run it
-        - [ ] Call each function in main()
-        - [ ] Ensure you return the values you'll need to pass on to the next step in main
-        - [ ] Ensure the example still runs and has the same output!
+        To implement this change, beginner contributors should:
 
-        For example:
-        ```python
-
-        def setup_client():
-            """Initialize and set up the client with operator account."""
-
-        def create_test_account(client, operator_key):
-            """Create a new test account for demonstration."""
-
-        def create_fungible_token(client, operator_id, operator_key):
-            """Create a fungible token for association with test account."""
-
-        def associate_token_with_account(client, token_id, account_id, account_key):
-            """Associate the token with the test account."""
-
-        def main():
-            client, operator_id, operator_key = setup_client()
-            account_id, account_private_key = create_test_account(client, operator_key)
-            token_id = create_fungible_token(client, operator_id, operator_key)
-            associate_token_with_account(client, token_id, account_id, account_private_key)
-        ```
+        - [ ] Locate the `AccountId` class in the `src/` directory
+        - [ ] Review the existing `__str__()` method to understand how account IDs are currently formatted
+        - [ ] Review the `__init__()` method to see which fields (`shard`, `realm`, `num`, `alias_key`) define an account
+        - [ ] Check whether other ID classes in the SDK implement `__repr__()` and follow a similar pattern
+        - [ ] Implement or refine the `__repr__()` method so it:
+          - Clearly displays `shard`, `realm`, and `num` values
+          - Includes `alias_key` when the account is created using an alias
+          - Uses keyword-style formatting for readability
+        - [ ] Test the new `__repr__()` method expanding the unit test for AccountId
 
   - type: textarea
     id: acceptance-criteria
@@ -241,8 +171,6 @@ body:
       label: 📋 Step-by-Step Contribution Guide
       description: Provide a contribution workflow suitable for new contributors
       value: |
-        If you have never contributed to an open source project at GitHub, the following step-by-step guide will introduce you to the workflow.
-
         - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
         - [ ] **Fork, Branch and Work on the issue:** Create a copy of the repository, create a branch for the issue and solve the problem. For instructions, please read our [Contributing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) file. Further help can be found at [Set-up Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/setup) and [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
         - [ ] **DCO and GPG key sign each commit :** each commit must be -s and -S signed. An explanation on how to do this is at [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
