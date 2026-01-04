@@ -34,5 +34,5 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
         run: |
-          chmod +x .github/scripts/check_advanced_requirement.sh
-          ./.github/scripts/check_advanced_requirement.sh
+          chmod +x .github/scripts/bot-advanced-check.sh
+          ./.github/scripts/bot-advanced-check.sh
