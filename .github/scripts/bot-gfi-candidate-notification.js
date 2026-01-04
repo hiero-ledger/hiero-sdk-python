@@ -4,6 +4,13 @@ const marker = '<!-- GFI Candidate Notification -->';
 const TEAM_ALIAS = '@hiero-ledger/hiero-sdk-good-first-issue-support';
 
 async function notifyTeam(github, owner, repo, issue, message) {
+   if (dryRun) {
+    console.log('Notified team about GFI candidate');
+    console.log(`Repo: ${owner}/${repo}`);
+    console.log(`Issue: #${issue.number} - ${issue.title}`);
+    console.log(`Message:\n${message}`);
+    return true;
+  }
   const comment = `${marker} :wave: Hello Team :wave:
 ${TEAM_ALIAS}
 
@@ -13,7 +20,7 @@ Repository: ${owner}/${repo}
 Issue: #${issue.number} - ${issue.title || '(no title)'}
 
 Best Regards,
-Python SDK team`;
+Hiero Python SDK team`;
 
   try {
     await github.rest.issues.createComment({
@@ -22,7 +29,7 @@ Python SDK team`;
       issue_number: issue.number,
       body: comment,
     });
-    console.log(`[Good First Issue Candidate]: Notified team about #${issue.number}`);
+    console.log(`Notified team about #${issue.number}`);
     return true;
   } catch (err) {
     console.log(
@@ -46,6 +53,10 @@ module.exports = async ({ github, context }) => {
     if (label.name !== 'good first issue candidate') {
       return;
     }
+
+    //
+    dryRun && console.log('DRY-RUN active');
+
 
     // Prevent duplicate notifications
     const comments = await github.paginate(

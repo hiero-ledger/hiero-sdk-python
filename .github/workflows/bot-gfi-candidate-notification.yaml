@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.issue.labels.*.name, 'good first issue candidate')
 
-
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76
@@ -29,8 +28,9 @@ jobs:
       - name: Notify team of GFI candidate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.repository_owner != 'hiero-ledger' }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           script: |
             const script = require('./.github/scripts/bot-gfi-candidate-notification.js');
-            await script({ github, context });
+            await script({ github, context, dryRun: process.env.DRY_RUN === 'true' });
