@@ -244,7 +244,7 @@ body:
       value: |
         To be able to merge a pull request for this issue, we need:
 
-        - [ ] **Assignment:** get assigned by commenting `/assign`[see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        - [ ] **Assignment:** get assigned by commenting `/assign` [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
         - [ ] **Changelog Entry:** Correct changelog entry [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
         - [ ] **Signed commits:** commits must be DCO and GPG key signed [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **All Tests Pass:** our workflow checks like unit and integration tests must pass
@@ -261,7 +261,7 @@ body:
       value: |
         If you have never contributed to an open source project at GitHub, the following step-by-step guide will introduce you to the workflow.
 
-        - [ ] **Assignment:** get assigned by commenting `/assign`[see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        - [ ] **Assignment:** get assigned by commenting `/assign` [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
         - [ ] **Fork, Branch and Work on the issue:** Create a copy of the repository, create a branch for the issue and solve the problem. For instructions, please read our [Contributing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) file. Further help can be found at [Set-up Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/setup) and [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
         - [ ] **DCO and GPG key sign each commit :** each commit must be -s and -S signed. An explanation on how to do this is at [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **Add a Changelog Entry :** your pull request will require a changelog. Read [Changelog Entry Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md) to learn how.

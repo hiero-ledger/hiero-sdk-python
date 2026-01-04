@@ -83,7 +83,7 @@ Documentation tasks must be **explicitly scoped** and **instruction-driven**.
 
 #### Allowed
 
-- Remaing variable names when new names are provided
+- Renaming variable names when new names are provided
 - Fixing identified typos or grammar issues
 - Making explicitly provided changes to docstrings, comments or print statements
 - Splitting a large example into smaller functions

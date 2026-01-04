@@ -55,7 +55,7 @@ Apply the **candidate** label when you believe the issue is a good first issue, 
 - The issue fits within the **allowed GFI categories** (docs, examples, typing, small mechanical edits)
 - The issue is *not* exploratory and does *not* require design decisions
 
-Suitability can be assessed [here](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issues_guidelines.md)
+Suitability can be assessed [GFIC Guidelines](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issues_guidelines.md)
 
 ### ✅ Requires Some Refinement
 
