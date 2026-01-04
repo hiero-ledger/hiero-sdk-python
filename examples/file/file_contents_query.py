@@ -16,7 +16,8 @@ from hiero_sdk_python.response_code import ResponseCode
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -38,7 +39,9 @@ def create_file(client: Client):
 
     receipt = (
         FileCreateTransaction()
-        .set_keys([file_private_key.public_key(), client.operator_private_key.public_key()])
+        .set_keys(
+            [file_private_key.public_key(), client.operator_private_key.public_key()]
+        )
         .set_contents(b"Test contents to be queried!")
         .set_file_memo("Test file for query")
         .freeze_with(client)

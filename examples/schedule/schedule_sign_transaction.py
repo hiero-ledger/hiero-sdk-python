@@ -15,6 +15,7 @@ Therefore, the only required signature for execution is the sender’s (new acco
 uv run examples/schedule/schedule_sign_transaction.py
 python examples/schedule/schedule_sign_transaction.py
 """
+
 import datetime
 import os
 import sys
@@ -31,7 +32,8 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""

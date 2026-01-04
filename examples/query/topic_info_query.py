@@ -3,12 +3,14 @@ uv run examples/query/topic_info_query.py
 python examples/query/topic_info_query.py
 
 """
+
 import sys
 from hiero_sdk_python import (
     Client,
     TopicInfoQuery,
     TopicCreateTransaction,
 )
+
 
 def create_topic(client, operator_key):
     """Create a new topic"""
@@ -30,6 +32,7 @@ def create_topic(client, operator_key):
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
 
+
 def query_topic_info():
     """
     A full example that create a topic and query topic info for that topic.
@@ -46,6 +49,7 @@ def query_topic_info():
     query = TopicInfoQuery().set_topic_id(topic_id)
     topic_info = query.execute(client)
     print("✅ Success! Topic Info:", topic_info)
+
 
 if __name__ == "__main__":
     query_topic_info()

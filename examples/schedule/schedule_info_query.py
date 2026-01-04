@@ -10,11 +10,23 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey, AccountCreateTransaction, ResponseCode, ScheduleInfoQuery, Timestamp, TransferTransaction
+from hiero_sdk_python import (
+    AccountId,
+    Client,
+    Hbar,
+    Network,
+    PrivateKey,
+    AccountCreateTransaction,
+    ResponseCode,
+    ScheduleInfoQuery,
+    Timestamp,
+    TransferTransaction,
+)
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -46,7 +58,9 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
     account_id = receipt.account_id

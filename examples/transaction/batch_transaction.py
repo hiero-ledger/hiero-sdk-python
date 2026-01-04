@@ -164,7 +164,9 @@ def perform_batch_tx(client, sender, recipient, token_id, freeze_key):
     """
     Perform a batch transaction using PrivateKey as batch_key.
     """
-    print("\nPerforming batch transaction with PrivateKey (unfreeze → transfer → freeze)...")
+    print(
+        "\nPerforming batch transaction with PrivateKey (unfreeze → transfer → freeze)..."
+    )
     batch_key = PrivateKey.generate()
 
     unfreeze_tx = (
@@ -209,12 +211,14 @@ def perform_batch_tx_with_public_key(client, sender, recipient, token_id, freeze
     Perform a batch transaction using PublicKey as batch_key.
     Demonstrates that batch_key can accept both PrivateKey and PublicKey.
     """
-    print("\n✨ Performing batch transaction with PublicKey (unfreeze → transfer → freeze)...")
-    
+    print(
+        "\n✨ Performing batch transaction with PublicKey (unfreeze → transfer → freeze)..."
+    )
+
     # Generate a key pair - we'll use the PublicKey as batch_key
     batch_private_key = PrivateKey.generate()
     batch_public_key = batch_private_key.public_key()
-    
+
     print(f"Using PublicKey as batch_key: {batch_public_key}")
 
     # Create inner transactions using PublicKey as batch_key
@@ -252,8 +256,12 @@ def perform_batch_tx_with_public_key(client, sender, recipient, token_id, freeze
     )
 
     receipt = batch.execute(client)
-    print(f"Batch transaction with PublicKey status: {ResponseCode(receipt.status).name}")
-    print("   This demonstrates that batch_key now accepts both PrivateKey and PublicKey!")
+    print(
+        f"Batch transaction with PublicKey status: {ResponseCode(receipt.status).name}"
+    )
+    print(
+        "   This demonstrates that batch_key now accepts both PrivateKey and PublicKey!"
+    )
 
 
 def main():
@@ -280,12 +288,14 @@ def main():
     get_balance(client, recipient_id, token_id)
 
     # Batch unfreeze → transfer → freeze (using PrivateKey)
-    perform_batch_tx(client, client.operator_account_id, recipient_id, token_id, freeze_key)
+    perform_batch_tx(
+        client, client.operator_account_id, recipient_id, token_id, freeze_key
+    )
 
     print("\nBalances after first batch:")
     get_balance(client, client.operator_account_id, token_id)
     get_balance(client, recipient_id, token_id)
-    
+
     # Verify that token is frozen again
     receipt = transfer_token(client, client.operator_account_id, recipient_id, token_id)
     if receipt.status == ResponseCode.ACCOUNT_FROZEN_FOR_TOKEN:
@@ -293,22 +303,26 @@ def main():
     else:
         print("\nAccount should be frozen again!")
         sys.exit(1)
-    
+
     # Now demonstrate using PublicKey as batch_key
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("Demonstrating PublicKey support for batch_key")
-    print("="*80)
-    
-    perform_batch_tx_with_public_key(client, client.operator_account_id, recipient_id, token_id, freeze_key)
-    
+    print("=" * 80)
+
+    perform_batch_tx_with_public_key(
+        client, client.operator_account_id, recipient_id, token_id, freeze_key
+    )
+
     print("\nBalances after second batch (with PublicKey):")
     get_balance(client, client.operator_account_id, token_id)
     get_balance(client, recipient_id, token_id)
-    
+
     # Verify that token is frozen again
     receipt = transfer_token(client, client.operator_account_id, recipient_id, token_id)
     if receipt.status == ResponseCode.ACCOUNT_FROZEN_FOR_TOKEN:
-        print("\n✅ Success! Account is frozen again, PublicKey batch_key works correctly!")
+        print(
+            "\n✅ Success! Account is frozen again, PublicKey batch_key works correctly!"
+        )
     else:
         print("\nAccount should be frozen again!")
         sys.exit(1)

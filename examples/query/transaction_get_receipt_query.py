@@ -68,7 +68,9 @@ def _print_receipt_children(queried_receipt):
     children = queried_receipt.children
 
     if not children:
-        print("No child receipts returned (this can be normal depending on transaction type).")
+        print(
+            "No child receipts returned (this can be normal depending on transaction type)."
+        )
         return
 
     print(f"Child receipts count: {len(children)}")
@@ -84,9 +86,11 @@ def _print_receipt_duplicates(queried_receipt):
     duplicates = queried_receipt.duplicates
 
     if not duplicates:
-        print("No duplicate receipts returned (this can be normal depending on transaction type).")
+        print(
+            "No duplicate receipts returned (this can be normal depending on transaction type)."
+        )
         return
-    
+
     print(f"Duplicate receipts count: {len(duplicates)}")
 
     print("Duplicate receipts:")
@@ -113,7 +117,7 @@ def query_receipt():
         .add_hbar_transfer(operator_id, -Hbar(amount).to_tinybars())
         .add_hbar_transfer(recipient_id, Hbar(amount).to_tinybars())
         .freeze_with(client)
-       .sign(operator_key)
+        .sign(operator_key)
     )
 
     receipt = transaction.execute(client)
@@ -136,9 +140,9 @@ def query_receipt():
         f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}"
     )
 
-
     _print_receipt_children(queried_receipt)
     _print_receipt_duplicates(queried_receipt)
+
 
 if __name__ == "__main__":
     query_receipt()

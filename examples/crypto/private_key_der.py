@@ -11,12 +11,13 @@ python examples/crypto/private_key_der.py
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
+
 def example_serialize_ed25519_der() -> None:
     print("=== Ed25519: Serialize to DER ===")
-    
+
     privkey = PrivateKey.generate("ed25519")
     print("Generated Ed25519 key:", privkey)
-    
+
     # This emits Traditional Open SSL DER by default
     der_bytes = privkey.to_bytes_der()
     print("DER bytes length =", len(der_bytes))
@@ -33,13 +34,14 @@ def example_serialize_ed25519_der() -> None:
     privkey2.public_key().verify(signature, b"test")
     print("Ed25519 DER reload: Verified signature OK.\n")
 
+
 def example_serialize_ecdsa_der() -> None:
     print("=== ECDSA: Serialize to DER ===")
-    
+
     # use generate("ecdsa")
     privkey = PrivateKey.generate("ecdsa")
     print("Generated ECDSA key:", privkey)
-    
+
     der_bytes = privkey.to_bytes_der()
     print("DER bytes length =", len(der_bytes))
 
@@ -53,9 +55,11 @@ def example_serialize_ecdsa_der() -> None:
     privkey2.public_key().verify(signature, b"hello ECDSA serialization")
     print("ECDSA DER reload: Verified signature OK.\n")
 
+
 def main():
     example_serialize_ed25519_der()
     example_serialize_ecdsa_der()
+
 
 if __name__ == "__main__":
     main()

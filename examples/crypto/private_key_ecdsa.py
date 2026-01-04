@@ -6,8 +6,10 @@ uv run examples/crypto/private_key_ecdsa.py
 python examples/crypto/private_key_ecdsa.py
 
 """
+
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.private_key import PrivateKey
+
 
 def example_generate_ecdsa() -> None:
     """
@@ -36,6 +38,7 @@ def example_generate_ecdsa() -> None:
         print("Signature is INVALID (ECDSA)!")
     print()
 
+
 def example_load_ecdsa_raw() -> None:
     """
     Demonstrates creating an ECDSA (secp256k1) PrivateKey from raw 32 bytes (a scalar).
@@ -63,6 +66,7 @@ def example_load_ecdsa_raw() -> None:
         print("Signature invalid?!")
     print()
 
+
 def example_load_ecdsa_from_hex() -> None:
     """
     Demonstrates creating an ECDSA (secp256k1) PrivateKey from a hex-encoded 32-byte scalar.
@@ -88,6 +92,7 @@ def example_load_ecdsa_from_hex() -> None:
         print("Signature invalid?!")
     print()
 
+
 def example_load_ecdsa_der() -> None:
     """
     Demonstrates loading an ECDSA (secp256k1) private key from DER bytes.
@@ -102,7 +107,7 @@ def example_load_ecdsa_der() -> None:
         "a00706052b8104000aa1440342000479be667ef9dcbbac55a06295ce870b07029bfc"
         "db2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
     )
-    
+
     # 1) Generate DER
     privkey = PrivateKey.from_string_der(der_hex)
     print("Loaded ECDSA PrivateKey from DER =", privkey)
@@ -120,11 +125,13 @@ def example_load_ecdsa_der() -> None:
         print("Signature invalid?!")
     print()
 
+
 def main_ecdsa():
     example_generate_ecdsa()
     example_load_ecdsa_raw()
     example_load_ecdsa_from_hex()
     example_load_ecdsa_der()
+
 
 if __name__ == "__main__":
     main_ecdsa()

@@ -43,7 +43,8 @@ from .contracts import STATEFUL_CONTRACT_BYTECODE
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -177,7 +178,9 @@ def create_ethereum_transaction_data(contract_id, new_message, alias_private_key
     )
 
     # Ethereum transaction fields - hardcoded for example simplicity
-    chain_id_bytes = bytes.fromhex(os.getenv('CHAIN_ID', "0128"))  # Chain ID 296 (Testnet)
+    chain_id_bytes = bytes.fromhex(
+        os.getenv("CHAIN_ID", "0128")
+    )  # Chain ID 296 (Testnet)
     max_priority_gas_bytes = bytes.fromhex("00")  # Zero for simplicity
     nonce_bytes = bytes.fromhex("00")  # Zero nonce
     max_gas_bytes = bytes.fromhex("d1385c7bf0")  # Max fee per gas

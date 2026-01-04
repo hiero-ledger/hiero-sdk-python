@@ -59,7 +59,9 @@ def create_account(client, operator_key):
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}")
+            print(
+                f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}"
+            )
             sys.exit(1)
 
         recipient_id = receipt.account_id
@@ -126,7 +128,9 @@ def transfer_hbar_with_object(client, operator_id, recipient_id, operator_key):
 def get_balance(client, account_id, when=""):
     """Query and display account balance."""
     try:
-        balance = CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
+        balance = (
+            CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
+        )
         print(f"Recipient account balance{when}: {balance} hbars")
         return balance
     except Exception as e:

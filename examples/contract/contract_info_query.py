@@ -30,6 +30,7 @@ from hiero_sdk_python.response_code import ResponseCode
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
 
+
 def create_contract_file(client):
     """Create a file containing the simple contract bytecode"""
     file_receipt = (
@@ -48,6 +49,7 @@ def create_contract_file(client):
         sys.exit(1)
 
     return file_receipt.file_id
+
 
 def create_contract(client, file_id):
     """Create a contract using the file"""
@@ -74,6 +76,7 @@ def create_contract(client, file_id):
     print(f"Contract created with ID: {receipt.contract_id}")
 
     return receipt.contract_id
+
 
 def query_contract_info():
     """
@@ -106,6 +109,7 @@ def query_contract_info():
     print(f"Ledger ID: {info.ledger_id}")
     print(f"Max Automatic Token Associations: {info.max_automatic_token_associations}")
     print(f"Token Relationships: {info.token_relationships}")
+
 
 if __name__ == "__main__":
     query_contract_info()
