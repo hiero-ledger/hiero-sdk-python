@@ -1,4 +1,5 @@
 // Script to notify the team when a GFI issue receives its first human comment.
+// Replaced by automatic GFI assignment
 
 const marker = '<!-- GFI Issue Notification -->';
 const TEAM_ALIAS = '@hiero-ledger/hiero-sdk-good-first-issue-support';
