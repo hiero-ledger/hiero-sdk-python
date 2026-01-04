@@ -82,6 +82,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Format `examples/account` Python examples using `black` for consistent code style and improved readability (#1301)
 -Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
 - Renamed templates for improved clarity [(#1265)]
 - Updated Good First Issue notifications to trigger only after the first comment is posted, reducing noise on unassigned issues.(#1212)

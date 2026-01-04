@@ -5,15 +5,17 @@ uv run examples/account/account_delete_transaction.py
 python examples/account/account_delete_transaction.py
 
 """
+
 import sys
 from hiero_sdk_python import (
-    Client, 
-    Hbar, 
+    Client,
+    Hbar,
     PrivateKey,
     AccountCreateTransaction,
     AccountDeleteTransaction,
-    ResponseCode
+    ResponseCode,
 )
+
 
 def create_account(client):
     """Create a test account"""

@@ -48,7 +48,8 @@ def setup_client():
         print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
         sys.exit(1)
 
-def generate_fallback_key() -> PrivateKey: 
+
+def generate_fallback_key() -> PrivateKey:
     """Generate an ECDSA key pair and validate its EVM address."""
     print("\nSTEP 1: Generating a single ECDSA key pair for the account...")
     account_private_key = PrivateKey.generate("ecdsa")
@@ -64,16 +65,15 @@ def generate_fallback_key() -> PrivateKey:
     return account_private_key
 
 
-def create_account_with_fallback_alias(client: Client, account_private_key: PrivateKey) -> AccountId:
+def create_account_with_fallback_alias(
+    client: Client, account_private_key: PrivateKey
+) -> AccountId:
     """Create an account whose alias is derived from the provided ECDSA key."""
     print("\nSTEP 2: Creating the account using the fallback alias behaviour...")
-    transaction = (
-        AccountCreateTransaction(
-            initial_balance=Hbar(5),
-            memo="Account with alias derived from main ECDSA key",
-        )
-        .set_key_with_alias(account_private_key)
-    )
+    transaction = AccountCreateTransaction(
+        initial_balance=Hbar(5),
+        memo="Account with alias derived from main ECDSA key",
+    ).set_key_with_alias(account_private_key)
 
     transaction = transaction.freeze_with(client).sign(account_private_key)
 
@@ -106,6 +106,7 @@ def print_account_summary(account_info) -> None:
         f"{account_info.contract_account_id}"
     )
 
+
 def main():
     """Main entry point."""
     client = setup_client()
@@ -117,6 +118,7 @@ def main():
     except Exception as error:
         print(f"❌ Error: {error}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

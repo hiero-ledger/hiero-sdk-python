@@ -29,7 +29,6 @@ Notes:
     allowances and does not demonstrate revoking allowances or token/NFT usage.
 """
 
-
 import os
 import sys
 
