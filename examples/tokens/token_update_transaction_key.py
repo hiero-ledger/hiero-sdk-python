@@ -105,9 +105,7 @@ def update_wipe_key_full_validation(client, token_id, old_wipe_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token update failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token update failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Successfully updated wipe key")

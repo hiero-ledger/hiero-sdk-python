@@ -11,6 +11,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.public_key import PublicKey, keccak256
 
+
 def example_load_ecdsa_der() -> None:
     """
     Demonstrate creating a secp256k1 ECDSA PublicKey from DER-encoded bytes.
@@ -22,7 +23,7 @@ def example_load_ecdsa_der() -> None:
     # Export public key to DER format (SubjectPublicKeyInfo)
     der_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.DER,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
 
     # 1) Create via from_der()
@@ -32,6 +33,7 @@ def example_load_ecdsa_der() -> None:
     # 2) Convert back to DER hex:
     der_hex = pubk_obj.to_string_der()
     print("DER-encoded hex:", der_hex)
+
 
 def example_load_ed25519_der() -> None:
     """
@@ -44,7 +46,7 @@ def example_load_ed25519_der() -> None:
     # Export public key to DER format (SubjectPublicKeyInfo)
     der_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.DER,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
 
     # 1) Create via from_der
@@ -55,6 +57,7 @@ def example_load_ed25519_der() -> None:
     der_hex = pubk_obj.to_string_der()
     print("Ed25519 DER hex:", der_hex)
 
+
 def example_verify_der_signature() -> None:
     """
     Demonstrate verifying an ECDSA signature using a DER-encoded public key.
@@ -64,7 +67,7 @@ def example_verify_der_signature() -> None:
 
     der_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.DER,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
 
     # Wrap into public key object from DER
@@ -72,12 +75,15 @@ def example_verify_der_signature() -> None:
 
     # Sign and verify, specifying hash algorithm for ECDSA
     data = b"Hello DER"
-    signature = private_key.sign(keccak256(data), ec.ECDSA(utils.Prehashed(hashes.SHA256())))
+    signature = private_key.sign(
+        keccak256(data), ec.ECDSA(utils.Prehashed(hashes.SHA256()))
+    )
     try:
         pubk_obj.verify(signature, data)
         print("DER: ECDSA signature verified!")
     except InvalidSignature:
         print("DER: ECDSA signature invalid.")
+
 
 def main():
     example_load_ecdsa_der()
@@ -85,6 +91,7 @@ def main():
     example_load_ed25519_der()
     print("-----")
     example_verify_der_signature()
+
 
 if __name__ == "__main__":
     main()

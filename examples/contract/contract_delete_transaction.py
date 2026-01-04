@@ -42,7 +42,8 @@ from .contracts import SIMPLE_CONTRACT_BYTECODE
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
@@ -133,7 +134,9 @@ def contract_delete():
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Contract deletion failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"Contract deletion failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
     print("\nSuccessfully deleted contract and transferred hbars to transfer contract")
@@ -144,7 +147,9 @@ def contract_delete():
 
     # Check if the transfer contract has the hbars
     transfer_info = ContractInfoQuery(transfer_contract_id).execute(client)
-    print(f"Check transfer contract balance: {Hbar.from_tinybars(transfer_info.balance)}")
+    print(
+        f"Check transfer contract balance: {Hbar.from_tinybars(transfer_info.balance)}"
+    )
 
     # Delete the transfer contract and transfer the hbars to the operator account
     receipt = (
@@ -155,10 +160,14 @@ def contract_delete():
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Transfer contract deletion failed with status: {ResponseCode(receipt.status).name}")
+        print(
+            f"Transfer contract deletion failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
-    print("\nSuccessfully deleted transfer contract and transferred hbars to operator account")
+    print(
+        "\nSuccessfully deleted transfer contract and transferred hbars to operator account"
+    )
 
     # Check if the transfer contract is deleted
     transfer_info = ContractInfoQuery(transfer_contract_id).execute(client)

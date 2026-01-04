@@ -3,6 +3,7 @@ uv run examples/consensus/topic_message_submit_chunked.py
 python examples/consensus/topic_message_submit_chunked.py
 
 """
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -15,7 +16,7 @@ from hiero_sdk_python import (
     TopicMessageSubmitTransaction,
     TopicCreateTransaction,
     ResponseCode,
-    TopicInfoQuery
+    TopicInfoQuery,
 )
 
 BIG_CONTENT = """
@@ -46,27 +47,29 @@ Etiam ut sodales ex. Nulla luctus, magna eu scelerisque sagittis, nibh quam cons
 
 load_dotenv()
 
+
 def setup_client():
     """
     Set up and configure a Hedera client for testnet operations.
     """
-    network_name = os.getenv('NETWORK', 'testnet').lower()
+    network_name = os.getenv("NETWORK", "testnet").lower()
 
     print(f"Connecting to Hedera {network_name} network!")
 
     try:
         network = Network(network_name)
         client = Client(network)
-        
-        operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
-        operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
-        
+
+        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
+        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
+
         client.set_operator(operator_id, operator_key)
         print(f"Client initialized with operator: {operator_id}")
         return client
     except Exception as e:
         print(f"Failed to set up client: {e}")
         sys.exit(1)
+
 
 def create_topic(client):
     """
@@ -75,20 +78,19 @@ def create_topic(client):
     print("\nCreating a Topic...")
     try:
         topic_receipt = (
-            TopicCreateTransaction(
-                memo="Python SDK created topic"
-            )
+            TopicCreateTransaction(memo="Python SDK created topic")
             .freeze_with(client)
             .execute(client)
         )
         topic_id = topic_receipt.topic_id
-        
+
         print(f"Topic created: {topic_id}")
 
         return topic_id
     except Exception as e:
         print(f"Error: Creating topic: {e}")
         sys.exit(1)
+
 
 def submit_topic_message_transaction(client, topic_id):
     """
@@ -105,16 +107,23 @@ def submit_topic_message_transaction(client, topic_id):
         )
 
         if message_receipt.status != ResponseCode.SUCCESS:
-            print(f"Failed to submit message status: {ResponseCode(message_receipt.status).name}")
+            print(
+                f"Failed to submit message status: {ResponseCode(message_receipt.status).name}"
+            )
             sys.exit(1)
 
-        print(f"Message submitted (status={ResponseCode(message_receipt.status)}, txId={message_receipt.transaction_id})")
+        print(
+            f"Message submitted (status={ResponseCode(message_receipt.status)}, txId={message_receipt.transaction_id})"
+        )
         print(f"Message size:", len(BIG_CONTENT), "bytes")
-        print(f"Message Content: {(BIG_CONTENT[:140] + "...") if len(BIG_CONTENT) > 140 else BIG_CONTENT}")
+        print(
+            f"Message Content: {(BIG_CONTENT[:140] + '...') if len(BIG_CONTENT) > 140 else BIG_CONTENT}"
+        )
 
     except Exception as e:
         print(f"Error: Message submission failed: {str(e)}")
         sys.exit(1)
+
 
 def fetch_topic_info(client, topic_id):
     """
@@ -147,6 +156,7 @@ def main():
     fetch_topic_info(client, topic_id)
     submit_topic_message_transaction(client, topic_id)
     fetch_topic_info(client, topic_id)
+
 
 if __name__ == "__main__":
     main()

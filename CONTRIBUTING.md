@@ -20,19 +20,30 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 ### 💻 Code Contributions
 
-**Get started:** See [Setup Guide](docs/sdk_developers/setup.md)
+**Get Started By Reading:**
 
-**Quick workflow:**
+- [Project Structure](docs/sdk_developers/project_structure.md)
+- [Setup](docs/sdk_developers/training/setup)
+- [Workflow](docs/sdk_developers/training/workflow)
+
+**Quick Start:**
+
 1. Find/create an issue → [Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues)
 2. Get assigned (comment "I'd like to work on this")
-3. Follow the [Workflow Guide](docs/sdk_developers/workflow.md)
-4. Submit a PR
+3. Follow [Setup Guide](docs/sdk_developers/training/setup)
+4. Follow [Workflow Guide](docs/sdk_developers/workflow.md)
+5. GPG and DCO sign commits [Quickstart Signing](docs/sdk_developers/training/workflow/07_signing_requirements.md)
+6. Add a Changelog Entry [Quickstart Changelog](docs/sdk_developers/training/workflow/09_changelog_entry.md)
+7. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
-**Requirements:**
-- Signed commits (GPG + DCO) - [Signing Guide](docs/sdk_developers/signing.md)
-- Updated changelog - [Changelog Guide](docs/sdk_developers/changelog_entry.md)
-- Tests pass
-- Code quality checks - [Checklist](docs/sdk_developers/checklist.md)
+**Detailed Docs:**
+
+- [Setup Guide](docs/sdk_developers/setup.md)
+- [Signing Guide](docs/sdk_developers/signing.md)
+- [Changelog Guide](docs/sdk_developers/changelog_entry.md)
+- [Rebasing Guide](docs/sdk_developers/rebasing.md)
+- [Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)
+- [Testing Guide](docs/sdk_developers/testing.md)
 
 
 #### ⚠️ A Note on Breaking Changes

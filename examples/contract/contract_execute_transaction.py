@@ -41,7 +41,8 @@ from .contracts import STATEFUL_CONTRACT_BYTECODE
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""

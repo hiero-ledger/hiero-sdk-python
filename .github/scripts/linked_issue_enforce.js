@@ -17,7 +17,7 @@ const isAuthorAssigned = (issue, login) => {
 
 const baseMessage = `Hi there! I'm the LinkedIssueBot.\nThis pull request has been automatically closed due to the following reason(s):
 `;
-const messageSuffix = `Please read - [Creating Issues](docs/sdk_developers/creating_issues.md) - [How To Link Issues](docs/sdk_developers/how_to_link_issues.md)\n\nThank you,
+const messageSuffix = `Please read - [Creating Issues](docs/sdk_developers/creating_issues.md) - [How To Link Issues Workflow](docs/sdk_developers/training/workflow/how_to_link_issues.md)\n\nThank you,
 From Python SDK team`
 
 const messages = {

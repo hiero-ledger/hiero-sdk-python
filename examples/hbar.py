@@ -6,6 +6,27 @@ python examples/hbar.py
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.hbar_unit import HbarUnit
 
+
+def demonstrate_factory_methods():
+    """
+    Demonstrates creating Hbar values using the convenient factory methods.
+    """
+    print("\n=== Creating Hbar Using Factory Methods ===")
+
+    # Creates an Hbar object representing 1 Gigabar (1,000,000,000 ℏ)
+    h_giga = Hbar.from_gigabars(1)
+
+    # Creates an Hbar object representing 500 Millibars (0.5 ℏ)
+    h_milli = Hbar.from_millibars(500)
+
+    # Creates an Hbar object representing 10.5 Hbars (10.5 ℏ)
+    h_standard = Hbar.from_hbars(10.5)
+
+    print(f"Hbar.from_gigabars(1): {h_giga}")
+    print(f"Hbar.from_millibars(500): {h_milli}")
+    print(f"Hbar.from_hbars(10.5): {h_standard}")
+
+
 def create_hbar_using_constructor():
     """
     Demonstrates creating Hbar values using the constructor.
@@ -68,17 +89,17 @@ def create_hbar_from_tinybars():
 def parse_hbar_from_string():
     """
     Demonstrates parsing Hbar from strings.
-    
+
     The method accepts:
       - amount string such as '10', '-10', '1.25 Mℏ', or '-1.25 Mℏ'.
-      - optional unit (HbarUnit). If the amount string includes a unit symbol 
-        (e.g., ℏ, kℏ, Mℏ), that symbol determines the unit. Otherwise, the provided 
+      - optional unit (HbarUnit). If the amount string includes a unit symbol
+        (e.g., ℏ, kℏ, Mℏ), that symbol determines the unit. Otherwise, the provided
         unit parameter is used. Defaults to HBAR if not specified.
     """
     print("\n=== Parsing Hbar from String ===")
 
     h1 = Hbar.from_string("10 ℏ")
-    h2 = Hbar.from_string("50") # Default consider as Hbar
+    h2 = Hbar.from_string("50")  # Default consider as Hbar
     h3 = Hbar.from_string("1.25 Mℏ")
     h4 = Hbar.from_string("-3.5 kℏ")
 
@@ -144,6 +165,7 @@ def run_example():
     demonstrate_conversion_methods()
     demonstrate_negation()
     demonstrate_constants()
+    demonstrate_factory_methods()
 
 
 if __name__ == "__main__":

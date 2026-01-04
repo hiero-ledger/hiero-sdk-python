@@ -183,9 +183,11 @@ def test_integration_token_transfer_transaction_can_transfer_nft():
         query_transaction = CryptoGetAccountBalanceQuery(account_id)
         balance = query_transaction.execute(env.client)
 
-        # We check if the nft has transfered to the new account
-        # For now, token_balances is a map so we check it this way
-        assert balance and balance.token_balances == {token_id: serial_number}
+        assert balance is not None, "Balance query returned None"
+        assert balance.token_balances == {token_id: serial_number}, (
+            f"Expected token_balances {{{token_id}: {serial_number}}}, "
+            f"got {balance.token_balances}"
+        )
     finally:
         env.close()
 
@@ -446,5 +448,92 @@ def test_integration_transfer_transaction_approved_token_transfer():
             transfer_receipt.status == ResponseCode.SUCCESS
         ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
 
+    finally:
+        env.close()
+
+
+@pytest.mark.integration
+def test_integration_transfer_transaction_approved_nft_transfer():
+    """Test NFT transfer with approval flag set to True."""
+    env = IntegrationTestEnv()
+
+    try:
+        new_account_private_key = PrivateKey.generate()
+        new_account_public_key = new_account_private_key.public_key()
+
+        initial_balance = Hbar(10)
+
+        account_transaction = AccountCreateTransaction(
+            key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
+        )
+
+        receipt = account_transaction.execute(env.client)
+
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+
+        account_id = receipt.account_id
+        assert account_id is not None
+
+        token_id = create_nft_token(env)
+        assert token_id is not None
+
+        mint_transaction = TokenMintTransaction(token_id=token_id, metadata=[b"test"])
+
+        receipt = mint_transaction.execute(env.client)
+
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"NFT mint failed with status: {ResponseCode(receipt.status).name}"
+
+        serial_number = receipt.serial_numbers[0]
+
+        nft_id = NftId(token_id, serial_number)
+
+        associate_transaction = TokenAssociateTransaction(
+            account_id=account_id, token_ids=[token_id]
+        )
+
+        associate_transaction.freeze_with(env.client)
+        associate_transaction.sign(new_account_private_key)
+        receipt = associate_transaction.execute(env.client)
+
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"NFT association failed with status: {ResponseCode(receipt.status).name}"
+
+        allowance_receipt = (
+            AccountAllowanceApproveTransaction()
+            .approve_token_nft_allowance(nft_id, env.operator_id, account_id)
+            .execute(env.client)
+        )
+
+        assert (
+            allowance_receipt.status == ResponseCode.SUCCESS
+        ), f"Allowance approval failed with status: {ResponseCode(allowance_receipt.status).name}"
+
+        env.client.set_operator(account_id, new_account_private_key)
+
+        transfer_transaction = TransferTransaction()
+        transfer_transaction.set_transaction_id(TransactionId.generate(account_id))
+        transfer_transaction.add_approved_nft_transfer(nft_id, env.operator_id, account_id)
+        transfer_transaction.freeze_with(env.client)
+        transfer_transaction.sign(new_account_private_key)
+
+        receipt = transfer_transaction.execute(env.client)
+
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"NFT transfer failed with status: {ResponseCode(receipt.status).name}"
+
+        query_transaction = CryptoGetAccountBalanceQuery(account_id)
+        balance = query_transaction.execute(env.client)
+
+        assert balance is not None, "Balance query returned None"
+        assert balance.token_balances == {token_id: serial_number}, (
+            f"Expected token_balances {{{token_id}: {serial_number}}}, "
+            f"got {balance.token_balances}"
+        )
     finally:
         env.close()

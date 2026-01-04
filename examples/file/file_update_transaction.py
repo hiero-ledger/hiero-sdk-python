@@ -1,9 +1,10 @@
 """
-Run: 
+Run:
 uv run examples/file_update_transaction.py
 python examples/file_update_transaction.py
 
 """
+
 import os
 import sys
 
@@ -17,7 +18,8 @@ from hiero_sdk_python.response_code import ResponseCode
 
 load_dotenv()
 
-network_name = os.getenv('NETWORK', 'testnet').lower()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 def setup_client():
     """Initialize and set up the client with operator account"""
