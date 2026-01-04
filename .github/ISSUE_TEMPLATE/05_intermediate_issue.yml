@@ -14,8 +14,13 @@ body:
         We truly appreciate your time and effort. 
         This template is designed to help you create an Intermediate issue.
 
+        ⚠️ **Important:**  
+        Intermediate contributors are still building **conceptual awareness and responsibility skills**.
+        Issues created using this template **must be selected and framed carefully** to avoid breaking
+        changes or unintended behavior.
+
         The goal is to create an issue for users that have:
-        - basic familiarity with the Hiero Python SDK codebase
+        - familiarity with the Hiero Python SDK codebase
         - experience following our contribution workflow
         - confidence navigating existing source code and examples
         ---
@@ -23,17 +28,17 @@ body:
   - type: textarea
     id: intro
     attributes:
-      label: 🧩 Intermediate Contributors
+      label: 🛠️ Intermediate Contributors
       description: Who is this issue for?
       value: |
         This issue is intended for contributors who already have some familiarity with the
         [Hiero Python SDK](https://hiero.org) codebase and contribution workflow.
-  
+
         You should feel comfortable:
         - navigating existing source code and examples
         - understanding SDK concepts without step-by-step guidance
         - following the standard PR workflow without additional onboarding
-  
+
         If this is your very first contribution to the project, we recommend starting with a few
         **Good First Issues** before working on this one.
     validations:
@@ -53,6 +58,7 @@ body:
         > - May involve **refactors or small feature additions**
         > - Provides **enough documentation or examples** to reason about a solution
         > - Often has **similar patterns elsewhere in the codebase**
+        > - Involves unit and integration testing
         >
         > **What this issue is NOT:**
         > - A beginner-friendly onboarding task
@@ -85,7 +91,7 @@ body:
     attributes:
       value: |
         <!-- Example for Problem (hidden in submission) -->
-        ## 🐞 Problem – Example
+        ## 📌 Problem – Example
 
         The `TransactionGetReceiptQuery` currently exposes the `get_children()` method,
         but the behavior is inconsistent with how child receipts are returned by the Mirror Node.
