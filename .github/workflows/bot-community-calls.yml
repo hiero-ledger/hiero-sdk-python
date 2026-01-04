@@ -3,10 +3,24 @@ name: PythonBot - Community Call Reminder
 on:
     schedule:
         - cron: "0 10 * * 3"
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: "Run in dry mode (no comments will be posted)"
+                required: false
+                default: "true"
+                type: choice
+                options:
+                    - "true"
+                    - "false"
 
 permissions:
     contents: read
-    pull-requests: write
+    issues: write
+
+concurrency:
+    group: community-call-reminder
+    cancel-in-progress: false
 
 jobs:
     office-hour-reminder:
@@ -23,6 +37,6 @@ jobs:
             - name: Check Schedule and Notify
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  DRY_RUN: "false" # will post
+                  DRY_RUN: "false" # will post when workflow is triggered by cron
               run: |
                   bash .github/scripts/bot-community-calls.sh
