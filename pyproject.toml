@@ -91,7 +91,7 @@ select = [
 ignore = [
     "D212",     # disable "summary on same line"
     "E501",     # line length -> formatter
-    "B008",     # fucntion calls in argument defaults 
+    "B008",     # function calls in argument defaults 
 ]
 
 [tool.ruff.format]
