@@ -1,0 +1,70 @@
+name: Cron Update Spam List
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # At 00:00 on day-of-month 1 (monthly)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'If true, do not post comments (dry run). Accepts "true" or "false". Default true for manual runs.'
+        required: false
+        default: 'true'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  update-spam-list:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner (audit outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Update spam list
+        id: update-spam-list
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+
+        with:
+          script: |
+            const updateSpamList = require('./.github/scripts/update-spam-list.js');
+            const result = await updateSpamList({ github, context, core });
+            
+            // Set outputs for conditional PR creation
+            core.setOutput('has-changes', result.hasChanges ? 'true' : 'false');
+            core.setOutput('pr-title', result.title);
+            core.setOutput('branch-name', result.branchName);
+            core.setOutput('pr-body', result.body);
+            return result;
+      
+      - name: Commit and push changes
+        if: ${{ steps.update-spam-list.outputs.has-changes == 'true' && env.DRY_RUN != 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin
+          git checkout -b "${{ steps.update-spam-list.outputs.branch-name }}"
+          git add .github/spam-list.txt CHANGELOG.md
+          git commit -m "${{ steps.update-spam-list.outputs.pr-title }}"
+          git pull --rebase origin "${{ steps.update-spam-list.outputs.branch-name }}" || true
+          git push origin "${{ steps.update-spam-list.outputs.branch-name }}" --force-with-lease
+
+
+      - name: Create PR with gh
+        if: ${{ steps.update-spam-list.outputs.has-changes == 'true' && env.DRY_RUN != 'true' }}
+        run: |
+          gh pr create \
+            --title "${{ steps.update-spam-list.outputs.pr-title  }}" \
+            --body "${{ steps.update-spam-list.outputs.pr-body }}" \
+            --label "automated" \
+            --label "spam-management" \
+            --base main \
+            --head "${{ steps.update-spam-list.outputs.branch-name }}"
