@@ -56,7 +56,7 @@ class TransactionId:
     @classmethod
     def from_string(cls, transaction_id_str: str) -> "TransactionId":
         """
-        Parses a TransactionId from a string in the format 'account_id@seconds.nanos'.
+        Parses a TransactionId from a string in the format 'account_id@seconds.nanos[?scheduled]'.
 
         Args:
             transaction_id_str (str): The string representation of the TransactionId.
@@ -68,13 +68,20 @@ class TransactionId:
             ValueError: If the input string is not in the correct format.
         """
         try:
+            scheduled = False
+            # Check for and handle the scheduled flag suffix
+            if "?scheduled" in transaction_id_str:
+                scheduled = True
+                transaction_id_str = transaction_id_str.replace("?scheduled", "")
+
             account_id_str: Optional[str] = None
             timestamp_str: Optional[str] = None
             account_id_str, timestamp_str = transaction_id_str.split('@')
             account_id = AccountId.from_string(account_id_str)
             seconds_str, nanos_str = timestamp_str.split('.')
             valid_start = timestamp_pb2.Timestamp(seconds=int(seconds_str), nanos=int(nanos_str))
-            return cls(account_id, valid_start, scheduled=False)
+            
+            return cls(account_id, valid_start, scheduled=scheduled)
         except Exception as e:
             raise ValueError(f"Invalid TransactionId string format: {transaction_id_str}") from e
 
