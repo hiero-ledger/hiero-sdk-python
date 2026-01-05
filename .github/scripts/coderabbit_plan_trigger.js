@@ -2,16 +2,10 @@
 
 const marker = '<!-- CodeRabbit Plan Trigger -->';
 
-async function triggerCodeRabbitPlan(github, owner, repo, issue, marker, dryRun) {
+async function triggerCodeRabbitPlan(github, owner, repo, issue, marker) {
   const comment = `${marker} @coderabbitai plan`;
 
   try {
-    if (dryRun === 'true') {
-      console.log(`DRY RUN: Would post CodeRabbit plan comment for issue #${issue.number}`);
-      console.log(`Comment content: ${comment}`);
-      return true;
-    }
-
     await github.rest.issues.createComment({
       owner,
       repo,
@@ -31,7 +25,7 @@ function hasIntermediateOrAdvancedLabel(issue, label) {
   const hasIntermediateLabel = issue.labels?.some(l => l?.name?.toLowerCase() === 'intermediate');
   const hasAdvancedLabel = issue.labels?.some(l => l?.name?.toLowerCase() === 'advanced');
   
-  // Also check if the newly added label is intermediate/advanced
+  // Also check if newly added label is intermediate/advanced
   const isNewLabelIntermediate = label?.name?.toLowerCase() === 'intermediate';
   const isNewLabelAdvanced = label?.name?.toLowerCase() === 'advanced';
   
@@ -55,20 +49,18 @@ async function hasExistingCodeRabbitPlan(github, owner, repo, issueNumber) {
   return comments.some(c => c.body?.includes('@coderabbitai plan'));
 }
 
-function logSummary(owner, repo, issue, dryRun) {
+function logSummary(owner, repo, issue) {
   console.log('=== Summary ===');
   console.log(`Repository: ${owner}/${repo}`);
   console.log(`Issue Number: ${issue.number}`);
   console.log(`Issue Title: ${issue.title || '(no title)'}`);
   console.log(`Labels: ${issue.labels?.map(l => l.name).join(', ') || 'none'}`);
-  console.log(`Dry Run: ${dryRun}`);
 }
 
 module.exports = async ({ github, context }) => {
   try {
     const { owner, repo } = context.repo;
     const { issue, label } = context.payload;
-    const dryRun = process.env.DRY_RUN || 'false';
 
     // Validations
     if (!issue?.number) return console.log('No issue in payload');
@@ -82,9 +74,9 @@ module.exports = async ({ github, context }) => {
     }
 
     // Post CodeRabbit plan trigger
-    await triggerCodeRabbitPlan(github, owner, repo, issue, marker, dryRun);
+    await triggerCodeRabbitPlan(github, owner, repo, issue, marker);
 
-    logSummary(owner, repo, issue, dryRun);
+    logSummary(owner, repo, issue);
   } catch (err) {
     console.log('❌ Error:', err.message);
   }
