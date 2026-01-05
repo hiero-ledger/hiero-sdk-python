@@ -11,6 +11,7 @@ Usage:
 (we use -m because we use the util `info_to_dict`)
 """
 
+from typing import Tuple
 import os
 import sys
 import json
@@ -25,38 +26,32 @@ from hiero_sdk_python import (
     AccountInfoQuery,
     Network,
     AccountId,
+    AccountInfo,
     Hbar,
+    ResponseCode,
 )
 
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
+def setup_client() -> Client:
     """Setup Client."""
-    network = Network(network_name)
+    network_name = os.getenv("NETWORK", "testnet").lower()
     print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+    client = Client.from_env()
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client
-    except Exception:
-        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
-
-def generate_account_key():
+def generate_account_key() -> Tuple[PrivateKey, 'PublicKey']:
     """Generate a key pair for the account."""
     print("\nSTEP 1: Generating a key pair for the account (no alias)...")
     account_private_key = PrivateKey.generate()
     account_public_key = account_private_key.public_key()
     print(f"✅ Account public key (no alias): {account_public_key}")
-    return account_private_key
+    return account_private_key, account_public_key
 
-def create_account_without_alias(client: Client, account_private_key) -> str:
+def create_account_without_alias(client: Client, account_public_key: 'PublicKey', account_private_key: PrivateKey) -> AccountId:
     """Create an account without setting any alias."""
     print("\nSTEP 2: Creating the account without setting any alias...")
     
@@ -65,7 +60,7 @@ def create_account_without_alias(client: Client, account_private_key) -> str:
             initial_balance=Hbar(5),
             memo="Account created without alias",
         )
-        .set_key_without_alias(account_private_key)
+        .set_key_without_alias(account_public_key)
     )
 
     transaction = (
@@ -74,6 +69,12 @@ def create_account_without_alias(client: Client, account_private_key) -> str:
     )
 
     response = transaction.execute(client)
+
+    if response.status != ResponseCode.SUCCESS:
+        raise RuntimeError(
+            f"Transaction failed with status: {response.status.name}"
+        )
+
     new_account_id = response.account_id
 
     if new_account_id is None:
@@ -84,7 +85,7 @@ def create_account_without_alias(client: Client, account_private_key) -> str:
     print(f"✅ Account created with ID: {new_account_id}\n")
     return new_account_id
 
-def fetch_account_info(client: Client, account_id):
+def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
     """Fetch account information."""
     account_info = (
         AccountInfoQuery()
@@ -93,7 +94,7 @@ def fetch_account_info(client: Client, account_id):
     )
     return account_info
 
-def print_account_summary(account_info):
+def print_account_summary(account_info: AccountInfo) -> None:
     """Print account summary information."""
     out = info_to_dict(account_info)
     print("Account Info:")
@@ -103,12 +104,12 @@ def print_account_summary(account_info):
         f"{account_info.contract_account_id}"
     )
 
-def main():
+def main() -> None:
     """Main entry point."""
     try:
         client = setup_client()
-        account_private_key = generate_account_key()
-        new_account_id = create_account_without_alias(client, account_private_key)
+        account_private_key, account_public_key = generate_account_key()
+        new_account_id = create_account_without_alias(client, account_public_key, account_private_key)
         account_info = fetch_account_info(client, new_account_id)
         print_account_summary(account_info)
     except Exception as error:
