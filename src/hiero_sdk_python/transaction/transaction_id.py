@@ -65,25 +65,38 @@ class TransactionId:
             TransactionId: A new TransactionId instance.
 
         Raises:
-            ValueError: If the input string is not in the correct format.
+            ValueError: If the input string is not in the correct format or contains invalid suffixes.
         """
+        original_string = transaction_id_str
+        
         try:
             scheduled = False
-            # Check for and handle the scheduled flag suffix
-            if "?scheduled" in transaction_id_str:
+            if "?" in transaction_id_str:
+                transaction_id_str, suffix = transaction_id_str.split("?", 1)
+                if suffix != "scheduled":
+                    raise ValueError(f"Invalid transaction ID suffix: ?{suffix}")
                 scheduled = True
-                transaction_id_str = transaction_id_str.replace("?scheduled", "")
+
+            if "@" not in transaction_id_str:
+                raise ValueError(f"Invalid TransactionId string format: {original_string}")
 
             account_id_str: Optional[str] = None
             timestamp_str: Optional[str] = None
+            
             account_id_str, timestamp_str = transaction_id_str.split('@')
             account_id = AccountId.from_string(account_id_str)
+            
+            if "." not in timestamp_str:
+                 raise ValueError(f"Invalid TransactionId string format: {original_string}")
+                 
             seconds_str, nanos_str = timestamp_str.split('.')
             valid_start = timestamp_pb2.Timestamp(seconds=int(seconds_str), nanos=int(nanos_str))
             
             return cls(account_id, valid_start, scheduled=scheduled)
         except Exception as e:
-            raise ValueError(f"Invalid TransactionId string format: {transaction_id_str}") from e
+            if isinstance(e, ValueError) and "suffix" in str(e):
+                raise e
+            raise ValueError(f"Invalid TransactionId string format: {original_string}") from e
 
     def to_string(self) -> str:
         """

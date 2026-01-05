@@ -5,6 +5,8 @@ from hiero_sdk_python import (
     AccountId
 )
 
+pytestmark = pytest.mark.unit
+
 def test_from_string_valid():
     """Test parsing a valid transaction ID string."""
     tx_id_str = "0.0.123@1234567890.123456789"
@@ -20,6 +22,18 @@ def test_from_string_valid():
     assert tx_id.valid_start.seconds == 1234567890
     assert tx_id.valid_start.nanos == 123456789
     assert tx_id.scheduled is False
+    
+def test_from_string_invalid_suffix_raises_error():
+        """Test that invalid suffixes raise ValueError."""
+        invalid_suffixes = [
+            "0.0.123@1234567890.123456789?scheduledxyz",
+            "0.0.123@1234567890.123456789?invalid",
+            "0.0.123@1234567890.123456789?",
+        ]
+        for s in invalid_suffixes:
+            with pytest.raises(ValueError) as exc_info:
+                TransactionId.from_string(s)
+            assert "Invalid transaction ID suffix" in str(exc_info.value)
 
 def test_from_string_invalid_format_raises_error():
     """Test that invalid formats raise ValueError (covers the try-except block)."""
@@ -131,11 +145,9 @@ def test_round_trip_conversion():
     original = TransactionId.from_string("0.0.999@9876543210.987654321")
     original.scheduled = True
     
-    # Round trip
     proto = original._to_proto()
     recovered = TransactionId._from_proto(proto)
     
-    # Verify equality
     assert recovered == original
     assert recovered.to_string() == original.to_string()
     
