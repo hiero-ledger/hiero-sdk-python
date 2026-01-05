@@ -86,7 +86,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `Client.from_env()` and network-specific factory methods (e.g., `Client.for_testnet()`) to simplify client initialization and reduce boilerplate. [[#1251](https://github.com/hiero-ledger/hiero-sdk-python/issues/1251)]
 
 ### Changed
-
+- Refactored `account_create_transaction_without_alias.py` into smaller, modular functions.(#1321)
 - Renamed bot-inactivity workflow files to remove "-phase" suffix since the process no longer uses phased execution (#1339)
 - Renamed the GitHub notify team script to match its corresponding workflow filename for better maintainability (#1338)
 - style: apply black formatting to examples (#1299)
