@@ -22,6 +22,7 @@ from examples.utils import info_to_dict
 from hiero_sdk_python import (
     Client,
     PrivateKey,
+    PublicKey,
     AccountCreateTransaction,
     AccountInfoQuery,
     Network,
@@ -32,18 +33,16 @@ from hiero_sdk_python import (
 )
 
 load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client() -> Client:
     """Setup Client."""
-    network_name = os.getenv("NETWORK", "testnet").lower()
-    print(f"Connecting to Hedera {network_name} network!")
     client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
-def generate_account_key() -> Tuple[PrivateKey, 'PublicKey']:
+def generate_account_key() -> Tuple[PrivateKey, PublicKey]:
     """Generate a key pair for the account."""
     print("\nSTEP 1: Generating a key pair for the account (no alias)...")
     account_private_key = PrivateKey.generate()
@@ -51,7 +50,7 @@ def generate_account_key() -> Tuple[PrivateKey, 'PublicKey']:
     print(f"✅ Account public key (no alias): {account_public_key}")
     return account_private_key, account_public_key
 
-def create_account_without_alias(client: Client, account_public_key: 'PublicKey', account_private_key: PrivateKey) -> AccountId:
+def create_account_without_alias(client: Client, account_public_key: PublicKey, account_private_key: PrivateKey) -> AccountId:
     """Create an account without setting any alias."""
     print("\nSTEP 2: Creating the account without setting any alias...")
     
@@ -61,10 +60,7 @@ def create_account_without_alias(client: Client, account_public_key: 'PublicKey'
             memo="Account created without alias",
         )
         .set_key_without_alias(account_public_key)
-    )
-
-    transaction = (
-        transaction.freeze_with(client)
+        .freeze_with(client)
         .sign(account_private_key)
     )
 
