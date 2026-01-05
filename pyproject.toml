@@ -28,7 +28,6 @@ dependencies = [
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -92,6 +91,7 @@ select = [
 ignore = [
     "D212",     # disable "summary on same line"
     "E501",     # line length -> formatter
+    "B008",     # fucntion calls in argument defaults 
 ]
 
 [tool.ruff.format]
