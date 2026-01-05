@@ -12,10 +12,8 @@ Usage:
 """
 
 from typing import Tuple
-import os
 import sys
 import json
-from dotenv import load_dotenv
 
 from examples.utils import info_to_dict
 
@@ -25,15 +23,11 @@ from hiero_sdk_python import (
     PublicKey,
     AccountCreateTransaction,
     AccountInfoQuery,
-    Network,
     AccountId,
     AccountInfo,
     Hbar,
     ResponseCode,
 )
-
-load_dotenv()
-
 
 def setup_client() -> Client:
     """Setup Client."""
