@@ -6,16 +6,12 @@ This demonstrates:
 - The resulting `contract_account_id` being the zero-padded value
 
 Usage:
-- uv run -m examples.account.account_create_transaction_without_alias
-- python -m examples.account.account_create_transaction_without_alias
-(we use -m because we use the util `info_to_dict`)
+- uv run python examples/account/account_create_transaction_without_alias.py
+- python examples/account/account_create_transaction_without_alias.py
 """
 
 from typing import Tuple
 import sys
-import json
-
-from examples.utils import info_to_dict
 
 from hiero_sdk_python import (
     Client,
@@ -84,16 +80,6 @@ def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
     )
     return account_info
 
-def print_account_summary(account_info: AccountInfo) -> None:
-    """Print account summary information."""
-    out = info_to_dict(account_info)
-    print("Account Info:")
-    print(json.dumps(out, indent=2) + "\n")
-    print(
-        "✅ contract_account_id (no alias, zero-padded): "
-        f"{account_info.contract_account_id}"
-    )
-
 def main() -> None:
     """Main entry point."""
     try:
@@ -101,7 +87,12 @@ def main() -> None:
         account_private_key, account_public_key = generate_account_key()
         new_account_id = create_account_without_alias(client, account_public_key, account_private_key)
         account_info = fetch_account_info(client, new_account_id)
-        print_account_summary(account_info)
+        print("\nAccount Info:")
+        print(account_info)
+        print(
+            "\n✅ contract_account_id (no alias, zero-padded): "
+            f"{account_info.contract_account_id}"
+        )
     except Exception as error:
         print(f"❌ Error: {error}")
         sys.exit(1)
