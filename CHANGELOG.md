@@ -10,6 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
 - Beginner issue documentation and updated GFI and GFIC templates and documentation
 - Enable auto assignment to good first issues (#1312), archived good first issue support team notification. Changed templates with new assign instruction.
+- Intermediate issue documentation
 - Added unit test for 'endpoint.py' to increase coverage.
 - Automated assignment guard for `advanced` issues; requires completion of at least one `good first issue` and one `intermediate` issue before assignment (exempts maintainers, committers, and triage members). (#1142)
 - Added Hbar object support for TransferTransaction HBAR transfers:
@@ -44,6 +45,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added a github template for good first issues
 - Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
 - Configured coderabbit with a `.coderabbit.yaml`
+- Added `.github/workflows/bot-community-calls` and its script to notify issue creators of a community call
 - Added all missing fields to `__str__()` method and updated `test_tokem_info.py`
 - Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
 - Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
@@ -67,6 +69,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add a workflow to notify the team when issues are labeled as “good first issues” or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
 - Added **str** and **repr** to AccountBalance
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
+- Added advanced issue template
 - Added advanced issue template for contributors `.github/ISSUE_TEMPLATE/06_advanced_issue.yml`.
 - Add new tests to `tests/unit/topic_info_query_test.py` (#1124)
 - Added `coding_token_transactions.md` for a high level overview training on how token transactions are created in the python sdk.
