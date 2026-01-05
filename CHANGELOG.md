@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
 - Beginner issue documentation and updated GFI and GFIC templates and documentation
 - Enable auto assignment to good first issues (#1312), archived good first issue support team notification. Changed templates with new assign instruction.
 - Added unit test for 'endpoint.py' to increase coverage.
@@ -83,6 +84,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - Renamed `.github/scripts/check_advanced_requirement.sh` to `bot-advanced-check.sh` for workflow consistency (#1341)
+- Renamed bot-inactivity workflow files to remove "-phase" suffix since the process no longer uses phased execution (#1339)
 - Renamed the GitHub notify team script to match its corresponding workflow filename for better maintainability (#1338)
 - style: apply black formatting to examples (#1299)
 -Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
