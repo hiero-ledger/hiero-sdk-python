@@ -331,7 +331,7 @@ def test_set_max_payment_override_client_max_payment_and_error(query_requires_pa
     query_requires_payment.get_cost = mock_get_cost
     
     # Execution should raise ValueError because 2 > query.max_query_payment (1)
-    expected_msg = "Query cost $2.0 HBAR exceeds max set query payment: $1.0 HBAR"
+    expected_msg = "Query cost ℏ2.0 HBAR exceeds max set query payment: ℏ1.0 HBAR"
     with pytest.raises(ValueError, match=re.escape(expected_msg)):
         query_requires_payment._before_execute(mock_client)
 
@@ -370,7 +370,7 @@ def test_payment_query_use_client_max_payment_and_error(query_requires_payment, 
     query_requires_payment.get_cost = mock_get_cost
 
     # Execution should raise ValueError because 2 > client.default_max_query_payment
-    expected_msg = "Query cost $2.0 HBAR exceeds max set query payment: $1.0 HBAR"
+    expected_msg = "Query cost ℏ2.0 HBAR exceeds max set query payment: ℏ1.0 HBAR"
     with pytest.raises(ValueError, match=re.escape(expected_msg)):
         query_requires_payment._before_execute(mock_client)
 

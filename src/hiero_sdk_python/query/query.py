@@ -152,8 +152,8 @@ class Query(_Executable):
             
             if self.payment_amount > max_payment:
                 raise ValueError(
-                    f"Query cost ${self.payment_amount.to_hbars()} HBAR "
-                    f"exceeds max set query payment: ${max_payment.to_hbars()} HBAR"
+                    f"Query cost ℏ{self.payment_amount.to_hbars()} HBAR "
+                    f"exceeds max set query payment: ℏ{max_payment.to_hbars()} HBAR"
                 )
             
 
