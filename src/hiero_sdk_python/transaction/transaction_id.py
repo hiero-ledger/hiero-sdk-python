@@ -58,8 +58,13 @@ class TransactionId:
         """
         Parses a TransactionId from a string in the format 'account_id@seconds.nanos[?scheduled]'.
 
+        This method supports the optional '?scheduled' suffix. If present, the returned
+        TransactionId will have its scheduled flag set to True. The method enforces
+        strict validation on the format and any provided suffixes.
+
         Args:
-            transaction_id_str (str): The string representation of the TransactionId.
+            transaction_id_str (str): The string representation of the TransactionId
+                                      (e.g., "0.0.123@1234567890.500" or "0.0.123@1234567890.500?scheduled").
 
         Returns:
             TransactionId: A new TransactionId instance.

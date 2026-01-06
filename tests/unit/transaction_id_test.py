@@ -24,16 +24,16 @@ def test_from_string_valid():
     assert tx_id.scheduled is False
     
 def test_from_string_invalid_suffix_raises_error():
-        """Test that invalid suffixes raise ValueError."""
-        invalid_suffixes = [
-            "0.0.123@1234567890.123456789?scheduledxyz",
-            "0.0.123@1234567890.123456789?invalid",
-            "0.0.123@1234567890.123456789?",
-        ]
-        for s in invalid_suffixes:
-            with pytest.raises(ValueError) as exc_info:
-                TransactionId.from_string(s)
-            assert "Invalid transaction ID suffix" in str(exc_info.value)
+    """Test that invalid suffixes raise ValueError."""
+    invalid_suffixes = [
+        "0.0.123@1234567890.123456789?scheduledxyz",
+        "0.0.123@1234567890.123456789?invalid",
+        "0.0.123@1234567890.123456789?",
+    ]
+    for s in invalid_suffixes:
+        with pytest.raises(ValueError) as exc_info:
+            TransactionId.from_string(s)
+        assert "Invalid transaction ID suffix" in str(exc_info.value)
 
 def test_from_string_invalid_format_raises_error():
     """Test that invalid formats raise ValueError (covers the try-except block)."""
@@ -62,6 +62,11 @@ def test_hash_implementation():
     # Verify usage in sets
     unique_ids = {tx_id1, tx_id2, tx_id3}
     assert len(unique_ids) == 2
+    tx_id4 = TransactionId.from_string("0.0.1@100.1")
+    tx_id5 = TransactionId.from_string("0.0.1@100.1")
+    tx_id5.scheduled = True
+
+    assert hash(tx_id4) != hash(tx_id5), "Hash should differ when scheduled flag differs"
 
 def test_equality():
     """Test __eq__ implementation."""
@@ -71,6 +76,12 @@ def test_equality():
     assert tx_id1 == tx_id2
     assert tx_id1 != "some_string"
     assert tx_id1 != TransactionId.from_string("0.0.1@100.2")
+    
+    tx_id4 = TransactionId.from_string("0.0.1@100.1")
+    tx_id5 = TransactionId.from_string("0.0.1@100.1")
+    tx_id5.scheduled = True
+
+    assert tx_id4 != tx_id5, "TransactionIds with different scheduled flags should not be equal"
 
 def test_to_proto_sets_scheduled():
     """Test that _to_proto sets the scheduled flag correctly."""
