@@ -88,6 +88,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `Client.from_env()` and network-specific factory methods (e.g., `Client.for_testnet()`) to simplify client initialization and reduce boilerplate. [[#1251](https://github.com/hiero-ledger/hiero-sdk-python/issues/1251)]
 
 ### Changed
+- Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep (#1373)
 - Added comprehensive documentation to the PR changelog check script (`.github/scripts/pr-check-changelog.sh`) to clarify behavior, inputs, permissions, and dependencies [(#1337)]
 - Refactored `account_create_transaction_without_alias.py` into smaller, modular functions.(#1321)
 - Renamed bot-inactivity workflow files to remove "-phase" suffix since the process no longer uses phased execution (#1339)
