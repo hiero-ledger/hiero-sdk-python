@@ -1,13 +1,11 @@
 #!/bin/bash
 
 # ==============================================================================
-# Script Name: pr-check-changelog.sh
-#
-# Execution:
+# Executes When:
 #   - Run by GitHub Actions workflow: .github/workflows/pr-check-changelog.yml
 #   - Triggers: workflow_dispatch (manual) and pull_request (opened, edited, synch).
 #
-# Description:
+# Goal:
 #   It acts as a gatekeeper for Pull Requests, blocking any merge unless the user
 #   has added a new entry to CHANGELOG.md and correctly placed it under the
 #   [Unreleased] section with a proper category subtitle.
@@ -38,7 +36,7 @@
 #    - Immediate Fail Check: If 'added_bullets' is empty, sets failed=1 and exits.
 #      (You cannot merge code without a changelog entry).
 #
-# 3️⃣ Context Tracking (State Machine)
+# 3️⃣ Context Tracking
 #    As the script reads the file line-by-line, it tracks:
 #    - current_release: Main version header (e.g., [Unreleased] or [1.0.0]).
 #    - current_subtitle: Sub-category (e.g., ### Added, ### Fixed).
@@ -46,13 +44,11 @@
 #       * 1 (True)  -> Currently inside [Unreleased] (Safe Zone).
 #       * 0 (False) -> Reading an old version (Danger Zone).
 #
-# 4️⃣ Sorting Logic
+# 4️⃣ Sorting
 #    The script matches new lines against the current context:
-#    | Condition                            | Bucket                | Result |
-#    |--------------------------------------|-----------------------|--------|
-#    | Flag ON (1) AND Subtitle is Set      | correctly_placed      | PASS ✅|
-#    | Flag ON (1) BUT Subtitle is Empty    | orphan_entries        | FAIL ❌|
-#    | Flag OFF (0) (Old Version)           | wrong_release_entries | FAIL ❌|
+#    Flag is ON (1) AND Subtitle is Set 	    -> correctly_placed    		-> PASS ✅
+#    Flag is ON (1) BUT Subtitle is Empty     -> orphan_entries       		-> FAIL ❌ (It's dangling, not under a category)
+#    Flag is OFF (0)          				    -> wrong_release_entries	-> FAIL ❌ (edited old history)
 #
 # 5️⃣ Final Result
 #    Aggregates failures from Step 4. If any FAIL buckets are not empty, exit 1.
