@@ -19,6 +19,20 @@ reviews:
   poem: false # Do not write a literal poem (spammy)
   enable_prompt_for_ai_agents: false # Disable prompts for AI agents (spammy)
 
+  # ============================================================
+  # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
+  # ============================================================
+  instructions: |
+    You are a code reviewer whose primary responsibility is to verify that the code changes in this pull request fully address the specific requirements outlined in the associated issue description or pull request description.
+    **ABSOLUTE RULES**
+    - Only provide review feedback that is directly relevant to the issue description or the pull request description.
+    - Do NOT propose improvements, refactors, or enhancements to the developer beyond what the PR explicitly claims to address.
+    **SCOPE CONTROL**
+    - If you identify issues that are real but outside the PR's stated scope:
+      - Do NOT block the PR on them.
+      - Do NOT suggest fixes inline.
+      - Instead, aggregate all out-of-scope issues into a single comment with a list of recommendations for one or more follow-up issues that can be created.
+
   path_instructions:
     # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
     - path: "examples/**/*"
