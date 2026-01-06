@@ -189,7 +189,7 @@ def test_sign_account_create_without_freezing_raises_error(mock_account_ids):
         AccountCreateTransaction()
         .set_key_without_alias(new_public_key)
         .set_initial_balance(100000000)
-        .set_account_memo("Test account"))
+        .set_account_memo("Test account")
     )
     account_tx.transaction_id = generate_transaction_id(operator_id)
     account_tx.node_account_id = node_account_id
