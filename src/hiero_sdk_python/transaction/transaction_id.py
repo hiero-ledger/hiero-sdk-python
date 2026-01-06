@@ -56,27 +56,52 @@ class TransactionId:
     @classmethod
     def from_string(cls, transaction_id_str: str) -> "TransactionId":
         """
-        Parses a TransactionId from a string in the format 'account_id@seconds.nanos'.
+        Parses a TransactionId from a string in the format 'account_id@seconds.nanos[?scheduled]'.
+
+        This method supports the optional '?scheduled' suffix. If present, the returned
+        TransactionId will have its scheduled flag set to True. The method enforces
+        strict validation on the format and any provided suffixes.
 
         Args:
-            transaction_id_str (str): The string representation of the TransactionId.
+            transaction_id_str (str): The string representation of the TransactionId
+                                      (e.g., "0.0.123@1234567890.500" or "0.0.123@1234567890.500?scheduled").
 
         Returns:
             TransactionId: A new TransactionId instance.
 
         Raises:
-            ValueError: If the input string is not in the correct format.
+            ValueError: If the input string is not in the correct format or contains invalid suffixes.
         """
+        original_string = transaction_id_str
+        
         try:
+            scheduled = False
+            if "?" in transaction_id_str:
+                transaction_id_str, suffix = transaction_id_str.split("?", 1)
+                if suffix != "scheduled":
+                    raise ValueError(f"Invalid transaction ID suffix: ?{suffix}")
+                scheduled = True
+
+            if "@" not in transaction_id_str:
+                raise ValueError(f"Invalid TransactionId string format: {original_string}")
+
             account_id_str: Optional[str] = None
             timestamp_str: Optional[str] = None
+            
             account_id_str, timestamp_str = transaction_id_str.split('@')
             account_id = AccountId.from_string(account_id_str)
+            
+            if "." not in timestamp_str:
+                 raise ValueError(f"Invalid TransactionId string format: {original_string}")
+                 
             seconds_str, nanos_str = timestamp_str.split('.')
             valid_start = timestamp_pb2.Timestamp(seconds=int(seconds_str), nanos=int(nanos_str))
-            return cls(account_id, valid_start, scheduled=False)
+            
+            return cls(account_id, valid_start, scheduled=scheduled)
         except Exception as e:
-            raise ValueError(f"Invalid TransactionId string format: {transaction_id_str}") from e
+            if isinstance(e, ValueError) and "suffix" in str(e):
+                raise e
+            raise ValueError(f"Invalid TransactionId string format: {original_string}") from e
 
     def to_string(self) -> str:
         """
