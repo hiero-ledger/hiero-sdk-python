@@ -10,7 +10,7 @@ authors = [
     { name = "Nadine Loepfe", email = "nadine.loepfe@hashgraph.com" },
     { name = "Richard Bair", email = "rbair23@users.noreply.github.com" }
 ]
-license = {  file = "LICENSE" }
+license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10, <3.14"
 dependencies = [
@@ -19,7 +19,7 @@ dependencies = [
     "grpcio==1.76.0",
     "cryptography==44.0.0",
     "python-dotenv==1.2.1",
-    "requests>=2.32.4,<=2.32.5",
+    "requests>=2.32.4",
     "pycryptodome==3.23.0",
     "eth-abi==5.2.0",
     "rlp>=4.0.0",
@@ -34,19 +34,18 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Python Modules"
+    "Topic :: Software Development :: Libraries",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=8.3.4",
-    "pytest-cov>=7.0.0"
+    "pytest-cov>=7.0.0",
 ]
 lint = [
-    "ruff>=0.8.3",
-    "typing-extensions>=4.15.0",
+    "ruff>=0.14.9",
     "mypy>=1.18.2",
-
+    "typing-extensions>=4.15.0",
 ]
 
 [tool.uv]
@@ -61,7 +60,7 @@ version_scheme = "python-simplified-semver"
 local_scheme = "dirty-tag"
 
 [tool.pdm]
-version = {source = "scm"}
+version = { source = "scm" }
 
 [tool.pdm.build]
 package-dir = "src"
@@ -73,6 +72,31 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 120
+target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "C", "I", "D"]
+select = [
+    "D",    # docstrings
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # import sorting
+    "B",    # bugbear (real bugs)
+    "UP",   # pyupgrade (modern syntax)
+    "SIM",  # simplify logic
+    "PERF", # performance traps
+    "ARG",  # unused function arguments
+    "RET",  # return consistency
+    "RSE",  # exception correctness
+]
+ignore = [
+    "D212",     # disable "summary on same line"
+    "E501",     # line length -> formatter
+    "B008",     # function calls in argument defaults 
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
