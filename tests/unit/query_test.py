@@ -328,7 +328,6 @@ def test_set_max_payment_override_client_max_payment_and_error(query_requires_pa
     # Mock get_cost to return 2 Hbar, exceeding the query.max_query_payment
     mock_get_cost = MagicMock(return_value=Hbar(2))
     query_requires_payment.get_cost = mock_get_cost
-    query_requires_payment.get_cost = mock_get_cost
     
     # Execution should raise ValueError because 2 > query.max_query_payment (1)
     expected_msg = "Query cost ℏ2.0 HBAR exceeds max set query payment: ℏ1.0 HBAR"
@@ -366,7 +365,6 @@ def test_payment_query_use_client_max_payment_and_error(query_requires_payment, 
 
     # Mock get_cost to return 2 Hbar, exceeding the client.default_max_query_payment
     mock_get_cost = MagicMock(return_value=Hbar(2))
-    query_requires_payment.get_cost = mock_get_cost
     query_requires_payment.get_cost = mock_get_cost
 
     # Execution should raise ValueError because 2 > client.default_max_query_payment
