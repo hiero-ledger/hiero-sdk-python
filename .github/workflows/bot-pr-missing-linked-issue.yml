@@ -1,3 +1,5 @@
+# This workflow checks if a PR has a linked issue and posts a reminder comment if missing.
+# It runs on pull_request_target to have write permissions for fork PRs.
 name: PR Missing Linked Issue Reminder
 
 on:
@@ -13,7 +15,7 @@ on:
         description: 'Dry run (only log, no comments)'
         required: false
         type: boolean
-        default: false
+        default: true
 
 permissions:
   pull-requests: write
