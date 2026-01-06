@@ -1,5 +1,6 @@
-# This workflow checks if a PR has a linked issue and posts a reminder comment if missing.
-# It runs on pull_request_target to have write permissions for fork PRs.
+# This workflow checks PRs for linked issues and posts a reminder comment if missing.
+# Uses pull_request_target to enable write permissions for fork PRs while checking out
+# only the base branch code (ref: main) to avoid executing untrusted fork code.
 name: PR Missing Linked Issue Reminder
 
 on:
