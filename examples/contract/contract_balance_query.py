@@ -8,8 +8,8 @@ This script demonstrates how to:
 4. Query the contract balance using CryptoGetAccountBalanceQuery.set_contract_id()
 
 Run with:
-  uv run examples/query/contract_balance_query.py
-  python examples/query/contract_balance_query.py
+  uv run -m examples.contract.contract_balance_query.py
+  python -m examples.contract.contract_balance_query.py
 """
 
 import os
@@ -29,8 +29,8 @@ from hiero_sdk_python import (
 
 from hiero_sdk_python.contract.contract_id import ContractId
 
-# Use the same bytecode constants used by other contract examples
-from examples.contract.contracts import SIMPLE_CONTRACT_BYTECODE
+from .contracts import SIMPLE_CONTRACT_BYTECODE
+from hiero_sdk_python.response_code import ResponseCode
 
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
@@ -54,29 +54,22 @@ def setup_client() -> Client:
     return client
 
 
-def create_contract_file(client: Client):
-    """Create a file containing the contract bytecode and return its FileId (receipt.file_id)."""
-    bytecode_bytes = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
-
-    receipt = (
-        FileCreateTransaction()
-        .set_contents(bytecode_bytes)
-        .set_file_memo("Simple contract bytecode file")
-        .execute(client)
-    )
-    return receipt.file_id
-
-
-def create_contract(client: Client, file_id, initial_balance_tinybars: int) -> ContractId:
+def create_contract(client: Client, initial_balance_tinybars: int = 0) -> ContractId:
     """Create a contract using the bytecode file and return its ContractId."""
+    bytecode = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
+
     receipt = (
         ContractCreateTransaction()
-        .set_bytecode_file_id(file_id)
-        .set_gas(100_000)
+        .set_bytecode(bytecode)
+        .set_gas(2_000_000)
         .set_initial_balance(initial_balance_tinybars)
-        .set_contract_memo("Simple smart contract")
+        .set_contract_memo("Contract for balance query example")
         .execute(client)
     )
+
+    if receipt.contract_id is None:
+        raise RuntimeError("ContractCreateTransaction receipt did not return contract_id")
+
     return receipt.contract_id
 
 
@@ -95,9 +88,8 @@ def main():
     try:
         client = setup_client()
 
-        file_id = create_contract_file(client)
         initial_balance_tinybars = Hbar(1).to_tinybars()
-        contract_id = create_contract(client, file_id, initial_balance_tinybars)
+        contract_id = create_contract(client, initial_balance_tinybars=Hbar(1).to_tinybars())
 
         print(f"✅Contract created with ID: {contract_id}")
         get_contract_balance(client, contract_id)
