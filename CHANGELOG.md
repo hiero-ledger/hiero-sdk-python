@@ -89,7 +89,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improved unit test coverage for `TransactionId` class, covering parsing logic, hashing, and scheduled transactions.
 
 ### Changed
-- Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
 - Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
 - Archived unused auto draft GitHub workflow to prevent it from running (#1371)
 - Added comprehensive documentation to the PR changelog check script (`.github/scripts/pr-check-changelog.sh`) to clarify behavior, inputs, permissions, and dependencies [(#1337)]
@@ -147,6 +146,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add CodeRabbit documentation review prompts for docs, sdk_users, and sdk_developers with priorities, philosophy, and edge case checks. ([#1236](https://github.com/hiero-ledger/hiero-sdk-python/issues/1236))
 - Enhance NodeAddress tests with additional coverage for proto conversion `tests/unit/node_address_test.py`
 - Updated `pyproject.toml` to enforce stricter Ruff linting rules, including Google-style docstrings (`D`), import sorting (`I`), and modern Python syntax (`UP`).
+- Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
 
 ### Fixed
 - GFI workflow casing 
