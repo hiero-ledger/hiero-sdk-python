@@ -205,7 +205,11 @@ module.exports = async ({ github, context }) => {
         // Chain mentor assignment after successful GFI assignment
         try {
             const assignMentor = require('./bot-mentor-assignment.js');
-            await assignMentor({ github, context });
+            await assignMentor({ 
+                github, 
+                context, 
+                assignee: { login: requesterUsername, type: 'User' }  // Pass freshly-assigned username
+            });
             console.log('[gfi-assign] Mentor assignment chained successfully');
         } catch (error) {
             console.error('[gfi-assign] Mentor assignment failed but user assignment succeeded:', {
