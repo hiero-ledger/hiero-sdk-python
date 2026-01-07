@@ -44,27 +44,16 @@ jobs:
             core.setOutput('branch-name', result.branchName);
             core.setOutput('pr-body', result.body);
             return result;
-      
-      - name: Commit and push changes
-        if: ${{ steps.update-spam-list.outputs.has-changes == 'true' && env.DRY_RUN != 'true' }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin
-          git checkout -b "${{ steps.update-spam-list.outputs.branch-name }}"
-          git add .github/spam-list.txt CHANGELOG.md
-          git commit -m "${{ steps.update-spam-list.outputs.pr-title }}"
-          git pull --rebase origin "${{ steps.update-spam-list.outputs.branch-name }}" || true
-          git push origin "${{ steps.update-spam-list.outputs.branch-name }}" --force-with-lease
 
-
-      - name: Create PR with gh
+      - name: Create pull request
         if: ${{ steps.update-spam-list.outputs.has-changes == 'true' && env.DRY_RUN != 'true' }}
-        run: |
-          gh pr create \
-            --title "${{ steps.update-spam-list.outputs.pr-title  }}" \
-            --body "${{ steps.update-spam-list.outputs.pr-body }}" \
-            --label "automated" \
-            --label "spam-management" \
-            --base main \
-            --head "${{ steps.update-spam-list.outputs.branch-name }}"
+        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: ${{ steps.update-spam-list.outputs.pr-title }}
+          branch: ${{ steps.update-spam-list.outputs.branch-name }}
+          title: ${{ steps.update-spam-list.outputs.pr-title }}
+          body: ${{ steps.update-spam-list.outputs.pr-body }}
+          labels: automated, spam-management
+          add-paths: |
+            .github/spam-list.txt

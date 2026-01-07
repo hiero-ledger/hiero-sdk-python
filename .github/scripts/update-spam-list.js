@@ -11,7 +11,6 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const SPAM_LIST_PATH = '.github/spam-list.txt';
-const CHANGELOG_PATH = 'CHANGELOG.md';
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
 
 // Load current spam list and compute updates based on spam vs rehabilitated users
@@ -89,30 +88,6 @@ async function updateSpamListFile(usernames) {
   
   await fs.writeFile(SPAM_LIST_PATH, content, 'utf8');
 
-  // update CHANGELOG.md
-const changelogEntry = `- Updated spam list with ${usernames.length} entries on ${new Date().toISOString().split('T')[0]}`;
-let changelogContent = '';
-try {
-  changelogContent = await fs.readFile(CHANGELOG_PATH, 'utf8');
-} catch (error) {
-  if (error.code !== 'ENOENT') {
-    throw error;
-  }
-}
-const marker = '\n### Fixed';
-if (changelogContent.includes(marker)) {
-  // Insert entry before the marker
-  changelogContent = changelogContent.replace(
-    marker,
-    `${changelogEntry}\n${marker}`
-  );
-} else {
-  // If no marker found, just append at the end
-  changelogContent += changelogEntry;
-}
-
-await fs.writeFile(CHANGELOG_PATH, changelogContent, 'utf8');
-
 }
 
 // Generate PR title and body with summary of changes
@@ -127,7 +102,7 @@ function generateSummary(additions, removals) {
     body += `### ➕ Additions (${additions.length})\n\n`;
     body += 'The following users were added to the spam list:\n\n';
     for (const username of additions) {
-      body += `- @${username}\n`;
+      body += `- ${username}\n`;
     }
     body += '\n';
   }
@@ -136,7 +111,7 @@ function generateSummary(additions, removals) {
     body += `### ➖ Removals (${removals.length})\n\n`;
     body += 'The following users were removed from the spam list (rehabilitated):\n\n';
     for (const username of removals) {
-      body += `- @${username}\n`;
+      body += `- ${username}\n`;
     }
     body += '\n';
   }
@@ -222,9 +197,7 @@ module.exports = async ({github, context, core}) => {
         }
       }
     }
-    // delete it
-    console.log(`📊 Found ${spamUsers. size} spam users, ${rehabilitatedUsers.size} rehabilitated users`);
-    
+
     // ... rest remains the same
     const { additions, removals, finalSpamList } = await computeSpamListUpdates(
       spamUsers,
