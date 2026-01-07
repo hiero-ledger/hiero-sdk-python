@@ -4,10 +4,10 @@ class FeeAssessmentMethod(Enum):
     """
     Fee assessment method for custom token fees:
 
-      • INCLUSIVE – Fee is deducted from the transferred amount.
-                     The recipient receives the transferred amount minus the fee.
+• INCLUSIVE - Fee is deducted from the transferred amount.
+                  The recipient receives the transferred amount minus the fee.
       
-      • EXCLUSIVE – Fee is charged in addition to the transferred amount.
+      • EXCLUSIVE - Fee is charged in addition to the transferred amount.
                      The recipient receives the full transferred amount, and the payer
                      pays the fee on top of that.
 
