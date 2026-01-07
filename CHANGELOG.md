@@ -6,6 +6,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Changed
+- Archived unused auto draft GitHub workflow to prevent it from running (#1371)
+
 ### Added
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
 - Beginner issue documentation and updated GFI and GFIC templates and documentation
