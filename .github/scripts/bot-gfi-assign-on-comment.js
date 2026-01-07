@@ -31,7 +31,9 @@ function commentRequestsAssignment(body) {
  */
 function issueIsGoodFirstIssue(issue) {
     const labels = issue?.labels?.map(label => label.name) ?? [];
-    const isGfi = labels.includes(GOOD_FIRST_ISSUE_LABEL);
+    const isGfi = labels.some(label => 
+        typeof label === 'string' && label.toLowerCase() === GOOD_FIRST_ISSUE_LABEL.toLowerCase()
+    );
 
     console.log('[gfi-assign] issueIsGoodFirstIssue:', {
         labels,
@@ -201,6 +203,25 @@ module.exports = async ({ github, context }) => {
         });
 
         console.log('[gfi-assign] Assignment completed successfully');
+
+        // Chain mentor assignment after successful GFI assignment
+        try {
+            const assignMentor = require('./bot-mentor-assignment.js');
+            await assignMentor({ 
+                github, 
+                context, 
+                assignee: { login: requesterUsername, type: 'User' }  // Pass freshly-assigned username
+            });
+            console.log('[gfi-assign] Mentor assignment chained successfully');
+        } catch (error) {
+            console.error('[gfi-assign] Mentor assignment failed but user assignment succeeded:', {
+                message: error.message,
+                status: error.status,
+                issueNumber: context.payload.issue?.number,
+                assignee: requesterUsername,
+            });
+            // Don't throw error - user assignment was successful
+        }
     } catch (error) {
         console.error('[gfi-assign] Error:', {
             message: error.message,
