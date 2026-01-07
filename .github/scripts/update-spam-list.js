@@ -127,7 +127,7 @@ function generateSummary(additions, removals) {
 // Main function to orchestrate the spam list update
  
 module.exports = async ({github, context, core}) => {
-  const { owner, repo } = context. repo;
+  const { owner, repo } = context.repo;
   try {
     console.log('Starting spam list update...');
     
@@ -143,6 +143,10 @@ module.exports = async ({github, context, core}) => {
         name: 'spam PRs',
         query: `repo:${owner}/${repo} is:pr is:closed -is:merged label:spam`,
         process: async (pr) => {
+          if (!pr.user?.login) {
+            console.log(`Skipping PR #${pr.number}: user account unavailable`);
+            return;
+          }
           const username = pr.user.login;
           const closedDate = new Date(pr.closed_at);
 
@@ -155,6 +159,10 @@ module.exports = async ({github, context, core}) => {
         name:  'rehabilitated PRs',
         query: `repo:${owner}/${repo} is:pr is:merged label:"Good First Issue"`,
         process: async (pr) => {
+         if (!pr.user?.login) {
+            console.log(`Skipping PR #${pr.number}: user account unavailable`);
+            return;
+          }
           const username = pr.user.login;
 
           // Get the actual PR to find merge date
