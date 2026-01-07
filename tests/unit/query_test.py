@@ -299,7 +299,7 @@ def test_set_max_payment_override_client_max_payment(query_requires_payment, moc
     query_requires_payment.set_max_query_payment(2)
     assert query_requires_payment.max_query_payment == Hbar(2)
 
-    # mock the get_cost to resturn 2 hbar as required paymnet
+    # mock the get_cost to return 2 hbar as required paymnet
     mock_get_cost = MagicMock()
     mock_get_cost.return_value = Hbar(2)
 
@@ -346,7 +346,7 @@ def test_payment_query_use_client_max_payment(query_requires_payment, mock_clien
     mock_client.set_default_max_query_payment(Hbar(2))
     assert mock_client.default_max_query_payment == Hbar(2)
 
-    # mock the get_cost to resturn 2 hbar as required paymnet
+    # mock the get_cost to return 2 hbar as required paymnet
     mock_get_cost = MagicMock()
     mock_get_cost.return_value = Hbar(2)
 
