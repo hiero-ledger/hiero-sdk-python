@@ -40,13 +40,13 @@ def setup_client():
     operator_key_str = os.getenv("OPERATOR_KEY")
 
     if not operator_id_str or not operator_key_str:
-        raise ValueError("OPERATOR_ID and OPERATOR_KEY environment variables must be set")
+        raise ValueError("❌OPERATOR_ID and OPERATOR_KEY environment variables must be set")
 
     operator_id = AccountId.from_string(operator_id_str)
     operator_key = PrivateKey.from_string(operator_key_str)
     client.set_operator(operator_id, operator_key)
 
-    print(f"Client set up with operator id {client.operator_account_id}")
+    print(f"✅Client set up with operator id {client.operator_account_id}")
     return client
 
 
@@ -62,7 +62,7 @@ def get_contract_balance(client: Client, contract_id: ContractId):
     balance = CryptoGetAccountBalanceQuery().set_contract_id(contract_id).execute(client)
 
     # AccountBalance object: print a friendly summary
-    print("✓ Balance retrieved successfully!")
+    print("✅Balance retrieved successfully!")
     print(f"  Contract: {contract_id}")
     print(f"  Hbars: {balance.hbars}")
     if getattr(balance, "token_balances", None):
@@ -74,9 +74,9 @@ def main():
     try:
         client = setup_client()
 
-        contract_id_str = os.getenv("CONTRACT_ID")
+        contract_id_str = "0.0.1234"
         if not contract_id_str:
-            raise ValueError("CONTRACT_ID environment variable must be set (e.g. '0.0.1234')")
+            raise ValueError("❌CONTRACT_ID environment variable must be set (e.g. '0.0.1234')")
 
         contract_id = ContractId.from_string(contract_id_str)
 
@@ -87,7 +87,7 @@ def main():
         get_contract_balance(client, contract_id)
 
     except Exception as e:
-        print(f"✗ Error: {e}", file=sys.stderr)
+        print(f"❌Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 

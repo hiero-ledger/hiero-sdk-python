@@ -1,4 +1,5 @@
 import pytest
+import os
 
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.contract.contract_id import ContractId
@@ -24,6 +25,14 @@ def test_integration_contract_balance_query_can_execute():
     contract_id = ContractId.from_string(contract_id_str)
 
     try:
-        CryptoGetAccountBalanceQuery().set_contract_id(contract_id).execute(env.client)
+        balance = CryptoGetAccountBalanceQuery().set_contract_id(contract_id).execute(env.client)
+
+        assert balance is not None
+        assert hasattr(balance, "hbars")
+        assert balance.hbars is not None
+
+        if hasattr(balance.hbars, "to_tinybars"):
+            assert balance.hbars.to_tinybars() >= 0
+
     finally:
         env.close()

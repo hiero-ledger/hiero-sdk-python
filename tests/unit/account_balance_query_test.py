@@ -99,7 +99,7 @@ def test_make_request_raises_when_both_account_id_and_contract_id_are_set(
     )
 
     with pytest.raises(
-        ValueError, match="Specify either Account ID or Contract ID, not both."
+        ValueError, match=r"Specify either Account ID or Contract ID, not both\."
     ):
         query._make_request()
 
@@ -110,7 +110,7 @@ def test_make_request_raises_when_neither_account_id_nor_contract_id_is_set():
 
     with pytest.raises(
         ValueError,
-        match="Either Account ID or Contract ID must be set before making the request.",
+        match=r"Either Account ID or Contract ID must be set before making the request\.",
     ):
         query._make_request()
 
