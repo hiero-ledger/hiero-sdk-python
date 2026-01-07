@@ -1,44 +1,48 @@
 """
 Contract Balance Query Example
 
-This script demonstrates how to query the balance of a *contract* using:
-- CryptoGetAccountBalanceQuery().set_contract_id(...)
+This script demonstrates how to:
+1. Set up a client connection to the Hedera network
+2. Create a file containing contract bytecode
+3. Create a contract
+4. Query the contract balance using CryptoGetAccountBalanceQuery.set_contract_id()
 
 Run with:
   uv run examples/query/contract_balance_query.py
   python examples/query/contract_balance_query.py
-
-Environment variables required:
-- OPERATOR_ID
-- OPERATOR_KEY
-Optional:
-- NETWORK (default: testnet)
-- CONTRACT_ID (e.g. "0.0.1234")
 """
 
 import os
 import sys
 from dotenv import load_dotenv
 
-from hiero_sdk_python import Network, Client, AccountId, PrivateKey
-from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+from hiero_sdk_python import (
+    Network,
+    Client,
+    AccountId,
+    PrivateKey,
+    FileCreateTransaction,
+    ContractCreateTransaction,
+    CryptoGetAccountBalanceQuery,
+    Hbar,
+)
+
 from hiero_sdk_python.contract.contract_id import ContractId
+
+# Use the same bytecode constants used by other contract examples
+from examples.contract.contracts import SIMPLE_CONTRACT_BYTECODE  # adjust if your repo uses a different import path
 
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """
-    Initialize and configure the Hiero SDK client with operator credentials.
-    """
+def setup_client() -> Client:
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
 
     operator_id_str = os.getenv("OPERATOR_ID")
     operator_key_str = os.getenv("OPERATOR_KEY")
-
     if not operator_id_str or not operator_key_str:
         raise ValueError("❌OPERATOR_ID and OPERATOR_KEY environment variables must be set")
 
@@ -50,23 +54,40 @@ def setup_client():
     return client
 
 
+def create_contract_file(client: Client):
+    """Create a file containing the contract bytecode and return its FileId (receipt.file_id)."""
+    bytecode_bytes = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
+
+    receipt = (
+        FileCreateTransaction()
+        .set_contents(bytecode_bytes)
+        .set_file_memo("Simple contract bytecode file")
+        .execute(client)
+    )
+    return receipt.file_id
+
+
+def create_contract(client: Client, file_id, initial_balance_tinybars: int) -> ContractId:
+    """Create a contract using the bytecode file and return its ContractId."""
+    receipt = (
+        ContractCreateTransaction()
+        .set_bytecode_file_id(file_id)
+        .set_gas(100_000)
+        .set_initial_balance(initial_balance_tinybars)
+        .set_contract_memo("Simple smart contract")
+        .execute(client)
+    )
+    return receipt.contract_id
+
+
 def get_contract_balance(client: Client, contract_id: ContractId):
-    """
-    Query and retrieve the HBAR balance of a contract.
-
-    Use account_id when you want an *account* balance.
-    Use contract_id when you want a *contract* balance (smart contract entity).
-    """
+    """Query contract balance using CryptoGetAccountBalanceQuery.set_contract_id()."""
     print(f"Querying balance for contract {contract_id} ...")
-
     balance = CryptoGetAccountBalanceQuery().set_contract_id(contract_id).execute(client)
 
-    # AccountBalance object: print a friendly summary
     print("✅Balance retrieved successfully!")
     print(f"  Contract: {contract_id}")
     print(f"  Hbars: {balance.hbars}")
-    if getattr(balance, "token_balances", None):
-        print(f"  Token balances entries: {len(balance.token_balances)}")
     return balance
 
 
@@ -74,16 +95,11 @@ def main():
     try:
         client = setup_client()
 
-        contract_id_str = "0.0.1234"
-        if not contract_id_str:
-            raise ValueError("❌CONTRACT_ID environment variable must be set (e.g. '0.0.1234')")
+        file_id = create_contract_file(client)
+        initial_balance_tinybars = Hbar(1).to_tinybars()
+        contract_id = create_contract(client, file_id, initial_balance_tinybars)
 
-        contract_id = ContractId.from_string(contract_id_str)
-
-        # Uncommenting the following would raise due to oneof constraints:
-        # query = CryptoGetAccountBalanceQuery(account_id=client.operator_account_id, contract_id=contract_id)
-        # query.execute(client)
-
+        print(f"✅Contract created with ID: {contract_id}")
         get_contract_balance(client, contract_id)
 
     except Exception as e:
