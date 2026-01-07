@@ -22,6 +22,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added method chaining examples to the developer training guide (`docs/sdk_developers/training/coding_token_transactions.md`) (#1194)
 - Added documentation explaining how to pin GitHub Actions to specific commit SHAs (`docs/sdk_developers/how-to-pin-github-actions.md`)(#1211)
 - examples/mypy.ini for stricter type checking in example scripts
+- Formatted examples/tokens directory using black code formatter for consistent code style
+- Added `.github/workflows/bot-coderabbit-plan-trigger.yml` to automatically invoke CodeRabbit's plan feature on intermediate and advanced issues, providing implementation guidance to help contributors assess complexity and understand requirements. (#1289)
 - Added a GitHub Actions workflow that reminds contributors to link pull requests to issues.
 - Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
 - Added Good First Issue (GFI) management and frequency documentation to clarify maintainer expectations and SDK-level GFI governance.
@@ -84,10 +86,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added merge conflict bot workflow (`.github/workflows/bot-merge-conflict.yml`) and helper script (`.github/scripts/bot-merge-conflict.js`) to detect and notify about PR merge conflicts, with retry logic for unknown mergeable states, idempotent commenting, and push-to-main recheck logic (#1247)
 - Added workflow to prevent assigning intermediate issues to contributors without prior Good First Issue completion (#1143).
 - Added `Client.from_env()` and network-specific factory methods (e.g., `Client.for_testnet()`) to simplify client initialization and reduce boilerplate. [[#1251](https://github.com/hiero-ledger/hiero-sdk-python/issues/1251)]
+- Improved unit test coverage for `TransactionId` class, covering parsing logic, hashing, and scheduled transactions.
 - Add GitHub Actions script and workflow for automatic spam list updates.
 
 ### Changed
-
+- Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
+- Added comprehensive documentation to the PR changelog check script (`.github/scripts/pr-check-changelog.sh`) to clarify behavior, inputs, permissions, and dependencies [(#1337)]
+- Refactored `account_create_transaction_without_alias.py` into smaller, modular functions.(#1321)
 - Renamed bot-inactivity workflow files to remove "-phase" suffix since the process no longer uses phased execution (#1339)
 - Renamed the GitHub notify team script to match its corresponding workflow filename for better maintainability (#1338)
 - style: apply black formatting to examples (#1299)
@@ -140,6 +145,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance assignment bot to guard against users with spam PRs `.github/scripts/bot-assignment-check.sh`
 - Add CodeRabbit documentation review prompts for docs, sdk_users, and sdk_developers with priorities, philosophy, and edge case checks. ([#1236](https://github.com/hiero-ledger/hiero-sdk-python/issues/1236))
 - Enhance NodeAddress tests with additional coverage for proto conversion `tests/unit/node_address_test.py`
+- Updated `pyproject.toml` to enforce stricter Ruff linting rules, including Google-style docstrings (`D`), import sorting (`I`), and modern Python syntax (`UP`).
 
 ### Fixed
 - GFI workflow casing 
@@ -156,6 +162,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
 - Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
+- Fixed LinkBot permission issue for fork PRs by changing trigger to pull_request_target and adding proper permissions.
 
 ### Breaking Change
 
