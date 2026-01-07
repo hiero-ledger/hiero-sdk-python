@@ -128,3 +128,17 @@ def test_make_request_populates_contract_id_only():
 
     # accountID should be unset
     assert not balance_query.HasField("accountID")
+
+def test_make_request_populates_account_id_only(mock_account_ids):
+    """_make_request should populate accountID when only account_id is set."""
+    account_id_sender, *_ = mock_account_ids
+
+    query = CryptoGetAccountBalanceQuery().set_account_id(account_id_sender)
+    req = query._make_request()
+    balance_query = req.cryptogetAccountBalance
+
+    # accountID must match
+    assert balance_query.accountID == account_id_sender._to_proto()
+
+    # contractID should be unset
+    assert not balance_query.HasField("contractID")
