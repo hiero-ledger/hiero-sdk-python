@@ -4,6 +4,9 @@
 // Posts a comment if the issue is already assigned.
 // All other validation and additional GFI comments are handled by other existing bots which can be refactored with time.
 
+const fs = require('fs');
+const path = require('path');
+
 const GOOD_FIRST_ISSUE_LABEL = 'Good First Issue';
 const UNASSIGNED_GFI_SEARCH_URL =
     'https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee';
@@ -201,6 +204,21 @@ module.exports = async ({ github, context }) => {
         });
 
         console.log('[gfi-assign] Assignment completed successfully');
+
+        // Chain mentor assignment after successful GFI assignment
+        try {
+            const assignMentor = require('./bot-mentor-assignment.js');
+            await assignMentor({ github, context });
+            console.log('[gfi-assign] Mentor assignment chained successfully');
+        } catch (error) {
+            console.error('[gfi-assign] Mentor assignment failed but user assignment succeeded:', {
+                message: error.message,
+                status: error.status,
+                issueNumber: context.payload.issue?.number,
+                assignee: requesterUsername,
+            });
+            // Don't throw error - user assignment was successful
+        }
     } catch (error) {
         console.error('[gfi-assign] Error:', {
             message: error.message,
