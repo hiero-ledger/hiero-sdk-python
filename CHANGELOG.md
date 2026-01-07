@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with use cases and examples. (#1392)
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
 - Beginner issue documentation and updated GFI and GFIC templates and documentation
 - Enable auto assignment to good first issues (#1312), archived good first issue support team notification. Changed templates with new assign instruction.
