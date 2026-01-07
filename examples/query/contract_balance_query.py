@@ -30,7 +30,7 @@ from hiero_sdk_python import (
 from hiero_sdk_python.contract.contract_id import ContractId
 
 # Use the same bytecode constants used by other contract examples
-from examples.contract.contracts import SIMPLE_CONTRACT_BYTECODE  # adjust if your repo uses a different import path
+from examples.contract.contracts import SIMPLE_CONTRACT_BYTECODE
 
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
