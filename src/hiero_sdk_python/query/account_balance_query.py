@@ -43,6 +43,8 @@ class CryptoGetAccountBalanceQuery(Query):
         Returns:
             CryptoGetAccountBalanceQuery: The current instance for method chaining.
         """
+        if not isinstance(account_id, AccountId):
+            raise TypeError("account_id must be an AccountId.")
         self.contract_id = None
         self.account_id = account_id
         return self
@@ -58,6 +60,8 @@ class CryptoGetAccountBalanceQuery(Query):
         Returns:
             CryptoGetAccountBalanceQuery: The current instance for method chaining.
         """
+        if not isinstance(contract_id, ContractId):
+            raise TypeError("contract_id must be a ContractId.")
         self.account_id = None
         self.contract_id = contract_id
         return self

@@ -64,6 +64,20 @@ def test_account_balance_query_does_not_require_payment():
     assert not query._is_payment_required()
 
 
+def test_set_account_id_with_invalid_type_raises():
+    query = CryptoGetAccountBalanceQuery()
+
+    with pytest.raises(TypeError, match=r"account_id must be an AccountId\."):
+        query.set_account_id("ciao")
+
+
+def test_set_contract_id_with_invalid_type_raises():
+    query = CryptoGetAccountBalanceQuery()
+
+    with pytest.raises(TypeError, match=r"contract_id must be a ContractId\."):
+        query.set_contract_id("ciao")
+
+
 def test_build_account_balance_query_with_contract_id():
     """Test building a CryptoGetAccountBalanceQuery with a valid contract ID."""
     contract_id = ContractId(0, 0, 1234)
