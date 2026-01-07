@@ -31,7 +31,9 @@ function commentRequestsAssignment(body) {
  */
 function issueIsGoodFirstIssue(issue) {
     const labels = issue?.labels?.map(label => label.name) ?? [];
-    const isGfi = labels.includes(GOOD_FIRST_ISSUE_LABEL);
+    const isGfi = labels.some(label => 
+        typeof label === 'string' && label.toLowerCase() === GOOD_FIRST_ISSUE_LABEL.toLowerCase()
+    );
 
     console.log('[gfi-assign] issueIsGoodFirstIssue:', {
         labels,
