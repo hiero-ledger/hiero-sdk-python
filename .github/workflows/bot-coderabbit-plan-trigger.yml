@@ -14,14 +14,16 @@ jobs:
     concurrency:
       group: coderabbit-plan-${{ github.event.issue.number }}
       cancel-in-progress: false
-    # Only run for issues labeled with 'intermediate' or 'advanced' (case-insensitive)
+    # Only run for issues labeled with 'beginner', 'intermediate' or 'advanced' (case-insensitive)
     if: >
       (github.event_name == 'issues' && (
         contains(github.event.issue.labels.*.name, 'intermediate') || 
+        contains(github.event.issue.labels.*.name, 'beginner') || 
         contains(github.event.issue.labels.*.name, 'advanced') ||
         contains(github.event.issue.labels.*.name, 'Intermediate') || 
+        contains(github.event.issue.labels.*.name, 'Beginner') || 
         contains(github.event.issue.labels.*.name, 'Advanced') ||
-        (github.event.label && (github.event.label.name == 'intermediate' || github.event.label.name == 'advanced' || github.event.label.name == 'Intermediate' || github.event.label.name == 'Advanced'))
+        (github.event.label && (github.event.label.name == 'intermediate' || github.event.label.name == 'advanced' || github.event.label.name == 'Intermediate' || github.event.label.name == 'Advanced' || github.event.label.name == 'beginner'|| github.event.label.name == 'Beginner'))
       ))
 
     steps:
