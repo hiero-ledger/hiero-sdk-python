@@ -77,7 +77,7 @@ def get_contract_balance(client: Client, contract_id: ContractId):
     print(f"Querying balance for contract {contract_id} ...")
     balance = CryptoGetAccountBalanceQuery().set_contract_id(contract_id).execute(client)
 
-    print("✅Balance retrieved successfully!")
+    print("✅ Balance retrieved successfully!")
     print(f"  Contract: {contract_id}")
     print(f"  Hbars: {balance.hbars}")
     return balance
@@ -90,7 +90,7 @@ def main():
         initial_balance_tinybars = Hbar(1)
         contract_id = create_contract(client, initial_balance_tinybars.to_tinybars())
 
-        print(f"✅Contract created with ID: {contract_id}")
+        print(f"✅ Contract created with ID: {contract_id}")
         get_contract_balance(client, contract_id)
 
     except Exception as e:

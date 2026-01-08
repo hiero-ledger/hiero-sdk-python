@@ -62,13 +62,12 @@ def test_integration_contract_balance_query_can_execute():
 def test_integration_balance_query_raises_when_neither_source_set():
     env = IntegrationTestEnv()
     try:
-        with pytest.raises(ValueError, match="Either Account ID or Contract ID must be set before making the request."):
+        with pytest.raises(ValueError, match=r"Either Account ID or Contract ID must be set before making the request\."):
             CryptoGetAccountBalanceQuery().execute(env.client)
     finally:
         env.close()
 
 
-@pytest.mark.integration
 def test_integration_balance_query_raises_when_both_sources_set():
     env = IntegrationTestEnv()
     try:
@@ -77,31 +76,25 @@ def test_integration_balance_query_raises_when_both_sources_set():
             contract_id=ContractId(0, 0, 1234),
         )
 
-        with pytest.raises(ValueError, match="Specify either account_id or contract_id, not both."):
+        with pytest.raises(ValueError, match=r"Specify either account_id or contract_id, not both\."):
             query.execute(env.client)
     finally:
         env.close()
 
 
-@pytest.mark.integration
 def test_integration_balance_query_with_invalid_account_id_raises():
     env = IntegrationTestEnv()
     try:
-        invalid_account_id = AccountId(0, 0, 9_999_999_999)
-
-        with pytest.raises(ValueError, match="account_id must be an AccountId."):
-            CryptoGetAccountBalanceQuery().set_account_id(invalid_account_id).execute(env.client)
+        with pytest.raises(ValueError, match=r"account_id must be an AccountId\."):
+            CryptoGetAccountBalanceQuery().set_account_id("0.0.12345").execute(env.client)
     finally:
         env.close()
 
 
-@pytest.mark.integration
 def test_integration_balance_query_with_invalid_contract_id_raises():
     env = IntegrationTestEnv()
     try:
-        invalid_contract_id = ContractId(0, 0, 9_999_999_999)
-
-        with pytest.raises(ValueError, match="contract_id must be a ContractId."):
-            CryptoGetAccountBalanceQuery().set_contract_id(invalid_contract_id).execute(env.client)
+        with pytest.raises(ValueError, match=r"contract_id must be a ContractId\."):
+            CryptoGetAccountBalanceQuery().set_contract_id("0.0.12345").execute(env.client)
     finally:
         env.close()
