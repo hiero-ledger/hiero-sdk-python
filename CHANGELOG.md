@@ -89,6 +89,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improved unit test coverage for `TransactionId` class, covering parsing logic, hashing, and scheduled transactions.
 - Chained Good First Issue assignment with mentor assignment to bypass GitHub's anti-recursion protection - mentor assignment now occurs immediately after successful user assignment in the same workflow execution. (#1369)
 - Add GitHub Actions script and workflow for automatic spam list updates.
+- Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 
 ### Changed
 - Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
