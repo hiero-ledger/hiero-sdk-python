@@ -62,7 +62,7 @@ def test_integration_contract_balance_query_can_execute():
 def test_integration_balance_query_raises_when_neither_source_set():
     env = IntegrationTestEnv()
     try:
-        with pytest.raises(ValueError, match=r"Either Account ID or Contract ID must be set before making the request\."):
+        with pytest.raises(ValueError, match=r"Either account_id or contract_id must be set before making the request\."):
             CryptoGetAccountBalanceQuery().execute(env.client)
     finally:
         env.close()
@@ -85,7 +85,7 @@ def test_integration_balance_query_raises_when_both_sources_set():
 def test_integration_balance_query_with_invalid_account_id_raises():
     env = IntegrationTestEnv()
     try:
-        with pytest.raises(ValueError, match=r"account_id must be an AccountId\."):
+        with pytest.raises(TypeError, match=r"account_id must be an AccountId\."):
             CryptoGetAccountBalanceQuery().set_account_id("0.0.12345").execute(env.client)
     finally:
         env.close()
@@ -94,7 +94,7 @@ def test_integration_balance_query_with_invalid_account_id_raises():
 def test_integration_balance_query_with_invalid_contract_id_raises():
     env = IntegrationTestEnv()
     try:
-        with pytest.raises(ValueError, match=r"contract_id must be a ContractId\."):
+        with pytest.raises(TypeError, match=r"contract_id must be a ContractId\."):
             CryptoGetAccountBalanceQuery().set_contract_id("0.0.12345").execute(env.client)
     finally:
         env.close()
