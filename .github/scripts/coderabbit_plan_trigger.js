@@ -20,16 +20,19 @@ async function triggerCodeRabbitPlan(github, owner, repo, issue, marker) {
   }
 }
 
-function hasIntermediateOrAdvancedLabel(issue, label) {
-  // Check if issue has intermediate or advanced label (case-insensitive)
-  const hasIntermediateLabel = issue.labels?.some(l => l?.name?.toLowerCase() === 'intermediate');
-  const hasAdvancedLabel = issue.labels?.some(l => l?.name?.toLowerCase() === 'advanced');
-  
+function hasBeginnerOrHigherLabel(issue, label) {
+  // Check if issue has beginner, intermediate or advanced label (case-insensitive)
+
+  const allowed = ['beginner', 'intermediate', "advanced"];
+
+  const hasAllowedLabel = issue.labels?.some(l => allowed.includes(l?.name?.toLowerCase()));
+
   // Also check if newly added label is intermediate/advanced
-  const isNewLabelIntermediate = label?.name?.toLowerCase() === 'intermediate';
-  const isNewLabelAdvanced = label?.name?.toLowerCase() === 'advanced';
+
+  const isNewLabelAllowed = allowed.includes(label?.name?.toLowerCase());
+
+  return hasAllowedLabel || isNewLabelAllowed;
   
-  return hasIntermediateLabel || hasAdvancedLabel || isNewLabelIntermediate || isNewLabelAdvanced;
 }
 
 async function hasExistingCodeRabbitPlan(github, owner, repo, issueNumber) {
@@ -65,7 +68,7 @@ module.exports = async ({ github, context }) => {
     // Validations
     if (!issue?.number) return console.log('No issue in payload');
     
-    if (!hasIntermediateOrAdvancedLabel(issue, label)) {
+    if (!hasBeginnerOrHigherLabel(issue, label)) {
       return console.log('Issue does not have intermediate or advanced label');
     }
 
