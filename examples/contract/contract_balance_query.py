@@ -29,7 +29,6 @@ from .contracts import SIMPLE_CONTRACT_BYTECODE
 from hiero_sdk_python.response_code import ResponseCode
 
 load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client() -> Client:
