@@ -1,0 +1,53 @@
+name: Cron Update Spam List
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # At 00:00 on day-of-month 1 (monthly)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'If true, do not post comments (dry run). Accepts "true" or "false". Default true for manual runs.'
+        required: false
+        default: 'true'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  update-spam-list:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner (audit outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Update spam list
+        id: update-spam-list
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+
+        with:
+          script: |
+            const updateSpamList = require('./.github/scripts/update-spam-list.js');
+            await updateSpamList({ github, context, core });
+            
+
+      - name: Create pull request
+        if: ${{ steps.update-spam-list.outputs.has-changes == 'true' && env.DRY_RUN != 'true' }}
+        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725 # v8.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: ${{ steps.update-spam-list.outputs.pr-title }}
+          branch: ${{ steps.update-spam-list.outputs.branch-name }}
+          title: ${{ steps.update-spam-list.outputs.pr-title }}
+          body: ${{ steps.update-spam-list.outputs.pr-body }}
+          labels: automated, spam-management
+          add-paths: |
+            .github/spam-list.txt
