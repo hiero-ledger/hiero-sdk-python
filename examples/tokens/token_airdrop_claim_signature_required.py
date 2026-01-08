@@ -98,7 +98,7 @@ def create_receiver(
     try:
         receipt = (
             AccountCreateTransaction()
-            .set_key(receiver_public_key)
+            .set_key_without_alias(receiver_public_key)
             .set_initial_balance(Hbar(1))
             .set_receiver_signature_required(signature_required)
             .set_max_automatic_token_associations(max_auto_assoc)
