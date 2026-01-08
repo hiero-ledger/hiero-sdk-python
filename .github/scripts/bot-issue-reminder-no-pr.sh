@@ -10,6 +10,7 @@ set -euo pipefail
 REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
 DAYS="${DAYS:-7}"
 DRY_RUN="${DRY_RUN:-false}"
+MARKER='<!-- issue-reminder-bot -->'
 
 # Normalize DRY_RUN to "true" or "false"
 if [[ "$DRY_RUN" == "true" || "$DRY_RUN" == "yes" || "$DRY_RUN" == "1" ]]; then
@@ -72,7 +73,7 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
 
   # Check if this issue already has a reminder comment from ReminderBot
   EXISTING_COMMENT=$(gh api "repos/$REPO/issues/$ISSUE/comments" \
-    --jq ".[] | select(.user.login == \"github-actions[bot]\") | select(.body | contains(\"ReminderBot\")) | .id" \
+    --jq ".[] | select(.user.login == \"github-actions[bot]\") | select(.body | contains(\"<!-- issue-reminder-bot -->\")) | .id" \
     | head -n1)
 
   if [ -n "$EXISTING_COMMENT" ]; then
@@ -136,10 +137,12 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
 
   ASSIGNEE_MENTIONS=$(echo "$ISSUE_JSON" | jq -r '.assignees[].login | "@" + .' | xargs)
 
-  MESSAGE="Hi ${ASSIGNEE_MENTIONS} 👋
+  MESSAGE="${MARKER}
+Hi ${ASSIGNEE_MENTIONS} 👋
 
 This issue has been assigned but no pull request has been created yet.
 Are you still planning on working on it?
+If you are, please create a draft PR linked to this issue so we know you are working on it.
 
 From the Python SDK Team"
 
