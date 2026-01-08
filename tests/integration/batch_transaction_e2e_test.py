@@ -279,14 +279,14 @@ def test_successful_inner_transactions_should_incur_fees_even_though_one_fails(e
 
     tx1 = (
         AccountCreateTransaction()
-        .set_key(PrivateKey.generate().public_key())
+        .set_key_without_alias(PrivateKey.generate().public_key())
         .set_initial_balance(1)
         .batchify(env.client, batch_key)
     )
 
     tx2 = (
         AccountCreateTransaction()
-        .set_key(PrivateKey.generate().public_key())
+        .set_key_without_alias(PrivateKey.generate().public_key())
         .set_initial_balance(1)
         .batchify(env.client, batch_key)
     )
@@ -294,7 +294,7 @@ def test_successful_inner_transactions_should_incur_fees_even_though_one_fails(e
     # Invalid Tx
     tx3 = (
         AccountCreateTransaction()
-        .set_key(PrivateKey.generate().public_key())
+        .set_key_without_alias(PrivateKey.generate().public_key())
         .set_initial_balance(1)
         .set_receiver_signature_required(True)
         .batchify(env.client, batch_key)
