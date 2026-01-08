@@ -7,14 +7,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-
 - Added a notification workflow that alerts the support team when an issue is labeled as a Good First Issue Candidate.[(#1296)]
+- Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with use cases and examples. (#1392)
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
 - Beginner issue documentation and updated GFI and GFIC templates and documentation
 - Enable auto assignment to good first issues (#1312), archived good first issue support team notification. Changed templates with new assign instruction.
 - Intermediate issue documentation
 - Added unit test for 'endpoint.py' to increase coverage.
 - Automated assignment guard for `advanced` issues; requires completion of at least one `good first issue` and one `intermediate` issue before assignment (exempts maintainers, committers, and triage members). (#1142)
+- Added comprehensive docstring to `FeeAssessmentMethod` enum explaining inclusive vs exclusive fee assessment methods. (#1391)
+- Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with use cases and examples. (#1392)
 - Added Hbar object support for TransferTransaction HBAR transfers:
 - Methods now accept `Union[int, Hbar]` for amount parameters with immediate normalization to tinybars
 - Includes comprehensive unit tests covering various Hbar units (HBAR, MICROBAR, NANOBAR, TINYBAR) and accumulation behavior with mixed `int` and `Hbar` inputs
