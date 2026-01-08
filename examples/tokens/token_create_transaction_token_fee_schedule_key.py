@@ -141,7 +141,6 @@ def main():
 
     client = setup_client()
     operator_id = client.operator_account_id
-    operator_key = client.operator_private_key
 
     try:
         # Create token with fee_schedule_key

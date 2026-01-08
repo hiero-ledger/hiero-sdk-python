@@ -69,7 +69,7 @@ def token_burn_fungible():
     2. Creating a fungible token with the operator account as owner
     3. Getting initial token supply
     4. Burning 50 tokens from the total supply
-     5. Getting final token supply to verify burn
+    5. Getting final token supply to verify burn
     """
     client = setup_client()
     operator_id = client.operator_account_id

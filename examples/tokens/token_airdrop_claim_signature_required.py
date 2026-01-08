@@ -413,7 +413,7 @@ def main():
     """
     Main function to execute the airdrop claim example.
     """
-    # Set up client and return client, operator_id, operator_key
+    # Set up client and derive operator credentials
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

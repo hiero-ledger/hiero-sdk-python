@@ -91,7 +91,7 @@ def token_burn_nft():
     5. Burning specific NFTs by serial number
     6. Getting final token supply to verify burn
     """
-    client = setup_client();
+    client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key
 
