@@ -128,10 +128,10 @@ Happy building!
 — Python SDK Team`;
 }
 
-module.exports = async ({ github, context }) => {
+module.exports = async ({ github, context, assignee: passedAssignee }) => {
   try {
     const issue = context.payload.issue;
-    const assignee = context.payload.assignee;
+    const assignee = passedAssignee || context.payload.assignee;
 
     if (!issue?.number || !assignee?.login) {
       return console.log('No issue or assignee found in payload. Skipping.');

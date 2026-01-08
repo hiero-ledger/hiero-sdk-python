@@ -10,6 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
 - Beginner issue documentation and updated GFI and GFIC templates and documentation
 - Enable auto assignment to good first issues (#1312), archived good first issue support team notification. Changed templates with new assign instruction.
+- Intermediate issue documentation
 - Added unit test for 'endpoint.py' to increase coverage.
 - Automated assignment guard for `advanced` issues; requires completion of at least one `good first issue` and one `intermediate` issue before assignment (exempts maintainers, committers, and triage members). (#1142)
 - Added Hbar object support for TransferTransaction HBAR transfers:
@@ -21,6 +22,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added method chaining examples to the developer training guide (`docs/sdk_developers/training/coding_token_transactions.md`) (#1194)
 - Added documentation explaining how to pin GitHub Actions to specific commit SHAs (`docs/sdk_developers/how-to-pin-github-actions.md`)(#1211)
 - examples/mypy.ini for stricter type checking in example scripts
+- Formatted examples/tokens directory using black code formatter for consistent code style
+- Added `.github/workflows/bot-coderabbit-plan-trigger.yml` to automatically invoke CodeRabbit's plan feature on intermediate and advanced issues, providing implementation guidance to help contributors assess complexity and understand requirements. (#1289)
 - Added a GitHub Actions workflow that reminds contributors to link pull requests to issues.
 - Added `__str__` and `__repr__` methods to `AccountInfo` class for improved logging and debugging experience (#1098)
 - Added Good First Issue (GFI) management and frequency documentation to clarify maintainer expectations and SDK-level GFI governance.
@@ -44,6 +47,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added a github template for good first issues
 - Added `.github/workflows/bot-assignment-check.yml` to limit non-maintainers to 2 concurrent issue assignments.
 - Configured coderabbit with a `.coderabbit.yaml`
+- Added `.github/workflows/bot-community-calls` and its script to notify issue creators of a community call
 - Added all missing fields to `__str__()` method and updated `test_tokem_info.py`
 - Add examples/tokens/token_create_transaction_pause_key.py example demonstrating token pause/unpause behavior and pause key usage (#833)
 - Added `docs/sdk_developers/training/transaction_lifecycle.md` to explain the typical lifecycle of executing a transaction using the Hedera Python SDK.
@@ -67,6 +71,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add a workflow to notify the team when issues are labeled as “good first issues” or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
 - Added **str** and **repr** to AccountBalance
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
+- Added advanced issue template
 - Added advanced issue template for contributors `.github/ISSUE_TEMPLATE/06_advanced_issue.yml`.
 - Add new tests to `tests/unit/topic_info_query_test.py` (#1124)
 - Added `coding_token_transactions.md` for a high level overview training on how token transactions are created in the python sdk.
@@ -81,9 +86,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added merge conflict bot workflow (`.github/workflows/bot-merge-conflict.yml`) and helper script (`.github/scripts/bot-merge-conflict.js`) to detect and notify about PR merge conflicts, with retry logic for unknown mergeable states, idempotent commenting, and push-to-main recheck logic (#1247)
 - Added workflow to prevent assigning intermediate issues to contributors without prior Good First Issue completion (#1143).
 - Added `Client.from_env()` and network-specific factory methods (e.g., `Client.for_testnet()`) to simplify client initialization and reduce boilerplate. [[#1251](https://github.com/hiero-ledger/hiero-sdk-python/issues/1251)]
+- Improved unit test coverage for `TransactionId` class, covering parsing logic, hashing, and scheduled transactions.
+- Chained Good First Issue assignment with mentor assignment to bypass GitHub's anti-recursion protection - mentor assignment now occurs immediately after successful user assignment in the same workflow execution. (#1369)
+- Add GitHub Actions script and workflow for automatic spam list updates.
 
 ### Changed
 - Renamed `.github/scripts/check_advanced_requirement.sh` to `bot-advanced-check.sh` for workflow consistency (#1341)
+- Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
+- Archived unused auto draft GitHub workflow to prevent it from running (#1371)
+- Added comprehensive documentation to the PR changelog check script (`.github/scripts/pr-check-changelog.sh`) to clarify behavior, inputs, permissions, and dependencies [(#1337)]
+- Refactored `account_create_transaction_without_alias.py` into smaller, modular functions.(#1321)
 - Renamed bot-inactivity workflow files to remove "-phase" suffix since the process no longer uses phased execution (#1339)
 - Renamed the GitHub notify team script to match its corresponding workflow filename for better maintainability (#1338)
 - style: apply black formatting to examples (#1299)
@@ -136,6 +148,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance assignment bot to guard against users with spam PRs `.github/scripts/bot-assignment-check.sh`
 - Add CodeRabbit documentation review prompts for docs, sdk_users, and sdk_developers with priorities, philosophy, and edge case checks. ([#1236](https://github.com/hiero-ledger/hiero-sdk-python/issues/1236))
 - Enhance NodeAddress tests with additional coverage for proto conversion `tests/unit/node_address_test.py`
+- Updated `pyproject.toml` to enforce stricter Ruff linting rules, including Google-style docstrings (`D`), import sorting (`I`), and modern Python syntax (`UP`).
+- Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
 
 ### Fixed
 - GFI workflow casing 
@@ -152,6 +166,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Workflow does not contain permissions for `pr-check-test-files` and `pr-check-codecov`
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
 - Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
+- Fixed LinkBot permission issue for fork PRs by changing trigger to pull_request_target and adding proper permissions.
 
 ### Breaking Change
 

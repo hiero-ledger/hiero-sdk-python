@@ -1,5 +1,79 @@
 #!/bin/bash
 
+# ==============================================================================
+# Executes When:
+#   - Run by GitHub Actions workflow: .github/workflows/pr-check-changelog.yml
+#   - Triggers: workflow_dispatch (manual) and pull_request (opened, edited, synch).
+#
+# Goal:
+#   It acts as a gatekeeper for Pull Requests, blocking any merge unless the user
+#   has added a new entry to CHANGELOG.md and correctly placed it under the
+#   [Unreleased] section with a proper category subtitle.
+#
+# ------------------------------------------------------------------------------
+# Flow: Basic Idea
+#   1. Grabs the official blueprints (upstream/main) to compare against current work.
+#   2. Checks if anything new was written. If not, fails immediately.
+#   3. Walks through the file line-by-line to ensure new notes are strictly filed
+#      under [Unreleased] and organized under a category (e.g., "Added", "Fixed").
+#   4. If notes are missing, misplaced, or dangling, it fails the build.
+#      If filed correctly, it approves the build.
+#
+# ------------------------------------------------------------------------------
+# Flow: Detailed Technical Steps
+#
+# 1️⃣ Network Setup & Fetch
+#    - Action: Sets up a remote connection to GitHub and runs 'git fetch upstream main'.
+#    - Why: Needs the "Source of Truth" to compare the Pull Request against.
+#
+# 2️⃣ Diff Analysis & Visualization
+#    - Action: Runs 'git diff upstream/main -- CHANGELOG.md'.
+#    - UX/Display: Prints raw diff with colors (Green=Additions, Red=Deletions)
+#      strictly for human readability in logs; logic does not rely on colors.
+#    - Logic: Extracts two lists:
+#      * added_bullets: Every line starting with '+' (new text).
+#      * deleted_bullets: Every line starting with '-' (removed text).
+#    - Immediate Fail Check: If 'added_bullets' is empty, sets failed=1 and exits.
+#      (You cannot merge code without a changelog entry).
+#
+# 3️⃣ Context Tracking 
+#    As the script reads the file line-by-line, it tracks:
+#    - current_release: Main version header (e.g., [Unreleased] or [1.0.0]).
+#    - current_subtitle: Sub-category (e.g., ### Added, ### Fixed).
+#    - in_unreleased: Flag (0 or 1).
+#       * 1 (True)  -> Currently inside [Unreleased] (Safe Zone).
+#       * 0 (False) -> Reading an old version (Danger Zone).
+#
+# 4️⃣ Sorting
+#   Flag is ON (1) AND Subtitle is Set 	    -> correctly_placed    		    -> PASS ✅
+#   Flag is ON (1) BUT Subtitle is Empty    -> orphan_entries       		-> FAIL ❌ (It's dangling, not under a category)
+#   Flag is OFF (0)          				-> wrong_release_entries	    -> FAIL ❌ (edited old history)
+#
+# 5️⃣ Final Result
+#    Aggregates failures from Step 4. If any FAIL buckets are not empty, exit 1.
+#
+# ------------------------------------------------------------------------------
+# Parameters:
+#   None. (The script accepts no command-line arguments).
+#
+# Environment Variables (Required):
+#   - GITHUB_REPOSITORY: Used to fetch the upstream 'main' branch for comparison.
+#
+# Dependencies:
+#   - git (must be able to fetch upstream)
+#   - grep, sed (standard Linux utilities)
+#   - CHANGELOG.md (file must exist in the root directory)
+#
+# Permissions:
+#   - 'contents: read' (to access the file structure).
+#   - Network access (to run 'git fetch upstream').
+#
+# Returns:
+#   0 (Success) - Changes are valid and correctly placed.
+#   1 (Failure) - Missing entries, wrong placement (e.g. under released version),
+#                 orphan entries (no subtitle), or accidental deletions.
+# ==============================================================================
+
 CHANGELOG="CHANGELOG.md"
 
 # ANSI color codes

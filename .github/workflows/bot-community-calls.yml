@@ -1,0 +1,42 @@
+name: PythonBot - Community Call Reminder
+
+on:
+    schedule:
+        - cron: "0 10 * * 3"
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: "Run in dry mode (no comments will be posted)"
+                required: false
+                default: "true"
+                type: choice
+                options:
+                    - "true"
+                    - "false"
+
+permissions:
+    contents: read
+    issues: write
+
+concurrency:
+    group: community-call-reminder
+    cancel-in-progress: false
+
+jobs:
+    office-hour-reminder:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Harden the runner
+              uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 #2.14.0
+              with:
+                  egress-policy: audit
+
+            - name: Checkout repository
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
+
+            - name: Check Schedule and Notify
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  DRY_RUN: "false" # will post when workflow is triggered by cron
+              run: |
+                  bash .github/scripts/bot-community-calls.sh
