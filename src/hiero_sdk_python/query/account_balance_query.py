@@ -29,8 +29,13 @@ class CryptoGetAccountBalanceQuery(Query):
             account_id (AccountId, optional): The ID of the account to retrieve the balance for.
         """
         super().__init__()
-        self.account_id: Optional[AccountId] = account_id
-        self.contract_id: Optional[ContractId] = contract_id
+        self.account_id: Optional[AccountId] = None
+        self.contract_id: Optional[ContractId] = None
+
+        if account_id is not None:
+            self.set_account_id(account_id)
+        if contract_id is not None:
+            self.set_contract_id(contract_id)
 
     def set_account_id(self, account_id: AccountId) -> "CryptoGetAccountBalanceQuery":
         """
@@ -81,10 +86,10 @@ class CryptoGetAccountBalanceQuery(Query):
         """
         try:
             if not self.account_id and not self.contract_id:
-                raise ValueError("Either Account ID or Contract ID must be set before making the request.")
+                raise ValueError("Either account_id or contract_id must be set before making the request.")
 
             if self.account_id and self.contract_id:
-                raise ValueError("Specify either Account ID or Contract ID, not both.")
+                raise ValueError("Specify either account_id or contract_id, not both.")
 
             query_header = self._make_request_header()
             crypto_get_balance = (

@@ -101,7 +101,7 @@ def test_set_contract_id_method_chaining_resets_account_id(mock_account_ids):
     assert query.account_id is None
 
 
-def test_make_request_raises_when_both_account_id_and_contract_id_are_set(
+def test_last_wins_when_both_account_id_and_contract_id_are_set(
     mock_account_ids,
 ):
     """_make_request should raise if both account_id and contract_id are set."""
@@ -112,10 +112,8 @@ def test_make_request_raises_when_both_account_id_and_contract_id_are_set(
         account_id=account_id_sender, contract_id=contract_id
     )
 
-    with pytest.raises(
-        ValueError, match=r"Specify either Account ID or Contract ID, not both\."
-    ):
-        query._make_request()
+    assert query.contract_id == contract_id
+    assert query.account_id is None
 
 
 def test_make_request_raises_when_neither_account_id_nor_contract_id_is_set():
@@ -124,7 +122,7 @@ def test_make_request_raises_when_neither_account_id_nor_contract_id_is_set():
 
     with pytest.raises(
         ValueError,
-        match=r"Either Account ID or Contract ID must be set before making the request\.",
+        match=r"Either account_id or contract_id must be set before making the request\.",
     ):
         query._make_request()
 
