@@ -6,6 +6,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+- Added comprehensive docstring to `FeeAssessmentMethod` enum explaining inclusive vs exclusive fee assessment methods with usage examples. (#1391)
 ### Added
 
 - Added a notification workflow that alerts the support team when an issue is labeled as a Good First Issue Candidate.[(#1296)]
