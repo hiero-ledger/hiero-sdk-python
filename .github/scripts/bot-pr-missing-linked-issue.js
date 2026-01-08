@@ -20,6 +20,14 @@ module.exports = async ({ github, context }) => {
       prData = prResponse.data;
     }
 
+    const authorType = prData.user?.type;
+    const authorLogin = prData.user?.login;
+
+    if (authorType === "Bot" || authorLogin?.endsWith('[bot]')){
+      console.log(`Skipping comment: PR created by bot (${authorLogin})`);
+      return;
+    }
+
     const body = prData.body || "";
     const regex = /\bFixes\s*:?\s*(#\d+)(\s*,\s*#\d+)*/i;
 
@@ -82,4 +90,3 @@ module.exports = async ({ github, context }) => {
     throw error;
   }
 };
-
