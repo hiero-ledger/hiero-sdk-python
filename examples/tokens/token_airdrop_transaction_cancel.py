@@ -37,7 +37,7 @@ def create_account(
     try:
         tx = (
             AccountCreateTransaction()
-            .set_key(recipient_key.public_key())
+            .set_key_without_alias(recipient_key.public_key())
             .set_initial_balance(initial_balance)
         )
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)

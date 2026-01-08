@@ -39,7 +39,7 @@ def create_account(client, operator_key):
     try:
         account_tx = (
             AccountCreateTransaction()
-            .set_key(recipient_key.public_key())
+            .set_key_without_alias(recipient_key.public_key())
             .set_initial_balance(Hbar.from_tinybars(100_000_000))
         )
         account_receipt = (

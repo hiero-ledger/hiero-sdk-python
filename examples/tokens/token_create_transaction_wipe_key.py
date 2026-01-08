@@ -53,7 +53,7 @@ def create_recipient_account(client):
     private_key = PrivateKey.generate_ed25519()
     tx = (
         AccountCreateTransaction()
-        .set_key(private_key.public_key())
+        .set_key_without_alias(private_key.public_key())
         .set_initial_balance(Hbar(2))
     )
     receipt = tx.execute(client)

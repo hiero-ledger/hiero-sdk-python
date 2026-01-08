@@ -76,7 +76,7 @@ def create_max_account(
     # Configure the new account to require explicit associations before accepting tokens.
     tx = (
         AccountCreateTransaction()
-        .set_key(max_key.public_key())
+        .set_key_without_alias(max_key.public_key())
         .set_initial_balance(Hbar(5))
         .set_account_memo("max (auto-assoc = 0)")
         .set_max_automatic_token_associations(0)

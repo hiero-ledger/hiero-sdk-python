@@ -40,7 +40,7 @@ def create_test_account(client):
     # Create new account with initial balance of 1 HBAR
     receipt = (
         AccountCreateTransaction()
-        .set_key(new_account_public_key)
+        .set_key_without_alias(new_account_public_key)
         .set_initial_balance(Hbar(1))
         .execute(client)
     )
