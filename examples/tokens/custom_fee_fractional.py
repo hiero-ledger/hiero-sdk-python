@@ -4,9 +4,7 @@ uv run examples/tokens/custom_fractional_fee.py
 python examples/tokens/custom_fractional_fee.py
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
@@ -16,43 +14,20 @@ from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 
 
-load_dotenv()
-
-
 def setup_client():
-    network_name = os.getenv("NETWORK", "testnet")
-
-    # Validate environment variables
-    if not os.getenv("OPERATOR_ID") or not os.getenv("OPERATOR_KEY"):
-        print("❌ Missing OPERATOR_ID or OPERATOR_KEY in .env file.")
-        sys.exit(1)
-
-    try:
-        network = Network(network_name)
-        print(f"Connecting to Hedera {network_name} network!")
-        client = Client(network)
-
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-
-    except Exception as e:
-        raise ConnectionError(f"Error initializing client: {e}") from e
-
-    print(f"✅ Connected to Hedera {network_name} network as operator: {operator_id}")
-    return client, operator_id, operator_key
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
-def build_fractional_fee(operator_account: AccountId) -> CustomFractionalFee:
+def build_fractional_fee(operator_account_id) -> CustomFractionalFee:
     """Creates a CustomFractionalFee instance."""
     return CustomFractionalFee(
         numerator=1,
@@ -60,12 +35,12 @@ def build_fractional_fee(operator_account: AccountId) -> CustomFractionalFee:
         min_amount=1,
         max_amount=100,
         assessment_method=FeeAssessmentMethod.INCLUSIVE,
-        fee_collector_account_id=operator_account,
+        fee_collector_account_id=operator_account_id,
         all_collectors_are_exempt=True,
     )
 
 
-def create_token_with_fee_key(client, operator_id, fractional_fee: CustomFractionalFee):
+def create_token_with_fee_key(client, fractional_fee: CustomFractionalFee):
     """Create a fungible token with a fee_schedule_key."""
     print("Creating fungible token with fee_schedule_key...")
     fractional_fee = [fractional_fee]
@@ -73,7 +48,7 @@ def create_token_with_fee_key(client, operator_id, fractional_fee: CustomFractio
     token_params = TokenParams(
         token_name="Fee Key Token",
         token_symbol="FKT",
-        treasury_account_id=operator_id,
+        treasury_account_id=client.operator_account_id,
         initial_supply=1000,
         decimals=2,
         token_type=TokenType.FUNGIBLE_COMMON,
@@ -112,10 +87,10 @@ def query_and_validate_fractional_fee(client: Client, token_id):
 
 
 def main():
-    client, operator_id, _ = setup_client()
+    client = setup_client()
     # Build fractional fee
-    fractional_fee = build_fractional_fee(operator_id)
-    token_id = create_token_with_fee_key(client, operator_id, fractional_fee)
+    fractional_fee = build_fractional_fee(client.operator_account_id)
+    token_id = create_token_with_fee_key(client, fractional_fee)
 
     # Query and validate fractional fee
     token_info = query_and_validate_fractional_fee(client, token_id)

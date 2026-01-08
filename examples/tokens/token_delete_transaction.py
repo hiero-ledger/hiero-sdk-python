@@ -3,41 +3,22 @@
 
 import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     TokenCreateTransaction,
     TokenDeleteTransaction,
     ResponseCode,
 )
 
-# Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Setup Client"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    # Get the operator account from the .env file
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        # Set the operator (payer) account for the client
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def generate_admin_key():
     """Generate a new admin key within the script:
@@ -50,7 +31,7 @@ def generate_admin_key():
     return admin_key
 
 
-def create_new_token(client, operator_id, operator_key, admin_key):
+def create_new_token(client, admin_key):
     """Create the Token"""
     token_id_to_delete = None
 
@@ -61,10 +42,10 @@ def create_new_token(client, operator_id, operator_key, admin_key):
             .set_token_name("My Deletable Token")
             .set_token_symbol("MDT")
             .set_initial_supply(1)  # <-- ADD THIS LINE
-            .set_treasury_account_id(operator_id)
+            .set_treasury_account_id(client.operator_account_id)
             .set_admin_key(admin_key)  # Use the newly generated admin key
             .freeze_with(client)
-            .sign(operator_key)  # Operator (treasury) must sign
+            .sign(client.operator_private_key)  # Operator (treasury) must sign
             .sign(admin_key)  # The new admin key must also sign
         )
 
@@ -85,7 +66,7 @@ def create_new_token(client, operator_id, operator_key, admin_key):
         sys.exit(1)
 
 
-def delete_token(admin_key, token_id_to_delete, client, operator_key):
+def delete_token(admin_key, token_id_to_delete, client):
     """
     Delete the Token we just created
     """
@@ -96,7 +77,7 @@ def delete_token(admin_key, token_id_to_delete, client, operator_key):
             TokenDeleteTransaction()
             .set_token_id(token_id_to_delete)  # Use the ID from the token we just made
             .freeze_with(client)  # Use the ID from the token we just made
-            .sign(operator_key)  # Operator must sign
+            .sign(client.operator_private_key)  # Operator must sign
             .sign(admin_key)  # Sign with the same admin key used to create it
         )
 
@@ -124,10 +105,10 @@ def main():
     5. Execute the transaction to delete the token.
     6. Print the result or handle any errors.
     """
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
     admin_key = generate_admin_key()
-    token_id_to_delete = create_new_token(client, operator_id, operator_key, admin_key)
-    delete_token(admin_key, token_id_to_delete, client, operator_key)
+    token_id_to_delete = create_new_token(client, admin_key)
+    delete_token(admin_key, token_id_to_delete, client)
 
 
 if __name__ == "__main__":

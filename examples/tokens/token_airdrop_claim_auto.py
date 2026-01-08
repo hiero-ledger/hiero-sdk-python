@@ -27,14 +27,10 @@ python examples/tokens/token_airdrop_claim_auto.py
 # pylint: disable=protected-access,
 # pylint: disable=broad-exception-caught
 
-import os
 import sys
 from typing import Iterable
-from dotenv import load_dotenv
 from hiero_sdk_python import (
     Client,
-    Network,
-    AccountId,
     PrivateKey,
     AccountCreateTransaction,
     TokenCreateTransaction,
@@ -50,34 +46,12 @@ from hiero_sdk_python import (
     TokenNftInfoQuery,
 )
 
-load_dotenv()
-
 
 def setup_client():
-    """Set up and return a Hedera client using environment configuration."""
-    network_name = os.getenv("NETWORK", "testnet")
-
-    # Validate environment variables
-    if not os.getenv("OPERATOR_ID") or not os.getenv("OPERATOR_KEY"):
-        print("❌ Missing OPERATOR_ID or OPERATOR_KEY in .env file.")
-        sys.exit(1)
-
-    try:
-        network = Network(network_name)
-        print(f"Connecting to Hedera {network_name} network!")
-        client = Client(network)
-
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-
-    except Exception as e:
-        raise ConnectionError(f"Error initializing client: {e}") from e
-
-    print(f"✅ Connected to Hedera {network_name} network as operator: {operator_id}")
-    return client, operator_id, operator_key
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def create_receiver(
     client: Client, signature_required: bool = False, max_auto_assoc: int = 10
@@ -113,7 +87,7 @@ def create_receiver(
 
 def create_fungible_token(
     client: Client,
-    operator_id: AccountId,
+    operator_id,
     operator_key: PrivateKey,
     name: str = "My Fungible Token",
     symbol: str = "MFT",
@@ -148,7 +122,7 @@ def create_fungible_token(
 
 def create_nft_token(
     client: Client,
-    operator_id: AccountId,
+    operator_id,
     operator_key: PrivateKey,
     name: str = "My NFT Token",
     symbol: str = "MNT",
@@ -184,7 +158,7 @@ def create_nft_token(
 def mint_nft_token(
     client: Client,
     operator_key: PrivateKey,
-    nft_token_id: TokenId,
+    nft_token_id,
 ):
     """Mint a new NFT for the given NFT token and return its serial number."""
     try:
@@ -211,10 +185,10 @@ def mint_nft_token(
 
 def log_balances(
     client: Client,
-    operator_id: AccountId,
-    receiver_id: AccountId,
-    fungible_ids: Iterable[TokenId],
-    nft_ids: Iterable[NftId],
+    operator_id,
+    receiver_id,
+    fungible_ids: Iterable,
+    nft_ids: Iterable,
     prefix: str = "",
 ):
     """Fetch and log token balances for operator and receiver accounts."""
@@ -232,13 +206,13 @@ def log_balances(
         return
 
     def log_fungible(
-        _account_id: AccountId, balances: dict, token_ids: Iterable[TokenId]
+        _account_id, balances: dict, token_ids: Iterable
     ):
         print("  Fungible tokens:")
         for token_id in token_ids:
             print(f"    {token_id}: {balances.get(token_id, 0)}")
 
-    def log_nfts(account_id: AccountId, nft_ids: Iterable[NftId]):
+    def log_nfts(account_id, nft_ids: Iterable):
         print("  NFTs:")
         owned = []
         for nft_id in nft_ids:
@@ -267,11 +241,11 @@ def log_balances(
 
 def perform_airdrop(
     client: Client,
-    operator_id: AccountId,
+    operator_id,
     operator_key: PrivateKey,
-    receiver_id: AccountId,
-    fungible_ids: Iterable[TokenId],
-    nft_ids: Iterable[NftId],
+    receiver_id,
+    fungible_ids: Iterable,
+    nft_ids: Iterable,
     ft_amount: int = 100,
 ):
     """Perform a token airdrop from operator to receiver."""
@@ -313,7 +287,9 @@ def perform_airdrop(
 def main():
     """Run the token airdrop auto-claim example workflow."""
     # Set up client and return client, operator_id, operator_key
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     # Create and return a fungible token to airdrop
     print("Create 50 fungible tokens and 1 NFT to airdrop")

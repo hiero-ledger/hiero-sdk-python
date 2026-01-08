@@ -5,7 +5,6 @@ python examples/tokens/token_wipe_transaction.py
 
 import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
@@ -23,25 +22,11 @@ from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransact
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    # Initialize network and client
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    # Set up operator account
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client, operator_id, operator_key
-
+    return client
 
 def create_test_account(client):
     """Create a new account for testing"""
@@ -182,7 +167,11 @@ def token_wipe():
     4. Transferring tokens to the new account
     5. Wiping the tokens from the account
     """
-    client, operator_id, operator_key = setup_client()
+
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
     account_id, new_account_private_key = create_test_account(client)
     token_id = create_token(client, operator_id, operator_key)
     associate_token(client, account_id, token_id, new_account_private_key)

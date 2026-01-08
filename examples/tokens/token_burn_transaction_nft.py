@@ -4,15 +4,10 @@ python examples/tokens/token_burn_transaction_nft.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
+    Client
 )
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
@@ -22,23 +17,14 @@ from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 
-load_dotenv()
 
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client, operator_id, operator_key
+    return client
 
 
 def create_nft(client, operator_id, operator_key):
@@ -105,7 +91,9 @@ def token_burn_nft():
     5. Burning specific NFTs by serial number
     6. Getting final token supply to verify burn
     """
-    client, operator_id, operator_key = setup_client()
+    client = setup_client();
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     # Create a fungible token with the treasury account as owner and signer
     token_id = create_nft(client, operator_id, operator_key)

@@ -14,11 +14,9 @@ It creates two fungible tokens:
 Then, it attempts to update the custom fees for both tokens to demonstrate the difference.
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
-from hiero_sdk_python import Client, AccountId, PrivateKey, Network
+from hiero_sdk_python import Client, PrivateKey
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
@@ -34,18 +32,13 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 # Load environment variables
-load_dotenv()
 
 
 def setup_client():
-    """Initialize client and operator credentials from .env."""
-    network = Network(os.getenv("NETWORK", "testnet"))
-    client = Client(network)
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
-    client.set_operator(operator_id, operator_key)
-    return client, operator_id, operator_key
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def create_token_with_fee_key(client, operator_id):
     """Create a fungible token with a fee_schedule_key."""
@@ -145,7 +138,10 @@ def attempt_fee_update(client, token_id, fee_schedule_key, description):
 
 
 def main():
-    client, operator_id, operator_key = setup_client()
+
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     try:
         # Create token with fee_schedule_key
