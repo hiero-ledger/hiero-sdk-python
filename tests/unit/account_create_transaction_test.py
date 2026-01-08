@@ -331,7 +331,7 @@ def test_create_account_transaction_with_set_alias(mock_account_ids):
 
     tx = (
         AccountCreateTransaction()
-        .set_key_with_alias(public_key)
+        .set_key_without_alias(public_key)
         .set_alias(evm_address)
     )
 
