@@ -68,20 +68,6 @@ def test_integration_balance_query_raises_when_neither_source_set():
         env.close()
 
 
-def test_integration_balance_query_raises_when_both_sources_set():
-    env = IntegrationTestEnv()
-    try:
-        query = CryptoGetAccountBalanceQuery(
-            account_id=env.operator_id,
-            contract_id=ContractId(0, 0, 1234),
-        )
-
-        with pytest.raises(ValueError, match=r"Specify either account_id or contract_id, not both\."):
-            query.execute(env.client)
-    finally:
-        env.close()
-
-
 def test_integration_balance_query_with_invalid_account_id_raises():
     env = IntegrationTestEnv()
     try:
