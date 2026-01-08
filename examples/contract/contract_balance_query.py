@@ -8,8 +8,8 @@ This script demonstrates how to:
 4. Query the contract balance using CryptoGetAccountBalanceQuery.set_contract_id()
 
 Run with:
-  uv run -m examples.contract.contract_balance_query.py
-  python -m examples.contract.contract_balance_query.py
+  uv run -m examples.contract.contract_balance_query
+  python -m examples.contract.contract_balance_query
 """
 
 import os
@@ -17,11 +17,7 @@ import sys
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
     Client,
-    AccountId,
-    PrivateKey,
-    FileCreateTransaction,
     ContractCreateTransaction,
     CryptoGetAccountBalanceQuery,
     Hbar,
@@ -37,24 +33,18 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client() -> Client:
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id_str = os.getenv("OPERATOR_ID")
-    operator_key_str = os.getenv("OPERATOR_KEY")
-    if not operator_id_str or not operator_key_str:
-        raise ValueError("❌OPERATOR_ID and OPERATOR_KEY environment variables must be set")
-
-    operator_id = AccountId.from_string(operator_id_str)
-    operator_key = PrivateKey.from_string(operator_key_str)
-    client.set_operator(operator_id, operator_key)
-
-    print(f"✅Client set up with operator id {client.operator_account_id}")
+    print("Initializing client from environment variables...")
+    try:
+        client = Client.from_env()
+        print(f"✅ Success! Connected as operator: {client.operator_account_id}")
+    except Exception as e:
+        print(f"❌ Failed: {e}")
+        sys.exit(1)
+    
     return client
 
 
-def create_contract(client: Client, initial_balance_tinybars: int = 0) -> ContractId:
+def create_contract(client: Client, initial_balance_tinybars: int) -> ContractId:
     """Create a contract using the bytecode file and return its ContractId."""
     bytecode = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
 
@@ -67,8 +57,17 @@ def create_contract(client: Client, initial_balance_tinybars: int = 0) -> Contra
         .execute(client)
     )
 
-    if receipt.contract_id is None:
-        raise RuntimeError("ContractCreateTransaction receipt did not return contract_id")
+    status_code = ResponseCode(receipt.status)
+    status_name = status_code.name
+
+    if status_name == ResponseCode.SUCCESS.name:
+        print("✅ Transaction succeeded!")
+    elif status_code.is_unknown:
+        print(f"❓ Unknown transaction status: {status_name}")
+        sys.exit(1)
+    else:
+        print("❌ Transaction failed!")
+        sys.exit(1)
 
     return receipt.contract_id
 
@@ -88,8 +87,8 @@ def main():
     try:
         client = setup_client()
 
-        initial_balance_tinybars = Hbar(1).to_tinybars()
-        contract_id = create_contract(client, initial_balance_tinybars=Hbar(1).to_tinybars())
+        initial_balance_tinybars = Hbar(1)
+        contract_id = create_contract(client, initial_balance_tinybars.to_tinybars())
 
         print(f"✅Contract created with ID: {contract_id}")
         get_contract_balance(client, contract_id)
