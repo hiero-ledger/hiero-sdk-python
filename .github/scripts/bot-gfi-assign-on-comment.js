@@ -86,6 +86,19 @@ and you’ll be automatically assigned. Feel free to ask questions here if anyth
 
 // HELPERS TO DETECT COLLABORATORS
 async function isRepoCollaborator({ github, owner, repo, username }) {
+    if (
+        !github ||
+        typeof owner !== 'string' ||
+        typeof repo !== 'string' ||
+        typeof username !== 'string' ||
+        !owner ||
+        !repo ||
+        !username
+    ) {
+        console.log('[gfi-assign] isRepoCollaborator: invalid args', { owner, repo, username });
+        return false;
+    }
+
     try {
         await github.rest.repos.checkCollaborator({
             owner,
@@ -97,8 +110,18 @@ async function isRepoCollaborator({ github, owner, repo, username }) {
         if (error.status === 404) {
             return false; // not a collaborator
         }
-        throw error; // real error
+        if (error.status === 401 || error.status === 403) {
+            console.log('[gfi-assign] isRepoCollaborator: insufficient permissions; treating as non-collaborator', {
+                owner,
+                repo,
+                username,
+                status: error.status,
+            });
+            return false;
+        }
+      throw error; // unexpected error
     }
+    
 }
 
 
