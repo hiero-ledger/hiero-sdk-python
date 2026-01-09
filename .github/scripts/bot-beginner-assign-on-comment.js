@@ -75,20 +75,25 @@ module.exports = async ({ github, context }) => {
     }
 
     // Check 3: Duplicate Reminder?
-    const REMINDER_MARKER = "";
+    // CHANGE THIS LINE: Use a unique HTML comment string
+    const REMINDER_MARKER = ""; 
+    
     const { data: comments } = await github.rest.issues.listComments({
         owner: repo.owner.login,
         repo: repo.name,
         issue_number: issue.number,
     });
     
+    // This will now only return true if a comment actually contains the specific marker
     if (comments.some((c) => c.body.includes(REMINDER_MARKER))) {
-      console.log("[Beginner Bot] Reminder already exists on this issue. Skipping.");
-      return;
+        console.log("[Beginner Bot] Reminder already exists on this issue. Skipping.");
+        return;
     }
 
     // POST REMINDER
     console.log(`[Beginner Bot] Posting help reminder for @${commenter}...`);
+    
+    // The marker is added to the start of the body, invisible to the user
     const reminderBody = `${REMINDER_MARKER}\n👋 Hi @${commenter}! If you'd like to work on this issue, please comment \`/assign\` to get assigned.`;
     
     await github.rest.issues.createComment({
