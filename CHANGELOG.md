@@ -158,7 +158,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
 
 ### Fixed
-- Fixed bot advanced check bash script to correctly handle API calls and prevent incorrect issue unassignments. (#PR TBD)
+- Fixed bot advanced check bash script to correctly handle API calls and prevent incorrect issue unassignments. (#1408)
 - GFI workflow casing 
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
 - Fixed step-security/harden-runner action SHA in merge conflict bot workflow (#1278)
