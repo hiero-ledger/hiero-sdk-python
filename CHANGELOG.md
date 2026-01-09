@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -11,12 +11,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with practical use cases. (#1392)
 
 ### Changed
-
-
-
-- Align file name and improve error handling in `examples/tokens/token_mint_transaction_fungible.py` (#1413)
-
-
 
 - Added a notification workflow that alerts the support team when an issue is labeled as a Good First Issue Candidate.[(#1296)]
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
