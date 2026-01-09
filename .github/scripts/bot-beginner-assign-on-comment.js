@@ -1,3 +1,71 @@
+/*
+==============================================================================
+Executes When:
+  - Triggered by GitHub Actions workflow on event: 'issue_comment' (created).
+  - Target: Issues specifically labeled with "beginner".
+
+Goal:
+  It acts as an automated onboarding assistant for "beginner" issues. It allows
+  contributors to self-assign using a command and nudges new contributors who
+  express interest but forget to assign themselves, while preventing spam.
+
+------------------------------------------------------------------------------
+Flow: Basic Idea
+  1. Listens for comments on issues.
+  2. Ignores Pull Requests and issues missing the "beginner" label.
+  3. Detects if the user typed "/assign".
+     - If YES: Assigns the user to the issue (if currently unassigned).
+     - If NO: Checks if the user is an external contributor expressing interest.
+       If so, it replies with instructions on how to use the assign command.
+
+------------------------------------------------------------------------------
+Flow: Detailed Technical Steps
+
+1️⃣ Validation & filtering
+    - Checks payload to ensure it is an Issue Comment (not a PR).
+    - Checks if the issue has the specific label "beginner". If not, exits.
+
+2️⃣ Permission Analysis (Team vs. Contributor)
+    - Action: Queries 'github.rest.repos.getCollaboratorPermissionLevel'.
+    - Logic:
+      * 'admin', 'maintain', 'write' -> Treated as Team Member (Bot ignores them).
+      * 'read', 'none'               -> Treated as External Contributor (Bot helps them).
+
+3️⃣ Logic Branch A: The "/assign" Command
+    - Trigger: User comment matches regex /(^|\s)\/assign(\s|$)/i.
+    - Check: Is the issue already assigned?
+      * Yes -> Log and exit (prevent overwriting assignees).
+      * No  -> API Call: Add commenter to 'assignees'.
+
+4️⃣ Logic Branch B: The Helper Reminder
+    - Trigger: Generic comment (e.g., "I want to work on this").
+    - Condition 1: Issue must be unassigned.
+    - Condition 2: Commenter must NOT be a Team Member (avoids nagging maintainers).
+    - Condition 3: Duplicate Check.
+      * Scans previous comments for a hidden marker: "<!-- GFI assign reminder -->".
+      * If found -> Exits to avoid spamming the thread.
+    - Action: Posts a comment with the hidden marker and instructions.
+
+------------------------------------------------------------------------------
+Parameters:
+  - { github, context }: Standard objects provided by 'actions/github-script'.
+
+Environment Variables / Context:
+  - payload.issue: The issue object triggering the workflow.
+  - payload.comment: The comment object containing the user's text.
+
+Dependencies:
+  - GitHub REST API (via 'github' octokit client).
+
+Permissions Required (in Workflow YAML):
+  - 'issues: write' (to post comments and assign users).
+  - 'pull-requests: none' (logic explicitly excludes PRs).
+
+Returns:
+  - void. (Logs actions to console for debugging).
+==============================================================================
+*/
+
 module.exports = async ({ github, context }) => {
   const { payload } = context;
   const issue = payload.issue;
@@ -75,7 +143,7 @@ module.exports = async ({ github, context }) => {
     }
 
     // Check 3: Duplicate Reminder?
-    // CHANGE THIS LINE: Use a unique HTML comment string
+    // CHANGE THIS LINE: Use a unique comment string
     const REMINDER_MARKER = "<!-- GFI assign reminder -->"; 
     
     const { data: comments } = await github.rest.issues.listComments({
