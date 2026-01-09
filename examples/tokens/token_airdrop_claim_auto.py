@@ -31,6 +31,7 @@ import sys
 from typing import Iterable
 from hiero_sdk_python import (
     Client,
+    AccountId,
     PrivateKey,
     AccountCreateTransaction,
     TokenCreateTransaction,
@@ -87,7 +88,7 @@ def create_receiver(
 
 def create_fungible_token(
     client: Client,
-    operator_id,
+    operator_id: AccountId,
     operator_key: PrivateKey,
     name: str = "My Fungible Token",
     symbol: str = "MFT",
@@ -122,7 +123,7 @@ def create_fungible_token(
 
 def create_nft_token(
     client: Client,
-    operator_id,
+    operator_id: AccountId,
     operator_key: PrivateKey,
     name: str = "My NFT Token",
     symbol: str = "MNT",
@@ -158,7 +159,7 @@ def create_nft_token(
 def mint_nft_token(
     client: Client,
     operator_key: PrivateKey,
-    nft_token_id,
+    nft_token_id: TokenId,
 ):
     """Mint a new NFT for the given NFT token and return its serial number."""
     try:
@@ -185,10 +186,10 @@ def mint_nft_token(
 
 def log_balances(
     client: Client,
-    operator_id,
-    receiver_id,
-    fungible_ids: Iterable,
-    nft_ids: Iterable,
+    operator_id: AccountId,
+    receiver_id: AccountId,
+    fungible_ids: Iterable[TokenId],
+    nft_ids: Iterable[NftId],
     prefix: str = "",
 ):
     """Fetch and log token balances for operator and receiver accounts."""
@@ -241,11 +242,11 @@ def log_balances(
 
 def perform_airdrop(
     client: Client,
-    operator_id,
+    operator_id: AccountId,
     operator_key: PrivateKey,
-    receiver_id,
-    fungible_ids: Iterable,
-    nft_ids: Iterable,
+    receiver_id: AccountId,
+    fungible_ids: Iterable[TokenId],
+    nft_ids: Iterable[NftId],
     ft_amount: int = 100,
 ):
     """Perform a token airdrop from operator to receiver."""
