@@ -76,7 +76,7 @@ module.exports = async ({ github, context }) => {
 
     // Check 3: Duplicate Reminder?
     // CHANGE THIS LINE: Use a unique HTML comment string
-    const REMINDER_MARKER = ""; 
+    const REMINDER_MARKER = "<!-- GFI assign reminder -->"; 
     
     const { data: comments } = await github.rest.issues.listComments({
         owner: repo.owner.login,
