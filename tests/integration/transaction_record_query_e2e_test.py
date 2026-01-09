@@ -22,7 +22,7 @@ def test_transaction_record_query_can_execute():
         # Create new account
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(Hbar(1))
             .execute(env.client)
             )
