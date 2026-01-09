@@ -22,7 +22,7 @@ def test_integration_free_query_no_cost():
         initial_balance = Hbar(1)
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(initial_balance)
             .execute(env.client)
         )
@@ -72,7 +72,7 @@ def test_integration_free_query_with_manual_payment():
         initial_balance = Hbar(1)
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(initial_balance)
             .execute(env.client)
         )
@@ -129,7 +129,7 @@ def test_integration_paid_query_network_cost():
         
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(Hbar(1))
             .execute(env.client)
         )
@@ -168,7 +168,7 @@ def test_integration_paid_query_manual_payment():
         
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(Hbar(1))
             .execute(env.client)
         )
@@ -214,7 +214,7 @@ def test_integration_paid_query_payment_too_high_fails():
         
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(Hbar(1))
             .execute(env.client)
         )

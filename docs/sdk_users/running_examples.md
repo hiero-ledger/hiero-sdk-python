@@ -120,7 +120,7 @@ transaction.execute(client)
 ```
 transaction = (
         AccountCreateTransaction()
-        .set_key(new_account_public_key)
+        .set_key_without_alias(new_account_public_key)
         .set_initial_balance(initial_balance)
         .set_account_memo("Test")
         .freeze_with(client)

@@ -42,7 +42,7 @@ def test_account_create_transaction_build(mock_account_ids):
 
     account_tx = (
         AccountCreateTransaction()
-        .set_key(new_public_key)
+        .set_key_without_alias(new_public_key)
         .set_initial_balance(100000000)
         .set_account_memo("Test account")
     )
@@ -67,7 +67,7 @@ def test_account_create_transaction_build_scheduled_body(mock_account_ids):
 
     account_tx = (
         AccountCreateTransaction()
-        .set_key(new_public_key)
+        .set_key_without_alias(new_public_key)
         .set_initial_balance(200000000)
         .set_account_memo("Schedulable account")
         .set_receiver_signature_required(True)
@@ -102,7 +102,7 @@ def test_account_create_transaction_sign(mock_account_ids, mock_client):
 
     account_tx = (
         AccountCreateTransaction()
-        .set_key(new_public_key)
+        .set_key_without_alias(new_public_key)
         .set_initial_balance(100000000)
         .set_account_memo("Test account")
     )
@@ -167,7 +167,7 @@ def test_account_create_transaction():
         new_key = PrivateKey.generate()
         transaction = (
             AccountCreateTransaction()
-            .set_key(new_key.public_key())
+            .set_key_without_alias(new_key.public_key())
             .set_initial_balance(100000000)  # 1 HBAR
         )
         
@@ -187,7 +187,7 @@ def test_sign_account_create_without_freezing_raises_error(mock_account_ids):
     
     account_tx = (
         AccountCreateTransaction()
-        .set_key(new_public_key)
+        .set_key_without_alias(new_public_key)
         .set_initial_balance(100000000)
         .set_account_memo("Test account")
     )
@@ -234,7 +234,7 @@ def test_account_create_build_with_max_auto_assoc(mock_account_ids):
 
     account_tx = (
         AccountCreateTransaction()
-        .set_key(new_public_key)
+        .set_key_without_alias(new_public_key)
         .set_max_automatic_token_associations(-1) # Test the new value
     )
     account_tx.transaction_id = generate_transaction_id(operator_id)
@@ -331,7 +331,7 @@ def test_create_account_transaction_with_set_alias(mock_account_ids):
 
     tx = (
         AccountCreateTransaction()
-        .set_key(public_key)
+        .set_key_without_alias(public_key)
         .set_alias(evm_address)
     )
 
@@ -357,7 +357,7 @@ def test_create_account_transaction_with_set_alias_from_string(mock_account_ids,
 
     tx = (
         AccountCreateTransaction()
-        .set_key(public_key)
+        .set_key_without_alias(public_key)
         .set_alias(alias_str)
     )
 
@@ -383,7 +383,7 @@ def test_create_account_transaction_with_set_alias_from_string(mock_account_ids,
 def test_create_account_transaction_with_set_alias_from_invalid_string(invalid_str):
     """Test invalid alias strings raise ValueError."""
     public_key = PrivateKey.generate().public_key()
-    tx = AccountCreateTransaction().set_key(public_key)
+    tx = AccountCreateTransaction().set_key_without_alias(public_key)
 
     with pytest.raises(ValueError):
         tx.set_alias(invalid_str)
@@ -391,7 +391,7 @@ def test_create_account_transaction_with_set_alias_from_invalid_string(invalid_s
 def test_create_account_transaction_with_set_alias_from_invalid_type():
     """Test alias with invalid type raises TypeError."""
     public_key = PrivateKey.generate().public_key()
-    tx = AccountCreateTransaction().set_key(public_key)
+    tx = AccountCreateTransaction().set_key_without_alias(public_key)
 
     with pytest.raises(TypeError):
         tx.set_alias(1234)
