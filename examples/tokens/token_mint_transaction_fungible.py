@@ -1,5 +1,3 @@
-# uv run examples/tokens/token_mint_fungible.py
-# python examples/tokens/token_mint_fungible.py
 """
 uv run examples/tokens/token_mint_transaction_fungible.py
 python examples/tokens/token_mint_transaction_fungible.py
@@ -39,8 +37,8 @@ def setup_client():
         client.set_operator(operator_id, operator_key)
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
+    except Exception as e:
+        print(f"❌ Error setting up client: {type(e).__name__}")
         sys.exit(1)
 
 
@@ -78,6 +76,11 @@ def create_new_token():
             .sign(supply_key)  # The new supply key must sign to give consent
             .execute(client)
         )
+
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"❌ Error creating token: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
 
@@ -89,8 +92,8 @@ def create_new_token():
             print("❌ Warning: Token does not have a supply key set.")
 
         return client, token_id, supply_key
-    except (ValueError, TypeError) as e:
-        print(f"❌ Error creating token: {e}")
+    except Exception as e:
+        print(f"❌ Error creating token: {type(e).__name__}")
         sys.exit(1)
 
 
@@ -105,11 +108,11 @@ def token_mint_fungible(client, token_id, supply_key):
     mint_amount = 5000  # This is 50.00 tokens because decimals is 2
     print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
 
-    # Confirm total supply before minting
-    info_before = TokenInfoQuery().set_token_id(token_id).execute(client)
-    print(f"Total supply before minting: {info_before.total_supply}")
-
     try:
+        # Confirm total supply before minting
+        info_before = TokenInfoQuery().set_token_id(token_id).execute(client)
+        print(f"Total supply before minting: {info_before.total_supply}")
+
         # Minting requires a transaction signed by the supply key
         # Without the supply key, the token supply is fixed and cannot be changed
         receipt = (
@@ -120,6 +123,11 @@ def token_mint_fungible(client, token_id, supply_key):
             .sign(supply_key)  # Must be signed by the supply key
             .execute(client)
         )
+
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"❌ Error minting tokens: {ResponseCode(receipt.status).name}")
+            sys.exit(1)
+
         print(
             f"✅ Success! Token minting complete, Status: {ResponseCode(receipt.status).name}"
         )
@@ -127,8 +135,8 @@ def token_mint_fungible(client, token_id, supply_key):
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"Total supply after minting: {info_after.total_supply}")
-    except (ValueError, TypeError) as e:
-        print(f"❌ Error minting tokens: {e}")
+    except Exception as e:
+        print(f"❌ Error minting tokens: {type(e).__name__}")
         sys.exit(1)
 
 
