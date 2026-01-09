@@ -56,7 +56,7 @@ class IntegrationTestEnv:
         key = PrivateKey.generate()
         tx = (
             AccountCreateTransaction()
-                .set_key(key.public_key())
+                .set_key_without_alias(key.public_key())
                 .set_initial_balance(Hbar(initial_hbar))
         )
         receipt = tx.execute(self.client)

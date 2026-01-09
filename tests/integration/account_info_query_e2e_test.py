@@ -28,7 +28,7 @@ def test_integration_account_info_query_can_execute():
         
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_account_public_key)
+            .set_key_without_alias(new_account_public_key)
             .set_initial_balance(Hbar(1))
             .set_account_memo(account_memo)
             .execute(env.client)
