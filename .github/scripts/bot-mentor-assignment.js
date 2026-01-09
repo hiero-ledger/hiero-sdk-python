@@ -106,6 +106,7 @@ async function isNewContributor(github, owner, repo, login) {
 
 function buildComment({ mentee, mentor, owner, repo }) {
   const repoUrl = `https://github.com/${owner}/${repo}`;
+  const discordDocUrl = `${repoUrl}/blob/main/docs/discord.md`;
 
   return `${COMMENT_MARKER}
 👋 Hi @${mentee}, welcome to the Hiero Python SDK community!
@@ -117,10 +118,13 @@ You've been assigned this Good First Issue, and today’s on-call mentor from ${
 - Share updates early and ask @${mentor} anything right here
 - Keep the feedback loop short so we can support you quickly
 
-Need more backup? ${SUPPORT_TEAM_ALIAS} is also on standby to cheer you on.
+**Need extra help?**
+- The Good First Issue support team (${SUPPORT_TEAM_ALIAS}) is also available if you need additional guidance
+- For real-time help and community support, please see our [Discord setup guide](${discordDocUrl})
 
 **Mentor:** @${mentor}
 **Mentee:** @${mentee}
+**Backup Support:** ${SUPPORT_TEAM_ALIAS}
 
 If you're enjoying the SDK, consider ⭐️ [starring the repository](${repoUrl}) so it's easy to find later.
 
@@ -206,3 +210,4 @@ module.exports = async ({ github, context, assignee: passedAssignee }) => {
     throw error;
   }
 };
+
