@@ -95,6 +95,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 
 ### Changed
+- Improved reliability of the advanced issue assignment bot by correcting qualification checks and preventing erroneous contributor unassignments. (#1400)
 - Renamed `.github/scripts/check_advanced_requirement.sh` to `bot-advanced-check.sh` for workflow consistency (#1341)
 - Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
 - Archived unused auto draft GitHub workflow to prevent it from running (#1371)
