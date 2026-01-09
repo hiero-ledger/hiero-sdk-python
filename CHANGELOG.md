@@ -172,7 +172,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
 - Good First Issue bot no longer posts `/assign` reminders for repository collaborators. (#1367)
-- Fixed bot advanced check bash script to correctly handle API calls and prevent incorrect issue unassignments. (#PR TBD)
+- Fixed bot advanced check bash script to correctly handle API calls and prevent incorrect issue unassignments. (#1408)
 - GFI workflow casing
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
 - Fixed step-security/harden-runner action SHA in merge conflict bot workflow (#1278)
