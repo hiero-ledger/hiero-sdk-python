@@ -38,7 +38,7 @@ def setup_client():
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
     except Exception as e:
-        print(f"❌ Error setting up client: {type(e).__name__}")
+        print(f"❌ Error setting up client, Error: {e}")
         sys.exit(1)
 
 
@@ -93,7 +93,7 @@ def create_new_token():
 
         return client, token_id, supply_key
     except Exception as e:
-        print(f"❌ Error creating token: {type(e).__name__}")
+        print(f"❌ Error creating token, Error: {e}")
         sys.exit(1)
 
 
@@ -128,15 +128,13 @@ def token_mint_fungible(client, token_id, supply_key):
             print(f"❌ Error minting tokens: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
-        print(
-            f"✅ Success! Token minting complete, Status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"✅ Success! Token minting complete, Status: {ResponseCode(receipt.status).name}")
 
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"Total supply after minting: {info_after.total_supply}")
     except Exception as e:
-        print(f"❌ Error minting tokens: {type(e).__name__}")
+        print(f"❌ Error minting tokens, Error: {e}")
         sys.exit(1)
 
 
