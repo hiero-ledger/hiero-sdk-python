@@ -1,6 +1,6 @@
 # Commit Signing Guidelines (DCO + GPG)
 
-**Both DCO sign-off and GPG signature signed commits** are required all pull request to be merged successfully.
+**Both DCO sign-off and GPG signature signed commits** are required for all pull requests to be merged successfully.
 
 This guide makes it as easy as possible for you to set up your GPG key and DCO and GPG sign your commits.
 

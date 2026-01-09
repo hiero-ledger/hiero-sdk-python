@@ -27,7 +27,7 @@ If prompted, set:
 - Head branch: your feature branch
 
 3. Write a Clear Pull Request Title and Description
-Your pull request title must follow conventional naming [Conventional Commmits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
+Your pull request title must follow conventional naming [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
 
 For example:
 `chore: Unit Tests for TokenCreateTransaction`

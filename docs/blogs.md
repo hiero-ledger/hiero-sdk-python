@@ -1,6 +1,6 @@
 # Writing Blog Posts 
 
-We welcome blog posts to the **Hiero Website Reposiory** about the Python SDK
+We welcome blog posts to the **Hiero Website Repository** about the Python SDK
 
 For example:
 - New Releases

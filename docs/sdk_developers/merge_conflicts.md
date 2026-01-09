@@ -128,6 +128,8 @@ If you already have an open Pull Request, you will need to update it with a **fo
 ```bash
 git log -n --pretty=format:'%h %an %G? %s'
 ```
+Replacing n with the number of commits backwards in history to check.
+
 Ensure you see:
 `G` = Good (valid signature)
 
