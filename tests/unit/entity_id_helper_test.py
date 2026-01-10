@@ -1,8 +1,13 @@
+from unittest.mock import MagicMock, patch
 import pytest
+import struct
+import requests
 
 from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
     generate_checksum,
+    perform_query_to_mirror_node,
+    to_solidity_address,
     validate_checksum,
     format_to_string,
     format_to_string_with_checksum
@@ -117,3 +122,88 @@ def test_parse_and_format_without_checksum():
     formatted = format_to_string(shard, realm, num)
 
     assert formatted == original
+
+def test_to_solidity_address_valid():
+    shard, realm, num = 0, 0, 1001
+    result = to_solidity_address(shard, realm, num)
+
+    # Expect raw packed bytes
+    expected = struct.pack(">iqq", shard, realm, num).hex()
+
+    assert result == expected
+    assert len(result) == 40  # exactly 20 bytes
+    assert result.islower()
+
+def test_to_solidity_address_zero_values():
+    assert to_solidity_address(0, 0, 0) == ("00" * 20)
+
+def test_to_solidity_address_out_of_range():
+    shard, realm, num = 2**31, 0, 0
+    with pytest.raises(ValueError, match="shard out of 32-bit range"):
+        to_solidity_address(shard, realm, num)
+
+def test_perform_query_to_mirror_node_success():
+    """Test successful mirror node response without requests_mock."""
+    
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"account": "0.0.777"}
+    mock_response.raise_for_status.return_value = None
+
+    with patch("hiero_sdk_python.utils.entity_id_helper.requests.get", return_value=mock_response):
+        result = perform_query_to_mirror_node("http://mirror-node/accounts/123")
+        assert result == {"account": "0.0.777"}
+
+def test_perform_query_to_mirror_node_failure():
+    """Test mirror node failure handling."""
+    
+    with patch("hiero_sdk_python.utils.entity_id_helper.requests.get") as mock_get:
+        mock_get.side_effect = requests.RequestException("boom")
+
+        with pytest.raises(RuntimeError, match="Unexpected error while querying mirror node:"):
+            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+
+
+def test_perform_query_to_mirror_node_http_error():
+    """
+    Test that perform_query_to_mirror_node raises a RuntimeError when requests.get returns an HTTPError.
+    """
+    mock_response = MagicMock()
+    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP fail")
+
+    with patch("hiero_sdk_python.utils.entity_id_helper.requests.get", return_value=mock_response):
+        with pytest.raises(RuntimeError, match="Mirror node request failed"):
+            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+
+
+def test_perform_query_to_mirror_node_connection_error():
+    """
+    Test that perform_query_to_mirror_node raises a RuntimeError when requests.get raises a ConnectionError.
+    """
+    with patch(
+        "hiero_sdk_python.utils.entity_id_helper.requests.get",
+        side_effect=requests.exceptions.ConnectionError("Connection fail")
+    ):
+        with pytest.raises(RuntimeError, match="Mirror node request failed"):
+            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+
+
+def test_perform_query_to_mirror_node_timeout():
+    """
+    Test that perform_query_to_mirror_node raises a RuntimeError when requests.get raises a Timeout exception.
+    """
+    with patch(
+        "hiero_sdk_python.utils.entity_id_helper.requests.get",
+        side_effect=requests.exceptions.Timeout("Timeout")
+    ):
+        with pytest.raises(RuntimeError, match="Mirror node request timed out"):
+            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+
+def test_perform_query_to_mirror_node_invalid_url_none():
+    """Test url must be a non-empty string (None case)."""
+    with pytest.raises(ValueError, match="url must be a non-empty string"):
+        perform_query_to_mirror_node(None)
+
+def test_perform_query_to_mirror_node_invalid_url_empty():
+    """Test url must be a non-empty string (empty string case)."""
+    with pytest.raises(ValueError, match="url must be a non-empty string"):
+        perform_query_to_mirror_node("")
