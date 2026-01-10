@@ -6,6 +6,9 @@ on:
         description: 'Run in dry-run mode (no PR comment posting)'
         type: boolean
         default: true
+      failed_run_id:
+        description: 'Failed workflow run ID for testing (optional)'
+        required: false
   workflow_run:
     workflows:
       - "PR Formatting"
@@ -22,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   notify-pr:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ github.event.workflow_run.conclusion == 'failure' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     env:
       # Behaviour:
@@ -40,8 +43,8 @@ jobs:
 
       - name: Notify PR of workflow failure
         env:
-          FAILED_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
-          FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
+          FAILED_WORKFLOW_NAME: ${{ github.event.workflow_run.name || 'Manual Test Run' }}
+          FAILED_RUN_ID: ${{ github.event.inputs.failed_run_id || github.event.workflow_run.id }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           DRY_RUN: ${{ env.DRY_RUN }}
