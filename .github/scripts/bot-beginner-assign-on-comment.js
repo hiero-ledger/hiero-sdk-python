@@ -43,7 +43,7 @@ Flow: Detailed Technical Steps
     - Condition 1: Issue must be unassigned.
     - Condition 2: Commenter must NOT be a Repo Collaborator.
     - Condition 3: Duplicate Check.
-      * Scans previous comments for a hidden marker: "".
+      * Scans previous comments for a hidden marker: "<!-- beginner assign reminder -->".
       * If found -> Exits to avoid spamming the thread.
     - Action: Posts a comment with the hidden marker and instructions.
 
@@ -52,136 +52,164 @@ Parameters:
   - { github, context }: Standard objects provided by 'actions/github-script'.
 ==============================================================================
 */
-
 module.exports = async ({ github, context }) => {
-  const { payload } = context;
-  const issue = payload.issue;
-  const comment = payload.comment;
-  const repo = payload.repository;
+  try {
+    const { payload } = context;
+    const issue = payload.issue;
+    const comment = payload.comment;
+    const repo = payload.repository;
 
-  // 1. Basic Validation
-  if (!issue || !comment || !repo || issue.pull_request) {
-    console.log("[Beginner Bot] Invalid payload or PR comment. Exiting.");
-    return;
-  }
-
-  // 1.1 Bot Check
-  if (comment.user.type === "Bot") {
-    console.log(`[Beginner Bot] Commenter @${comment.user.login} is a bot. Exiting.`);
-    return;
-  }
-
-  // 2. Label Check
-  const hasBeginnerLabel = issue.labels.some((label) => label.name === "beginner");
-  if (!hasBeginnerLabel) {
-    console.log(`[Beginner Bot] Issue #${issue.number} does not have 'beginner' label. Exiting.`);
-    return;
-  }
-
-  // 3. Collaborator Check Helper
-  // (Replaces the old 'hasTeamMemberAccess' function)
-  async function isRepoCollaborator(username) {
-    try {
-      // 3a. Owner is always a collaborator
-      if (username === repo.owner.login) {
-          console.log(`[Beginner Bot] User @${username} is the repo owner.`);
-          return true;
-      }
-
-      // 3b. Check API for collaborator status
-      // This endpoint returns 204 if user is a collaborator, 404 if not.
-      await github.rest.repos.checkCollaborator({
-        owner: repo.owner.login,
-        repo: repo.name,
-        username: username,
-      });
-      
-      console.log(`[Beginner Bot] User @${username} is a confirmed repo collaborator.`);
-      return true;
-    } catch (error) {
-      if (error.status === 404) {
-        console.log(`[Beginner Bot] User @${username} is NOT a collaborator (External Contributor).`);
-        return false;
-      }
-      
-      console.log(`[Beginner Bot] Error checking collaborator status for @${username}: ${error.message}`);
-      // Fail safe: If we can't check, assume FALSE to be helpful to the user.
-      return false;
-    }
-  }
-
-  const commenter = comment.user.login;
-  const commentBody = comment.body.toLowerCase();
-  const isAssignCommand = /(^|\s)\/assign(\s|$)/i.test(commentBody);
-
-  // 4. Logic Branch
-  if (isAssignCommand) {
-    // --- ASSIGNMENT LOGIC ---
-    if (issue.assignees && issue.assignees.length > 0) {
-      // GET THE CURRENT ASSIGNEE'S NAME
-      const currentAssignee = issue.assignees[0].login;      
-      console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Ignoring /assign command.`);
-      await github.rest.issues.createComment({
-          owner: repo.owner.login,
-          repo: repo.name,
-          issue_number: issue.number,
-          body: `👋 Hi @${commenter}, this issue is already assigned to @${currentAssignee}. Please find another "beginner" issue to work on [here](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee).`,   
-      });     
-      return; // Exit after warning
-    }
-
-    console.log(`[Beginner Bot] Assigning issue #${issue.number} to @${commenter}...`);
-    await github.rest.issues.addAssignees({
-        owner: repo.owner.login,
-        repo: repo.name,
-        issue_number: issue.number,
-        assignees: [commenter],
-      });
-      console.log(`[Beginner Bot] Successfully assigned.`);
-
-  } else {
-    // --- REMINDER LOGIC ---
-    
-    // Check 1: Is issue already assigned?
-    if (issue.assignees && issue.assignees.length > 0) {
-        console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Skipping reminder.`);
-        return; 
-    }
-
-    // Check 2: Is user a team member?
-    if (await isRepoCollaborator(commenter)) {
-      console.log(`[Beginner Bot] Commenter @${commenter} is a repo collaborator. Skipping reminder.`);
+    // 1. Basic Validation
+    if (!issue || !comment || !repo || issue.pull_request) {
+      console.log("[Beginner Bot] Invalid payload or PR comment. Exiting.");
       return;
     }
 
-    // Check 3: Duplicate Reminder?
-    // CHANGE THIS LINE: Use a unique comment string
-    const REMINDER_MARKER = "<!-- GFI assign reminder -->"; 
-    
-    const { data: comments } = await github.rest.issues.listComments({
-        owner: repo.owner.login,
-        repo: repo.name,
-        issue_number: issue.number,
-    });
-    
-    // This will now only return true if a comment actually contains the specific marker
-    if (comments.some((c) => c.body.includes(REMINDER_MARKER))) {
-        console.log("[Beginner Bot] Reminder already exists on this issue. Skipping.");
+    // 1.1 Bot Check (Fix 2: Defensive Check)
+    if (comment.user?.type === "Bot") {
+      console.log(`[Beginner Bot] Commenter @${comment.user.login} is a bot. Exiting.`);
+      return;
+    }
+
+    // 2. Label Check (Fix 2: Defensive Check)
+    const hasBeginnerLabel = Array.isArray(issue.labels) && issue.labels.some((label) => label.name === "beginner");
+    if (!hasBeginnerLabel) {
+      console.log(`[Beginner Bot] Issue #${issue.number} does not have 'beginner' label. Exiting.`);
+      return;
+    }
+
+    // 3. Collaborator Check Helper
+    async function isRepoCollaborator(username) {
+      try {
+        if (username === repo.owner.login) {
+            console.log(`[Beginner Bot] User @${username} is the repo owner.`);
+            return true;
+        }
+
+        await github.rest.repos.checkCollaborator({
+          owner: repo.owner.login,
+          repo: repo.name,
+          username: username,
+        });
+        
+        console.log(`[Beginner Bot] User @${username} is a confirmed repo collaborator.`);
+        return true;
+      } catch (error) {
+        if (error.status === 404) {
+          console.log(`[Beginner Bot] User @${username} is NOT a collaborator (External Contributor).`);
+          return false;
+        }
+        console.log(`[Beginner Bot] Error checking collaborator status for @${username}: ${error.message}`);
+        return false;
+      }
+    }
+
+    const commenter = comment.user.login;
+
+    // Fix 3: Validate comment body
+    if (!comment.body) {
+        console.log("[Beginner Bot] Comment body is empty. Exiting.");
         return;
     }
 
-    // POST REMINDER
-    console.log(`[Beginner Bot] Posting help reminder for @${commenter}...`);
-    
-    // The marker is added to the start of the body, invisible to the user
-    const reminderBody = `${REMINDER_MARKER}\n👋 Hi @${commenter}! If you'd like to work on this issue, please comment \`/assign\` to get assigned.`;
-    
-    await github.rest.issues.createComment({
-        owner: repo.owner.login,
-        repo: repo.name,
-        issue_number: issue.number,
-        body: reminderBody,
+    const commentBody = comment.body.toLowerCase();
+    const isAssignCommand = /(^|\s)\/assign(\s|$)/i.test(commentBody);
+
+    // 4. Logic Branch
+    if (isAssignCommand) {
+      // --- ASSIGNMENT LOGIC ---
+      if (issue.assignees && issue.assignees.length > 0) {
+        const currentAssignee = issue.assignees[0].login;      
+        console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Ignoring /assign command.`);
+        
+        // Fix 4: Granular Try/Catch for Comment API
+        try {
+            await github.rest.issues.createComment({
+                owner: repo.owner.login,
+                repo: repo.name,
+                issue_number: issue.number,
+                body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "beginner" issues [here](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee).`,      
+            });
+        } catch (error) {
+            console.error(`[Beginner Bot] Failed to post already-assigned comment: ${error.message}`);
+        }
+        return; // Exit after warning
+      }
+
+      console.log(`[Beginner Bot] Assigning issue #${issue.number} to @${commenter}...`);
+      
+      // Fix 4: Granular Try/Catch for Assign API
+      try {
+          await github.rest.issues.addAssignees({
+              owner: repo.owner.login,
+              repo: repo.name,
+              issue_number: issue.number,
+              assignees: [commenter],
+            });
+            console.log(`[Beginner Bot] Successfully assigned.`);
+      } catch (error) {
+          console.error(`[Beginner Bot] Failed to assign issue: ${error.message}`);
+      }
+
+    } else {
+      // --- REMINDER LOGIC ---
+      
+      if (issue.assignees && issue.assignees.length > 0) {
+          console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Skipping reminder.`);
+          return; 
+      }
+
+      if (await isRepoCollaborator(commenter)) {
+        console.log(`[Beginner Bot] Commenter @${commenter} is a repo collaborator. Skipping reminder.`);
+        return;
+      }
+
+      // Fix 5: Updated Marker Text
+    const REMINDER_MARKER = "<!-- beginner assign reminder -->";      
+      // FIX 6: Granular Try/Catch for List Comments API
+      let comments;
+      try {
+          const { data } = await github.rest.issues.listComments({
+              owner: repo.owner.login,
+              repo: repo.name,
+              issue_number: issue.number,
+          });
+          comments = data;
+      } catch (error) {
+          console.error(`[Beginner Bot] Failed to list comments: ${error.message}`);
+          return; // Exit gracefully if we can't check for duplicates
+      }
+      
+      if (comments.some((c) => c.body.includes(REMINDER_MARKER))) {
+        console.log("[Beginner Bot] Reminder already exists on this issue. Skipping.");
+        return;
+      }
+
+      console.log(`[Beginner Bot] Posting help reminder for @${commenter}...`);
+      
+      const reminderBody = `${REMINDER_MARKER}\n👋 Hi @${commenter}! If you'd like to work on this issue, please comment \`/assign\` to get assigned.`;
+      
+      // FIX 6: Granular Try/Catch for Create Comment API
+      try {
+          await github.rest.issues.createComment({
+              owner: repo.owner.login,
+              repo: repo.name,
+              issue_number: issue.number,
+              body: reminderBody,
+          });
+          console.log("[Beginner Bot] Reminder posted successfully.");
+      } catch (error) {
+          console.error(`[Beginner Bot] Failed to post reminder: ${error.message}`);
+      }
+    }
+
+  } catch (error) {
+    // Fix 1: Top-level error handling
+    console.error("[Beginner Bot] Unexpected error:", {
+      message: error.message,
+      status: error.status,
+      issue: context.payload?.issue?.number,
+      comment: context.payload?.comment?.id
     });
-    console.log("[Beginner Bot] Reminder posted successfully.");
   }
 };
