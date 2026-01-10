@@ -75,10 +75,20 @@ if ! gh auth status >/dev/null 2>&1; then
   echo "WARN: gh auth status failed — ensure gh is logged in for non-dry runs."
 fi
 
-# PR lookup logic - two-step process
+# PR lookup logic - use branch-based approach (pullRequests API not available)
 echo "Looking up PR for failed workflow run..."
 
-PR_NUMBER=$(gh run view "$FAILED_RUN_ID" --json pullRequests --jq '.pullRequests[0].number // empty' 2>/dev/null || true)
+HEAD_BRANCH=$(gh run view "$FAILED_RUN_ID" --json headBranch --jq '.headBranch' 2>/dev/null || echo "")
+
+if [[ -z "$HEAD_BRANCH" ]]; then
+  echo "ERROR: Could not retrieve head branch from workflow run $FAILED_RUN_ID"
+  exit 1
+fi
+
+echo "Found head branch: $HEAD_BRANCH"
+
+# Find the PR number for this branch (only open PRs)
+PR_NUMBER=$(gh pr list --repo "$REPO" --head "$HEAD_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
 
 if [[ -z "$PR_NUMBER" ]]; then
   if (( DRY_RUN == 1 )); then
