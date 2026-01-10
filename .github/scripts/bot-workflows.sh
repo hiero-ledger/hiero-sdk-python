@@ -28,20 +28,28 @@ case "$DRY_RUN" in
 esac
 shopt -u nocasematch
 
-# Exit with error if required variables missing
-if [[ -z "$FAILED_WORKFLOW_NAME" ]]; then
-  echo "ERROR: FAILED_WORKFLOW_NAME environment variable not set."
-  exit 1
-fi
+# Exit with error if required variables missing (skip validation in dry-run mode)
+if (( DRY_RUN == 0 )); then
+  if [[ -z "$FAILED_WORKFLOW_NAME" ]]; then
+    echo "ERROR: FAILED_WORKFLOW_NAME environment variable not set."
+    exit 1
+  fi
 
-if [[ -z "$FAILED_RUN_ID" ]]; then
-  echo "ERROR: FAILED_RUN_ID environment variable not set."
-  exit 1
-fi
+  if [[ -z "$FAILED_RUN_ID" ]]; then
+    echo "ERROR: FAILED_RUN_ID environment variable not set."
+    exit 1
+  fi
+  
+  # Validate FAILED_RUN_ID is numeric
+  if ! [[ "$FAILED_RUN_ID" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: FAILED_RUN_ID must be a numeric integer (got: $FAILED_RUN_ID)"
+    exit 1
+  fi
 
-if [[ -z "$GH_TOKEN" ]]; then
-  echo "ERROR: GH_TOKEN (or GITHUB_TOKEN) environment variable not set."
-  exit 1
+  if [[ -z "$GH_TOKEN" ]]; then
+    echo "ERROR: GH_TOKEN (or GITHUB_TOKEN) environment variable not set."
+    exit 1
+  fi
 fi
 
 if [[ -z "$REPO" ]]; then
@@ -70,14 +78,16 @@ fi
 # PR lookup logic - two-step process
 echo "Looking up PR for failed workflow run..."
 
-PR_NUMBER=$(gh run view "$FAILED_RUN_ID" \
-  --repo "$REPO" \
-  --json pullRequests --jq '.pullRequests[0].number // empty' 2>/dev/null || true)
+PR_NUMBER=$(gh run view "$FAILED_RUN_ID" --json pullRequests --jq '.pullRequests[0].number // empty' 2>/dev/null || true)
 
 if [[ -z "$PR_NUMBER" ]]; then
-  echo "No PR associated with workflow run: $FAILED_RUN_ID"
-  echo "Exiting without posting comment."
-  exit 0
+  if (( DRY_RUN == 1 )); then
+    echo "No PR associated with workflow run $FAILED_RUN_ID, but DRY_RUN=1 - exiting successfully."
+    exit 0
+  else
+    echo "ERROR: Failed to query workflow run $FAILED_RUN_ID (check token permissions and repo access?)"
+    exit 1
+  fi
 fi
 
 echo "Found PR #$PR_NUMBER"
@@ -102,15 +112,31 @@ From the Hiero Python SDK Team
 EOF
 )
 
-# Check for duplicate comments using gh pr view --json comments with jq filtering
-echo "Checking for existing duplicate comments..."
-EXISTING_COMMENT=$(gh pr view "$PR_NUMBER" --repo "$REPO" --comments \
-  --json comments --jq '.comments[] | select(.body | contains("<!-- workflowbot:workflow-failure-notifier -->")) | .id' 2>/dev/null || echo "")
+# Check for duplicate comments using gh api with pagination
+# gh pr view --json comments does not paginate, so we use gh api
+PAGE=1
+ALL_COMMENTS=""
 
-DUPLICATE_EXISTS=false
+while true; do
+  COMMENTS_PAGE=$(gh api \
+    --header 'Accept: application/vnd.github.v3+json' \
+    "/repos/$REPO/pulls/$PR_NUMBER/comments?per_page=100&page=$PAGE")
+  
+  # Check if the page is empty (no more comments)
+  if [[ $(echo "$COMMENTS_PAGE" | jq length) -eq 0 ]]; then
+    break
+  fi
+
+  ALL_COMMENTS="$ALL_COMMENTS\n$COMMENTS_PAGE"
+  PAGE=$((PAGE + 1))
+done
+
+# Filter for comments containing the marker
+EXISTING_COMMENT=$(echo "$ALL_COMMENTS" | jq -r ".[] | select(.body | contains(\"$MARKER\")) | .body")
+
 if [[ -n "$EXISTING_COMMENT" ]]; then
-  DUPLICATE_EXISTS=true
-  echo "Found existing duplicate comment (ID: $EXISTING_COMMENT)"
+  echo "Found existing duplicate comment. Exiting."
+  exit 0
 else
   echo "No existing duplicate comment found."
 fi

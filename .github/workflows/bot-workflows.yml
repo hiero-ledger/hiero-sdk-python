@@ -42,6 +42,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
       - name: Notify PR of workflow failure
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.failed_run_id != ''
         env:
           FAILED_WORKFLOW_NAME: ${{ github.event.workflow_run.name || 'Manual Test Run' }}
           FAILED_RUN_ID: ${{ github.event.inputs.failed_run_id || github.event.workflow_run.id }}
