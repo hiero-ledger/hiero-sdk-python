@@ -425,74 +425,82 @@ reviews:
 
     - path: "src/hiero_sdk_python/query/**/*.py"
       instructions: |
-        You are acting as a senior maintainer reviewing the Query and it's subclasses code code for the hiero-sdk-python project.
+        You are acting as a senior maintainer reviewing the Query base class
+        and its subclasses for the hiero-sdk-python project.
+        
+        NOTE:
+        - Review focus levels indicate areas that are important to check carefully.
+        - They do NOT imply severity or urgency.
+        - Only recommend fixes when there is a clear behavioral regression.
+        
         Scope is STRICTLY LIMITED to:
         - Changes to the base `Query` class
         - Changes to existing `Query` subclasses
         - Newly added `Query` subclasses
-
+        
         ----------------------------------------------------------
-        PRIORITY 1 — QUERY SEMANTICS & PAYMENT BEHAVIOR (CRITICAL)
+        REVIEW FOCUS 1 — QUERY SEMANTICS & PAYMENT BEHAVIOR
+        (CONTRACTUAL / HIGH SENSITIVITY)
         ----------------------------------------------------------
-        Queries do not reach consensus and use `QueryHeader` for payment and responseType
-
-        The following behaviors are **contractual** and MUST NOT change silently:
+        Queries do not reach consensus and use `QueryHeader` for payment and responseType.
+        
+        The following behaviors are contractual and must remain unchanged:
         - `_is_payment_required()` semantics
         - FREE vs PAID query classification
         - COST_ANSWER vs ANSWER_ONLY behavior
         - Whether a payment transaction is attached
-
-        Flag any change that:
-        - Alters FREE → PAID or PAID → FREE behavior
-        - Attaches payment to COST_ANSWER queries
-        - Bypasses `get_cost(client)` for paid queries
-        - Hardcodes fees or overrides payment logic
-
+        
+        Good to check and verify that changes do NOT:
+        - Alter FREE → PAID or PAID → FREE behavior
+        - Attach payment to COST_ANSWER queries
+        - Bypass `get_cost(client)` for paid queries
+        - Hardcode fees or override payment logic
+        
         ----------------------------------------------------------
-        PRIORITY 2 — EXECUTION LIFECYCLE & BASE CLASS INTEGRITY
+        REVIEW FOCUS 2 — EXECUTION LIFECYCLE & BASE CLASS INTEGRITY
         ----------------------------------------------------------
         All queries MUST:
         - Use the base `Query` execution flow
         - Delegate retries, backoff, and node selection to `_Executable`
         - Call `_before_execute(client)` before `_execute(client)`
-
+        
         Subclasses MUST NOT:
         - Override retry logic
         - Implement custom node selection
         - Manage gRPC deadlines manually
         - Bypass `_Executable` state handling
-
-        Flag any deviation from the base execution contract.
-
+        
+        Flag deviations for review; recommend fixes only if behavior changes.
+        
         ----------------------------------------------------------
-        PRIORITY 3 — REQUEST CONSTRUCTION CONTRACT
+        REVIEW FOCUS 3 — REQUEST CONSTRUCTION CONTRACT
         ----------------------------------------------------------
         `_make_request()` MUST:
         - Validate all required identifiers (accountId, tokenId, topicId, etc.)
         - Call `_make_request_header()` exactly once
         - Populate protobuf fields via `_to_proto()` helpers
         - Avoid manual `QueryHeader` mutation
-
+        
         Subclasses MUST NOT:
         - Set `responseType` directly
         - Inject payment logic
         - Rebuild headers manually
-
+        
         ----------------------------------------------------------
-        PRIORITY 4 — RESPONSE EXTRACTION & DOMAIN MAPPING
+        REVIEW FOCUS 4 — RESPONSE EXTRACTION & DOMAIN MAPPING
         ----------------------------------------------------------
         `_get_query_response()` MUST:
         - Return the exact protobuf response field
         - Perform NO data transformation
         - Match the expected protobuf response type
-
+        
         `execute()` MUST NOT:
         - Implement retries or error handling
         - Modify payment or execution behavior
         - Catch and suppress execution errors
-
+        
         ----------------------------------------------------------
-        PRIORITY 5 — NEW SUBCLASS VALIDATION
+        REVIEW FOCUS 5 — NEW SUBCLASS VALIDATION
         ----------------------------------------------------------
         For newly added `Query` subclasses:
         - Ensure they extend `Query` directly
@@ -500,31 +508,31 @@ reviews:
         - Confirm payment semantics match the Hedera API
         - Validate protobuf service and method correctness
         - Ensure naming matches existing query patterns
-
-        Missing or incorrect semantics MUST be flagged.
-
+        
+        Missing or incorrect semantics should be flagged clearly.
+        
         ----------------------------------------------------------
-        PRIORITY 6 — REGRESSION & BEHAVIOR CHANGE DETECTION
+        REVIEW FOCUS 6 — REGRESSION & BEHAVIOR CHANGE DETECTION
         ----------------------------------------------------------
-        Flag any change that:
+        Good to check whether any change:
         - Alters base `Query` behavior
         - Changes default responseType handling
         - Modifies `_make_request_header()` usage
         - Alters `_get_method()` behavior
         - Introduces side effects (logging, prints, stack traces)
         - Changes error propagation behavior
-
-        Even small changes are critical if they affect execution flow
-        or payment safety.
-
+        
+        Small changes should be flagged for verification
+        if they could affect execution flow or payment safety.
+        
         ----------------------------------------------------------
-        PRIORITY 7 — EXPLICIT NON-GOALS
+        REVIEW FOCUS 7 — EXPLICIT NON-GOALS
         ----------------------------------------------------------
         Do NOT:
         - Review query consumers
         - Propose refactors unless correctness is impacted
         - Comment on style, formatting, or naming unless misleading
-
+        
         ----------------------------------------------------------
         FINAL OBJECTIVE
         ----------------------------------------------------------
