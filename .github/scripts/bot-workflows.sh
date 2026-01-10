@@ -50,6 +50,10 @@ if (( DRY_RUN == 0 )); then
     echo "ERROR: GH_TOKEN (or GITHUB_TOKEN) environment variable not set."
     exit 1
   fi
+else
+  # In dry-run mode, set defaults if missing for demonstration
+  FAILED_WORKFLOW_NAME="${FAILED_WORKFLOW_NAME:-DRY_RUN_TEST}"
+  FAILED_RUN_ID="${FAILED_RUN_ID:-12345}"
 fi
 
 if [[ -z "$REPO" ]]; then
@@ -81,8 +85,13 @@ echo "Looking up PR for failed workflow run..."
 HEAD_BRANCH=$(gh run view "$FAILED_RUN_ID" --json headBranch --jq '.headBranch' 2>/dev/null || echo "")
 
 if [[ -z "$HEAD_BRANCH" ]]; then
-  echo "ERROR: Could not retrieve head branch from workflow run $FAILED_RUN_ID"
-  exit 1
+  if (( DRY_RUN == 1 )); then
+    echo "WARN: Could not retrieve head branch in dry-run mode (run ID may be invalid). Exiting gracefully."
+    exit 0
+  else
+    echo "ERROR: Could not retrieve head branch from workflow run $FAILED_RUN_ID"
+    exit 1
+  fi
 fi
 
 echo "Found head branch: $HEAD_BRANCH"
@@ -122,35 +131,32 @@ From the Hiero Python SDK Team
 EOF
 )
 
-# Check for duplicate comments using gh api with pagination
-# gh pr view --json comments does not paginate, so we use gh api
+# Check for duplicate comments using the correct endpoint for issue comments
 PAGE=1
-ALL_COMMENTS=""
+DUPLICATE_EXISTS="false"
+MAX_PAGES=10  # Safety bound
 
-while true; do
+while (( PAGE <= MAX_PAGES )); do
   COMMENTS_PAGE=$(gh api \
     --header 'Accept: application/vnd.github.v3+json' \
-    "/repos/$REPO/pulls/$PR_NUMBER/comments?per_page=100&page=$PAGE")
+    "/repos/$REPO/issues/$PR_NUMBER/comments?per_page=100&page=$PAGE" 2>/dev/null || echo "[]")
   
   # Check if the page is empty (no more comments)
-  if [[ $(echo "$COMMENTS_PAGE" | jq length) -eq 0 ]]; then
+  if [[ $(echo "$COMMENTS_PAGE" | jq 'length') -eq 0 ]]; then
     break
   fi
 
-  ALL_COMMENTS="$ALL_COMMENTS\n$COMMENTS_PAGE"
+  # Check this page for the marker instead of concatenating invalid JSON
+  if echo "$COMMENTS_PAGE" | jq -e ".[] | select(.body | contains(\"$MARKER\"))" >/dev/null 2>&1; then
+    DUPLICATE_EXISTS="true"
+    echo "Found existing duplicate comment. Skipping."
+    break
+  fi
+
   PAGE=$((PAGE + 1))
 done
 
-# Filter for comments containing the marker
-EXISTING_COMMENT=$(echo "$ALL_COMMENTS" | jq -r ".[] | select(.body | contains(\"$MARKER\")) | .body")
-
-# Initialize duplicate flag
-DUPLICATE_EXISTS="false"
-
-if [[ -n "$EXISTING_COMMENT" ]]; then
-  DUPLICATE_EXISTS="true"
-  echo "Found existing duplicate comment. Skipping."
-else
+if [[ "$DUPLICATE_EXISTS" == "false" ]]; then
   echo "No existing duplicate comment found."
 fi
 
