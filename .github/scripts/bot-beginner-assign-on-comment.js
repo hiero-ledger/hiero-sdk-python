@@ -148,8 +148,8 @@ module.exports = async ({ github, context }) => {
     }
 
     // Check 2: Is user a team member?
-    if (await hasTeamMemberAccess(commenter)) {
-      console.log(`[Beginner Bot] Commenter @${commenter} is a team member. Skipping reminder to avoid spam.`);
+    if (await isRepoCollaborator(commenter)) {
+      console.log(`[Beginner Bot] Commenter @${commenter} is a repo collaborator. Skipping reminder.`);
       return;
     }
 
