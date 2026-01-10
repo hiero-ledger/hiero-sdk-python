@@ -12,7 +12,7 @@ Goal:
 ------------------------------------------------------------------------------
 Flow: Basic Idea
   1. Listens for comments on issues.
-  2. Ignores Pull Requests and issues missing the "beginner" label.
+  2. Ignores Pull Requests, Bots, and issues missing the "beginner" label.
   3. Detects if the user typed "/assign".
      - If YES: Assigns the user to the issue (if currently unassigned).
      - If NO: Checks if the user is an external contributor expressing interest.
@@ -23,46 +23,33 @@ Flow: Detailed Technical Steps
 
 1️⃣ Validation & filtering
     - Checks payload to ensure it is an Issue Comment (not a PR).
+    - Checks if the commenter is a BOT (e.g., github-actions). If so, exits.
     - Checks if the issue has the specific label "beginner". If not, exits.
 
-2️⃣ Permission Analysis (Team vs. Contributor)
-    - Action: Queries 'github.rest.repos.getCollaboratorPermissionLevel'.
+2️⃣ Collaborator Check (isRepoCollaborator)
+    - Action: Checks if the user is a repository collaborator.
     - Logic:
-      * 'admin', 'maintain', 'write' -> Treated as Team Member (Bot ignores them).
-      * 'read', 'none'               -> Treated as External Contributor (Bot helps them).
+      * Collaborator (204) -> Treated as Team Member (Bot ignores them).
+      * Non-Collaborator (404) -> Treated as External Contributor (Bot helps them).
 
 3️⃣ Logic Branch A: The "/assign" Command
     - Trigger: User comment matches regex /(^|\s)\/assign(\s|$)/i.
     - Check: Is the issue already assigned?
-      * Yes -> Log and exit (prevent overwriting assignees).
+      * Yes -> Alert the user that it is taken.
       * No  -> API Call: Add commenter to 'assignees'.
 
 4️⃣ Logic Branch B: The Helper Reminder
     - Trigger: Generic comment (e.g., "I want to work on this").
     - Condition 1: Issue must be unassigned.
-    - Condition 2: Commenter must NOT be a Team Member (avoids nagging maintainers).
+    - Condition 2: Commenter must NOT be a Repo Collaborator.
     - Condition 3: Duplicate Check.
-      * Scans previous comments for a hidden marker: "<!-- GFI assign reminder -->".
+      * Scans previous comments for a hidden marker: "".
       * If found -> Exits to avoid spamming the thread.
     - Action: Posts a comment with the hidden marker and instructions.
 
 ------------------------------------------------------------------------------
 Parameters:
   - { github, context }: Standard objects provided by 'actions/github-script'.
-
-Environment Variables / Context:
-  - payload.issue: The issue object triggering the workflow.
-  - payload.comment: The comment object containing the user's text.
-
-Dependencies:
-  - GitHub REST API (via 'github' octokit client).
-
-Permissions Required (in Workflow YAML):
-  - 'issues: write' (to post comments and assign users).
-  - 'pull-requests: none' (logic explicitly excludes PRs).
-
-Returns:
-  - void. (Logs actions to console for debugging).
 ==============================================================================
 */
 
@@ -78,6 +65,12 @@ module.exports = async ({ github, context }) => {
     return;
   }
 
+  // 1.1 Bot Check
+  if (comment.user.type === "Bot") {
+    console.log(`[Beginner Bot] Commenter @${comment.user.login} is a bot. Exiting.`);
+    return;
+  }
+
   // 2. Label Check
   const hasBeginnerLabel = issue.labels.some((label) => label.name === "beginner");
   if (!hasBeginnerLabel) {
@@ -85,23 +78,34 @@ module.exports = async ({ github, context }) => {
     return;
   }
 
-  // 3. Permission Check Helper
-  async function hasTeamMemberAccess(username) {
+  // 3. Collaborator Check Helper
+  // (Replaces the old 'hasTeamMemberAccess' function)
+  async function isRepoCollaborator(username) {
     try {
-      const { data: permissions } =
-        await github.rest.repos.getCollaboratorPermissionLevel({
-          owner: repo.owner.login,
-          repo: repo.name,
-          username: username,
-        });
+      // 3a. Owner is always a collaborator
+      if (username === repo.owner.login) {
+          console.log(`[Beginner Bot] User @${username} is the repo owner.`);
+          return true;
+      }
+
+      // 3b. Check API for collaborator status
+      // This endpoint returns 204 if user is a collaborator, 404 if not.
+      await github.rest.repos.checkCollaborator({
+        owner: repo.owner.login,
+        repo: repo.name,
+        username: username,
+      });
       
-      // 'admin', 'maintain', 'write' are considered team members
-      // 'triage', 'read', 'none' are considered external contributors
-      const isTeam = ["admin", "maintain", "write"].includes(permissions.permission);
-      console.log(`[Beginner Bot] User '${username}' has permission: '${permissions.permission}'. Team member? ${isTeam}`);
-      return isTeam;
+      console.log(`[Beginner Bot] User @${username} is a confirmed repo collaborator.`);
+      return true;
     } catch (error) {
-      console.log(`[Beginner Bot] Error checking permissions for ${username}: ${error.message}`);
+      if (error.status === 404) {
+        console.log(`[Beginner Bot] User @${username} is NOT a collaborator (External Contributor).`);
+        return false;
+      }
+      
+      console.log(`[Beginner Bot] Error checking collaborator status for @${username}: ${error.message}`);
+      // Fail safe: If we can't check, assume FALSE to be helpful to the user.
       return false;
     }
   }
