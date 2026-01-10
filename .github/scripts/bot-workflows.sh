@@ -11,7 +11,7 @@ FAILED_WORKFLOW_NAME="${FAILED_WORKFLOW_NAME:-}"
 FAILED_RUN_ID="${FAILED_RUN_ID:-}"
 GH_TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
 REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
-DRY_RUN="${DRY_RUN:-0}"
+DRY_RUN="${DRY_RUN:-1}"
 
 export GH_TOKEN
 
@@ -104,7 +104,7 @@ if [[ -z "$PR_NUMBER" ]]; then
     echo "No PR associated with workflow run $FAILED_RUN_ID, but DRY_RUN=1 - exiting successfully."
     exit 0
   else
-    echo "ERROR: Failed to query workflow run $FAILED_RUN_ID (check token permissions and repo access?)"
+    echo "INFO: No open PR found for branch '$HEAD_BRANCH' (workflow run $FAILED_RUN_ID). Nothing to notify."
     exit 1
   fi
 fi
