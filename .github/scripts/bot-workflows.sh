@@ -105,7 +105,7 @@ if [[ -z "$PR_NUMBER" ]]; then
     exit 0
   else
     echo "INFO: No open PR found for branch '$HEAD_BRANCH' (workflow run $FAILED_RUN_ID). Nothing to notify."
-    exit 1
+    exit 0
   fi
 fi
 
