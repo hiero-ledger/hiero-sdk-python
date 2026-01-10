@@ -81,13 +81,16 @@ EOF
 echo "$ISSUE_DATA" |
   jq -r '
     group_by(.author.login)
+    | map(sort_by(.createdAt) | reverse | .[0])
     | .[]
-    | sort_by(.createdAt)
-    | reverse
-    | .[0]
-    | "\(.number) \(.author.login)"
+    | "\(.number) \(.author.login) \(.author.__typename)"
   ' |
-  while read ISSUE_NUM AUTHOR; do
+  while read -r ISSUE_NUM AUTHOR IS_BOT; do
+    if [ "$IS_BOT" = "Bot" ]; then
+      echo "Skipping issue #$ISSUE_NUM created by bot account @$AUTHOR"
+      continue
+    fi
+    
     for EXCLUDED in "${EXCLUDED_AUTHORS[@]}"; do
       if [ "$AUTHOR" = "$EXCLUDED" ]; then
         echo "Skipping issue #$ISSUE_NUM by excluded author @$AUTHOR"
