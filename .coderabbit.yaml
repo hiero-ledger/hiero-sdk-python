@@ -425,7 +425,7 @@ reviews:
 
     - path: "src/hiero_sdk_python/query/**/*.py"
       instructions: |
-        You are acting as a senior maintainer reviewing the Query and iis subclasses code code for the hiero-sdk-python project.
+        You are acting as a senior maintainer reviewing the Query and it's subclasses code code for the hiero-sdk-python project.
         Scope is STRICTLY LIMITED to:
         - Changes to the base `Query` class
         - Changes to existing `Query` subclasses
