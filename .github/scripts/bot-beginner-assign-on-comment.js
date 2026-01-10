@@ -118,15 +118,16 @@ module.exports = async ({ github, context }) => {
   if (isAssignCommand) {
     // --- ASSIGNMENT LOGIC ---
     if (issue.assignees && issue.assignees.length > 0) {
-        console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Ignoring /assign command.`);
-        await github.rest.issues.createComment({
-            owner: repo.owner.login,
-            repo: repo.name,
-            issue_number: issue.number,
-            body: `👋 Hi @${commenter}, this issue is already assigned to someone else. Please find another "beginner" issue to work on!`,
-        });
-        
-        return; // Exit after warning
+      // GET THE CURRENT ASSIGNEE'S NAME
+      const currentAssignee = issue.assignees[0].login;      
+      console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Ignoring /assign command.`);
+      await github.rest.issues.createComment({
+          owner: repo.owner.login,
+          repo: repo.name,
+          issue_number: issue.number,
+          body: `👋 Hi @${commenter}, this issue is already assigned to @${currentAssignee}. Please find another "beginner" issue to work on [here](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee).`,   
+      });     
+      return; // Exit after warning
     }
 
     console.log(`[Beginner Bot] Assigning issue #${issue.number} to @${commenter}...`);
