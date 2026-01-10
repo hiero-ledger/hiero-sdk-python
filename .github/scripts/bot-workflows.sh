@@ -144,9 +144,12 @@ done
 # Filter for comments containing the marker
 EXISTING_COMMENT=$(echo "$ALL_COMMENTS" | jq -r ".[] | select(.body | contains(\"$MARKER\")) | .body")
 
+# Initialize duplicate flag
+DUPLICATE_EXISTS="false"
+
 if [[ -n "$EXISTING_COMMENT" ]]; then
-  echo "Found existing duplicate comment. Exiting."
-  exit 0
+  DUPLICATE_EXISTS="true"
+  echo "Found existing duplicate comment. Skipping."
 else
   echo "No existing duplicate comment found."
 fi
