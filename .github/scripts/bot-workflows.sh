@@ -28,32 +28,40 @@ case "$DRY_RUN" in
 esac
 shopt -u nocasematch
 
-# Exit with error if required variables missing (skip validation in dry-run mode)
-if (( DRY_RUN == 0 )); then
-  if [[ -z "$FAILED_WORKFLOW_NAME" ]]; then
+# Validate required variables or set defaults in dry-run mode
+if [[ -z "$FAILED_WORKFLOW_NAME" ]]; then
+  if (( DRY_RUN == 1 )); then
+    echo "WARN: FAILED_WORKFLOW_NAME not set, using default for dry-run."
+    FAILED_WORKFLOW_NAME="DRY_RUN_TEST"
+  else
     echo "ERROR: FAILED_WORKFLOW_NAME environment variable not set."
     exit 1
   fi
+fi
 
-  if [[ -z "$FAILED_RUN_ID" ]]; then
+if [[ -z "$FAILED_RUN_ID" ]]; then
+  if (( DRY_RUN == 1 )); then
+    echo "WARN: FAILED_RUN_ID not set, using default for dry-run."
+    FAILED_RUN_ID="12345"
+  else
     echo "ERROR: FAILED_RUN_ID environment variable not set."
     exit 1
   fi
-  
-  # Validate FAILED_RUN_ID is numeric
-  if ! [[ "$FAILED_RUN_ID" =~ ^[0-9]+$ ]]; then
-    echo "ERROR: FAILED_RUN_ID must be a numeric integer (got: $FAILED_RUN_ID)"
-    exit 1
-  fi
+fi
 
-  if [[ -z "$GH_TOKEN" ]]; then
+# Validate FAILED_RUN_ID is numeric (always check when provided)
+if ! [[ "$FAILED_RUN_ID" =~ ^[0-9]+$ ]]; then
+  echo "ERROR: FAILED_RUN_ID must be a numeric integer (got: '$FAILED_RUN_ID')"
+  exit 1
+fi
+
+if [[ -z "$GH_TOKEN" ]]; then
+  if (( DRY_RUN == 1 )); then
+    echo "WARN: GH_TOKEN not set. Some dry-run operations may fail."
+  else
     echo "ERROR: GH_TOKEN (or GITHUB_TOKEN) environment variable not set."
     exit 1
   fi
-else
-  # In dry-run mode, set defaults if missing for demonstration
-  FAILED_WORKFLOW_NAME="${FAILED_WORKFLOW_NAME:-DRY_RUN_TEST}"
-  FAILED_RUN_ID="${FAILED_RUN_ID:-12345}"
 fi
 
 if [[ -z "$REPO" ]]; then
@@ -76,7 +84,12 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "WARN: gh auth status failed — ensure gh is logged in for non-dry runs."
+  if (( DRY_RUN == 0 )); then
+    echo "ERROR: gh authentication required for non-dry-run mode."
+    exit 1
+  else
+    echo "WARN: gh auth status failed — some dry-run operations may not work."
+  fi
 fi
 
 # PR lookup logic - use branch-based approach (pullRequests API not available)
