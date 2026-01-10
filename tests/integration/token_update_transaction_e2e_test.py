@@ -110,7 +110,7 @@ def test_integration_token_update_transaction_different_keys():
         # Create new account with first key
         tx = (
             AccountCreateTransaction()
-            .set_key(keys[0].public_key())
+            .set_key_without_alias(keys[0].public_key())
             .set_initial_balance(Hbar(2))
         )
         receipt = tx.execute(env.client)
@@ -174,7 +174,7 @@ def test_integration_token_update_transaction_treasury():
         
         receipt = (
             AccountCreateTransaction()
-            .set_key(new_public_key)
+            .set_key_without_alias(new_public_key)
             .set_initial_balance(Hbar(2))
             .execute(env.client)
         )
