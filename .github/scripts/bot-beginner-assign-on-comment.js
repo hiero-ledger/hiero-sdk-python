@@ -115,7 +115,14 @@ module.exports = async ({ github, context }) => {
     // --- ASSIGNMENT LOGIC ---
     if (issue.assignees && issue.assignees.length > 0) {
         console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Ignoring /assign command.`);
-        return;
+        await github.rest.issues.createComment({
+            owner: repo.owner.login,
+            repo: repo.name,
+            issue_number: issue.number,
+            body: `👋 Hi @${commenter}, this issue is already assigned to someone else. Please find another "beginner" issue to work on!`,
+        });
+        
+        return; // Exit after warning
     }
 
     console.log(`[Beginner Bot] Assigning issue #${issue.number} to @${commenter}...`);
