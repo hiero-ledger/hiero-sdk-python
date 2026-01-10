@@ -13,11 +13,18 @@ GH_TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
 REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
 DRY_RUN="${DRY_RUN:-0}"
 
+export GH_TOKEN
+
 # Normalise DRY_RUN input ("true"/"false" -> 1/0, case-insensitive)
 shopt -s nocasematch
 case "$DRY_RUN" in
+  1|0) ;;
   "true")  DRY_RUN=1 ;;
   "false") DRY_RUN=0 ;;
+  *)
+    echo "ERROR: DRY_RUN must be one of: true, false, 1, 0 (got: $DRY_RUN)"
+    exit 1
+    ;;
 esac
 shopt -u nocasematch
 
@@ -63,31 +70,22 @@ fi
 # PR lookup logic - two-step process
 echo "Looking up PR for failed workflow run..."
 
-# Get branch from the workflow run
-HEAD_BRANCH=$(gh run view "$FAILED_RUN_ID" \
+PR_NUMBER=$(gh run view "$FAILED_RUN_ID" \
   --repo "$REPO" \
-  --json headBranch --jq '.headBranch' 2>/dev/null || echo "")
-
-if [[ -z "$HEAD_BRANCH" ]]; then
-  echo "ERROR: Could not retrieve head branch from workflow run $FAILED_RUN_ID"
-  exit 1
-fi
-
-echo "Found head branch: $HEAD_BRANCH"
-
-# Find the PR number for this branch (only open PRs)
-PR_NUMBER=$(gh pr list --repo "$REPO" --state open --head "$HEAD_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+  --json pullRequests --jq '.pullRequests[0].number // empty' 2>/dev/null || true)
 
 if [[ -z "$PR_NUMBER" ]]; then
-  echo "No open PR found for branch: $HEAD_BRANCH"
+  echo "No PR associated with workflow run: $FAILED_RUN_ID"
   echo "Exiting without posting comment."
   exit 0
 fi
 
-echo "Found PR #$PR_NUMBER for branch: $HEAD_BRANCH"
+echo "Found PR #$PR_NUMBER"
 
 # Build notification message with failure details and documentation links
+MARKER="<!-- workflowbot:workflow-failure-notifier -->"
 COMMENT=$(cat <<EOF
+$MARKER
 Hi, this is WorkflowBot. 
 Your pull request cannot be merged as it is not passing all our workflow checks. 
 Please click on each check to review the logs and resolve issues so all checks pass.
@@ -107,7 +105,7 @@ EOF
 # Check for duplicate comments using gh pr view --json comments with jq filtering
 echo "Checking for existing duplicate comments..."
 EXISTING_COMMENT=$(gh pr view "$PR_NUMBER" --repo "$REPO" --comments \
-  --json comments --jq ".comments[] | select(.body == \"${COMMENT//\"/\\\"}\") | .id" 2>/dev/null || echo "")
+  --json comments --jq '.comments[] | select(.body | contains("<!-- workflowbot:workflow-failure-notifier -->")) | .id' 2>/dev/null || echo "")
 
 DUPLICATE_EXISTS=false
 if [[ -n "$EXISTING_COMMENT" ]]; then
