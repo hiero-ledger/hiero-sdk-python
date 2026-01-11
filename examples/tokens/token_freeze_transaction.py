@@ -1,10 +1,6 @@
-# uv run examples/tokens/token_freeze.py
-# python examples/tokens/token_freeze.py
 """
 Creates a freezeable token and demonstrates freezing and unfreezing
 the token for the operator (treasury) account.
-uv run examples/tokens/token_freeze_transaction.py
-python examples/tokens/token_freeze_transaction.py
 """
 import os
 import sys
@@ -62,43 +58,39 @@ def create_freezeable_token(client, operator_id, operator_key):
             .set_token_symbol("FRZ")
             .set_initial_supply(1000)
             .set_treasury_account_id(operator_id)
-            .set_freeze_key(freeze_key)  # <-- THE FIX: Pass the private key directly
+            .set_freeze_key(freeze_key)
         )
 
-        # Freeze, sign with BOTH operator and the new freeze key, then execute
         receipt = (
             tx.freeze_with(client)
             .sign(operator_key)
-            .sign(freeze_key)  # The new freeze key must sign to give consent
+            .sign(freeze_key)
             .execute(client)
         )
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
         return freeze_key, token_id, client, operator_id, operator_key
-    except RuntimeError as e:
+    except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
 
 def freeze_token(token_id, client, operator_id, freeze_key):
-    """
-    Freeze the token for the operator account.
-    """
+    """Freeze the token for the operator account."""
     print(f"\nSTEP 3: Freezing token {token_id} for operator account {operator_id}...")
     try:
         receipt = (
             TokenFreezeTransaction()
             .set_token_id(token_id)
-            .set_account_id(operator_id)  # Target the operator account
+            .set_account_id(operator_id)
             .freeze_with(client)
-            .sign(freeze_key)  # Must be signed by the freeze key
+            .sign(freeze_key)
             .execute(client)
         )
         print(
             f"✅ Success! Token freeze complete. Status: {ResponseCode(receipt.status).name}"
         )
-
-    except RuntimeError as e:
+    except Exception as e:
         print(f"❌ Error freezing token: {e}")
         sys.exit(1)
 
@@ -107,7 +99,6 @@ def verify_freeze(token_id, client, operator_id, operator_key):
     """Attempt a token transfer to confirm the account
     cannot perform the operation while frozen."""
     print("\nVerifying freeze: Attempting token transfer...")
-    # Try to transfer 1 token from operator to itself (should fail if frozen)
     try:
         transfer_receipt = (
             TransferTransaction()
@@ -117,9 +108,7 @@ def verify_freeze(token_id, client, operator_id, operator_key):
             .sign(operator_key)
             .execute(client)
         )
-        # Handle status code 165 (ACCOUNT_FROZEN_FOR_TOKEN) and print a clear message
-        status_code = transfer_receipt.status
-        status_name = ResponseCode(status_code).name
+        status_name = ResponseCode(transfer_receipt.status).name
         if status_name in ["ACCOUNT_FROZEN_FOR_TOKEN", "ACCOUNT_FROZEN"]:
             print(
                 f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}"
@@ -130,8 +119,9 @@ def verify_freeze(token_id, client, operator_id, operator_key):
             )
         else:
             print(f"❌ Unexpected: Transfer result. Status: {status_name}")
-    except RuntimeError as e:
-        print(f"✅ Verified: Transfer failed as expected due to freeze. Error: {e}")
+    except Exception as e:
+        print(f"❌ Error during transfer verification: {e}")
+        sys.exit(1)
 
 
 def main():
@@ -139,7 +129,7 @@ def main():
     1. Create a freezeable token with a freeze key.
     2. Freeze the token for the operator account using the freeze key.
     3. Attempt a token transfer to verify the freeze (should fail).
-    4. Return token details for further operations."""
+    """
     client, operator_id, operator_key = setup_client()
     freeze_key, token_id, client, operator_id, operator_key = create_freezeable_token(
         client, operator_id, operator_key
