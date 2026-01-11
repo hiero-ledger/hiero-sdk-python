@@ -1,0 +1,38 @@
+name: Next Issue Recommendation Bot
+
+on:
+  pull_request_target:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no actual comments posted)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  pull-requests: write
+  issues: read
+  contents: read
+
+concurrency:
+  group: next-issue-bot-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  recommend-next-issue:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Recommend next issue
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/bot-next-issue-recommendation.js');
+            await script({ github, context, core });
