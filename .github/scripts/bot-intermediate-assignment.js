@@ -53,52 +53,73 @@ async function hasExemptPermission(github, owner, repo, username) {
 
 async function countCompletedBeginnerIssues(github, owner, repo, username) {
   try {
-    console.log(`Checking closed '${BEGINNER_LABEL}' issues in ${owner}/${repo} for ${username}.`);
-    const iterator = github.paginate.iterator(github.rest.issues.listForRepo, {
-      owner,
-      repo,
-      state: 'closed',
-      labels: BEGINNER_LABEL,
-      assignee: username,
-      sort: 'updated',
-      direction: 'desc',
-      per_page: 100,
-    });
+    console.log(`Checking closed '${BEGINNER_LABEL}' issues in ${owner}/${repo} for ${username}`);
 
-    const normalizedAssignee = username.toLowerCase();
-    let pageCount = 0;
-    const MAX_PAGES = 8;
+    const query = `
+      query ($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          issues(
+            first: 10
+            states: CLOSED
+            labels: ["beginner"]
+            orderBy: { field: UPDATED_AT, direction: DESC }
+          ) {
+            nodes {
+              number
+              pullRequest {
+                id
+              }
+              assignees(first: 10) {
+                nodes {
+                  login
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
 
-    for await (const { data: issues } of iterator) {
-      pageCount += 1;
-      if (pageCount > MAX_PAGES) {
-        console.log(`Reached pagination safety cap (${MAX_PAGES}) while checking Beginner issues for ${username}.`);
-        break;
+    const data = await github.graphql(query, { owner, repo });
+    const normalizedUsername = username.toLowerCase();
+    const issues = data?.repository?.issues?.nodes ?? [];
+    console.log(
+      `Retrieved ${issues.length} closed Beginner issue(s) for evaluation`);
+
+    for (const issue of issues) {
+      if (issue.pullRequest) {
+        console.log(`Skipping issue #${issue.number} (is a pull request)`);
+        continue;
       }
 
-      console.log(`Scanning page ${pageCount} of closed '${BEGINNER_LABEL}' issues for ${username} (items: ${issues.length}).`);
-      const match = issues.find((issue) => {
-        if (issue.pull_request) {
-          return false;
-        }
+      const assignees = issue.assignees?.nodes ?? [];
+      const wasAssigned = assignees.some(
+        (assignee) =>
+          assignee?.login?.toLowerCase() === normalizedUsername
+      );
 
-        const assignees = Array.isArray(issue.assignees) ? issue.assignees : [];
-        return assignees.some((assignee) => assignee?.login?.toLowerCase() === normalizedAssignee);
-      });
+      console.log(
+        `Issue #${issue.number}: assignees=[${assignees
+          .map(a => a.login)
+          .join(', ')}], matched=${wasAssigned}`
+      );
 
-      if (match) {
-        console.log(`Found matching Beginner issue #${match.number} (${match.html_url || 'no url'}) for ${username}.`);
+      if (wasAssigned) {
+        console.log(`Found completed Beginner issue #${issue.number} for ${username}`);
         return 1;
       }
     }
 
+    console.log(`No completed Beginner issues found for ${username}`);
     return 0;
+
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.log(`Unable to verify completed Beginner issues for ${username}: ${message}`);
     return null;
   }
 }
+
 
 async function hasExistingGuardComment(github, owner, repo, issueNumber, mentee) {
   const comments = await github.paginate(github.rest.issues.listComments, {
