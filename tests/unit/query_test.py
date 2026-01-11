@@ -12,6 +12,8 @@ from hiero_sdk_python.executable import _ExecutionState
 from hiero_sdk_python.hapi.services import query_header_pb2, response_pb2, response_header_pb2, crypto_get_account_balance_pb2, token_get_info_pb2
 from tests.unit.mock_server import mock_hedera_servers
 
+pytestmark = pytest.mark.unit
+
 # By default we test query that doesn't require payment
 @pytest.fixture
 def query():
@@ -275,6 +277,11 @@ def test_set_max_query_payment_negative_value(query, negative_amount):
     """Test set_max_query_payment for negative amount values."""
     with pytest.raises(ValueError, match=f"max_query_payment must be non-negative, got {negative_amount}"):
         query.set_max_query_payment(negative_amount)
+
+def test_set_max_query_payment_negative_hbar(query):
+    """Test set_max_query_payment for negative hbar as amount."""
+    with pytest.raises(ValueError, match="max_query_payment must be non-negative, got negative Hbar value"):
+        query.set_max_query_payment(Hbar(-1))
 
 @pytest.mark.parametrize(
     'invalid_amount',
