@@ -12,6 +12,11 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
+    TransactionResponse as TransactionResponseProto,
+)
+
+
 pytestmark = pytest.mark.unit
 
 
@@ -611,3 +616,92 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
 
     assert unsigned_bytes != signed_bytes
     assert isinstance(signed_bytes, bytes)
+
+def test_transaction_freeze_with_node_ids(mock_client):
+    """
+    Test freeze_with() correctly initializes transaction bytes using provided node_account_id(s).
+    """
+    # Case 1 Single node_account_id
+    single_node_id = AccountId(0,0,3)
+    tx = TransferTransaction()
+    tx.node_account_id = single_node_id
+
+    tx.freeze_with(mock_client)
+
+    assert tx.node_account_ids == [single_node_id]
+    # Verify creates transaction_bytes for single node_id
+    assert len(tx._transaction_body_bytes) == 1
+    assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
+
+    # Case 2 node_account_id list
+    node_account_ids = [AccountId(0,0,3), AccountId(0,0,4)]
+    tx = TransferTransaction()
+    tx.node_account_ids = node_account_ids
+    
+    tx.freeze_with(mock_client)
+
+    assert tx.node_account_ids == node_account_ids
+    # Verify creates transaction_bytes for two node_ids
+    assert len(tx._transaction_body_bytes) == 2
+    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+
+def test_transaction_freeze_with_node_ids_without_client():
+    """
+    Test freeze() correctly initializes transaction bytes using provided node_account_id(s).
+    """
+    operator_id = AccountId.from_string("0.0.1234")
+
+    # Case 1 Single node_account_id
+    single_node_id = AccountId(0,0,3)
+    tx = TransferTransaction()
+    tx.set_transaction_id(TransactionId.generate(operator_id))
+    tx.node_account_id = single_node_id
+
+    tx.freeze()
+
+    assert tx.node_account_ids == [single_node_id]
+    # Verify creates transaction_bytes for single node_id
+    assert len(tx._transaction_body_bytes) == 1
+    assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
+
+    # Case 2 node_account_id list
+    node_account_ids = [AccountId(0,0,3), AccountId(0,0,4)]
+    tx = TransferTransaction()
+    tx.set_transaction_id(TransactionId.generate(operator_id))
+    tx.node_account_ids = node_account_ids
+    
+    tx.freeze()
+
+    assert tx.node_account_ids == node_account_ids
+    # Verify creates transaction_bytes for two node_ids
+    assert len(tx._transaction_body_bytes) == 2
+    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+
+def test_transaction_freeze_without_node_ids(mock_client):
+    """
+    Test freeze_with() initializes transaction bytes using clients network node id.
+    """
+    tx = TransferTransaction()
+    tx.freeze_with(mock_client)
+
+    assert tx.node_account_ids == []
+    # Verify creates transaction_bytes for client network nodes
+    assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
+    assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
+
+def test_map_response_raises_if_proto_request_is_not_transaction():
+    """
+    Test _map_response raises ValueError when provided proto is not a transaction_pb2.Transaction.
+    """
+    tx = TransferTransaction()
+
+    mock_response = TransactionResponseProto()
+    mock_node_id = None  
+    invalid_proto_request = object() 
+
+    with pytest.raises(TypeError, match="Expected Transaction but got"):
+        tx._map_response(
+            response=mock_response,
+            node_id=mock_node_id,
+            proto_request=invalid_proto_request,
+        )
