@@ -108,7 +108,6 @@ def test_build_account_balance_query_with_contract_id():
     assert query.account_id is None
     assert isinstance(query.contract_id, ContractId)
     assert hasattr(query, 'contract_id')
-    not assert hasattr(query, 'account_id')
 
 
 def test_set_contract_id_method_chaining_resets_account_id(mock_account_ids):
