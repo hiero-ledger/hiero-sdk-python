@@ -165,6 +165,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 
 ### Fixed
+- Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
 - Good First Issue bot no longer posts `/assign` reminders for repository collaborators. (#1367)
 - GFI workflow casing 
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
