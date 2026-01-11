@@ -1,7 +1,7 @@
 """
 Run with:
-uv run examples/tokens/custom_fractional_fee.py
 python examples/tokens/custom_fractional_fee.py
+uv run examples/tokens/custom_fractional_fee.py
 """
 
 import sys
@@ -13,7 +13,7 @@ from hiero_sdk_python.tokens.token_create_transaction import (
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
-from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.private_key import AccountId
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.tokens.token_type import TokenType
@@ -27,7 +27,7 @@ def setup_client():
     return client
 
 
-def build_fractional_fee(operator_account_id) -> CustomFractionalFee:
+def build_fractional_fee(operator_account_id: AccountId) -> CustomFractionalFee:
     """Creates a CustomFractionalFee instance."""
     return CustomFractionalFee(
         numerator=1,

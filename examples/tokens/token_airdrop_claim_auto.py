@@ -207,13 +207,13 @@ def log_balances(
         return
 
     def log_fungible(
-        _account_id, balances: dict, token_ids: Iterable
+        _account_id: AccountId, balances: dict, token_ids: Iterable[TokenId]
     ):
         print("  Fungible tokens:")
         for token_id in token_ids:
             print(f"    {token_id}: {balances.get(token_id, 0)}")
 
-    def log_nfts(account_id, nft_ids: Iterable):
+    def log_nfts(account_id: AccountId, nft_ids: Iterable[TokenId]):
         print("  NFTs:")
         owned = []
         for nft_id in nft_ids:
