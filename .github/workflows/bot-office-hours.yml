@@ -3,6 +3,16 @@ name: PythonBot - Office Hour Reminder
 on:
   schedule:
     - cron: "0 10 * * 3"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run in dry-run mode (log only, no comments posted)"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 permissions:
   contents: read
@@ -23,6 +33,6 @@ jobs:
       - name: Check Schedule and Notify
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: "false" # will post
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
         run: |
           bash .github/scripts/bot-office-hours.sh
