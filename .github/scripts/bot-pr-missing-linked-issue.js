@@ -3,9 +3,9 @@ module.exports = async ({ github, context }) => {
   try {
     const isDryRun = process.env.DRY_RUN === 'true';
     prNumber = parseInt(process.env.PR_NUMBER) || context.payload.pull_request.number;
-    
+
     console.log(`Processing PR #${prNumber} (Dry run: ${isDryRun})`);
-    
+
     // For workflow_dispatch, we need to fetch PR details
     let prData;
     if (context.payload.pull_request) {
@@ -23,7 +23,7 @@ module.exports = async ({ github, context }) => {
     const authorType = prData.user?.type;
     const authorLogin = prData.user?.login;
 
-    if (authorType === "Bot" || authorLogin?.endsWith('[bot]')){
+    if (authorType === "Bot" || authorLogin?.endsWith('[bot]')) {
       console.log(`Skipping comment: PR created by bot (${authorLogin})`);
       return;
     }
@@ -58,7 +58,7 @@ module.exports = async ({ github, context }) => {
         `- Fixes #123`,
         ``,
         `📖 Guide:`,
-        `[docs/sdk_developers/training/workflow/how_to_link_issues.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/sdk_developers/training/workflow/how_to_link_issues.md)`,
+        `[docs/sdk_developers/how_to_link_issues.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/sdk_developers/how_to_link_issues.md)`,
         ``,
         `If no issue exists yet, please create one:`,
         `[docs/sdk_developers/creating_issues.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/sdk_developers/creating_issues.md)`,

@@ -17,7 +17,7 @@ const isAuthorAssigned = (issue, login) => {
 
 const baseMessage = `Hi there! I'm the LinkedIssueBot.\nThis pull request has been automatically closed due to the following reason(s):
 `;
-const messageSuffix = `Please read - [Creating Issues](docs/sdk_developers/creating_issues.md) - [How To Link Issues Workflow](docs/sdk_developers/training/workflow/how_to_link_issues.md)\n\nThank you,
+const messageSuffix = `Please read - [Creating Issues](docs/sdk_developers/creating_issues.md) - [How To Link Issues Workflow](docs/sdk_developers/how_to_link_issues.md)\n\nThank you,
 From Python SDK team`
 
 const messages = {
@@ -97,27 +97,26 @@ async function closePR(github, pr, owner, repo, reason) {
 module.exports = async ({ github, context }) => {
   try {
     const { owner, repo } = context.repo;
-  const prs = await github.paginate(github.rest.pulls.list, {
-    owner, repo, state: 'open', per_page: 100
-  });
+    const prs = await github.paginate(github.rest.pulls.list, {
+      owner, repo, state: 'open', per_page: 100
+    });
 
-  console.log(`Evaluating ${prs.length} open PRs\n`);
+    console.log(`Evaluating ${prs.length} open PRs\n`);
 
-  for (const pr of prs) {
-    const days = getDaysOpen(pr);
-    if (days < daysBeforeClose)
-    {
-      console.log(`PR #${pr.number} link: ${pr.html_url} is only ${days} days old. Skipping.`);
-      continue;
+    for (const pr of prs) {
+      const days = getDaysOpen(pr);
+      if (days < daysBeforeClose) {
+        console.log(`PR #${pr.number} link: ${pr.html_url} is only ${days} days old. Skipping.`);
+        continue;
+      }
+
+      const { valid, reason } = await validatePR(github, pr, owner, repo);
+      if (valid) {
+        console.log(`PR #${pr.number} link: ${pr.html_url} is Valid ✓.`);
+      } else {
+        await closePR(github, pr, owner, repo, reason);
+      }
     }
-
-    const { valid, reason } = await validatePR(github, pr, owner, repo);
-    if (valid) {
-      console.log(`PR #${pr.number} link: ${pr.html_url} is Valid ✓.`);
-    } else {
-      await closePR(github, pr, owner, repo, reason);
-    }
-  }
   } catch (err) {
     console.error('Unexpected error:', err.message);
   }

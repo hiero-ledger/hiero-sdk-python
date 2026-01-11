@@ -21,7 +21,7 @@ Click Create fork.
 
 Your new fork will appear at:
 `https://github.com/<your-username>/<repository-name>`
-This is your copy of the Python SDK. You can also access it from your repository section on github online.
+This is your copy of the Python SDK. You can also access it from your repository section on Github online.
 
 
 3. Clone Your Fork Locally

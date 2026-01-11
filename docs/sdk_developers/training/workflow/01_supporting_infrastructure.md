@@ -6,7 +6,6 @@ Recommended Tools
 - [ ] GitHub Desktop
 - [ ] Visual Studio Code
     - [ ] Pylance
-    - [ ] GitHub Copilot
 
 However, what may work best for you might be different. 
 
@@ -45,17 +44,6 @@ from hiero_sdk_python.account.token_id import TokenId
 This is incorrect because token_id.py does not live in /account! Instead, it lives in /tokens
 
 Read our [Pylance Installation Guide](../../pylance.md)
-
-#### Github Copilot
-Github Copilot is an AI coding-assistant tool.
-
-GitHub Copilot supports your workflow by:
-- Suggesting code snippets and patterns
-- Helping predict correct imports
-- Maintaining consistent naming and formatting
-- Speeding up development
-
-Additionally, since we have Copilot enabled as an automatic reviewer, once you enable Copilot as a reviewer, it will review your pull requests submitted to the Python SDK. This helps maintainers merge changes more quickly and is a great benefit to the project.
 
 
 
