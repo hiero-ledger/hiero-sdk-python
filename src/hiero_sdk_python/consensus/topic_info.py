@@ -142,28 +142,43 @@ class TopicInfo:
         if self.expiration_time and hasattr(self.expiration_time, "seconds"):
             exp_dt = datetime.fromtimestamp(self.expiration_time.seconds)
 
-        running_hash_hex: Optional[str] = (
-            self.running_hash.hex() if self.running_hash else None
+        running_hash_str: Optional[str] = f"0x{self.running_hash.hex()}" if self.running_hash else "None"
+
+        ledger_id_hex: Optional[str] = None
+        if self.ledger_id and isinstance(self.ledger_id, (bytes, bytearray)):
+            ledger_id_hex = self.ledger_id.hex()
+        ledger_id_str = f"0x{ledger_id_hex}" if ledger_id_hex else "None"
+
+        auto_renew_seconds = (
+            self.auto_renew_period.seconds if self.auto_renew_period else None
         )
-        ledger_id_hex: Optional[str] = (
-            self.ledger_id.hex()
-            if isinstance(self.ledger_id, (bytes, bytearray))
-            else None
-        )
+
+        if self.auto_renew_account is None:
+            auto_renew_account_str = "None"
+        elif hasattr(self.auto_renew_account, "shardNum"):
+            auto_renew_account_str = (
+                f"AccountId(shard={self.auto_renew_account.shardNum}, "
+                f"realm={self.auto_renew_account.realmNum}, "
+                f"account={self.auto_renew_account.accountNum})"
+            )
+        else:
+            auto_renew_account_str = str(self.auto_renew_account)
+
+        fee_exempt_keys_formatted = [format_key(key) for key in self.fee_exempt_keys]
 
         return (
             "TopicInfo(\n"
             f"  memo='{self.memo}',\n"
-            f"  running_hash=0x{running_hash_hex},\n"
+            f"  running_hash={running_hash_str},\n"
             f"  sequence_number={self.sequence_number},\n"
             f"  expiration_time={exp_dt},\n"
             f"  admin_key={format_key(self.admin_key)},\n"
             f"  submit_key={format_key(self.submit_key)},\n"
-            f"  auto_renew_period={self.auto_renew_period.seconds},\n"
-            f"  auto_renew_account={self.auto_renew_account},\n"
-            f"  ledger_id=0x{ledger_id_hex},\n"
+            f"  auto_renew_period={auto_renew_seconds},\n"
+            f"  auto_renew_account={auto_renew_account_str},\n"
+            f"  ledger_id={ledger_id_str},\n"
             f"  fee_schedule_key={format_key(self.fee_schedule_key)},\n"
-            f"  fee_exempt_keys={[format_key(key) for key in self.fee_exempt_keys]},\n"
+            f"  fee_exempt_keys={fee_exempt_keys_formatted},\n"
             f"  custom_fees={self.custom_fees},\n"
             ")"
         )

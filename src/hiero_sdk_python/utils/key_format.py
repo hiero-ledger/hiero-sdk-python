@@ -10,6 +10,8 @@ def format_key(key: Key) -> str:
     if key is None:
         return "None"
 
+    if hasattr(key, '_to_proto'):
+        key = key._to_proto()
     if key.HasField("ed25519"):
         return f"ed25519({key.ed25519.hex()})"
     elif key.HasField("thresholdKey"):
