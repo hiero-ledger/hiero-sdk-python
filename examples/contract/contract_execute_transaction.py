@@ -107,13 +107,17 @@ def create_contract(client, file_id):
 def get_contract_message(client, contract_id):
     """Get the message from the contract"""
     # Query the contract function to verify that the message was set
-    result = (
+    query = (
         ContractCallQuery()
         .set_contract_id(contract_id)
         .set_gas(2000000)
         .set_function("getMessage")
-        .execute(client)
     )
+
+    cost = query.get_cost(client)
+    query.set_max_query_payment(cost)
+    
+    result = query.execute(client)
 
     # The contract returns bytes32, which we decode to string
     # This removes any padding and converts to readable text
