@@ -98,6 +98,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+- Improve Good First Issue mentor assignment message by adding a Discord setup guide link and clarifying mentor and backup support roles (#1395)
 - Renamed `.github/scripts/check_advanced_requirement.sh` to `bot-advanced-check.sh` for workflow consistency (#1341)
 - Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
 - Archived unused auto draft GitHub workflow to prevent it from running (#1371)
