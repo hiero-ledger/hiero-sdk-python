@@ -66,9 +66,6 @@ async function countCompletedBeginnerIssues(github, owner, repo, username) {
           ) {
             nodes {
               number
-              pullRequest {
-                id
-              }
               assignees(first: 10) {
                 nodes {
                   login
@@ -87,12 +84,8 @@ async function countCompletedBeginnerIssues(github, owner, repo, username) {
       `Retrieved ${issues.length} closed Beginner issue(s) for evaluation`);
 
     for (const issue of issues) {
-      if (issue.pullRequest) {
-        console.log(`Skipping issue #${issue.number} (is a pull request)`);
-        continue;
-      }
-
       const assignees = issue.assignees?.nodes ?? [];
+      
       const wasAssigned = assignees.some(
         (assignee) =>
           assignee?.login?.toLowerCase() === normalizedUsername
