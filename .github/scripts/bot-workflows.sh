@@ -83,6 +83,11 @@ if ! command -v gh >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "ERROR: jq not found. Install it and ensure it's on PATH."
+  exit 1
+fi
+
 if ! gh auth status >/dev/null 2>&1; then
   if (( DRY_RUN == 0 )); then
     echo "ERROR: gh authentication required for non-dry-run mode."
@@ -95,7 +100,7 @@ fi
 # PR lookup logic - use branch-based approach (pullRequests API not available)
 echo "Looking up PR for failed workflow run..."
 
-HEAD_BRANCH=$(gh run view "$FAILED_RUN_ID" --json headBranch --jq '.headBranch' 2>/dev/null || echo "")
+HEAD_BRANCH=$(gh run view "$FAILED_RUN_ID" --repo "$REPO" --json headBranch --jq '.headBranch' 2>/dev/null || echo "")
 
 if [[ -z "$HEAD_BRANCH" ]]; then
   if (( DRY_RUN == 1 )); then
@@ -160,7 +165,7 @@ while (( PAGE <= MAX_PAGES )); do
   fi
 
   # Check this page for the marker instead of concatenating invalid JSON
-  if echo "$COMMENTS_PAGE" | jq -e ".[] | select(.body | contains(\"$MARKER\"))" >/dev/null 2>&1; then
+  if echo "$COMMENTS_PAGE" | jq -e --arg marker "$MARKER" '.[] | select(.body | contains($marker))' >/dev/null 2>&1; then
     DUPLICATE_EXISTS="true"
     echo "Found existing duplicate comment. Skipping."
     break
