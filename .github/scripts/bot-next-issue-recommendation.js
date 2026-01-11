@@ -16,6 +16,11 @@ module.exports = async ({ github, context, core }) => {
   core.info(`Processing PR #${prNumber} (dry_run: ${isDryRun})`);
   
   // Parse PR body to find linked issues
+  const MAX_PR_BODY_LENGTH = 50000; // Reasonable limit for PR body
+  if (prBody.length > MAX_PR_BODY_LENGTH) {
+    core.warning(`PR body exceeds ${MAX_PR_BODY_LENGTH} characters, truncating for parsing`);
+    prBody = prBody.substring(0, MAX_PR_BODY_LENGTH);
+  }
   const issueRegex = /(fixes|closes|resolves|fix|close|resolve)\s+#(\d+)/gi;
   const matches = [...prBody.matchAll(issueRegex)];
   
@@ -62,27 +67,27 @@ module.exports = async ({ github, context, core }) => {
     
     if (isGoodFirstIssue) {
       // Recommend beginner issues first, then Good First Issues
-      recommendedIssues = await searchIssues(github, repoOwner, repoName, 'beginner');
+      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
       if (recommendedIssues.length === 0) {
-        recommendedIssues = await searchIssues(github, repoOwner, repoName, 'good first issue');
+        recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
       }
     } else if (isBeginner) {
       // Recommend beginner or Good First Issues
-      recommendedIssues = await searchIssues(github, repoOwner, repoName, 'beginner');
+      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
       if (recommendedIssues.length === 0) {
-        recommendedIssues = await searchIssues(github, repoOwner, repoName, 'good first issue');
+        recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
       }
     }
     
     // Generate and post comment
-    await generateAndPostComment(github, context, prNumber, recommendedIssues, isDryRun, isGoodFirstIssue);
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, isDryRun, isGoodFirstIssue);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
   }
 };
 
-async function searchIssues(github, owner, repo, label) {
+async function searchIssues(github, core, owner, repo, label) {
   try {
     const query = `repo:${owner}/${repo} is:issue is:open label:"${label}" no:assignee`;
     core.info(`Searching for issues with query: ${query}`);
@@ -100,7 +105,7 @@ async function searchIssues(github, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, prNumber, recommendedIssues, isDryRun, wasGoodFirstIssue) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, isDryRun, wasGoodFirstIssue) {
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
