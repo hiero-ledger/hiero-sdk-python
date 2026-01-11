@@ -1,5 +1,4 @@
-"""
-Example: Create an account using a separate ECDSA key for the EVM alias.
+"""Example: Create an account using a separate ECDSA key for the EVM alias.
 
 This demonstrates:
 - Using a "main" key for the account
@@ -7,47 +6,36 @@ This demonstrates:
 - The need to sign the transaction with the alias private key
 
 Usage:
-- uv run -m examples.account.account_create_transaction_create_with_alias
-- python -m examples.account.account_create_transaction_create_with_alias
-(we use -m because we use the util `info_to_dict`)
+    uv run examples/account/account_create_transaction_create_with_alias.py
+    python examples/account/account_create_transaction_create_with_alias.py
 """
 
-import os
 import sys
-import json
+
 from dotenv import load_dotenv
 
-from examples.utils import info_to_dict
-
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
     AccountCreateTransaction,
+    AccountId,
     AccountInfo,
     AccountInfoQuery,
-    Network,
-    AccountId,
+    Client,
     Hbar,
+    PrivateKey,
 )
 
 load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Setup Client."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
+def setup_client() -> Client:
+    """Initialize client from environment variables."""
     try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
+        client = Client.from_env()
         print(f"Client set up with operator id {client.operator_account_id}")
         return client
+
     except Exception:
-        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
+        print("Error: Please check OPERATOR_ID, OPERATOR_KEY, and NETWORK in your .env file.")
         sys.exit(1)
 
 
@@ -56,6 +44,7 @@ def generate_main_and_alias_keys() -> tuple[PrivateKey, PrivateKey]:
 
     Returns:
         tuple: (main_private_key, alias_private_key)
+
     """
     print("\nSTEP 1: Generating main account key and separate ECDSA alias key...")
 
@@ -84,6 +73,10 @@ def create_account_with_ecdsa_alias(
 ) -> AccountId:
     """Create an account with a separate ECDSA key as the EVM alias.
 
+    This uses `set_key_with_alias` to map the main key to the alias key.
+    The transaction requires signatures from both the alias key (to authorize
+    the use of the alias) and the operator (to pay fees).
+
     Args:
         client: The Hedera client.
         main_private_key: The main account private key.
@@ -91,6 +84,7 @@ def create_account_with_ecdsa_alias(
 
     Returns:
         AccountId: The newly created account ID.
+
     """
     print("\nSTEP 2: Creating the account with the EVM alias from the ECDSA key...")
 
@@ -103,17 +97,16 @@ def create_account_with_ecdsa_alias(
     ).set_key_with_alias(main_private_key, alias_public_key)
 
     # Freeze and sign:
-    # - operator key signs as payer (via client)
+    # - operator key signs as payer (handled by client.execute)
     # - alias private key MUST sign to authorize the alias
     transaction = transaction.freeze_with(client).sign(alias_private_key)
 
     response = transaction.execute(client)
-    new_account_id = response.account_id
 
+    # Safe retrieval of account ID
+    new_account_id = response.account_id
     if new_account_id is None:
-        raise RuntimeError(
-            "AccountID not found in receipt. Account may not have been created."
-        )
+        raise RuntimeError("AccountID not found in receipt. Account may not have been created.")
 
     print(f"✅ Account created with ID: {new_account_id}\n")
     return new_account_id
@@ -128,10 +121,10 @@ def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
 
     Returns:
         AccountInfo: The account info object.
+
     """
     print("\nSTEP 3: Fetching account information...")
-    account_info = AccountInfoQuery().set_account_id(account_id).execute(client)
-    return account_info
+    return AccountInfoQuery().set_account_id(account_id).execute(client)
 
 
 def print_account_summary(account_info: AccountInfo) -> None:
@@ -139,30 +132,27 @@ def print_account_summary(account_info: AccountInfo) -> None:
 
     Args:
         account_info: The account info object to display.
+
     """
-    out = info_to_dict(account_info)
-    print("Account Info:")
-    print(json.dumps(out, indent=2) + "\n")
+    print("--- Account Info ---")
+    print(account_info)
+    print("--------------------\n")
 
     if account_info.contract_account_id is not None:
-        print(
-            f"✅ Contract Account ID (EVM alias on-chain): "
-            f"{account_info.contract_account_id}"
-        )
+        print(f"✅ Contract Account ID (EVM alias on-chain): {account_info.contract_account_id}")
     else:
         print("❌ Error: Contract Account ID (alias) does not exist.")
 
 
 def main():
-    """Main entry point."""
+    """Execute the example workflow."""
     try:
         client = setup_client()
         main_private_key, alias_private_key = generate_main_and_alias_keys()
-        account_id = create_account_with_ecdsa_alias(
-            client, main_private_key, alias_private_key
-        )
+        account_id = create_account_with_ecdsa_alias(client, main_private_key, alias_private_key)
         account_info = fetch_account_info(client, account_id)
         print_account_summary(account_info)
+
     except Exception as error:
         print(f"❌ Error: {error}")
         sys.exit(1)

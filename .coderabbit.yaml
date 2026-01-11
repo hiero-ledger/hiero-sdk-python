@@ -10,7 +10,7 @@ reviews:
   high_level_summary: false # Do not summarise a pull request first as there is a walkthrough
   review_status: false # Do not state what kind of review as performed or why (spammy)
   commit_status: false # Do not state the review is in progress (spammy)
-  collapse_walkthrough: true # Provide a walkthrough for reviewers, but collapse it (users shouldn't use this)
+  collapse_walkthrough: false # Provide a walkthrough for reviewers
   related_issues: false # Do not suggest related issues (spammy)
   related_prs: false # Do not suggest related PRs (spammy)
   suggested_labels: false # Do not suggest labels for the PR (spammy)
