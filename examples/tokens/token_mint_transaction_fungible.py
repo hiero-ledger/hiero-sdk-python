@@ -37,7 +37,7 @@ def setup_client():
         print(f"Client set up with operator id {client.operator_account_id}")
         return client, operator_id, operator_key
     except Exception as e:
-        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.\n",e)
+        print(f"❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.\n{e}")
         sys.exit(1)
 
 
