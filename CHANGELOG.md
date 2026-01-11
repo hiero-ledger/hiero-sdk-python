@@ -10,7 +10,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Auto-assignment bot for beginner-labeled issues with `/assign` command support and helpful reminders. (#1368)
 - Added comprehensive docstring to `FeeAssessmentMethod` enum explaining inclusive vs exclusive fee assessment methods with usage examples. (#1391)
 - Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with practical use cases. (#1392)
-
 - Added a notification workflow that alerts the support team when an issue is labeled as a Good First Issue Candidate.[(#1296)]
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
 - Beginner issue documentation and updated GFI and GFIC templates and documentation
@@ -96,6 +95,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add GitHub Actions script and workflow for automatic spam list updates.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
+- Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 
 ### Changed
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
