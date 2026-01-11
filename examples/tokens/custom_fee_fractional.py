@@ -13,7 +13,7 @@ from hiero_sdk_python.tokens.token_create_transaction import (
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
-from hiero_sdk_python.crypto.private_key import AccountId
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.tokens.token_type import TokenType
