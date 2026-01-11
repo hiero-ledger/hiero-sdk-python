@@ -340,6 +340,7 @@ module.exports = async ({ github, context }) => {
         console.log('[gfi-assign] Assignment completed successfully');
 
         // Chain mentor assignment after successful GFI assignment
+        let mentorAssignmentSucceeded = false;
         try {
             const assignMentor = require('./bot-mentor-assignment.js');
             await assignMentor({
@@ -347,38 +348,45 @@ module.exports = async ({ github, context }) => {
                 context,
                 assignee: { login: requesterUsername, type: 'User' }  // Pass freshly-assigned username
             });
+            mentorAssignmentSucceeded = true;
             console.log('[gfi-assign] Mentor assignment chained successfully');
         } catch (error) {
             console.error('[gfi-assign] Mentor assignment failed but user assignment succeeded:', {
                 message: error.message,
                 status: error.status,
-                issueNumber: context.payload.issue?.number,
+                owner,
+                repo,
+                issueNumber,
                 assignee: requesterUsername,
             });
             // Don't throw error - user assignment was successful
         }
 
         // Chain CodeRabbit plan trigger after mentor assignment
-        // This ensures GFI issues get AI-generated implementation guidance after assignment
-        try {
-            const { triggerCodeRabbitPlan, hasExistingCodeRabbitPlan } = require('./coderabbit_plan_trigger.js');
-            const { owner, repo } = context.repo;
-            
-            // Check if CodeRabbit plan already exists to avoid duplicate comments
-            const planExists = await hasExistingCodeRabbitPlan(github, owner, repo, issue.number);
-            if (planExists) {
-                console.log('[gfi-assign] CodeRabbit plan already exists, skipping');
-            } else {
-                await triggerCodeRabbitPlan(github, owner, repo, issue);
-                console.log('[gfi-assign] CodeRabbit plan chained successfully');
+        // Only trigger if mentor assignment succeeded to maintain the expected flow
+        if (mentorAssignmentSucceeded) {
+            try {
+                const { triggerCodeRabbitPlan, hasExistingCodeRabbitPlan } = require('./coderabbit_plan_trigger.js');
+                
+                // Check if CodeRabbit plan already exists to avoid duplicate comments
+                const planExists = await hasExistingCodeRabbitPlan(github, owner, repo, issueNumber);
+                if (planExists) {
+                    console.log('[gfi-assign] CodeRabbit plan already exists, skipping');
+                } else {
+                    await triggerCodeRabbitPlan(github, owner, repo, issue);
+                    console.log('[gfi-assign] CodeRabbit plan chained successfully');
+                }
+            } catch (error) {
+                console.error('[gfi-assign] CodeRabbit plan failed but user assignment succeeded:', {
+                    message: error.message,
+                    status: error.status,
+                    owner,
+                    repo,
+                    issueNumber,
+                    assignee: requesterUsername,
+                });
+                // Don't throw error - user assignment was successful
             }
-        } catch (error) {
-            console.error('[gfi-assign] CodeRabbit plan failed but user assignment succeeded:', {
-                message: error.message,
-                status: error.status,
-                issueNumber: context.payload.issue?.number,
-            });
-            // Don't throw error - user assignment was successful
         }
     } catch (error) {
         console.error('[gfi-assign] Error:', {
