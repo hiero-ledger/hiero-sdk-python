@@ -160,6 +160,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
 
 ### Fixed
+- Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
 - Good First Issue bot no longer posts `/assign` reminders for repository collaborators. (#1367)
 - GFI workflow casing 
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
