@@ -84,6 +84,57 @@ If you’d like to work on this **Good First Issue**, just comment:
 and you’ll be automatically assigned. Feel free to ask questions here if anything is unclear!`;
 }
 
+/// HELPERS TO DETECT COLLABORATORS ///
+
+function hasValidInputs({ github, owner, repo, username }) {
+    return Boolean(
+        github &&
+        typeof owner === 'string' &&
+        typeof repo === 'string' &&
+        typeof username === 'string' &&
+        owner &&
+        repo &&
+        username
+    );
+}
+
+function isPermissionFailure(error) {
+    return error?.status === 401 || error?.status === 403;
+}
+
+async function isRepoCollaborator({ github, owner, repo, username }) {
+    if (!hasValidInputs({ github, owner, repo, username })) {
+        console.log('[gfi-assign] isRepoCollaborator: invalid args', {
+            owner,
+            repo,
+            username,
+        });
+        return false;
+    }
+
+    try {
+        await github.rest.repos.checkCollaborator({
+            owner,
+            repo,
+            username,
+        });
+        return true; // 204 = collaborator
+    } catch (error) {
+        if (error?.status === 404 || isPermissionFailure(error)) {
+            if (isPermissionFailure(error)) {
+                console.log(
+                    '[gfi-assign] isRepoCollaborator: insufficient permissions; treating as non-collaborator',
+                    { owner, repo, username, status: error.status }
+                );
+            }
+            return false;
+        }
+        throw error; // unexpected error
+    }
+    
+}
+
+
 /// START OF SCRIPT ///
 module.exports = async ({ github, context }) => {
     try {
@@ -127,6 +178,20 @@ module.exports = async ({ github, context }) => {
                 issueIsGoodFirstIssue(issue) &&
                 !issue.assignees?.length
             ) {
+                const username = comment.user.login;
+
+                const isTeamMember = await isRepoCollaborator({
+                    github,
+                    owner,
+                    repo,
+                    username,
+                });
+
+                if (isTeamMember) {
+                    console.log('[gfi-assign] Skip reminder: commenter is collaborator');
+                    return;
+                }
+
                 const comments = await github.paginate(
                     github.rest.issues.listComments,
                     {
