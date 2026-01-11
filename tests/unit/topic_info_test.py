@@ -241,3 +241,69 @@ def test_from_proto_with_custom_fees():
     assert len(topic_info.custom_fees) == 2
     assert topic_info.custom_fees[0].amount == custom_fee.amount
     assert topic_info.custom_fees[1].amount == custom_fee.amount
+
+
+def test_repr_and_str(topic_info):
+    """Test the __repr__ and __str__ methods of the TopicInfo class."""
+    str_output = str(topic_info)
+    repr_output = repr(topic_info)
+
+    assert str_output == repr_output
+    assert "TopicInfo" in repr_output
+    assert "memo='Test topic memo'" in repr_output
+    assert "sequence_number=42" in repr_output
+    assert "running_hash=0x0102030405060708" in repr_output
+    assert "expiration_time=2021-07-01 00:00:00" in repr_output
+    assert "auto_renew_period=7776000" in repr_output
+
+def test_str_formatting(topic_info):
+    """Test the string formatting of the TopicInfo class."""
+    str_output = str(topic_info)
+
+    assert "TopicInfo(" in str_output
+    assert "memo='Test topic memo'" in str_output
+    assert "running_hash=0x0102030405060708" in str_output
+    assert "sequence_number=42" in str_output
+    assert "expiration_time=2021-07-01 00:00:00" in str_output
+    assert "admin_key=ed25519(" in str_output
+    assert "submit_key=ed25519(" in str_output 
+    assert "auto_renew_period=7776000" in str_output
+    assert "auto_renew_account=AccountId(shard=0, realm=0, account=100)" in str_output
+    assert "ledger_id=0x090a0b0c" in str_output
+    assert "fee_schedule_key=ed25519(" in str_output
+    assert "fee_exempt_keys=['ed25519(" in str_output
+    assert "custom_fees=[" in str_output
+
+def test_str_with_none_values():
+    """Test the string formatting of the TopicInfo class with None values."""
+    topic_info = TopicInfo(
+        memo="Test memo",
+        running_hash=b"\x01\x02",
+        sequence_number=1,
+        expiration_time=None,
+        admin_key=None,
+        submit_key=None,
+        auto_renew_period=None,
+        auto_renew_account=None,
+        ledger_id=None,
+        fee_schedule_key=None,
+        fee_exempt_keys=None,
+        custom_fees=None,
+    )
+
+    str_output = str(topic_info)
+
+    assert "TopicInfo(" in str_output
+    assert "memo='Test memo'" in str_output
+    assert "running_hash=0x0102" in str_output
+    assert "sequence_number=1" in str_output
+    assert "expiration_time=None" in str_output
+    assert "admin_key=None" in str_output
+    assert "submit_key=None" in str_output
+    assert "auto_renew_period=None" in str_output
+    assert "auto_renew_account=None" in str_output
+    assert "ledger_id=None" in str_output
+    assert "fee_schedule_key=None" in str_output
+    assert "fee_exempt_keys=[]" in str_output
+    assert "custom_fees=[]" in str_output
+
