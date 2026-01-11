@@ -1,8 +1,8 @@
 // Script to trigger CodeRabbit plan for intermediate and advanced issues
 
-const marker = '<!-- CodeRabbit Plan Trigger -->';
+const CODERABBIT_MARKER = '<!-- CodeRabbit Plan Trigger -->';
 
-async function triggerCodeRabbitPlan(github, owner, repo, issue, marker) {
+async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERABBIT_MARKER) {
   const comment = `${marker} @coderabbitai plan`;
 
   try {
@@ -19,6 +19,7 @@ async function triggerCodeRabbitPlan(github, owner, repo, issue, marker) {
     return false;
   }
 }
+
 
 function hasBeginnerOrHigherLabel(issue, label) {
   // Check if issue has beginner, intermediate or advanced label (case-insensitive)
@@ -77,10 +78,14 @@ module.exports = async ({ github, context }) => {
     }
 
     // Post CodeRabbit plan trigger
-    await triggerCodeRabbitPlan(github, owner, repo, issue, marker);
+    await triggerCodeRabbitPlan(github, owner, repo, issue, CODERABBIT_MARKER);
 
     logSummary(owner, repo, issue);
   } catch (err) {
     console.log('❌ Error:', err.message);
   }
 };
+
+// Export triggerCodeRabbitPlan for reuse by other scripts (e.g., GFI assignment bot)
+module.exports.triggerCodeRabbitPlan = triggerCodeRabbitPlan;
+module.exports.hasExistingCodeRabbitPlan = hasExistingCodeRabbitPlan;
