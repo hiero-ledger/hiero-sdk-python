@@ -27,7 +27,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
         Args:
             account_id (AccountId, optional): The ID of the account to retrieve the balance for.
-            contract_id (ContractId, optional): The ID of the conract to retrieve the balance for.
+            contract_id (ContractId, optional): The ID of the contract to retrieve the balance for.
         """
         super().__init__()
         self.account_id: Optional[AccountId] = None
