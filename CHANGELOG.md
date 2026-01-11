@@ -98,7 +98,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add GitHub Actions script and workflow for automatic spam list updates.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
-
+- Added dry-run support and refactored `bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.sh` for improved maintainability and testability. (#1288)
 ### Changed
 
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
