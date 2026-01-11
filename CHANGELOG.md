@@ -7,6 +7,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Added comprehensive docstring to `FeeAssessmentMethod` enum explaining inclusive vs exclusive fee assessment methods with usage examples. (#1391)
+- Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with practical use cases. (#1392)
 
 - Added a notification workflow that alerts the support team when an issue is labeled as a Good First Issue Candidate.[(#1296)]
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
@@ -92,6 +94,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Chained Good First Issue assignment with mentor assignment to bypass GitHub's anti-recursion protection - mentor assignment now occurs immediately after successful user assignment in the same workflow execution. (#1369)
 - Add GitHub Actions script and workflow for automatic spam list updates.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
+- Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
 - Renamed `.github/scripts/check_advanced_requirement.sh` to `bot-advanced-check.sh` for workflow consistency (#1341)
@@ -151,10 +154,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance assignment bot to guard against users with spam PRs `.github/scripts/bot-assignment-check.sh`
 - Add CodeRabbit documentation review prompts for docs, sdk_users, and sdk_developers with priorities, philosophy, and edge case checks. ([#1236](https://github.com/hiero-ledger/hiero-sdk-python/issues/1236))
 - Enhance NodeAddress tests with additional coverage for proto conversion `tests/unit/node_address_test.py`
+- Replaced deprecated `AccountCreateTransaction.set_key()` usage with `set_key_without_alias()` and `set_key_with_alias()` across examples and tests
+
 - Updated `pyproject.toml` to enforce stricter Ruff linting rules, including Google-style docstrings (`D`), import sorting (`I`), and modern Python syntax (`UP`).
 - Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
+- Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
 
 ### Fixed
+- Good First Issue bot no longer posts `/assign` reminders for repository collaborators. (#1367)
 - GFI workflow casing 
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
 - Fixed step-security/harden-runner action SHA in merge conflict bot workflow (#1278)
@@ -170,7 +177,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
 - Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
 - Fixed LinkBot permission issue for fork PRs by changing trigger to pull_request_target and adding proper permissions.
+- Fixed duplicate comment prevention in issue reminder bot by adding hidden HTML marker for reliable comment detection (.github/scripts/bot-issue-reminder-no-pr.sh) (#1372)
 - Fixed bot-pr-missing-linked-issue to skip commenting on pull requests created by automated bots. (#1382)
+- Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 
 ### Breaking Change
 

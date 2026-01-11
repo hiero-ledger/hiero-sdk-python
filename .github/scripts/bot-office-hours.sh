@@ -84,14 +84,19 @@ EOF
 
 echo "$PR_DATA" |
   jq -r '
-    group_by(.author.login)
+    sort_by(.author.login)
+    | group_by(.author.login)
     | .[]
-    | sort_by(.createdAt)
-    | reverse
-    | .[0]
-    | "\(.number) \(.author.login)"
+    | max_by(.createdAt)
+    | ((.author.login | endswith("[bot]")) as $is_bot
+      | "\(.number) \(.author.login) \($is_bot)"
   ' |
-  while read PR_NUM AUTHOR; do
+  while read -r PR_NUM AUTHOR IS_BOT; do
+    if [[ "$IS_BOT" == "true" ]]; then
+      echo "Skipping PR #$PR_NUM because author @$AUTHOR is a bot."
+      continue
+    fi
+
     for EXCLUDED in "${EXCLUDED_AUTHORS[@]}"; do
       if [ "$AUTHOR" = "$EXCLUDED" ]; then
         echo "Skipping PR #$PR_NUM by excluded author @$AUTHOR"
