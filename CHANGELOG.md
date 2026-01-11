@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -103,6 +103,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add GitHub Actions script and workflow for automatic spam list updates.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
+- Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 
 ### Changed
 
