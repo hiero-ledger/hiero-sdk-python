@@ -52,6 +52,11 @@ Parameters:
   - { github, context }: Standard objects provided by 'actions/github-script'.
 ==============================================================================
 */
+
+const fs = require("fs");
+
+const SPAM_LIST_PATH = ".github/spam-list.txt";
+
 module.exports = async ({ github, context }) => {
   try {
     const { payload } = context;
@@ -82,8 +87,8 @@ module.exports = async ({ github, context }) => {
     async function isRepoCollaborator(username) {
       try {
         if (username === repo.owner.login) {
-            console.log(`[Beginner Bot] User @${username} is the repo owner.`);
-            return true;
+          console.log(`[Beginner Bot] User @${username} is the repo owner.`);
+          return true;
         }
 
         await github.rest.repos.checkCollaborator({
@@ -91,7 +96,6 @@ module.exports = async ({ github, context }) => {
           repo: repo.name,
           username: username,
         });
-        
         console.log(`[Beginner Bot] User @${username} is a confirmed repo collaborator.`);
         return true;
       } catch (error) {
@@ -104,12 +108,39 @@ module.exports = async ({ github, context }) => {
       }
     }
 
+    // NEW: Spam + Assignment Limit Helpers (Layered In)
+
+    function isSpamUser(username) {
+      if (!fs.existsSync(SPAM_LIST_PATH)) return false;
+
+      const list = fs.readFileSync(SPAM_LIST_PATH, "utf8")
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith("#"));
+
+      return list.includes(username);
+    }
+
+    async function getOpenAssignments(username) {
+      const issues = await github.paginate(
+        github.rest.issues.listForRepo,
+        {
+          owner: repo.owner.login,
+          repo: repo.name,
+          assignee: username,
+          state: "open",
+          per_page: 100,
+        }
+      );
+      return issues.length;
+    }
+
     const commenter = comment.user.login;
 
     // Fix 3: Validate comment body
     if (!comment.body) {
-        console.log("[Beginner Bot] Comment body is empty. Exiting.");
-        return;
+      console.log("[Beginner Bot] Comment body is empty. Exiting.");
+      return;
     }
 
     const commentBody = comment.body.toLowerCase();
@@ -119,44 +150,94 @@ module.exports = async ({ github, context }) => {
     if (isAssignCommand) {
       // --- ASSIGNMENT LOGIC ---
       if (issue.assignees && issue.assignees.length > 0) {
-        const currentAssignee = issue.assignees[0].login;      
+        const currentAssignee = issue.assignees[0].login;
         console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Ignoring /assign command.`);
-        
+
         // Fix 4: Granular Try/Catch for Comment API
         try {
-            await github.rest.issues.createComment({
-                owner: repo.owner.login,
-                repo: repo.name,
-                issue_number: issue.number,
-                body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "beginner" issues [here](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee).`,      
-            });
+          await github.rest.issues.createComment({
+            owner: repo.owner.login,
+            repo: repo.name,
+            issue_number: issue.number,
+            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "beginner" issues [here](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee).`,
+          });
         } catch (error) {
-            console.error(`[Beginner Bot] Failed to post already-assigned comment: ${error.message}`);
+          console.error(`[Beginner Bot] Failed to post already-assigned comment: ${error.message}`);
         }
         return; // Exit after warning
       }
 
+      // Block spam users from beginner issues
+
+      const spamUser = isSpamUser(commenter);
+
+      if (spamUser) {
+        console.log(`[Beginner Bot] Spam user @${commenter} attempted to assign to beginner issue. Blocked.`);
+
+        try {
+          await github.rest.issues.createComment({
+            owner: repo.owner.login,
+            repo: repo.name,
+            issue_number: issue.number,
+            body: `Hi @${commenter}, your account is currently restricted to **Good First Issues**. Please complete a Good First Issue or contact a maintainer to have restrictions reviewed.`,
+          });
+        } catch (error) {
+          console.error(`[Beginner Bot] Failed to post spam restriction message: ${error.message}`);
+        }
+
+        return;
+      }
+
+      // Enforce Assignment Limits
+
+      const openCount = await getOpenAssignments(commenter);
+      const maxAllowed = 2;
+
+      console.log("[Beginner Bot] Limit check:", {
+        commenter,
+        openCount,
+        spamUser,
+        maxAllowed,
+      });
+
+      if (openCount >= maxAllowed) {
+        const message = `👋 Hi @${commenter}, you already have **2 open assignments**. Please finish one before requesting another.`;
+
+        try {
+          await github.rest.issues.createComment({
+            owner: repo.owner.login,
+            repo: repo.name,
+            issue_number: issue.number,
+            body: message,
+          });
+        } catch (error) {
+          console.error(`[Beginner Bot] Failed to post limit warning: ${error.message}`);
+        }
+
+        return;
+      }
+
       console.log(`[Beginner Bot] Assigning issue #${issue.number} to @${commenter}...`);
-      
+
       // Fix 4: Granular Try/Catch for Assign API
       try {
-          await github.rest.issues.addAssignees({
-              owner: repo.owner.login,
-              repo: repo.name,
-              issue_number: issue.number,
-              assignees: [commenter],
-            });
-            console.log(`[Beginner Bot] Successfully assigned.`);
+        await github.rest.issues.addAssignees({
+          owner: repo.owner.login,
+          repo: repo.name,
+          issue_number: issue.number,
+          assignees: [commenter],
+        });
+        console.log(`[Beginner Bot] Successfully assigned.`);
       } catch (error) {
-          console.error(`[Beginner Bot] Failed to assign issue: ${error.message}`);
+        console.error(`[Beginner Bot] Failed to assign issue: ${error.message}`);
       }
 
     } else {
       // --- REMINDER LOGIC ---
-      
+
       if (issue.assignees && issue.assignees.length > 0) {
-          console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Skipping reminder.`);
-          return; 
+        console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Skipping reminder.`);
+        return;
       }
 
       if (await isRepoCollaborator(commenter)) {
@@ -165,41 +246,41 @@ module.exports = async ({ github, context }) => {
       }
 
       // Fix 5: Updated Marker Text
-    const REMINDER_MARKER = "<!-- beginner assign reminder -->";      
+      const REMINDER_MARKER = "<!-- beginner assign reminder -->";
       // FIX 6: Granular Try/Catch for List Comments API
       let comments;
       try {
-          const { data } = await github.rest.issues.listComments({
-              owner: repo.owner.login,
-              repo: repo.name,
-              issue_number: issue.number,
-          });
-          comments = data;
+        const { data } = await github.rest.issues.listComments({
+          owner: repo.owner.login,
+          repo: repo.name,
+          issue_number: issue.number,
+        });
+        comments = data;
       } catch (error) {
-          console.error(`[Beginner Bot] Failed to list comments: ${error.message}`);
-          return; // Exit gracefully if we can't check for duplicates
+        console.error(`[Beginner Bot] Failed to list comments: ${error.message}`);
+        return; // Exit gracefully if we can't check for duplicates
       }
-      
+
       if (comments.some((c) => c.body.includes(REMINDER_MARKER))) {
         console.log("[Beginner Bot] Reminder already exists on this issue. Skipping.");
         return;
       }
 
       console.log(`[Beginner Bot] Posting help reminder for @${commenter}...`);
-      
+
       const reminderBody = `${REMINDER_MARKER}\n👋 Hi @${commenter}! If you'd like to work on this issue, please comment \`/assign\` to get assigned.`;
-      
+
       // FIX 6: Granular Try/Catch for Create Comment API
       try {
-          await github.rest.issues.createComment({
-              owner: repo.owner.login,
-              repo: repo.name,
-              issue_number: issue.number,
-              body: reminderBody,
-          });
-          console.log("[Beginner Bot] Reminder posted successfully.");
+        await github.rest.issues.createComment({
+          owner: repo.owner.login,
+          repo: repo.name,
+          issue_number: issue.number,
+          body: reminderBody,
+        });
+        console.log("[Beginner Bot] Reminder posted successfully.");
       } catch (error) {
-          console.error(`[Beginner Bot] Failed to post reminder: ${error.message}`);
+        console.error(`[Beginner Bot] Failed to post reminder: ${error.message}`);
       }
     }
 

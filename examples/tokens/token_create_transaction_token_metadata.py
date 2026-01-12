@@ -15,43 +15,26 @@ uv run examples/tokens/token_create_transaction_token_metadata.py
 python examples/tokens/token_create_transaction_token_metadata.py
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
     TokenCreateTransaction,
     TokenUpdateTransaction,
-    Network,
     TokenType,
     SupplyType,
 )
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
-
-    except (TypeError, ValueError):
-        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def generate_metadata_key():
     """Generate a new metadata key for the token."""
@@ -230,7 +213,10 @@ def create_token_with_metadata():
     - create token WITH metadat_key (expected to succed)
     and validate metadata length
     """
-    client, operator_id, operator_key = setup_client()
+
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
     metadata_key = generate_metadata_key()
 
     token_a = create_token_without_metadata_key(client, operator_key, operator_id)

@@ -4,15 +4,11 @@ python examples/tokens/token_update_transaction_key.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
 )
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
@@ -22,23 +18,12 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client, operator_id
-
+    return client
 
 def create_fungible_token(client, operator_id, admin_key, wipe_key):
     """Create a fungible token"""
@@ -123,7 +108,9 @@ def token_update_key():
     3. Checking the current token info and key values
     4. Updating the wipe key with full validation
     """
-    client, operator_id = setup_client()
+
+    client = setup_client()
+    operator_id = client.operator_account_id
 
     admin_key = PrivateKey.generate_ed25519()
     wipe_key = PrivateKey.generate_ed25519()
