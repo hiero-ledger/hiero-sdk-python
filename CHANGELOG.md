@@ -97,6 +97,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+- Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
 - Renamed `.github/scripts/check_advanced_requirement.sh` to `bot-advanced-check.sh` for workflow consistency (#1341)
 - Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
 - Archived unused auto draft GitHub workflow to prevent it from running (#1371)
@@ -162,7 +163,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 
 ### Fixed
-- Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
+- Improved error handling in token examples with broader exception coverage and more descriptive error messages.(#1413)
 - Good First Issue bot no longer posts `/assign` reminders for repository collaborators. (#1367)
 - GFI workflow casing 
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
