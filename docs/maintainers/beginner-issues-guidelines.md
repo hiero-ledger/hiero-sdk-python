@@ -1,168 +1,165 @@
-# Beginner Issue Guidelines
+# Beginner Issue Guidelines — Hiero Python SDK
 
-This document defines what we **do** and **do not** consider a *Beginner Issue* in the Hiero Python SDK.
+## How to Use This Document
 
-Beginner Issues represent the **next step after Good First Issues** and are intended for contributors who are ready to take on slightly more responsibility and decision-making.
+This guide supports maintainers and issue creators who use the **Beginner** label
+in the Hiero Python SDK repository.
 
----
+It helps:
 
-## Table of Contents
+**Issue creators:**
+- Describe approachable, confidence-building tasks  
+- Set expectations without over-prescribing solutions  
+- Provide helpful context for newer contributors  
 
-- [Purpose](#purpose)
-- [What We Consider Beginner Issues](#what-we-consider-beginner-issues)
-  - [Source Changes in `src`](#source-changes-in-src)
-  - [Typing and Code Quality Improvements](#typing-and-code-quality-improvements)
-  - [Documentation Improvements](#documentation-improvements)
-  - [Improvements to Examples](#improvements-to-examples)
-  - [Test Improvements](#test-improvements)
-- [What Is NOT a Beginner Issue](#what-is-not-a-beginner-issue)
-- [Maintainer Guidance](#maintainer-guidance)
-- [Additional Resources](#additional-resources)
+**Maintainers:**
+- Apply the Beginner label consistently  
+- Keep issue difficulty levels clear and welcoming  
+
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+All contributions — from small fixes to larger improvements — are valuable to the Hiero project.
+
+The **Beginner** label highlights work that supports learning, exploration, and growing confidence.
 
 ---
 
 ## Purpose
 
-The goal of a Beginner Issue is to:
+Beginner Issues represent the **next step after Good First Issues**.
 
-- ✅ Build confidence and independence
-- ✅ Encourage light investigation
-- ✅ Prepare for intermediate work
+They’re a great fit for contributors who:
 
-Beginner Issues assume contributors are already familiar with:
+- Are comfortable with the basic contribution workflow  
+- Want to explore the codebase a little more  
+- Are ready to take on slightly more independent work  
 
-- Basic SDK workflow
-- Basic Git
-- At least beginner level programming
-- Reading and navigating some of the codebase
+These issues help contributors grow their confidence in:
 
----
-
-## What We Consider Beginner Issues
-
-Beginner Issues are:
-
-- ✅ Well-scoped
-- ✅ Encourage light investigation
-- ✅ Lightly challenging
-- ✅ Welcome questions and discussion
-
-They differ from Good First Issues in that they:
-
-- ❗ Require **some initiative and coding experience**
-- ❗ Require **working to understand existing behavior**
-- ❗ Are not purely mechanical
-
-Here are some examples:
-
-### Source Changes in `src`
-
-#### Allowed
-
-- Implementing or improving `__str__` or `__repr__` methods
-- Small, localized improvements to utility functions
-- Minor behavior changes with clearly stated intent
-- Changes that require limited understanding of how existing code behaves
-
-#### Not Allowed
-
-- Large refactors or architectural changes
-- Cross-cutting changes spanning many unrelated modules
+- Reading and understanding existing code  
+- Making small, thoughtful changes  
+- Asking good questions and learning by doing  
 
 ---
 
-### Typing and Code Quality Improvements
+## What to Expect
 
-#### Allowed
+Beginner Issues are designed for contributors who:
 
-- Adding missing type hints in simple functions
-- Fixing incorrect type annotations in simple functions
-- Improving type consistency in a file
+- Have basic Python experience  
+- Are familiar with Git and the SDK workflow  
+- Can navigate a few files in the repository  
+- Are open to learning how things work under the hood  
 
-#### Not Allowed
-
-- Large-scale typing refactors
-- Type hinting in advanced areas, like protobufs or complicated functions to interpret
-- Type changes that significantly alter runtime behavior
+These issues usually involve more exploration than Good First Issues,
+but still stay focused, approachable, and well-scoped.
 
 ---
 
-### Documentation Improvements
+## How Beginner Issues Usually Feel
 
-#### Allowed
+Beginner Issues often:
 
-- Writing new documentation in simple areas or narrow areas that can be researched
-- Improving or expanding existing documentation or examples
+- Involve a small number of files  
+- Require reading and understanding existing behavior  
+- Leave room for small decisions and learning  
+- Stay focused on a clear, specific goal  
 
-#### Not Allowed
-
-- Creating large documentation workflows
-- Documentation changes requiring deep domain knowledge
-- Documentation changes requiring high-level insights
+They’re a great fit for contributors who want to grow their skills without feeling overwhelmed.
 
 ---
 
-### Improvements to Examples
+## Common Types of Beginner Work
 
-#### Allowed
+Here are examples of tasks that often fit well at this level:
 
-- Creating simple examples that are similar to others
-- Adding missing steps to better demonstrate functionality
-- Improving ordering, clarity, or readability of examples
-- Enhancing example output to be more instructive
+### Core SDK Changes
+- Improving `__str__` or `__repr__` methods  
+- Small, localized improvements to utility functions  
+- Minor behavior tweaks with clear intent  
+- Changes that require understanding how existing code behaves  
 
-#### Not Allowed
+### Typing & Code Quality
+- Adding missing type hints in simple functions  
+- Fixing incorrect type annotations  
+- Improving consistency within a file  
 
-- Turning examples into production-ready implementations without significant prompting or examples
+### Documentation
+- Writing or expanding docs for narrow, well-defined areas  
+- Improving clarity in existing documentation  
+- Adding helpful explanations to examples  
+
+### Examples
+- Creating simple examples based on existing ones  
+- Adding missing steps to demonstrate functionality  
+- Improving readability or output clarity  
+- Making examples more instructional  
+
+### Tests
+- Extending existing tests with additional assertions  
+- Covering specific edge cases  
+- Improving test naming and clarity  
 
 ---
 
-### Test Improvements
+## Usually Not Good Fits
 
-#### Allowed
+- Purely mechanical tasks  
+- Large architectural refactors  
+- Cross-cutting changes across many subsystems  
+- Work requiring deep protocol or DLT expertise  
+- Designing new testing frameworks  
 
-- Extending existing tests to cover specific additional scenarios
-- Adding assertions based on observed behavior
-- Improving test clarity, naming, or intent
-
-#### Not Allowed
-
-- Creating new unit or integration test suites
-- Designing complex or high-level test strategies
+These tasks may be a better fit for **Good First Issue**, **Intermediate**, or **Advanced** labels.
 
 ---
-## What is Not a Beginner Issue
 
-### Rule of Thumb
+## Typical Scope & Time
 
-> If a contributor must **read code and make small decisions**,  
-> it’s a **Beginner Issue**.
+Beginner Issues are usually:
 
-> If they must **interpret complex code or design systems**,  
-> it’s **not**.
+- ⏱ **Estimated time:** A few hours to a day  
+- 📄 **Scope:** One or a few related files  
+- 🧠 **Challenge level:** Exploration, learning, and light decision-making  
+
+They’re designed to be achievable in a single pull request.
+
+---
+
+## Support & Collaboration
+
+Beginner Issues are supported through:
+
+- Issue and PR discussions  
+- Maintainer and community feedback  
+- Friendly guidance and clarification  
+
+Support focuses on:
+
+- Helping contributors understand the code  
+- Clarifying expectations  
+- Making the learning process enjoyable  
+
+The goal is to build confidence while keeping the experience positive and encouraging.
 
 ---
 
 ## Maintainer Guidance
 
-#### Label as a Beginner Issue if the issue:
+An issue is often a good fit for the **Beginner** label when it:
 
-- ✅ Builds naturally on Good First Issues
-- ✅ Requires light investigation or interpretation
-- ✅ Has clear intent but not a fully scripted solution
+- Builds naturally on Good First Issues  
+- Requires light investigation or interpretation  
+- Has a clear goal without being fully scripted  
+- Encourages learning and questions  
 
-#### Do NOT label as a Beginner Issue if the issue:
+An issue may be better suited for another label if it:
 
-- ❌ Is purely mechanical (use Good First Issue instead)
-- ❌ Requires protocol or DLT expertise
-- ❌ Spans many unrelated parts of the codebase
-- ❌ Represents architectural or design-level work
+- Is purely mechanical  
+- Requires deep domain expertise  
+- Spans many unrelated parts of the codebase  
+- Involves architectural or design-level decisions  
 
-### Additional Resources
+---
 
-- [Good First Issue Guidelines](./good_first_issues_guidelines.md)
-- [Contributing Guide](../../CONTRIBUTING.md)
-- [DCO Signing Guide](../sdk_developers/signing.md)
-- [Changelog Entry Guide](../sdk_developers/changelog_entry.md)
-- [Discord Community](../discord.md)
-- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+Beginner Issues are about growing skills —  
+through curiosity, exploration, and thoughtful contributions.
