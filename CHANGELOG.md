@@ -193,6 +193,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Removed
 
+- Removed outdated transport security comments in custom_fee_fixed example (#1452)
+
 - Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 
 ### Breaking Change

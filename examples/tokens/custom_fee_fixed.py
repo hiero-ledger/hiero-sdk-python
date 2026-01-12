@@ -1,7 +1,7 @@
 """
 Run with:
-uv run examples/tokens/custom_fixed_fee.py
-python examples/tokens/custom_fixed_fee.py
+uv run examples/tokens/custom_fee_fixed.py
+python examples/tokens/custom_fee_fixed.py
 """
 
 import sys
