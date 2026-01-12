@@ -7,9 +7,7 @@ Refactored to be more modular:
 - main() orchestrates setup and calls helper functions
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
@@ -21,33 +19,12 @@ from hiero_sdk_python import (
     ResponseCode,
 )
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    print(f"🌐 Connecting to Hedera {network_name}...")
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id_str = os.getenv("OPERATOR_ID")
-        operator_key_str = os.getenv("OPERATOR_KEY")
-        if not operator_id_str or not operator_key_str:
-            print("Error: OPERATOR_ID or OPERATOR_KEY not set in .env file")
-            sys.exit(1)
-        operator_id = AccountId.from_string(operator_id_str)
-        operator_key = PrivateKey.from_string(operator_key_str)
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("Error: Creating client, Please check your .env file")
-        sys.exit(1)
-
+    """Initialize and set up the client using env vars."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client, client.operator_account_id, client.operator_private_key
 
 def create_topic(client, operator_key):
     """Create a new topic"""
@@ -68,7 +45,6 @@ def create_topic(client, operator_key):
     except Exception as e:
         print(f"Error: Creating topic: {e}")
         sys.exit(1)
-
 
 def topic_delete_transaction(client, operator_key, topic_id):
     """
@@ -92,7 +68,6 @@ def topic_delete_transaction(client, operator_key, topic_id):
         print(f"Error: Topic deletion failed: {str(e)}")
         sys.exit(1)
 
-
 def main():
     """Orchestrator — runs the example start-to-finish"""
     # Config Client
@@ -103,7 +78,6 @@ def main():
 
     # Delete the topic
     topic_delete_transaction(client, operator_key, topic_id)
-
 
 if __name__ == "__main__":
     main()

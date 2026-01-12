@@ -4,9 +4,7 @@ python examples/consensus/topic_message_submit_transaction.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
@@ -18,27 +16,12 @@ from hiero_sdk_python import (
     ResponseCode,
 )
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
-        sys.exit(1)
-
+    """Initialize and set up the client using env vars."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client, client.operator_account_id, client.operator_private_key
 
 def create_topic(client, operator_key):
     """Create a new topic"""
@@ -59,7 +42,6 @@ def create_topic(client, operator_key):
     except Exception as e:
         print(f"❌ Error: Creating topic: {e}")
         sys.exit(1)
-
 
 def submit_topic_message_transaction(client, topic_id, message, operator_key):
     """Submit a message to the specified topic"""
@@ -82,7 +64,6 @@ def submit_topic_message_transaction(client, topic_id, message, operator_key):
         print(f"❌ Error: Message submission failed: {str(e)}")
         sys.exit(1)
 
-
 def main():
     """
     A example to create a topic and then submit a message to it.
@@ -97,7 +78,6 @@ def main():
 
     # Submit message to topic
     submit_topic_message_transaction(client, topic_id, message, operator_key)
-
 
 if __name__ == "__main__":
     main()

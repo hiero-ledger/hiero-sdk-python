@@ -100,6 +100,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+- Refactored `setup_client` in file and consensus examples to use `Client.from_env()` (#1450)
 
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
 - Remove the commented out blocks in config.yml (#1435)

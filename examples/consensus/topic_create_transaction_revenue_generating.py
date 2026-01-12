@@ -15,10 +15,7 @@ uv run examples/consensus/topic_create_transaction_revenue_generating.py
 python examples/consensus/topic_create_transaction_revenue_generating.py
 """
 
-import os
 import sys
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
@@ -39,24 +36,12 @@ from hiero_sdk_python import (
     TransferTransaction,
 )
 
-load_dotenv()
-
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    """Initialize and set up the client using env vars."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
-
 
 def create_account(client, name, initial_balance=Hbar(10)):
     """Create a test account"""
@@ -81,7 +66,6 @@ def create_account(client, name, initial_balance=Hbar(10)):
 
     return account_id, account_private_key
 
-
 def create_revenue_generating_topic(client, custom_fees):
     """Create a revenue generating topic with custom fees"""
     receipt = (
@@ -100,7 +84,6 @@ def create_revenue_generating_topic(client, custom_fees):
     topic_id = receipt.topic_id
     print(f"Topic created: {topic_id}")
     return topic_id
-
 
 def submit_message_with_custom_fee_limit(client, topic_id, custom_fee_limit):
     """Submit a message to a topic with custom fee limit"""
@@ -122,7 +105,6 @@ def submit_message_with_custom_fee_limit(client, topic_id, custom_fee_limit):
     print("Message submitted successfully")
     return receipt
 
-
 def submit_message_without_custom_fee_limit(client, topic_id):
     """Submit a message to a topic without custom fee limit"""
     tx = TopicMessageSubmitTransaction().set_message("message").set_topic_id(topic_id)
@@ -138,12 +120,10 @@ def submit_message_without_custom_fee_limit(client, topic_id):
     print("Message submitted successfully")
     return receipt
 
-
 def get_account_balance(client, account_id):
     """Get the balance of an account"""
     balance = CryptoGetAccountBalanceQuery(account_id).execute(client)
     return balance
-
 
 def create_fungible_token(
     client,
@@ -172,7 +152,6 @@ def create_fungible_token(
     print(f"Token created: {token_id}")
     return token_id
 
-
 def associate_token_with_account(client, account_id, token_id, account_key):
     """Associate a token with an account"""
     receipt = (
@@ -192,7 +171,6 @@ def associate_token_with_account(client, account_id, token_id, account_key):
 
     print("Token associated successfully")
 
-
 def transfer_tokens(client, token_id, from_account_id, to_account_id, amount):
     """Transfer tokens between accounts"""
     receipt = (
@@ -207,7 +185,6 @@ def transfer_tokens(client, token_id, from_account_id, to_account_id, amount):
         sys.exit(1)
 
     print(f"Transferred {amount} tokens successfully")
-
 
 def update_topic_custom_fees(client, topic_id, custom_fees):
     """Update topic custom fees"""
@@ -224,7 +201,6 @@ def update_topic_custom_fees(client, topic_id, custom_fees):
 
     print("Topic updated with new custom fees")
 
-
 def update_topic_fee_exempt_keys(client, topic_id, fee_exempt_keys):
     """Update topic fee exempt keys"""
     receipt = (
@@ -239,7 +215,6 @@ def update_topic_fee_exempt_keys(client, topic_id, fee_exempt_keys):
         sys.exit(1)
 
     print("Topic updated with fee exempt keys")
-
 
 def test_hbar_fee_flow(
     client, topic_id, alice_id, alice_key, operator_id, operator_key
@@ -277,7 +252,6 @@ def test_hbar_fee_flow(
         f"Fee collector account Hbar balance after: {fee_collector_balance_after.hbars}"
     )
 
-
 def setup_token_and_update_topic(
     client, topic_id, alice_id, alice_key, operator_id, operator_key
 ):
@@ -302,7 +276,6 @@ def setup_token_and_update_topic(
 
     update_topic_custom_fees(client, topic_id, [custom_token_fee])
     return token_id
-
 
 def test_token_fee_flow(
     client, topic_id, token_id, alice_id, alice_key, operator_id, operator_key
@@ -342,7 +315,6 @@ def test_token_fee_flow(
         f"{fee_collector_balance_after.token_balances.get(token_id, 0)}"
     )
 
-
 def test_fee_exempt_flow(client, topic_id, token_id, operator_id, operator_key):
     """Test Steps 9-12: Create Bob, update fee exempt keys, and verify Bob isn't charged"""
     print("Creating account - Bob")
@@ -374,7 +346,6 @@ def test_fee_exempt_flow(client, topic_id, token_id, operator_id, operator_key):
         f"Bob account Token balance after:"
         f"{bob_balance_after.token_balances.get(token_id, 0)}"
     )
-
 
 def revenue_generating_topics():
     """
@@ -425,7 +396,6 @@ def revenue_generating_topics():
 
     # STEPS 9-12: Test fee exempt flow
     test_fee_exempt_flow(client, topic_id, token_id, operator_id, operator_key)
-
 
 if __name__ == "__main__":
     revenue_generating_topics()

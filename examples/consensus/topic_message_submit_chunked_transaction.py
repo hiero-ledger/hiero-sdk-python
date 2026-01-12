@@ -1,18 +1,13 @@
 """
-uv run examples/consensus/topic_message_submit_chunked.py
-python examples/consensus/topic_message_submit_chunked.py
+uv run examples/consensus/topic_message_submit_chunked_transaction.py
+python examples/consensus/topic_message_submit_chunked_transaction.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
-    PrivateKey,
-    Network,
     TopicMessageSubmitTransaction,
     TopicCreateTransaction,
     ResponseCode,
@@ -45,30 +40,13 @@ In consequat, nisi iaculis laoreet elementum, massa mauris varius nisi, et porta
 Etiam ut sodales ex. Nulla luctus, magna eu scelerisque sagittis, nibh quam consectetur neque, non rutrum dolor metus nec ex. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Sed egestas augue elit, sollicitudin accumsan massa lobortis ac. Curabitur placerat, dolor a aliquam maximus, velit ipsum laoreet ligula, id ullamcorper lacus nibh eget nisl. Donec eget lacus venenatis enim consequat auctor vel in.
 """
 
-load_dotenv()
-
 
 def setup_client():
-    """
-    Set up and configure a Hedera client for testnet operations.
-    """
-    network_name = os.getenv("NETWORK", "testnet").lower()
-
-    print(f"Connecting to Hedera {network_name} network!")
-
-    try:
-        network = Network(network_name)
-        client = Client(network)
-
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
-
-        client.set_operator(operator_id, operator_key)
-        print(f"Client initialized with operator: {operator_id}")
-        return client
-    except Exception as e:
-        print(f"Failed to set up client: {e}")
-        sys.exit(1)
+    """Initialize and set up the client using env vars."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
 def create_topic(client):

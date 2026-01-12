@@ -5,10 +5,7 @@ python examples/file_update_transaction.py
 
 """
 
-import os
 import sys
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
@@ -16,24 +13,12 @@ from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 
-load_dotenv()
-
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    """Initialize and set up the client using env vars."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
-
 
 def create_file(client):
     """Create a test file"""
@@ -58,12 +43,10 @@ def create_file(client):
 
     return file_id, file_private_key
 
-
 def query_file_info(client, file_id):
     info = FileInfoQuery().set_file_id(file_id).execute(client)
 
     print(info)
-
 
 def file_update():
     """
@@ -106,7 +89,6 @@ def file_update():
     print("File info after update:")
     # Query the file info again
     query_file_info(client, file_id)
-
 
 if __name__ == "__main__":
     file_update()

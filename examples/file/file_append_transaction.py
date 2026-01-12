@@ -10,12 +10,8 @@ uv run examples/file_append_transaction.py
 python examples/file_append_transaction.py
 """
 import sys
-import os
-from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
-
 from hiero_sdk_python import (
     Client,
     Network,
@@ -26,23 +22,12 @@ from hiero_sdk_python import (
     ResponseCode,
 )
 
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    """Initialize and set up the client using env vars."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
-
 
 def create_file(client, file_private_key):
     """Create a file with initial content"""
@@ -68,7 +53,6 @@ def create_file(client, file_private_key):
 
     return file_id
 
-
 def append_file_single(client, file_id, file_private_key):
     """Append content to the file (single chunk)"""
     print("\nAppending content to file (single chunk)...")
@@ -88,7 +72,6 @@ def append_file_single(client, file_id, file_private_key):
         sys.exit(1)
 
     print("Content appended successfully!")
-
 
 def append_file_large(client, file_id, file_private_key):
     """Append large content to the file (multi-chunk)"""
@@ -117,7 +100,6 @@ def append_file_large(client, file_id, file_private_key):
         f"Total chunks used: {FileAppendTransaction().set_contents(large_content).get_required_chunks()}"
     )
 
-
 def main():
     """
     Demonstrates appending content to a file on the network by:
@@ -137,7 +119,6 @@ def main():
 
     # Step 3: Append large content (multi-chunk)
     append_file_large(client, file_id, file_private_key)
-
 
 if __name__ == "__main__":
     main()

@@ -3,10 +3,8 @@ uv run examples/consensus/topic_create_transaction.py
 python examples/consensus/topic_create_transaction.py
 """
 
-import os
 import sys
 from typing import Tuple
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
@@ -17,41 +15,12 @@ from hiero_sdk_python import (
 )
 
 # Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
-def setup_client() -> Tuple[Client, PrivateKey]:
-    """
-    Sets up and configures the Hiero client for the testnet.
-    Reads OPERATOR_ID and OPERATOR_KEY from environment variables.
-    """
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id_str = os.getenv("OPERATOR_ID")
-    operator_key_str = os.getenv("OPERATOR_KEY")
-
-    # Check if the environment variables are loaded correctly
-    if not operator_id_str or not operator_key_str:
-        print("Error: OPERATOR_ID or OPERATOR_KEY not found in environment.")
-        print("Please create a .env file in the project's root directory with:")
-        print("\nOPERATOR_ID=your_id_here")
-        print("OPERATOR_KEY=your_key_here\n")
-        sys.exit(1)
-
-    try:
-        operator_id = AccountId.from_string(operator_id_str)
-        operator_key = PrivateKey.from_string(operator_key_str)
-    except (TypeError, ValueError) as e:
-        print(f"Error: Invalid OPERATOR_ID or OPERATOR_KEY format: {e}")
-        sys.exit(1)
-
-    client.set_operator(operator_id, operator_key)
+def setup_client():
+    """Initialize and set up the client using env vars."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-    return client, operator_key
-
+    return client, client.operator_private_key
 
 def create_topic(client: Client, operator_key: PrivateKey):
     """
@@ -76,14 +45,12 @@ def create_topic(client: Client, operator_key: PrivateKey):
         print(f"Topic creation failed: {str(e)}")
         sys.exit(1)
 
-
 def main():
     """
     Main workflow to set up the client and create a new topic.
     """
     client, operator_key = setup_client()
     create_topic(client, operator_key)
-
 
 if __name__ == "__main__":
     main()
