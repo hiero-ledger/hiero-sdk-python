@@ -1,208 +1,203 @@
-# Advanced Issue Guidelines
+# Advanced Issue Guidelines — Hiero Python SDK
 
-This document defines what we **do** and **do not** consider an *Advanced Issue*.
+## How to Use This Document
 
-Advanced Issues represent the **highest tier of contributor work** and are intended for contributors with deep familiarity with the codebase, strong architectural judgment, and the ability to own complex changes end-to-end.
+This guide is here to support maintainers and issue creators who use the **Advanced** label
+in the Hiero Python SDK repository.
 
-Advanced contributors are trusted to make **high-impact decisions** that may affect core behavior, public APIs, or long-term maintainability of the SDK.
+It offers shared language and examples to help:
 
----
+**Issue creators:**
+- Describe larger, more complex tasks clearly  
+- Set expectations around scope, impact, and collaboration  
+- Provide helpful context for experienced contributors  
 
-## Table of Contents
+**Maintainers:**
+- Apply the Advanced label consistently  
+- Keep issue difficulty labels clear and useful  
 
-- [Purpose](#purpose)
-- [What We Consider Advanced Issues](#what-we-consider-advanced-issues)
-  - [Source Changes in `src`](#source-changes-in-src)
-  - [Architecture, Design, and Refactors](#architecture-design-and-refactors)
-  - [Typing, Interfaces, and Contracts](#typing-interfaces-and-contracts)
-  - [Documentation and Developer Guidance](#documentation-and-developer-guidance)
-  - [Examples and Public UX](#examples-and-public-ux)
-  - [Testing and Validation](#testing-and-validation)
-- [What Is NOT an Advanced Issue](#what-is-not-an-advanced-issue)
-- [Maintainer Guidance](#maintainer-guidance)
-- [Additional Resources](#additional-resources)
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+All contributions — from small fixes to major improvements — are valuable to the Hiero project.
+
+The **Advanced** label simply highlights work that involves deeper design, broader impact,
+and long-term ownership.
 
 ---
 
 ## Purpose
 
-The goal of an Advanced Issue is to:
+Advanced Issues represent **high-impact, high-responsibility work**.
 
-- ✅ Enable **high-impact, high-responsibility contributions**
-- ✅ Improve core correctness, extensibility, or maintainability
-- ✅ Introduce or evolve architectural patterns
-- ✅ Prepare contributors for long-term ownership and stewardship
+They’re a great fit for contributors who:
 
-Advanced Issues assume contributors are already comfortable with:
+- Have deep familiarity with the Python SDK  
+- Enjoy designing solutions and evaluating trade-offs  
+- Are comfortable thinking about long-term impact  
 
-- The full SDK development workflow
-- Navigating and reasoning across many modules
-- Understanding implicit invariants and contracts
-- Evaluating backwards compatibility and migration risk
-
-Contributors are expected to:
-
-- Proactively identify risks and edge cases
-- Propose and justify design decisions
-- Communicate trade-offs clearly
-- Take responsibility for downstream impact
+These issues often involve shaping how the SDK evolves over time.
 
 ---
 
-## What We Consider Advanced Issues
+## What to Expect
 
-Advanced Issues are:
+Advanced Issues are designed for contributors who:
 
-- ✅ Clearly motivated but **not fully specified**
-- ✅ Often span **multiple subsystems or layers**
-- ✅ Require architectural reasoning and design judgment
-- ✅ May involve **behavior changes or API evolution**
-- ✅ High impact, with **medium to high risk if done incorrectly**
+- Have strong Python SDK and domain knowledge  
+- Understand performance, concurrency, and API stability considerations  
+- Feel comfortable proposing and discussing designs  
+- Are open to conversations about breaking changes and long-term direction  
 
-They differ from **Intermediate Issues** in that they:
-
-- ❗ Require **deep conceptual understanding**
-- ❗ Require **design ownership**, not just implementation
-- ❗ May require proposing new abstractions or patterns
-- ❗ May affect long-term API or architectural direction
+These issues usually involve more discussion, iteration, and collaboration than earlier issue levels.
 
 ---
 
-### Source Changes in `src`
+## How Advanced Issues Usually Feel
 
-#### Allowed
+Advanced Issues often:
 
-- Significant behavior changes with explicit rationale
-- Refactors spanning multiple related subsystems
-- Changes to core execution paths or abstractions
-- Bug fixes that require deep investigation across layers
-- Improvements that trade short-term complexity for long-term clarity
+- Are design-heavy  
+- Affect multiple parts of the SDK  
+- Have long-term maintenance impact  
+- Involve discussion, iteration, and review  
 
-#### Not Allowed
-
-- Trivial or mechanical changes (use lower-tier labels)
-- Changes without a clear problem statement or motivation
+They’re a great fit for contributors who enjoy tackling complex problems and shaping the future of the project.
 
 ---
 
-### Architecture, Design, and Refactors
+## Common Types of Advanced Work
 
-#### Allowed
+Here are some examples of tasks that often fit well at this level:
 
-- Introducing new abstractions or subsystems
-- Reworking existing designs to address systemic issues
-- Decoupling tightly coupled components
-- Improving extensibility or testability through redesign
+### Core SDK Changes
+- Significant behavior changes with clear motivation  
+- Refactors spanning multiple related subsystems  
+- Improvements to core execution paths or abstractions  
+- Bug fixes that require investigation across multiple layers  
 
-#### Not Allowed
+### Architecture & Design
+- Introducing new abstractions or subsystems  
+- Improving extensibility or testability through redesign  
+- Decoupling tightly coupled components  
+- Addressing systemic architectural issues  
 
-- Architectural churn without demonstrated benefit
-- Refactors without migration or compatibility consideration
+### Interfaces & Contracts
+- Evolving public or internal APIs with clear rationale  
+- Formalizing or refining existing contracts  
+- Improving type consistency across large areas of the codebase  
+- Introducing shared types or protocols  
 
----
+### Documentation & Guidance
+- Writing or updating architectural documentation  
+- Explaining non-obvious design decisions  
+- Adding migration notes or deprecation guidance  
+- Aligning docs with new behavior or APIs  
 
-### Typing, Interfaces, and Contracts
+### Examples & Developer Experience
+- Designing new examples for advanced features  
+- Updating examples to reflect new APIs or workflows  
+- Improving clarity around advanced usage patterns  
 
-#### Allowed
-
-- Changes to public or internal interfaces with justification
-- Refining or formalizing implicit contracts
-- Improving type precision across large areas of the codebase
-- Introducing new shared types or protocols
-
-#### Not Allowed
-
-- Interface changes without documented impact
-- Type-system experimentation without clear benefit
-
----
-
-### Documentation and Developer Guidance
-
-#### Allowed
-
-- Writing or revising architectural documentation
-- Explaining non-obvious design decisions
-- Updating guides to reflect behavioral or API changes
-- Adding migration notes or deprecation guidance
-
-#### Not Allowed
-
-- Documentation changes disconnected from code changes
-- High-level conceptual docs without implementation context
+### Testing & Validation
+- Designing new test strategies  
+- Adding comprehensive coverage for new abstractions  
+- Refactoring test architecture to support new designs  
+- Introducing regression tests for complex scenarios  
 
 ---
 
-### Examples and Public UX
+## What Advanced Issues Are *Not*
 
-#### Allowed
+Advanced Issues are not just “bigger versions” of other issue types.
 
-- Designing new examples for advanced or complex features
-- Updating examples to reflect new APIs or workflows
-- Improving clarity around advanced usage patterns
+If a task:
 
-#### Not Allowed
+- Can be completed by following existing patterns  
+- Is mostly mechanical or scripted  
+- Has very limited impact or risk  
 
-- Example changes without corresponding documentation
-- Large example suites without instructional purpose
+…it may be a better fit for **Beginner** or **Intermediate** labels.
 
----
+Advanced Issues usually involve:
 
-### Testing and Validation
-
-#### Allowed
-
-- Designing new test strategies or patterns
-- Adding comprehensive coverage for new abstractions
-- Refactoring test architecture to support new designs
-- Introducing regression tests for complex scenarios
-
-#### Not Allowed
-
-- Skipping tests for high-impact changes
-- Relying solely on existing coverage for new behavior
+- Design choices  
+- Trade-offs  
+- Broader context  
+- Long-term considerations  
 
 ---
 
-## What Is NOT an Advanced Issue
+## Typical Scope & Time
 
-### Rule of Thumb
+Advanced Issues are usually:
 
-> If a contributor must **design systems, evaluate trade-offs,  
-> and take responsibility for long-term impact**,  
-> it’s an **Advanced Issue**.
+- ⏱ **Estimated time:** 3+ days  
+- 📄 **Scope:** Multiple modules or repository-wide  
+- 🧠 **Challenge level:** Design, iteration, and long-term ownership  
 
-> If the work can be safely completed by following existing patterns  
-> without design ownership,  
-> it’s **not**.
+They often evolve through discussion and may require multiple review cycles.
+
+---
+
+## Example: A Well-Formed Advanced Issue
+
+### Implement HIP-1261 fee estimate query support in the Python SDK
+
+The Hiero Python SDK doesn’t currently support fee estimate queries as defined in  
+HIP-1261. This makes it harder for developers to programmatically estimate
+transaction fees before execution.
+
+This issue focuses on **designing and implementing full SDK support** for HIP-1261, including:
+
+- Public APIs  
+- Internal request/response handling  
+- Tests and examples  
+
+The implementation should align with the HIP specification and stay consistent
+with patterns used across other SDKs.
+
+**Reference design document:**  
+https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/proposals/hips/hip-1261.md
+
+### Suggested Steps
+
+1. Review HIP-1261 to understand the intended behavior and constraints  
+2. Design the Python SDK API surface for fee estimate queries  
+3. Implement the feature across the SDK, including:
+   - Public-facing query or transaction classes  
+   - Internal request/response handling  
+   - Validation and error handling  
+4. Add unit and integration tests  
+5. Provide at least one usage example  
+
+---
+
+## Support & Collaboration
+
+Advanced Issues are supported through:
+
+- Design discussions in issues and PRs  
+- Maintainer and community feedback  
+- Iterative review cycles  
+
+Support focuses on:
+
+- Exploring design options  
+- Evaluating trade-offs  
+- Ensuring long-term maintainability  
+
+The goal is to build strong, well-considered solutions together.
 
 ---
 
 ## Maintainer Guidance
 
-### Label as an Advanced Issue if the issue:
+An issue is often a good fit for the **Advanced** label when it:
 
-- ✅ Requires architectural or design decisions
-- ✅ Has multiple valid solution paths
-- ✅ May affect public APIs or core behavior
-- ✅ Requires careful backwards-compatibility reasoning
-- ✅ Is suitable for experienced, trusted contributors
-
-### Do NOT label as an Advanced Issue if the issue:
-
-- ❌ Is purely mechanical or scripted
-- ❌ Is well-bounded with minimal risk (use Intermediate)
-- ❌ Is exploratory without clear goals
-- ❌ Requires organizational or product-level decisions
+- Involves system-level thinking  
+- Has long-term impact on the SDK  
+- Benefits from experienced review and iteration  
 
 ---
 
-## Additional Resources
-
-- [Intermediate Issue Guidelines](./intermediate_issue_guidelines.md)
-- [Contributing Guide](../../CONTRIBUTING.md)
-- [SDK Developer Docs](../sdk_developers)
-- [DCO Signing Guide](../sdk_developers/signing.md)
-- [Changelog Entry Guide](../sdk_developers/changelog_entry.md)
-- [Discord Community](../discord.md)
-- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+Advanced Issues are about shaping the future of the project —  
+through thoughtful design, collaboration, and long-term vision.
