@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -100,6 +100,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
 - Remove the commented out blocks in config.yml (#1435)
@@ -186,6 +187,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
 - Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
 - Fixed LinkBot permission issue for fork PRs by changing trigger to pull_request_target and adding proper permissions.
+- Fixed token examples to consistently use setup_client without tuple unpacking.(#1397)
 - Fixed duplicate comment prevention in issue reminder bot by adding hidden HTML marker for reliable comment detection (.github/scripts/bot-issue-reminder-no-pr.sh) (#1372)
 - Fixed bot-pr-missing-linked-issue to skip commenting on pull requests created by automated bots. (#1382)
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
@@ -214,6 +216,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Support for message chunking in `TopicSubmitMessageTransaction`.
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - bot workflows to include new changelog entry
 - Removed duplicate import of transaction_pb2 in transaction.py
@@ -266,6 +269,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: added `network_and_client.md` with a table of contents, and added external example scripts (`client.py`).
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - Upgraded step-security/harden-runner v2.13.2
 - bumped actions/checkout from 5.0.0 to 6.0.0
@@ -316,6 +320,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - chore: renamed examples to match src where possible
 - Moved examples/ to be inside subfiles to match src structure
@@ -385,6 +390,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `docs/discord.md` explaining how to join and navigate the Hiero community Discord (#614).
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - Added direct links to Python SDK channel in Linux Foundation Decentralized Trust Discord back in
 - Updated all occurrences of non-functional Discord invite links throughout the documentation with the new, stable Hyperledger and Hedera invite links (#603).
@@ -441,6 +447,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored examples/logging_example.py for better modularity (#478)
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - TransferTransaction refactored to use TokenTransfer and HbarTransfer classes instead of dictionaries
 - Added checksum validation for TokenId
@@ -449,6 +456,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `signing.md` to clarify commit signing requirements, including DCO, GPG, and branch-specific guidelines (#459)
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - Rearranged running_examples.md to be alphabetical
 - Refactor token_associate.py for better structure, add association verification query (#367)
@@ -507,6 +515,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Function docstrings in /tokens, /transaction, /query, /consensus
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - bump solo version to `v0.14`
 - bump protobufs version to `v0.66.0`
@@ -676,6 +685,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - AccountInfoQuery Class
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - replace datetime.utcnow() with datetime.now(timezone.utc) for Python 3.10
 - updated pr-checks.yml
@@ -712,6 +722,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - NFTId Class
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - use SEC1 ECPrivateKey instead of PKCS#8
 
@@ -732,6 +743,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - CONTRIBUTING.md
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - README now split into root README for project overview and /examples README for transaction types and syntax.
 - Python version incremented from 3.9 to 3.10
@@ -749,6 +761,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - Example scripts illustrating setup and usage.
 
 ### Changed
+- Refactored query examples to use Client.from_env() for cleaner setup (#1449)
 
 - N/A
 

@@ -4,9 +4,7 @@ python examples/query/account_info_query.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
@@ -28,23 +26,18 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.nft_id import NftId
 
-load_dotenv()
 
-network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to the Hedera {network} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    """Initialize and set up the client using env vars."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client, operator_id, operator_key
+    
+    # Return tuple to match what main() expects
+    return client, client.operator_account_id, client.operator_private_key
 
 
 def create_test_account(client, operator_key):

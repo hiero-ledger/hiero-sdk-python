@@ -5,13 +5,10 @@ A full example that creates an account, two tokens, associates them, and finally
 """
 import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     Hbar,
     AccountCreateTransaction,
     TokenCreateTransaction,
@@ -22,27 +19,13 @@ from hiero_sdk_python import (
     ResponseCode,
 )
 
-# Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Setup Client"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
 
-    except (TypeError, ValueError):
-        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
 
 
 def create_new_account(client, operator_id, operator_key):
@@ -202,7 +185,11 @@ def main():
     4-dissociate the tokens from the new account
     5-verify dissociation
     """
-    client, operator_id, operator_key = setup_client()
+
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
     client, operator_key, recipient_id, recipient_key, operator_id = create_new_account(
         client, operator_id, operator_key
     )
