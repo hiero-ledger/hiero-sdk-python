@@ -73,15 +73,8 @@ def query_file_info():
 
     info = FileInfoQuery().set_file_id(file_id).execute(client)
 
-    print("\nFile Info:")
-    print(f"File ID: {info.file_id}")
-    print(f"Size: {info.size} bytes")
-    print(f"Memo: {info.file_memo}")
-    print(f"Expiration Time: {info.expiration_time}")
-    print(f"Deleted: {info.is_deleted}")
-    print(f"Total key(s): {len(info.keys)}")
-    for i, key in enumerate(info.keys, 1):
-        print(f"Key {i}: {key.to_string()}")
+    # Use the SDK's built-in pretty print method
+    print(info)
 
 
 if __name__ == "__main__":
