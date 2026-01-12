@@ -103,6 +103,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
 
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
+- Move assignment guards to be directly inside the gfi and beginner auto assign
 - Remove the commented out blocks in config.yml (#1435)
 - Renamed `.github/scripts/check_advanced_requirement.sh` to `bot-advanced-check.sh` for workflow consistency (#1341)
 - Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
