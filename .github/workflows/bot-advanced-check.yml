@@ -6,12 +6,18 @@ on:
 
   workflow_dispatch:
     inputs:
+      dry_run:
+        description: "If true, run in log-only mode (no comments or unassignments)"
+        required: false
+        default: "true"
+        type: string
       username:
         description: "GitHub username to dry-run qualification check"
         required: true
         type: string
 
 permissions:
+  contents: read   # required for actions/checkout
   issues: write
 
 concurrency:
@@ -20,22 +26,26 @@ concurrency:
 
 jobs:
   #######################################
-  # Automatic enforcement (issues)
+  # Automatic enforcement + manual dry-run
   #######################################
   check-advanced-qualification:
     if: >
-      github.event_name == 'issues' &&
-      contains(github.event.issue.labels.*.name, 'advanced') &&
       (
-        github.event.action == 'assigned' ||
+        github.event_name == 'issues' &&
+        contains(github.event.issue.labels.*.name, 'advanced') &&
         (
-          github.event.action == 'labeled' &&
-          github.event.label.name == 'advanced' &&
-          github.event.issue.assignees[0] != null
+          github.event.action == 'assigned' ||
+          (
+            github.event.action == 'labeled' &&
+            github.event.label.name == 'advanced' &&
+            github.event.issue.assignees[0] != null
+          )
         )
-      )
+      ) ||
+      github.event_name == 'workflow_dispatch'
 
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout scripts
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -45,9 +55,16 @@ jobs:
       - name: Verify User Qualification
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TRIGGER_ASSIGNEE: ${{ github.event.assignee.login || '' }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
+
+          # Issue-driven execution
+          TRIGGER_ASSIGNEE: ${{ github.event.assignee.login || '' }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || '' }}
+
+          # Manual execution (workflow_dispatch)
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          DRY_RUN_USER: ${{ github.event_name == 'workflow_dispatch' && inputs.username || '' }}
+
         run: |
           chmod +x .github/scripts/bot-advanced-check.sh
           ./.github/scripts/bot-advanced-check.sh
