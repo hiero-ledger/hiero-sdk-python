@@ -1,9 +1,6 @@
-# uv run examples/tokens/token_mint_fungible.py
-# python examples/tokens/token_mint_fungible.py
 """
 uv run examples/tokens/token_mint_transaction_fungible.py
 python examples/tokens/token_mint_transaction_fungible.py
-
 Creates a mintable fungible token and then mints additional supply.
 """
 
@@ -111,7 +108,7 @@ def token_mint_fungible(client, token_id, supply_key):
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"Total supply after minting: {info_after.total_supply}")
-    except (ValueError, TypeError) as e:
+    except Exception as e:
         print(f"❌ Error minting tokens: {e}")
         sys.exit(1)
 
