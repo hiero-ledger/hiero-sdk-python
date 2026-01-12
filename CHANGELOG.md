@@ -13,6 +13,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with practical use cases. (#1392)
 - Enable dry run support for office hours bot via `workflow_dispatch` trigger for testing without posting comments. (#1426)
 
+### Fixed
+
+- Fixed duplicate runs of CodeRabbit plan trigger workflow by refining the `if` condition to only trigger when beginner/intermediate/advanced labels are specifically added. (#1427)
+
 - Added a notification workflow that alerts the support team when an issue is labeled as a Good First Issue Candidate.[(#1296)]
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
 - Beginner issue documentation and updated GFI and GFIC templates and documentation
