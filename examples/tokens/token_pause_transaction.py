@@ -4,11 +4,9 @@ python examples/tokens/token_pause_transaction.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
-from hiero_sdk_python import Client, AccountId, PrivateKey, Network
+from hiero_sdk_python import Client, PrivateKey
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType
@@ -17,25 +15,14 @@ from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransactio
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    # Initialize network and client
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    # Set up operator account
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client, operator_id, operator_key
-
+    return client
 
 def assert_success(receipt, action: str):
     """
@@ -130,7 +117,9 @@ def token_pause():
       3. Verifying pause status
       4. Attempting (and failing) to delete the paused token because it is paused
     """
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     pause_key = operator_key  # for token pause
     admin_key = operator_key  # for token delete

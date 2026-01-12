@@ -8,13 +8,10 @@ python examples/tokens/token_unfreeze_transaction.py
 
 import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     TokenCreateTransaction,
     TokenFreezeTransaction,
     TokenUnfreezeTransaction,
@@ -22,28 +19,11 @@ from hiero_sdk_python import (
     ResponseCode,
 )
 
-# Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Setup Client"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
-
-    except (TypeError, ValueError):
-        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def generate_freeze_key():
     """Generate a Freeze Key on the fly"""
@@ -53,9 +33,12 @@ def generate_freeze_key():
     return freeze_key
 
 
-def create_freezable_token():
+def create_freezable_token(client):
     """Create a token with the freeze key"""
-    client, operator_id, operator_key = setup_client()
+
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
     freeze_key = generate_freeze_key()
     print("\nSTEP 2: Creating a new freezeable token...")
     try:
@@ -74,7 +57,7 @@ def create_freezable_token():
         )
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
-        return token_id, client, operator_id, freeze_key, operator_key
+        return token_id, operator_id, freeze_key, operator_key
     except (RuntimeError, ValueError) as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
@@ -146,7 +129,8 @@ def main():
     2. Unfreeze the token for the operator account using TokenUnfreezeTransaction.
     3. Attempt a test transfer of 1 unit of the token to self to verify unfreeze.
     """
-    token_id, client, operator_id, freeze_key, operator_key = create_freezable_token()
+    client = setup_client()
+    token_id, operator_id, freeze_key, operator_key = create_freezable_token(client)
     freeze_token(token_id, client, operator_id, freeze_key)
     unfreeze_token(token_id, client, operator_id, freeze_key, operator_key)
 
