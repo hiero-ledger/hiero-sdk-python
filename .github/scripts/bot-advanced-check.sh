@@ -16,30 +16,59 @@ if [[ -z "${REPO:-}" ]]; then
   exit 1
 fi
 
+# gh CLI authentication is required in both DRY_RUN and normal mode
+if [[ -z "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]; then
+  log "ERROR: GH_TOKEN (or GITHUB_TOKEN) must be set for gh CLI authentication"
+  exit 1
+fi
+
 OWNER="${REPO%%/*}"
 NAME="${REPO##*/}"
+
+#######################################
+# Constants
+#######################################
+COMMENT_MARKER_PREFIX="<!-- advanced-check:unqualified -->"
+
+#######################################
+# Validation helpers
+#######################################
+validate_username() {
+  local user=$1
+  # GitHub usernames:
+  #  - 1–39 characters
+  #  - alphanumeric or single hyphens
+  #  - no leading/trailing hyphen
+  #  - no consecutive hyphens
+  if [[ ! "$user" =~ ^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$ ]]; then
+    log "ERROR: Invalid GitHub username: '$user'"
+    return 1
+  fi
+}
 
 #######################################
 # GraphQL count helper (INTERMEDIATE ONLY)
 #######################################
 get_intermediate_count() {
   local user=$1
+  validate_username "$user"
 
-  gh api graphql -f query="
-  {
-    repository(owner: \"$OWNER\", name: \"$NAME\") {
-      intermediate: issues(
-        first: 1
-        states: CLOSED
-        filterBy: {
-          assignee: \"$user\"
-          labels: [\"intermediate\"]
+  gh api graphql \
+    -f query='
+      query($owner: String!, $name: String!, $user: String!) {
+        repository(owner: $owner, name: $name) {
+          intermediate: issues(
+            first: 1
+            states: CLOSED
+            filterBy: { assignee: $user, labels: ["intermediate"] }
+          ) {
+            totalCount
+          }
         }
-      ) {
-        totalCount
-      }
-    }
-  }"
+      }' \
+    -f owner="$OWNER" \
+    -f name="$NAME" \
+    -f user="$user"
 }
 
 #######################################
@@ -47,12 +76,13 @@ get_intermediate_count() {
 #######################################
 already_commented() {
   local user=$1
+  local marker="$COMMENT_MARKER_PREFIX @$user"
 
   gh issue view "$ISSUE_NUMBER" --repo "$REPO" \
     --json comments \
-    --jq --arg user "@$user" '
+    --jq --arg marker "$marker" '
       .comments[].body
-      | select(test("Hi " + $user + ", I cannot assign you to this issue yet."))
+      | select(contains($marker))
     ' | grep -q .
 }
 
@@ -79,6 +109,8 @@ if [[ "${DRY_RUN:-false}" == "true" ]]; then
   fi
 
   USER="$DRY_RUN_USER"
+  validate_username "$USER"
+
   log "DRY RUN MODE ENABLED"
   log "Repository: $REPO"
   log "User: @$USER"
@@ -111,6 +143,8 @@ fi
 #######################################
 check_user() {
   local user=$1
+  validate_username "$user"
+
   log "Checking qualification for @$user..."
 
   # Permission exemption
@@ -119,7 +153,7 @@ check_user() {
       --jq '.permission // "none"' 2>/dev/null || echo "none"
   )
 
-  if [[ "$PERMISSION" =~ ^(admin|write|triage)$ ]]; then
+  if [[ "$PERMISSION" =~ ^(admin|maintain|write|triage)$ ]]; then
     log "User @$user is core member ($PERMISSION). Skipping."
     return 0
   fi
@@ -149,7 +183,9 @@ Advanced issues involve high-risk changes to the core codebase and require prior
 **Requirement:**
 - Complete at least **1** 'intermediate' issue (You have: **$INT_COUNT**)
 
-Please check out our **$SUGGESTION** to build your experience first!"
+Please check out our **$SUGGESTION** to build your experience first!
+
+$COMMENT_MARKER_PREFIX @$user"
 
   if already_commented "$user"; then
     log "Comment already exists for @$user. Skipping comment."
@@ -180,7 +216,8 @@ else
 
   ASSIGNEES=$(
     gh issue view "$ISSUE_NUMBER" --repo "$REPO" \
-      --json assignees --jq '.assignees[].login'
+      --json assignees \
+      --jq '.assignees[].login'
   )
 
   if [[ -z "$ASSIGNEES" ]]; then
