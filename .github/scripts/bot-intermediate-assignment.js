@@ -6,6 +6,7 @@ const EXEMPT_PERMISSION_LEVELS = (process.env.INTERMEDIATE_EXEMPT_PERMISSIONS ||
   .map((entry) => entry.trim().toLowerCase())
   .filter(Boolean);
 const DRY_RUN = /^true$/i.test(process.env.DRY_RUN || '');
+const REQUIRED_BEGINNER_ISSUE_COUNT = 0 ;
 
 function isSafeSearchToken(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
@@ -177,7 +178,11 @@ module.exports = async ({ github, context }) => {
       return console.log(`Skipping guard for @${mentee} on issue #${issue.number} due to API error when verifying Beginner issues.`);
     }
 
-    if (completedCount >= 1) {
+    if(REQUIRED_BEGINNER_ISSUE_COUNT === 0){
+      return console.log(`Skipping guard for @${mentee} on issue #${issue.number}: beginner requirement temporarily disabled`)
+    }
+
+    if (completedCount >= REQUIRED_BEGINNER_ISSUE_COUNT) {
       console.log(`✅ ${mentee} has completed ${completedCount} Beginner issues. Assignment allowed.`);
       return;
     }
