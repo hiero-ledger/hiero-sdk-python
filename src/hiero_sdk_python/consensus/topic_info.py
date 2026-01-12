@@ -143,12 +143,14 @@ class TopicInfo:
             exp_dt = datetime.fromtimestamp(self.expiration_time.seconds)
 
         running_hash_str: Optional[str] = f"0x{self.running_hash.hex()}" if self.running_hash else "None"
-
+       
+        # shows 0x{hex} when present, or "None" as a string when absent (previously could be 0xNone)
         ledger_id_hex: Optional[str] = None
         if self.ledger_id and isinstance(self.ledger_id, (bytes, bytearray)):
             ledger_id_hex = self.ledger_id.hex()
         ledger_id_str = f"0x{ledger_id_hex}" if ledger_id_hex else "None"
 
+        # extracts and displays just the seconds value (e.g., 7776000) from Duration
         auto_renew_seconds = (
             self.auto_renew_period.seconds if self.auto_renew_period else None
         )
@@ -156,6 +158,7 @@ class TopicInfo:
         if self.auto_renew_account is None:
             auto_renew_account_str = "None"
         elif hasattr(self.auto_renew_account, "shardNum"):
+            # Protobuf AccountID -displays AccountId(shard=X, realm=Y, account=Z) format
             auto_renew_account_str = (
                 f"AccountId(shard={self.auto_renew_account.shardNum}, "
                 f"realm={self.auto_renew_account.realmNum}, "
