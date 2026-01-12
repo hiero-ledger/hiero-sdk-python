@@ -74,6 +74,7 @@ def query_file_info():
     info = FileInfoQuery().set_file_id(file_id).execute(client)
 
     # Use the SDK's built-in pretty print method
+    print("\nFile Info:")
     print(info)
 
 
