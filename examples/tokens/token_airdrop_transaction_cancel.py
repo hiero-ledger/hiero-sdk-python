@@ -3,14 +3,10 @@ uv run examples/tokens/token_airdrop_transaction_cancel.py
 python examples/tokens/token_airdrop_transaction_cancel.py
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
-    Network,
     PrivateKey,
     AccountCreateTransaction,
     Hbar,
@@ -23,27 +19,13 @@ from hiero_sdk_python import (
 )
 
 # Load environment variables from .env file
-load_dotenv()
-
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize the Hedera client using environment variables."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("Error: Creating client, Please check your .env file")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
 def create_account(
@@ -68,7 +50,7 @@ def create_account(
 
 
 def create_token(
-    client, operator_id, operator_key, token_name, token_symbol, initial_supply=1
+    client, operator_account_id, operator_account_key, token_name, token_symbol, initial_supply=1
 ):
     """Create a new token and return its token ID."""
     print(f"\nCreating token: {token_name} ({token_symbol})...")
@@ -78,9 +60,9 @@ def create_token(
             .set_token_name(token_name)
             .set_token_symbol(token_symbol)
             .set_initial_supply(initial_supply)
-            .set_treasury_account_id(operator_id)
+            .set_treasury_account_id(operator_account_id)
         )
-        receipt = tx.freeze_with(client).sign(operator_key).execute(client)
+        receipt = tx.freeze_with(client).sign(operator_account_key).execute(client)
         token_id = receipt.token_id
         print(f"Created token {token_name} with ID: {token_id}")
         return token_id
@@ -89,7 +71,7 @@ def create_token(
         sys.exit(1)
 
 
-def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
+def airdrop_tokens(client, operator_account_id, operator_account_key, recipient_id, token_ids):
     """Airdrop the provided tokens to a recipient account."""
     print(
         f"\nAirdropping tokens {', '.join([str(t) for t in token_ids])} to recipient {recipient_id}..."
@@ -98,7 +80,7 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
     try:
         # Balances before airdrop
         sender_balances_before = (
-            CryptoGetAccountBalanceQuery(account_id=operator_id)
+            CryptoGetAccountBalanceQuery(account_id=operator_account_id)
             .execute(client)
             .token_balances
         )
@@ -116,10 +98,10 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
             print(f" {str(t)}: sender={sender_balance} recipient={recipient_balance}")
         tx = TokenAirdropTransaction()
         for token_id in token_ids:
-            tx.add_token_transfer(token_id=token_id, account_id=operator_id, amount=-1)
+            tx.add_token_transfer(token_id=token_id, account_id=operator_account_id, amount=-1)
             tx.add_token_transfer(token_id=token_id, account_id=recipient_id, amount=1)
 
-        receipt = tx.freeze_with(client).sign(operator_key).execute(client)
+        receipt = tx.freeze_with(client).sign(operator_account_key).execute(client)
         print(
             f"Token airdrop executed: status={receipt.status} "
             f"transaction_id={receipt.transaction_id}"
@@ -131,7 +113,7 @@ def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_ids):
 
         # Balances after airdrop
         sender_balances_after = (
-            CryptoGetAccountBalanceQuery(account_id=operator_id)
+            CryptoGetAccountBalanceQuery(account_id=operator_account_id)
             .execute(client)
             .token_balances
         )
@@ -185,7 +167,9 @@ def cancel_airdrops(client, operator_key, pending_airdrops):
 
 
 def token_airdrop_cancel():
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
     recipient_id, _ = create_account(client, operator_key)
 
     # Create two tokens

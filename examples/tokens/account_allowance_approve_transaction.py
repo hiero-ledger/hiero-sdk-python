@@ -5,12 +5,10 @@ python examples/tokens/account_allowance_approve_transaction.py
 
 """
 
-import os
 import sys
 
-from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey, TransactionId
+from hiero_sdk_python import Client, Hbar, PrivateKey, TransactionId
 from hiero_sdk_python.account.account_allowance_approve_transaction import (
     AccountAllowanceApproveTransaction,
 )
@@ -24,22 +22,11 @@ from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransact
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
-load_dotenv()
-
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 

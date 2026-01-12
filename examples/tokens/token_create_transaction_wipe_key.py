@@ -18,15 +18,11 @@ Usage:
 uv run examples/tokens/token_create_transaction_wipe_key.py
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     TokenCreateTransaction,
     TokenWipeTransaction,
     TokenAssociateTransaction,
@@ -42,31 +38,13 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """
-    Initialise and return a Hiero SDK client based on environment variables.
-    """
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set-up with operator id {client.operator_account_id}.")
-        return client, operator_id, operator_key
-
-    except (TypeError, ValueError):
-        print(
-            "Error: please check OPERATOR_ID and OPERATOR_KEY in you environment file."
-        )
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def create_recipient_account(client):
     """
@@ -344,7 +322,10 @@ def main():
     4. Scenario 2: Successfully wipe with key (Fungible)
     5. Scenario 3: Successfully wipe with key (NFT)
     """
-    client, operator_id, operator_key = setup_client()
+
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     # Create a generic user to hold tokens
     print("\nCreating a user account to hold tokens...")

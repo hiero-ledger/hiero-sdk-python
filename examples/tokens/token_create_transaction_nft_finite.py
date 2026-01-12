@@ -15,39 +15,23 @@ uv run examples/tokens/token_create_transaction_nft_finite
 python examples/tokens/token_create_transaction_nft_finite
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
     TokenCreateTransaction,
-    Network,
     TokenType,
     SupplyType,
 )
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def generate_keys():
     """Generate new admin and supply keys."""
@@ -101,7 +85,9 @@ def execute_transaction(transaction, client, operator_key, admin_key, supply_key
 
 def create_token_nft_finite():
     """Main function to create a finite NFT."""
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
     admin_key, supply_key = generate_keys()
     transaction = build_transaction(client, operator_id, admin_key, supply_key)
     execute_transaction(transaction, client, operator_key, admin_key, supply_key)

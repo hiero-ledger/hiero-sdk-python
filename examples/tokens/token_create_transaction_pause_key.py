@@ -16,20 +16,14 @@ Usage:
 uv run examples/token_create_transaction_pause_key.py
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     TokenCreateTransaction,
     TokenPauseTransaction,
     TokenUnpauseTransaction,
-    TokenUpdateTransaction,
-    TokenInfoQuery,
     TransferTransaction,
     AccountCreateTransaction,
     Hbar,
@@ -39,30 +33,16 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 # -------------------------------------------------------
 # CLIENT SETUP
 # -------------------------------------------------------
 def setup_client():
-    """Create client from environment variables"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network...")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client ready — Operator: {client.operator_account_id}\n")
-        return client, operator_id, operator_key
-
-    except Exception:
-        print("❌ ERROR: Invalid OPERATOR_ID or OPERATOR_KEY in .env")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 # -------------------------------------------------------
 # TOKEN CREATION (NO PAUSE KEY)
@@ -237,7 +217,9 @@ def test_transfer_while_paused(
 # MAIN
 # -------------------------------------------------------
 def main():
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     print("\n==================== PART 1 — NO PAUSE KEY ====================\n")
     token_no_pause = create_token_without_pause_key(client, operator_id, operator_key)

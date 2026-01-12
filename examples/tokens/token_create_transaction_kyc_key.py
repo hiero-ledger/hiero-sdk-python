@@ -20,16 +20,13 @@ Run with:
 
 """
 
-import os
+
 import sys
 import time
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     Hbar,
     ResponseCode,
 )
@@ -47,31 +44,14 @@ from hiero_sdk_python.tokens.token_revoke_kyc_transaction import (
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 
-load_dotenv()
 
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """
-    Initialize and set up the client with operator account credentials.
-
-    Returns:
-        tuple: (client, operator_id, operator_key)
-    """
-    print(f"Connecting to Hedera {network_name} network...")
-    client = Client(Network(network=network_name))
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
-        client.set_operator(operator_id, operator_key)
-        print(f" Client configured with operator: {operator_id}\n")
-        return client, operator_id, operator_key
-    except (TypeError, ValueError) as e:
-        print(f" Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def create_account(client, operator_key, initial_balance=Hbar(2)):
     """
@@ -448,7 +428,9 @@ def main():
     """
     try:
         # Setup
-        client, operator_id, operator_key = setup_client()
+        client = setup_client()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
 
         # Generate a KYC key for our token
         print("=" * 70)

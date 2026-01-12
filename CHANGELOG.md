@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -186,6 +186,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
 - Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
 - Fixed LinkBot permission issue for fork PRs by changing trigger to pull_request_target and adding proper permissions.
+- Fixed token examples to consistently use setup_client without tuple unpacking.(#1397)
 - Fixed duplicate comment prevention in issue reminder bot by adding hidden HTML marker for reliable comment detection (.github/scripts/bot-issue-reminder-no-pr.sh) (#1372)
 - Fixed bot-pr-missing-linked-issue to skip commenting on pull requests created by automated bots. (#1382)
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)

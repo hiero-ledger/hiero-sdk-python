@@ -4,39 +4,22 @@ uv run examples/tokens/token_create_transaction_nft_infinite.py
 python examples/tokens/token_create_transaction_nft_infinite.py
 """
 
-import os
+
 import sys
-from dotenv import load_dotenv
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
     TokenCreateTransaction,
-    Network,
     TokenType,
     SupplyType,
 )
 
-# Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 """ 
 2. Generate Keys On-the-Fly
@@ -102,7 +85,9 @@ Creates an infinite NFT by generating admin and supply keys on the fly.
 
 
 def create_token_nft_infinite():
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
     admin_key, supply_key = keys_on_fly()
     token_id = transaction(client, operator_id, operator_key, admin_key, supply_key)
     print(f"\nCreated token: {token_id}")

@@ -9,19 +9,15 @@ Demonstrates how the Hedera freeze key works by walking through:
 3. (Bonus) Showing that tokens created with freezeDefault=True start accounts frozen
 """
 
-import os
 import sys
 from dataclasses import dataclass
 from typing import Tuple
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
     AccountId,
     Client,
     Hbar,
-    Network,
     PrivateKey,
     ResponseCode,
     TokenAssociateTransaction,
@@ -31,8 +27,6 @@ from hiero_sdk_python import (
     TransferTransaction,
 )
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 TRANSFER_AMOUNT = 10  # Small token transfer for demonstrations
 
 
@@ -42,21 +36,11 @@ class DemoAccount:
     private_key: PrivateKey
 
 
-def setup_client() -> Tuple[Client, AccountId, PrivateKey]:
-    """Initialize the Hedera client using operator credentials."""
-    network = Network(network_name)
-    print(f"🌐 Connecting to Hedera {network_name} network...")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"✅ Client ready with operator {operator_id}")
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Please provide valid OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
+def setup_client():
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
 def generate_freeze_key() -> PrivateKey:
@@ -346,7 +330,9 @@ def main():
     print("🚀 Hedera Freeze Key Demonstration")
     print("=" * 60)
 
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     # Token without a freeze key
     token_without_key = create_token_without_freeze_key(
