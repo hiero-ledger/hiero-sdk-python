@@ -100,6 +100,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+- Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
 
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
 - Move assignment guards to be directly inside the gfi and beginner auto assign
