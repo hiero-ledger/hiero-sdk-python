@@ -20,6 +20,8 @@ from .network import Network
 
 DEFAULT_GRPC_DEADLINE = 10 # seconds
 DEFAULT_REQUEST_TIMEOUT = 120 # seconds
+DEFAULT_MAX_BACKOFF: int = 8 # seconds
+DEFAULT_MIN_BACKOFF: int = 0.25 # seconds
 
 NetworkName = Literal["mainnet", "testnet", "previewnet"]
 
@@ -48,6 +50,9 @@ class Client:
         self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
 
         self.max_attempts: int = 10
+
+        self._min_backoff = DEFAULT_MIN_BACKOFF
+        self._max_backoff = DEFAULT_MAX_BACKOFF
 
         self._grpc_deadline: float = DEFAULT_GRPC_DEADLINE
         self._request_timeout: float = DEFAULT_REQUEST_TIMEOUT
@@ -284,6 +289,26 @@ class Client:
             raise ValueError("request_timeout must be greater than 0")
         
         self._request_timeout = request_timeout
+        return self
+    
+    def set_min_backoff(self, min_backoff: int) -> "Client":
+        """
+        Set min backoff for the client.
+        """
+        if min_backoff > self._max_backoff:
+            raise ValueError("min_backoff cannot be larger than max_backoff")
+        
+        self._min_backoff = min_backoff
+        return self
+    
+    def set_max_backoff(self, max_backoff: int) -> "Client":
+        """
+        Set max backoff for the client.
+        """
+        if max_backoff < self._max_backoff:
+            raise ValueError("max_backoff cannot be smaller than min_backoff")
+        
+        self._max_backoff = max_backoff
         return self
 
     def __enter__(self) -> "Client":
