@@ -173,7 +173,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
 
 ### Fixed
-
+- Refined intermediate assignment guard to validate Beginner issue completion with improved logging and GraphQL-based counting. (#1424)
 - Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
 - Good First Issue bot no longer posts `/assign` reminders for repository collaborators. (#1367)
 - GFI workflow casing
