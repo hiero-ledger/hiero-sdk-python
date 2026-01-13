@@ -53,8 +53,9 @@ module.exports = async ({ github, context }) => {
     }
 
     if (!regex.test(body)) {
+      const safeAuthor = authorLogin ?? 'there' ;
       const commentBody = [ `${LINKBOT_MARKER}` +
-        `Hi @${prData.user.login}, this is **LinkBot** 👋`,
+        `Hi @${safeAuthor}, this is **LinkBot** 👋`,
         ``,
         `Linking pull requests to issues helps us significantly with reviewing pull requests and keeping the repository healthy.`,
         ``,
