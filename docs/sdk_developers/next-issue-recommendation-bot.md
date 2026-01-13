@@ -40,14 +40,14 @@ The bot parses the pull request body to find linked issues using regex patterns 
 
 3. **Fallback behavior**:
    - If no repository issues are available, provides link to organization-wide good first issues
-   - Limits recommendations to 3-5 issues to avoid overwhelming contributors
+   - Limits recommendations to up to 5 issues to avoid overwhelming contributors
 
 ## Comment Content
 
 The bot posts a congratulatory comment that includes:
 
 - **Congratulations message**: Thank you and encouragement for the contribution
-- **Recommended issues**: List of 3-5 relevant issues with:
+- **Recommended issues**: List of up to 5 relevant issues with:
   - Issue title and direct link
   - Brief description (truncated to 150 characters)
 - **Repository engagement**: 
@@ -120,6 +120,17 @@ The bot supports testing through:
 
 1. **Manual workflow dispatch**: Use the Actions tab to trigger the workflow with `dry_run: true`
 2. **GitHub CLI testing**: Local testing with appropriate environment variables
+
+**Example using GitHub CLI**:
+
+```bash
+# Test in dry-run mode
+gh workflow run bot-next-issue-recommendation.yml -f dry_run=true
+
+# Check the run status
+gh run list --workflow=bot-next-issue-recommendation.yml
+```
+
 3. **Fork testing**: Test workflow behavior in forks before production deployment
 
 ## Permissions
