@@ -12,6 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive docstring to `FeeAssessmentMethod` enum explaining inclusive vs exclusive fee assessment methods with usage examples. (#1391)
 - Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with practical use cases. (#1392)
 - Enable dry run support for office hours bot via `workflow_dispatch` trigger for testing without posting comments. (#1426)
+- Trigger CodeRabbit plan comment after Good First Issue assignment to provide AI-generated implementation guidance to new contributors. (#1432)
 
 - Added a notification workflow that alerts the support team when an issue is labeled as a Good First Issue Candidate.[(#1296)]
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
@@ -100,6 +101,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+- Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
 
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
 - Move assignment guards to be directly inside the gfi and beginner auto assign
