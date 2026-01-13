@@ -1,10 +1,14 @@
-module.exports = async ({ github, context }) => {
-  const LINKBOT_MARKER = '<!-- LinkBot Missing Issue -->';
+const LINKBOT_MARKER = '<!-- LinkBot Missing Issue -->';
 
+module.exports = async ({ github, context }) => {
   let prNumber;
   try {
     const isDryRun = process.env.DRY_RUN === 'true';
-    prNumber = parseInt(process.env.PR_NUMBER) || context.payload.pull_request.number;
+    prNumber = Number(process.env.PR_NUMBER) || context.payload.pull_request?.number;
+
+    if (!prNumber) {
+      throw new Error('PR number could not be determined');
+    }
     
     console.log(`Processing PR #${prNumber} (Dry run: ${isDryRun})`);
     
