@@ -124,12 +124,14 @@ The bot supports testing through:
 **Example using GitHub CLI**:
 
 ```bash
-# Test in dry-run mode
-gh workflow run bot-next-issue-recommendation.yml -f dry_run=true
+# Test in dry-run mode with specific PR number
+gh workflow run bot-next-issue-recommendation.yml -f dry_run=true -f pr_number=123
 
 # Check the run status
 gh run list --workflow=bot-next-issue-recommendation.yml
 ```
+
+**Note**: Manual testing requires providing a `pr_number` input since the workflow needs to know which PR to analyze. The PR number should correspond to a merged PR that is linked to a "Good First Issue" or "beginner" issue.
 
 3. **Fork testing**: Test workflow behavior in forks before production deployment
 

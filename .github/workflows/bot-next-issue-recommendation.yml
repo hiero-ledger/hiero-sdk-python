@@ -10,6 +10,10 @@ on:
         required: false
         default: true
         type: boolean
+      pr_number:
+        description: 'PR number to test against (required for workflow_dispatch)'
+        required: false
+        type: number
 
 permissions:
   pull-requests: write
@@ -26,6 +30,11 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         

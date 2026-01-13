@@ -2,9 +2,26 @@ module.exports = async ({ github, context, core }) => {
   const { payload } = context;
   const isDryRun = payload.inputs?.dry_run === 'true' || false;
   
-  // Get PR information
-  const prNumber = payload.pull_request?.number;
-  const prBody = payload.pull_request?.body || '';
+  // Get PR information - handle both automatic and manual triggers
+  let prNumber = payload.pull_request?.number;
+  let prBody = payload.pull_request?.body || '';
+  
+  // For manual workflow_dispatch, use provided pr_number and fetch PR data
+  if (context.eventName === 'workflow_dispatch' && payload.inputs?.pr_number) {
+    prNumber = parseInt(payload.inputs.pr_number);
+    try {
+      const { data: pr } = await github.rest.pulls.get({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        pull_number: prNumber,
+      });
+      prBody = pr.body || '';
+      core.info(`Fetched PR #${prNumber} data for manual testing`);
+    } catch (error) {
+      core.setFailed(`Failed to fetch PR #${prNumber}: ${error.message}`);
+      return;
+    }
+  }
   const repoOwner = context.repo.owner;
   const repoName = context.repo.repo;
   
@@ -21,7 +38,7 @@ module.exports = async ({ github, context, core }) => {
     core.warning(`PR body exceeds ${MAX_PR_BODY_LENGTH} characters, truncating for parsing`);
     prBody = prBody.substring(0, MAX_PR_BODY_LENGTH);
   }
-  const issueRegex = /(fixes|closes|resolves|fix|close|resolve)\s+#(\d+)/gi;
+  const issueRegex = /(fixes|closes|resolves|fix|close|resolve)\s+(?:[\w-]+\/[\w-]+)?#(\d+)/gi;
   const matches = [...prBody.matchAll(issueRegex)];
   
   if (matches.length === 0) {
@@ -118,8 +135,14 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     recommendedIssues.slice(0, 5).forEach((issue, index) => {
       comment += `${index + 1}. [${issue.title}](${issue.html_url})\n`;
       if (issue.body && issue.body.length > 0) {
-        const description = issue.body.substring(0, 150).replace(/\n/g, ' ');
-        comment += `   ${description}${issue.body.length > 150 ? '...' : ''}\n\n`;
+        // Sanitize: strip HTML, normalize whitespace, escape markdown links
+        const sanitized = issue.body
+          .replace(/<[^>]*>/g, '') // Remove HTML tags
+          .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // Remove markdown links, keep text
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .trim();
+        const description = sanitized.substring(0, 150);
+        comment += `   ${description}${sanitized.length > 150 ? '...' : ''}\n\n`;
       } else {
         comment += `   *No description available*\n\n`;
       }
