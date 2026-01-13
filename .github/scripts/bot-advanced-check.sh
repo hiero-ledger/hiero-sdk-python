@@ -40,10 +40,17 @@ validate_username() {
   #  - alphanumeric or single hyphens
   #  - no leading/trailing hyphen
   #  - no consecutive hyphens
-  if [[ ! "$user" =~ ^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$ ]]; then
+  #if [[ ! "$user" =~ ^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$ ]]; then old line
+  if [[ ! "$user" =~ ^[A-Za-z0-9]([A-Za-z0-9]|-){0,38}$ ]]; then
     log "ERROR: Invalid GitHub username: '$user'"
     return 1
   fi
+}
+
+# Trim whitespace/newlines/carriage returns from username
+trim_username() {
+  local user="$1"
+  echo -n "$user" | tr -d '[:space:]\r'
 }
 
 #######################################
@@ -108,11 +115,18 @@ if [[ "${DRY_RUN:-false}" == "true" ]]; then
     exit 1
   fi
 
-  USER="$DRY_RUN_USER"
-  validate_username "$USER"
+  # Trim first
+  USER="$(trim_username "$DRY_RUN_USER")"
 
+  # DEBUG logs BEFORE validation
   log "DRY RUN MODE ENABLED"
   log "Repository: $REPO"
+  log "DRY_RUN_USER raw='$DRY_RUN_USER'"
+  log "DEBUG: USER after trim='$USER'"
+
+  # Validate after logging
+  validate_username "$USER"
+
   log "User: @$USER"
 
   COUNTS=$(get_intermediate_count "$USER")
@@ -143,6 +157,7 @@ fi
 #######################################
 check_user() {
   local user=$1
+  user="$(trim_username "$user")"
   validate_username "$user"
 
   log "Checking qualification for @$user..."
