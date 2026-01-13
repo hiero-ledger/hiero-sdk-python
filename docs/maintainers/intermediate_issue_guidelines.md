@@ -1,211 +1,204 @@
-# Intermediate Issue Guidelines
+# Intermediate Issue Guidelines — Hiero Python SDK
 
-This document defines what we **do** and **do not** consider an *Intermediate Issue*.
+## How to Use This Document
 
-Intermediate Issues represent the **next step after Beginner Issues** and are intended for contributors who are comfortable navigating the codebase, making design-adjacent decisions, and owning a change from investigation through implementation.
+This guide supports maintainers and issue creators who use the **Intermediate** label
+in the Hiero Python SDK repository.
 
-⚠️ **Important:**  
-Intermediate contributors will have much more advanced programming and workflow skills, but are still developing **conceptual awareness and responsibility skills**.  
-While they are capable of meaningful changes, they also carry a **higher risk of introducing breaking or unintended behavior** if issues are not carefully selected and well-guided.
+It helps:
 
-For this reason, **Intermediate Issues must be curated deliberately** and include enough context and guardrails to keep changes safe.
+**Issue creators:**
+- Describe moderately complex tasks clearly  
+- Set expectations around scope and independence  
+- Provide enough context without over-prescribing solutions  
 
----
+**Maintainers:**
+- Apply the Intermediate label consistently  
+- Keep issue difficulty levels clear and helpful  
 
-## Table of Contents
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+All contributions — from small fixes to major improvements — are valuable to the Hiero project.
 
-- [Purpose](#purpose)
-- [What We Consider Intermediate Issues](#what-we-consider-intermediate-issues)
-  - [Source Changes in `src`](#source-changes-in-src)
-  - [Typing, Refactors, and Code Quality](#typing-refactors-and-code-quality)
-  - [Documentation and Developer Guides](#documentation-and-developer-guides)
-  - [Examples and Usability Improvements](#examples-and-usability-improvements)
-  - [Test Improvements](#test-improvements)
-- [What Is NOT an Intermediate Issue](#what-is-not-an-intermediate-issue)
-- [Maintainer Guidance](#maintainer-guidance)
-- [Additional Resources](#additional-resources)
+The **Intermediate** label highlights work that involves investigation, reasoning,
+and ownership — while staying well-scoped and safe to review.
 
 ---
 
 ## Purpose
 
-The goal of an Intermediate Issue is to:
+Intermediate Issues represent the **next step after Beginner Issues**.
 
-- ✅ Build technical ownership
-- ✅ Encourage independent investigation and reasoning
-- ✅ Develop **safe decision-making habits**
-- ✅ Prepare contributors for advanced or core work
+They’re a great fit for contributors who:
 
-Intermediate Issues assume contributors are already comfortable with:
+- Are comfortable navigating the codebase  
+- Enjoy investigating how things work  
+- Are ready to take more ownership of their changes  
 
-- The SDK development workflow
-- Intermediate-level programming
-- Reading and navigating multiple files
+These issues help contributors grow their confidence in:
 
-Contributors should also be able to:
-
-- Reason about existing behavior by reading code and tests
-- Identify relevant patterns elsewhere in the codebase
-- Ask targeted questions when clarification is needed
+- Understanding existing behavior  
+- Making thoughtful, localized changes  
+- Working more independently  
 
 ---
 
-## What We Consider Intermediate Issues
+## What to Expect
 
-Intermediate Issues are:
+Intermediate Issues are designed for contributors who:
 
-- ✅ Clearly motivated and scoped
-- ✅ May span **multiple related files**
-- ✅ Require independent investigation, judgment, and trade-offs
-- ✅ Appropriate for contributors with growing familiarity with the codebase
+- Are familiar with the Python SDK structure  
+- Can read and reason about existing implementations  
+- Are comfortable working across multiple files  
+- Can ask focused questions when needed  
 
-They differ from **Beginner Issues** in that they:
-
-- ❗ Require **independent problem-solving**
-- ❗ Require **interpreting existing behavior**
-- ❗ May involve **light design or API considerations**
-
-They differ from **Advanced Issues** in that they:
-
-- ❗ Do **not** require deep protocol, DLT, or architectural expertise
-- ❗ Do **not** involve large-scale refactors or system redesigns
-- ❗ Do **not** require long-term planning or multi-phase work
-- ❗ Remain localized and reviewable within a single PR
-
-⚠️ **Risk Awareness**  
-Intermediate contributors are learning how to:
-- Understand API and behavior boundaries
-- Avoid breaking changes
-- Reason about downstream effects
-
-As a result, Intermediate Issues **must be framed carefully** while still allowing learning.
+These issues usually involve more exploration than Beginner Issues,
+but still have clear goals and boundaries.
 
 ---
 
-### Source Changes in `src`
+## How Intermediate Issues Usually Feel
 
-#### Allowed
+Intermediate Issues often:
 
-- Small-to-medium behavior changes with clearly stated intent
-- Bug fixes requiring investigation of existing logic
-- Localized refactors that improve clarity or maintainability
-- Improvements to existing APIs **without breaking contracts**
-- Changes touching a small set of related modules
+- Involve multiple related files  
+- Require understanding existing behavior  
+- Leave room for thoughtful implementation choices  
+- Stay focused on a specific, well-defined goal  
 
-#### Not Allowed
-
-- Large architectural refactors
-- Cross-cutting changes spanning unrelated subsystems
-- Protocol-level or wire-format changes without prior design discussion
+They’re a great fit for contributors who enjoy learning by digging into the code.
 
 ---
 
-### Typing, Refactors, and Code Quality
+## Common Types of Intermediate Work
 
-#### Allowed
+Here are examples of tasks that often fit well at this level:
 
-- Medium-sized typing improvements across related files
-- Refining overly broad or imprecise type annotations
-- Refactors that reduce duplication or complexity
-- Improving internal abstractions with clear justification
+### Core SDK Changes
+- Small-to-medium behavior changes with clear intent  
+- Bug fixes that require investigating existing logic  
+- Localized refactors for clarity or maintainability  
+- Improvements to existing APIs without breaking contracts  
 
-#### Not Allowed
+### Refactors & Code Quality
+- Refining overly broad or imprecise type hints  
+- Reducing duplication or complexity  
+- Improving internal abstractions with clear justification  
 
-- Repository-wide typing rewrites
-- Advanced type-system experimentation
-- Refactors that significantly alter behavior without clear intent
+### Documentation & Guides
+- Writing new documentation for existing features  
+- Clarifying developer guides based on real usage  
+- Documenting non-obvious workflows  
+- Updating docs to reflect recent changes  
 
----
+### Examples & Usability
+- Creating new examples for existing features  
+- Improving examples based on user feedback  
+- Refactoring examples to demonstrate best practices  
 
-### Documentation and Developer Guides
-
-#### Allowed
-
-- Writing new documentation for existing features
-- Expanding or clarifying developer guides based on code behavior
-- Documenting non-obvious workflows or design decisions
-- Updating documentation to reflect recent changes
-
-#### Not Allowed
-
-- Large documentation restructures without alignment
-- Conceptual or architectural documentation
-- Documentation requiring deep protocol or domain expertise
-
----
-
-### Examples and Usability Improvements
-
-#### Allowed
-
-- Creating new examples for existing features
-- Improving examples based on user confusion or feedback
-- Refactoring examples to demonstrate best practices
-- Enhancing output or structure to improve clarity
-
-#### Not Allowed
-
-- Large example suites without a clear instructional goal
+### Tests
+- Adding new tests for existing functionality  
+- Extending coverage for edge cases  
+- Refactoring tests for clarity and structure  
 
 ---
 
-### Test Improvements
+## Usually Not Good Fits
 
-#### Allowed
+- Purely mechanical tasks  
+- Fully scripted changes  
+- Large architectural redesigns  
+- Long-term, multi-phase projects  
+- Work requiring deep protocol or DLT expertise  
 
-- Designing and adding new tests for existing functionality
-- Extending coverage for edge cases or regressions
-- Refactoring tests for clarity, structure, or maintainability
-- Improving assertions to better capture intent
+These tasks may be a better fit for **Good First Issue** or **Beginner** labels.
 
-#### Not Allowed
+If a task:
 
-- Designing new testing frameworks
-- Large-scale test architecture changes
-- Performance or stress testing without prior alignment
+- Involves major design decisions  
+- Affects core architecture or APIs  
 
----
-
-## What Is NOT an Intermediate Issue
-
-### Rule of Thumb
-
-> If a contributor must **investigate behavior, reason about trade-offs,  
-> and make localized design decisions**,  
-> it’s an **Intermediate Issue**.
-
-> If the work requires **deep protocol expertise, architectural redesign,  
-> or long-term planning**,  
-> it’s **not**.
+…it may be a better fit for the **Advanced** label.
 
 ---
 
-## Maintainer Guidance
+## Typical Scope & Time
 
-### Label as an Intermediate Issue if the issue:
+Intermediate Issues are usually:
 
-- ✅ Builds naturally on Beginner Issues
-- ✅ Requires investigation and interpretation
-- ✅ Has clear intent but multiple valid implementation paths
-- ✅ Includes **enough context to avoid breaking changes**
-- ✅ Can be reasonably completed in a single PR
+- ⏱ **Estimated time:** 1–3 days  
+- 📄 **Scope:** Multiple related files  
+- 🧠 **Challenge level:** Investigation, reasoning, and ownership  
 
-### Do NOT label as an Intermediate Issue if the issue:
-
-- ❌ Is purely mechanical (use Good First Issue)
-- ❌ Requires minimal investigation (use Beginner Issue)
-- ❌ Has a high risk of silent breaking behavior
-- ❌ Requires deep protocol, DLT, or architectural expertise
-- ❌ Represents long-term or strategic design work
+They’re designed to be achievable in a single pull request.
 
 ---
 
-## Additional Resources
+## Example: A Well-Formed Intermediate Issue
 
-- [Good First Issue Guidelines](./good_first_issues_guidelines.md)
-- [Beginner Issue Guidelines](./beginner_issue_guidelines.md)
-- [Contributing Guide](../../CONTRIBUTING.md)
-- [DCO Signing Guide](../sdk_developers/signing.md)
-- [Changelog Entry Guide](../sdk_developers/changelog_entry.md)
-- [Discord Community](../discord.md)
-- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+### Add optional child receipt support to TransactionReceiptQuery
+
+The Python SDK’s `TransactionReceiptQuery` currently returns only the parent
+transaction receipt, even when child receipts are available.
+
+The mirror node API supports returning child receipts, and similar query types
+in the SDK already support optional configuration flags.
+
+This makes it harder to inspect scheduled or child transactions without
+additional manual queries.
+
+Relevant files:
+- `hiero_sdk/query/transaction_receipt_query.py`
+- `examples/query/transaction_receipt_query.py`
+
+### Expected Outcome
+
+Add an optional configuration flag that allows callers to request child receipts.
+
+The change should:
+
+- Be opt-in (default behavior stays the same)  
+- Reuse existing receipt parsing logic  
+- Follow existing query configuration patterns  
+- Avoid breaking public APIs  
+
+Example usage:
+
+```python
+receipt = (
+    TransactionReceiptQuery()
+    .set_transaction_id(tx_id)
+    .set_include_children(True)
+    .execute(client)
+)
+```
+### Implementation Notes
+
+Likely steps:
+- Add an optional boolean flag (e.g. include_children)
+- Propagate the flag to the mirror node request
+- Update response parsing to include child receipts
+- Update the example file
+- Add or adjust unit tests
+- Similar patterns exist in other query classes with optional flags.
+
+## Support & Collaboration
+- Intermediate Issues are supported through:
+- Issue and PR discussions
+- Maintainer and community feedback
+
+Support focuses on:
+- Helping contributors reason about existing behavior
+- Clarifying boundaries and constraints
+- Ensuring changes stay safe and well-scoped
+- The goal is to build confidence while protecting the stability of the SDK.
+
+Maintainer Guidance
+- An issue is often a good fit for the Intermediate label when it:
+- Builds naturally on Beginner Issues
+- Requires investigation and interpretation
+- Has clear intent but multiple valid approaches
+- Includes enough context to avoid breaking changes
+- Can be completed in a single PR
+
+Intermediate Issues are about growing skills —
+through exploration, reasoning, and thoughtful ownership.
