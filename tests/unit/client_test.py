@@ -13,6 +13,8 @@ from hiero_sdk_python import Client, AccountId, PrivateKey
 from hiero_sdk_python.hbar import Hbar
 
 
+pytestmark = pytest.mark.unit
+
 @pytest.mark.parametrize(
     "factory_method, expected_network",
     [
@@ -249,3 +251,106 @@ def test_set_default_max_query_payment_non_finite_value(invalid_amount):
 
     with pytest.raises(ValueError, match="Hbar amount must be finite"):
         client.set_default_max_query_payment(invalid_amount)
+
+
+# Set max_attempts
+def test_set_max_attempts_with_valid_param():
+    """Test that set_max_attempts updates default max_attempts value for client."""
+    client = Client.for_testnet()
+    assert client.max_attempts == 10 # default max_attempt 10
+
+    client.set_max_attempts(20)
+    assert client.max_attempts == 20
+
+@pytest.mark.parametrize(
+    "invalid_max_attempts",
+    ["1", 0.2, object(), {}]
+)
+def test_set_max_attempts_with_invalid_type(invalid_max_attempts):
+    """Test that set_max_attempts raises TypeError for non-int values."""
+    client = Client.for_testnet()
+
+    with pytest.raises(
+        TypeError,
+        match=f"max_attempts must be of type int, got {type(invalid_max_attempts).__name__}",
+    ):
+        client.set_max_attempts(invalid_max_attempts)
+
+@pytest.mark.parametrize(
+    "invalid_max_attempts",
+    [0, -10]
+)
+def test_set_max_attempts_with_invalid_value(invalid_max_attempts):
+    """Test that set_max_attempts raises ValueError for non-positive values."""
+    client = Client.for_testnet()
+
+    with pytest.raises(ValueError, match="max_attempts must be greater than 0"):
+        client.set_max_attempts(invalid_max_attempts)
+
+# Set grpc_deadline
+def test_set_grpc_deadline_with_valid_param():
+    """Test that set_grpc_deadline updates default value of _grpc_deadline."""
+    client = Client.for_testnet()
+    assert client._grpc_deadline == 10 # default grpc_deadline 10 sec
+
+    client.set_grpc_deadline(20)
+    assert client._grpc_deadline == 20
+
+@pytest.mark.parametrize(
+    "invalid_grpc_deadline",
+    ["1", object(), {}]
+)
+def test_set_grpc_deadline_with_invalid_type(invalid_grpc_deadline):
+    """Test that set_grpc_deadline raises TypeError for invalid types."""
+    client = Client.for_testnet()
+
+    with pytest.raises(
+        TypeError,
+        match=f"grpc_deadline must be of type Union\\[int, float\\], got {type(invalid_grpc_deadline).__name__}",
+    ):
+        client.set_grpc_deadline(invalid_grpc_deadline)
+
+@pytest.mark.parametrize(
+    "invalid_grpc_deadline",
+    [0, -10, 0.0, -2.3]
+)
+def test_set_grpc_deadline_with_invalid_value(invalid_grpc_deadline):
+    """Test that set_grpc_deadline raises ValueError for non-positive values."""
+    client = Client.for_testnet()
+
+    with pytest.raises(ValueError, match="grpc_deadline must be greater than 0"):
+        client.set_grpc_deadline(invalid_grpc_deadline)
+
+# Set request_timeout
+def test_set_request_timeout_with_valid_param():
+    """Test that set_request_timeout updates default value of _request_timeout."""
+    client = Client.for_testnet()
+    assert client._request_timeout == 120 # default request_timeout 120 sec
+
+    client.set_request_timeout(200)
+    assert client._request_timeout == 200
+
+@pytest.mark.parametrize(
+    "invalid_request_timeout",
+    ["1", object(), {}]
+)
+def test_set_request_timeout_with_invalid_type(invalid_request_timeout):
+    """Test that set_request_timeout raises TypeError for invalid types."""
+    client = Client.for_testnet()
+
+    with pytest.raises(
+        TypeError,
+        match=f"request_timeout must be of type Union\\[int, float\\], got {type(invalid_request_timeout).__name__}",
+    ):
+        client.set_request_timeout(invalid_request_timeout)
+
+@pytest.mark.parametrize(
+    "invalid_request_timeout",
+    [0, -10, 0.0, -2.3]
+)
+def test_set_request_timeout_with_invalid_value(invalid_request_timeout):
+    """Test that set_request_timeout raises ValueError for non-positive values."""
+    client = Client.for_testnet()
+
+    with pytest.raises(ValueError, match="request_timeout must be greater than 0"):
+        client.set_request_timeout(invalid_request_timeout)
