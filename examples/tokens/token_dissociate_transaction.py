@@ -1,5 +1,5 @@
-# uv run examples/tokens/token_dissociate.py
-# python examples/tokens/token_dissociate.py
+# uv run examples/tokens/token_dissociate_transaction.py
+# python examples/tokens/token_dissociate_transaction.py
 """
 A full example that creates an account, two tokens, associates them, and finally dissociates them.
 """
@@ -47,7 +47,7 @@ def create_new_account(client, operator_id, operator_key):
         print(f"✅ Success! Created new account with ID: {recipient_id}")
         return client, operator_key, recipient_id, recipient_key, operator_id
 
-    except (ValueError, RuntimeError) as e:
+    except Exception as e:
         print(f"❌ Error creating new account: {e}")
         sys.exit(1)
 
@@ -89,7 +89,7 @@ def create_token(client, operator_key, recipient_id, recipient_key, operator_id)
         )
         return client, nft_token_id, fungible_token_id, recipient_id, recipient_key
 
-    except (ValueError, RuntimeError) as e:
+    except Exception as e:
         print(f"❌ Error creating tokens: {e}")
         sys.exit(1)
 
@@ -122,7 +122,7 @@ def token_associate(
         )
         print(f"✅ Success! Token association complete. Status: {receipt.status}")
         return client, nft_token_id, fungible_token_id, recipient_id, recipient_key
-    except (ValueError, RuntimeError) as e:
+    except Exception as e:
         print(f"❌ Error associating tokens: {e}")
         sys.exit(1)
 
@@ -172,7 +172,7 @@ def token_dissociate(
             f"✅ Success! Token dissociation complete for both NFT and fungible tokens, Status: {ResponseCode(receipt.status).name}"
         )
 
-    except (ValueError, RuntimeError) as e:
+    except Exception as e:
         print(f"❌ Error dissociating tokens: {e}")
         sys.exit(1)
 
