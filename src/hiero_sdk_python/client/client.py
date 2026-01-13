@@ -18,6 +18,9 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 
 from .network import Network
 
+DEFAULT_GRPC_DEADLINE = 10 # seconds
+DEFAULT_REQUEST_TIMEOUT = 120 # seconds
+
 NetworkName = Literal["mainnet", "testnet", "previewnet"]
 
 class Operator(NamedTuple):
@@ -45,6 +48,9 @@ class Client:
         self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
 
         self.max_attempts: int = 10
+
+        self._grpc_deadline: float = DEFAULT_GRPC_DEADLINE
+        self._request_timeout: float = DEFAULT_REQUEST_TIMEOUT
 
         self._init_mirror_stub()
 
@@ -240,6 +246,45 @@ class Client:
         Retrieve the configured root certificates for TLS connections.
         """
         return self.network.get_tls_root_certificates()
+    
+    def set_max_attempts(self, max_attempts: int) -> "Client":
+        """
+        Set max_attempts for the client.
+        """
+        if not isinstance(max_attempts, int):
+            raise TypeError(f"max_attempts must be of type int, got {(type(max_attempts).__name__)}")
+        
+        if max_attempts <= 0:
+            raise ValueError("max_attempts must be greater than 0")
+        
+        self.max_attempts = max_attempts
+        return self
+    
+    def set_grpc_deadline(self, grpc_deadline: Union[int, float]) -> "Client":
+        """
+        Set grpc dedline for the client.
+        """
+        if not isinstance(grpc_deadline, (float, int)):
+            raise TypeError(f"grpc_deadline must be of type Union[int, float], got {type(grpc_deadline).__name__}")
+        
+        if grpc_deadline <= 0:
+            raise ValueError("grpc_deadline must be greater than 0")
+        
+        self._grpc_deadline = grpc_deadline
+        return self
+    
+    def set_request_timeout(self, request_timeout: Union[int, float]) -> "Client":
+        """
+        Set request timeout for the client.
+        """
+        if not isinstance(request_timeout, (float, int)):
+            raise TypeError(f"request_timeout must be of type Union[int, float], got {type(request_timeout).__name__}")
+        
+        if request_timeout <= 0:
+            raise ValueError("request_timeout must be greater than 0")
+        
+        self._request_timeout = request_timeout
+        return self
 
     def __enter__(self) -> "Client":
         """
