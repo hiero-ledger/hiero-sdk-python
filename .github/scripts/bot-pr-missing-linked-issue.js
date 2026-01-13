@@ -1,4 +1,6 @@
 module.exports = async ({ github, context }) => {
+  const LINKBOT_MARKER = '<!-- LinkBot Missing Issue -->';
+
   let prNumber;
   try {
     const isDryRun = process.env.DRY_RUN === 'true';
@@ -38,7 +40,7 @@ module.exports = async ({ github, context }) => {
     });
 
     const alreadyCommented = comments.data.some(comment =>
-      comment.body.includes("this is LinkBot")
+      comment.body?.includes(LINKBOT_MARKER)
     );
 
     if (alreadyCommented) {
@@ -47,7 +49,7 @@ module.exports = async ({ github, context }) => {
     }
 
     if (!regex.test(body)) {
-      const commentBody = [
+      const commentBody = [ `${LINKBOT_MARKER}` +
         `Hi @${prData.user.login}, this is **LinkBot** 👋`,
         ``,
         `Linking pull requests to issues helps us significantly with reviewing pull requests and keeping the repository healthy.`,
