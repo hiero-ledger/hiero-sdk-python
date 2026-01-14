@@ -132,8 +132,15 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
   if (recommendedIssues.length > 0) {
     comment += `Here are some ${wasGoodFirstIssue ? 'beginner-level' : 'similar'} issues you might be interested in working on next:\n\n`;
     
+    // Sanitize title: escape markdown link syntax and special characters
+    const sanitizeTitle = (title) => title
+      .replace(/\[/g, '\\[')
+      .replace(/\]/g, '\\]')
+      .replace(/\(/g, '\\(')
+      .replace(/\)/g, '\\)');
+
     recommendedIssues.slice(0, 5).forEach((issue, index) => {
-      comment += `${index + 1}. [${issue.title}](${issue.html_url})\n`;
+      comment += `${index + 1}. [${sanitizeTitle(issue.title)}](${issue.html_url})\n`;
       if (issue.body && issue.body.length > 0) {
         // Sanitize: strip HTML, normalize whitespace, escape markdown links
         const sanitized = issue.body
