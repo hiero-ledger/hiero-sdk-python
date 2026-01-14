@@ -12,15 +12,12 @@ Usage:
     uv run examples/account/account_allowance_delete_transaction_nft.py
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
     AccountId,
     PrivateKey,
-    Network,
     Hbar,
     ResponseCode,
     TokenCreateTransaction,
@@ -35,32 +32,11 @@ from hiero_sdk_python import (
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
-
-def setup_client():
-    """Initialize and set up the client with operator account"""
-    if os.getenv("OPERATOR_ID") is None or os.getenv("OPERATOR_KEY") is None:
-        print("Environment variables OPERATOR_ID and OPERATOR_KEY must be set")
-        sys.exit(1)
-
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id_str = os.getenv("OPERATOR_ID")
-    operator_key_str = os.getenv("OPERATOR_KEY")
-
-    assert operator_id_str is not None and operator_key_str is not None
-
-    operator_id = AccountId.from_string(operator_id_str)
-    operator_key = PrivateKey.from_string(operator_key_str)
-
-    client.set_operator(operator_id, operator_key)
-    print(f"Client setup for NFT Owner (Operator): {client.operator_account_id}")
-
-    return client, operator_id, operator_key
+def setup_client() -> tuple[Client, AccountId, PrivateKey]:
+    """Initialize client from environment variables."""
+    client = Client.from_env()
+    return client, client.operator_account_id, client.operator_private_key
 
 
 def create_account(client, memo="Test Account"):
@@ -261,7 +237,7 @@ def verify_allowance_removed(
                 "Verification SUCCEEDED: Transfer failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE as expected."
             )
         elif receipt.status == ResponseCode.SUCCESS:
-            print(f"Verification FAILED: Transfer succeeded unexpectedly!")
+            print("Verification FAILED: Transfer succeeded unexpectedly!")
             sys.exit(1)
         else:
             print(

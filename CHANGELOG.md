@@ -171,6 +171,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
 - Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 
+- Refactored account example client setup to use Client.from_env()
+
+
+
 ### Fixed
 
 - Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
@@ -762,5 +766,8 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - N/A
 
 ### Removed
+
+
+
 
 - N/A

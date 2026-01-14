@@ -2,12 +2,9 @@
 Example demonstrating hbar allowance approval, deletion, and failure after deletion.
 """
 
-import os
 import sys
 
-from dotenv import load_dotenv
-
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey, TransactionId
+from hiero_sdk_python import AccountId, Client, Hbar, PrivateKey, TransactionId
 from hiero_sdk_python.account.account_allowance_approve_transaction import (
     AccountAllowanceApproveTransaction,
 )
@@ -15,22 +12,9 @@ from hiero_sdk_python.account.account_create_transaction import AccountCreateTra
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client() -> Client:
-    """Initialize and set up the client with operator account using env vars."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
-    print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client
+    return Client.from_env()
 
 
 def create_account(client: Client):
