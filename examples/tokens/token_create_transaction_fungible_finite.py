@@ -18,16 +18,12 @@ Usage:
 uv run examples/tokens/token_create_transaction_fungible_finite.py
 python examples/tokens/token_create_transaction_fungible_finite.py
 """
-
 import os
 import sys
-from dotenv import load_dotenv
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
     TokenCreateTransaction,
-    Network,
 )
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
@@ -43,23 +39,14 @@ def parse_optional_key(key_str):
         return None
 
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
+
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client, operator_id, operator_key
-
+    return client
 
 def load_optional_keys():
     """Load optional keys (admin, supply, freeze, pause)."""
@@ -121,7 +108,10 @@ def execute_transaction(transaction, client, operator_key, admin_key):
 
 def create_token_fungible_finite():
     """Main function to create finite fungible token."""
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
     keys = load_optional_keys()
     transaction = build_transaction(client, operator_id, keys)
     execute_transaction(transaction, client, operator_key, keys[0])
