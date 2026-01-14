@@ -11,53 +11,17 @@ using mirror node lookups:
 4. Populate EVM address from mirror node
 """
 
-import os
 import sys
 import time
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
     AccountId,
     PrivateKey,
-    Network,
     TransferTransaction,
     Hbar,
-    TransactionGetReceiptQuery,
+    TransactionGetReceiptQuery
 )
-
-load_dotenv()
-
-NETWORK_NAME = os.getenv("NETWORK", "testnet").lower()
-OPERATOR_ID = os.getenv("OPERATOR_ID")
-OPERATOR_KEY = os.getenv("OPERATOR_KEY")
-
-
-def setup_client() -> Client:
-    """
-    Initialize and return a Hedera Client using operator credentials.
-    """
-    print(f"Connecting to Hedera {NETWORK_NAME} network!")
-
-    if not OPERATOR_ID or not OPERATOR_KEY:
-        print("OPERATOR_ID or OPERATOR_KEY not set in .env")
-        sys.exit(1)
-
-    try:
-        network = Network(NETWORK_NAME)
-        client = Client(network)
-
-        operator_id = AccountId.from_string(OPERATOR_ID)
-        operator_key = PrivateKey.from_string(OPERATOR_KEY)
-
-        client.set_operator(operator_id, operator_key)
-    except Exception as e:
-        print(f"Failed to initialize client: {e}")
-        sys.exit(1)
-
-    print(f"Client set up with operator id {client.operator_account_id}")
-    return client
-
 
 def generate_evm_address():
     """
@@ -162,7 +126,9 @@ def populate_evm_address_example(client, created_account_id, evm_address):
 
 
 def main():
-    client = setup_client()
+    client = Client.from_env()
+
+    print(f"Client set up with operator id {client.operator_account_id}")
 
     evm_address = generate_evm_address()
     print(f"Generated EVM address: {evm_address}")
