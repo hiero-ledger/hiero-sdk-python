@@ -2,7 +2,6 @@
 uv run examples/query/payment_query.py
 python examples/query/payment_query.py
 """
-
 from hiero_sdk_python import (
     Client,
     Hbar,
@@ -11,6 +10,7 @@ from hiero_sdk_python import (
     TokenType,
     SupplyType,
 )
+import sys  
 
 
 def setup_client():
@@ -49,33 +49,12 @@ def create_fungible_token(client, operator_id, operator_key):
     return token_id
 
 
-def query_cost_of_token_creation():
+def query_payment_example():
     client, operator_id, operator_key = setup_client()
-
-    print("Querying cost of token creation...")
     
-    # Create a dummy transaction to query its cost
-    transaction = (
-        TokenCreateTransaction()
-        .set_token_name("MyExampleFT")
-        .set_token_symbol("EXFT")
-        .set_decimals(2)
-        .set_initial_supply(100)
-        .set_treasury_account_id(operator_id)
-        .set_token_type(TokenType.FUNGIBLE_COMMON)
-        .set_supply_type(SupplyType.FINITE)
-        .set_max_supply(1000)
-        .set_admin_key(operator_key)
-        .set_supply_key(operator_key)
-    )
-
-    # Get the cost
-    cost = transaction.get_cost(client)
-    print(f"Estimated cost to create token: {cost}")
-    
-    # Actually create it to verify
+    # Create a token to demonstrate
     create_fungible_token(client, operator_id, operator_key)
 
 
 if __name__ == "__main__":
-    query_cost_of_token_creation()
+    query_payment_example()

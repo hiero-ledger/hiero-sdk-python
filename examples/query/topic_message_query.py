@@ -25,6 +25,11 @@ def create_topic(client):
     """Create a new topic"""
     print("Creating new topic...")
     operator_key = client.operator_private_key
+    
+    # FIX: Added null check
+    if operator_key is None:
+        raise ValueError("Operator private key not set in environment")
+
     transaction = (
         TopicCreateTransaction()
         .set_admin_key(operator_key.public_key())
@@ -44,12 +49,17 @@ def submit_messages(client, topic_id):
     print("Submitting messages...")
     for i in range(3):
         message = f"Hello Hiero! Message {i+1}"
-        transaction = (
+        response = (
             TopicMessageSubmitTransaction()
             .set_topic_id(topic_id)
             .set_message(message)
             .execute(client)
         )
+        # FIX: Check receipt
+        receipt = response.get_receipt(client)
+        if receipt.status != 22: # SUCCESS
+             print(f"Warning: Message submission status: {receipt.status}")
+
         print(f"Submitted message: {message}")
         time.sleep(2)
 
@@ -80,9 +90,10 @@ def main():
     )
 
     # Subscribe to the topic
+    # FIX: Changed on_next to on_message
     handle = query.subscribe(
         client, 
-        on_next=on_message_handler,
+        on_message=on_message_handler,
         on_error=on_error_handler
     )
 

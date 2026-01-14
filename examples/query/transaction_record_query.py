@@ -28,18 +28,18 @@ def setup_client():
 
 def create_account_transaction(client):
     """Create a new account"""
-    # Create the transaction
+    # FIX: Derive public key from private key
     transaction = (
         AccountCreateTransaction()
-        .set_key_without_alias(client.operator_public_key)
+        .set_key_without_alias(client.operator_private_key.public_key())
         .set_initial_balance(Hbar(1))
         .freeze_with(client)
     )
 
-    # Sign the transaction with the client operator private key and submit to a Hedera network
+  
     tx_response = transaction.sign(client.operator_private_key).execute(client)
 
-    # Request the receipt of the transaction
+  
     receipt = tx_response
 
     # Get the account ID

@@ -1,5 +1,4 @@
 import sys
-
 from hiero_sdk_python import (
     Client,
     TokenCreateTransaction,
@@ -8,6 +7,7 @@ from hiero_sdk_python import (
     SupplyType,
     TokenNftInfoQuery,
     ResponseCode,
+    NftId, 
 )
 
 
@@ -74,14 +74,16 @@ def query_nft_info():
     token_id = create_nft(client, operator_id, operator_key)
     serial_number = mint_nft(client, token_id, operator_key)
 
-    nft_id = token_id.nft(serial_number)
+    # FIX: Use NftId constructor
+    nft_id = NftId(token_id, serial_number)
 
     print("Querying NFT info...")
+    # FIX: Remove [0] indexing
     nft_info = TokenNftInfoQuery().set_nft_id(nft_id).execute(client)
 
-    print(f"NFT ID: {nft_info[0].nft_id}")
-    print(f"Account ID: {nft_info[0].account_id}")
-    print(f"Metadata: {nft_info[0].metadata}")
+    print(f"NFT ID: {nft_info.nft_id}")
+    print(f"Account ID: {nft_info.account_id}")
+    print(f"Metadata: {nft_info.metadata}")
 
 
 if __name__ == "__main__":
