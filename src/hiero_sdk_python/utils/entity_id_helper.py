@@ -144,7 +144,7 @@ def perform_query_to_mirror_node(url: str, timeout: float=10) -> Dict[str, Any]:
         raise RuntimeError(f"Mirror node request timed out for {url}") from e
 
     except requests.RequestException as e:
-        raise RuntimeError(f"Unexpected error while querying mirror node: {url}")
+        raise RuntimeError(f"Unexpected error while querying mirror node: {url}") from e
     
 def to_solidity_address(shard: int, realm: int, num: int) -> str:
     """Convert entity ID components to a 20-byte Solidity-style address (long-zero format)."""

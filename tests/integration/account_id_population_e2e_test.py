@@ -14,7 +14,7 @@ from tests.integration.utils import env
 
 @pytest.fixture
 def evm_address():
-    """Returns an emv_aaddress."""
+    """Returns an evm_address."""
     private_key = PrivateKey.generate_ecdsa()
     public_key = private_key.public_key()
 
