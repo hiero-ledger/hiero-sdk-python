@@ -296,5 +296,5 @@ def test_hash_consistency_for_equal_values():
 )
 def test_from_tinybars_invalid_type_param(invalid_tinybars):
     """Test from_tinybar method raises error if the type is not int."""
-    with pytest.raises(TypeError, match="tinybars must be an int."):
+    with pytest.raises(TypeError, match=re.escape("tinybars must be an int.")):
         Hbar.from_tinybars(invalid_tinybars)

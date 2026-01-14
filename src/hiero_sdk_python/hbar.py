@@ -41,10 +41,10 @@ class Hbar:
             unit: Unit of the provided amount.
         """
         if isinstance(amount, bool) or not isinstance(amount, (int, float, Decimal)):
-            raise TypeError(f"Amount must be of type int, float, or Decimal")
+            raise TypeError("Amount must be of type int, float, or Decimal")
 
         if isinstance(amount, float) and not math.isfinite(amount):
-            raise ValueError(f"Hbar amount must be finite")
+            raise ValueError("Hbar amount must be finite")
 
         if  unit == HbarUnit.TINYBAR:
             if not isinstance(amount, int):
