@@ -261,7 +261,7 @@ class Client:
         """
         if isinstance(max_query_payment, bool) or not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
             raise TypeError(
-                f"max_query_payment must be int, float, Decimal, or Hbar, "
+                "max_query_payment must be int, float, Decimal, or Hbar, "
                 f"got {type(max_query_payment).__name__}"
             )
         

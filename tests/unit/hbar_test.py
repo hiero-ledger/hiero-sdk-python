@@ -226,5 +226,5 @@ def test_factory_methods():
 )
 def test_from_tinybars_invalid_type_param(invalid_tinybars):
     """Test from_tinybar method raises error if the type is not int."""
-    with pytest.raises(TypeError, match="tinybars must be an int."):
+    with pytest.raises(TypeError, match=re.escape("tinybars must be an int.")):
         Hbar.from_tinybars(invalid_tinybars)

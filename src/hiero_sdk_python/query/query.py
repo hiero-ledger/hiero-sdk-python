@@ -109,22 +109,22 @@ class Query(_Executable):
         Returns:
             Query: The current query instance for method chaining.
         """
-        if not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
+        if isinstance(max_query_payment, bool) or not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
             raise TypeError(
-                f"max_query_payment must be int, float, Decimal, or Hbar, got {type(max_query_payment).__name__}"
+                "max_query_payment must be int, float, Decimal, or Hbar, "
+                f"got {type(max_query_payment).__name__}"
             )
         
-        if isinstance(max_query_payment, Hbar):
-            if max_query_payment < Hbar(0):
-                raise ValueError("max_query_payment must be non-negative, got negative Hbar value")
+        value = (
+            max_query_payment 
+            if isinstance(max_query_payment, Hbar)
+            else Hbar(max_query_payment)
+        )
 
-            self.max_query_payment = max_query_payment
-            return self
-    
-        if max_query_payment < 0:
-            raise ValueError(f"max_query_payment must be non-negative, got {max_query_payment}")
+        if value < Hbar(0):
+            raise ValueError("max_query_payment must be non-negative")
 
-        self.max_query_payment = Hbar(max_query_payment)
+        self.max_query_payment = value
         return self
 
     def _before_execute(self, client: Client) -> None:

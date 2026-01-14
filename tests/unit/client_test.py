@@ -239,5 +239,5 @@ def test_set_default_max_query_payment_non_finite_value(invalid_amount):
     """Test that set_default_max_query_payment raise error for non finite value."""
     client = Client.for_testnet()
 
-    with pytest.raises(ValueError, match=("Hbar amount must be finite")):
+    with pytest.raises(ValueError, match="Hbar amount must be finite"):
         client.set_default_max_query_payment(invalid_amount)

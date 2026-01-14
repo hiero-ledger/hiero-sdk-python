@@ -271,28 +271,32 @@ def test_set_max_query_payment_valid_param(query, valid_amount, expected):
 
 @pytest.mark.parametrize(
     'negative_amount',
-    [-1, -0.1, Decimal('-0.1'), Decimal('-1')]
+    [-1, -0.1, Decimal('-0.1'), Decimal('-1'), Hbar(-1), Hbar(-0.2)]
 )
 def test_set_max_query_payment_negative_value(query, negative_amount):
     """Test set_max_query_payment for negative amount values."""
-    with pytest.raises(ValueError, match=f"max_query_payment must be non-negative, got {negative_amount}"):
+    with pytest.raises(ValueError, match="max_query_payment must be non-negative"):
         query.set_max_query_payment(negative_amount)
-
-def test_set_max_query_payment_negative_hbar(query):
-    """Test set_max_query_payment for negative hbar as amount."""
-    with pytest.raises(ValueError, match="max_query_payment must be non-negative, got negative Hbar value"):
-        query.set_max_query_payment(Hbar(-1))
 
 @pytest.mark.parametrize(
     'invalid_amount',
-    ['1', 'abc', None, object()]  
+    ['1', 'abc', True, False, None, object()]  
 )
 def test_set_max_query_payment_invalid_param(query, invalid_amount):
     """Test that set_max_query_payment raise error for invalid param."""
     with pytest.raises(TypeError, match=(
-        f"max_query_payment must be int, float, Decimal, or Hbar, "
+        "max_query_payment must be int, float, Decimal, or Hbar, "
         f"got {type(invalid_amount).__name__}"
     )):
+        query.set_max_query_payment(invalid_amount)
+
+@pytest.mark.parametrize(
+    'invalid_amount',
+    [float('inf'), float('nan')]  
+)
+def test_set_max_query_payment_non_finite_value(query, invalid_amount):
+    """Test that set_max_query_payment raise error for non finite value."""
+    with pytest.raises(ValueError, match="Hbar amount must be finite"):
         query.set_max_query_payment(invalid_amount)
 
 def test_set_max_payment_override_client_max_payment(query_requires_payment, mock_client):
