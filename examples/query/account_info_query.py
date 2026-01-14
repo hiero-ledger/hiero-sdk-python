@@ -1,16 +1,12 @@
 """
 uv run examples/query/account_info_query.py
 python examples/query/account_info_query.py
-
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    Network,
     AccountId,
     PrivateKey,
     AccountCreateTransaction,
@@ -28,22 +24,22 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.nft_id import NftId
 
-load_dotenv()
-
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to the Hedera {network} network!")
-    client = Client(network)
+    """Initialize client using environment configuration"""
+    print("Connecting to Hedera network using environment configuration...")
 
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
-    print(f"Client set up with operator id {client.operator_account_id}")
+    client = Client.from_env()
 
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
+    if not operator_id or not operator_key:
+        raise ValueError(
+            "OPERATOR_ID and OPERATOR_KEY must be set in the environment"
+        )
+
+    print(f"Client set up with operator id {operator_id}")
     return client, operator_id, operator_key
 
 
@@ -118,16 +114,14 @@ def create_nft(client, account_id, account_private_key):
         .set_supply_key(account_private_key)
         .set_freeze_key(account_private_key)
         .freeze_with(client)
-        .sign(account_private_key)  # Sign with the account private key
+        .sign(account_private_key)
         .execute(client)
     )
 
-    # Check if nft creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
-    # Get token ID from receipt
     nft_token_id = receipt.token_id
     print(f"\nNFT created with ID: {nft_token_id}")
 
@@ -141,7 +135,7 @@ def mint_nft(client, nft_token_id, account_private_key):
         .set_token_id(nft_token_id)
         .set_metadata(b"My NFT Metadata 1")
         .freeze_with(client)
-        .sign(account_private_key)  # Sign with the account private key
+        .sign(account_private_key)
         .execute(client)
     )
 
@@ -150,7 +144,6 @@ def mint_nft(client, nft_token_id, account_private_key):
         sys.exit(1)
 
     print(f"\nNFT minted with serial number: {receipt.serial_numbers[0]}")
-
     return NftId(nft_token_id, receipt.serial_numbers[0])
 
 
@@ -199,19 +192,17 @@ def display_account_info(info):
     print(f"Is Deleted: {info.is_deleted}")
     print(f"Receiver Signature Required: {info.receiver_signature_required}")
     print(f"Owned NFTs: {info.owned_nfts}")
-
     print(f"Public Key: {info.key.to_string()}")
-
     print(f"Expiration Time: {info.expiration_time}")
     print(f"Auto Renew Period: {info.auto_renew_period}")
-
     print(f"Proxy Received: {info.proxy_received}")
 
 
 def display_token_relationships(info):
     """Display token relationships information"""
     print(
-        f"\nToken Relationships ({len(info.token_relationships)} total) for account {info.account_id}:"
+        f"\nToken Relationships ({len(info.token_relationships)} total) "
+        f"for account {info.account_id}:"
     )
     if info.token_relationships:
         for i, relationship in enumerate(info.token_relationships, 1):
@@ -229,56 +220,31 @@ def display_token_relationships(info):
 
 def query_account_info():
     """
-    Demonstrates the account info query functionality by:
-    1. Setting up client with operator account
-    2. Creating a new account
-    3. Querying account info and displaying account information
-    4. Creating a fungible token and associating it with the new account
-    5. Querying account info to see token relationships
-    6. Granting KYC to the new account for the token
-    7. Querying account info again to see updated KYC status
-    8. Creating an NFT token with the new account as treasury and minting one NFT
-    9. Querying final account info to see complete token relationships and NFT ownership
+    Demonstrates the account info query functionality
     """
     client, operator_id, operator_key = setup_client()
 
-    # Create a new account
     account_id, account_private_key = create_test_account(client, operator_key)
 
-    # Query the account info and display account information
     info = AccountInfoQuery(account_id).execute(client)
     print("\nAccount info query completed successfully!")
     display_account_info(info)
 
-    # Create a fungible token
     token_id = create_fungible_token(client, operator_id, operator_key)
 
-    # Associate the token with the account
     associate_token_with_account(client, token_id, account_id, account_private_key)
 
-    # Query the account info and display token relationships
     info = AccountInfoQuery(account_id).execute(client)
-    print("\nToken info query completed successfully!")
     display_token_relationships(info)
 
-    # Grant KYC for the token
-    print(f"\nGrant KYC for token: {token_id}")
     grant_kyc_for_token(client, account_id, token_id)
 
-    # Query the account info again and see the kyc status has been updated to GRANTED
     info = AccountInfoQuery(account_id).execute(client)
-    print("\nAccount info query completed successfully!")
     display_token_relationships(info)
 
-    # Create an NFT token with the new account as the owner
     nft_token_id = create_nft(client, account_id, account_private_key)
-
-    # Mint an NFT to the account
     mint_nft(client, nft_token_id, account_private_key)
 
-    # Query the account info again and see that the account has 1 owned NFT
-    # and the token relationship has been updated to include the NFT
-    # NOTE: the newest token is the first in the list
     info = AccountInfoQuery(account_id).execute(client)
     display_account_info(info)
     display_token_relationships(info)

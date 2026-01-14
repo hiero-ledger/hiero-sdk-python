@@ -1,61 +1,45 @@
 """
 uv run examples/query/transaction_get_receipt_query.py
 python examples/query/transaction_get_receipt_query.py
-
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
     Client,
-    AccountId,
-    PrivateKey,
     TransferTransaction,
     Hbar,
     TransactionGetReceiptQuery,
     ResponseCode,
     AccountCreateTransaction,
+    PrivateKey,
 )
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
-
-def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
-        sys.exit(1)
-
-
-def create_account(client, operator_key):
+def create_account(client):
     """Create a new recipient account"""
     print("\nSTEP 1: Creating a new recipient account...")
+
+    operator_key = client.operator_private_key
+    if operator_key is None:
+        raise ValueError("Operator private key not set in environment")
+
     recipient_key = PrivateKey.generate()
+
     try:
         tx = (
             AccountCreateTransaction()
             .set_key_without_alias(recipient_key.public_key())
             .set_initial_balance(Hbar.from_tinybars(100_000_000))
+            .freeze_with(client)
+            .sign(operator_key)
         )
-        receipt = tx.freeze_with(client).sign(operator_key).execute(client)
+
+        receipt = tx.execute(client)
         recipient_id = receipt.account_id
-        print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
-        return recipient_id, recipient_key
+
+        print(f"Success! Created a new recipient account with ID: {recipient_id}")
+        return recipient_id
 
     except Exception as e:
         print(f"Error creating new account: {e}")
@@ -64,80 +48,81 @@ def create_account(client, operator_key):
 
 def _print_receipt_children(queried_receipt):
     """Pretty-print receipt status and any child receipts."""
-
     children = queried_receipt.children
 
     if not children:
-        print(
-            "No child receipts returned (this can be normal depending on transaction type)."
-        )
+        print("No child receipts returned.")
         return
 
     print(f"Child receipts count: {len(children)}")
-
-    print("Child receipts:")
     for idx, child in enumerate(children, start=1):
         print(f"  {idx}. status={ResponseCode(child.status).name}")
 
 
 def _print_receipt_duplicates(queried_receipt):
     """Pretty-print receipt status and any duplicate receipts."""
-
     duplicates = queried_receipt.duplicates
 
     if not duplicates:
-        print(
-            "No duplicate receipts returned (this can be normal depending on transaction type)."
-        )
+        print("No duplicate receipts returned.")
         return
 
     print(f"Duplicate receipts count: {len(duplicates)}")
-
-    print("Duplicate receipts:")
     for idx, duplicate in enumerate(duplicates, start=1):
         print(f"  {idx}. status={ResponseCode(duplicate.status).name}")
 
 
 def query_receipt():
     """
-    A full example that include account creation, Hbar transfer, and receipt querying.
-    Demonstrates include_child_receipts support (SDK API: set_include_children).
+    Demonstrates:
+    - account creation
+    - HBAR transfer
+    - querying transaction receipt (children + duplicates)
     """
-    # Config Client
-    client, operator_id, operator_key = setup_client()
+    # Configure client from environment
+    client = Client.from_env()
 
-    # Create a new recipient account.
-    recipient_id, _ = create_account(client, operator_key)
+    if client.operator_account_id is None:
+        raise ValueError("OPERATOR_ID must be set in environment")
 
-    # Transfer Hbar to recipient account
-    print("\nSTEP 2: Transferring Hbar...")
-    amount = 10
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
+    print(f"Operator: {operator_id}")
+
+    # Create recipient account
+    recipient_id = create_account(client)
+
+    # Transfer HBAR
+    print("\nSTEP 2: Transferring HBAR...")
+    amount = Hbar(10)
+
     transaction = (
         TransferTransaction()
-        .add_hbar_transfer(operator_id, -Hbar(amount).to_tinybars())
-        .add_hbar_transfer(recipient_id, Hbar(amount).to_tinybars())
+        .add_hbar_transfer(operator_id, -amount.to_tinybars())
+        .add_hbar_transfer(recipient_id, amount.to_tinybars())
         .freeze_with(client)
         .sign(operator_key)
     )
 
     receipt = transaction.execute(client)
     transaction_id = transaction.transaction_id
-    print(f"Transaction ID: {transaction_id}")
-    print(
-        f"✅ Success! Transfer transaction status: {ResponseCode(receipt.status).name}"
-    )
 
-    # Query Transaction Receipt
-    print("\nSTEP 3: Querying transaction receipt (include child receipts)...")
+    print(f"Transaction ID: {transaction_id}")
+    print(f"Transfer status: {ResponseCode(receipt.status).name}")
+
+    # Query transaction receipt
+    print("\nSTEP 3: Querying transaction receipt...")
     receipt_query = (
         TransactionGetReceiptQuery()
         .set_transaction_id(transaction_id)
         .set_include_children(True)
         .set_include_duplicates(True)
     )
+
     queried_receipt = receipt_query.execute(client)
     print(
-        f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}"
+        f"Queried transaction status: {ResponseCode(queried_receipt.status).name}"
     )
 
     _print_receipt_children(queried_receipt)

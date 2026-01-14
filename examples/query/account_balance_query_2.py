@@ -1,17 +1,16 @@
-# uv run examples/query/account_balance_query_2.py
-# python examples/query/account_balance_query_2.py
+
 
 """Example: Use CryptoGetAccountBalanceQuery to retrieve an account's
-HBAR and token balances, including minting NFTs to the account."""
+HBAR and token balances, including minting NFTs to the account.
+"""
 
 import os
 import sys
-from dotenv import load_dotenv
+
 from hiero_sdk_python import (
     Client,
     AccountId,
     PrivateKey,
-    Network,
     TokenCreateTransaction,
     AccountCreateTransaction,
     Hbar,
@@ -24,29 +23,16 @@ from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalance
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
-# Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
+# Used for key generation (not client setup)
 key_type = os.getenv("KEY_TYPE", "ecdsa")
 
 
-def setup_client():
-    """Setup Client"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    # Get the operator account from the .env file
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        # Set the operator (payer) account for the client
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client
-    except (TypeError, ValueError):
-        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
+def setup_client() -> Client:
+    """Setup Client from environment variables."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
 def create_account(client, name, initial_balance=Hbar(10)):
@@ -73,7 +59,7 @@ def create_account(client, name, initial_balance=Hbar(10)):
 
 
 def create_and_mint_token(treasury_account_id, treasury_account_key, client):
-    """Create an NFT collection and mint metadata_list (default 3 items)."""
+    """Create an NFT collection and mint metadata."""
     metadata_list = [b"METADATA_A", b"METADATA_B", b"METADATA_C"]
 
     try:
@@ -102,6 +88,7 @@ def create_and_mint_token(treasury_account_id, treasury_account_key, client):
         )
         print(f"✅ Created NFT {token_id} — total supply: {total_supply}")
         return token_id
+
     except (ValueError, TypeError, RuntimeError, ConnectionError) as error:
         print(f"❌ Error creating token: {error}")
         sys.exit(1)
@@ -109,23 +96,23 @@ def create_and_mint_token(treasury_account_id, treasury_account_key, client):
 
 def get_account_balance(client: Client, account_id: AccountId):
     """Get account balance using CryptoGetAccountBalanceQuery"""
-    print(f"Retrieving account balance for account id: {account_id}  ...")
+    print(f"Retrieving account balance for account id: {account_id} ...")
+
     try:
-        # Use CryptoGetAccountBalanceQuery to get the account balance
         account_balance = (
-            CryptoGetAccountBalanceQuery().set_account_id(account_id).execute(client)
+            CryptoGetAccountBalanceQuery()
+            .set_account_id(account_id)
+            .execute(client)
         )
         print("✅ Account balance retrieved successfully!")
-        # Print account balance with account_id context
         print(f"💰 HBAR Balance for {account_id}: {account_balance.hbars} hbars")
-        # Alternatively, you can use: print(account_balance)
         return account_balance
+
     except (ValueError, TypeError, RuntimeError, ConnectionError) as error:
         print(f"Error retrieving account balance: {error}")
         sys.exit(1)
 
 
-# OPTIONAL comparison function
 def compare_token_balances(
     client, treasury_id: AccountId, receiver_id: AccountId, token_id: TokenId
 ):
@@ -134,33 +121,29 @@ def compare_token_balances(
         f"\n🔎 Comparing token balances for Token ID {token_id} "
         f"between accounts {treasury_id} and {receiver_id}..."
     )
-    # retrieve balances for both accounts
+
     treasury_balance = get_account_balance(client, treasury_id)
     receiver_balance = get_account_balance(client, receiver_id)
-    # extract token balances
+
     treasury_token_balance = treasury_balance.token_balances.get(token_id, 0)
     receiver_token_balance = receiver_balance.token_balances.get(token_id, 0)
-    # print results
+
     print(f"🏷️ Token balance for Treasury ({treasury_id}): {treasury_token_balance}")
     print(f"🏷️ Token balance for Receiver ({receiver_id}): {receiver_token_balance}")
 
 
 def main():
-    """Main function to run the account balance query example
-    1-Create test account with intial balance
-    2- Create NFT collection with test account as treasury
-    3- Mint NFTs to the test account
-    4- Retrieve and display account balances including token balances
-
-    """
+    """Run the account balance query example"""
     client = setup_client()
+
     test_account_id, test_account_key = create_account(client, "Test Account")
-    # Create the tokens with the test account as the treasury so minted tokens
-    # will be owned by the test account and show up in its token balances.
-    token_id = create_and_mint_token(test_account_id, test_account_key, client)
-    # Retrieve and display account balance for the test account
+
+    token_id = create_and_mint_token(
+        test_account_id, test_account_key, client
+    )
+
     get_account_balance(client, test_account_id)
-    # OPTIONAL comparison of token balances between test account and operator account
+
     compare_token_balances(
         client, test_account_id, client.operator_account_id, token_id
     )

@@ -3,16 +3,12 @@ uv run examples/query/token_info_query_fungible.py
 python examples/query/token_info_query_fungible.py
 """
 
-import os
 import sys
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
     AccountId,
     PrivateKey,
-    Network,
 )
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
@@ -20,22 +16,22 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 
-load_dotenv()
-
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+    """Initialize client using environment configuration"""
+    print("Connecting to Hedera network using environment configuration...")
 
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
-    print(f"Client set up with operator id {client.operator_account_id}")
+    client = Client.from_env()
 
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
+    if not operator_id or not operator_key:
+        raise ValueError(
+            "OPERATOR_ID and OPERATOR_KEY must be set in the environment"
+        )
+
+    print(f"Client set up with operator id {operator_id}")
     return client, operator_id, operator_key
 
 
@@ -57,14 +53,13 @@ def create_fungible_token(client, operator_id, operator_key):
         .execute(client)
     )
 
-    # Check if token creation was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
+            f"Fungible token creation failed with status: "
+            f"{ResponseCode(receipt.status).name}"
         )
         sys.exit(1)
 
-    # Get token ID from receipt
     token_id = receipt.token_id
     print(f"Fungible token created with ID: {token_id}")
 
@@ -73,12 +68,10 @@ def create_fungible_token(client, operator_id, operator_key):
 
 def query_token_info():
     """
-    Demonstrates the token info query functionality by:
-    1. Creating a fungible token
-    2. Querying the token's information using TokenInfoQuery
-    3. Printing the token details of the TokenInfo object
+    Demonstrates the token info query functionality.
     """
     client, operator_id, operator_key = setup_client()
+
     token_id = create_fungible_token(client, operator_id, operator_key)
 
     info = TokenInfoQuery().set_token_id(token_id).execute(client)
