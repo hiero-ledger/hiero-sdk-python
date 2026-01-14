@@ -259,9 +259,10 @@ class Client:
         Returns:
             Client: The current client instance for method chaining.
         """
-        if not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
+        if isinstance(max_query_payment, bool) or not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
             raise TypeError(
-                f"max_query_payment must be int, float, Decimal, or Hbar, got {type(max_query_payment).__name__}"
+                f"max_query_payment must be int, float, Decimal, or Hbar, "
+                f"got {type(max_query_payment).__name__}"
             )
 
         if isinstance(max_query_payment, Hbar):
