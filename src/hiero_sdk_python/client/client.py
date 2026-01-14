@@ -264,18 +264,17 @@ class Client:
                 f"max_query_payment must be int, float, Decimal, or Hbar, "
                 f"got {type(max_query_payment).__name__}"
             )
+        
+        value = (
+            max_query_payment 
+            if isinstance(max_query_payment, Hbar)
+            else Hbar(max_query_payment)
+        )
 
-        if isinstance(max_query_payment, Hbar):
-            if max_query_payment < Hbar(0):
-                raise ValueError("max_query_payment must be non-negative, got negative Hbar value")
+        if value < Hbar(0):
+            raise ValueError("max_query_payment must be non-negative")
 
-            self.default_max_query_payment = max_query_payment
-            return self
-    
-        if max_query_payment < 0:
-            raise ValueError(f"max_query_payment must be non-negative, got {max_query_payment}")
-
-        self.default_max_query_payment = Hbar(max_query_payment)
+        self.default_max_query_payment = value
         return self
 
     def __enter__(self) -> "Client":
