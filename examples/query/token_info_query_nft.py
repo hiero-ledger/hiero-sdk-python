@@ -1,40 +1,26 @@
-"""
-uv run examples/query/token_info_query_nft.py
-python examples/query/token_info_query_nft.py
-"""
-
 import sys
 
 from hiero_sdk_python import (
     Client,
+    TokenCreateTransaction,
+    TokenMintTransaction,
+    TokenType,
+    SupplyType,
+    TokenNftInfoQuery,
+    ResponseCode,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 
 
 def setup_client():
-    """Initialize client using environment configuration"""
-    print("Connecting to Hedera network using environment configuration...")
-
+    """Initialize and set up the client with operator account using env vars."""
     client = Client.from_env()
-
-    operator_id = client.operator_account_id
-    operator_key = client.operator_private_key
-
-    if not operator_id or not operator_key:
-        raise ValueError(
-            "OPERATOR_ID and OPERATOR_KEY must be set in the environment"
-        )
-
-    print(f"Client set up with operator id {operator_id}")
-    return client, operator_id, operator_key
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client, client.operator_account_id, client.operator_private_key
 
 
 def create_nft(client, operator_id, operator_key):
-    """Create a non-fungible token"""
+    """Create an NFT token"""
+    print("Creating NFT token...")
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
@@ -48,33 +34,55 @@ def create_nft(client, operator_id, operator_key):
         .set_admin_key(operator_key)
         .set_supply_key(operator_key)
         .set_freeze_key(operator_key)
+        .freeze_with(client)
+        .sign(operator_key)
         .execute(client)
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"NFT creation failed with status: "
-            f"{ResponseCode(receipt.status).name}"
-        )
+        print(f"Token creation failed: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
-    nft_token_id = receipt.token_id
-    print(f"NFT created with ID: {nft_token_id}")
+    token_id = receipt.token_id
+    print(f"NFT token created with ID: {token_id}")
+    return token_id
 
-    return nft_token_id
+
+def mint_nft(client, nft_token_id, operator_key):
+    """Mint an NFT"""
+    print("Minting NFT...")
+    receipt = (
+        TokenMintTransaction()
+        .set_token_id(nft_token_id)
+        .set_metadata(b"My NFT Metadata 1")
+        .freeze_with(client)
+        .sign(operator_key)
+        .execute(client)
+    )
+
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"Minting failed: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
+
+    print("NFT minted successfully")
+    return receipt.serial_numbers[0]
 
 
-def query_token_info():
-    """
-    Demonstrates the token info query functionality.
-    """
+def query_nft_info():
     client, operator_id, operator_key = setup_client()
 
     token_id = create_nft(client, operator_id, operator_key)
+    serial_number = mint_nft(client, token_id, operator_key)
 
-    info = TokenInfoQuery().set_token_id(token_id).execute(client)
-    print(f"Non-fungible token info: {info}")
+    nft_id = token_id.nft(serial_number)
+
+    print("Querying NFT info...")
+    nft_info = TokenNftInfoQuery().set_nft_id(nft_id).execute(client)
+
+    print(f"NFT ID: {nft_info[0].nft_id}")
+    print(f"Account ID: {nft_info[0].account_id}")
+    print(f"Metadata: {nft_info[0].metadata}")
 
 
 if __name__ == "__main__":
-    query_token_info()
+    query_nft_info()

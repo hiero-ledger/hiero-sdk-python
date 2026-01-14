@@ -4,40 +4,49 @@ python examples/query/transaction_record_query.py
 """
 
 import sys
+
 from hiero_sdk_python import (
+    AccountCreateTransaction,
     Client,
     Hbar,
-    AccountCreateTransaction,
-    TransactionRecordQuery,
     ResponseCode,
-    TokenCreateTransaction,
     TokenAssociateTransaction,
+    TokenCreateTransaction,
     TokenType,
     SupplyType,
+    TransactionRecordQuery,
     TransferTransaction,
-    PrivateKey,
 )
 
 
-def create_account_transaction(client):
-    """Create a new account to get a transaction ID for record query"""
-    new_account_key = PrivateKey.generate_ed25519()
+def setup_client():
+    """Initialize and set up the client with operator account using env vars."""
+    client = Client.from_env()
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
-    receipt = (
+
+def create_account_transaction(client):
+    """Create a new account"""
+    # Create the transaction
+    transaction = (
         AccountCreateTransaction()
-        .set_key_without_alias(new_account_key.public_key())
+        .set_key_without_alias(client.operator_public_key)
         .set_initial_balance(Hbar(1))
         .freeze_with(client)
-        .sign(client.operator_private_key)
-        .execute(client)
     )
 
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Account creation failed: {ResponseCode(receipt.status).name}")
-        sys.exit(1)
+    # Sign the transaction with the client operator private key and submit to a Hedera network
+    tx_response = transaction.sign(client.operator_private_key).execute(client)
 
-    print(f"Account created with ID: {receipt.account_id}")
-    return receipt.account_id, new_account_key, receipt.transaction_id
+    # Request the receipt of the transaction
+    receipt = tx_response
+
+    # Get the account ID
+    new_account_id = receipt.account_id
+
+    print(f"The new account ID is {new_account_id}")
+    return new_account_id
 
 
 def create_fungible_token(client):
@@ -57,100 +66,97 @@ def create_fungible_token(client):
         .set_max_supply(1000)
         .set_admin_key(operator_key)
         .set_supply_key(operator_key)
-        .execute(client)
-    )
-
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token creation failed: {ResponseCode(receipt.status).name}")
-        sys.exit(1)
-
-    print(f"Fungible token created with ID: {receipt.token_id}")
-    return receipt.token_id
-
-
-def associate_token(client, token_id, account_id, account_key):
-    """Associate token with an account"""
-    receipt = (
-        TokenAssociateTransaction()
-        .set_account_id(account_id)
-        .add_token_id(token_id)
-        .freeze_with(client)
-        .sign(account_key)
-        .execute(client)
-    )
-
-    if receipt.status != ResponseCode.SUCCESS:
-        print(f"Token association failed: {ResponseCode(receipt.status).name}")
-        sys.exit(1)
-
-    print(f"Token {token_id} associated with account {account_id}")
-
-
-def transfer_tokens(client, token_id, receiver_id, amount=10):
-    """Transfer tokens to the receiver account"""
-    operator_id = client.operator_account_id
-    operator_key = client.operator_private_key
-
-    receipt = (
-        TransferTransaction()
-        .add_token_transfer(token_id, operator_id, -amount)
-        .add_token_transfer(token_id, receiver_id, amount)
         .freeze_with(client)
         .sign(operator_key)
         .execute(client)
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"Transfer failed: {ResponseCode(receipt.status).name}")
+        print(
+            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
+        )
         sys.exit(1)
 
-    print(f"Transferred {amount} tokens to {receiver_id}")
-    return receipt
+    token_id = receipt.token_id
+    print(f"\nFungible token created with ID: {token_id}")
+
+    return token_id
 
 
-def print_transaction_record(record):
-    """Print transaction record details"""
-    print(f"Transaction ID: {record.transaction_id}")
-    print(f"Transaction Fee: {record.transaction_fee}")
-    print(f"Transaction Memo: {record.transaction_memo}")
-    print(f"Account ID: {record.receipt.account_id}")
+def associate_token(client, account_id, token_id):
+    """Associate token with account"""
+    transaction = (
+        TokenAssociateTransaction()
+        .set_account_id(account_id)
+        .set_token_ids([token_id])
+        .freeze_with(client)
+        .sign(client.operator_private_key)
+    )
 
-    print("\nHbar Transfers:")
-    for account_id, amount in record.transfers.items():
-        print(f"  {account_id}: {amount}")
+    tx_response = transaction.execute(client)
+    receipt = tx_response
 
-    print("\nToken Transfers:")
-    for token_id, transfers in record.token_transfers.items():
-        print(f"  Token {token_id}:")
-        for account_id, amount in transfers.items():
-            print(f"    {account_id}: {amount}")
+    if receipt.status != ResponseCode.SUCCESS:
+        print(
+            f"Token association failed with status: {ResponseCode(receipt.status).name}"
+        )
+        sys.exit(1)
+
+    print(f"Associated account {account_id} with token {token_id}")
 
 
-def query_record():
-    """Full transaction record query example"""
-    client = Client.from_env()
+def transfer_tokens(client, token_id, sender_id, receiver_id, amount):
+    """Transfer tokens between accounts"""
+    transaction = (
+        TransferTransaction()
+        .add_token_transfer(token_id, sender_id, -amount)
+        .add_token_transfer(token_id, receiver_id, amount)
+        .freeze_with(client)
+        .sign(client.operator_private_key)
+    )
 
-    # Create account transaction
-    account_id, account_key, tx_id = create_account_transaction(client)
-    record = TransactionRecordQuery().set_transaction_id(tx_id).execute(client)
-    print("Account creation record:")
-    print_transaction_record(record)
+    tx_response = transaction.execute(client)
+    receipt = tx_response
 
-    # Create fungible token
+    if receipt.status != ResponseCode.SUCCESS:
+        print(f"Token transfer failed with status: {ResponseCode(receipt.status).name}")
+        sys.exit(1)
+
+    print(f"Transferred {amount} tokens from {sender_id} to {receiver_id}")
+    return tx_response.transaction_id
+
+
+def query_record(client, transaction_id):
+    """Query the record of a transaction"""
+    record = TransactionRecordQuery().set_transaction_id(transaction_id).execute(client)
+
+    print(f"\nRecord for transaction {transaction_id}:")
+    print(f"Receipt status: {ResponseCode(record.receipt.status).name}")
+    print(f"Transaction hash: {record.transaction_hash}")
+    print(f"Consensus timestamp: {record.consensus_timestamp}")
+    print(f"Transaction fee: {record.transaction_fee}")
+
+
+def main():
+    client = setup_client()
+
+    # Create an account
+    new_account_id = create_account_transaction(client)
+
+    # Create a token
     token_id = create_fungible_token(client)
 
-    # Associate token
-    associate_token(client, token_id, account_id, account_key)
+    # Associate the token with the new account
+    associate_token(client, new_account_id, token_id)
 
-    # Transfer tokens
-    transfer_receipt = transfer_tokens(client, token_id, account_id)
+    # Transfer tokens to the new account
+    transaction_id = transfer_tokens(
+        client, token_id, client.operator_account_id, new_account_id, 10
+    )
 
-    transfer_record = TransactionRecordQuery() \
-        .set_transaction_id(transfer_receipt.transaction_id) \
-        .execute(client)
-    print("Token transfer record:")
-    print_transaction_record(transfer_record)
+    # Query the record of the transfer transaction
+    query_record(client, transaction_id)
 
 
 if __name__ == "__main__":
-    query_record()
+    main()
