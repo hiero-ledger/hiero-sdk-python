@@ -97,7 +97,7 @@ The following are good fits for Good First Issues **when the solution is explici
 > ⚠️ In most cases, changes to `src` functionality are **not** Good First Issues.  
 > This category applies only when the change is **purely mechanical and fully specified**.
 
-### Suitable for Good First Issuesx (rare, explicit cases only):**
+### Suitable for Good First Issues (rare, explicit cases only):**
 - Very small, explicitly described edits to existing code  
 - Changes that do not require understanding how the code is used elsewhere  
 
