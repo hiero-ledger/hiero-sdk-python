@@ -48,8 +48,9 @@ def create_new_account(client, operator_id, operator_key):
         return client, operator_key, recipient_id, recipient_key, operator_id
 
     except Exception as e:
-        print(f"❌ Error creating new account: {e}")
+        print(f"❌ Error creating new account ({type(e).__name__}): {e}")
         sys.exit(1)
+
 
 
 def create_token(client, operator_key, recipient_id, recipient_key, operator_id):

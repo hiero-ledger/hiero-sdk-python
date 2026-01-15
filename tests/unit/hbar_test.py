@@ -208,11 +208,15 @@ def test_factory_methods():
 
 def test_from_tinybars_rejects_non_int():
     """from_tinybars() should reject non-integer input."""
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="tinybars must be an int"):
         Hbar.from_tinybars(1.5)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="tinybars must be an int"):
         Hbar.from_tinybars("1000")
+
+    with pytest.raises(TypeError, match="tinybars must be an int"):
+        Hbar.from_tinybars(Decimal("1000"))
+
 
 
 @pytest.mark.parametrize("other", [1, 1.0, "1", None])
@@ -226,6 +230,13 @@ def test_comparison_with_non_hbar_raises_type_error(other):
     with pytest.raises(TypeError):
         _ = h > other
 
+    with pytest.raises(TypeError):
+        _ = h <= other
+
+    with pytest.raises(TypeError):
+        _ = h >= other
+
+
 
 def test_str_formatting_and_negatives():
     """String representation should use fixed 8 decimal places."""
@@ -238,8 +249,9 @@ def test_repr_contains_class_name_and_value():
     h = Hbar(2)
     r = repr(h)
 
-    assert "Hbar" in r
+    assert r.startswith("Hbar(")
     assert "2" in r
+
 
 
 def test_hash_consistency_for_equal_values():
@@ -252,4 +264,10 @@ def test_hash_consistency_for_equal_values():
 
     values = {h1, h2}
     assert len(values) == 1
+
+    d = {h1: "value1"}
+    d[h2] = "value2"
+    assert len(d) == 1
+    assert d[h1] == "value2"
+
     
