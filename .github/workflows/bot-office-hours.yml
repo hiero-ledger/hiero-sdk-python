@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   office-hour-reminder:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     concurrency:
       group: office-hour-reminder
       cancel-in-progress: false

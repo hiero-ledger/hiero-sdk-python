@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   coderabbit_plan_trigger:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     concurrency:
       group: coderabbit-plan-${{ github.event.issue.number }}
       cancel-in-progress: false
