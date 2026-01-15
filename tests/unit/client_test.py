@@ -264,7 +264,7 @@ def test_set_max_attempts_with_valid_param():
 
 @pytest.mark.parametrize(
     "invalid_max_attempts",
-    ["1", 0.2, object(), {}]
+    ["1", 0.2, True, False, object(), {}]
 )
 def test_set_max_attempts_with_invalid_type(invalid_max_attempts):
     """Test that set_max_attempts raises TypeError for non-int values."""
@@ -298,7 +298,7 @@ def test_set_grpc_deadline_with_valid_param():
 
 @pytest.mark.parametrize(
     "invalid_grpc_deadline",
-    ["1", object(), {}]
+    ["1", True, False, object(), {}]
 )
 def test_set_grpc_deadline_with_invalid_type(invalid_grpc_deadline):
     """Test that set_grpc_deadline raises TypeError for invalid types."""
@@ -312,13 +312,13 @@ def test_set_grpc_deadline_with_invalid_type(invalid_grpc_deadline):
 
 @pytest.mark.parametrize(
     "invalid_grpc_deadline",
-    [0, -10, 0.0, -2.3]
+    [0, -10, 0.0, -2.3, float('inf'), float('nan')]
 )
 def test_set_grpc_deadline_with_invalid_value(invalid_grpc_deadline):
     """Test that set_grpc_deadline raises ValueError for non-positive values."""
     client = Client.for_testnet()
 
-    with pytest.raises(ValueError, match="grpc_deadline must be greater than 0"):
+    with pytest.raises(ValueError, match="grpc_deadline must be a finite value greater than 0"):
         client.set_grpc_deadline(invalid_grpc_deadline)
 
 # Set request_timeout
@@ -332,7 +332,7 @@ def test_set_request_timeout_with_valid_param():
 
 @pytest.mark.parametrize(
     "invalid_request_timeout",
-    ["1", object(), {}]
+    ["1", True, False, object(), {}]
 )
 def test_set_request_timeout_with_invalid_type(invalid_request_timeout):
     """Test that set_request_timeout raises TypeError for invalid types."""
@@ -346,11 +346,97 @@ def test_set_request_timeout_with_invalid_type(invalid_request_timeout):
 
 @pytest.mark.parametrize(
     "invalid_request_timeout",
-    [0, -10, 0.0, -2.3]
+    [0, -10, 0.0, -2.3, float('inf'), float('nan')]
 )
 def test_set_request_timeout_with_invalid_value(invalid_request_timeout):
     """Test that set_request_timeout raises ValueError for non-positive values."""
     client = Client.for_testnet()
 
-    with pytest.raises(ValueError, match="request_timeout must be greater than 0"):
+    with pytest.raises(ValueError, match="request_timeout must be a finite value greater than 0"):
         client.set_request_timeout(invalid_request_timeout)
+
+# Set min_backoff
+def test_set_min_backoff_with_valid_param():
+    """Test that set_min_backoff updates default value of _min_backoff."""
+    client = Client.for_testnet()
+    assert client._min_backoff == 0.25  # default min_backoff = 0.25 sec
+
+    client.set_min_backoff(2)
+    assert client._min_backoff == 2
+
+@pytest.mark.parametrize(
+    "invalid_min_backoff",
+    ["1", True, False, object(), {}]
+)
+def test_set_min_backoff_with_invalid_type(invalid_min_backoff):
+    """Test that set_min_backoff raises TypeError for invalid types."""
+    client = Client.for_testnet()
+
+    with pytest.raises(
+        TypeError,
+        match=f"min_backoff must be of type int or float, got {type(invalid_min_backoff).__name__}",
+    ):
+        client.set_min_backoff(invalid_min_backoff)
+
+@pytest.mark.parametrize(
+    "invalid_min_backoff",
+    [-1, -10, float("inf"), float("-inf"), float("nan")]
+)
+def test_set_min_backoff_with_invalid_value(invalid_min_backoff):
+    """Test that set_min_backoff raises ValueError for invalid values."""
+    client = Client.for_testnet()
+
+    with pytest.raises(ValueError, match="min_backoff must be a finite value >= 0"):
+        client.set_min_backoff(invalid_min_backoff)
+
+def test_set_min_backoff_exceeds_max_backoff():
+    """Test that set_min_backoff raises ValueError if it exceeds max_backoff."""
+    client = Client.for_testnet()
+    client.set_max_backoff(5)
+
+    with pytest.raises(ValueError, match="min_backoff cannot exceed max_backoff"):
+        client.set_min_backoff(10)
+
+# Set max_backoff
+def test_set_max_backoff_with_valid_param():
+    """Test that set_max_backoff updates default value of _max_backoff."""
+    client = Client.for_testnet()
+    assert client._max_backoff == 8  # default max_backoff = 8 sec
+
+    client.set_max_backoff(20)
+    assert client._max_backoff == 20
+
+@pytest.mark.parametrize(
+    "invalid_max_backoff",
+    ["1", True, False, object(), {}]
+)
+def test_set_max_backoff_with_invalid_type(invalid_max_backoff):
+    """Test that set_max_backoff raises TypeError for invalid types."""
+    client = Client.for_testnet()
+
+    with pytest.raises(
+        TypeError,
+        match=f"max_backoff must be of type int or float, got {type(invalid_max_backoff).__name__}",
+    ):
+        client.set_max_backoff(invalid_max_backoff)
+
+
+@pytest.mark.parametrize(
+    "invalid_max_backoff",
+    [-1, -10, float("inf"), float("-inf"), float("nan")]
+)
+def test_set_max_backoff_with_invalid_value(invalid_max_backoff):
+    """Test that set_max_backoff raises ValueError for invalid values."""
+    client = Client.for_testnet()
+
+    with pytest.raises(ValueError, match="max_backoff must be a finite value >= 0"):
+        client.set_max_backoff(invalid_max_backoff)
+
+
+def test_set_max_backoff_less_than_min_backoff():
+    """Test that set_max_backoff raises ValueError if it is less than min_backoff."""
+    client = Client.for_testnet()
+    client.set_min_backoff(5)
+
+    with pytest.raises(ValueError, match="max_backoff cannot be less than min_backoff"):
+        client.set_max_backoff(2)
