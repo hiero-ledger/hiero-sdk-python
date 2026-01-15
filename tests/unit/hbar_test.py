@@ -201,3 +201,55 @@ def test_factory_methods():
     assert Hbar.from_gigabars(0).to_hbars() == 0
     assert Hbar.from_gigabars(-1).to_hbars() == -1_000_000_000
     assert Hbar.from_gigabars(1).to_tinybars() == 100_000_000_000_000_000
+
+
+# NEW TESTS: Coverage improvements for issue #1447
+# ---------------------------------------------------------------------------
+
+def test_from_tinybars_rejects_non_int():
+    """from_tinybars() should reject non-integer input."""
+    with pytest.raises(TypeError):
+        Hbar.from_tinybars(1.5)
+
+    with pytest.raises(TypeError):
+        Hbar.from_tinybars("1000")
+
+
+@pytest.mark.parametrize("other", [1, 1.0, "1", None])
+def test_comparison_with_non_hbar_raises_type_error(other):
+    """Ordering comparisons with non-Hbar types should raise TypeError."""
+    h = Hbar(1)
+
+    with pytest.raises(TypeError):
+        _ = h < other
+
+    with pytest.raises(TypeError):
+        _ = h > other
+
+
+def test_str_formatting_and_negatives():
+    """String representation should use fixed 8 decimal places."""
+    assert str(Hbar(1)) == "1.00000000 ℏ"
+    assert str(Hbar(-1)) == "-1.00000000 ℏ"
+
+
+def test_repr_contains_class_name_and_value():
+    """repr() should include class name and value."""
+    h = Hbar(2)
+    r = repr(h)
+
+    assert "Hbar" in r
+    assert "2" in r
+
+
+def test_hash_consistency_for_equal_values():
+    """Equal Hbar values must have identical hashes."""
+    h1 = Hbar(1)
+    h2 = Hbar(1)
+
+    assert h1 == h2
+    assert hash(h1) == hash(h2)
+
+    values = {h1, h2}
+    assert len(values) == 1
+    
