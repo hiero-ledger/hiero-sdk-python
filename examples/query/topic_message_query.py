@@ -53,10 +53,14 @@ def submit_messages(client, topic_id):
     print("Submitting messages...")
     for i in range(3):
         message = f"Hello Hiero! Message {i+1}"
+        
+        # FIX: Added missing freeze_with and sign
         response = (
             TopicMessageSubmitTransaction()
             .set_topic_id(topic_id)
             .set_message(message)
+            .freeze_with(client)
+            .sign(client.operator_private_key)
             .execute(client)
         )
         
@@ -66,3 +70,49 @@ def submit_messages(client, topic_id):
 
         print(f"Submitted message: {message}")
         time.sleep(2)
+
+
+def main():
+    client = setup_client()
+    
+    # Create a topic
+    topic_id = create_topic(client)
+    
+    print("Subscribing to topic...")
+    
+    # Define the message handler
+    def on_message_handler(message):
+        print(f"Received message: {message.contents.decode('utf-8')} "
+              f"at {message.consensus_timestamp}")
+
+    # Define the error handler
+    def on_error_handler(error):
+        print(f"Error in subscription: {error}")
+
+    # Create the query with no limit
+    query = TopicMessageQuery(
+        topic_id=topic_id,
+        start_time=datetime.now(timezone.utc),
+        limit=None,
+        chunking_enabled=True,
+    )
+
+    # Subscribe to the topic
+    handle = query.subscribe(
+        client, 
+        on_message=on_message_handler,
+        on_error=on_error_handler
+    )
+
+    submit_messages(client, topic_id)
+
+    print("Waiting for messages... (will exit in 10 seconds)")
+    try:
+        time.sleep(10)
+    finally:
+        print("Unsubscribing...")
+        handle.cancel()
+
+
+if __name__ == "__main__":
+    main()

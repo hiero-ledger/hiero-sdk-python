@@ -6,6 +6,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Changed
+- Refactor query examples to use `Client.from_env()` (#1449)
+- Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
+
 ### Added
 - Advanced-check bot unassigns users from issues if they do not meet the requirements and provides an explanatory message. (#1477)
 - Auto-assignment bot for beginner-labeled issues with `/assign` command support and helpful reminders. (#1368)
@@ -749,6 +753,8 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 - pdm.lock & uv.lock file
 
+
+
 ## [0.1.0] - 2025-02-19
 
 ### Added
@@ -757,9 +763,6 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - Basic documentation on how to install and use the SDK.
 - Example scripts illustrating setup and usage.
 
-### Changed
-
--- Refactor query examples to use Client.from_env() (#1449)
 
 ### Fixed
 

@@ -2,7 +2,6 @@
 uv run examples/query/transaction_record_query.py
 python examples/query/transaction_record_query.py
 """
-
 import sys
 
 from hiero_sdk_python import (
@@ -135,7 +134,8 @@ def query_record(client, transaction_id):
     try:
         record = TransactionRecordQuery().set_transaction_id(transaction_id).execute(client)
         
-        print(f"\nTransfers made in the transaction:")
+        # FIX: Removed 'f' prefix as there are no variables in this string
+        print("\nTransfers made in the transaction:")
         for account_id, amount in record.transfers.items():
             print(f"  Account: {account_id}, Amount: {amount}")
             
