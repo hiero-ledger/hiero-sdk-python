@@ -97,11 +97,11 @@ The following are good fits for Good First Issues **when the solution is explici
 > ⚠️ In most cases, changes to `src` functionality are **not** Good First Issues.  
 > This category applies only when the change is **purely mechanical and fully specified**.
 
-**Allowed (rare, explicit cases only):**
+### Suitable for Good First Issuesx (rare, explicit cases only):**
 - Very small, explicitly described edits to existing code  
 - Changes that do not require understanding how the code is used elsewhere  
 
-**Not allowed:**
+### Not Suitable for Good First Issues
 - Any change that requires deciding *how* something should behave  
 - Any change that affects public behavior or SDK contracts  
 
@@ -111,11 +111,11 @@ The following are good fits for Good First Issues **when the solution is explici
 
 Typing-related Good First Issues must be **fully specified and mechanical**.
 
-**Allowed:**
+### Suitable for Good First Issues
 - Adding missing return type hints when the expected type is explicitly stated  
 - Fixing incorrect or overly broad annotations when the correct type is provided  
 
-**Not allowed:**
+### Not Suitable for Good First Issues
 - Inferring types by interpreting code behavior  
 - Cross-file or large-scale typing refactors  
 - Resolving complex type-system issues  
@@ -126,14 +126,14 @@ Typing-related Good First Issues must be **fully specified and mechanical**.
 
 Documentation tasks must be **explicitly scoped and instruction-driven**.
 
-**Allowed:**
+### Suitable for Good First Issues
 - Fixing identified typos or grammar issues  
 - Replacing text with a provided version  
 - Making explicitly described changes to docstrings, comments, or print statements  
 - Renaming variables or examples when new names are provided  
 - Splitting or combining examples when explicitly instructed  
 
-**Not allowed:**
+### Not Suitable for Good First Issues
 - Writing new documentation  
 - Adding explanations that require interpreting code behavior  
 - Deciding what should be documented  
@@ -145,11 +145,11 @@ Documentation tasks must be **explicitly scoped and instruction-driven**.
 
 > ⚠️ Most test-related work is better suited for **Beginner or Intermediate Issues**.
 
-**Allowed (rare, explicit cases only):**
+### Suitable for Good First Issues(rare, explicit cases only):**
 - Adding a clearly specified assertion to an existing test  
 - Small mechanical edits with no test-design decisions  
 
-**Not allowed:**
+### Not Suitable for Good First Issues
 - Creating new test files  
 - Designing new test cases  
 - Extending coverage based on interpretation  

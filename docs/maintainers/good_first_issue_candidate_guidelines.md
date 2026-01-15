@@ -63,9 +63,9 @@ The issue likely qualifies because:
 - The task fits within allowed GFI categories (documentation, examples, typing, or small mechanical edits)  
 - The issue does not require exploration, investigation, or design decisions  
 
-Suitability can be evaluated using the  
-**Good First Issue Guidelines**:  
-https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issues_guidelines.md
+Suitability can be evaluated using the
+
+[**Good First Issue Guidelines**](./good_first_issues_guidelines.md)
 
 ---
 
@@ -95,7 +95,7 @@ If an issue turns out to be more complex, it is usually better labeled as a **Be
 
 ## What a Candidate Is NOT
 
-The **candidate** label must **not** be used for issues that clearly do not qualify as Good First Issues.
+The candidate label is intended for issues that are potential Good First Issues but may need additional detail or scoping to be fully beginner-friendly.
 
 ### ❌ Not for Issues Requiring Decisions
 
@@ -140,9 +140,9 @@ An issue should only be promoted to a full **Good First Issue** once it is clear
 
 ### ✅ Readiness Checklist
 
-Before promotion, confirm that:
+Before promoting an issue to Good First Issue, consider checking whether:
 
-- [ ] The problem is clearly described  
+- [ ] The problem is clearly described and easy to understand for someone new to the project.
 - [ ] The solution is **explicitly specified**  
 - [ ] The change is small, localized, and low risk  
 - [ ] The issue touches a single file or clearly defined location  
@@ -153,8 +153,7 @@ Before promotion, confirm that:
 
 ### 🔁 Promotion Process
 
-1. Review the issue against the **Good First Issue Guidelines**  
-   https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issues_guidelines.md
+1. Review the issue against the [**Good First Issue Guidelines**](./good_first_issues_guidelines.md)
 2. Add missing details, steps, and acceptance criteria  
 3. Remove the `good first issue: candidate` label  
 4. Apply the **Good First Issue** label  
