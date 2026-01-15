@@ -11,7 +11,7 @@ from hiero_sdk_python import (
     TopicCreateTransaction,
     TopicMessageQuery,
     TopicMessageSubmitTransaction,
-    ResponseCode,  
+    ResponseCode,
 )
 
 
@@ -30,18 +30,22 @@ def create_topic(client):
     if operator_key is None:
         raise ValueError("Operator private key not set in environment")
 
-    transaction = (
-        TopicCreateTransaction()
-        .set_admin_key(operator_key.public_key())
-        .set_submit_key(operator_key.public_key())
-        .freeze_with(client)
-        .sign(operator_key)
-    )
-    
-    response = transaction.execute(client)
-    topic_id = response.get_receipt(client).topic_id
-    print(f"Topic created with ID: {topic_id}")
-    return topic_id
+    try:
+        transaction = (
+            TopicCreateTransaction()
+            .set_admin_key(operator_key.public_key())
+            .set_submit_key(operator_key.public_key())
+            .freeze_with(client)
+            .sign(operator_key)
+        )
+        
+        response = transaction.execute(client)
+        topic_id = response.get_receipt(client).topic_id
+        print(f"Topic created with ID: {topic_id}")
+        return topic_id
+    except Exception as e:
+        print(f"Error creating topic: {e}")
+        sys.exit(1)
 
 
 def submit_messages(client, topic_id):
@@ -57,55 +61,8 @@ def submit_messages(client, topic_id):
         )
         
         receipt = response.get_receipt(client)
-        # FIX: Used ResponseCode enum instead of magic number 22
         if receipt.status != ResponseCode.SUCCESS:
              print(f"Warning: Message submission status: {ResponseCode(receipt.status).name}")
 
         print(f"Submitted message: {message}")
         time.sleep(2)
-
-
-def main():
-    client = setup_client()
-
-    topic_id = create_topic(client)
-    
-    print("Subscribing to topic...")
-
-    def on_message_handler(message):
-        print(f"Received message: {message.contents.decode('utf-8')} "
-              f"at {message.consensus_timestamp}")
-
-    
-    def on_error_handler(error):
-        print(f"Error in subscription: {error}")
-
-
-    query = TopicMessageQuery(
-        topic_id=topic_id,
-        start_time=datetime.now(timezone.utc),
-        limit=None,
-        chunking_enabled=True,
-    )
-
- 
-    handle = query.subscribe(
-        client, 
-        on_message=on_message_handler,
-        on_error=on_error_handler
-    )
-
-
-    submit_messages(client, topic_id)
-
-    # Keep the script running to receive messages
-    print("Waiting for messages... (will exit in 10 seconds)")
-    try:
-        time.sleep(10)
-    finally:
-        print("Unsubscribing...")
-        handle.cancel()
-
-
-if __name__ == "__main__":
-    main()

@@ -36,10 +36,10 @@ def create_account_transaction(client):
         .freeze_with(client)
     )
 
-   
+    # Sign the transaction with the client operator private key and submit to a Hedera network
     tx_response = transaction.sign(client.operator_private_key).execute(client)
 
-    # FIX: Check status before proceeding
+    # Check status before proceeding
     if tx_response.status != ResponseCode.SUCCESS:
         print(
             f"Account creation failed with status: {ResponseCode(tx_response.status).name}"
@@ -132,13 +132,21 @@ def transfer_tokens(client, token_id, sender_id, receiver_id, amount):
 
 def query_record(client, transaction_id):
     """Query the record of a transaction"""
-    record = TransactionRecordQuery().set_transaction_id(transaction_id).execute(client)
-
-    print(f"\nRecord for transaction {transaction_id}:")
-    print(f"Receipt status: {ResponseCode(record.receipt.status).name}")
-    print(f"Transaction hash: {record.transaction_hash}")
-    print(f"Consensus timestamp: {record.consensus_timestamp}")
-    print(f"Transaction fee: {record.transaction_fee}")
+    try:
+        record = TransactionRecordQuery().set_transaction_id(transaction_id).execute(client)
+        
+        print(f"\nTransfers made in the transaction:")
+        for account_id, amount in record.transfers.items():
+            print(f"  Account: {account_id}, Amount: {amount}")
+            
+        print(f"\nRecord for transaction {transaction_id}:")
+        print(f"Receipt status: {ResponseCode(record.receipt.status).name}")
+        print(f"Transaction hash: {record.transaction_hash}")
+        print(f"Consensus timestamp: {record.consensus_timestamp}")
+        print(f"Transaction fee: {record.transaction_fee}")
+    except Exception as e:
+        print(f"Failed to query transaction record: {e}")
+        sys.exit(1)
 
 
 def main():

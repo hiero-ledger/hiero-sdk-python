@@ -759,7 +759,7 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 
 ### Changed
 
-- N/A
+-- Refactor query examples to use Client.from_env() (#1449)
 
 ### Fixed
 
