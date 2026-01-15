@@ -101,6 +101,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+- Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
 - Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
@@ -173,7 +174,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
 
 ### Fixed
-- Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Prevent LinkBot from posting duplicate “missing linked issue” comments on pull requests. (#1475)
 - Refined intermediate assignment guard to validate Beginner issue completion with improved logging and GraphQL-based counting. (#1424)
 - Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
