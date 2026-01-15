@@ -1,11 +1,16 @@
 const COMMENT_MARKER = process.env.INTERMEDIATE_COMMENT_MARKER || '<!-- Intermediate Issue Guard -->';
 const INTERMEDIATE_LABEL = process.env.INTERMEDIATE_LABEL?.trim() || 'intermediate';
-const GFI_LABEL = process.env.GFI_LABEL?.trim() || 'Good First Issue';
+const BEGINNER_LABEL = process.env.BEGINNER_LABEL?.trim() || 'beginner';
 const EXEMPT_PERMISSION_LEVELS = (process.env.INTERMEDIATE_EXEMPT_PERMISSIONS || 'admin,maintain,write,triage')
   .split(',')
   .map((entry) => entry.trim().toLowerCase())
   .filter(Boolean);
 const DRY_RUN = /^true$/i.test(process.env.DRY_RUN || '');
+const REQUIRED_BEGINNER_ISSUE_COUNT = 0 ;
+
+function isSafeSearchToken(value) {
+  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
+}
 
 function hasLabel(issue, labelName) {
   if (!issue?.labels?.length) {
@@ -51,51 +56,54 @@ async function hasExemptPermission(github, owner, repo, username) {
   }
 }
 
-async function countCompletedGfiIssues(github, owner, repo, username) {
-  try {
-    console.log(`Checking closed '${GFI_LABEL}' issues in ${owner}/${repo} for ${username}.`);
-    const iterator = github.paginate.iterator(github.rest.issues.listForRepo, {
+async function countCompletedBeginnerIssues(github, owner, repo, username) {
+  if (
+    !isSafeSearchToken(owner) ||
+    !isSafeSearchToken(repo) ||
+    !isSafeSearchToken(username) ||
+    !isSafeSearchToken(BEGINNER_LABEL)
+  ) {
+    console.log('Invalid search inputs', {
       owner,
       repo,
-      state: 'closed',
-      labels: GFI_LABEL,
-      assignee: username,
-      sort: 'updated',
-      direction: 'desc',
-      per_page: 100,
+      username,
+      label: BEGINNER_LABEL,
     });
+    return null;
+  }
 
-    const normalizedAssignee = username.toLowerCase();
-    let pageCount = 0;
-    const MAX_PAGES = 8;
+  try {
+    const searchQuery = [
+      `repo:${owner}/${repo}`,
+      `label:${BEGINNER_LABEL}`,
+      'is:issue',
+      'is:closed',
+      `assignee:${username}`,
+    ].join(' ');
 
-    for await (const { data: issues } of iterator) {
-      pageCount += 1;
-      if (pageCount > MAX_PAGES) {
-        console.log(`Reached pagination safety cap (${MAX_PAGES}) while checking GFIs for ${username}.`);
-        break;
-      }
+    console.log('GraphQL search query:', searchQuery);
 
-      console.log(`Scanning page ${pageCount} of closed '${GFI_LABEL}' issues for ${username} (items: ${issues.length}).`);
-      const match = issues.find((issue) => {
-        if (issue.pull_request) {
-          return false;
+    const result = await github.graphql(
+      `
+      query ($searchQuery: String!) {
+        search(type: ISSUE, query: $searchQuery) {
+          issueCount
         }
-
-        const assignees = Array.isArray(issue.assignees) ? issue.assignees : [];
-        return assignees.some((assignee) => assignee?.login?.toLowerCase() === normalizedAssignee);
-      });
-
-      if (match) {
-        console.log(`Found matching GFI issue #${match.number} (${match.html_url || 'no url'}) for ${username}.`);
-        return 1;
       }
-    }
+      `,
+      { searchQuery }
+    );
 
-    return 0;
+    const count = result?.search?.issueCount ?? 0;
+
+    console.log(`Completed Beginner issues for ${username}: ${count}`);
+
+    return count;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`Unable to verify completed GFIs for ${username}: ${message}`);
+    console.log(
+      `Failed to count Beginner issues for ${username}: ${message}`
+    );
     return null;
   }
 }
@@ -127,10 +135,10 @@ function buildRejectionComment({ mentee, completedCount }) {
 Hi @${mentee}! Thanks for your interest in contributing 💡
 
 This issue is labeled as intermediate, which means it requires a bit more familiarity with the SDK.
-Before you can take it on, please complete at least one Good First Issue so we can make sure you have a smooth on-ramp.
+Before you can take it on, please complete at least one Beginner Issue so we can make sure you have a smooth on-ramp.
 
-You've completed **${completedCount}** Good First Issue${plural} so far.
-Once you wrap up your first GFI, feel free to come back and we’ll gladly help you get rolling here!`;
+You've completed **${completedCount}** Beginner Issue${plural} so far.
+Once you wrap up your first Beginner issue, feel free to come back and we’ll gladly help you get rolling here!`;
 }
 
 module.exports = async ({ github, context }) => {
@@ -164,22 +172,26 @@ module.exports = async ({ github, context }) => {
       return;
     }
 
-    const completedCount = await countCompletedGfiIssues(github, owner, repo, mentee);
+    const completedCount = await countCompletedBeginnerIssues(github, owner, repo, mentee);
 
     if (completedCount === null) {
-      return console.log(`Skipping guard for @${mentee} on issue #${issue.number} due to API error when verifying GFIs.`);
+      return console.log(`Skipping guard for @${mentee} on issue #${issue.number} due to API error when verifying Beginner issues.`);
     }
 
-    if (completedCount >= 1) {
-      console.log(`✅ ${mentee} has completed ${completedCount} GFI(s). Assignment allowed.`);
+    if(REQUIRED_BEGINNER_ISSUE_COUNT === 0){
+      return console.log(`Skipping guard for @${mentee} on issue #${issue.number}: beginner requirement temporarily disabled`)
+    }
+
+    if (completedCount >= REQUIRED_BEGINNER_ISSUE_COUNT) {
+      console.log(`✅ ${mentee} has completed ${completedCount} Beginner issues. Assignment allowed.`);
       return;
     }
 
-    console.log(`❌ ${mentee} has completed ${completedCount} GFI(s). Assignment not allowed; proceeding with removal and comment.`);
+    console.log(`❌ ${mentee} has completed ${completedCount} Beginner issues. Assignment not allowed; proceeding with removal and comment.`);
 
     try {
       if (DRY_RUN) {
-        console.log(`[dry-run] Would remove @${mentee} from issue #${issue.number} due to missing GFI completion.`);
+        console.log(`[dry-run] Would remove @${mentee} from issue #${issue.number} due to missing Beginner issue completion.`);
       } else {
         await github.rest.issues.removeAssignees({
           owner,
@@ -187,7 +199,7 @@ module.exports = async ({ github, context }) => {
           issue_number: issue.number,
           assignees: [mentee],
         });
-        console.log(`Removed @${mentee} from issue #${issue.number} due to missing GFI completion.`);
+        console.log(`Removed @${mentee} from issue #${issue.number} due to missing Beginner issue completion.`);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

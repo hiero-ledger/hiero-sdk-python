@@ -1,8 +1,14 @@
+const LINKBOT_MARKER = '<!-- LinkBot Missing Issue -->';
+
 module.exports = async ({ github, context }) => {
   let prNumber;
   try {
     const isDryRun = process.env.DRY_RUN === 'true';
-    prNumber = parseInt(process.env.PR_NUMBER) || context.payload.pull_request.number;
+    prNumber = Number(process.env.PR_NUMBER) || context.payload.pull_request?.number;
+
+    if (!prNumber) {
+      throw new Error('PR number could not be determined');
+    }
     
     console.log(`Processing PR #${prNumber} (Dry run: ${isDryRun})`);
     
@@ -38,7 +44,7 @@ module.exports = async ({ github, context }) => {
     });
 
     const alreadyCommented = comments.data.some(comment =>
-      comment.body.includes("this is LinkBot")
+      comment.body?.includes(LINKBOT_MARKER)
     );
 
     if (alreadyCommented) {
@@ -47,8 +53,9 @@ module.exports = async ({ github, context }) => {
     }
 
     if (!regex.test(body)) {
-      const commentBody = [
-        `Hi @${prData.user.login}, this is **LinkBot** 👋`,
+      const safeAuthor = authorLogin ?? 'there' ;
+      const commentBody = [ `${LINKBOT_MARKER}` +
+        `Hi @${safeAuthor}, this is **LinkBot** 👋`,
         ``,
         `Linking pull requests to issues helps us significantly with reviewing pull requests and keeping the repository healthy.`,
         ``,
