@@ -2,11 +2,13 @@
 Client module for interacting with the Hedera network.
 """
 
+from decimal import Decimal
 import os
 from typing import NamedTuple, List, Union, Optional, Literal
 from dotenv import load_dotenv
 import grpc
 
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.logger import Logger, LogLevel
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
@@ -17,6 +19,8 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
 from .network import Network
+
+DEFAULT_MAX_QUERY_PAYMENT = Hbar(1)
 
 NetworkName = Literal["mainnet", "testnet", "previewnet"]
 
@@ -45,6 +49,7 @@ class Client:
         self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
 
         self.max_attempts: int = 10
+        self.default_max_query_payment: Hbar = DEFAULT_MAX_QUERY_PAYMENT
 
         self._init_mirror_stub()
 
@@ -240,6 +245,37 @@ class Client:
         Retrieve the configured root certificates for TLS connections.
         """
         return self.network.get_tls_root_certificates()
+    
+    def set_default_max_query_payment(self, max_query_payment: Union[int, float, Decimal, Hbar]) -> "Client":
+        """
+        Sets the default maximum Hbar amount allowed for any query executed by this client.
+
+        The SDK fetches the actual query cost and fails early if it exceeds this limit.
+        Individual queries may override this value via `Query.set_max_query_payment()`.
+
+        Args:
+            max_query_payment (Union[int, float, Decimal, Hbar]):
+                The maximum amount of Hbar that any single query is allowed to cost.
+        Returns:
+            Client: The current client instance for method chaining.
+        """
+        if isinstance(max_query_payment, bool) or not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
+            raise TypeError(
+                "max_query_payment must be int, float, Decimal, or Hbar, "
+                f"got {type(max_query_payment).__name__}"
+            )
+        
+        value = (
+            max_query_payment 
+            if isinstance(max_query_payment, Hbar)
+            else Hbar(max_query_payment)
+        )
+
+        if value < Hbar(0):
+            raise ValueError("max_query_payment must be non-negative")
+
+        self.default_max_query_payment = value
+        return self
 
     def __enter__(self) -> "Client":
         """
