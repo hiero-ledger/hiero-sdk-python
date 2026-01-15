@@ -28,7 +28,7 @@ def setup_client():
 
 def create_account_transaction(client):
     """Create a new account"""
-    # FIX: Derive public key from private key
+    # Derive public key from private key
     transaction = (
         AccountCreateTransaction()
         .set_key_without_alias(client.operator_private_key.public_key())
@@ -36,14 +36,18 @@ def create_account_transaction(client):
         .freeze_with(client)
     )
 
-  
+   
     tx_response = transaction.sign(client.operator_private_key).execute(client)
 
-  
-    receipt = tx_response
+    # FIX: Check status before proceeding
+    if tx_response.status != ResponseCode.SUCCESS:
+        print(
+            f"Account creation failed with status: {ResponseCode(tx_response.status).name}"
+        )
+        sys.exit(1)
 
     # Get the account ID
-    new_account_id = receipt.account_id
+    new_account_id = tx_response.account_id
 
     print(f"The new account ID is {new_account_id}")
     return new_account_id

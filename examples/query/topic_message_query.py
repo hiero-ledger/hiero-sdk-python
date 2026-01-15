@@ -11,6 +11,7 @@ from hiero_sdk_python import (
     TopicCreateTransaction,
     TopicMessageQuery,
     TopicMessageSubmitTransaction,
+    ResponseCode,  
 )
 
 
@@ -26,7 +27,6 @@ def create_topic(client):
     print("Creating new topic...")
     operator_key = client.operator_private_key
     
-    # FIX: Added null check
     if operator_key is None:
         raise ValueError("Operator private key not set in environment")
 
@@ -55,10 +55,11 @@ def submit_messages(client, topic_id):
             .set_message(message)
             .execute(client)
         )
-        # FIX: Check receipt
+        
         receipt = response.get_receipt(client)
-        if receipt.status != 22: # SUCCESS
-             print(f"Warning: Message submission status: {receipt.status}")
+        # FIX: Used ResponseCode enum instead of magic number 22
+        if receipt.status != ResponseCode.SUCCESS:
+             print(f"Warning: Message submission status: {ResponseCode(receipt.status).name}")
 
         print(f"Submitted message: {message}")
         time.sleep(2)
@@ -66,22 +67,20 @@ def submit_messages(client, topic_id):
 
 def main():
     client = setup_client()
-    
-    # Create a topic
+
     topic_id = create_topic(client)
     
     print("Subscribing to topic...")
-    
-    # Define the message handler
+
     def on_message_handler(message):
         print(f"Received message: {message.contents.decode('utf-8')} "
               f"at {message.consensus_timestamp}")
 
-    # Define the error handler
+    
     def on_error_handler(error):
         print(f"Error in subscription: {error}")
 
-    # Create the query with no limit
+
     query = TopicMessageQuery(
         topic_id=topic_id,
         start_time=datetime.now(timezone.utc),
@@ -89,15 +88,14 @@ def main():
         chunking_enabled=True,
     )
 
-    # Subscribe to the topic
-    # FIX: Changed on_next to on_message
+ 
     handle = query.subscribe(
         client, 
         on_message=on_message_handler,
         on_error=on_error_handler
     )
 
-    # Submit some messages
+
     submit_messages(client, topic_id)
 
     # Keep the script running to receive messages
