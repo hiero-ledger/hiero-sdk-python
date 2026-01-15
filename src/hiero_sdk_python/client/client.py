@@ -3,6 +3,7 @@ Client module for interacting with the Hedera network.
 """
 
 from decimal import Decimal
+import math
 import os
 from typing import NamedTuple, List, Union, Optional, Literal
 from dotenv import load_dotenv
@@ -48,6 +49,7 @@ class Client:
 
         if network is None:
             network = Network()
+
         self.network: Network = network
 
         self.mirror_channel: grpc.Channel = None
@@ -56,8 +58,8 @@ class Client:
         self.max_attempts: int = 10
         self.default_max_query_payment: Hbar = DEFAULT_MAX_QUERY_PAYMENT
 
-        self._min_backoff = DEFAULT_MIN_BACKOFF
-        self._max_backoff = DEFAULT_MAX_BACKOFF
+        self._min_backoff: float = DEFAULT_MIN_BACKOFF
+        self._max_backoff: float = DEFAULT_MAX_BACKOFF
 
         self._grpc_deadline: float = DEFAULT_GRPC_DEADLINE
         self._request_timeout: float = DEFAULT_REQUEST_TIMEOUT
@@ -290,9 +292,16 @@ class Client:
     
     def set_max_attempts(self, max_attempts: int) -> "Client":
         """
-        Set max_attempts for the client.
+        Set the maximum number of execution attempts for all transactions and queries
+        executed by this client.
+
+        Args:
+            max_attempts (int): Maximum number of attempts. Must be a positive integer.
+        
+        Returns:
+            Client: This client instance for fluent chaining.
         """
-        if not isinstance(max_attempts, int):
+        if isinstance(max_attempts, bool) or not isinstance(max_attempts, int):
             raise TypeError(f"max_attempts must be of type int, got {(type(max_attempts).__name__)}")
         
         if max_attempts <= 0:
@@ -303,46 +312,95 @@ class Client:
     
     def set_grpc_deadline(self, grpc_deadline: Union[int, float]) -> "Client":
         """
-        Set grpc dedline for the client.
+        Set the gRPC deadline (per-request timeout) used for all network calls
+        made by this client.
+        
+        The deadline represents the maximum time (in seconds) allowed for an
+        individual gRPC request to complete before it is cancelled by the client.
+
+        Args:
+            grpc_deadline (int | float): gRPC deadline in seconds.
+                Must be greater than zero.
+        
+        Returns:
+            Client: This client instance for fluent chaining.
         """
-        if not isinstance(grpc_deadline, (float, int)):
+        if isinstance(grpc_deadline, bool) or not isinstance(grpc_deadline, (float, int)):
             raise TypeError(f"grpc_deadline must be of type Union[int, float], got {type(grpc_deadline).__name__}")
         
-        if grpc_deadline <= 0:
-            raise ValueError("grpc_deadline must be greater than 0")
+        if not math.isfinite(grpc_deadline) or grpc_deadline <= 0:
+            raise ValueError("grpc_deadline must be a finite value greater than 0")
         
         self._grpc_deadline = grpc_deadline
         return self
     
     def set_request_timeout(self, request_timeout: Union[int, float]) -> "Client":
         """
-        Set request timeout for the client.
+        Set the total execution timeout for a single transaction or query
+        made by this client.
+         
+        This timeout represents the maximum wall-clock time (in seconds) allowed
+        for the entire execution lifecycle, including retries and backoff delays.
+        Once exceeded, the request fails with a TimeoutError.
+        
+        Args:
+            request_timeout (int | float): Total execution timeout in seconds.
+                Must be greater than zero.
+        
+        Returns:
+            Client: This client instance for fluent chaining.
         """
-        if not isinstance(request_timeout, (float, int)):
+        if isinstance(request_timeout, bool) or not isinstance(request_timeout, (float, int)):
             raise TypeError(f"request_timeout must be of type Union[int, float], got {type(request_timeout).__name__}")
         
-        if request_timeout <= 0:
-            raise ValueError("request_timeout must be greater than 0")
+        if not math.isfinite(request_timeout) or request_timeout <= 0:
+            raise ValueError("request_timeout must be a finite value greater than 0")
         
         self._request_timeout = request_timeout
         return self
     
     def set_min_backoff(self, min_backoff: int) -> "Client":
         """
-        Set min backoff for the client.
+        Set the minimum backoff delay used between retry attempts.
+        
+        Args:
+            min_backoff (int | float): Minimum backoff delay in seconds.
+                Must be finite and non-negative.
+            
+        Returns:
+            Client: This client instance for fluent chaining.
         """
-        if min_backoff > self._max_backoff:
-            raise ValueError("min_backoff cannot be larger than max_backoff")
+        if isinstance(min_backoff, bool) or not isinstance(min_backoff, (int, float)):
+            raise TypeError(f"min_backoff must be of type int or float, got {(type(min_backoff).__name__)}")
+        
+        if not math.isfinite(min_backoff) or min_backoff < 0:
+            raise ValueError("min_backoff must be a finite value >= 0")
+        
+        if self._max_backoff is not None and min_backoff > self._max_backoff:
+            raise ValueError("min_backoff cannot exceed max_backoff")
         
         self._min_backoff = min_backoff
         return self
     
     def set_max_backoff(self, max_backoff: int) -> "Client":
         """
-        Set max backoff for the client.
+        Set the maximum backoff delay used between retry attempts.
+        
+        Args:
+            max_backoff (int | float): Maximum backoff delay in seconds.
+                Must be finite and greater than or equal to min_backoff.
+        
+        Returns:
+            Client: This client instance for fluent chaining.
         """
-        if max_backoff < self._max_backoff:
-            raise ValueError("max_backoff cannot be smaller than min_backoff")
+        if isinstance(max_backoff, bool) or not isinstance(max_backoff, (int, float)):
+            raise TypeError(f"max_backoff must be of type int or float, got {(type(max_backoff).__name__)}")
+        
+        if not math.isfinite(max_backoff) or max_backoff < 0:
+            raise ValueError("max_backoff must be a finite value >= 0")
+        
+        if self._min_backoff is not None and max_backoff < self._min_backoff:
+            raise ValueError("max_backoff cannot be less than min_backoff")
         
         self._max_backoff = max_backoff
         return self

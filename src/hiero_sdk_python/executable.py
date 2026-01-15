@@ -1,3 +1,4 @@
+import math
 import re
 import time
 from typing import Callable, Optional, Any, TYPE_CHECKING, List, Union
@@ -100,9 +101,15 @@ class _Executable(ABC):
     def set_grpc_deadline(self, grpc_deadline: Union[int, float]):
         """
         Set grpc dedline  for the current transaction.
+        
+        Args:
+            grpc_deadline Union[int, float]: grpc_deadline for the current execution in seconds
         """
         if not isinstance(grpc_deadline, (float, int)):
             raise TypeError(f"grpc_deadline must be of type Union[int, float], got {type(grpc_deadline).__name__}")
+        
+        if isinstance(grpc_deadline, float) and not math.isfinite(grpc_deadline):
+            raise ValueError("grpc_deadline must be a finite value")
         
         if grpc_deadline <= 0:
             raise ValueError("grpc_deadline must be greater than 0")
@@ -113,9 +120,15 @@ class _Executable(ABC):
     def set_request_timeout(self, request_timeout: Union[int, float]):
         """
         Set request timeout  for the current transaction.
+
+        Args:
+            request_timeout Union[int, float]: request_timeout for the current execution in seconds
         """
         if not isinstance(request_timeout, (float, int)):
             raise TypeError(f"request_timeout must be of type Union[int, float], got {type(request_timeout).__name__}")
+        
+        if isinstance(request_timeout, float) and not math.isfinite(request_timeout):
+            raise ValueError("request_timeout must be a finite value")
         
         if request_timeout <= 0:
             raise ValueError("request_timeout must be greater than 0")
@@ -123,21 +136,39 @@ class _Executable(ABC):
         self._request_timeout = request_timeout
         return self
     
-    def set_min_backoff(self, min_backoff: int):
+    def set_min_backoff(self, min_backoff: Union[int,float]):
         """
         Set min backoff  for the current transaction.
+
+        Args:
+            min_backoff: Union[int, float]: min_backoff to be set for the transaction in seconds
         """
+        if isinstance(min_backoff, bool) or not isinstance(min_backoff, (int, float)):
+            raise TypeError(f"min_backoff must be of type int or float, got {(type(min_backoff).__name__)}")
+        
+        if isinstance(min_backoff, float) and not math.isfinite(min_backoff):
+            raise ValueError("min_backoff must be a finite value")
+        
         if min_backoff > self._max_backoff:
             raise ValueError("min_backoff cannot be larger than max_backoff")
         
         self._min_backoff = min_backoff
         return self
     
-    def set_max_backoff(self, max_backoff: int):
+    def set_max_backoff(self, max_backoff: Union[float,float]):
         """
         Set max backoff  for the current transaction.
+
+        Args:
+            max_backoff: Union[int, float]: max_backoff to be set for the transaction in seconds
         """
-        if max_backoff < self._max_backoff:
+        if isinstance(max_backoff, bool) or not isinstance(max_backoff, (int, float)):
+            raise TypeError(f"max_backoff must be of type int or float, got {(type(max_backoff).__name__)}")
+        
+        if isinstance(max_backoff, float) and not math.isfinite(max_backoff):
+            raise ValueError("max_backoff must be a finite value")
+
+        if max_backoff < self._min_backoff:
             raise ValueError("max_backoff cannot be smaller than min_backoff")
         
         self._max_backoff = max_backoff
@@ -147,7 +178,7 @@ class _Executable(ABC):
         """
         Set max_attempts for the current transaction.
         """
-        if not isinstance(max_attempts, int):
+        if isinstance(max_attempts, bool) or not isinstance(max_attempts, int):
             raise TypeError(f"max_attempts must be of type int, got {(type(max_attempts).__name__)}")
         
         if max_attempts <= 0:
@@ -262,6 +293,10 @@ class _Executable(ABC):
         if self._max_attempts is None:
             self._max_attempts = client.max_attempts
 
+        # set node_account_ids to network_nodes if no node_account_ids provided
+        if len(self.node_account_ids) == 0:
+            self.node_account_ids = [_node._account_id for _node in client.network.nodes]
+
     def _should_retry_exponentially(self, err) -> bool:
         """
         Determine whether a gRPC error represents a failure that should be 
@@ -282,10 +317,11 @@ class _Executable(ABC):
             )
         )
     
-    def _get_current_backoff(self, attempts: int):
+    def _calculate_backoff(self, attempt: int):
+        """Calculate backoff for the given attempt, attempt start from 0"""
         return min(
             self._max_backoff, 
-            self._min_backoff * (2 ** (attempts + 1))
+            self._min_backoff * (2 ** (attempt + 1))
         )
     
     def _execute(self, client: "Client"):
@@ -314,30 +350,21 @@ class _Executable(ABC):
         start = time.time()
         node = None
 
+        print(self.node_account_ids)
+
         for attempt in range(self._max_attempts):
             if start + self._request_timeout <= time.time():
-                raise MaxAttemptsError(
-                    "Timeout exceeded",
-                    node._account_id if node is not None else "No node selected"
-                )
+                raise TimeoutError("Timeout exceeded" )
                         
             # Select preferred node if provided, fallback to client's default
             selected = self._select_node_account_id()
-
-            node = (
-                client.network._get_node(selected)
-                if selected is not None
-                else client.network.current_node
-            )
+            node = client.network._get_node(selected)
 
             if node is None:
                 raise ValueError(f"No node found for node_account_id: {selected}")
 
             #Store for logging and receipts
             self.node_account_id = node._account_id
-
-            # Advance to next node for the next attempt (if using explicit node list)
-            self._advance_node_index()
 
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
@@ -351,19 +378,32 @@ class _Executable(ABC):
             proto_request = self._make_request()
 
             if not node.is_healthy():
+                is_last_node = (
+                    self._node_account_ids_index == len(self.node_account_ids) - 1
+                    if self.node_account_ids
+                    else len(client.network._healthy_nodes) == 0
+                )
+
                 # Check if the request is a transaction receipt or record because they are single node requests
                 if _is_transaction_receipt_or_record_request(proto_request):
                     _delay_for_attempt(
                         self._get_request_id(),
-                        self._get_current_backoff(attempt),
+                        self._min_backoff,
                         attempt,
                         logger,
                         err_persistant
                     )
                     continue
+                
+                if is_last_node:
+                    raise ValueError("All nodes are unhealthy")
 
-                # raise error `All nodes are unhealthy`
+                self._advance_node_index()
+                logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", self.node_account_ids[self._node_account_ids_index])
                 continue
+
+            self._advance_node_index()
+            logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", self.node_account_ids[self._node_account_ids_index])
 
             try:
                 logger.trace("Executing gRPC call", "requestId", self._get_request_id())
@@ -389,23 +429,9 @@ class _Executable(ABC):
 
                         # If we should retry, wait for the backoff period and try again
                         err_persistant = status_error
-
-                        # If not using explicit node list, switch to next node for retry
-                        if not self.node_account_ids:
-                            node = client.network._select_node()
-                            logger.trace(
-                                "Switched to a different node for retry",
-                                "error",
-                                err_persistant,
-                                "from node",
-                                self.node_account_id,
-                                "to node",
-                                node._account_id
-                            )
-
                         _delay_for_attempt(
                             self._get_request_id(),
-                            self._get_current_backoff(attempt),
+                            self._calculate_backoff(attempt),
                             attempt,
                             logger,
                             err_persistant
@@ -420,24 +446,16 @@ class _Executable(ABC):
                         logger.trace(f"{self.__class__.__name__} finished execution")
                         return self._map_response(response, self.node_account_id, proto_request)
             except grpc.RpcError as e:
-                logger.trace("Grpc Error Occurs", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id, "status", e.code())
-                
                 if not self._should_retry_exponentially(e):
                     raise e
-                
+                     
                 client.network._increase_backoff(node)
 
                 # Save the error
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
-                # If not using explicit node list, switch to next node for retry
-                if not self.node_account_ids:
-                    node = client.network._select_node()
-                    logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id)
-               
                 continue
             
         logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
-        
         raise MaxAttemptsError("Exceeded maximum attempts for request", self.node_account_id, err_persistant)
 
 def _is_transaction_receipt_or_record_request(request):
@@ -450,16 +468,16 @@ def _is_transaction_receipt_or_record_request(request):
     )
 
 
-def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logger, error):
+def _delay_for_attempt(request_id: str, backoff: int, attempt: int, logger, error):
     """
     Delay for the specified backoff period before retrying.
 
     Args:
         attempt (int): The current attempt number (0-based)
-        current_backoff (int): The current backoff period in seconds
+        backoff (int): The current backoff period in seconds
     """
-    logger.trace(f"Retrying request attempt", "requestId", request_id, "delay", current_backoff, "attempt", attempt, "error", error)
-    time.sleep(current_backoff)
+    logger.trace(f"Retrying request attempt", "requestId", request_id, "delay", backoff, "attempt", attempt, "error", error)
+    time.sleep(backoff)
 
 def _execute_method(method, proto_request, timeout):
     """
