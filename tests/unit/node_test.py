@@ -77,10 +77,10 @@ def test_decrease_backoff_floors_at_min(node):
     assert node._current_backoff == node._min_backoff
 
 # Test get_remaining_time
-def test_get_remaining_time_zero(node):
+def test_get_remaining_time_zero(node, monkeypatch):
     """Test that get_remaining_time returns zero when readmit time equals last used time."""
     now = time.time()
-    node._last_used = now
+    monkeypatch.setattr(time, "time", lambda:now)
     node._readmit_time = now
 
     assert node.get_remaining_time() == 0
