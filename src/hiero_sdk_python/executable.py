@@ -4,6 +4,7 @@ import time
 from typing import Callable, Optional, Any, TYPE_CHECKING, List, Union
 from abc import ABC, abstractmethod
 from enum import IntEnum
+import warnings
 
 import grpc
 
@@ -98,85 +99,15 @@ class _Executable(ABC):
         """Convenience wrapper to set a single node account ID."""
         return self.set_node_account_ids([node_account_id])
     
-    def set_grpc_deadline(self, grpc_deadline: Union[int, float]):
+    def set_max_attempts(self, max_attempts: int) -> "Client":
         """
-        Set grpc dedline  for the current transaction.
-        
-        Args:
-            grpc_deadline Union[int, float]: grpc_deadline for the current execution in seconds
-        """
-        if not isinstance(grpc_deadline, (float, int)):
-            raise TypeError(f"grpc_deadline must be of type Union[int, float], got {type(grpc_deadline).__name__}")
-        
-        if isinstance(grpc_deadline, float) and not math.isfinite(grpc_deadline):
-            raise ValueError("grpc_deadline must be a finite value")
-        
-        if grpc_deadline <= 0:
-            raise ValueError("grpc_deadline must be greater than 0")
-        
-        self._grpc_deadline = grpc_deadline
-        return self
-    
-    def set_request_timeout(self, request_timeout: Union[int, float]):
-        """
-        Set request timeout  for the current transaction.
+        Set the maximum number of execution attempts for transactions and query to execute.
 
         Args:
-            request_timeout Union[int, float]: request_timeout for the current execution in seconds
-        """
-        if not isinstance(request_timeout, (float, int)):
-            raise TypeError(f"request_timeout must be of type Union[int, float], got {type(request_timeout).__name__}")
+            max_attempts (int): Maximum number of attempts. Must be a positive integer.
         
-        if isinstance(request_timeout, float) and not math.isfinite(request_timeout):
-            raise ValueError("request_timeout must be a finite value")
-        
-        if request_timeout <= 0:
-            raise ValueError("request_timeout must be greater than 0")
-        
-        self._request_timeout = request_timeout
-        return self
-    
-    def set_min_backoff(self, min_backoff: Union[int,float]):
-        """
-        Set min backoff  for the current transaction.
-
-        Args:
-            min_backoff: Union[int, float]: min_backoff to be set for the transaction in seconds
-        """
-        if isinstance(min_backoff, bool) or not isinstance(min_backoff, (int, float)):
-            raise TypeError(f"min_backoff must be of type int or float, got {(type(min_backoff).__name__)}")
-        
-        if isinstance(min_backoff, float) and not math.isfinite(min_backoff):
-            raise ValueError("min_backoff must be a finite value")
-        
-        if min_backoff > self._max_backoff:
-            raise ValueError("min_backoff cannot be larger than max_backoff")
-        
-        self._min_backoff = min_backoff
-        return self
-    
-    def set_max_backoff(self, max_backoff: Union[float,float]):
-        """
-        Set max backoff  for the current transaction.
-
-        Args:
-            max_backoff: Union[int, float]: max_backoff to be set for the transaction in seconds
-        """
-        if isinstance(max_backoff, bool) or not isinstance(max_backoff, (int, float)):
-            raise TypeError(f"max_backoff must be of type int or float, got {(type(max_backoff).__name__)}")
-        
-        if isinstance(max_backoff, float) and not math.isfinite(max_backoff):
-            raise ValueError("max_backoff must be a finite value")
-
-        if max_backoff < self._min_backoff:
-            raise ValueError("max_backoff cannot be smaller than min_backoff")
-        
-        self._max_backoff = max_backoff
-        return self
-    
-    def set_max_attempts(self, max_attempts: int):
-        """
-        Set max_attempts for the current transaction.
+        Returns:
+            Client: This client instance for fluent chaining.
         """
         if isinstance(max_attempts, bool) or not isinstance(max_attempts, int):
             raise TypeError(f"max_attempts must be of type int, got {(type(max_attempts).__name__)}")
@@ -185,6 +116,106 @@ class _Executable(ABC):
             raise ValueError("max_attempts must be greater than 0")
         
         self._max_attempts = max_attempts
+        return self
+    
+    def set_grpc_deadline(self, grpc_deadline: Union[int, float]):
+        """
+        Set the gRPC deadline (timeout) used for network calls made by this transaction or qurey.
+
+        Args:
+            grpc_deadline (int | float): gRPC deadline in seconds.
+                Must be greater than zero.
+        
+        Returns:
+            Client: This client instance for fluent chaining.
+        """
+        if isinstance(grpc_deadline, bool) or not isinstance(grpc_deadline, (float, int)):
+            raise TypeError(f"grpc_deadline must be of type Union[int, float], got {type(grpc_deadline).__name__}")
+        
+        if not math.isfinite(grpc_deadline) or grpc_deadline <= 0:
+            raise ValueError("grpc_deadline must be a finite value greater than 0")
+        
+        if grpc_deadline > self._request_timeout:
+            warnings.warn(
+                "grpc_deadline should be smaller than request_timeout" 
+                "This configuration may cause operations to fail unexpectedly", 
+                FutureWarning
+            )
+        
+        self._grpc_deadline = grpc_deadline
+        return self
+    
+    def set_request_timeout(self, request_timeout: Union[int, float]):
+        """
+        Set the total execution timeout for a single transaction or query.
+        
+        Args:
+            request_timeout (int | float): Total execution timeout in seconds.
+                Must be greater than zero.
+        
+        Returns:
+            Client: This client instance for fluent chaining.
+        """
+        if isinstance(request_timeout, bool) or not isinstance(request_timeout, (float, int)):
+            raise TypeError(f"request_timeout must be of type Union[int, float], got {type(request_timeout).__name__}")
+        
+        if not math.isfinite(request_timeout) or request_timeout <= 0:
+            raise ValueError("request_timeout must be a finite value greater than 0")
+        
+        if request_timeout < self._grpc_deadline:
+            warnings.warn(
+                "request_timeout should be larger than grpc_deadline," 
+                "This configuration may cause operations to fail unexpectedly", 
+                FutureWarning
+            )
+        
+        self._request_timeout = request_timeout
+        return self
+    
+    def set_min_backoff(self, min_backoff: Union[int,float]):
+        """
+        Set the minimum backoff delay used between retry attempts.
+        
+        Args:
+            min_backoff (int | float): Minimum backoff delay in seconds.
+                Must be finite and non-negative.
+            
+        Returns:
+            Client: This client instance for fluent chaining.
+        """
+        if isinstance(min_backoff, bool) or not isinstance(min_backoff, (int, float)):
+            raise TypeError(f"min_backoff must be of type int or float, got {(type(min_backoff).__name__)}")
+        
+        if not math.isfinite(min_backoff) or min_backoff < 0:
+            raise ValueError("min_backoff must be a finite value >= 0")
+        
+        if self._max_backoff is not None and min_backoff > self._max_backoff:
+            raise ValueError("min_backoff cannot exceed max_backoff")
+        
+        self._min_backoff = min_backoff
+        return self
+    
+    def set_max_backoff(self, max_backoff: Union[int,float]) -> "Client":
+        """
+        Set the maximum backoff delay used between retry attempts.
+        
+        Args:
+            max_backoff (int | float): Maximum backoff delay in seconds.
+                Must be finite and greater than or equal to min_backoff.
+        
+        Returns:
+            Client: This client instance for fluent chaining.
+        """
+        if isinstance(max_backoff, bool) or not isinstance(max_backoff, (int, float)):
+            raise TypeError(f"max_backoff must be of type int or float, got {(type(max_backoff).__name__)}")
+        
+        if not math.isfinite(max_backoff) or max_backoff < 0:
+            raise ValueError("max_backoff must be a finite value >= 0")
+        
+        if self._min_backoff is not None and max_backoff < self._min_backoff:
+            raise ValueError("max_backoff cannot be less than min_backoff")
+        
+        self._max_backoff = max_backoff
         return self
 
     def _select_node_account_id(self) -> Optional[AccountId]:
@@ -292,10 +323,12 @@ class _Executable(ABC):
         
         if self._max_attempts is None:
             self._max_attempts = client.max_attempts
-
-        # set node_account_ids to network_nodes if no node_account_ids provided
+        
+        # nodes to which the executaion must be run against, if not provided used nodes from client
         if len(self.node_account_ids) == 0:
-            self.node_account_ids = [_node._account_id for _node in client.network.nodes]
+            self.node_account_ids = [
+                node._account_id for node in client.network._healthy_nodes
+            ]
 
     def _should_retry_exponentially(self, err) -> bool:
         """
@@ -343,25 +376,22 @@ class _Executable(ABC):
         """
         self._resolve_execution_config(client)
 
-        err_persistant = None
-        tx_id = getattr(self, "trasnsaction_id", None)
+        err_persistant: Optional[Exception] = None
+        tx_id = getattr(self, "transaction_id", None)
         
         logger = client.logger
         start = time.time()
-        node = None
-
-        print(self.node_account_ids)
 
         for attempt in range(self._max_attempts):
-            if start + self._request_timeout <= time.time():
-                raise TimeoutError("Timeout exceeded" )
+            if time.time() - start >= self._request_timeout:
+                break
                         
-            # Select preferred node if provided, fallback to client's default
-            selected = self._select_node_account_id()
-            node = client.network._get_node(selected)
+            # Select node
+            node_id = self._select_node_account_id()
+            node = client.network._get_node(node_id)
 
             if node is None:
-                raise ValueError(f"No node found for node_account_id: {selected}")
+                raise RuntimeError(f"No node found for node_account_id: {self.node_account_id}")
 
             #Store for logging and receipts
             self.node_account_id = node._account_id
@@ -378,12 +408,6 @@ class _Executable(ABC):
             proto_request = self._make_request()
 
             if not node.is_healthy():
-                is_last_node = (
-                    self._node_account_ids_index == len(self.node_account_ids) - 1
-                    if self.node_account_ids
-                    else len(client.network._healthy_nodes) == 0
-                )
-
                 # Check if the request is a transaction receipt or record because they are single node requests
                 if _is_transaction_receipt_or_record_request(proto_request):
                     _delay_for_attempt(
@@ -395,68 +419,69 @@ class _Executable(ABC):
                     )
                     continue
                 
-                if is_last_node:
-                    raise ValueError("All nodes are unhealthy")
+                if self._node_account_ids_index == len(self.node_account_ids) - 1:
+                    raise RuntimeError("All nodes are unhealthy")
 
                 self._advance_node_index()
-                logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", self.node_account_ids[self._node_account_ids_index])
                 continue
 
-            self._advance_node_index()
-            logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", self.node_account_ids[self._node_account_ids_index])
-
+            # Execute the GRPC call
             try:
                 logger.trace("Executing gRPC call", "requestId", self._get_request_id())
-                
-                # Execute the transaction method with the protobuf request
                 response = _execute_method(method, proto_request, self._grpc_deadline)
-                
-                # Map the response to an error
-                status_error = self._map_status_error(response)
-                
-                # Determine if we should retry based on the response
-                execution_state = self._should_retry(response)
-                
-                logger.trace(f"{self.__class__.__name__} status received", "nodeAccountID", self.node_account_id, "network", client.network.network, "state", execution_state.name, "txID", tx_id)
-                
-                client.network._decrease_backoff(node)
 
-                # Handle the execution state
-                match execution_state:
-                    case _ExecutionState.RETRY:
-                        if status_error.status == ResponseCode.INVALID_NODE_ACCOUNT:
-                            client.network._increase_backoff(node)
-
-                        # If we should retry, wait for the backoff period and try again
-                        err_persistant = status_error
-                        _delay_for_attempt(
-                            self._get_request_id(),
-                            self._calculate_backoff(attempt),
-                            attempt,
-                            logger,
-                            err_persistant
-                        )
-                        continue
-                    case _ExecutionState.EXPIRED:
-                        raise status_error
-                    case _ExecutionState.ERROR:
-                        raise status_error
-                    case _ExecutionState.FINISHED:
-                        # If the transaction completed successfully, map the response and return it
-                        logger.trace(f"{self.__class__.__name__} finished execution")
-                        return self._map_response(response, self.node_account_id, proto_request)
             except grpc.RpcError as e:
                 if not self._should_retry_exponentially(e):
                     raise e
-                     
-                client.network._increase_backoff(node)
 
-                # Save the error
+                client.network._increase_backoff(node)
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
+                self._advance_node_index()
                 continue
-            
+
+            client.network._decrease_backoff(node)
+
+            # Map the response to an error
+            status_error = self._map_status_error(response)
+                
+            # Determine if we should retry based on the response
+            execution_state = self._should_retry(response)
+            logger.trace(f"{self.__class__.__name__} status received", "nodeAccountID", self.node_account_id, "network", client.network.network, "state", execution_state.name, "txID", tx_id)
+    
+            # Handle the execution state
+            match execution_state:
+                case _ExecutionState.RETRY:
+                    if status_error.status == ResponseCode.INVALID_NODE_ACCOUNT:
+                        client.network._increase_backoff(node)
+                        # update nodes from the mirror_node
+                        client.update_network()
+
+                    # If we should retry, wait for the backoff period and try again
+                    err_persistant = status_error
+                    _delay_for_attempt(
+                        self._get_request_id(),
+                        self._calculate_backoff(attempt),
+                        attempt,
+                        logger,
+                        err_persistant
+                    )
+                    self._advance_node_index()
+                    continue
+                case _ExecutionState.EXPIRED:
+                    raise status_error
+                case _ExecutionState.ERROR:
+                    raise status_error
+                case _ExecutionState.FINISHED:
+                    # If the transaction completed successfully, map the response and return it
+                    logger.trace(f"{self.__class__.__name__} finished execution")
+                    return self._map_response(response, self.node_account_id, proto_request)
+               
         logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
-        raise MaxAttemptsError("Exceeded maximum attempts for request", self.node_account_id, err_persistant)
+        raise MaxAttemptsError(
+            "Exceeded maximum attempts or request timeout",
+            self.node_account_id,
+            err_persistant
+        )
 
 def _is_transaction_receipt_or_record_request(request):
     if not isinstance(request, query_pb2.Query):
@@ -467,14 +492,13 @@ def _is_transaction_receipt_or_record_request(request):
         or request.HasField('transactionGetRecord')
     )
 
-
-def _delay_for_attempt(request_id: str, backoff: int, attempt: int, logger, error):
+def _delay_for_attempt(request_id: str, backoff: float, attempt: int, logger, error):
     """
     Delay for the specified backoff period before retrying.
 
     Args:
         attempt (int): The current attempt number (0-based)
-        backoff (int): The current backoff period in seconds
+        backoff (float): The current backoff period in seconds
     """
     logger.trace(f"Retrying request attempt", "requestId", request_id, "delay", backoff, "attempt", attempt, "error", error)
     time.sleep(backoff)

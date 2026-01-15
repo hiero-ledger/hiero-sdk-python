@@ -10,7 +10,6 @@ from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.node import _Node
 
 
-
 class Network:
     """
     Manages the network configuration for connecting to the Hedera network.
@@ -114,7 +113,23 @@ class Network:
         self._transport_security: bool = self.network in hosted_networks
         self._verify_certificates: bool = True  # Always enabled by default
         self._root_certificates: Optional[bytes] = None
+    
+        self.nodes: List[_Node] = []
+        self._healthy_nodes: List[_Node] = []
 
+        self._set_network_nodes(nodes)
+
+        self._node_min_readmit_period = 8 # seconds
+        self._node_max_readmit_period = 3600 # seconds
+        self._earliest_readmit_time = time.time() + self._node_min_readmit_period
+
+        self._node_index: int = secrets.randbelow(len(self._healthy_nodes))
+        self.current_node: _Node = self._healthy_nodes[self._node_index]
+
+    def _set_network_nodes(self, nodes: Optional[List[_Node]]):
+        """
+        Configure the consensus nodes used by this network.
+        """
         if nodes is not None:
             final_nodes = nodes
         elif self.network in ('solo', 'localhost', 'local'):
@@ -127,26 +142,20 @@ class Network:
                 final_nodes = fetched
             else:
                 raise ValueError(f"No default nodes for network='{self.network}'")
-
-        self.nodes: List[_Node] = final_nodes
-
-        self._healthy_nodes: List[_Node] = []
-        self._node_min_readmit_period = 8 # seconds
-        self._node_max_readmit_period = 3600 # seconds
-        self._earliest_readmit_time = time.time() + self._node_min_readmit_period
+        
+        # Apply TLS configuration to all nodes
+        for node in final_nodes:
+            node._apply_transport_security(self._transport_security)  # pylint: disable=protected-access
+            node._set_verify_certificates(self._verify_certificates)  # pylint: disable=protected-access
+            node._set_root_certificates(self._root_certificates)  # pylint: disable=protected-access
+        
+        self.nodes = final_nodes
+        self._healthy_nodes = []
 
         for node in self.nodes:
             if not node.is_healthy(): continue
             self._healthy_nodes.append(node)
-        
-        # Apply TLS configuration to all nodes
-        for node in self.nodes:
-            node._apply_transport_security(self._transport_security)  # pylint: disable=protected-access
-            node._set_verify_certificates(self._verify_certificates)  # pylint: disable=protected-access
-            node._set_root_certificates(self._root_certificates)  # pylint: disable=protected-access
 
-        self._node_index: int = secrets.randbelow(len(self.nodes))
-        self.current_node: _Node = self.nodes[self._node_index]
 
     def _fetch_nodes_from_mirror_node(self) -> List[_Node]:
         """
@@ -204,7 +213,7 @@ class Network:
         """
         self._readmit_nodes()
         if not self._healthy_nodes:
-            raise ValueError("No nodes available to select.")
+            raise ValueError("No healthy node available to select.")
 
         self._node_index = (self._node_index + 1) % len(self._healthy_nodes)
         self.current_node = self._healthy_nodes[self._node_index]
@@ -386,8 +395,11 @@ class Network:
     
     def _increase_backoff(self, node: _Node) -> None:
         """
-        Increase the node's backoff duration after a failure and remoce node from healty node.
+        Increase the node's backoff duration after a failure and remove node from healty node.
         """
+        if not isinstance(node, _Node):
+            raise TypeError("node must be of type _Node")
+        
         node._increase_backoff()
         self._healthy_nodes.remove(node)
     
@@ -395,4 +407,7 @@ class Network:
         """
         Decrease the node's backoff duration after a successful operation.
         """
+        if not isinstance(node, _Node):
+            raise TypeError("node must be of type _Node")
+        
         node._decrease_backoff()

@@ -259,8 +259,11 @@ def test_set_max_attempts_with_valid_param():
     client = Client.for_testnet()
     assert client.max_attempts == 10 # default max_attempt 10
 
-    client.set_max_attempts(20)
+    returned = client.set_max_attempts(20)
     assert client.max_attempts == 20
+    assert returned is client
+
+    client.close()
 
 @pytest.mark.parametrize(
     "invalid_max_attempts",
@@ -293,8 +296,11 @@ def test_set_grpc_deadline_with_valid_param():
     client = Client.for_testnet()
     assert client._grpc_deadline == 10 # default grpc_deadline 10 sec
 
-    client.set_grpc_deadline(20)
+    returned = client.set_grpc_deadline(20)
     assert client._grpc_deadline == 20
+    assert returned is client
+
+    client.close()
 
 @pytest.mark.parametrize(
     "invalid_grpc_deadline",
@@ -327,8 +333,11 @@ def test_set_request_timeout_with_valid_param():
     client = Client.for_testnet()
     assert client._request_timeout == 120 # default request_timeout 120 sec
 
-    client.set_request_timeout(200)
+    returned = client.set_request_timeout(200)
     assert client._request_timeout == 200
+    assert returned is client
+
+    client.close()
 
 @pytest.mark.parametrize(
     "invalid_request_timeout",
@@ -361,8 +370,11 @@ def test_set_min_backoff_with_valid_param():
     client = Client.for_testnet()
     assert client._min_backoff == 0.25  # default min_backoff = 0.25 sec
 
-    client.set_min_backoff(2)
+    returned = client.set_min_backoff(2)
     assert client._min_backoff == 2
+    assert returned is client
+
+    client.close()
 
 @pytest.mark.parametrize(
     "invalid_min_backoff",
@@ -403,8 +415,11 @@ def test_set_max_backoff_with_valid_param():
     client = Client.for_testnet()
     assert client._max_backoff == 8  # default max_backoff = 8 sec
 
-    client.set_max_backoff(20)
+    returned = client.set_max_backoff(20)
     assert client._max_backoff == 20
+    assert returned is client
+
+    client.close()
 
 @pytest.mark.parametrize(
     "invalid_max_backoff",
@@ -439,4 +454,18 @@ def test_set_max_backoff_less_than_min_backoff():
     client.set_min_backoff(5)
 
     with pytest.raises(ValueError, match="max_backoff cannot be less than min_backoff"):
-        client.set_max_backoff(2)
+        returned = client.set_max_backoff(2)
+        assert returned is client
+
+# Test update_network
+def test_update_network_refreshes_nodes_and_returns_self():
+    """Test that update_network refreshes network nodes and returns the client."""
+    client = Client.for_testnet()
+
+    with patch.object(client.network, "_set_network_nodes") as mock_set_nodes:
+        returned = client.update_network()
+
+        mock_set_nodes.assert_called_once()
+        assert returned is client
+
+    client.close()

@@ -6,6 +6,7 @@ from decimal import Decimal
 import math
 import os
 from typing import NamedTuple, List, Union, Optional, Literal
+import warnings
 from dotenv import load_dotenv
 import grpc
 
@@ -331,6 +332,13 @@ class Client:
         if not math.isfinite(grpc_deadline) or grpc_deadline <= 0:
             raise ValueError("grpc_deadline must be a finite value greater than 0")
         
+        if grpc_deadline > self._request_timeout:
+            warnings.warn(
+                "grpc_deadline should be smaller than request_timeout" 
+                "This configuration may cause operations to fail unexpectedly", 
+                FutureWarning
+            )
+        
         self._grpc_deadline = grpc_deadline
         return self
     
@@ -355,6 +363,13 @@ class Client:
         
         if not math.isfinite(request_timeout) or request_timeout <= 0:
             raise ValueError("request_timeout must be a finite value greater than 0")
+        
+        if request_timeout < self._grpc_deadline:
+            warnings.warn(
+                "request_timeout should be larger than grpc_deadline," 
+                "This configuration may cause operations to fail unexpectedly", 
+                FutureWarning
+            )
         
         self._request_timeout = request_timeout
         return self
@@ -403,6 +418,13 @@ class Client:
             raise ValueError("max_backoff cannot be less than min_backoff")
         
         self._max_backoff = max_backoff
+        return self
+    
+    def update_network(self) -> "Client":
+        """
+        Refresh the network node list from the mirror node.
+        """
+        self.network._set_network_nodes()
         return self
 
     def __enter__(self) -> "Client":
