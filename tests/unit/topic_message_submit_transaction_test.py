@@ -221,7 +221,7 @@ def test_execute_topic_message_submit_transaction(topic_id, message):
 
 # This test uses fixture topic_id as parameter
 def test_topic_message_submit_transaction_with_large_message(topic_id):
-    """Test sending a large message (close to the maximum allowed size)."""
+    """Test sending a large message."""
     # Create a large message (just under the typical 4KB limit)
     large_message = "A" * 4000
     
@@ -240,14 +240,11 @@ def test_topic_message_submit_transaction_with_large_message(topic_id):
             )
         )
     )
-    
-    response_sequences = [
-        [tx_response, receipt_response],  # chunk 1
-        [tx_response, receipt_response],  # chunk 2
-        [tx_response, receipt_response],  # chunk 3
-        [tx_response, receipt_response],  # chunk 4
-    ]
 
+    # Chunked message from single node
+    response_sequences = [
+        [tx_response, receipt_response] * 4
+    ]
     
     with mock_hedera_servers(response_sequences) as client:
         tx = (

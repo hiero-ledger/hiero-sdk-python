@@ -85,7 +85,6 @@ class _Node:
             address (str): The address of the node.
             min_backoff (int): The minimum backoff time in seconds.
         """
-        
         self._account_id: AccountId = account_id
         self._channel: Optional[_Channel] = None
         self._address_book: NodeAddress = address_book
@@ -93,13 +92,13 @@ class _Node:
         self._verify_certificates: bool = True
         self._root_certificates: Optional[bytes] = None
         self._node_pem_cert: Optional[bytes] = None
-        
-        self._min_backoff = 8 # seconds
-        self._max_backoff = 3600 # seconds
-        self._current_backoff = self._min_backoff
-        self._last_used = time.time()
-        self._readmit_time = time.time()
-    
+
+        self._min_backoff: float = 8 # seconds
+        self._max_backoff: float = 3600 # seconds
+        self._current_backoff: float = self._min_backoff
+        self._readmit_time: float = time.time()
+        self._bad_grpc_response_count: int = 0
+
     def _close(self):
         """
         Close the channel for this node.
@@ -289,7 +288,7 @@ class _Node:
         # Convert DER to PEM format (matching Java's PEM encoding)
         pem_cert = ssl.DER_cert_to_PEM_cert(der_cert).encode('utf-8')
         return pem_cert
-    
+
     def is_healthy(self) -> bool:
         """
         Determine whether this node is currently eligible for use.
@@ -298,11 +297,12 @@ class _Node:
         to its scheduled readmission time (`_readmit_time`). Nodes
         """
         return self._readmit_time <= time.time()
-    
+
     def _increase_backoff(self) -> None:
         """
         Increase the node's backoff duration after a failure.
         """
+        self._bad_grpc_response_count += 1
         self._current_backoff = min(self._current_backoff * 2, self._max_backoff)
         self._readmit_time = time.time() + self._current_backoff
 
@@ -311,9 +311,9 @@ class _Node:
         Decrease the node's backoff duration after a successful operation.
         """
         self._current_backoff = max(self._current_backoff / 2, self._min_backoff)
-    
+
     def get_remaining_time(self) -> float:
         """
          Return the remaining backoff time before this node becomes eligible for reuse.
         """
-        return self._readmit_time - self._last_used
+        return self._readmit_time - time.time()

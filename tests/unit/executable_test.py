@@ -124,7 +124,7 @@ def test_node_switching_after_single_grpc_error():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         # Verify we're now on the second node
-        assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
+        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 4), "Client should have switched to the second node"
 
 
 def test_node_switching_after_multiple_grpc_errors():
@@ -162,7 +162,7 @@ def test_node_switching_after_multiple_grpc_errors():
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
 
         # Verify we're now on the third node
-        assert client.network.current_node._account_id == AccountId(0, 0, 5), "Client should have switched to the third node"
+        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 5), "Client should have switched to the third node"
         assert receipt.status == ResponseCode.SUCCESS
 
 
@@ -425,7 +425,7 @@ def test_transaction_node_switching_body_bytes():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         # Verify we're now on the second node
-        assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
+        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 4), "Client should have switched to the second node"
 
 def test_query_retry_on_busy():
     """
@@ -482,4 +482,5 @@ def test_query_retry_on_busy():
 
         assert balance.hbars.to_tinybars() == 100000000
         # Verify we switched to the second node
-        assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
+        assert query._node_account_ids_index == 1
+        assert query.node_account_ids[query._node_account_ids_index] == AccountId(0, 0, 4), "Client should have switched to the second node"
