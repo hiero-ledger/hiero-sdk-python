@@ -6,7 +6,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Tests
+- Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
+
 ### Added
+
 - Advanced-check bot unassigns users from issues if they do not meet the requirements and provides an explanatory message. (#1477)
 - Auto-assignment bot for beginner-labeled issues with `/assign` command support and helpful reminders. (#1368)
 - Added comprehensive docstring to `FeeAssessmentMethod` enum explaining inclusive vs exclusive fee assessment methods with usage examples. (#1391)
