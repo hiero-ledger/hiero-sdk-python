@@ -1,6 +1,6 @@
 # .github/workflows/bot-verified-commits.yml
 #
-# Verifies that all commits in a pull request are GPG and DCO signed.
+# Verifies that all commits in a pull request are GPG-signed.
 # Posts a one-time VerificationBot comment if unverified commits are found.
 #
 # This workflow uses pull_request_target for security with fork PRs.
