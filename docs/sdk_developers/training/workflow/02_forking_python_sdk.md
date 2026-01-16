@@ -11,7 +11,7 @@ Forking creates a personal, editable version of the SDK under your own GitHub ac
 Open the [Official Python SDK repository on GitHub](https://github.com/hiero-ledger/hiero-sdk-python)
 
 2. Create Your Fork
-Make sure you are logged in to Github. Then, in the top-right of the repository page, click Fork.
+Make sure you are logged in to GitHub. Then, in the top-right of the repository page, click Fork.
 
 GitHub will prompt you to confirm:
 - The destination account (your profile)
@@ -21,7 +21,7 @@ Click Create fork.
 
 Your new fork will appear at:
 `https://github.com/<your-username>/<repository-name>`
-This is your copy of the Python SDK. You can also access it from your repository section on github online.
+This is your copy of the Python SDK. You can also access it from your repository section on GitHub online.
 
 
 3. Clone Your Fork Locally
