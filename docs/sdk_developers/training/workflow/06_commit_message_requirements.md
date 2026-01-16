@@ -17,7 +17,7 @@ git commit -S -s -m "looks like its mostly working now"
 ```
 
 ### Conventional Commits
-Read about conventional commit messages here: [Conventional Commmits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
+Read about conventional commit messages here: [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
 
 This is correct:
 ```bash

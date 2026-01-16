@@ -9,9 +9,9 @@ module.exports = async ({ github, context }) => {
     if (!prNumber) {
       throw new Error('PR number could not be determined');
     }
-    
+
     console.log(`Processing PR #${prNumber} (Dry run: ${isDryRun})`);
-    
+
     // For workflow_dispatch, we need to fetch PR details
     let prData;
     if (context.payload.pull_request) {
@@ -29,7 +29,7 @@ module.exports = async ({ github, context }) => {
     const authorType = prData.user?.type;
     const authorLogin = prData.user?.login;
 
-    if (authorType === "Bot" || authorLogin?.endsWith('[bot]')){
+    if (authorType === "Bot" || authorLogin?.endsWith('[bot]')) {
       console.log(`Skipping comment: PR created by bot (${authorLogin})`);
       return;
     }
@@ -53,8 +53,8 @@ module.exports = async ({ github, context }) => {
     }
 
     if (!regex.test(body)) {
-      const safeAuthor = authorLogin ?? 'there' ;
-      const commentBody = [ `${LINKBOT_MARKER}` +
+      const safeAuthor = authorLogin ?? 'there';
+      const commentBody = [`${LINKBOT_MARKER}` +
         `Hi @${safeAuthor}, this is **LinkBot** 👋`,
         ``,
         `Linking pull requests to issues helps us significantly with reviewing pull requests and keeping the repository healthy.`,
@@ -65,10 +65,10 @@ module.exports = async ({ github, context }) => {
         `- Fixes #123`,
         ``,
         `📖 Guide:`,
-        `[docs/sdk_developers/training/workflow/how_to_link_issues.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/sdk_developers/training/workflow/how_to_link_issues.md)`,
+      `[docs/sdk_developers/how_to_link_issues.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/sdk_developers/how_to_link_issues.md)`,
         ``,
         `If no issue exists yet, please create one:`,
-        `[docs/sdk_developers/creating_issues.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/sdk_developers/creating_issues.md)`,
+      `[docs/sdk_developers/creating_issues.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/sdk_developers/creating_issues.md)`,
         ``,
         `Thanks!`
       ].join('\n');
