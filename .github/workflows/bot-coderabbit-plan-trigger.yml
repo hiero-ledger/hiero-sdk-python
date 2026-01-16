@@ -30,7 +30,7 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event.action == 'labeled' && 
-      contains(fromJson('["beginner","intermediate","advanced"]'), toLower(github.event.label.name)))
+      contains(fromJson('["beginner","intermediate","advanced","Beginner","Intermediate","Advanced"]'), github.event.label.name))
 
     steps:
       - name: Harden the runner

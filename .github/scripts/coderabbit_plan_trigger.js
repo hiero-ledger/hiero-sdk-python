@@ -2,7 +2,7 @@
 
 const CODERABBIT_MARKER = '<!-- CodeRabbit Plan Trigger -->';
 
-async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERABBIT_MARKER) {
+async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERABBIT_MARKER, isDryRun = false) {
   const comment = `${marker} @coderabbitai plan`;
 
   if (isDryRun) {
@@ -109,7 +109,7 @@ async function main({ github, context }) {
     const isDryRun = (process.env.DRY_RUN || 'true').toLowerCase() === 'true';
 
     // Post CodeRabbit plan trigger
-    await triggerCodeRabbitPlan(github, owner, repo, issue, CODERABBIT_MARKER);
+    await triggerCodeRabbitPlan(github, owner, repo, issue, CODERABBIT_MARKER, isDryRun);
 
     logSummary(owner, repo, issue);
   } catch (err) {
