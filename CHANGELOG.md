@@ -120,7 +120,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Renamed bot-inactivity workflow files to remove "-phase" suffix since the process no longer uses phased execution (#1339)
 - Renamed the GitHub notify team script to match its corresponding workflow filename for better maintainability (#1338)
 - style: apply black formatting to examples (#1299)
-  -Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
+- Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
+- Updated set up and workflow documents for improved clarity and organisation
 - Renamed templates for improved clarity [(#1265)]
 - Updated Good First Issue notifications to trigger only after the first comment is posted, reducing noise on unassigned issues.(#1212)
 - Bumped requests from 2.32.3 to 2.32.4 to 2.32.5

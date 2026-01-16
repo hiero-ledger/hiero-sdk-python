@@ -1,17 +1,44 @@
 ## Handling Conflicts
 
-Conflicts are common if main has updates to the files you are working on. In which case, you'll have to run a rebase.
+Merge conflicts are caused by working on out-dated versions of the codebase, or another developer merging a change involving similar parts of the codebase to you.
 
-If you are warned of a conflict:
+> ⚠️ **Avoid Merge Conflicts** by syncing your branch regularly [Sync Guide](rebasing.md)
 
-- In VS Code: open the conflicted files and use the built-in conflict resolution.
+## Table of Contents
+
+- [Handling Conflicts](#handling-conflicts)
+- [Step by Step Guide to Resolve Merge Conflicts](#step-by-step-guide-to-resolve-merge-conflicts)
+  - [1. See which files are conflicted](#1-see-which-files-are-conflicted)
+  - [2. Understand what conflicts](#2-understand-what-conflicts)
+  - [3. Decide what the final code should be](#3-decide-what-the-final-code-should-be)
+  - [4. Resolve conflicts in VS Code (recommended)](#4-resolve-conflicts-in-vs-code-recommended)
+    - [Steps to resolve in VS Code](#steps-to-resolve-in-vs-code)
+      - [1. Open the conflicted file in VS Code](#1-open-the-conflicted-file-in-vs-code)
+      - [2. Look at both the Incoming and Current changes](#2-look-at-both-the-incoming-change-left-and-current-change-right-panels)
+      - [3. Edit the Result pane](#3-in-the-result-lower-pane-edit-the-file-so-it-contains-the-correct-final-version)
+      - [4. Save the resolved file](#4-save-the-lower-pane-file-once-there-are-no-more-merge-conflicts-to-resolve-in-this-file)
+      - [5. Stage the resolved files](#5-click-the-add-button-next-to-the-file-to-resolve-conflicts-or)
+      - [6. Continue the rebase](#6-continue-the-rebase)
+      - [7. Resolve remaining conflicts](#7-if-there-are-more-conflicts-in-other-files-vs-code-will-automatically-move-you-to-the-next-one-repeat-until-no-conflicts-remain)
+      - [8. Push changes](#8-push-changes)
+  - [Common issues](#common-issues)
+  - [If you need to stop](#if-you-need-to-stop)
+  - [What NOT to do](#what-not-to-do)
+- [Recovery Tips](#recovery-tips)
+  - [If you are completely stuck](#if-you-are-completely-stuck)
+- [Helpful Resources](#helpful-resources)
+
+
+
+## Step by Step Guide to Resolve Merge Conflicts
 
 ### 1. See which files are conflicted
 ```bash
+git checkout mybranch
 git status
 ```
 
-### 2. Resolve conflicts manually
+### 2. Understand what conflicts
 You will see sections like:
 
 ```text
@@ -22,64 +49,95 @@ your branch’s code
 >>>>>>> mybranch     
 ```
 
-1. Decide what the final code should be.
+### 3. Decide what the final code should be
 
-2. Sometimes keep main, sometimes your branch, sometimes both.
+Have a vision of what you'd like the final code to look like, given what is currently on main and what you'd like to propose.
 
-### 3. Resolving conflicts in VS Code (recommended):
-VS Code provides an easier 3-pane interface for resolving conflicts:
+> ⚠️ **WARNING: Do not blindly accept both changes**. This often leads to problems.
+> ⚠️ **WARNING: Do not blindly accept incoming**. This often leads to problems.
+> ⚠️ **WARNING: Do not blindly accept existing**. This often leads to problems.
+
+Merge conflicts require:
+
+✅ Human interpretation
+
+Sometimes you'll be:
+- Accepting both incoming and current
+- Accepting only incoming
+- Accepting only current
+- Accepting **parts** of both incoming and current
+
+Generally, you want to keep all changes that were merged to main, but additionally, layer on your changes.
+
+
+> ✅  **Resolving Conflicts Requires Human Interpretation**. Merge conflicts require thinking about what the final piece should be, should it include both changes? some of each? none of one? 
+
+> ✅  **Resolving Conflicts Requires Human Edits**. Merge conflicts require manually editing the code.
+
+
+### 4. Resolve conflicts in VS Code (recommended):
+Once you understand you have a merge conflict and have a vision of the the final document, we recommend using VS code.
+
+
+VS Code makes solving merge-conflicts more easier with a 3-pane interface for resolving conflicts:
 
 -> Incoming Change → code from main (left/top)
 
 -> Current Change → code from your branch (right/top)
 
--> Result → the lower/third pane, where you create the final merged file
+-> Result → the lower/third pane, where you create the final merged file.
 
-#### Steps to resolve:
+You want to accept or reject content from the top left and top right panes, and edit the final pane in the bottom so the final code submission reasonably resolves the issue while respecting the work of others.
 
-1. Open the conflicted file in VS Code.
+#### Steps to resolve in VS Code:
 
-2. Look at both the Incoming Change and Current Change panels.
+##### 1. Open the conflicted file in VS Code.
 
-3. In the Result (lower pane), edit the file so it contains the correct final version.
+##### 2. Look at both the Incoming Change (left) and Current Change (right) panels.
+
+##### 3. In the Result (lower pane), edit the file so it contains the correct final version.
 
 -> Sometimes keep Incoming (main)
 
 -> Sometimes keep Current (your branch)
 
--> Often, combine both parts.
+-> Often, combine both parts and edit the code manually.
+If the conflict is resolved correctly, VS Code will mark it as fixed.
 
-4. Save the file. If the conflict is resolved correctly, VS Code will mark it as fixed.
+##### 4. Save the lower pane file once there are no more merge conflicts to resolve in this file.
 
-5. If there are more conflicts, VS Code will automatically move you to the next one. Repeat until no conflicts remain.
-
-⚠️ Do NOT just click “Accept All Incoming” or “Accept All Current” — that usually deletes important code.
-
-## After fixing conflicts:
-
-### 4. Stage the resolved files
+##### 5. Click the add button next to the file to resolve conflicts or:
 ```bash
 git add .
 ```
 
-### 5.Continue the rebase
+##### 6. Continue the rebase
 ```bash
 git rebase --continue
 ```
-Repeat until all conflicts are resolved.
 
-### 6. After Rebase is Completed
+##### 7. If there are more conflicts in other files, VS Code will automatically move you to the next one. Repeat until no conflicts remain.
 
-Once the rebase finishes successfully:
+⚠️ Do NOT just click “Accept All Incoming” or “Accept All Current” — that usually **deletes** or **corrupts** important code.
 
-- Your commits may look “different” (new commit hashes) — this is expected, since rebase rewrites history.
-- If you already have an open Pull Request, you will need to update it with a **force push**, before pushing, double-check that your commits are both DCO signed and GPG verified:
+Once the rebase operation completes, your commits will be layered on top of main. It means your commit history will look “different” and you may even see changes to commits from other authors — this is expected, since rebase rewrites history. 
+
+##### 8. Push changes
+If you already have an open Pull Request, you will need to update it with a **force push**.
+
+Before pushing, double-check that your commits are both DCO signed and GPG verified:
+
 ```bash
-git log --show-signature
+git log -n 5 --pretty=format:'%h %an %G? %s'
 ```
+Replacing 5 with the number of commits backwards in history to check.
+
+Ensure you see:
+`G` = Good (valid signature)
+
 then:
 ```bash
-git push --force
+git push --force-with-lease
 ```
 
 **Tip**: To be safe, create a backup branch before force pushing:
@@ -87,8 +145,7 @@ git push --force
 git checkout -b mybranch-backup
 ```
 
-
-## Common issues
+### Common issues
 Message: “No changes – did you forget to use git add?”
 → This means you resolved the conflicts but forgot to stage them. Run git add . and try again.
 
@@ -97,14 +154,14 @@ Message: “Are you sure you want to continue with conflicts?”
 Double-check your files in VS Code, make sure they are saved, and resolve any remaining conflict markers (<<<<<<<, =======, >>>>>>>).
 
 
-## If you need to stop
+### If you need to stop
 ```bash
 git rebase --abort
 ```
 
 **Tip**: At each conflict: resolve → save → stage → continue. Repeat until all conflicts are gone.
 
-# What NOT to do
+### What NOT to do
 1. ❌ Do not run git merge main
 → This creates messy merge commits. Always rebase instead.
 
@@ -139,28 +196,18 @@ Sometimes a rebase can get too messy to fix conflict by conflict. In that case, 
 git rebase --abort
 ```
 
-2. Reset your branch to match upstream/main:
+2. Reset your fork's main to the upstream main and layer your commits on top of that:
 ``` bash
 git checkout main
 git reset --hard upstream/main
+git push origin main --force-with-lease
 git checkout mybranch
 git rebase upstream/main -S
 ```
 
 ⚠️ Use git stash only if you really want to save some local changes that aren’t yet committed. In most cases, if the rebase is failing, it’s safer to abort or reset rather than reapplying a stash of broken work.
 
-
-- To check commit signatures (verified status):
-```bash
-git log --pretty="%h %G? %aN %s"
-```
--> G = good signature (verified)
--> B = bad signature
--> U = unsigned commit
--> N = no signature
-
-- To check for "Signed-off-by" lines:
-This shows commits along with their sign-off lines, helping you verify compliance with DCO (Developer Certificate of Origin).
-```bash
-git log --pretty="%h %s%n%b" | grep -B1 -A0 "Signed-off-by:"
-```
+### Helpful Resources
+- [Signing Guide](signing.md)
+- [Rebasing Guide](rebasing.md)
+- [Discord](../discord.md)

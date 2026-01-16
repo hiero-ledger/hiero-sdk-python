@@ -27,7 +27,7 @@ If prompted, set:
 - Head branch: your feature branch
 
 3. Write a Clear Pull Request Title and Description
-Your pull request title must follow conventional naming [Conventional Commmits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
+Your pull request title must follow conventional naming [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
 
 For example:
 `chore: Unit Tests for TokenCreateTransaction`
@@ -57,7 +57,7 @@ All checks should be green before requesting review.
 5. Request a Review
 Change the status of your pull request from 'Draft' to 'Ready to Review'
 
-Ensure you have Github Copilot set up as a reviewer to help maintainers on the initial review.
+Ensure you have GitHub Copilot set up as a reviewer to help maintainers on the initial review.
 
 Assign maintainers using the request review feature on the top right.
 
