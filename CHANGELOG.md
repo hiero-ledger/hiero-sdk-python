@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Tests
+
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 
 ### Added
@@ -105,6 +106,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+
+- Refactored `bot-verified-commits.yml` workflow to use modular JavaScript with configurable environment variables, input sanitization, and SHA-pinned actions. (#1482)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
 - Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
@@ -176,9 +179,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
 - Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
 - Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
-- Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
+- Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a \_to_proto method.
 
 ### Fixed
+
 - Prevent LinkBot from posting duplicate “missing linked issue” comments on pull requests. (#1475)
 - Refined intermediate assignment guard to validate Beginner issue completion with improved logging and GraphQL-based counting. (#1424)
 - Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
@@ -203,7 +207,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed bot-pr-missing-linked-issue to skip commenting on pull requests created by automated bots. (#1382)
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
-
 
 ### Removed
 
