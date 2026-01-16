@@ -28,7 +28,7 @@ Each time you want to sync:
 
 You can also do this by visiting your repository "https://github.com/YOUR_GITHUB_NAME/hiero-website" and clicking the sync fork button which is a few lines from the top near the right. Then pull these changes locally in Github Desktop.
 
-#### 2. Sync your working branch
+#### 3. Sync your working branch
 
 Your fork’s `main` branch is now up to date, but **your working branch is not**.
 
@@ -45,7 +45,7 @@ git rebase main -S
 > ⚠️ **Always include the -S flag**  
 > ⚠️ **Do NOT merge `main` into your branch**  
 
-### 3. Verify Sign Status
+### 4. Verify Sign Status
 Verify after the rebase operation, your commits are still signed correctly:
 
 ```bash

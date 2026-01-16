@@ -36,7 +36,7 @@ Overall, GitHub Desktop makes Git simpler, safer, and more visual, which is idea
 
 #### Visual Studio Code
 
-Visual Studio Code (VS Code) a visual code editor.
+Visual Studio Code (VS Code) is a visual code editor.
 
 It provides:
 - Easy project navigation
