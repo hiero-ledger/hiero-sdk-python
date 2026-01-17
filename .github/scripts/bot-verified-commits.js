@@ -14,7 +14,10 @@ const CONFIG = {
   DISCORD_URL: process.env.DISCORD_URL || 
     'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md',
   TEAM_NAME: process.env.TEAM_NAME || 'Hiero Python SDK Team',
-  MAX_PAGES: Number(process.env.MAX_PAGES ?? 5),
+  MAX_PAGES: (() => {
+    const parsed = Number.parseInt(process.env.MAX_PAGES ?? '5', 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 5;
+  })(),
 };
 
 // Sanitizes string input to prevent injection (uses Unicode property escape per Biome lint)
