@@ -1,8 +1,20 @@
 # This workflow automatically triggers CodeRabbit's plan feature for intermediate and advanced issues.
+# Fix for #1427: Only triggers when a beginner/intermediate/advanced label is specifically added,
+# preventing duplicate runs when other labels are added to the same issue.
 name: CodeRabbit Plan Trigger
 on:
   issues:
-    types: [opened, labeled]
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run without posting comments"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 permissions:
   issues: write
@@ -14,17 +26,11 @@ jobs:
     concurrency:
       group: coderabbit-plan-${{ github.event.issue.number }}
       cancel-in-progress: false
-    # Only run for issues labeled with 'beginner', 'intermediate' or 'advanced' (case-insensitive)
+    # Only run when the newly added label is beginner, intermediate, or advanced (case-insensitive)
     if: >
-      (github.event_name == 'issues' && (
-        contains(github.event.issue.labels.*.name, 'intermediate') || 
-        contains(github.event.issue.labels.*.name, 'beginner') || 
-        contains(github.event.issue.labels.*.name, 'advanced') ||
-        contains(github.event.issue.labels.*.name, 'Intermediate') || 
-        contains(github.event.issue.labels.*.name, 'Beginner') || 
-        contains(github.event.issue.labels.*.name, 'Advanced') ||
-        (github.event.label && (github.event.label.name == 'intermediate' || github.event.label.name == 'advanced' || github.event.label.name == 'Intermediate' || github.event.label.name == 'Advanced' || github.event.label.name == 'beginner'|| github.event.label.name == 'Beginner'))
-      ))
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.action == 'labeled' && 
+      contains(fromJson('["beginner","intermediate","advanced","Beginner","Intermediate","Advanced"]'), github.event.label.name))
 
     steps:
       - name: Harden the runner
@@ -36,8 +42,9 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
 
       - name: Trigger CodeRabbit Plan
-        env: 
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
         with:
           script: |

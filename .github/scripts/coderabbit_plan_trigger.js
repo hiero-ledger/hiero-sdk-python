@@ -2,8 +2,13 @@
 
 const CODERABBIT_MARKER = '<!-- CodeRabbit Plan Trigger -->';
 
-async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERABBIT_MARKER) {
+async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERABBIT_MARKER, isDryRun = false) {
   const comment = `${marker} @coderabbitai plan`;
+
+  if (isDryRun) {
+    console.log(`[DRY RUN] Would trigger CodeRabbit plan for issue #${issue.number}`);
+    return true;
+  }
 
   try {
     await github.rest.issues.createComment({
@@ -100,8 +105,11 @@ async function main({ github, context }) {
       return console.log(`CodeRabbit plan already triggered for #${issue.number}`);
     }
 
+    // Check for dry run (default to true if not specified, for safety)
+    const isDryRun = (process.env.DRY_RUN || 'true').toLowerCase() === 'true';
+
     // Post CodeRabbit plan trigger
-    await triggerCodeRabbitPlan(github, owner, repo, issue, CODERABBIT_MARKER);
+    await triggerCodeRabbitPlan(github, owner, repo, issue, CODERABBIT_MARKER, isDryRun);
 
     logSummary(owner, repo, issue);
   } catch (err) {
