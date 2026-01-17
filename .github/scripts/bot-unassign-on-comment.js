@@ -17,6 +17,14 @@ Safeguards:
 ------------------------------------------------------------------------------
 */
 
+function isValidUnassignContext(issue, comment) {
+  if (!issue?.number || issue.pull_request) return false;
+  if (!comment?.body || !comment?.user?.login) return false;
+  if (comment.user.type === 'Bot') return false;
+  if (issue.state !== 'open') return false;
+  return true;
+}
+
 function commentRequestsUnassign(body) {
   return (
     typeof body === 'string' &&
@@ -26,6 +34,10 @@ function commentRequestsUnassign(body) {
 
 function buildUnassignMarker(username) {
   return `<!-- unassign-requested:${username} -->`;
+}
+
+function isCurrentAssignee(issue, username) {
+  return issue.assignees?.some(a => a.login === username);
 }
 
 module.exports = async ({ github, context }) => {
@@ -41,23 +53,13 @@ module.exports = async ({ github, context }) => {
     });
 
     // Basic validation
-    if (!issue?.number || issue.pull_request) {
-      console.log('[unassign] Exit: not an issue or missing issue number');
-      return;
-    }
-
-    if (!comment?.body || !comment?.user?.login) {
-      console.log('[unassign] Exit: missing comment body or user');
-      return;
-    }
-
-    if (comment.user.type === 'Bot') {
-      console.log('[unassign] Exit: comment authored by bot');
-      return;
-    }
-
-    if (issue.state !== 'open') {
-      console.log('[unassign] Exit: issue is not open');
+    if (!isValidUnassignContext(issue, comment)) {
+      console.log('[unassign] Exit: invalid unassign context', {
+        issueNumber: issue?.number,
+        commenter: comment?.user?.login,
+        issueState: issue?.state,
+        isBot: comment?.user?.type === 'Bot',
+      });
       return;
     }
 
@@ -72,9 +74,11 @@ module.exports = async ({ github, context }) => {
     console.log('[unassign] Unassign command detected by', username);
 
     // Check if user is currently assigned
-    const assignees = issue.assignees?.map(a => a.login) ?? [];
-    if (!assignees.includes(username)) {
-      console.log('[unassign] Exit: user is not an assignee');
+    if (!isCurrentAssignee(issue, username)) {
+      console.log('[unassign] Exit: commenter is not an assignee', {
+        requester: username,
+        currentAssignees: issue.assignees?.map(a => a.login),
+      });
       return;
     }
 
@@ -95,11 +99,17 @@ module.exports = async ({ github, context }) => {
     );
 
     if (alreadyUnassigned) {
-      console.log('[unassign] Exit: user already unassigned once before');
+      console.log('[unassign] Exit: unassign already requested previously', {
+        requester: username,
+        issueNumber,
+      });
       return;
     }
 
-    console.log('[unassign] Removing assignee');
+    console.log('[unassign] Proceeding to unassign user', {
+      requester: username,
+      issueNumber,
+    });
 
     // Remove assignee
     await github.rest.issues.removeAssignees({
@@ -117,7 +127,10 @@ module.exports = async ({ github, context }) => {
       body: marker,
     });
 
-    console.log('[unassign] Unassign completed successfully');
+   console.log('[unassign] Unassign completed successfully', {
+      requester: username,
+      issueNumber,
+   });
 
   } catch (error) {
     console.error('[unassign] Error:', {
