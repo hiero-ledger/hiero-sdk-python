@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -6,9 +6,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Tests
+- Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
+
 ### Added
+
+- Added advanced CodeRabbit reviewer guidance for `tokens` module changes, with specialized validation rules for token transactions, token classes, and enums. (#1496)
+- Advanced-check bot unassigns users from issues if they do not meet the requirements and provides an explanatory message. (#1477)
+- Auto-assignment bot for beginner-labeled issues with `/assign` command support and helpful reminders. (#1368)
 - Added comprehensive docstring to `FeeAssessmentMethod` enum explaining inclusive vs exclusive fee assessment methods with usage examples. (#1391)
 - Added comprehensive docstring to `TokenType` enum explaining fungible vs non-fungible tokens with practical use cases. (#1392)
+- Enable dry run support for office hours bot via `workflow_dispatch` trigger for testing without posting comments. (#1426)
+- Trigger CodeRabbit plan comment after Good First Issue assignment to provide AI-generated implementation guidance to new contributors. (#1432)
 
 - Added a notification workflow that alerts the support team when an issue is labeled as a Good First Issue Candidate.[(#1296)]
 - Added comprehensive training documentation for the `Query` class, covering execution flow, payments, retries, and building child queries. (#1238)
@@ -90,12 +99,21 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added workflow to prevent assigning intermediate issues to contributors without prior Good First Issue completion (#1143).
 - Added `Client.from_env()` and network-specific factory methods (e.g., `Client.for_testnet()`) to simplify client initialization and reduce boilerplate. [[#1251](https://github.com/hiero-ledger/hiero-sdk-python/issues/1251)]
 - Improved unit test coverage for `TransactionId` class, covering parsing logic, hashing, and scheduled transactions.
+- Add contract_id support for CryptoGetAccountBalanceQuery([#1293](https://github.com/hiero-ledger/hiero-sdk-python/issues/1293))
 - Chained Good First Issue assignment with mentor assignment to bypass GitHub's anti-recursion protection - mentor assignment now occurs immediately after successful user assignment in the same workflow execution. (#1369)
 - Add GitHub Actions script and workflow for automatic spam list updates.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
+- Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+- Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
+- Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
+- Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
+- Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
+- Move assignment guards to be directly inside the gfi and beginner auto assign
+- Remove the commented out blocks in config.yml (#1435)
 - Renamed `.github/scripts/check_advanced_requirement.sh` to `bot-advanced-check.sh` for workflow consistency (#1341)
+- Difficulty guidelines to feel more welcoming
 - Added global review instructions to CodeRabbit configuration to limit reviews to issue/PR scope and prevent scope creep [#1373]
 - Archived unused auto draft GitHub workflow to prevent it from running (#1371)
 - Added comprehensive documentation to the PR changelog check script (`.github/scripts/pr-check-changelog.sh`) to clarify behavior, inputs, permissions, and dependencies [(#1337)]
@@ -103,7 +121,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Renamed bot-inactivity workflow files to remove "-phase" suffix since the process no longer uses phased execution (#1339)
 - Renamed the GitHub notify team script to match its corresponding workflow filename for better maintainability (#1338)
 - style: apply black formatting to examples (#1299)
--Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
+- Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
+- Updated set up and workflow documents for improved clarity and organisation
 - Renamed templates for improved clarity [(#1265)]
 - Updated Good First Issue notifications to trigger only after the first comment is posted, reducing noise on unassigned issues.(#1212)
 - Bumped requests from 2.32.3 to 2.32.4 to 2.32.5
@@ -156,9 +175,17 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Updated `pyproject.toml` to enforce stricter Ruff linting rules, including Google-style docstrings (`D`), import sorting (`I`), and modern Python syntax (`UP`).
 - Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
+- Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
+- Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
+- Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
 
 ### Fixed
-- GFI workflow casing 
+- Fixed CodeRabbit plan trigger workflow running multiple times when issues are created with multiple labels by switching to labeled event trigger only. (#1427)
+- Prevent LinkBot from posting duplicate “missing linked issue” comments on pull requests. (#1475)
+- Refined intermediate assignment guard to validate Beginner issue completion with improved logging and GraphQL-based counting. (#1424)
+- Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
+- Good First Issue bot no longer posts `/assign` reminders for repository collaborators. (#1367)
+- GFI workflow casing
 - Update `bot-workflows.yml` to trigger only on open PRs with failed workflows; ignore closed PRs and branches without open PRs.
 - Fixed step-security/harden-runner action SHA in merge conflict bot workflow (#1278)
 - Fixed the README account balance example to use correct SDK APIs and provide a runnable testnet setup. (#1250)
@@ -173,8 +200,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed `cron-check-broken-links.yml` string parsing issue in context input `dry_run` (#1235)
 - Flaky tests by disabling TLS in mock Hedera nodes in `mock_server.py`
 - Fixed LinkBot permission issue for fork PRs by changing trigger to pull_request_target and adding proper permissions.
+- Fixed token examples to consistently use setup_client without tuple unpacking.(#1397)
 - Fixed duplicate comment prevention in issue reminder bot by adding hidden HTML marker for reliable comment detection (.github/scripts/bot-issue-reminder-no-pr.sh) (#1372)
 - Fixed bot-pr-missing-linked-issue to skip commenting on pull requests created by automated bots. (#1382)
+- Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
+- Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
+
+
+### Removed
+
+- Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 
 ### Breaking Change
 

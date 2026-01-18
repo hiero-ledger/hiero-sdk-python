@@ -89,11 +89,10 @@ Want to write about the Hiero Python SDK?
 We welcome blog posts! Whether you're sharing a tutorial, case study, or your experience building with the SDK, we'd love to feature your content.
 
 **Quick overview:**
-- Blog posts are submitted to the [Hiero Website Repository](https://github.com/hiero-ledger/hiero-website)
-- Written in Markdown with Hugo frontmatter
-- Review process through PR
+- Blog posts are submitted to the [Hiero Website Repository](https://github.com/hiero-ledger/hiero-website) in a Pull Request
+- Written in Markdown
 
-**Full guide with step-by-step instructions:** [Blog Post Guide](docs/sdk_developers/blog.md)
+**Full guide with step-by-step instructions:** [Blog Post Guide](docs/blogs.md)
 
 ---
 

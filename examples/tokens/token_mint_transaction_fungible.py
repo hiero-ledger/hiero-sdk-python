@@ -1,48 +1,26 @@
-# uv run examples/tokens/token_mint_fungible.py
-# python examples/tokens/token_mint_fungible.py
 """
 uv run examples/tokens/token_mint_transaction_fungible.py
 python examples/tokens/token_mint_transaction_fungible.py
-
 Creates a mintable fungible token and then mints additional supply.
 """
 
 import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     TokenCreateTransaction,
     TokenMintTransaction,
     TokenInfoQuery,
     ResponseCode,
 )
 
-# Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
 def setup_client():
-    """Setup Client"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def generate_supply_key():
     """Generate a new supply key for the token."""
@@ -52,12 +30,15 @@ def generate_supply_key():
     return supply_key
 
 
-def create_new_token():
+def create_new_token(client):
     """
     Create a fungible token that can have its supply changed (minted or burned).
     This requires setting a supply key, which is a special key that authorizes supply changes.
     """
-    client, operator_id, operator_key = setup_client()
+
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
     supply_key = generate_supply_key()
     print("\nSTEP 2: Creating a new mintable token...")
     try:
@@ -88,7 +69,7 @@ def create_new_token():
         else:
             print("❌ Warning: Token does not have a supply key set.")
 
-        return client, token_id, supply_key
+        return token_id, supply_key
     except (ValueError, TypeError) as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
@@ -127,7 +108,7 @@ def token_mint_fungible(client, token_id, supply_key):
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"Total supply after minting: {info_after.total_supply}")
-    except (ValueError, TypeError) as e:
+    except Exception as e:
         print(f"❌ Error minting tokens: {e}")
         sys.exit(1)
 
@@ -139,7 +120,9 @@ def main():
     3. Mint more tokens by submitting a TokenMintTransaction (signed by the supply key)
     4. Confirm the token's total supply after minting
     """
-    client, token_id, supply_key = create_new_token()
+
+    client = setup_client()
+    token_id, supply_key = create_new_token(client)
     token_mint_fungible(client, token_id, supply_key)
 
 

@@ -8,39 +8,27 @@ python examples/tokens/token_freeze_transaction.py
 
 import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     TokenCreateTransaction,
     TokenFreezeTransaction,
     TransferTransaction,
     ResponseCode,
 )
 
-# Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
-    """Setup Client"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+    """Setup client from environment variables"""
+    client = Client.from_env()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {operator_id}")
+
+    return client, operator_id, operator_key
 
 
 def generate_freeze_key():
@@ -55,6 +43,7 @@ def create_freezeable_token(client, operator_id, operator_key):
     """Create a token with the freeze key"""
     freeze_key = generate_freeze_key()
     print("\nSTEP 2: Creating a new freezeable token...")
+
     try:
         tx = (
             TokenCreateTransaction()
@@ -71,17 +60,21 @@ def create_freezeable_token(client, operator_id, operator_key):
             .sign(freeze_key)
             .execute(client)
         )
+
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
+
         return freeze_key, token_id, client, operator_id, operator_key
+
     except Exception as e:
         print(f"❌ Error creating token: {e}")
         sys.exit(1)
 
 
 def freeze_token(token_id, client, operator_id, freeze_key):
-    """Freeze the token for the operator account."""
+    """Freeze the token for the operator account"""
     print(f"\nSTEP 3: Freezing token {token_id} for operator account {operator_id}...")
+
     try:
         receipt = (
             TokenFreezeTransaction()
@@ -91,18 +84,20 @@ def freeze_token(token_id, client, operator_id, freeze_key):
             .sign(freeze_key)
             .execute(client)
         )
+
         print(
             f"✅ Success! Token freeze complete. Status: {ResponseCode(receipt.status).name}"
         )
+
     except Exception as e:
         print(f"❌ Error freezing token: {e}")
         sys.exit(1)
 
 
 def verify_freeze(token_id, client, operator_id, operator_key):
-    """Attempt a token transfer to confirm the account
-    cannot perform the operation while frozen."""
+    """Attempt a token transfer to confirm the account is frozen"""
     print("\nVerifying freeze: Attempting token transfer...")
+
     try:
         transfer_receipt = (
             TransferTransaction()
@@ -112,7 +107,9 @@ def verify_freeze(token_id, client, operator_id, operator_key):
             .sign(operator_key)
             .execute(client)
         )
+
         status_name = ResponseCode(transfer_receipt.status).name
+
         if status_name in ["ACCOUNT_FROZEN_FOR_TOKEN", "ACCOUNT_FROZEN"]:
             print(
                 f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}"
@@ -122,7 +119,8 @@ def verify_freeze(token_id, client, operator_id, operator_key):
                 "❌ Error: Transfer succeeded, but should have failed because the account is frozen."
             )
         else:
-            print(f"❌ Unexpected: Transfer result. Status: {status_name}")
+            print(f"❌ Unexpected transfer result. Status: {status_name}")
+
     except Exception as e:
         print(f"❌ Error during transfer verification: {e}")
         sys.exit(1)
@@ -135,9 +133,11 @@ def main():
     3. Attempt a token transfer to verify the freeze (should fail).
     """
     client, operator_id, operator_key = setup_client()
+
     freeze_key, token_id, client, operator_id, operator_key = create_freezeable_token(
         client, operator_id, operator_key
     )
+
     freeze_token(token_id, client, operator_id, freeze_key)
     verify_freeze(token_id, client, operator_id, operator_key)
 

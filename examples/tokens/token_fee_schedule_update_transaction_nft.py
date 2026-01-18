@@ -2,11 +2,9 @@
 uv run examples/tokens/token_fee_schedule_update_transaction_nft.py
 python examples/tokens/token_fee_schedule_update_transaction_nft.py"""
 
-import os
 import sys
-from dotenv import load_dotenv
 
-from hiero_sdk_python import Client, AccountId, PrivateKey, Network
+from hiero_sdk_python import Client
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
@@ -23,23 +21,10 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 
 
 def setup_client():
-    """Initialize client and operator credentials from .env."""
-    load_dotenv()
-    network_name = os.getenv("NETWORK", "testnet").lower()
-
-    try:
-        network = Network(network_name)
-        print(f"Connecting to Hedera {network_name} network!")
-        client = Client(network)
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client, operator_id, operator_key
-    except Exception as e:
-        print(f" Error setting up client: {e}")
-        sys.exit(1)
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 def create_nft(client, operator_id, supply_key, fee_schedule_key):
     """Create an NFT with supply and fee schedule keys."""
@@ -144,7 +129,11 @@ def query_token_info(client, token_id):
 
 
 def main():
-    client, operator_id, operator_key = setup_client()
+    
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
     token_id = None
     try:
         # Use operator key as both supply and fee key

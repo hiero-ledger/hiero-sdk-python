@@ -3,13 +3,10 @@ uv run examples/tokens/token_airdrop_transaction.py
 python examples/tokens/token_airdrop_transaction.py
 """
 
-import os
 import sys
-from dotenv import load_dotenv
+
 from hiero_sdk_python import (
     Client,
-    Network,
-    AccountId,
     PrivateKey,
     Hbar,
     AccountCreateTransaction,
@@ -25,27 +22,13 @@ from hiero_sdk_python import (
 )
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-
-    client = Client(network)
-
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
 def create_account(client, operator_key):
@@ -503,7 +486,9 @@ def token_airdrop():
     finally perform token airdrop.
     """
     # Setup Client
-    client, operator_id, operator_key = setup_client()
+    client = setup_client()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     # Create a new account
     recipient_key, recipient_id = create_account(client, operator_key)
