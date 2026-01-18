@@ -238,7 +238,7 @@ body:
 
         - [ ] **Assignment:** get assigned by commenting `/assign` [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
         - [ ] **Changelog Entry:** Correct changelog entry [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
-        - [ ] **Signed commits:** commits must be DCO and GPG key signed [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+        - [ ] **Signed commits:** commits must be DCO and GPG key signed as `git commit -S -s -m "chore: my change"` with a GPG key set up [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **All Tests Pass:** our workflow checks like unit and integration tests must pass
         - [ ] **Issue is Solved:** The implementation fully addresses the issue requirements as described above
         - [ ] **No Further Changes are Made:** Code review feedback has been addressed and no further changes are requested
