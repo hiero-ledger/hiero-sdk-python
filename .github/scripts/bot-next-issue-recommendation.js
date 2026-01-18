@@ -58,37 +58,40 @@ module.exports = async ({ github, context, core }) => {
       issue_number: issueNumber,
     });
     
-    // Check issue labels
-    const labels = issue.labels.map(label => label.name.toLowerCase());
-    core.info(`Issue labels: ${labels.join(', ')}`);
+    // Normalize and check issue labels (case-insensitive)
+    const labelNames = issue.labels.map(label => label.name.toLowerCase());
+    const labelSet = new Set(labelNames);
+    core.info(`Issue labels: ${labelNames.join(', ')}`);
     
-    // Check if this is a Good First Issue or beginner issue
-    const isGoodFirstIssue = labels.includes('good first issue');
-    const isBeginner = labels.includes('beginner');
-    const isIntermediate = labels.includes('intermediate');
-    const isAdvanced = labels.includes('advanced');
+    // Determine issue difficulty level
+    const difficultyLevels = {
+      beginner: labelSet.has('beginner'),
+      goodFirstIssue: labelSet.has('good first issue'),
+      intermediate: labelSet.has('intermediate'),
+      advanced: labelSet.has('advanced'),
+    };
     
     // Skip if intermediate or advanced
-    if (isIntermediate || isAdvanced) {
+    if (difficultyLevels.intermediate || difficultyLevels.advanced) {
       core.info('Issue is intermediate or advanced level, skipping recommendation');
       return;
     }
     
     // Only proceed for Good First Issue or beginner issues
-    if (!isGoodFirstIssue && !isBeginner) {
+    if (!difficultyLevels.goodFirstIssue && !difficultyLevels.beginner) {
       core.info('Issue is not a Good First Issue or beginner issue, skipping');
       return;
     }
     
     let recommendedIssues = [];
     
-    if (isGoodFirstIssue) {
+    if (difficultyLevels.goodFirstIssue) {
       // Recommend beginner issues first, then Good First Issues
       recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
       if (recommendedIssues.length === 0) {
         recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
       }
-    } else if (isBeginner) {
+    } else if (difficultyLevels.beginner) {
       // Recommend beginner or Good First Issues
       recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
       if (recommendedIssues.length === 0) {
@@ -97,7 +100,7 @@ module.exports = async ({ github, context, core }) => {
     }
     
     // Generate and post comment
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, isDryRun, isGoodFirstIssue);
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, isDryRun, difficultyLevels.goodFirstIssue);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
