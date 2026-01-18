@@ -4,16 +4,6 @@ on:
   pull_request_target:
     types: [closed]
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Run in dry-run mode (no actual comments posted)'
-        required: false
-        default: true
-        type: boolean
-      pr_number:
-        description: 'PR number to test against (required for workflow_dispatch)'
-        required: false
-        type: number
 
 permissions:
   pull-requests: write
