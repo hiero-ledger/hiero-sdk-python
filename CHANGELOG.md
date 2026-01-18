@@ -106,8 +106,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
+
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
+- Make the required signed commit command explicit in all issue templates to reduce PR signing errors for contributors (#1489)
 - Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
 - Move assignment guards to be directly inside the gfi and beginner auto assign
