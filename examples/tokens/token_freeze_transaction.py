@@ -1,7 +1,11 @@
 """
 Creates a freezeable token and demonstrates freezing and unfreezing
 the token for the operator (treasury) account.
+
+uv run examples/tokens/token_freeze_transaction.py
+python examples/tokens/token_freeze_transaction.py
 """
+
 import os
 import sys
 from dotenv import load_dotenv
