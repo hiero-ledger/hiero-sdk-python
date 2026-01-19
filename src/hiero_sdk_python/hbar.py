@@ -6,6 +6,7 @@ Defines the Hbar, a value object for representing, converting,
 and validating amounts of the network utility token (HBAR).
 """
 
+import math
 import re
 import warnings
 from decimal import Decimal
@@ -39,6 +40,11 @@ class Hbar:
             amount: The numeric amount of hbar or tinybar.
             unit: Unit of the provided amount.
         """
+        if isinstance(amount, bool) or not isinstance(amount, (int, float, Decimal)):
+            raise TypeError("Amount must be of type int, float, or Decimal")
+
+        if isinstance(amount, float) and not math.isfinite(amount):
+            raise ValueError("Hbar amount must be finite")
 
         if  unit == HbarUnit.TINYBAR:
             if not isinstance(amount, int):
@@ -48,12 +54,11 @@ class Hbar:
 
         if isinstance(amount, (float, int)):
             amount = Decimal(str(amount))
-        elif not isinstance(amount, Decimal):
-            raise TypeError("Amount must be of type int, float, or Decimal")
 
         tinybar = amount * Decimal(unit.tinybar)
         if tinybar % 1 != 0:
             raise ValueError("Fractional tinybar value not allowed")
+
         self._amount_in_tinybar = int(tinybar)
 
     def to(self, unit: HbarUnit) -> float:
@@ -104,7 +109,7 @@ class Hbar:
         Returns:
             Hbar: A new Hbar instance.
         """
-        if not isinstance(tinybars, int):
+        if isinstance(tinybars, bool) or not isinstance(tinybars, int):
             raise TypeError("tinybars must be an int.")
         return cls(tinybars, unit=HbarUnit.TINYBAR)
     
