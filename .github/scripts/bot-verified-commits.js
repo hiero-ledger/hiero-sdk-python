@@ -145,24 +145,36 @@ async function hasExistingBotComment(github, owner, repo, prNumber) {
 }
 
 // Builds the verification failure comment with unverified commit details
-function buildVerificationComment(commitsUrl, unverifiedCommits = []) {
+function buildVerificationComment(
+  commitsUrl,
+  unverifiedCommits = [],
+  unverifiedCount = unverifiedCommits.length,
+  truncated = false
+) {
   // Build list of unverified commits (show first 10 max)
   const maxDisplay = 10;
-  const commitList = unverifiedCommits.slice(0, maxDisplay).map(c => {
-    const sha = c.sha?.substring(0, 7) || 'unknown';
-    const msg = sanitizeString(c.commit?.message?.split('\n')[0] || 'No message').substring(0, 50);
-    return `- \`${sha}\` ${msg}`;
-  }).join('\n');
+  const commitList = unverifiedCommits.length
+    ? unverifiedCommits.slice(0, maxDisplay).map(c => {
+        const sha = c.sha?.substring(0, 7) || 'unknown';
+        const msg = sanitizeString(c.commit?.message?.split('\n')[0] || 'No message').substring(0, 50);
+        return `- \`${sha}\` ${msg}`;
+      }).join('\n')
+    : (truncated ? '- Unable to enumerate commits due to pagination limit.' : '');
   
   const moreCommits = unverifiedCommits.length > maxDisplay 
     ? `\n- ...and ${unverifiedCommits.length - maxDisplay} more` 
     : '';
 
+  const countText = truncated ? `at least ${unverifiedCount}` : `${unverifiedCount}`;
+  const truncationNote = truncated
+    ? '\n\n> ⚠️ Verification scanned only the first pages of commits due to pagination limits. Please review the commits tab.'
+    : '';
+
   return `${CONFIG.COMMENT_MARKER}
 Hi, this is ${CONFIG.BOT_NAME}. 
-Your pull request cannot be merged as it has **${unverifiedCommits.length} unverified commit(s)**:
+Your pull request cannot be merged as it has **${countText} unverified commit(s)**:
 
-${commitList}${moreCommits}
+${commitList}${moreCommits}${truncationNote}
 
 View your commit verification status: [Commits Tab](${sanitizeString(commitsUrl)}).
 
@@ -180,7 +192,16 @@ From the ${CONFIG.TEAM_NAME}`;
 }
 
 // Posts verification failure comment on the PR with error handling
-async function postVerificationComment(github, owner, repo, prNumber, commitsUrl, unverifiedCommits) {
+async function postVerificationComment(
+  github,
+  owner,
+  repo,
+  prNumber,
+  commitsUrl,
+  unverifiedCommits,
+  unverifiedCount,
+  truncated
+) {
   console.log(`[${CONFIG.BOT_NAME}] Posting verification failure comment...`);
   
   try {
@@ -188,7 +209,7 @@ async function postVerificationComment(github, owner, repo, prNumber, commitsUrl
       owner,
       repo,
       issue_number: prNumber,
-      body: buildVerificationComment(commitsUrl, unverifiedCommits),
+      body: buildVerificationComment(commitsUrl, unverifiedCommits, unverifiedCount, truncated),
     });
     console.log(`[${CONFIG.BOT_NAME}] Comment posted on PR #${prNumber}`);
     return true;
@@ -226,7 +247,8 @@ async function main({ github, context }) {
   
   try {
     // Get commit verification status
-    const { total, unverified, unverifiedCommits } = await getCommitVerificationStatus(github, owner, repo, prNumber);
+    const { total, unverified, unverifiedCommits, truncated } = 
+      await getCommitVerificationStatus(github, owner, repo, prNumber);
     
     // All commits verified - success
     if (unverified === 0) {
@@ -244,7 +266,16 @@ async function main({ github, context }) {
       console.log(`[${CONFIG.BOT_NAME}] Bot already commented. Skipping duplicate.`);
     } else {
       const commitsUrl = `https://github.com/${owner}/${repo}/pull/${prNumber}/commits`;
-      await postVerificationComment(github, owner, repo, prNumber, commitsUrl, unverifiedCommits);
+      await postVerificationComment(
+        github,
+        owner,
+        repo,
+        prNumber,
+        commitsUrl,
+        unverifiedCommits,
+        unverified,
+        truncated
+      );
     }
     
     return { success: false, unverifiedCount: unverified };
