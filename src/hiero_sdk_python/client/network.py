@@ -130,18 +130,7 @@ class Network:
         """
         Configure the consensus nodes used by this network.
         """
-        if nodes is not None:
-            final_nodes = nodes
-        elif self.network in ('solo', 'localhost', 'local'):
-            final_nodes = self._fetch_nodes_from_default_nodes()
-        else:
-            fetched = self._fetch_nodes_from_mirror_node()
-            if not fetched and self.network in self.DEFAULT_NODES:
-                final_nodes = self._fetch_nodes_from_default_nodes()
-            elif fetched:
-                final_nodes = fetched
-            else:
-                raise ValueError(f"No default nodes for network='{self.network}'")
+        final_nodes = self._resolve_nodes(nodes)
         
         # Apply TLS configuration to all nodes
         for node in final_nodes:
@@ -155,6 +144,23 @@ class Network:
         for node in self.nodes:
             if not node.is_healthy(): continue
             self._healthy_nodes.append(node)
+
+    def _resolve_nodes(self, nodes: Optional[List[_Node]]) -> List[_Node]:
+        if nodes is not None:
+            return nodes
+        
+        if self.network in ('solo', 'localhost', 'local'):
+            return self._fetch_nodes_from_default_nodes()
+        
+        fetched = self._fetch_nodes_from_mirror_node()
+        
+        if fetched:
+            return fetched
+        
+        if self.network in self.DEFAULT_NODES:    
+            return self._fetch_nodes_from_default_nodes()
+        
+        raise ValueError(f"No default nodes for network='{self.network}'")
 
 
     def _fetch_nodes_from_mirror_node(self) -> List[_Node]:
