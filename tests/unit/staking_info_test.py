@@ -3,7 +3,9 @@
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo as StakingInfoProto
+from hiero_sdk_python.hapi.services.basic_types_pb2 import (
+    StakingInfo as StakingInfoProto,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
@@ -90,7 +92,8 @@ def test_initialization_with_node(staking_info_with_node):
 
 def test_oneof_validation_raises():
     with pytest.raises(
-        ValueError, match=r"Only one of staked_account_id or staked_node_id can be set\."
+        ValueError,
+        match=r"Only one of staked_account_id or staked_node_id can be set\.",
     ):
         StakingInfo(
             staked_account_id=AccountId(0, 0, 123),
@@ -99,7 +102,7 @@ def test_oneof_validation_raises():
 
 
 def test_from_proto_with_account(proto_staking_info_with_account):
-    staking_info = StakingInfo.from_proto(proto_staking_info_with_account)
+    staking_info = StakingInfo._from_proto(proto_staking_info_with_account)
 
     assert staking_info.decline_reward is True
     assert staking_info.stake_period_start == Timestamp(100, 200)
@@ -110,7 +113,7 @@ def test_from_proto_with_account(proto_staking_info_with_account):
 
 
 def test_from_proto_with_node(proto_staking_info_with_node):
-    staking_info = StakingInfo.from_proto(proto_staking_info_with_node)
+    staking_info = StakingInfo._from_proto(proto_staking_info_with_node)
 
     assert staking_info.decline_reward is False
     assert staking_info.stake_period_start == Timestamp(300, 400)
@@ -122,11 +125,11 @@ def test_from_proto_with_node(proto_staking_info_with_node):
 
 def test_from_proto_none_raises():
     with pytest.raises(ValueError, match=r"Staking info proto is None"):
-        StakingInfo.from_proto(None)
+        StakingInfo._from_proto(None)
 
 
 def test_to_proto_with_account(staking_info_with_account):
-    proto = staking_info_with_account.to_proto()
+    proto = staking_info_with_account._to_proto()
 
     assert proto.decline_reward is True
     assert proto.HasField("stake_period_start")
@@ -139,7 +142,7 @@ def test_to_proto_with_account(staking_info_with_account):
 
 
 def test_to_proto_with_node(staking_info_with_node):
-    proto = staking_info_with_node.to_proto()
+    proto = staking_info_with_node._to_proto()
 
     assert proto.decline_reward is False
     assert proto.HasField("stake_period_start")
@@ -152,18 +155,20 @@ def test_to_proto_with_node(staking_info_with_node):
 
 
 def test_proto_round_trip_with_account(staking_info_with_account):
-    restored = StakingInfo.from_proto(staking_info_with_account.to_proto())
+    restored = StakingInfo._from_proto(staking_info_with_account._to_proto())
 
     assert restored.decline_reward == staking_info_with_account.decline_reward
     assert restored.stake_period_start == staking_info_with_account.stake_period_start
     assert restored.pending_reward == staking_info_with_account.pending_reward
     assert restored.staked_to_me == staking_info_with_account.staked_to_me
-    assert str(restored.staked_account_id) == str(staking_info_with_account.staked_account_id)
+    assert str(restored.staked_account_id) == str(
+        staking_info_with_account.staked_account_id
+    )
     assert restored.staked_node_id is None
 
 
 def test_proto_round_trip_with_node(staking_info_with_node):
-    restored = StakingInfo.from_proto(staking_info_with_node.to_proto())
+    restored = StakingInfo._from_proto(staking_info_with_node._to_proto())
 
     assert restored.decline_reward == staking_info_with_node.decline_reward
     assert restored.stake_period_start == staking_info_with_node.stake_period_start
@@ -181,13 +186,25 @@ def test_from_bytes_deserializes(staking_info_with_account):
     assert restored.stake_period_start == staking_info_with_account.stake_period_start
     assert restored.pending_reward == staking_info_with_account.pending_reward
     assert restored.staked_to_me == staking_info_with_account.staked_to_me
-    assert str(restored.staked_account_id) == str(staking_info_with_account.staked_account_id)
+    assert str(restored.staked_account_id) == str(
+        staking_info_with_account.staked_account_id
+    )
     assert restored.staked_node_id is None
 
 
 def test_from_bytes_empty_raises():
     with pytest.raises(ValueError, match=r"data cannot be empty"):
         StakingInfo.from_bytes(b"")
+
+
+def test_from_bytes_with_string_raises():
+    with pytest.raises(TypeError, match=r"data must be bytes"):
+        StakingInfo.from_bytes("Hi from Anto :D")
+
+
+def test_from_bytes_with_int_raises():
+    with pytest.raises(TypeError, match=r"data must be bytes"):
+        StakingInfo.from_bytes(123)
 
 
 def test_to_bytes_produces_non_empty_bytes(staking_info_with_node):

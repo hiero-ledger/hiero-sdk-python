@@ -11,7 +11,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 
 
-@dataclass
+@dataclass(frozen=True)
 class StakingInfo:
     """
     Represents staking-related information for an account.
@@ -37,33 +37,40 @@ class StakingInfo:
             raise ValueError("Only one of staked_account_id or staked_node_id can be set.")
 
     @classmethod
-    def from_proto(cls, proto: StakingInfoProto) -> "StakingInfo":
+    def _from_proto(cls, proto: StakingInfoProto) -> "StakingInfo":
         """
         Creates a StakingInfo instance from its protobuf representation.
         """
         if proto is None:
             raise ValueError("Staking info proto is None")
 
+        decline_reward = proto.decline_reward,
+        
+        stake_period_start = None
+        if proto.HasField("stake_period_start"):
+            stake_period_start = Timestamp._from_protobuf(proto.stake_period_start)
+
+        pending_reward=Hbar.from_tinybars(proto.pending_reward)
+        staked_to_me=Hbar.from_tinybars(proto.staked_to_me)
+
+        staked_account_id = None
+        if proto.HasField("staked_account_id"):
+            staked_account_id = AccountId._from_proto(proto.staked_account_id)
+
+        staked_node_id = None
+        if proto.HasField("staked_node_id"):
+            staked_node_id = proto.staked_node_id
+
         return cls(
             decline_reward=proto.decline_reward,
-            stake_period_start=(
-                Timestamp._from_protobuf(proto.stake_period_start)
-                if proto.HasField("stake_period_start")
-                else None
-            ),
-            pending_reward=Hbar.from_tinybars(proto.pending_reward),
-            staked_to_me=Hbar.from_tinybars(proto.staked_to_me),
-            staked_account_id=(
-                AccountId._from_proto(proto.staked_account_id)
-                if proto.HasField("staked_account_id")
-                else None
-            ),
-            staked_node_id=(
-                proto.staked_node_id if proto.HasField("staked_node_id") else None
-            ),
+            stake_period_start=stake_period_start,
+            pending_reward=pending_reward,
+            staked_to_me=staked_to_me,
+            staked_account_id=staked_account_id,
+            staked_node_id=staked_node_id,
         )
 
-    def to_proto(self) -> StakingInfoProto:
+    def _to_proto(self) -> StakingInfoProto:
         """
         Converts this StakingInfo instance to its protobuf representation.
         """
@@ -90,7 +97,7 @@ class StakingInfo:
         Creates a StakingInfo instance from protobuf-encoded bytes.
         """
         if not isinstance(data, bytes):
-            raise ValueError("data must be bytes")
+            raise TypeError("data must be bytes")
         if len(data) == 0:
             raise ValueError("data cannot be empty")
 
@@ -99,13 +106,13 @@ class StakingInfo:
         except Exception as exc:
             raise ValueError(f"Failed to parse StakingInfo bytes: {exc}") from exc
 
-        return cls.from_proto(proto)
+        return cls._from_proto(proto)
 
     def to_bytes(self) -> bytes:
         """
         Serializes this StakingInfo instance to protobuf-encoded bytes.
         """
-        return self.to_proto().SerializeToString()
+        return self._to_proto().SerializeToString()
 
     def __str__(self) -> str:
         return (
