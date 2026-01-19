@@ -165,7 +165,7 @@ class AccountId:
             client
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns the repr representation of the AccountId.
         """
