@@ -10,6 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 
 ### Added
+- Added a beginner assignment guard that requires completion of a Good First Issue . (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
 - Added advanced CodeRabbit reviewer guidance for `tokens` module changes, with specialized validation rules for token transactions, token classes, and enums. (#1496)
 - Advanced-check bot unassigns users from issues if they do not meet the requirements and provides an explanatory message. (#1477)

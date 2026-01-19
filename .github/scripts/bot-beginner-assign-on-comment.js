@@ -56,6 +56,44 @@ Parameters:
 const fs = require("fs");
 
 const SPAM_LIST_PATH = ".github/spam-list.txt";
+const REQUIRED_GFI_COUNT = 1;
+const GFI_LABEL = 'Good First Issue';
+const BEGINNER_GUARD_MARKER = '<!-- beginner-gfi-guard -->';
+
+function isSafeSearchToken(value) {
+  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
+}
+
+async function countCompletedGfiIssues(github, owner, repo, username) {
+  if (
+    !isSafeSearchToken(owner) ||
+    !isSafeSearchToken(repo) ||
+    !isSafeSearchToken(username)
+  ) {
+    return null;
+  }
+
+  const searchQuery = [
+    `repo:${owner}/${repo}`,
+    `label:"${GFI_LABEL}"`,
+    'is:issue',
+    'is:closed',
+    `assignee:${username}`,
+  ].join(' ');
+
+  const result = await github.graphql(
+    `
+    query ($query: String!) {
+      search(type: ISSUE, query: $query) {
+        issueCount
+      }
+    }
+    `,
+    { query: searchQuery }
+  );
+
+  return result?.search?.issueCount ?? 0;
+}
 
 module.exports = async ({ github, context }) => {
   try {
@@ -148,23 +186,50 @@ module.exports = async ({ github, context }) => {
 
     // 4. Logic Branch
     if (isAssignCommand) {
-      // --- ASSIGNMENT LOGIC ---
-      if (issue.assignees && issue.assignees.length > 0) {
-        const currentAssignee = issue.assignees[0].login;
-        console.log(`[Beginner Bot] Issue #${issue.number} is already assigned. Ignoring /assign command.`);
+      const completedGfiCount = await countCompletedGfiIssues(
+        github,
+        repo.owner.login,
+        repo.name,
+        commenter
+      );
 
-        // Fix 4: Granular Try/Catch for Comment API
-        try {
+      if (completedGfiCount === null) {
+        console.log("[Beginner Bot] Skipping GFI guard due to API error.");
+        return;
+      }
+
+      if (completedGfiCount < REQUIRED_GFI_COUNT) {
+        const comments = await github.rest.issues.listComments({
+          owner: repo.owner.login,
+          repo: repo.name,
+          issue_number: issue.number,
+        });
+
+        if (!comments.data.some((c) => c.body?.includes(BEGINNER_GUARD_MARKER))) {
           await github.rest.issues.createComment({
             owner: repo.owner.login,
             repo: repo.name,
             issue_number: issue.number,
-            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "beginner" issues [here](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee).`,
+            body: `${BEGINNER_GUARD_MARKER}
+👋 Hi @${commenter}! Thanks for your interest in contributing 💡
+
+Before taking on a **beginner** issue, we ask contributors to complete at least one **Good First Issue** to get familiar with the workflow.
+
+Please try a GFI first, then come back — we’ll be happy to assign this! 😊`,
           });
-        } catch (error) {
-          console.error(`[Beginner Bot] Failed to post already-assigned comment: ${error.message}`);
         }
-        return; // Exit after warning
+        return;
+      }
+      
+      // --- ASSIGNMENT LOGIC ---
+      if (issue.assignees && issue.assignees.length > 0) {
+        await github.rest.issues.createComment({
+          owner: repo.owner.login,
+          repo: repo.name,
+          issue_number: issue.number,
+          body: `👋 Hi @${commenter}, this issue is already assigned. Feel free to check other beginner issues!`,
+        });
+        return;
       }
 
       // Block spam users from beginner issues
