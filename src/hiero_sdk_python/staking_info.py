@@ -44,7 +44,7 @@ class StakingInfo:
         if proto is None:
             raise ValueError("Staking info proto is None")
 
-        decline_reward = proto.decline_reward,
+        decline_reward = proto.decline_reward
         
         stake_period_start = None
         if proto.HasField("stake_period_start"):

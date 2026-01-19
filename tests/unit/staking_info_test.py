@@ -207,6 +207,11 @@ def test_from_bytes_with_int_raises():
         StakingInfo.from_bytes(123)
 
 
+def test_from_bytes_invalid_bytes_raises():
+    with pytest.raises(ValueError, match=r"Failed to parse StakingInfo bytes"):
+        StakingInfo.from_bytes(b"\xff\xff\xff")
+
+
 def test_to_bytes_produces_non_empty_bytes(staking_info_with_node):
     data = staking_info_with_node.to_bytes()
 
