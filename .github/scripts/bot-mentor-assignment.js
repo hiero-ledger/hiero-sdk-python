@@ -105,25 +105,57 @@ async function isNewContributor(github, owner, repo, login) {
 }
 
 function buildComment({ mentee, mentor, owner, repo }) {
-  const repoUrl = `https://github.com/${owner}/${repo}`;
+    const repoUrl = owner && repo ? `https://github.com/${owner}/${repo}` : "https://github.com/hiero-ledger/hiero-sdk-python";
 
-  return `${COMMENT_MARKER}
-👋 Hi @${mentee}, welcome to the Hiero Python SDK community!
+    return `${COMMENT_MARKER}👋 Hi @${mentee}, welcome to the Hiero Python SDK community!
+You've been assigned this **Good First Issue**. Your on-call mentor today from ${MENTOR_TEAM_ALIAS} is **@${mentor}**, and the **Good First Issue Support Team** is **${SUPPORT_TEAM_ALIAS}**.
+We’re here to help you get your first PR merged successfully 🚀
 
-You've been assigned this Good First Issue, and today’s on-call mentor from ${MENTOR_TEAM_ALIAS} is @${mentor}. They're here to help you land a great first contribution.
+---
+### Step 1: Read the task
+- Open the issue description, carefully read the requirements and workflow
+- Read any linked documentation
+- Make sure you understand the expected outcome
+If anything is unclear, ask your mentor **before** writing code.
 
-**How to get started**
-- Review the issue description and any linked docs
-- Share updates early and ask @${mentor} anything right here
-- Keep the feedback loop short so we can support you quickly
+---
+### Step 2: Tell us your plan (in this thread)
+Reply here with:
+- What you think the task is
+- What you plan to change to solve the issue requirement and no more
+- Any questions you have
+This means we can guide you early on, helping you to have a more stress free experience
 
-Need more backup? ${SUPPORT_TEAM_ALIAS} is also on standby to cheer you on.
+---
+### Step 3: Get the right kind of help
+Finishing your first PR can be really hard. We are here to help you - please ask us!
 
+🛠 **Good First Issue Support Team (${SUPPORT_TEAM_ALIAS})**
+Use them for **workflow and GitHub issues**, such as:
+- Failing CI checks
+- Commit signing problems
+- Merge conflicts
+- Git/GitHub errors
+They can also jump on a call if needed.
+
+🐍 **Your Mentor (@${mentor})**
+Use your mentor for **Python and code guidance**, such as:
+- Which files to edit
+- How to structure your solution
+- Docstring and code style questions
+- Making sure your PR meets the issue requirements
+
+💬 **Discord (for fast help)**
+Guide: [Join the Python SDK Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+Use Discord when you need **immediate answers** from the community, like:
+- What docs to read
+- How to unblock yourself quickly
+- Clarifying next steps in real time
+
+---
 **Mentor:** @${mentor}
 **Mentee:** @${mentee}
-
 If you're enjoying the SDK, consider ⭐️ [starring the repository](${repoUrl}) so it's easy to find later.
-
 Happy building!
 — Python SDK Team`;
 }
