@@ -107,6 +107,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
+- Hardened PR changelog check script by enabling strict Bash mode. (#1492)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
 
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
