@@ -83,13 +83,13 @@ async function countCompletedGfiIssues(github, owner, repo, username) {
 
   const result = await github.graphql(
     `
-    query ($query: String!) {
-      search(type: ISSUE, query: $query) {
+    query ($searchquery: String!) {
+      search(type: ISSUE, query: $searchquery) {
         issueCount
       }
     }
     `,
-    { query: searchQuery }
+    { searchQuery }
   );
 
   return result?.search?.issueCount ?? 0;
