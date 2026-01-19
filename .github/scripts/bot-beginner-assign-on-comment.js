@@ -195,13 +195,9 @@ module.exports = async ({ github, context }) => {
 
       if (completedGfiCount === null) {
         console.log("[Beginner Bot] Skipping GFI guard due to API error.");
-        return;
-      }
-
-      if (completedGfiCount < REQUIRED_GFI_COUNT) {
+      } else if (completedGfiCount < REQUIRED_GFI_COUNT) {
 
         let allComments = [];
-
         try {
           allComments = await github.paginate(
             github.rest.issues.listComments,
@@ -254,12 +250,20 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
       
       // --- ASSIGNMENT LOGIC ---
       if (issue.assignees && issue.assignees.length > 0) {
-        await github.rest.issues.createComment({
-          owner: repo.owner.login,
-          repo: repo.name,
-          issue_number: issue.number,
-          body: `👋 Hi @${commenter}, this issue is already assigned. Feel free to check other beginner issues!`,
-        });
+        try{
+          await github.rest.issues.createComment({
+            owner: repo.owner.login,
+            repo: repo.name,
+            issue_number: issue.number,
+            body: `👋 Hi @${commenter}, this issue is already assigned. Feel free to check other beginner issues!`,
+          });
+        } catch (error) {
+          console.error("[Beginner Bot] Failed to post already-assigned message:", {
+            issue: issue.number,
+            commenter,
+            message: error.message,
+          });
+        }
         return;
       }
 
