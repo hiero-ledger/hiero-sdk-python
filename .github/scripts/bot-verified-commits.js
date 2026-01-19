@@ -2,29 +2,41 @@
 // Verifies that all commits in a pull request are GPG-signed.
 // Posts a one-time VerificationBot comment if unverified commits are found.
 
-// Configuration via environment variables
-const CONFIG = {
-  BOT_NAME: process.env.BOT_NAME || 'VerificationBot',
-  BOT_LOGIN: process.env.BOT_LOGIN || 'github-actions',
-  COMMENT_MARKER: process.env.COMMENT_MARKER || '[commit-verification-bot]',
-  SIGNING_GUIDE_URL: process.env.SIGNING_GUIDE_URL || 
-    'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md',
-  README_URL: process.env.README_URL || 
-    'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md',
-  DISCORD_URL: process.env.DISCORD_URL || 
-    'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md',
-  TEAM_NAME: process.env.TEAM_NAME || 'Hiero Python SDK Team',
-  MAX_PAGES: (() => {
-    const parsed = Number.parseInt(process.env.MAX_PAGES ?? '5', 10);
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : 5;
-  })(),
-};
-
 // Sanitizes string input to prevent injection (uses Unicode property escape per Biome lint)
 function sanitizeString(input) {
   if (typeof input !== 'string') return '';
   return input.replace(/\p{Cc}/gu, '').trim();
 }
+
+// Validates URL format and returns fallback if invalid
+function sanitizeUrl(input, fallback) {
+  const cleaned = sanitizeString(input);
+  return /^https?:\/\/[^\s]+$/i.test(cleaned) ? cleaned : fallback;
+}
+
+// Configuration via environment variables (sanitized)
+const CONFIG = {
+  BOT_NAME: sanitizeString(process.env.BOT_NAME) || 'VerificationBot',
+  BOT_LOGIN: sanitizeString(process.env.BOT_LOGIN) || 'github-actions',
+  COMMENT_MARKER: sanitizeString(process.env.COMMENT_MARKER) || '[commit-verification-bot]',
+  SIGNING_GUIDE_URL: sanitizeUrl(
+    process.env.SIGNING_GUIDE_URL,
+    'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md'
+  ),
+  README_URL: sanitizeUrl(
+    process.env.README_URL,
+    'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md'
+  ),
+  DISCORD_URL: sanitizeUrl(
+    process.env.DISCORD_URL,
+    'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md'
+  ),
+  TEAM_NAME: sanitizeString(process.env.TEAM_NAME) || 'Hiero Python SDK Team',
+  MAX_PAGES: (() => {
+    const parsed = Number.parseInt(process.env.MAX_PAGES ?? '5', 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 5;
+  })(),
+};
 
 // Validates PR number is a positive integer
 function validatePRNumber(prNumber) {
@@ -38,15 +50,29 @@ async function getCommitVerificationStatus(github, owner, repo, prNumber) {
   
   const commits = [];
   let page = 0;
-  for await (const response of github.paginate.iterator(
-    github.rest.pulls.listCommits,
-    { owner, repo, pull_number: prNumber, per_page: 100 }
-  )) {
-    commits.push(...response.data);
-    if (++page >= CONFIG.MAX_PAGES) {
-      console.log(`[${CONFIG.BOT_NAME}] Reached MAX_PAGES (${CONFIG.MAX_PAGES}) limit`);
-      break;
+  let truncated = false;
+  
+  try {
+    for await (const response of github.paginate.iterator(
+      github.rest.pulls.listCommits,
+      { owner, repo, pull_number: prNumber, per_page: 100 }
+    )) {
+      commits.push(...response.data);
+      if (++page >= CONFIG.MAX_PAGES) {
+        truncated = true;
+        console.warn(`[${CONFIG.BOT_NAME}] Reached MAX_PAGES (${CONFIG.MAX_PAGES}) limit`);
+        break;
+      }
     }
+  } catch (error) {
+    console.error(`[${CONFIG.BOT_NAME}] Failed to list commits`, {
+      owner,
+      repo,
+      prNumber,
+      status: error?.status,
+      message: error?.message,
+    });
+    throw error;
   }
   
   const unverifiedCommits = commits.filter(
@@ -55,9 +81,16 @@ async function getCommitVerificationStatus(github, owner, repo, prNumber) {
   
   console.log(`[${CONFIG.BOT_NAME}] Found ${commits.length} total, ${unverifiedCommits.length} unverified`);
   
+  // Fail-closed: if truncated and no unverified found, treat as potentially unverified
+  const unverifiedCount = truncated && unverifiedCommits.length === 0
+    ? 1
+    : unverifiedCommits.length;
+  
   return {
     total: commits.length,
-    unverified: unverifiedCommits.length,
+    unverified: unverifiedCount,
+    unverifiedCommits,
+    truncated,
   };
 }
 
@@ -74,34 +107,63 @@ async function hasExistingBotComment(github, owner, repo, prNumber) {
   ]);
   
   let page = 0;
-  for await (const response of github.paginate.iterator(
-    github.rest.issues.listComments,
-    { owner, repo, issue_number: prNumber, per_page: 100 }
-  )) {
-    // Early return if marker found
-    if (response.data.some(comment =>
-      botLogins.has(comment.user?.login) &&
-      typeof comment.body === 'string' &&
-      comment.body.includes(CONFIG.COMMENT_MARKER)
+  try {
+    for await (const response of github.paginate.iterator(
+      github.rest.issues.listComments,
+      { owner, repo, issue_number: prNumber, per_page: 100 }
     )) {
-      console.log(`[${CONFIG.BOT_NAME}] Existing bot comment: true`);
-      return true;
+      // Early return if marker found
+      if (response.data.some(comment =>
+        botLogins.has(comment.user?.login) &&
+        typeof comment.body === 'string' &&
+        comment.body.includes(CONFIG.COMMENT_MARKER)
+      )) {
+        console.log(`[${CONFIG.BOT_NAME}] Existing bot comment: true`);
+        return true;
+      }
+      if (++page >= CONFIG.MAX_PAGES) {
+        // Fail-safe: assume comment exists to prevent duplicates
+        console.warn(
+          `[${CONFIG.BOT_NAME}] Reached MAX_PAGES (${CONFIG.MAX_PAGES}) limit; assuming existing comment to avoid duplicates`
+        );
+        return true;
+      }
     }
-    if (++page >= CONFIG.MAX_PAGES) {
-      console.log(`[${CONFIG.BOT_NAME}] Reached MAX_PAGES (${CONFIG.MAX_PAGES}) limit`);
-      break;
-    }
+  } catch (error) {
+    console.error(`[${CONFIG.BOT_NAME}] Failed to list comments`, {
+      owner,
+      repo,
+      prNumber,
+      status: error?.status,
+      message: error?.message,
+    });
+    throw error;
   }
   
   console.log(`[${CONFIG.BOT_NAME}] Existing bot comment: false`);
   return false;
 }
 
-// Builds the verification failure comment
-function buildVerificationComment(commitsUrl) {
+// Builds the verification failure comment with unverified commit details
+function buildVerificationComment(commitsUrl, unverifiedCommits = []) {
+  // Build list of unverified commits (show first 10 max)
+  const maxDisplay = 10;
+  const commitList = unverifiedCommits.slice(0, maxDisplay).map(c => {
+    const sha = c.sha?.substring(0, 7) || 'unknown';
+    const msg = sanitizeString(c.commit?.message?.split('\n')[0] || 'No message').substring(0, 50);
+    return `- \`${sha}\` ${msg}`;
+  }).join('\n');
+  
+  const moreCommits = unverifiedCommits.length > maxDisplay 
+    ? `\n- ...and ${unverifiedCommits.length - maxDisplay} more` 
+    : '';
+
   return `${CONFIG.COMMENT_MARKER}
 Hi, this is ${CONFIG.BOT_NAME}. 
-Your pull request cannot be merged as it has **unverified commits**. 
+Your pull request cannot be merged as it has **${unverifiedCommits.length} unverified commit(s)**:
+
+${commitList}${moreCommits}
+
 View your commit verification status: [Commits Tab](${sanitizeString(commitsUrl)}).
 
 To achieve verified status, please read:
@@ -118,7 +180,7 @@ From the ${CONFIG.TEAM_NAME}`;
 }
 
 // Posts verification failure comment on the PR with error handling
-async function postVerificationComment(github, owner, repo, prNumber, commitsUrl) {
+async function postVerificationComment(github, owner, repo, prNumber, commitsUrl, unverifiedCommits) {
   console.log(`[${CONFIG.BOT_NAME}] Posting verification failure comment...`);
   
   try {
@@ -126,7 +188,7 @@ async function postVerificationComment(github, owner, repo, prNumber, commitsUrl
       owner,
       repo,
       issue_number: prNumber,
-      body: buildVerificationComment(commitsUrl),
+      body: buildVerificationComment(commitsUrl, unverifiedCommits),
     });
     console.log(`[${CONFIG.BOT_NAME}] Comment posted on PR #${prNumber}`);
     return true;
@@ -164,7 +226,7 @@ async function main({ github, context }) {
   
   try {
     // Get commit verification status
-    const { total, unverified } = await getCommitVerificationStatus(github, owner, repo, prNumber);
+    const { total, unverified, unverifiedCommits } = await getCommitVerificationStatus(github, owner, repo, prNumber);
     
     // All commits verified - success
     if (unverified === 0) {
@@ -182,7 +244,7 @@ async function main({ github, context }) {
       console.log(`[${CONFIG.BOT_NAME}] Bot already commented. Skipping duplicate.`);
     } else {
       const commitsUrl = `https://github.com/${owner}/${repo}/pull/${prNumber}/commits`;
-      await postVerificationComment(github, owner, repo, prNumber, commitsUrl);
+      await postVerificationComment(github, owner, repo, prNumber, commitsUrl, unverifiedCommits);
     }
     
     return { success: false, unverifiedCount: unverified };

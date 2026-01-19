@@ -58,13 +58,8 @@ jobs:
           sparse-checkout: .github/scripts
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: "20"
-
       - name: Verify PR commits
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         id: verify
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -83,6 +78,6 @@ jobs:
         if: steps.verify.outputs.success != 'true'
         run: |
           echo "❌ Pull request has unverified commits."
-          echo "Please sign your commits with GPG and DCO."
+          echo "Please sign your commits with GPG."
           echo "See: ${{ env.SIGNING_GUIDE_URL }}"
           exit 1
