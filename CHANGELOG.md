@@ -169,6 +169,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated team.md with new triage, committers and maintainer (#1692)
 - Removed outdated "Common Issues" section from CONTRIBUTING.md that referenced non-existent docs/common_issues.md (`#1665`)
 - Hide the commit verification bot marker in pull request comments.
+- Hardened PR changelog check script by enabling strict Bash mode. (#1492)
 - Added missing type hints to sign method in Transaction class (#1630)
 - Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
 - Updated GitHub Actions setup-node action to v6.2.0.
