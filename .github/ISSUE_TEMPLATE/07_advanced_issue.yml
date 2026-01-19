@@ -206,7 +206,7 @@ body:
         - [ ] Update relevant examples and documentation
         - [ ] Pass all CI checks
         - [ ] Include a valid changelog entry
-        - [ ] Use DCO and GPG-signed commits
+        - [ ] be a DCO and GPG key signed as `git commit -S -s -m "chore: my change"` with a GPG key set up
     validations:
       required: true
 

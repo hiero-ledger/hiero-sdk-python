@@ -158,7 +158,7 @@ body:
         To be able to merge a pull request for this issue, we need:
         - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
         - [ ] **Changelog Entry:** Correct changelog entry [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
-        - [ ] **Signed commits:** commits must be DCO and GPG key signed [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+        - [ ] **Signed commits:** commits must be DCO and GPG key signed as `git commit -S -s -m "chore: my change"` with a GPG key set up [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **All Tests Pass:** our workflow checks like unit and integration tests must pass
         - [ ] **Issue is Solved:** The implementation fully addresses the issue requirements as described above
         - [ ] **No Further Changes are Made:** Code review feedback has been addressed and no further changes are requested
@@ -182,6 +182,24 @@ body:
         ***IMPORTANT*** Your pull request CANNOT BE MERGED until you add a changelog entry AND sign your commits each with `git commit -S -s -m "chore: your commit message"` with a GPG key setup.
     validations:
       required: true
+
+  - type: textarea
+    id: ai_usage_guidelines
+    attributes:
+      label: 🤖 AI Usage Guidelines
+      description: Guidance on using AI tools responsibly for this issue
+      value: |
+        You are welcome to use AI to help you understand and solve this issue.
+
+        Because AI tools can sometimes make mistakes, please take care to:
+
+        - Only implement what is described in this issue  
+        - Avoid changing anything else in the file  
+        - Be careful when modifying parameters or return statements, as this may affect runtime behavior  
+
+        If you're unsure, ask your mentor or the maintainers for help — they can provide expert Python SDK guidance and point you to the right examples or methods.
+    validations:
+      required: false
 
   - type: textarea
     id: information

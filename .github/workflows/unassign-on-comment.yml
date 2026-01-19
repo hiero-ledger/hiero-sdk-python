@@ -1,0 +1,37 @@
+name: Unassign on /unassign
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  unassign:
+    # Only run on issue comments (not PR comments)
+    if: github.event.issue.pull_request == null
+
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: unassign-${{ github.event.issue.number }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Run /unassign handler
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-unassign-on-comment.js');
+            await script({ github, context });

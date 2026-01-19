@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -6,8 +6,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Tests
+- Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
+
 ### Added
 - Added a beginner assignment guard that requires completion of a Good First Issue . (#1484)
+- Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
+- Added advanced CodeRabbit reviewer guidance for `tokens` module changes, with specialized validation rules for token transactions, token classes, and enums. (#1496)
 - Advanced-check bot unassigns users from issues if they do not meet the requirements and provides an explanatory message. (#1477)
 - Auto-assignment bot for beginner-labeled issues with `/assign` command support and helpful reminders. (#1368)
 - Added comprehensive docstring to `FeeAssessmentMethod` enum explaining inclusive vs exclusive fee assessment methods with usage examples. (#1391)
@@ -102,8 +107,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 
 ### Changed
-- Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
 
+- Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
+- Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
+- Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
+- Make the required signed commit command explicit in all issue templates to reduce PR signing errors for contributors (#1489)
+- Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
 - Move assignment guards to be directly inside the gfi and beginner auto assign
 - Remove the commented out blocks in config.yml (#1435)
@@ -116,7 +125,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Renamed bot-inactivity workflow files to remove "-phase" suffix since the process no longer uses phased execution (#1339)
 - Renamed the GitHub notify team script to match its corresponding workflow filename for better maintainability (#1338)
 - style: apply black formatting to examples (#1299)
-  -Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
+- Update GitHub workflow names in `.github/workflows/bot-workflows.yml` to match correct references [(#1284)]
+- Updated set up and workflow documents for improved clarity and organisation
 - Renamed templates for improved clarity [(#1265)]
 - Updated Good First Issue notifications to trigger only after the first comment is posted, reducing noise on unassigned issues.(#1212)
 - Bumped requests from 2.32.3 to 2.32.4 to 2.32.5
@@ -174,6 +184,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
 
 ### Fixed
+- Fixed CodeRabbit plan trigger workflow running multiple times when issues are created with multiple labels by switching to labeled event trigger only. (#1427)
 - Prevent LinkBot from posting duplicate “missing linked issue” comments on pull requests. (#1475)
 - Refined intermediate assignment guard to validate Beginner issue completion with improved logging and GraphQL-based counting. (#1424)
 - Improved filename-related error handling with clearer and more descriptive error messages.(#1413)

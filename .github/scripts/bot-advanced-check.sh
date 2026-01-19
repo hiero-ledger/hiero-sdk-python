@@ -9,6 +9,11 @@ log() {
 }
 
 #######################################
+# Configuration
+#######################################
+REQUIRED_INTERMEDIATE_COUNT=1
+
+#######################################
 # Validate required environment variables
 #######################################
 if [[ -z "${REPO:-}" ]]; then
@@ -135,7 +140,7 @@ if [[ "${DRY_RUN:-false}" == "true" ]]; then
   echo
   log "Intermediate Issues (closed): $INT_COUNT"
 
-  if (( INT_COUNT >= 1 )); then
+  if (( INT_COUNT >= REQUIRED_INTERMEDIATE_COUNT )); then
     log "Result: USER QUALIFIED"
   else
     log "Result: USER NOT QUALIFIED"
@@ -178,7 +183,7 @@ check_user() {
 
   log "Counts → Intermediate: $INT_COUNT"
 
-  if (( INT_COUNT >= 1 )); then
+  if (( INT_COUNT >= REQUIRED_INTERMEDIATE_COUNT )); then
     log "User @$user qualified."
     return 0
   fi
@@ -196,7 +201,7 @@ check_user() {
 Advanced issues involve high-risk changes to the core codebase and require prior experience in this repository.
 
 **Requirement:**
-- Complete at least **1** 'intermediate' issue (You have: **$INT_COUNT**)
+- Complete at least **$REQUIRED_INTERMEDIATE_COUNT** 'intermediate' issue (You have: **$INT_COUNT**)
 
 Please check out our **$SUGGESTION** to build your experience first!
 
