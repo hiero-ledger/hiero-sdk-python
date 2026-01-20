@@ -5,8 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-## Changed
+
+### Changed
 - Updated Office Hours and Community Call links to direct Zoom URLs in templates and documentation. (#1507)
+
 ### Tests
 - Style: formatted `tests/unit/prng_transaction_test.py` with black (#1546)
 - Formatted contract unit tests with black for consistent style. (#1523)
