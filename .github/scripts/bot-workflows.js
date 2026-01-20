@@ -1,0 +1,303 @@
+#!/usr/bin/env node
+
+/**
+ * Workflow Failure Notifier - Looks up PR and posts failure notification
+ * DRY_RUN controls behaviour:
+ *   DRY_RUN = 1 -> simulate only (no changes, just logs)
+ *   DRY_RUN = 0 -> real actions (post PR comments)
+ */
+
+const { execSync } = require('child_process');
+const process = require('process');
+
+/**
+ * Execute a shell command and return the output
+ * @param {string} command - Command to execute
+ * @param {boolean} silent - Whether to suppress output
+ * @returns {string} - Command output
+ */
+function exec(command, silent = false) {
+  try {
+    const output = execSync(command, {
+      encoding: 'utf8',
+      stdio: silent ? 'pipe' : ['pipe', 'pipe', 'pipe']
+    });
+    return output.trim();
+  } catch (error) {
+    if (!silent) {
+      throw error;
+    }
+    return '';
+  }
+}
+
+/**
+ * Check if a command exists
+ * @param {string} command - Command to check
+ * @returns {boolean}
+ */
+function commandExists(command) {
+  try {
+    if (process.platform === 'win32') {
+      exec(`where ${command}`, true);
+    } else {
+      exec(`command -v ${command}`, true);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Normalise DRY_RUN input ("true"/"false" -> 1/0, case-insensitive)
+ * @param {string|number} value - Input value
+ * @returns {number} - Normalised value (0 or 1)
+ */
+function normaliseDryRun(value) {
+  const strValue = String(value).toLowerCase();
+  
+  if (strValue === '1' || strValue === '0') {
+    return parseInt(strValue);
+  }
+  
+  if (strValue === 'true') {
+    return 1;
+  }
+  
+  if (strValue === 'false') {
+    return 0;
+  }
+  
+  console.error(`ERROR: DRY_RUN must be one of: true, false, 1, 0 (got: ${value})`);
+  process.exit(1);
+}
+
+// Validate required environment variables
+let FAILED_WORKFLOW_NAME = process.env.FAILED_WORKFLOW_NAME || '';
+let FAILED_RUN_ID = process.env.FAILED_RUN_ID || '';
+let GH_TOKEN = process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '';
+const REPO = process.env.REPO || process.env.GITHUB_REPOSITORY || '';
+let DRY_RUN = normaliseDryRun(process.env.DRY_RUN || '1');
+let PR_NUMBER = process.env.PR_NUMBER || '';
+
+// Set GH_TOKEN environment variable for gh CLI
+if (GH_TOKEN) {
+  process.env.GH_TOKEN = GH_TOKEN;
+}
+
+// Validate required variables or set defaults in dry-run mode
+if (!FAILED_WORKFLOW_NAME) {
+  if (DRY_RUN === 1) {
+    console.log('WARN: FAILED_WORKFLOW_NAME not set, using default for dry-run.');
+    FAILED_WORKFLOW_NAME = 'DRY_RUN_TEST';
+  } else {
+    console.error('ERROR: FAILED_WORKFLOW_NAME environment variable not set.');
+    process.exit(1);
+  }
+}
+
+if (!FAILED_RUN_ID) {
+  if (DRY_RUN === 1) {
+    console.log('WARN: FAILED_RUN_ID not set, using default for dry-run.');
+    FAILED_RUN_ID = '12345';
+  } else {
+    console.error('ERROR: FAILED_RUN_ID environment variable not set.');
+    process.exit(1);
+  }
+}
+
+// Validate FAILED_RUN_ID is numeric (always check when provided)
+if (!/^\d+$/.test(FAILED_RUN_ID)) {
+  console.error(`ERROR: FAILED_RUN_ID must be a numeric integer (got: '${FAILED_RUN_ID}')`);
+  process.exit(1);
+}
+
+if (!GH_TOKEN) {
+  if (DRY_RUN === 1) {
+    console.log('WARN: GH_TOKEN not set. Some dry-run operations may fail.');
+  } else {
+    console.error('ERROR: GH_TOKEN (or GITHUB_TOKEN) environment variable not set.');
+    process.exit(1);
+  }
+}
+
+if (!REPO) {
+  console.error('ERROR: REPO environment variable not set.');
+  process.exit(1);
+}
+
+console.log('------------------------------------------------------------');
+console.log(' Workflow Failure Notifier');
+console.log(` Repo:                ${REPO}`);
+console.log(` Failed Workflow:     ${FAILED_WORKFLOW_NAME}`);
+console.log(` Failed Run ID:       ${FAILED_RUN_ID}`);
+console.log(` DRY_RUN:             ${DRY_RUN}`);
+console.log('------------------------------------------------------------');
+
+// Quick gh availability/auth checks
+if (!commandExists('gh')) {
+  console.error('ERROR: gh CLI not found. Install it and ensure it\'s on PATH.');
+  process.exit(1);
+}
+
+if (!commandExists('jq')) {
+  console.error('ERROR: jq not found. Install it and ensure it\'s on PATH.');
+  process.exit(1);
+}
+
+try {
+  exec('gh auth status', true);
+} catch {
+  if (DRY_RUN === 0) {
+    console.error('ERROR: gh authentication required for non-dry-run mode.');
+    process.exit(1);
+  } else {
+    console.log('WARN: gh auth status failed — some dry-run operations may not work.');
+  }
+}
+
+// PR lookup logic - use PR_NUMBER from workflow_run payload if available, otherwise fallback to branch-based approach
+console.log('Looking up PR for failed workflow run...');
+
+// Use PR_NUMBER from workflow_run payload if provided (optimized path)
+if (PR_NUMBER) {
+  console.log(`Using PR number from workflow_run payload: ${PR_NUMBER}`);
+} else {
+  console.log('PR_NUMBER not provided, falling back to branch-based lookup...');
+
+  let HEAD_BRANCH = '';
+  try {
+    HEAD_BRANCH = exec(`gh run view "${FAILED_RUN_ID}" --repo "${REPO}" --json headBranch --jq '.headBranch'`, true);
+  } catch {
+    HEAD_BRANCH = '';
+  }
+
+  if (!HEAD_BRANCH) {
+    if (DRY_RUN === 1) {
+      console.log('WARN: Could not retrieve head branch in dry-run mode (run ID may be invalid). Exiting gracefully.');
+      process.exit(0);
+    } else {
+      console.error(`ERROR: Could not retrieve head branch from workflow run ${FAILED_RUN_ID}`);
+      process.exit(1);
+    }
+  }
+
+  console.log(`Found head branch: ${HEAD_BRANCH}`);
+
+  // Find PR number for this branch (only open PRs)
+  try {
+    PR_NUMBER = exec(`gh pr list --repo "${REPO}" --head "${HEAD_BRANCH}" --json number --jq '.[0].number'`, true);
+  } catch {
+    PR_NUMBER = '';
+  }
+
+  if (!PR_NUMBER) {
+    if (DRY_RUN === 1) {
+      console.log(`No PR associated with workflow run ${FAILED_RUN_ID}, but DRY_RUN=1 - exiting successfully.`);
+      process.exit(0);
+    } else {
+      console.log(`INFO: No open PR found for branch '${HEAD_BRANCH}' (workflow run ${FAILED_RUN_ID}). Nothing to notify.`);
+      process.exit(0);
+    }
+  }
+}
+
+console.log(`Found PR #${PR_NUMBER}`);
+
+// Build notification message with failure details and documentation links
+const MARKER = '<!-- workflowbot:workflow-failure-notifier -->';
+const COMMENT = `${MARKER}
+Hi, this is WorkflowBot. 
+Your pull request cannot be merged as it is not passing all our workflow checks. 
+Please click on each check to review the logs and resolve issues so all checks pass.
+To help you:
+- [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+- [Changelog guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+- [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
+- [Rebase guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
+- [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md)
+- [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+Thank you for contributing!
+From the Hiero Python SDK Team`;
+
+// Check for duplicate comments using the correct endpoint for issue comments
+let PAGE = 1;
+let DUPLICATE_EXISTS = false;
+const MAX_PAGES = 10;  // Safety bound
+
+while (PAGE <= MAX_PAGES) {
+  let COMMENTS_PAGE = '';
+  try {
+    COMMENTS_PAGE = exec(`gh api --header 'Accept: application/vnd.github.v3+json' "/repos/${REPO}/issues/${PR_NUMBER}/comments?per_page=100&page=${PAGE}"`, true);
+  } catch {
+    COMMENTS_PAGE = '[]';
+  }
+
+  // Parse JSON
+  let comments = [];
+  try {
+    comments = JSON.parse(COMMENTS_PAGE);
+  } catch {
+    comments = [];
+  }
+
+  // Check if the page is empty (no more comments)
+  if (comments.length === 0) {
+    break;
+  }
+
+  // Check this page for the marker
+  const foundDuplicate = comments.some(comment => {
+    return comment.body && comment.body.includes(MARKER);
+  });
+
+  if (foundDuplicate) {
+    DUPLICATE_EXISTS = true;
+    console.log('Found existing duplicate comment. Skipping.');
+    break;
+  }
+
+  PAGE++;
+}
+
+if (!DUPLICATE_EXISTS) {
+  console.log('No existing duplicate comment found.');
+}
+
+// Dry-run mode or actual posting
+if (DRY_RUN === 1) {
+  console.log(`[DRY RUN] Would post comment to PR #${PR_NUMBER}:`);
+  console.log('----------------------------------------');
+  console.log(COMMENT);
+  console.log('----------------------------------------');
+  if (DUPLICATE_EXISTS) {
+    console.log('[DRY RUN] Would skip posting due to duplicate comment');
+  } else {
+    console.log('[DRY RUN] Would post new comment (no duplicates found)');
+  }
+} else {
+  if (DUPLICATE_EXISTS) {
+    console.log('Comment already exists, skipping.');
+  } else {
+    console.log(`Posting new comment to PR #${PR_NUMBER}...`);
+    
+    // Escape the comment for shell execution
+    const escapedComment = COMMENT.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$').replace(/`/g, '\\`');
+    
+    try {
+      exec(`gh pr comment "${PR_NUMBER}" --repo "${REPO}" --body "${escapedComment}"`);
+      console.log(`Successfully posted comment to PR #${PR_NUMBER}`);
+    } catch (error) {
+      console.error(`ERROR: Failed to post comment to PR #${PR_NUMBER}`);
+      console.error(error.message);
+      process.exit(1);
+    }
+  }
+}
+
+console.log('------------------------------------------------------------');
+console.log(' Workflow Failure Notifier Complete');
+console.log(` DRY_RUN: ${DRY_RUN}`);
+console.log('------------------------------------------------------------');
