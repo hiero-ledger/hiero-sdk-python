@@ -37,6 +37,6 @@ jobs:
             - name: Check Schedule and Notify
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  DRY_RUN: "false" # will post when workflow is triggered by cron
+                  DRY_RUN: ${{ inputs.dry-run }}
               run: |
                   bash .github/scripts/bot-community-calls.sh
