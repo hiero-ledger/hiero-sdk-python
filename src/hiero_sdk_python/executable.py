@@ -135,7 +135,7 @@ class _Executable(ABC):
         if not math.isfinite(grpc_deadline) or grpc_deadline <= 0:
             raise ValueError("grpc_deadline must be a finite value greater than 0")
         
-        if grpc_deadline > self._request_timeout:
+        if self._request_timeout is not None and grpc_deadline > self._request_timeout:
             warnings.warn(
                 "grpc_deadline should be smaller than request_timeout" 
                 "This configuration may cause operations to fail unexpectedly", 
@@ -162,7 +162,7 @@ class _Executable(ABC):
         if not math.isfinite(request_timeout) or request_timeout <= 0:
             raise ValueError("request_timeout must be a finite value greater than 0")
         
-        if request_timeout < self._grpc_deadline:
+        if self._grpc_deadline is not None and request_timeout < self._grpc_deadline:
             warnings.warn(
                 "request_timeout should be larger than grpc_deadline," 
                 "This configuration may cause operations to fail unexpectedly", 
