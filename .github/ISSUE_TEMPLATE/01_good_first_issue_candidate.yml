@@ -431,9 +431,13 @@ body:
         - [Linking Issues Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how_to_link_issues.md)
         - [Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/workflow.md)
 
+<<<<<<< HEAD
         - [Pin Github Actions Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how-to-pin-github-actions.md)
         - [Running Examples](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/examples.md)
         - [Testing on Forks](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/testing_forks.md)
+=======
+        We also invite you to attend each Wednesday, 2pm UTC our [Python SDK Office Hour](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) and [Community Calls] (https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581). The Python SDK Office hour is for hands-on-help and the Community Call for general community discussion.
+>>>>>>> 303bec1 (chore: update office hours and community call links)
 
         - [General Training](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training)
         - [General SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers)

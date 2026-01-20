@@ -78,7 +78,7 @@ module.exports = async ({github, context}) => {
   const owner = context.repo.owner;
   const repo = context.repo.repo;
   const discordLink = `[Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)`;
-  const office_hours_calendar =`[Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)`; 
+  const office_hours_calendar =`[Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)`; 
   // Unique marker so we can find the bot's own comment later.
   const marker = '<!-- pr-inactivity-bot-marker -->';
 
