@@ -22,15 +22,14 @@ function sanitize(str) {
 }
 
 /**
- * Execute a command with arguments safely using spawnSync
- * @param {string} command - Command to execute
- * @param {string[]} args - Arguments array
+ * Execute gh CLI command safely
+ * @param {string[]} args - Arguments array for gh command
  * @param {boolean} silent - Whether to suppress output
  * @returns {string} - Command output
  */
-function execCommand(command, args = [], silent = false) {
+function ghCommand(args = [], silent = false) {
   try {
-    const result = spawnSync(command, args, {
+    const result = spawnSync('gh', args, {
       encoding: 'utf8',
       stdio: silent ? 'pipe' : ['pipe', 'pipe', 'pipe'],
       shell: false
@@ -54,18 +53,52 @@ function execCommand(command, args = [], silent = false) {
 }
 
 /**
- * Check if a command exists
- * @param {string} command - Command to check
+ * Check if gh CLI exists
  * @returns {boolean}
  */
-function commandExists(command) {
+function ghExists() {
   try {
     if (process.platform === 'win32') {
-      execCommand('where', [command], true);
+      const result = spawnSync('where', ['gh'], {
+        encoding: 'utf8',
+        stdio: 'pipe',
+        shell: false
+      });
+      return result.status === 0;
     } else {
-      execCommand('sh', ['-c', `command -v ${command}`], true);
+      const result = spawnSync('which', ['gh'], {
+        encoding: 'utf8',
+        stdio: 'pipe',
+        shell: false
+      });
+      return result.status === 0;
     }
-    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check if jq exists
+ * @returns {boolean}
+ */
+function jqExists() {
+  try {
+    if (process.platform === 'win32') {
+      const result = spawnSync('where', ['jq'], {
+        encoding: 'utf8',
+        stdio: 'pipe',
+        shell: false
+      });
+      return result.status === 0;
+    } else {
+      const result = spawnSync('which', ['jq'], {
+        encoding: 'utf8',
+        stdio: 'pipe',
+        shell: false
+      });
+      return result.status === 0;
+    }
   } catch {
     return false;
   }
@@ -158,18 +191,18 @@ console.log(` DRY_RUN:             ${DRY_RUN}`);
 console.log('------------------------------------------------------------');
 
 // Quick gh availability/auth checks
-if (!commandExists('gh')) {
+if (!ghExists()) {
   console.error('ERROR: gh CLI not found. Install it and ensure it\'s on PATH.');
   process.exit(1);
 }
 
-if (!commandExists('jq')) {
+if (!jqExists()) {
   console.error('ERROR: jq not found. Install it and ensure it\'s on PATH.');
   process.exit(1);
 }
 
 try {
-  execCommand('gh', ['auth', 'status'], true);
+  ghCommand(['auth', 'status'], true);
 } catch {
   if (DRY_RUN === 0) {
     console.error('ERROR: gh authentication required for non-dry-run mode.');
@@ -190,7 +223,7 @@ if (PR_NUMBER) {
 
   let HEAD_BRANCH = '';
   try {
-    HEAD_BRANCH = execCommand('gh', ['run', 'view', FAILED_RUN_ID, '--repo', REPO, '--json', 'headBranch', '--jq', '.headBranch'], true);
+    HEAD_BRANCH = ghCommand(['run', 'view', FAILED_RUN_ID, '--repo', REPO, '--json', 'headBranch', '--jq', '.headBranch'], true);
   } catch {
     HEAD_BRANCH = '';
   }
@@ -209,7 +242,7 @@ if (PR_NUMBER) {
 
   // Find PR number for this branch (only open PRs)
   try {
-    PR_NUMBER = execCommand('gh', ['pr', 'list', '--repo', REPO, '--head', HEAD_BRANCH, '--json', 'number', '--jq', '.[0].number'], true);
+    PR_NUMBER = ghCommand(['pr', 'list', '--repo', REPO, '--head', HEAD_BRANCH, '--json', 'number', '--jq', '.[0].number'], true);
   } catch {
     PR_NUMBER = '';
   }
@@ -252,7 +285,7 @@ const MAX_PAGES = 10;  // Safety bound
 while (PAGE <= MAX_PAGES) {
   let COMMENTS_PAGE = '';
   try {
-    COMMENTS_PAGE = execCommand('gh', ['api', '--header', 'Accept: application/vnd.github.v3+json', `/repos/${REPO}/issues/${PR_NUMBER}/comments?per_page=100&page=${PAGE}`], true);
+    COMMENTS_PAGE = ghCommand(['api', '--header', 'Accept: application/vnd.github.v3+json', `/repos/${REPO}/issues/${PR_NUMBER}/comments?per_page=100&page=${PAGE}`], true);
   } catch {
     COMMENTS_PAGE = '[]';
   }
@@ -306,7 +339,7 @@ if (DRY_RUN === 1) {
     console.log(`Posting new comment to PR #${PR_NUMBER}...`);
     
     try {
-      execCommand('gh', ['pr', 'comment', PR_NUMBER, '--repo', REPO, '--body', COMMENT]);
+      ghCommand(['pr', 'comment', PR_NUMBER, '--repo', REPO, '--body', COMMENT]);
       console.log(`Successfully posted comment to PR #${PR_NUMBER}`);
     } catch (error) {
       console.error(`ERROR: Failed to post comment to PR #${PR_NUMBER}`);
