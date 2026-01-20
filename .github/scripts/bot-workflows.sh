@@ -12,6 +12,7 @@ FAILED_RUN_ID="${FAILED_RUN_ID:-}"
 GH_TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
 REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
 DRY_RUN="${DRY_RUN:-1}"
+PR_NUMBER="${PR_NUMBER:-}"
 
 export GH_TOKEN
 
@@ -97,33 +98,40 @@ if ! gh auth status >/dev/null 2>&1; then
   fi
 fi
 
-# PR lookup logic - use branch-based approach (pullRequests API not available)
+# PR lookup logic - use PR_NUMBER from workflow_run payload if available, otherwise fallback to branch-based approach
 echo "Looking up PR for failed workflow run..."
 
-HEAD_BRANCH=$(gh run view "$FAILED_RUN_ID" --repo "$REPO" --json headBranch --jq '.headBranch' 2>/dev/null || echo "")
+# Use PR_NUMBER from workflow_run payload if provided (optimized path)
+if [[ -n "$PR_NUMBER" ]]; then
+  echo "Using PR number from workflow_run payload: $PR_NUMBER"
+else
+  echo "PR_NUMBER not provided, falling back to branch-based lookup..."
 
-if [[ -z "$HEAD_BRANCH" ]]; then
-  if (( DRY_RUN == 1 )); then
-    echo "WARN: Could not retrieve head branch in dry-run mode (run ID may be invalid). Exiting gracefully."
-    exit 0
-  else
-    echo "ERROR: Could not retrieve head branch from workflow run $FAILED_RUN_ID"
-    exit 1
+  HEAD_BRANCH=$(gh run view "$FAILED_RUN_ID" --repo "$REPO" --json headBranch --jq '.headBranch' 2>/dev/null || echo "")
+
+  if [[ -z "$HEAD_BRANCH" ]]; then
+    if (( DRY_RUN == 1 )); then
+      echo "WARN: Could not retrieve head branch in dry-run mode (run ID may be invalid). Exiting gracefully."
+      exit 0
+    else
+      echo "ERROR: Could not retrieve head branch from workflow run $FAILED_RUN_ID"
+      exit 1
+    fi
   fi
-fi
 
-echo "Found head branch: $HEAD_BRANCH"
+  echo "Found head branch: $HEAD_BRANCH"
 
-# Find the PR number for this branch (only open PRs)
-PR_NUMBER=$(gh pr list --repo "$REPO" --head "$HEAD_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+  # Find PR number for this branch (only open PRs)
+  PR_NUMBER=$(gh pr list --repo "$REPO" --head "$HEAD_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
 
-if [[ -z "$PR_NUMBER" ]]; then
-  if (( DRY_RUN == 1 )); then
-    echo "No PR associated with workflow run $FAILED_RUN_ID, but DRY_RUN=1 - exiting successfully."
-    exit 0
-  else
-    echo "INFO: No open PR found for branch '$HEAD_BRANCH' (workflow run $FAILED_RUN_ID). Nothing to notify."
-    exit 0
+  if [[ -z "$PR_NUMBER" ]]; then
+    if (( DRY_RUN == 1 )); then
+      echo "No PR associated with workflow run $FAILED_RUN_ID, but DRY_RUN=1 - exiting successfully."
+      exit 0
+    else
+      echo "INFO: No open PR found for branch '$HEAD_BRANCH' (workflow run $FAILED_RUN_ID). Nothing to notify."
+      exit 0
+    fi
   fi
 fi
 
