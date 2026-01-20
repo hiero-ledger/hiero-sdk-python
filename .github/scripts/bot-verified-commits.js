@@ -8,6 +8,15 @@ function sanitizeString(input) {
   return input.replace(/\p{Cc}/gu, '').trim();
 }
 
+// Escapes markdown special characters and breaks @mentions to prevent injection
+// Required per CodeRabbit review: commit messages are user-controlled and can cause
+// markdown injection or unwanted @mentions that spam teams
+function sanitizeMarkdown(input) {
+  return sanitizeString(input)
+    .replace(/[`*_~[\]()]/g, '\\$&')  // Escape markdown special chars
+    .replace(/@/g, '@\u200b');         // Break @mentions with zero-width space
+}
+
 // Validates URL format and returns fallback if invalid
 function sanitizeUrl(input, fallback) {
   const cleaned = sanitizeString(input);
@@ -156,7 +165,7 @@ function buildVerificationComment(
   const commitList = unverifiedCommits.length
     ? unverifiedCommits.slice(0, maxDisplay).map(c => {
         const sha = c.sha?.substring(0, 7) || 'unknown';
-        const msg = sanitizeString(c.commit?.message?.split('\n')[0] || 'No message').substring(0, 50);
+        const msg = sanitizeMarkdown(c.commit?.message?.split('\n')[0] || 'No message').substring(0, 50);
         return `- \`${sha}\` ${msg}`;
       }).join('\n')
     : (truncated ? '- Unable to enumerate commits due to pagination limit.' : '');
