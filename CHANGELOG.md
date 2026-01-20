@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -10,7 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 
 ### Added
-
+- Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
 - Added advanced CodeRabbit reviewer guidance for `tokens` module changes, with specialized validation rules for token transactions, token classes, and enums. (#1496)
 - Advanced-check bot unassigns users from issues if they do not meet the requirements and provides an explanatory message. (#1477)
 - Auto-assignment bot for beginner-labeled issues with `/assign` command support and helpful reminders. (#1368)
@@ -100,6 +100,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `Client.from_env()` and network-specific factory methods (e.g., `Client.for_testnet()`) to simplify client initialization and reduce boilerplate. [[#1251](https://github.com/hiero-ledger/hiero-sdk-python/issues/1251)]
 - Improved unit test coverage for `TransactionId` class, covering parsing logic, hashing, and scheduled transactions.
 - Add contract_id support for CryptoGetAccountBalanceQuery([#1293](https://github.com/hiero-ledger/hiero-sdk-python/issues/1293))
+- Support for setting `max_query_payment`, `Query.set_max_query_payment()` allows setting a per-query maximum Hbar payment and `Client.set_default_max_query_payment()` sets a client-wide default maximum payment.
 - Chained Good First Issue assignment with mentor assignment to bypass GitHub's anti-recursion protection - mentor assignment now occurs immediately after successful user assignment in the same workflow execution. (#1369)
 - Add GitHub Actions script and workflow for automatic spam list updates.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
@@ -107,8 +108,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add StakingInfo class ([1364](https://github.com/hiero-ledger/hiero-sdk-python/issues/1364))
 
 ### Changed
+
+- Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
+
+- Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
+- Make the required signed commit command explicit in all issue templates to reduce PR signing errors for contributors (#1489)
 - Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
 - Enable CodeRabbit walkthrough mode by default to improve PR review visibility (#1439)
 - Move assignment guards to be directly inside the gfi and beginner auto assign
@@ -181,6 +187,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
 
 ### Fixed
+- Updated LinkBot regex in the GitHub Actions bot script to support "Closes" and "Resolves" keywords for improved PR body-link detection (#1465)
 - Fixed CodeRabbit plan trigger workflow running multiple times when issues are created with multiple labels by switching to labeled event trigger only. (#1427)
 - Prevent LinkBot from posting duplicate “missing linked issue” comments on pull requests. (#1475)
 - Refined intermediate assignment guard to validate Beginner issue completion with improved logging and GraphQL-based counting. (#1424)

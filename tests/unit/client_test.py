@@ -1,7 +1,8 @@
 """
-Unit tests for Client factory methods (from_env, for_testnet, for_mainnet, for_previewnet).
+Unit tests for Client methods (eg. from_env, for_testnet, for_mainnet, for_previewnet).
 """
 
+from decimal import Decimal
 import os
 import pytest
 from unittest.mock import patch
@@ -13,6 +14,7 @@ from hiero_sdk_python import (
     AccountId, 
     PrivateKey 
 )
+from hiero_sdk_python.hbar import Hbar
 
 @pytest.mark.parametrize(
     "factory_method, expected_network",
@@ -185,3 +187,57 @@ def test_from_env_with_malformed_operator_key():
         with patch.dict(os.environ, env_vars, clear=True):
             with pytest.raises(ValueError):
                 Client.from_env()
+
+@pytest.mark.parametrize(
+    'valid_amount,expected',
+    [
+        (1, Hbar(1)),
+        (0.1, Hbar(0.1)),
+        (Decimal('0.1'), Hbar(Decimal('0.1'))),
+        (Hbar(1), Hbar(1)),
+        (Hbar(0), Hbar(0))
+    ]  
+)
+def test_set_default_max_query_payment_valid_param(valid_amount, expected):
+    """Test that set_default_max_query_payment correctly converts various input types to Hbar."""
+    client = Client.for_testnet()
+    # by default is 1 hbar before setting it
+    assert client.default_max_query_payment == Hbar(1)
+    client.set_default_max_query_payment(valid_amount)
+    assert client.default_max_query_payment == expected
+
+@pytest.mark.parametrize(
+    'negative_amount',
+    [-1, -0.1, Decimal('-0.1'), Decimal('-1'), Hbar(-1)]
+)
+def test_set_default_max_query_payment_negative_value(negative_amount):
+    """Test set_default_max_query_payment for negative amount values."""
+    client = Client.for_testnet()
+
+    with pytest.raises(ValueError, match="max_query_payment must be non-negative"):
+        client.set_default_max_query_payment(negative_amount)
+
+@pytest.mark.parametrize(
+    'invalid_amount',
+    ['1', 'abc', True, False, None, object()]  
+)
+def test_set_default_max_query_payment_invalid_param(invalid_amount):
+    """Test that set_default_max_query_payment raise error for invalid param."""
+    client = Client.for_testnet()
+
+    with pytest.raises(TypeError, match=(
+        "max_query_payment must be int, float, Decimal, or Hbar, "
+        f"got {type(invalid_amount).__name__}"
+    )):
+        client.set_default_max_query_payment(invalid_amount)
+
+@pytest.mark.parametrize(
+    'invalid_amount',
+    [float('inf'), float('nan')]  
+)
+def test_set_default_max_query_payment_non_finite_value(invalid_amount):
+    """Test that set_default_max_query_payment raise error for non finite value."""
+    client = Client.for_testnet()
+
+    with pytest.raises(ValueError, match="Hbar amount must be finite"):
+        client.set_default_max_query_payment(invalid_amount)
