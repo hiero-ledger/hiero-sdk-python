@@ -13,9 +13,10 @@ function sanitizeString(input) {
 // markdown injection or unwanted @mentions that spam teams
 function sanitizeMarkdown(input) {
   return sanitizeString(input)
-    .replace(/[`*_~[\]()]/g, '\\$&')  // Escape markdown special chars
-    .replace(/@/g, '@\u200b');         // Break @mentions with zero-width space
+    .replace(/[\x60*_~[\]()]/g, '\\$&')  // Escape markdown special chars (backtick via hex)
+    .replace(/@/g, '@\u200b');           // Break @mentions with zero-width space
 }
+
 
 // Validates URL format and returns fallback if invalid
 function sanitizeUrl(input, fallback) {
