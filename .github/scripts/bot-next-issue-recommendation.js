@@ -1,27 +1,12 @@
 module.exports = async ({ github, context, core }) => {
   const { payload } = context;
-  const isDryRun = payload.inputs?.dry_run === 'true' || false;
   
-  // Get PR information - handle both automatic and manual triggers
+  // Get PR information from automatic pull_request_target trigger
   let prNumber = payload.pull_request?.number;
   let prBody = payload.pull_request?.body || '';
   
-  // For manual workflow_dispatch, use provided pr_number and fetch PR data
-  if (context.eventName === 'workflow_dispatch' && payload.inputs?.pr_number) {
-    prNumber = parseInt(payload.inputs.pr_number);
-    try {
-      const { data: pr } = await github.rest.pulls.get({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        pull_number: prNumber,
-      });
-      prBody = pr.body || '';
-      core.info(`Fetched PR #${prNumber} data for manual testing`);
-    } catch (error) {
-      core.setFailed(`Failed to fetch PR #${prNumber}: ${error.message}`);
-      return;
-    }
-  }
+  // Manual workflow_dispatch is no longer supported - inputs were removed
+  // Only automatic triggers from merged PRs will work
   const repoOwner = context.repo.owner;
   const repoName = context.repo.repo;
   
@@ -30,7 +15,7 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
   
-  core.info(`Processing PR #${prNumber} (dry_run: ${isDryRun})`);
+  core.info(`Processing PR #${prNumber}`);
   
   // Parse PR body to find linked issues
   const MAX_PR_BODY_LENGTH = 50000; // Reasonable limit for PR body
@@ -100,7 +85,7 @@ module.exports = async ({ github, context, core }) => {
     }
     
     // Generate and post comment
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, isDryRun, difficultyLevels.goodFirstIssue);
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, difficultyLevels.goodFirstIssue);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
@@ -125,7 +110,7 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, isDryRun, wasGoodFirstIssue) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, wasGoodFirstIssue) {
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
@@ -185,12 +170,6 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     }
   } catch (error) {
     core.warning(`Error checking existing comments: ${error.message}`);
-  }
-  
-  if (isDryRun) {
-    core.info('DRY RUN - Would post the following comment:');
-    core.info(comment);
-    return;
   }
   
   // Post the comment

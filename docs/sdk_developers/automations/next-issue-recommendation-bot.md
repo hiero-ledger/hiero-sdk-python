@@ -9,7 +9,6 @@ The Next Issue Recommendation Bot is an automated GitHub Actions workflow design
 The bot triggers under the following conditions:
 
 1. **Automatic Trigger**: When a pull request is merged (`pull_request_target` event with `closed` type)
-2. **Manual Trigger**: Via `workflow_dispatch` with optional `dry_run` parameter for testing
 
 The workflow only runs when:
 - The pull request has been merged (`github.event.pull_request.merged == true`)
@@ -101,7 +100,6 @@ The bot includes duplicate prevention by:
 - Uses pinned action versions per project conventions
 - Minimal permissions (`pull-requests: write`, `issues: read`, `contents: read`)
 - Concurrency control to prevent duplicate runs
-- Support for manual triggering with dry-run mode
 
 ### Script File
 
@@ -112,28 +110,15 @@ The bot includes duplicate prevention by:
 - Regex parsing for linked issue detection
 - Search queries with label filtering
 - Error handling and logging
-- Dry-run mode support for testing
 
 ## Testing
 
-The bot supports testing through:
+The bot can be tested through:
 
-1. **Manual workflow dispatch**: Use the Actions tab to trigger the workflow with `dry_run: true`
+1. **Fork testing**: Test workflow behavior in forks before production deployment
 2. **GitHub CLI testing**: Local testing with appropriate environment variables
 
-**Example using GitHub CLI**:
-
-```bash
-# Test in dry-run mode with specific PR number
-gh workflow run bot-next-issue-recommendation.yml -f dry_run=true -f pr_number=123
-
-# Check the run status
-gh run list --workflow=bot-next-issue-recommendation.yml
-```
-
-**Note**: Manual testing requires providing a `pr_number` input since the workflow needs to know which PR to analyze. The PR number should correspond to a merged PR that is linked to a "Good First Issue" or "beginner" issue.
-
-3. **Fork testing**: Test workflow behavior in forks before production deployment
+**Note**: The workflow only triggers automatically when PRs are merged. Manual testing requires creating test PRs and merging them in a test environment.
 
 ## Permissions
 

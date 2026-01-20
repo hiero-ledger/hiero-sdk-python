@@ -3,7 +3,6 @@ name: Next Issue Recommendation Bot
 on:
   pull_request_target:
     types: [closed]
-  workflow_dispatch:
 
 permissions:
   pull-requests: write
@@ -17,7 +16,7 @@ concurrency:
 jobs:
   recommend-next-issue:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     
     steps:
       - name: Harden the runner (Audit all outbound calls)
