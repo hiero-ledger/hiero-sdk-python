@@ -1,6 +1,7 @@
 """Tests for the StakingInfo class."""
 
 import pytest
+from dataclasses import FrozenInstanceError
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (
@@ -66,6 +67,12 @@ def test_default_initialization():
     assert staking_info.staked_to_me is None
     assert staking_info.staked_account_id is None
     assert staking_info.staked_node_id is None
+
+
+def test_frozen_istance_is_immutable():
+    staking_info = StakingInfo()
+    with pytest.raises(FrozenInstanceError):
+        staking_info.decline_reward = True
 
 
 def test_initialization_with_account(staking_info_with_account):
