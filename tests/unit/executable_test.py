@@ -558,3 +558,334 @@ def test_query_retry_on_busy():
         # Verify we switched to the second node
         assert query._node_account_ids_index == 1
         assert query.node_account_ids[query._node_account_ids_index] == AccountId(0, 0, 4), "Client should have switched to the second node"
+
+# Set max_attempts
+def test_set_max_attempts_with_valid_param():
+    """Test that set_max_attempts for the transaction and query."""
+    # Transaction
+    transaction = AccountCreateTransaction()
+    
+    assert transaction._max_attempts == None
+    transaction.set_max_attempts(10)
+    assert transaction._max_attempts == 10
+
+    # Query
+    query = CryptoGetAccountBalanceQuery()
+
+    assert query._max_attempts == None
+    query.set_max_attempts(10)
+    assert query._max_attempts == 10
+
+@pytest.mark.parametrize(
+    "invalid_max_attempts",
+    ["1", 0.2, True, False, object(), {}]
+)
+def test_set_max_attempts_with_invalid_type(invalid_max_attempts):
+    """Test that set_max_attempts raises TypeError for non-int values."""
+    with pytest.raises(
+        TypeError,
+        match=f"max_attempts must be of type int, got {type(invalid_max_attempts).__name__}",
+    ):
+        transaction = AccountCreateTransaction()
+        transaction.set_max_attempts(invalid_max_attempts)
+    
+    with pytest.raises(
+        TypeError,
+        match=f"max_attempts must be of type int, got {type(invalid_max_attempts).__name__}",
+    ):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_max_attempts(invalid_max_attempts)
+
+@pytest.mark.parametrize(
+    "invalid_max_attempts",
+    [0, -10]
+)
+def test_set_max_attempts_with_invalid_value(invalid_max_attempts):
+    """Test that set_max_attempts raises ValueError for non-positive values."""
+    with pytest.raises(ValueError, match="max_attempts must be greater than 0"):
+        transaction = AccountCreateTransaction()
+        transaction.set_max_attempts(invalid_max_attempts)
+    
+    with pytest.raises(ValueError, match="max_attempts must be greater than 0"):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_max_attempts(invalid_max_attempts)
+
+# Set grpc_deadline
+def test_set_grpc_deadline_with_valid_param():
+    """Test that set_grpc_deadline updates default value of _grpc_deadline."""
+    # Transaction
+    transaction = AccountCreateTransaction()
+    assert transaction._grpc_deadline == None
+
+    returned = transaction.set_grpc_deadline(20)
+    assert transaction._grpc_deadline == 20
+    assert returned is transaction
+
+    # Query
+    query = CryptoGetAccountBalanceQuery()
+    assert query._grpc_deadline == None
+
+    returned = query.set_grpc_deadline(20)
+    assert query._grpc_deadline == 20
+    assert returned is query
+
+@pytest.mark.parametrize(
+    "invalid_grpc_deadline",
+    ["1", True, False, object(), {}]
+)
+def test_set_grpc_deadline_with_invalid_type(invalid_grpc_deadline):
+    """Test that set_grpc_deadline raises TypeError for invalid types."""
+    with pytest.raises(
+        TypeError,
+        match=f"grpc_deadline must be of type Union\\[int, float\\], got {type(invalid_grpc_deadline).__name__}",
+    ):
+        # Transaction
+        transaction = AccountCreateTransaction()
+        transaction.set_grpc_deadline(invalid_grpc_deadline)
+    
+    with pytest.raises(
+        TypeError,
+        match=f"grpc_deadline must be of type Union\\[int, float\\], got {type(invalid_grpc_deadline).__name__}",
+    ):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_grpc_deadline(invalid_grpc_deadline)
+        
+
+@pytest.mark.parametrize(
+    "invalid_grpc_deadline",
+    [0, -10, 0.0, -2.3, float('inf'), float('nan')]
+)
+def test_set_grpc_deadline_with_invalid_value(invalid_grpc_deadline):
+    """Test that set_grpc_deadline raises ValueError for non-positive values."""
+    with pytest.raises(ValueError, match="grpc_deadline must be a finite value greater than 0"):
+        # Transaction
+        transaction = AccountCreateTransaction()
+        transaction.set_grpc_deadline(invalid_grpc_deadline)
+    
+    with pytest.raises(ValueError, match="grpc_deadline must be a finite value greater than 0"):
+        # Query
+        query = CryptoGetAccountBalanceQuery()
+        query.set_grpc_deadline(invalid_grpc_deadline)
+
+# Set request_timeout
+def test_set_request_timeout_with_valid_param():
+    """Test that set_request_timeout updates default value of _request_timeout."""
+    # Transaction
+    transaction = AccountCreateTransaction()
+    assert transaction._request_timeout == None
+
+    returned = transaction.set_request_timeout(200)
+    assert transaction._request_timeout == 200
+    assert returned is transaction
+
+    # Query
+    query = CryptoGetAccountBalanceQuery()
+    assert query._request_timeout == None
+
+    returned = query.set_request_timeout(200)
+    assert query._request_timeout == 200
+    assert returned is query
+
+
+@pytest.mark.parametrize(
+    "invalid_request_timeout",
+    ["1", True, False, object(), {}]
+)
+def test_set_request_timeout_with_invalid_type(invalid_request_timeout):
+    """Test that set_request_timeout raises TypeError for invalid types."""
+    with pytest.raises(
+        TypeError,
+        match=f"request_timeout must be of type Union\\[int, float\\], got {type(invalid_request_timeout).__name__}",
+    ):
+        # Transaction
+        transaction = AccountCreateTransaction()
+        transaction.set_request_timeout(invalid_request_timeout)
+    
+    with pytest.raises(
+        TypeError,
+        match=f"request_timeout must be of type Union\\[int, float\\], got {type(invalid_request_timeout).__name__}",
+    ):
+        # Query
+        query = CryptoGetAccountBalanceQuery()
+        query.set_request_timeout(invalid_request_timeout)
+
+@pytest.mark.parametrize(
+    "invalid_request_timeout",
+    [0, -10, 0.0, -2.3, float('inf'), float('nan')]
+)
+def test_set_request_timeout_with_invalid_value(invalid_request_timeout):
+    """Test that set_request_timeout raises ValueError for non-positive values."""
+    with pytest.raises(ValueError, match="request_timeout must be a finite value greater than 0"):
+        transaction = AccountCreateTransaction()
+        transaction.set_request_timeout(invalid_request_timeout)
+    
+    with pytest.raises(ValueError, match="request_timeout must be a finite value greater than 0"):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_request_timeout(invalid_request_timeout)
+
+# Set min_backoff
+def test_set_min_backoff_with_valid_param():
+    """Test that set_min_backoff updates default value of _min_backoff."""
+    # Transaction
+    transaction = AccountCreateTransaction()
+    assert transaction._min_backoff == None
+
+    returned = transaction.set_min_backoff(2)
+    assert transaction._min_backoff == 2
+    assert returned is transaction
+
+    # Query
+    query = CryptoGetAccountBalanceQuery()
+    assert query._min_backoff == None
+
+    returned = query.set_min_backoff(2)
+    assert query._min_backoff == 2
+    assert returned is query
+
+@pytest.mark.parametrize(
+    "invalid_min_backoff",
+    ["1", True, False, object(), {}]
+)
+def test_set_min_backoff_with_invalid_type(invalid_min_backoff):
+    """Test that set_min_backoff raises TypeError for invalid types."""
+    with pytest.raises(
+        TypeError,
+        match=f"min_backoff must be of type int or float, got {type(invalid_min_backoff).__name__}",
+    ):
+        # Transaction
+        transaction = AccountCreateTransaction()
+        transaction.set_min_backoff(invalid_min_backoff)
+    
+    with pytest.raises(
+        TypeError,
+        match=f"min_backoff must be of type int or float, got {type(invalid_min_backoff).__name__}",
+    ):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_min_backoff(invalid_min_backoff)
+
+
+@pytest.mark.parametrize(
+    "invalid_min_backoff",
+    [-1, -10, float("inf"), float("-inf"), float("nan")]
+)
+def test_set_min_backoff_with_invalid_value(invalid_min_backoff):
+    """Test that set_min_backoff raises ValueError for invalid values."""
+    with pytest.raises(ValueError, match="min_backoff must be a finite value >= 0"):
+        transaction = AccountCreateTransaction()
+        transaction.set_min_backoff(invalid_min_backoff)
+
+    with pytest.raises(ValueError, match="min_backoff must be a finite value >= 0"):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_min_backoff(invalid_min_backoff)
+
+def test_set_min_backoff_exceeds_max_backoff():
+    """Test that set_min_backoff raises ValueError if it exceeds max_backoff."""
+    with pytest.raises(ValueError, match="min_backoff cannot exceed max_backoff"):
+        transaction = AccountCreateTransaction()
+        transaction.set_max_backoff(5)
+
+        transaction.set_min_backoff(10)
+
+    with pytest.raises(ValueError, match="min_backoff cannot exceed max_backoff"):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_max_backoff(5)
+
+        query.set_min_backoff(10)
+
+# Set max_backoff
+def test_set_max_backoff_with_valid_param():
+    """Test that set_max_backoff updates default value of _max_backoff."""
+    # Transaction
+    transaction = AccountCreateTransaction()
+    assert transaction._max_backoff == None
+
+    returned = transaction.set_max_backoff(2)
+    assert transaction._max_backoff == 2
+    assert returned is transaction
+
+    # Query
+    query = CryptoGetAccountBalanceQuery()
+    assert query._max_backoff == None
+
+    returned = query.set_max_backoff(2)
+    assert query._max_backoff == 2
+    assert returned is query
+
+@pytest.mark.parametrize(
+    "invalid_max_backoff",
+    ["1", True, False, object(), {}]
+)
+def test_set_max_backoff_with_invalid_type(invalid_max_backoff):
+    """Test that set_max_backoff raises TypeError for invalid types."""
+    with pytest.raises(
+        TypeError,
+        match=f"max_backoff must be of type int or float, got {type(invalid_max_backoff).__name__}",
+    ):
+        transaction = AccountCreateTransaction()
+        transaction.set_max_backoff(invalid_max_backoff)
+    
+    with pytest.raises(
+        TypeError,
+        match=f"max_backoff must be of type int or float, got {type(invalid_max_backoff).__name__}",
+    ):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_max_backoff(invalid_max_backoff)
+
+
+@pytest.mark.parametrize(
+    "invalid_max_backoff",
+    [-1, -10, float("inf"), float("-inf"), float("nan")]
+)
+def test_set_max_backoff_with_invalid_value(invalid_max_backoff):
+    """Test that set_max_backoff raises ValueError for invalid values."""
+    with pytest.raises(ValueError, match="max_backoff must be a finite value >= 0"):
+        transaction = AccountCreateTransaction()
+        transaction.set_max_backoff(invalid_max_backoff)
+    
+    with pytest.raises(ValueError, match="max_backoff must be a finite value >= 0"):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_max_backoff(invalid_max_backoff)
+
+def test_set_max_backoff_less_than_min_backoff():
+    """Test that set_max_backoff raises ValueError if it is less than min_backoff."""
+    with pytest.raises(ValueError, match="max_backoff cannot be less than min_backoff"):
+        transaction = AccountCreateTransaction()
+        transaction.set_min_backoff(5)
+
+        transaction.set_max_backoff(2)
+    
+    with pytest.raises(ValueError, match="max_backoff cannot be less than min_backoff"):
+        query = CryptoGetAccountBalanceQuery()
+        query.set_min_backoff(5)
+
+        query.set_max_backoff(2)
+
+def test_execution_config_inherits_from_client():
+    """Test that resolve_execution_config inherits config from client if not set."""
+    with mock_hedera_servers([[]]) as client:
+        client.max_attempts = 7
+        client._min_backoff = 1
+        client._max_backoff = 8
+        client._grpc_deadline = 9
+        client._request_timeout = 20
+
+        tx = AccountCreateTransaction()
+
+        tx._resolve_execution_config(client)
+
+        assert tx._max_attempts == 7
+        assert tx._min_backoff == 1
+        assert tx._max_backoff == 8
+        assert tx._grpc_deadline == 9
+        assert tx._request_timeout == 20
+
+def test_executable_overrides_client_config():
+    """Test the set value override the set config property."""
+    with mock_hedera_servers([[]]) as client:
+        client.max_attempts = 10
+
+        tx = AccountCreateTransaction().set_max_attempts(3)
+
+        tx._resolve_execution_config(client)
+
+        assert tx._max_attempts == 3
