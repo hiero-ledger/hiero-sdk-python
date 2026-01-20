@@ -7,22 +7,44 @@
  *   DRY_RUN = 0 -> real actions (post PR comments)
  */
 
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 const process = require('process');
 
 /**
- * Execute a shell command and return the output
+ * Sanitize a string to prevent command injection
+ * @param {string} str - String to sanitize
+ * @returns {string} - Sanitized string
+ */
+function sanitize(str) {
+  // Remove or escape potentially dangerous characters
+  // Allow alphanumeric, hyphens, underscores, slashes, and dots
+  return String(str).replace(/[^a-zA-Z0-9\-_/.]/g, '_');
+}
+
+/**
+ * Execute a command with arguments safely using spawnSync
  * @param {string} command - Command to execute
+ * @param {string[]} args - Arguments array
  * @param {boolean} silent - Whether to suppress output
  * @returns {string} - Command output
  */
-function exec(command, silent = false) {
+function execCommand(command, args = [], silent = false) {
   try {
-    const output = execSync(command, {
+    const result = spawnSync(command, args, {
       encoding: 'utf8',
-      stdio: silent ? 'pipe' : ['pipe', 'pipe', 'pipe']
+      stdio: silent ? 'pipe' : ['pipe', 'pipe', 'pipe'],
+      shell: false
     });
-    return output.trim();
+    
+    if (result.error) {
+      throw result.error;
+    }
+    
+    if (result.status !== 0 && !silent) {
+      throw new Error(`Command failed with exit code ${result.status}`);
+    }
+    
+    return (result.stdout || '').trim();
   } catch (error) {
     if (!silent) {
       throw error;
@@ -39,9 +61,9 @@ function exec(command, silent = false) {
 function commandExists(command) {
   try {
     if (process.platform === 'win32') {
-      exec(`where ${command}`, true);
+      execCommand('where', [command], true);
     } else {
-      exec(`command -v ${command}`, true);
+      execCommand('sh', ['-c', `command -v ${command}`], true);
     }
     return true;
   } catch {
@@ -147,7 +169,7 @@ if (!commandExists('jq')) {
 }
 
 try {
-  exec('gh auth status', true);
+  execCommand('gh', ['auth', 'status'], true);
 } catch {
   if (DRY_RUN === 0) {
     console.error('ERROR: gh authentication required for non-dry-run mode.');
@@ -168,7 +190,7 @@ if (PR_NUMBER) {
 
   let HEAD_BRANCH = '';
   try {
-    HEAD_BRANCH = exec(`gh run view "${FAILED_RUN_ID}" --repo "${REPO}" --json headBranch --jq '.headBranch'`, true);
+    HEAD_BRANCH = execCommand('gh', ['run', 'view', FAILED_RUN_ID, '--repo', REPO, '--json', 'headBranch', '--jq', '.headBranch'], true);
   } catch {
     HEAD_BRANCH = '';
   }
@@ -187,7 +209,7 @@ if (PR_NUMBER) {
 
   // Find PR number for this branch (only open PRs)
   try {
-    PR_NUMBER = exec(`gh pr list --repo "${REPO}" --head "${HEAD_BRANCH}" --json number --jq '.[0].number'`, true);
+    PR_NUMBER = execCommand('gh', ['pr', 'list', '--repo', REPO, '--head', HEAD_BRANCH, '--json', 'number', '--jq', '.[0].number'], true);
   } catch {
     PR_NUMBER = '';
   }
@@ -230,7 +252,7 @@ const MAX_PAGES = 10;  // Safety bound
 while (PAGE <= MAX_PAGES) {
   let COMMENTS_PAGE = '';
   try {
-    COMMENTS_PAGE = exec(`gh api --header 'Accept: application/vnd.github.v3+json' "/repos/${REPO}/issues/${PR_NUMBER}/comments?per_page=100&page=${PAGE}"`, true);
+    COMMENTS_PAGE = execCommand('gh', ['api', '--header', 'Accept: application/vnd.github.v3+json', `/repos/${REPO}/issues/${PR_NUMBER}/comments?per_page=100&page=${PAGE}`], true);
   } catch {
     COMMENTS_PAGE = '[]';
   }
@@ -283,11 +305,8 @@ if (DRY_RUN === 1) {
   } else {
     console.log(`Posting new comment to PR #${PR_NUMBER}...`);
     
-    // Escape the comment for shell execution
-    const escapedComment = COMMENT.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$').replace(/`/g, '\\`');
-    
     try {
-      exec(`gh pr comment "${PR_NUMBER}" --repo "${REPO}" --body "${escapedComment}"`);
+      execCommand('gh', ['pr', 'comment', PR_NUMBER, '--repo', REPO, '--body', COMMENT]);
       console.log(`Successfully posted comment to PR #${PR_NUMBER}`);
     } catch (error) {
       console.error(`ERROR: Failed to post comment to PR #${PR_NUMBER}`);
