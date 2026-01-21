@@ -261,7 +261,7 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
             owner: repo.owner.login,
             repo: repo.name,
             issue_number: issue.number,
-            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "beginner" issues [here](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee).`,
+            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "beginner" issues [here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3Abeginner+no%3Aassignee).`,
           });
         } catch (error) {
           console.error("[Beginner Bot] Failed to post already-assigned message:", {
