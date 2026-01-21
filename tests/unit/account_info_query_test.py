@@ -36,7 +36,7 @@ def test_execute_fails_with_missing_account_id(mock_client):
     query = AccountInfoQuery()
 
     with pytest.raises(
-        ValueError, match="Account ID must be set before making the request."
+        ValueError, match=r"Account ID must be set before making the request\."
     ):
         query.execute(mock_client)
 
