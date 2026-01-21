@@ -7,6 +7,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Changed
+<<<<<<< HEAD
+=======
+- Formatted `tests/unit/batch_transaction_test.py` using black. (#1520)
+>>>>>>> 8d8c27e (chore: format batch_transaction_test.py with black)
 
 ### Tests
 - Format account test files with Black (#1519)
