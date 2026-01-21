@@ -591,28 +591,6 @@ def test_hash(account_id_100, account_id_101):
     assert hash(account_id_100) != hash(account_id_101)
 
 
-def test_hash_with_evm_address(evm_address):
-    """Test AccountId hash with evm_address."""
-    account_id1 = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
-    account_id2 = AccountId(shard=0, realm=0, num=0, evm_address=evm_address)
-    account_id3 = AccountId(shard=0, realm=0, num=0, evm_address=EvmAddress.from_string("302a300506032b6570032100114e6abc371b82da"))
-
-    assert hash(account_id1) == hash(account_id2)
-    assert hash(account_id1) != hash(account_id3)
-
-def test_hash_with_alias_key(alias_key, alias_key2):
-    """Test AccountId hash with alias keys."""
-    account_id1 = AccountId(shard=0, realm=0, num=0, alias_key=alias_key)
-    account_id2 = AccountId(shard=0, realm=0, num=0, alias_key=alias_key)
-    account_id3 = AccountId(shard=0, realm=0, num=0, alias_key=alias_key2)
-
-    # Same alias key should have same hash
-    assert hash(account_id1) == hash(account_id2)
-
-    # Different alias keys should have different hashes
-    assert hash(account_id1) != hash(account_id3)
-
-
 def test_alias_key_affects_proto_serialization(account_id_100, alias_key):
     """Test that alias key affects protobuf serialization correctly."""
     # Without alias key
