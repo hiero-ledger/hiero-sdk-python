@@ -175,7 +175,7 @@ def test_network_get_mirror_rest_url_localhost():
     """Test REST URL generation for localhost."""
     network = Network('solo')
     url = network.get_mirror_rest_url()
-    # Solo uses http://localhost:8080
+    # Solo uses http://localhost:5551
     assert 'http://' in url or 'https://' in url
     assert url.endswith('/api/v1')
 
