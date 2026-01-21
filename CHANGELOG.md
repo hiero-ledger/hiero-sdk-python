@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Tests
 - Format account test files with Black (#1519)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
+- Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
 
 ### Added
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
