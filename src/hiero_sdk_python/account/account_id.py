@@ -79,7 +79,7 @@ class AccountId:
             ValueError: If the string format is invalid
         """
         if account_id_str is None or not isinstance(account_id_str, str):
-            raise ValueError(f"account_id_str must be a string, got {type(account_id_str).__name__}.")
+            raise TypeError(f"account_id_str must be a string, got {type(account_id_str).__name__}.")
         
         if cls._is_evm_address(account_id_str):
             # Detect EVM address input (raw 20-byte hex or 0x-prefixed).
@@ -151,7 +151,7 @@ class AccountId:
                 raise ValueError(f"Invalid EVM address string: {evm_address}") from e
     
         elif not isinstance(evm_address, EvmAddress):
-            raise ValueError(
+            raise TypeError(
                 f"evm_address must be a str or EvmAddress, got {type(evm_address).__name__}"
             )
 
@@ -333,15 +333,12 @@ class AccountId:
         self.evm_address = EvmAddress.from_string(evm_addr)
         return self
 
-
     def to_evm_address(self) -> str:
         """Return the EVM-compatible address for this account. Using account num"""
         if self.evm_address:
             return self.evm_address.to_string()
 
         return to_solidity_address(self.shard,self.realm,self.num)
-    
-            
 
     def to_bytes(self) -> bytes:
         """Serialize this AccountId to protobuf bytes."""

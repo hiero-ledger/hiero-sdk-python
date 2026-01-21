@@ -331,13 +331,16 @@ def test_from_string_for_invalid_format(invalid_id):
     'invalid_id', 
     [
         123,
-        None
+        None,
+        True,
+        object,
+        {}
     ]
 )
 def test_from_string_for_invalid_types(invalid_id):
     """Should raise error when creating AccountId from invalid types."""
     with pytest.raises(
-        ValueError, match=f"account_id_str must be a string, got {type(invalid_id).__name__}."
+        TypeError, match=f"account_id_str must be a string, got {type(invalid_id).__name__}."
     ):
         AccountId.from_string(invalid_id)
 
@@ -700,11 +703,7 @@ def test_validate_checksum_with_alias_key_set(client, alias_key):
     account_id = AccountId.from_string("0.0.100-hhghj")
     account_id.alias_key = alias_key
 
-    with pytest.raises(
-        ValueError,
-        match="Cannot calculate checksum with an account ID that has a aliasKey",
-    ):
-    with pytest.raises(ValueError, match="Cannot calculate checksum with an account ID that has a aliasKey or evmAddres"):
+    with pytest.raises(ValueError, match="Cannot calculate checksum with an account ID that has a aliasKey or evmAddress"):
         account_id.validate_checksum(client)
 
 def test_validate_checksum_with_evm_address_key_set(client, evm_address):
@@ -712,7 +711,7 @@ def test_validate_checksum_with_evm_address_key_set(client, evm_address):
     account_id = AccountId.from_string("0.0.100-hhghj")
     account_id.evm_address = evm_address
 
-    with pytest.raises(ValueError, match="Cannot calculate checksum with an account ID that has a aliasKey or evmAddres"):
+    with pytest.raises(ValueError, match="Cannot calculate checksum with an account ID that has a aliasKey or evmAddress"):
         account_id.validate_checksum(client)
 
 def test_validate_checksum_for_invalid_checksum(client):
@@ -958,7 +957,7 @@ def test_from_evm_address_invalid_type():
     """Test passing an invalid type as evm_address should raise ValueError."""
     evm_address = 12345
     with pytest.raises(
-        ValueError,
+        TypeError,
         match=f"evm_address must be a str or EvmAddress, got {type(evm_address).__name__}"
     ):
         AccountId.from_evm_address(evm_address, shard=0, realm=0)
