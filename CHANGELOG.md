@@ -6,23 +6,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-<<<<<<< HEAD
-### Changed
-<<<<<<< HEAD
-=======
-- Formatted `tests/unit/batch_transaction_test.py` using black. (#1520)
->>>>>>> 8d8c27e (chore: format batch_transaction_test.py with black)
-
-=======
->>>>>>> eb380e4 (fix: move changelog entry to tests section)
 ### Tests
 - Format account test files with Black (#1519)
-- Formatted `tests/unit/batch_transaction_test.py` using black. (#1520)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
-- Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
 
 ### Added
-- Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
 - Added advanced CodeRabbit reviewer guidance for `tokens` module changes, with specialized validation rules for token transactions, token classes, and enums. (#1496)
 - Advanced-check bot unassigns users from issues if they do not meet the requirements and provides an explanatory message. (#1477)
@@ -119,10 +107,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 - Add StakingInfo class ([1364](https://github.com/hiero-ledger/hiero-sdk-python/issues/1364))
-- Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 
 ### Changed
-- Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
+
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
 
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
@@ -233,7 +220,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Removed
 
 - Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
-- Transaction byte generation to respect valid `node_account_ids` during `external signing` and `manual freezing workflows`, preventing execution failures caused by node mismatches.
 
 ### Breaking Change
 
