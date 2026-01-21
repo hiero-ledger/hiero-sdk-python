@@ -5,7 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
 ### Changed
+
 - Formatted unit test files using Black.
 
 ### Tests
