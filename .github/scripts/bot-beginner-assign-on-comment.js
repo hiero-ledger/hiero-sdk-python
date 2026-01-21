@@ -193,6 +193,11 @@ module.exports = async ({ github, context }) => {
         commenter
       );
 
+      console.log("[Beginner Bot] Completed GFI count:",{
+        commenter,
+        completedGfiCount,
+      })
+
       if (completedGfiCount === null) {
         console.log("[Beginner Bot] Skipping GFI guard due to API error.");
       } else if (completedGfiCount < REQUIRED_GFI_COUNT) {
@@ -232,7 +237,7 @@ module.exports = async ({ github, context }) => {
 
 Before taking on a **beginner** issue, we ask contributors to complete at least one **Good First Issue** to get familiar with the workflow.
 
-👉 [Find a Good First Issue here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22)
+👉 [Find a Good First Issue here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22+no%3Aassignee)
 
 Please try a GFI first, then come back — we’ll be happy to assign this! 😊`,
           });
@@ -251,11 +256,12 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
       // --- ASSIGNMENT LOGIC ---
       if (issue.assignees && issue.assignees.length > 0) {
         try{
+          const currentAssignee = issue.assignees[0]?.login ?? "another contributor";
           await github.rest.issues.createComment({
             owner: repo.owner.login,
             repo: repo.name,
             issue_number: issue.number,
-            body: `👋 Hi @${commenter}, this issue is already assigned. Feel free to check other beginner issues!`,
+            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "beginner" issues [here](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee).`,
           });
         } catch (error) {
           console.error("[Beginner Bot] Failed to post already-assigned message:", {
