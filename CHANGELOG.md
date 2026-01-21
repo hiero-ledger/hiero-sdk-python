@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Tests
+- Format account test files with Black (#1519)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
 
@@ -107,6 +108,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 - Add StakingInfo class ([1364](https://github.com/hiero-ledger/hiero-sdk-python/issues/1364))
+- Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 
 ### Changed
 
