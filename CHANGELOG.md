@@ -6,14 +6,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+<<<<<<< HEAD
 ### Changed
 <<<<<<< HEAD
 =======
 - Formatted `tests/unit/batch_transaction_test.py` using black. (#1520)
 >>>>>>> 8d8c27e (chore: format batch_transaction_test.py with black)
 
+=======
+>>>>>>> eb380e4 (fix: move changelog entry to tests section)
 ### Tests
 - Format account test files with Black (#1519)
+- Formatted `tests/unit/batch_transaction_test.py` using black. (#1520)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 - Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
 
