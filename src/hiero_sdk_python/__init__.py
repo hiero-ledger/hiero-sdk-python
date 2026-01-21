@@ -70,6 +70,7 @@ from .hbar_unit import HbarUnit
 
 # Timestamp
 from .timestamp import Timestamp
+from .staking_info import StakingInfo
 
 # Duration
 from .Duration import Duration
@@ -245,6 +246,7 @@ __all__ = [
     "ResponseCode",
     "Timestamp",
     "Duration",
+    "StakingInfo",
 
     # File
     "FileCreateTransaction",
