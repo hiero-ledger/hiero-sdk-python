@@ -805,7 +805,7 @@ def test_populate_evm_address_missing_num(evm_address):
     account_id = AccountId.from_evm_address(evm_address, 0, 0) # num == 0
     mock_client = MagicMock()
     
-    with pytest.raises(ValueError, match="Account number is required before populating evm_addres"):
+    with pytest.raises(ValueError, match="Account number is required before populating evm_address"):
         account_id.populate_evm_address(mock_client)
 
 
