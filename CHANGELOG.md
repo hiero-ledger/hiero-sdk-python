@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Tests
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
+- Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
 
 ### Added
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
