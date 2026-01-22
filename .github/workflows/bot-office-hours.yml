@@ -2,7 +2,7 @@ name: PythonBot - Office Hour Reminder
 
 on:
   schedule:
-    - cron: "5 * * * *"
+    - cron: "0 10 * * 3"
   workflow_dispatch:
     inputs:
       dry_run:
