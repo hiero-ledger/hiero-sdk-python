@@ -140,10 +140,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
+- Added MirrorNode based population for `ContractId`, including parsing and serialization support.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 - Added `grpc_deadline` support for transaction and query execution.
-
-### Changed
 
 ### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
