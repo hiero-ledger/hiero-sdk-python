@@ -43,12 +43,6 @@ jobs:
         run: |
           chmod +x .github/scripts/bot-advanced-check-decide.sh
           .github/scripts/bot-advanced-check-decide.sh
-      - name: Log decision (debug only)
-        if: ${{ false }}  # Disable permanently, or use always() && runner.debug == '1'
-        run: |
-          echo "::debug::Repository: ${{ github.repository }}"
-          echo "::debug::Decision: ${{ steps.decide.outputs.should_run }}"
-
       - name: Verify User Qualification
         if: ${{ steps.decide.outputs.should_run == 'true' }}
         env:
