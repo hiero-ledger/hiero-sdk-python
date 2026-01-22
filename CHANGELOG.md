@@ -8,11 +8,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 
-- Formatted unit test files using Black.
-
 ### Tests
 - Format account test files with Black (#1519)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
+- Formatted unit test files using Black.
+
 
 ### Added
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
