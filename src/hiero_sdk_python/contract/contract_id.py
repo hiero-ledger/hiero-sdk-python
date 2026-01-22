@@ -165,17 +165,17 @@ class ContractId:
             )
 
         for name, value in (("shard", shard), ("realm", realm)):
-            if not isinstance(value, int):
+            if isinstance(value, bool) or not isinstance(value, int):
                 raise TypeError(f"{name} must be int, got {type(value).__name__}")
             if value < 0:
                 raise ValueError(f"{name} must be a non-negative integer")
 
-        # throw error internally if not valid evm_address
-        evm_address_bytes = EvmAddress.from_string(
-            evm_address=evm_address
-        ).address_bytes
-
-        return cls(shard=shard, realm=realm, evm_address=evm_address_bytes)
+        try:
+            # throw error internally if not valid evm_address
+            evm_addr = EvmAddress.from_string(evm_address=evm_address)
+            return cls(shard=shard, realm=realm, evm_address=evm_addr.address_bytes)
+        except Exception as e:
+            raise ValueError(f"Invalid EVM address: {evm_address}") from e
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "ContractId":
@@ -237,13 +237,11 @@ class ContractId:
             response = perform_query_to_mirror_node(url)
             contract_id = response.get("contract_id")
             if not contract_id:
-                raise ValueError(
-                    f"Mirror node response missing 'contract_id': {response}"
-                )
+                raise ValueError("Mirror node response missing 'contract_id'")
 
         except RuntimeError as e:
             raise RuntimeError(
-                f"Failed to populate contract num from mirror node for evm_address "
+                "Failed to populate contract num from mirror node for evm_address "
                 f"{evm_address.to_string()}"
             ) from e
 
