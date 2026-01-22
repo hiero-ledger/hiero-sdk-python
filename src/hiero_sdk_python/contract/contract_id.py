@@ -229,9 +229,8 @@ class ContractId:
         """
         if self.evm_address is None:
             raise ValueError("evm_address is required to populate the contract number")
-        evm_address = EvmAddress.from_bytes(self.evm_address)
 
-        url = f"{client.network.get_mirror_rest_url()}/contracts/{evm_address.to_string()}"
+        url = f"{client.network.get_mirror_rest_url()}/contracts/{self.evm_address.hex()}"
 
         try:
             response = perform_query_to_mirror_node(url)
@@ -242,7 +241,7 @@ class ContractId:
         except RuntimeError as e:
             raise RuntimeError(
                 "Failed to populate contract num from mirror node for evm_address "
-                f"{evm_address.to_string()}"
+                f"{self.evm_address.hex()}"
             ) from e
 
         try:
