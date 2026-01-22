@@ -20,8 +20,9 @@ from hiero_sdk_python import (
     PrivateKey,
     TransferTransaction,
     Hbar,
-    TransactionGetReceiptQuery
+    TransactionGetReceiptQuery,
 )
+
 
 def generate_evm_address():
     """
@@ -137,7 +138,6 @@ def main():
 
     populate_account_num_example(client, evm_address, created_account_id)
     populate_evm_address_example(client, created_account_id, evm_address)
-
 
 
 if __name__ == "__main__":
