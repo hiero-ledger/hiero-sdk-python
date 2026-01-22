@@ -1,5 +1,10 @@
 #!/bin/bash
 set -euo pipefail
+
+: "${GITHUB_EVENT_NAME:?Missing GITHUB_EVENT_NAME}"
+: "${GITHUB_OUTPUT:?Missing GITHUB_OUTPUT}"
+: "${GITHUB_EVENT_PATH:?Missing GITHUB_EVENT_PATH}"
+
 echo "Evaluating trigger event..."
 if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
   echo "should_run=true" >> "${GITHUB_OUTPUT}"

@@ -83,11 +83,18 @@ jobs:
             echo "- Skipping checkout and verification."
           fi
       - name: Checkout scripts
-        if: ${{ steps.decide.outputs.should_run == 'true' }}
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af1b8 # v4
         with:
           sparse-checkout: |
             .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Determine if check is required
+        id: decide
+        run: |
+          chmod +x .github/scripts/bot-advanced-check-decide.sh
+          .github/scripts/bot-advanced-check-decide.sh
+
       - name: Verify User Qualification
         if: ${{ steps.decide.outputs.should_run == 'true' }}
         env:
@@ -101,4 +108,4 @@ jobs:
           DRY_RUN_USER: ${{ github.event_name == 'workflow_dispatch' && inputs.username || '' }}
         run: |
           chmod +x .github/scripts/bot-advanced-check.sh
-          ./.github/scripts/bot-advanced-check.sh
+          .github/scripts/bot-advanced-check.sh
