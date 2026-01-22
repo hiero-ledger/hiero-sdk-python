@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 ### Tests
+- Format `tests/unit/conftest.py` with black for code style consistency (#1566)
 - Format account test files with Black (#1519)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 - Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)

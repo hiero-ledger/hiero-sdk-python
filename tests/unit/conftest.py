@@ -15,15 +15,14 @@ from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.node import _Node
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.nft_id import NftId
-from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-
 
 FAKE_CERT_PEM = b"""-----BEGIN CERTIFICATE-----
 MIIBszCCAVmgAwIBAgIUQFakeFakeFakeFakeFakeFakeFakewCgYIKoZIzj0EAwIw
 -----END CERTIFICATE-----"""
 
 FAKE_CERT_HASH = hashlib.sha384(FAKE_CERT_PEM).hexdigest().encode("utf-8")
+
 
 @pytest.fixture
 def mock_account_ids():
@@ -33,32 +32,44 @@ def mock_account_ids():
     node_account_id = AccountId(0, 0, 3)
     token_id_1 = TokenId(1, 1, 1)
     token_id_2 = TokenId(2, 2, 2)
-    return account_id_sender, account_id_recipient, node_account_id, token_id_1, token_id_2
+    return (
+        account_id_sender,
+        account_id_recipient,
+        node_account_id,
+        token_id_1,
+        token_id_2,
+    )
+
 
 @pytest.fixture
 def amount():
     """Fixture to provide a default amount for fungible tokens."""
     return 1000
 
+
 @pytest.fixture
 def metadata():
     """Fixture to provide mock metadata for NFTs."""
-    return [b'a']
+    return [b"a"]
+
 
 @pytest.fixture
 def transaction_id():
     """Fixture that generates a transaction ID for testing."""
     return TransactionId.generate(AccountId(0, 0, 1234))
 
+
 @pytest.fixture
 def private_key():
     """Fixture to generate a private key for testing."""
     return PrivateKey.generate()
 
+
 @pytest.fixture
 def topic_id():
     """Fixture to create a topic ID for testing."""
     return TopicId(0, 0, 1234)
+
 
 @pytest.fixture
 def nft_id():
@@ -67,20 +78,24 @@ def nft_id():
     serial_number = 8
     return NftId(token_id=token_id, serial_number=serial_number)
 
+
 @pytest.fixture
 def token_id():
     """Fixture to provide a mock TokenId instance."""
     return TokenId(shard=0, realm=0, num=3)
+
 
 @pytest.fixture
 def file_id():
     """Fixture to provide a mock FileId instance."""
     return FileId(shard=0, realm=0, file=2)
 
+
 @pytest.fixture
 def contract_id():
     """Fixture to provide a mock ContractId instance."""
     return ContractId(shard=0, realm=0, contract=1)
+
 
 @pytest.fixture
 def mock_client():
@@ -89,10 +104,10 @@ def mock_client():
     node = _Node(
         AccountId(0, 0, 3),
         "node1.example.com:50211",
-        address_book=NodeAddress(cert_hash=FAKE_CERT_HASH, addresses=[])
+        address_book=NodeAddress(cert_hash=FAKE_CERT_HASH, addresses=[]),
     )
     node._fetch_server_certificate_pem = lambda: FAKE_CERT_PEM
-    
+
     nodes = [node]
 
     network = Network(nodes=nodes)
