@@ -13,6 +13,7 @@ By default, GitHub Actions are often disabled on forks to save resources. You mu
 3.  On the left sidebar, click **Actions** > **General**.
 4.  Select **Allow all actions and reusable workflows**.
 5.  Click **Save**.
+
 ## The Testing Workflow
 
 Testing a bot or action usually involves two distinct parts:
