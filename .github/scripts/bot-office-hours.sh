@@ -82,6 +82,7 @@ The Python SDK Team
 EOF
 )
 
+
 echo "$PR_DATA" |
   jq -r '
     sort_by(.author.login)
