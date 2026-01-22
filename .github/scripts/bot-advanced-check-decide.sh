@@ -13,7 +13,8 @@ EVENT_DATA=$(cat "${GITHUB_EVENT_PATH}")
 
 # Extract contextual info with safe fallbacks (N/A for workflow_dispatch or missing fields)
 ISSUE_NUMBER=$(jq -r '.issue.number // "N/A"' <<< "${EVENT_DATA}")
-ACTOR=$(jq -r '.actor.login // "N/A"' <<< "${EVENT_DATA}")
+ACTOR=$(jq -r '.sender.login // empty' <<< "${EVENT_DATA}")
+ACTOR=${ACTOR:-${GITHUB_ACTOR:-N/A}}
 
 # Always log context header — appears in every run for easy troubleshooting
 echo "Context: Trigger=${GITHUB_EVENT_NAME} | Issue=#${ISSUE_NUMBER} | Actor=@${ACTOR}"
