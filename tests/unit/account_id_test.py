@@ -707,9 +707,10 @@ def test_populate_account_num(evm_address):
         "hiero_sdk_python.account.account_id.perform_query_to_mirror_node"
     ) as mock_query:
         mock_query.return_value = response
-        account_id.populate_account_num(mock_client)
+        new_account_id = account_id.populate_account_num(mock_client)
 
-    assert account_id.num == 100
+    assert account_id.num == 0
+    assert new_account_id.num == 100
 
 
 def test_populate_account_num_missing_account(evm_address):
@@ -791,9 +792,10 @@ def test_populate_account_evm_address(evm_address):
         "hiero_sdk_python.account.account_id.perform_query_to_mirror_node"
     ) as mock_query:
         mock_query.return_value = response
-        account_id.populate_evm_address(mock_client)
+        new_account_id = account_id.populate_evm_address(mock_client)
 
-    assert account_id.evm_address == evm_address
+    assert account_id.evm_address == None
+    assert new_account_id.evm_address == evm_address
 
 
 def test_populate_evm_address_response_missing_evm_address():
@@ -810,7 +812,7 @@ def test_populate_evm_address_response_missing_evm_address():
     ) as mock_query:
         mock_query.return_value = {}
         with pytest.raises(
-            ValueError, match="Mirror node response missing 'evm_address': {}"
+            ValueError, match="Mirror node response missing 'evm_address'"
         ):
             account_id.populate_evm_address(mock_client)
 
