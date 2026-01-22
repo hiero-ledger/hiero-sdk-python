@@ -43,7 +43,14 @@ jobs:
         run: |
           chmod +x .github/scripts/bot-advanced-check-decide.sh
           .github/scripts/bot-advanced-check-decide.sh
-
+      - name: Log decision context
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Issue: ${{ github.event.issue.number || 'N/A' }}"
+          echo "Decision: ${{ steps.decide.outputs.should_run }}"
+          echo "Dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}"
       - name: Verify User Qualification
         if: ${{ steps.decide.outputs.should_run == 'true' }}
         env:
