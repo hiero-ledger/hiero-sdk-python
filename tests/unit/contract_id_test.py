@@ -104,28 +104,42 @@ def test_from_string_with_evm_address():
 @pytest.mark.parametrize(
     "invalid_id",
     [
-        "1.2",  # Too few parts
-        "1.2.3.4",  # Too many parts
-        "a.b.c",  # Non-numeric parts
-        "",  # Empty string
-        "1.a.3",  # Partial numeric
-        123,
-        None,
-        "0.0.-1",
-        "abc.def.ghi",
-        "0.0.1-ad",
-        "0.0.1-addefgh",
-        "0.0.1 - abcde",
-        " 0.0.100 ",
-        " 1.2.abcdef0123456789abcdef0123456789abcdef01 ",
-        "1.2.001122334455667788990011223344556677",
-    ],
+        '1.2',  # Too few parts
+        '1.2.3.4',  # Too many parts
+        'a.b.c',  # Non-numeric parts
+        '',  # Empty string
+        '1.a.3',  # Partial numeric
+        '0.0.-1',
+        'abc.def.ghi',
+        '0.0.1-ad',
+        '0.0.1-addefgh',
+        '0.0.1 - abcde',
+        ' 0.0.100 ',
+        ' 1.2.abcdef0123456789abcdef0123456789abcdef01 '
+        '1.2.001122334455667788990011223344556677'
+    ]
 )
 def test_from_string_for_invalid_format(invalid_id):
     """Should raise error when creating ContractId from invalid string input."""
     with pytest.raises(
-        ValueError,
-        match=f"Invalid contract ID string '{invalid_id}'. Expected format 'shard.realm.contract'.",
+        ValueError, match=f"Invalid contract ID string '{invalid_id}'. Expected format 'shard.realm.contract'."
+    ):
+        ContractId.from_string(invalid_id)
+
+@pytest.mark.parametrize(
+    'invalid_id', 
+    [
+        None,
+        123,
+        True,
+        object,
+        {}
+    ]
+)
+def test_from_string_for_invalid_type(invalid_id):
+    """Should raise error when creating ContractId from invalid input type."""
+    with pytest.raises(
+        TypeError, match=f"contract_id_str must be of type str, got {type(invalid_id).__name__}"
     ):
         ContractId.from_string(invalid_id)
 
@@ -331,8 +345,7 @@ def test_validate_checksum_failure(client):
     with pytest.raises(ValueError, match="Checksum mismatch for 0.0.1"):
         contract_id.validate_checksum(client)
 
-
-def test_str_representaion__with_evm_address():
+def test_str_representaion_with_evm_address():
     """Should return str represention with evm_address"""
     contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
     assert contract_id.__str__() == "0.0.abcdef0123456789abcdef0123456789abcdef01"
@@ -349,3 +362,5 @@ def test_contract_id_repr_evm_address():
     contract_id = ContractId(1, 2, evm_address=evm_bytes)
     expected = f"ContractId(shard=1, realm=2, evm_address={evm_bytes.hex()})"
     assert repr(contract_id) == expected
+
+
