@@ -20,7 +20,6 @@ body:
       label: 🆕🐥 Newcomer Friendly
       description: Who is this issue for?
       value: |
-        #### Overview
         This **[Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee)** is a guided, well-scoped task intended for new contributors to the Hiero Python SDK.
 
         #### What you’ll do
@@ -43,10 +42,10 @@ body:
         > 🧩 **Difficulty:** Small, well-contained change  
         > 🎓 **Best for:** New contributors
 
-        **🏁 What success looks like**
+        **🏁 Completion**
         When this issue is complete, you will have:
 
-        - ✅ Solved a real issue we needed
+        - ✅ Solved a real issue
         - ✅ A merged pull request in the Hiero Python SDK
         - ✅ Your name in the project history
         - ✅ Confidence to take on larger issues next
@@ -80,8 +79,6 @@ body:
         Please avoid assuming prior knowledge of the language, codebase, or Hiero, as Good First Issues are often surfaced to new developers.
         Links to relevant documentation or code are very welcome.
       value: |
-        This issue addresses a small but real improvement needed at the Hiero Python SDK.
-
         Edit here. Example provided below.
     validations:
       required: true
@@ -336,8 +333,7 @@ body:
         > - Comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
         > - Ask for help in [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
         >
-        Reaching out is part of the contribution process.  
-        Even draft pull requests and partial progress are welcome.
+
         ---
 
   - type: textarea
@@ -365,7 +361,6 @@ body:
         You may be asked to make changes or your PR may be approved.
         Approved PRs are usually merged within **one day**.
 
-        ---
 
         **🔄 Merge conflicts (sometimes)**
         Conflicts can happen and are normal as the SDK updates.
