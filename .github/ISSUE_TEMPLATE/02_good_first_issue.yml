@@ -20,36 +20,25 @@ body:
       label: 🆕🐥 Newcomer Friendly
       description: Who is this issue for?
       value: |
-        This **Good First Issue** is a guided, well-scoped task intended for new contributors to the Hiero Python SDK.
+        This **[Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee)** is a guided, well-scoped task intended for new contributors to the Hiero Python SDK.
 
         It is designed to help you:
-        - understand how the repository is structured
-        - practice the standard contribution workflow
-        - submit and merge a pull request
-
-        No prior knowledge of Hiero, Hedera, or distributed ledger technology is required.
-        Familiarity with **basic Python** and **Git** is sufficient.
+          ✅ understand how the repository is structured
+          ✅ practice the standard contribution workflow
+          ✅ submit and merge a pull request
 
         A maintainer or mentor actively monitors this issue and will help guide it to completion.
+
+        > [!IMPORTANT]
+        > **This issue does not require prior domain knowledge.**
+        >
+        > - No Hiero or Hedera experience needed  
+        > - No distributed ledger background required  
+        > - **Basic Python and Git are sufficient**
 
         ⏱️ **Typical time to complete:** 30–90 minutes (once setup is done)  
         🧩 **Difficulty:** Small, well-contained change  
         🎓 **Best for:** New contributors
-
-  - type: textarea
-    id: getting_help
-    attributes:
-      label: 🧭 Getting help if you’re stuck
-      description: How to get support while working on this issue.
-      value: |
-        If you run into questions or get blocked, don’t spend more than **20 minutes** stuck on your own.
-
-        You can:
-        - comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
-        - ask for help in [Discord](docs/discord.md)
-
-        Getting stuck and reaching out for help is a normal part of the contribution process.
-        Even partial progress or draft pull requests are welcome!
 
   - type: markdown
     attributes:
@@ -322,6 +311,21 @@ body:
       required: true
 
   - type: textarea
+    id: getting_help
+    attributes:
+      label: 🧭 Getting help if you’re stuck
+      description: How to get support while working on this issue.
+      value: |
+        If you run into questions or get blocked, don’t spend more than **20 minutes** stuck on your own.
+
+        You can:
+        - comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
+        - ask for help in [Discord](docs/discord.md)
+
+        Getting stuck and reaching out for help is a normal part of the contribution process.
+        Even partial progress or draft pull requests are welcome!
+
+  - type: textarea
     id: pr_expectations
     attributes:
       label: 🤔 What to expect after submitting a PR
@@ -350,7 +354,7 @@ body:
 
         #### 😎 Team Member review
         A Python SDK team member will review your PR, typically within **1–3 days**.
-        Reviews focus on clarity and learning, and do not expect perfection.
+        Reviews focus on clarity and learning.
 
         - You may be asked to make changes, or
         - Your PR may be approved as-is ✅
@@ -370,12 +374,32 @@ body:
         ### 🏁 What success looks like
 
         When this issue is complete, you will have:
-        ✅ Solved a real issue we need resolving
-        ✅ a merged pull request in the Hiero Python SDK
-        ✅ your name permanently in the project history
-        ✅ confidence to take on larger issues next
+          ✅ Solved a real issue we need resolving
+          ✅ a merged pull request in the Hiero Python SDK
+          ✅ your name permanently in the project history
+          ✅ confidence to take on larger issues next
     validations:
       required: true
+
+  - type: textarea
+    id: ai_usage_guidelines
+    attributes:
+      label: 🤖 AI usage guidelines
+      description: Guidance on using AI tools responsibly for this issue.
+      value: |
+        You’re welcome to use AI tools while working on this issue.
+
+        Many contributors do — especially for:
+        - understanding unfamiliar code
+        - drafting small refactors
+        - sanity-checking approaches
+
+        **Use AI responsibly:**
+        - review suggestions carefully
+        - apply changes incrementally
+        - test as you go
+
+        If in doubt, ask — maintainers are happy to help.
 
   - type: textarea
     id: information
@@ -410,23 +434,3 @@ body:
         #### Calls:
         - Get hands-on-help by our expert team at our [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
         - Learn, raise issues and provide feedback at [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581)
-
-  - type: textarea
-    id: ai_usage_guidelines
-    attributes:
-      label: 🤖 AI usage guidelines
-      description: Guidance on using AI tools responsibly for this issue.
-      value: |
-        You’re welcome to use AI tools while working on this issue.
-
-        Many contributors do — especially for:
-        - understanding unfamiliar code
-        - drafting small refactors
-        - sanity-checking approaches
-
-        **Use AI responsibly:**
-        - review suggestions carefully
-        - apply changes incrementally
-        - test as you go
-
-        If in doubt, ask — maintainers are happy to help.
