@@ -252,8 +252,8 @@ class ContractId:
                 contract=contract,
                 evm_address=self.evm_address,
             )
-        except (ValueError, AttributeError):
-            raise ValueError(f"Invalid contract_id format received: {contract_id}")
+        except (ValueError, AttributeError) as e:
+            raise ValueError(f"Invalid contract_id format received: {contract_id}") from e
 
     def __str__(self) -> str:
         """
