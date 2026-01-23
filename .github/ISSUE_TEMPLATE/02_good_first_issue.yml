@@ -282,7 +282,7 @@ body:
       required: true
 
   - type: textarea
-    id: contribution_steps
+    id: pr_expectations
     attributes:
       label: 🤔 What to expect after submitting a PR
       description: Explain what happens after a pull request is opened.
