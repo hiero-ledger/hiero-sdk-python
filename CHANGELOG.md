@@ -116,7 +116,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 
 ### Changed
-- Updated the trigger for the changelog entry workflow
+- Removed `workflow_dispatch` trigger from `.github/workflows/pr-check-changelog.yml` to run automatically on pull request events instead of requiring manual invocation
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
 
