@@ -358,9 +358,9 @@ body:
         - [Project Structure](docs/sdk_developers/training/setup/project_structure.md)
         - [DCO and Verified Signing Guide](docs/sdk_developers/signing.md)
         - [Changelog Guide](docs/sdk_developers/changelog_entry.md)
+        - [Rebasing Guide](docs/sdk_developers/rebasing.md)
         - [Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)
         - [Linking Issues Guide](docs/sdk_developers/how_to_link_issues.md)
-        - [Rebasing Guide](docs/sdk_developers/rebasing.md)
         - [Workflow Guide](docs/sdk_developers/workflow.md)
 
         - [Pin Github Actions Guide](docs/sdk_developers/how-to-pin-github-actions.md)
