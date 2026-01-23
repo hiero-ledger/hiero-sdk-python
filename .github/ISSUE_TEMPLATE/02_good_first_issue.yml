@@ -1,0 +1,358 @@
+name: Good First Issue Template
+description: Create a Good First Issue for new contributors
+title: "[Good First Issue]: "
+labels: ["Good First Issue"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## **Thanks for creating a good first issue!** 😊
+
+        We truly appreciate your time and effort, welcome!.
+        This template is designed to help you create a Good First Issue (GFI) : a small, well-scoped task that helps new contributors learn the codebase and workflow.
+        ---
+  - type: textarea
+    id: intro
+    attributes:
+      label: 🆕🐥 First Timer Friendly
+      description: Who is this issue for?
+      value: |
+        Welcome! This issue is particularly friendly to newcomers to the [Hiero](https://hiero.org) Python SDK.
+        We have chosen our [Good First Issues](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+) carefully and outlined the step-by-step process to make this onboarding as smooth as possible.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > ### 📋 Good First Issue (GFI) Guidelines
+        > A Good First Issue is intended to be a small, well-scoped task for new contributors to get started with the codebase and contribution workflow.
+        >        
+        > **Often a good fit for Good First Issues:**
+        > - Spelling or grammar fixes
+        > - Small documentation formatting improvements
+        > - Purely structural refactors of examples
+        > - Minor, clearly described edits to docstrings or comments
+        > - Light file moves or renames for clarity
+        > - Applying formatting tools (e.g. `black`, `ruff`) in limited areas
+        >
+        > More involved tasks may be a better fit for **Beginner**, **Intermediate**, or **Advanced**—this is guidance, not a hard rule.
+        >
+        > If you’re unsure, the **Good First Issue Candidate Template** can help.
+        >
+        > 📖 [Good First Issue Guidelines](docs/maintainers/good_first_issue_candidate_guidelines.md)
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: 👾 Description of the issue
+      description: |
+        Please describe the issue in a way that’s easy for new contributors to understand.
+        Try not to assume prior knowledge of the language, codebase, or Hiero as GitHub will market Good First Issues to new developers.
+        Links to relevant documentation or code are very welcome.
+      value: |
+        Edit here. Example provided below.
+
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example for problem (hidden in submission) -->
+        ## 👾 Description of the issue - Example
+
+        The example for Token Associate Transaction located at examples/tokens/token_associate_transaction.py can be improved. It correctly illustrates how to associate a token, however, it does so all from one function main()
+
+        As everything is grouped together in main(), it is difficult for a user to understand all the individual steps required to associate a token.
+
+        For example:
+        ```python
+
+        def run_demo():
+            """Monolithic token association demo."""
+            print(f"🚀 Connecting to Hedera {network_name} network!")    
+            client = Client(Network(network_name))
+            operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+            operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
+            client.set_operator(operator_id, operator_key)
+            print(f"✅ Client ready (operator {operator_id})")
+
+            test_key = PrivateKey.generate_ed25519()
+            receipt = (
+                AccountCreateTransaction()
+                .set_key(test_key.public_key())
+                .set_initial_balance(Hbar(1))
+                .set_account_memo("Test account for token association demo")
+                .freeze_with(client)
+                .sign(operator_key)
+                .execute(client)
+            )
+            if receipt.status != ResponseCode.SUCCESS:
+                raise Exception(receipt.status)
+            account_id = receipt.account_id
+            print(f"✅ Created test account {account_id}")
+
+            # Create tokens
+            tokens = []
+            for i in range(3):
+                try:
+                    receipt = (
+                        TokenCreateTransaction()
+                        .set_token_name(f"DemoToken{i}")
+                        .set_token_symbol(f"DTK{i}")
+                        .set_decimals(2)
+                        .set_initial_supply(100_000)
+                        .set_treasury_account_id(operator_id)
+                        .freeze_with(client)
+                        .sign(operator_key)
+                        .execute(client)
+                    )
+                    if receipt.status != ResponseCode.SUCCESS:
+                        raise Exception(receipt.status)
+                    token_id = receipt.token_id
+                    tokens.append(token_id)
+                    print(f"✅ Created token {token_id}")
+                except Exception as e:
+                    print(f"❌ Token creation failed: {e}")
+                    sys.exit(1)
+
+            # Associate first token
+            try:
+                TokenAssociateTransaction().set_account_id(account_id).add_token_id(tokens[0]).freeze_with(client).sign(test_key).execute(client)
+                print(f"✅ Token {tokens[0]} associated with account {account_id}")
+            except Exception as e:
+                print(f"❌ Token association failed: {e}")
+                sys.exit(1)
+        ```
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 Proposed Solution
+      description: |
+        Describe what a good solution would look like.
+        Keep this high-level and easy to understand—no implementation details needed yet.
+      value: |
+        Edit here. Example provided below.
+
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example for the solution (hidden in submission) -->
+        ## 💡 Solution - Example
+
+        For the TokenAssociateTransaction example, the solution is to split the monolithic main() function for illustrating TokenAssociateTransaction into separate smaller functions which are called from main().
+        Such as:
+        - Setting up the client
+        - Creating an account
+        - Creating a token
+        - Associating the account to the token
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 🛠️ Implementation Steps
+      description: |
+        To make this issue easy to pick up and complete, please include:
+        - Which files need to be changed or added
+        - Any functions, classes, or modules involved
+        - The complete steps to implement the solution
+        - What the final result or output should look like
+        - Links to relevant documentation or code (if helpful)
+      value: |
+        Edit here. Example provided below.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example implementation (hidden in submission) -->
+        ### 👩‍💻 Implementation - Example
+
+        To break down the monolithic main function, you need to:
+        - [ ] Extract the Key Steps (set up a client, create a test account, create a token, associate the token)
+        - [ ] Copy and paste the functionality for each key step into its own function
+        - [ ] Pass to each function the variables you need to run it
+        - [ ] Call each function in main()
+        - [ ] Ensure you return the values you'll need to pass on to the next step in main
+        - [ ] Ensure the example still runs and has the same output!
+
+        For example:
+        ```python
+
+        def setup_client():
+            """Initialize and set up the client with operator account."""
+
+        def create_test_account(client, operator_key):
+            """Create a new test account for demonstration."""
+
+        def create_fungible_token(client, operator_id, operator_key):
+            """Create a fungible token for association with test account."""
+
+        def associate_token_with_account(client, token_id, account_id, account_key):
+            """Associate the token with the test account."""
+
+        def main():
+            client, operator_id, operator_key = setup_client()
+            account_id, account_private_key = create_test_account(client, operator_key)
+            token_id = create_fungible_token(client, operator_id, operator_key)
+            associate_token_with_account(client, token_id, account_id, account_private_key)
+        ```
+
+  - type: textarea
+    id: setup_steps
+    attributes:
+      label: 📋 Step-by-Step Setup Guide
+      description: Provide a brief setup guide suitable for new contributors
+      value: |
+        Please follow these steps to setup:
+        - [ ] **Suggested Pre-requisites** 
+              - [ ] Visual Studio (VS) Code [Guide](TBC)
+              - [ ] GitHub Desktop [Guide](TBC)
+              - [ ] Hedera Testnet Account [Guide](TBC)
+              - [ ] Create a GPG key and tie it to GitHub (Guide)[TBC]
+        - [ ] **Setup the Hiero Python SDK for development**
+              - [ ] **Fork** Create an online and local copy of the repository [Guide](TBC)
+              - [ ] **Connect** origin with upstream
+              - [ ] **Generate** Protobuffs
+              - [ ] **Sync Main** pull any recent upstream changes
+        That's it! We are ready to get started.
+    validations:
+      required: true
+
+  - type: textarea
+    id: contribution_steps
+    attributes:
+      label: 📋 Step-by-Step Contribution Guide
+      description: Provide a contribution workflow suitable for new contributors
+      value: |
+        Please follow these steps to contribute:
+
+        Get Ready:
+        - [ ] **Comment /assign to claim the issue:** [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        - [ ] **Read the issue and AI plan carefully** absorb the issue requirements and consider Coderabbit's implementation plan.
+        - [ ] **Ask Questions** Reach out on [discord]() or to your mentor for guidance on implementation or the @good_first_issue_support_team for setup or workflow questions.
+        - [ ] **Sync Main** pull any recent upstream changes
+
+        Start Solving the Issue:
+        - [ ] **Branch from Main** Create a working branch from your main [Guide](TBC)
+        - [ ] **Work on the Branch** Read the issue description carefully and solve the issue. 
+        - [ ] **Commit with DCO and GPG signing** Commit your changes as `git commit -S -s -m "chore: your message"`. Each commit must be signed like this [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+        - [ ] **Commit a Changelog Entry :** add to .CHANGELOG.md an entry under an applicable section in [UNRELEASED] and commit as `git commit -S -s -m "chore: changelog entry" [Changelog Entry Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+
+        Create the Pull Request:
+        - [ ] **Push Commits** push your commits to your origin with `git push X`.
+        - [ ] **Create the Pull Request** create a pull request at [Pull Requests](TBC) [Guide](TBC).
+        - [ ] **Complete the PR description** briefly document what you are submitting and link to the issue it solves.
+        - [ ] **Click Submit PR** click to create the pull request!
+        - **You did it 🎉:** A maintainer or committer will review your pull request and provide feedback.
+    validations:
+      required: true
+
+  - type: textarea
+    id: contribution_steps
+    attributes:
+      label: 📋 What To Expect After a PR
+      description: Explain what will happen after creating a PR
+      value: |
+        Congratulations on creating a PR! 
+
+        Your PR will now be tested by several workflows, including:
+        - [ ] Commit signing: are commits DCO and GPG signed?
+        - [ ] Changely entry: do you have an entry under the unreleased version?
+        - [ ] Examples: do all the examples still run as expected?
+        - [ ] Unit and Integration tests: is all the existing functionality working fine?
+        - [ ] Codacy: is the code quality using safe methods?
+
+        Your PR will also get helpful, near-instant feedback from our prompted CodeRabbit AI
+        - It will:
+        - Check the issue description is satisfied
+        - Provide actionable code suggestions
+
+        - Note that:
+        - AI's can make mistakes or make exagerrations
+        - Not all of its suggestions are relevant to the issue.
+        -        
+        - Your PR will shortly be reviewed by a Python SDK team member
+        - We are a little slower than the AI but will typically by able to review your PR within 1-3 days.
+        - We might approve your PR or request changes. Be sure to make any needed changes or corrections 
+        - 
+        - Once approved, your PR will be merged typically within a day.
+        -
+        - Note:
+        - Since the Python SDK updates regularly, with PRs from other contributors frequently merged, you can face merge-conflicts.
+        - If it is a merge conflict with your changelog, use the online editor in the pull request to accept both changes
+        - If it is a merge conflict with other files, you'll need to rebase and manually resolve [Guide](TBC).
+        - In this case, this will trigger another review (https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: information
+    attributes:
+      label: 🤔 Additional Help
+      description: Provide any extra resources or context for contributors to solve this good first issue
+      value: |
+        Helpful Documentation:
+        - [SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers)
+        - [SDK Developer Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training)
+
+        - Rebasing Guide
+        - Merge Conflicts Guide
+        - CHnagelog Guide
+        - DCO and Verified Commit Guide
+        - Discord
+        Ask questions to the team directly on [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+        Get hands-on help by our expert team at our [Office Hours](TBC)
+        Let us know how you are finding the onboarding process at [Community Calls](TBC)
+
+        Your mentor is able to provide expert guidance on questions relating to the Python SDK and the issue
+        The good first issue support team is happy to help you with set-up and workflow questions
+        Ask them for help by commetning in the issue below. The more you ask, the more you learn and so do we!
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ Acceptance Criteria
+      description: |
+        EDIT OR EXPAND THE CHECKLIST ON WHAT IS REQUIRED TO BE ABLE TO MERGE A PULL REQUEST FOR THIS ISSUE
+      value: |
+        - [ ] **The issue is solved:**  
+              I've carefully read and implemented the issue requirements.
+
+        - [ ] **I did not add extra changes:**  
+              I did not modify anything that was not mentioned in the issue description.
+
+        - [ ] **Behaviour:**  
+              All existing features still work the same as before.
+
+        - [ ] **All checks pass and feedback integrated:**  
+              The tests that run after creating the PR pass and requested changes are applied.
+    validations:
+      required: true
+
+  - type: textarea
+    id: ai_usage_guidelines
+    attributes:
+      label: 🤖 AI Usage Guidelines
+      description: Guidance on using AI tools responsibly for this issue
+      value: |
+        You are welcome to use AI to help you understand and solve this issue.
+
+        Because AI tools can make mistakes, please take care to:
+        - Build in small chunks and check or test as you go
+        - Keep things scoped to the issue description
+        - Avoid copy/pasting large blocks of code
+        - Be careful when modifying parameters or return statements, as this may affect runtime behavior  
+
+        If you're unsure, ask your mentor or the maintainers for help — they can provide expert Python SDK guidance and will be happy to point you to the right examples or methods.
+    validations:
+      required: false
