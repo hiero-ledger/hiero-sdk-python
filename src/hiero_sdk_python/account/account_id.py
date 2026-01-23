@@ -347,7 +347,7 @@ class AccountId:
             AccountId: New instance with the resolved account num.
 
         Raises:
-            ValueError: If no EVM address is present or the response is invalid.
+            ValueError: If no Account num is present or the response is invalid.
             RuntimeError: If the mirror node request fails.
         """
         if self.num is None or self.num == 0:

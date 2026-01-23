@@ -514,6 +514,38 @@ def test_populate_contract_num_success(client):
     assert populated.evm_address == evm_address
 
 
+def test_populate_contract_num_invlid_response(client):
+    """Should raise error when populating contract number invalid response."""
+    evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    contract_id = ContractId(shard=0, realm=0, evm_address=evm_address)
+
+    with patch(
+        "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
+        return_value={"contract_id": "invalid.account.format"},
+    ):
+        with pytest.raises(
+            ValueError,
+            match="Invalid contract_id format received: invalid.account.format",
+        ):
+            contract_id.populate_contract_num(client)
+
+
+def test_populate_contract_num_query_fails(client):
+    """Should raise error when populating contract number query fails."""
+    evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
+    contract_id = ContractId(shard=0, realm=0, evm_address=evm_address)
+
+    with patch(
+        "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
+        side_effect=RuntimeError("mirror node query error"),
+    ):
+        with pytest.raises(
+            RuntimeError,
+            match="Failed to populate contract num from mirror node for evm_address abcdef0123456789abcdef0123456789abcdef01",
+        ):
+            contract_id.populate_contract_num(client)
+
+
 def test_populate_contract_num_without_evm_address(client):
     """Should raise error when populate_contract_num is called without evm_address."""
     contract_id = ContractId(shard=0, realm=0, contract=1)
