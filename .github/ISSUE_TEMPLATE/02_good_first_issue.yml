@@ -27,7 +27,7 @@ body:
         - Hiero or Hedera
         - distributed ledger technology
 
-        If you’re comfortable with **basic Python** and **Git**, you’re ready to get started.
+        If you have **basic Python** and **Git**, you’re ready to get started.
 
   - type: markdown
     attributes:
@@ -229,7 +229,7 @@ body:
 
         - [ ] **Connect** origin with upstream: [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md)
 
-        - [ ] **Install Packages** Install packages and protobuffs: [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
+        - [ ] **Install Packages** and protobuffs: [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
 
         - [ ] **Sync Main** pull any recent upstream changes: [Guide](docs/sdk_developers/rebasing.md)
 
@@ -266,7 +266,9 @@ body:
 
         - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
-        - [ ] **Complete the PR description:**  briefly describe your changes and link the issue, [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+        - [ ] **Complete the PR description:**  briefly describe your changes, [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+
+        - [ ] **Link the Issue:**  link the issue the PR solves in the PR description, [Guide](docs/sdk_developers/how_to_link_issues.md)
 
         - [ ] **Submit the pull request:**  click `**Create pull request**` 🎉
 
@@ -316,10 +318,10 @@ body:
         - point out potential issues
         - suggest improvements or alternatives
 
-        AI feedback is **advisory** — it can make mistakes - use what’s helpful and feel free to ask questions.
+        AI feedback is **advisory** — it can make mistakes - use what’s helpful and relevant to the issue description.
 
 
-        #### 👀 Maintainer review
+        #### 😎 Team Member review
         A Python SDK team member will review your PR, typically within **1–3 days**.
         - You may be asked to make changes, or
         - Your PR may be approved as-is ✅
