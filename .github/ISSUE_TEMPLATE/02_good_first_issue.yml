@@ -253,7 +253,7 @@ body:
 
         - [ ] **Connect** origin with upstream: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/03_staying_in_sync.md)
 
-        - [ ] **Install Packages** and protobufs: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
+        - [ ] **Install Packages** and protobufs: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md) (or [Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/setup_windows.md) for Windows users)
 
         - [ ] **Sync Main** pull any recent upstream changes: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
 
