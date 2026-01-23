@@ -33,7 +33,7 @@ body:
     attributes:
       value: |
         > [!IMPORTANT]
-        > ### 📋 Good First Issue (GFI) Guidelines
+        > #### 📋 Good First Issue (GFI) Guidelines
         > A **Good First Issue [Guidelines](docs/maintainers/good_first_issue_candidate_guidelines.md)** is a small, well-scoped task that helps new contributors get familiar with the codebase and contribution workflow.
         >
         > **Often a good fit for Good First Issues:**
@@ -177,7 +177,7 @@ body:
     attributes:
       value: |
         <!-- Example implementation (hidden in submission) -->
-        ### 👩‍💻 Implementation - Example
+        #### 👩‍💻 Implementation - Example
 
         To break down the monolithic main function, you need to:
         - [ ] Extract the Key Steps (set up a client, create a test account, create a token, associate the token)
@@ -215,23 +215,23 @@ body:
       label: 📋 Step-by-Step Setup Guide
       description: Provide a step-by-step setup guide for new contributors
       value: |
-        ### Suggestions:
-        - [ ] Visual Studio (VS) Code [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md).
+        #### Suggestions:
+        - [ ] Visual Studio (VS) Code: [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
 
-        - [ ] GitHub Desktop [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md).
+        - [ ] GitHub Desktop: [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
 
-        - [ ] Hedera Testnet Account with root .env file [Guide](docs/sdk_developers/training/setup/03_setting_up_env.md).
+        - [ ] Hedera Testnet Account with root .env file: [Guide](docs/sdk_developers/training/setup/03_setting_up_env.md)
 
-        - [ ] Create a GPG key linked to GitHub [Guide](docs/sdk_developers/signing.md).
+        - [ ] Create a GPG key linked to GitHub: [Guide](docs/sdk_developers/signing.md)
 
-        ### Setup the Hiero Python SDK for development
-        - [ ] **Fork** Create an online and local copy of the repository [Guide](docs/sdk_developers/training/workflow/02_forking_python_sdk.md).
+        #### Setup the Hiero Python SDK for development
+        - [ ] **Fork** Create an online and local copy of the repository: [Guide](docs/sdk_developers/training/workflow/02_forking_python_sdk.md)
 
-        - [ ] **Connect** origin with upstream [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md).
+        - [ ] **Connect** origin with upstream: [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md)
 
-        - [ ] **Install Packages** Install packages and protobuffs [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md).
+        - [ ] **Install Packages** Install packages and protobuffs: [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
 
-        - [ ] **Sync Main** pull any recent upstream changes [Guide](docs/sdk_developers/rebasing.md).
+        - [ ] **Sync Main** pull any recent upstream changes: [Guide](docs/sdk_developers/rebasing.md)
 
         You are set up! 🎉
     validations:
@@ -243,33 +243,52 @@ body:
       label: 📋 Step-by-step contribution guide
       description: Provide a contribution workflow suitable for new contributors.
       value: |
-        ### ✅ Get ready
-        - [ ] **Claim the issue:**  Comment `/assign` [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md).
+        #### ✅ Get ready
+        - [ ] **Claim the issue:**  comment `/assign`: [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md)
 
-        - [ ] **Double check the Issue and AI plan:**. Carefully re-read the issue description and the CodeRabbit AI plan.
+        - [ ] **Double check the Issue and AI plan:** carefully re-read the issue description and the CodeRabbit AI plan
 
-        - [ ] **Ask questions early:** Ask on [Discord](docs/discord.md), your `@mentor` (Python SDK help) and the `@good_first_issue_support_team` (setup and workflow help).
+        - [ ] **Ask questions early:** ask on [Discord](docs/discord.md), your `@mentor` (Python SDK help) and the `@good_first_issue_support_team` (setup and workflow help)
 
-        - [ ] **Sync with main:** Pull the latest upstream changes [Guide](docs/sdk_developers/rebasing.md).
+        - [ ] **Sync with main:** pull the latest upstream changes [Guide](docs/sdk_developers/rebasing.md)
 
-        ### 🛠️ Solve the Issue
-        - [ ] **Create a branch from `main`:** [Guide](docs/sdk_developers/training/workflow/05_working_branches.md).
+        #### 🛠️ Solve the Issue
+        - [ ] **Create a branch from `main`:** [Guide](docs/sdk_developers/training/workflow/05_working_branches.md)
 
-        - [ ] **Implement the solution**: Follow the implementation steps in the issue description.
+        - [ ] **Implement the solution**: follow the implementation steps in the issue description.
 
-        - [ ] **Commit with DCO and GPG signing:**  Commit changes using: `git commit -S -s -m "chore: your message"` [Guide](docs/sdk_developers/signing.md).
+        - [ ] **Commit with DCO and GPG signing:**  commit changes using: `git commit -S -s -m "chore: your message"`, [Guide](docs/sdk_developers/signing.md)
 
-        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and commit as `git commit -S -s -m "chore: changelog entry"` [Guide](docs/sdk_developers/changelog_entry.md).
+        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and commit as `git commit -S -s -m "chore: changelog entry"` [Guide](docs/sdk_developers/changelog_entry.md)
 
-        ### 🚀 Create the pull request
-        - [ ] **Push your commits:**  Push your branch to your fork `git push origin your-branch-name`.
+        #### 🚀 Create the pull request
+        - [ ] **Push your commits:**  push your branch to your fork `git push origin your-branch-name`
 
-        - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md).
+        - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
-        - [ ] **Complete the PR description:**  Briefly describe your changes and link the issue [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md).
+        - [ ] **Complete the PR description:**  briefly describe your changes and link the issue, [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
-        - [ ] **Submit the pull request:**  Click `**Create pull request**` 🎉.
+        - [ ] **Submit the pull request:**  click `**Create pull request**` 🎉
 
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ Acceptance criteria
+      description: |
+        Edit or expand this checklist with what is required to merge a pull request for this issue.
+      value: |
+        To be able to close this issue, the following criteria must be met:
+
+        - [ ] **The issue is solved:**  I’ve carefully read and implemented the issue requirements
+
+        - [ ] **I did not add extra changes:**  I did not modify anything beyond what is described in the issue
+
+        - [ ] **Behavior:**  All other existing features continue to work as before
+
+        - [ ] **Checks and feedback:**  All checks pass and any requested changes have been made
     validations:
       required: true
 
@@ -281,7 +300,7 @@ body:
       value: |
         Once you open a pull request, here’s what happens next:
 
-        ### 🤖 Automated checks
+        #### 🤖 Automated checks
         A few automated checks will run and **all must pass** before your PR can be merged, such as:
         - signing 
         - changelog entry
@@ -291,26 +310,27 @@ body:
 
         👉 You can open each check to see detailed results and error messages if anything fails.
 
-        ### 🤝 AI feedback (CodeRabbit)
+
+        #### 🤝 AI feedback (CodeRabbit)
         You’ll receive quick feedback from **CodeRabbit AI**, which may:
         - point out potential issues
         - suggest improvements or alternatives
 
         AI feedback is **advisory** — it can make mistakes - use what’s helpful and feel free to ask questions.
 
-        ### 👀 Maintainer review
+
+        #### 👀 Maintainer review
         A Python SDK team member will review your PR, typically within **1–3 days**.
         - You may be asked to make changes, or
         - Your PR may be approved as-is ✅
 
-        ### 🚀 Merge
         Once approved, PRs are usually merged within **one day**.
 
-        ### 🔄 Merge conflicts
+        #### 🔄 Merge conflicts
         Merge conflicts can occasionally happen as the SDK updates. This is normal and fixable.
 
         - **Changelog conflicts**  
-          These are common and can usually be resolved directly using GitHub’s online editor in the pull request.
+          These are common and can usually be resolved by accepting both changes using GitHub’s online editor in the pull request.
 
         - **Other conflicts**  
           More complex conflicts may require rebasing your branch and resolving them locally.  
@@ -324,13 +344,15 @@ body:
       label: 🤔 Additional Help
       description: Provide any extra resources or context for contributors to solve this good first issue
       value: |
-        ### First Points of Contact:
+        #### First Points of Contact:
         - [Discord](docs/discord.md)
         - Comment with `@mentor_name` (for Python SDK questions)
         - Comment with `@hiero-ledger/hiero-sdk-good-first-issue-support` (for setup and workflow questions)
         The more you ask, the more you learn and so do we!
 
-        ### Documentation:
+        #### Documentation:
+        - [README.md](./README.md)
+        - [CONTRIBUTING.md](./CONTRIBUTING.md)
         - [Project Structure](docs/sdk_developers/training/setup/project_structure.md)
         - [DCO and Verified Signing Guide](docs/sdk_developers/signing.md)
         - [Changelog Guide](docs/sdk_developers/changelog_entry.md)
@@ -346,28 +368,9 @@ body:
         - [General Training](docs/sdk_developers/training)
         - [General SDK Developer Docs](docs/sdk_developers)
 
-        ### Calls:
+        #### Calls:
         - Get hands-on-help by our expert team at our [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
         - Learn, raise issues and provide feedback at [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581)
-
-  - type: textarea
-    id: acceptance-criteria
-    attributes:
-      label: ✅ Acceptance criteria
-      description: |
-        Edit or expand this checklist with what is required to merge a pull request for this issue.
-      value: |
-        To be able to close this issue, the following criteria must be met:
-
-        - [ ] **The issue is solved:**  I’ve carefully read and implemented the issue requirements.
-
-        - [ ] **I did not add extra changes:**  I did not modify anything beyond what is described in the issue.
-
-        - [ ] **Behavior:**  All other existing features continue to work as before.
-
-        - [ ] **Checks and feedback:**  All checks pass and any requested changes have been made.
-    validations:
-      required: true
 
   - type: textarea
     id: ai_usage_guidelines
