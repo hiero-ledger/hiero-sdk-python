@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 ### Tests
+- Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
