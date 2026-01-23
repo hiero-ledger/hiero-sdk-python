@@ -68,7 +68,8 @@ jobs:
           persist-credentials: false
 
       - name: Log dry-run status
-        run: echo "Dry run mode: ${{ env.DRY_RUN }}"
+        run: |
+          echo "Dry run mode: ${{ env.DRY_RUN }}"
 
       - name: Verify PR commits
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
