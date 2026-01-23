@@ -14,6 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
 - Formatted unit test files using Black.
 - Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
+- Formatted client_test.py using black.
 
 ### Added
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
@@ -116,7 +117,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 
 ### Changed
-- Formatted client_test.py using black.
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
 
