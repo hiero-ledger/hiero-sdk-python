@@ -43,6 +43,14 @@ body:
         > 🧩 **Difficulty:** Small, well-contained change  
         > 🎓 **Best for:** New contributors
 
+        **🏁 What success looks like**
+        When this issue is complete, you will have:
+
+        - ✅ Solved a real issue we needed
+        - ✅ A merged pull request in the Hiero Python SDK
+        - ✅ Your name in the project history
+        - ✅ Confidence to take on larger issues next
+
   - type: markdown
     attributes:
       value: |
@@ -323,12 +331,14 @@ body:
       value: |
         If questions come up, don’t spend more than **20 minutes** blocked.
 
-        ### Ways to get help
-        - Comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
-        - Ask in [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
-
-        Reaching out early is part of the contribution process.  
-        Draft pull requests and partial progress are welcome.
+        > [!TIP]
+        >
+        > - Comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
+        > - Ask for help in [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+        >
+        > Reaching out is part of the contribution process.  
+        > Even draft pull requests and partial progress are welcome.
+        ---
 
   - type: textarea
     id: pr_expectations
@@ -338,9 +348,7 @@ body:
       value: |
         Once you open a pull request, here’s what happens next.
 
-        ---
-
-        **🤖 Automated checks**
+        **🤖 1. Automated checks**
         Before your PR can be merged, a small set of automated checks must pass:
 
         - Signing
@@ -353,7 +361,7 @@ body:
 
         ---
 
-        **🤝 AI feedback (CodeRabbit)**
+        **🤝 2. AI feedback (CodeRabbit)**
         CodeRabbit AI may leave early feedback on your PR, including:
         - potential issues
         - suggested improvements or alternatives
@@ -362,7 +370,7 @@ body:
 
         ---
 
-        **😎 Team review**
+        **😎 3. Team review**
         A Python SDK team member will review your PR, typically within **1–3 days**.
 
         Reviews focus on clarity and learning:
@@ -371,10 +379,8 @@ body:
 
         Once approved, PRs are usually merged within **one day**.
 
-        ---
-
         **🔄 Merge conflicts**
-        Merge conflicts can occasionally happen as the SDK updates.
+        Merge conflicts can occasionally happen as the SDK updates (this is normal).
 
         - **Changelog conflicts**  
           Usually resolved by accepting both changes in GitHub’s online editor.
@@ -384,14 +390,6 @@ body:
           👉 Follow the **[Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)**.
 
         ---
-
-        **🏁 What success looks like**
-        When this issue is complete, you will have:
-
-        - ✅ Solved a real issue we needed
-        - ✅ A merged pull request in the Hiero Python SDK
-        - ✅ Your name in the project history
-        - ✅ Confidence to take on larger issues next
 
     validations:
       required: true
