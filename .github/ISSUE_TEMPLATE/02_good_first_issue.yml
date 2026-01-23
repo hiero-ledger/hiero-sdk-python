@@ -20,9 +20,9 @@ body:
       description: Who is this issue for?
       value: |
         Welcome 👋! 
-        This [Good First Issue](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+) is especially friendly to newcomers to the Hiero Python SDK.
-
-        No prior knowledge of Hiero, Hedera, or distributed ledger technology is required and basic familiarity with Python and Git is enough.
+        This [Good First Issue](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+) is friendly to newcomers to the Hiero Python SDK.
+        No prior knowledge of Hiero, Hedera, or distributed ledger technology is required.
+        Basic familiarity with Python and Git is enough.
 
   - type: markdown
     attributes:
@@ -211,17 +211,18 @@ body:
       description: Provide a step-by-step setup guide for new contributors
       value: |
         Please follow these steps to setup:
-        - [ ] **Suggested Pre-requisites** 
-              - [ ] Visual Studio (VS) Code [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
-              - [ ] GitHub Desktop [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
-              - [ ] Hedera Testnet Account with root .env file [Guide](docs/sdk_developers/training/setup/03_setting_up_env.md)
-              - [ ] Create a GPG key and tie it to GitHub (Guide)[docs/sdk_developers/signing.md]
-        - [ ] **Setup the Hiero Python SDK for development**
-              - [ ] **Fork** Create an online and local copy of the repository [Guide](docs/sdk_developers/training/workflow/02_forking_python_sdk.md)
-              - [ ] **Connect** origin with upstream [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md)
-              - [ ] **Install Packages** Install packages and protobuffs [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
-              - [ ] **Sync Main** pull any recent upstream changes [Guide](docs/sdk_developers/rebasing.md)
-        That's it! We are ready to get started.
+        #### Suggested Pre-requisites
+            - [ ] Visual Studio (VS) Code [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
+            - [ ] GitHub Desktop [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
+            - [ ] Hedera Testnet Account with root .env file [Guide](docs/sdk_developers/training/setup/03_setting_up_env.md)
+            - [ ] Create a GPG key linked to GitHub [Guide](docs/sdk_developers/signing.md)
+        #### Setup the Hiero Python SDK for development
+            - [ ] **Fork** Create an online and local copy of the repository [Guide](docs/sdk_developers/training/workflow/02_forking_python_sdk.md)
+            - [ ] **Connect** origin with upstream [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md)
+            - [ ] **Install Packages** Install packages and protobuffs [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
+            - [ ] **Sync Main** pull any recent upstream changes [Guide](docs/sdk_developers/rebasing.md)
+
+        That's it! 🎉 We are ready to get started.
     validations:
       required: true
 
@@ -233,22 +234,16 @@ body:
       value: |
         Please follow these steps to contribute:
 
-        ### ✅ Get ready
-        - [ ] **Claim the issue:**  
-              Comment on the issue to get assigned.  
-              [Assignment guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        #### ✅ Get ready
+        - [ ] **Claim the issue:**  Comment `/assign` [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md)
 
-        - [ ] **Read the issue carefully:**  
-              Review the issue description and the CodeRabbit AI plan.
+        - [ ] **Double check the Issue and AI plan:**. Read the issue description and the CodeRabbit AI plan again.
 
-        - [ ] **Ask questions early:**  
-              Reach out on [Discord](docs/discord.md) or to your mentor for implementation questions, or comment with `@good_first_issue_support_team` for setup or workflow help.
+        - [ ] **Ask questions early:**. Ask on [Discord](docs/discord.md), your mentor (Python SDK help) or the `@good_first_issue_support_team` (setup help)
 
-        - [ ] **Sync with main:**  
-              Pull the latest upstream changes.  
-              [Rebasing guide](docs/sdk_developers/rebasing.md)
-
-        ### 🛠️ Start solving the issue
+        - [ ] **Sync with main:**. Pull the latest upstream changes [Guide](docs/sdk_developers/rebasing.md)
+TODO
+        #### 🛠️ Start solving the issue
         - [ ] **Create a branch from `main`:**  
               Create a working branch for your changes.  
               [Branching guide](docs/sdk_developers/training/workflow/05_working_branches.md)
@@ -265,7 +260,7 @@ body:
               Add an entry to `.CHANGELOG.md` under the appropriate **[UNRELEASED]** section and commit it separately.  
               [Changelog guide](docs/sdk_developers/changelog_entry.md)
 
-        ### 🚀 Create the pull request
+        #### 🚀 Create the pull request
         - [ ] **Push your commits:**  
               Push your branch to your fork (e.g. `git push origin your-branch-name`).
 
