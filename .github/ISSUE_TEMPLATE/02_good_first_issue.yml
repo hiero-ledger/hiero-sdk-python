@@ -336,8 +336,8 @@ body:
         > - Comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
         > - Ask for help in [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
         >
-        > Reaching out is part of the contribution process.  
-        > Even draft pull requests and partial progress are welcome.
+        Reaching out is part of the contribution process.  
+        Even draft pull requests and partial progress are welcome.
         ---
 
   - type: textarea
