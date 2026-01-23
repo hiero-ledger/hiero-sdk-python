@@ -108,8 +108,13 @@ module.exports = async ({ github, context }) => {
 
     for (const pr of prs) {
 
+      const authorLogin = pr.user?.login;
+      if (!authorLogin) {
+        console.warn(`PR #${pr.number} missing author login. Skipping for safety.`);
+        continue;
+      }
       if (isBotAuthor(pr)) {
-        console.log(`PR #${pr.number} authored by bot (${pr.user.login}). Skipping.`);
+        console.log(`PR #${pr.number} authored by bot (${authorLogin}). Skipping.`);
         continue;
       }
 
