@@ -211,15 +211,24 @@ body:
       description: Provide a step-by-step setup guide for new contributors
       value: |
         Please follow these steps to setup:
-        #### Suggested Pre-requisites
+        ### Suggested Pre-requisites
+            
             - [ ] Visual Studio (VS) Code [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
+            
             - [ ] GitHub Desktop [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
+            
             - [ ] Hedera Testnet Account with root .env file [Guide](docs/sdk_developers/training/setup/03_setting_up_env.md)
+            
             - [ ] Create a GPG key linked to GitHub [Guide](docs/sdk_developers/signing.md)
-        #### Setup the Hiero Python SDK for development
+
+        ### Setup the Hiero Python SDK for development
+            
             - [ ] **Fork** Create an online and local copy of the repository [Guide](docs/sdk_developers/training/workflow/02_forking_python_sdk.md)
+            
             - [ ] **Connect** origin with upstream [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md)
+            
             - [ ] **Install Packages** Install packages and protobuffs [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
+            
             - [ ] **Sync Main** pull any recent upstream changes [Guide](docs/sdk_developers/rebasing.md)
 
         That's it! 🎉 We are ready to get started.
@@ -234,45 +243,33 @@ body:
       value: |
         Please follow these steps to contribute:
 
-        #### ✅ Get ready
+        ### ✅ Get ready
         - [ ] **Claim the issue:**  Comment `/assign` [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md)
 
-        - [ ] **Double check the Issue and AI plan:**. Read the issue description and the CodeRabbit AI plan again.
+        - [ ] **Double check the Issue and AI plan:**. Carefully re-read the issue description and the CodeRabbit AI plan.
 
         - [ ] **Ask questions early:**. Ask on [Discord](docs/discord.md), your mentor (Python SDK help) or the `@good_first_issue_support_team` (setup help)
 
         - [ ] **Sync with main:**. Pull the latest upstream changes [Guide](docs/sdk_developers/rebasing.md)
-TODO
-        #### 🛠️ Start solving the issue
-        - [ ] **Create a branch from `main`:**  
-              Create a working branch for your changes.  
-              [Branching guide](docs/sdk_developers/training/workflow/05_working_branches.md)
 
-        - [ ] **Work on the solution:**  
-              Implement the changes described in the issue.
+        ### 🛠️ Solve the Issue
+        - [ ] **Create a branch from `main`:** [Guide](docs/sdk_developers/training/workflow/05_working_branches.md)
 
-        - [ ] **Commit with DCO and GPG signing:**  
-              Commit your changes using:  
-              `git commit -S -s -m "chore: your message"`  
-              [Signing guide](docs/sdk_developers/signing.md)
+        - [ ] **Implement the solution**
 
-        - [ ] **Add a changelog entry:**  
-              Add an entry to `.CHANGELOG.md` under the appropriate **[UNRELEASED]** section and commit it separately.  
-              [Changelog guide](docs/sdk_developers/changelog_entry.md)
+        - [ ] **Commit with DCO and GPG signing:**  Commit your changes using: `git commit -S -s -m "chore: your message"` [Guide](docs/sdk_developers/signing.md)
 
-        #### 🚀 Create the pull request
-        - [ ] **Push your commits:**  
-              Push your branch to your fork (e.g. `git push origin your-branch-name`).
+        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and `git commit -S -s -m "chore: changelog entry"` [Guide](docs/sdk_developers/changelog_entry.md)
 
-        - [ ] **Open a pull request:**  
-              Create a pull request [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls).  
-              [Pull request guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+        ### 🚀 Create the pull request
+        - [ ] **Push your commits:**  Push your branch to your fork `git push origin your-branch-name`.
 
-        - [ ] **Complete the PR description:**  
-              Briefly describe your changes and link the issue being resolved [Linking Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md).
+        - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
-        - [ ] **Submit the pull request:**  
-              Click **Create pull request** 🎉
+        - [ ] **Complete the PR description:**  Briefly describe your changes and link the issue [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md).
+
+        - [ ] **Submit the pull request:**  Click **Create pull request** 🎉
+
     validations:
       required: true
 
@@ -282,11 +279,11 @@ TODO
       label: 🤔 What to expect after submitting a PR
       description: Explain what happens after a pull request is opened.
       value: |
-        Once you open a pull request, a few automated checks will run (signing, changelog, tests, examples, and code quality).
+        Once you open a pull request, a few automated checks will run that will all need to pass (signing, changelog, tests, examples, and code quality). Open each test result to see details.
 
         You’ll also get quick feedback from CodeRabbit AI, which may point out issues or suggest improvements. AI feedback is advisory—use what’s helpful.
 
-        A Python SDK team member will review your PR next, usually within 1–3 days. You may be asked to make changes or your PR may be approved.
+        A Python SDK team member will review your PR, usually within 1–3 days. You may be asked to make changes or your PR may be approved.
 
         After approval, PRs are typically merged within a day.
 
@@ -303,13 +300,13 @@ TODO
       label: 🤔 Additional Help
       description: Provide any extra resources or context for contributors to solve this good first issue
       value: |
-        ###First Points of Contact:
+        ### First Points of Contact:
         - [Discord](docs/discord.md)
-        - Comment with your `@mentor_name` (for Python SDK questions)
+        - Comment with `@mentor_name` (for Python SDK questions)
         - Comment with `@hiero-ledger/hiero-sdk-good-first-issue-support` (for setup and workflow questions)
         The more you ask, the more you learn and so do we!
 
-        ###Helpful Documentation:
+        ### Documentation:
         - [Project Structure](docs/sdk_developers/training/setup/project_structure.md)
         - [DCO and Verified Signing Guide](docs/sdk_developers/signing.md)
         - [Changelog Guide](docs/sdk_developers/changelog_entry.md)
@@ -325,7 +322,7 @@ TODO
         - [General Training](docs/sdk_developers/training)
         - [General SDK Developer Docs](docs/sdk_developers)
 
-        ###Helpful Calls:
+        ### Calls:
         - Get hands-on-help by our expert team at our [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
         - Learn, raise issues and provide feedback at [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581)
 
@@ -336,17 +333,13 @@ TODO
       description: |
         Edit or expand this checklist with what is required to merge a pull request for this issue.
       value: |
-        - [ ] **The issue is solved:**  
-              I’ve carefully read and implemented the issue requirements.
+        - [ ] **The issue is solved:**  I’ve carefully read and implemented the issue requirements.
 
-        - [ ] **I did not add extra changes:**  
-              I did not modify anything beyond what is described in the issue.
+        - [ ] **I did not add extra changes:**  I did not modify anything beyond what is described in the issue.
 
-        - [ ] **Behavior:**  
-              All other existing features continue to work as before.
+        - [ ] **Behavior:**  All other existing features continue to work as before.
 
-        - [ ] **Checks and feedback:**  
-              All automated checks pass and any requested feedback has been addressed.
+        - [ ] **Checks and feedback:**  All checks pass and any requested changes have been made.
     validations:
       required: true
 
@@ -356,7 +349,7 @@ TODO
       label: 🤖 AI usage guidelines
       description: Guidance on using AI tools responsibly for this issue.
       value: |
-        You’re welcome to use AI tools while working on this issue.
+        You’re welcome to use AI tools responsibly while working on this issue.
         Please review suggestions carefully, build step by step, and test changes as you go.
 
         If anything’s unclear, a mentor or maintainer is happy to help.
