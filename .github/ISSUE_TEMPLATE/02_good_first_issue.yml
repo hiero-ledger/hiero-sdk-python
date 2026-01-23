@@ -20,14 +20,16 @@ body:
       label: 🆕🐥 Newcomer Friendly
       description: Who is this issue for?
       value: |
+        #### Overview
         This **[Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee)** is a guided, well-scoped task intended for new contributors to the Hiero Python SDK.
 
-        It is designed to help you:
-          ✅ understand how the repository is structured
-          ✅ practice the standard contribution workflow
-          ✅ submit and merge a pull request
+        #### What you’ll do
+        - ✅ understand how the repository is structured
+        - ✅ practice the standard contribution workflow
+        - ✅ submit and merge a pull request
 
-        A maintainer or mentor actively monitors this issue and will help guide it to completion.
+        #### Support
+        A maintainer or mentor actively monitors this issue and will help **guide it to completion**.
 
         > [!IMPORTANT]
         > **This issue does not require prior domain knowledge.**
@@ -36,9 +38,10 @@ body:
         > - No distributed ledger background required  
         > - **Basic Python and Git are sufficient**
 
-        ⏱️ **Typical time to complete:** 30–90 minutes (once setup is done)  
-        🧩 **Difficulty:** Small, well-contained change  
-        🎓 **Best for:** New contributors
+        > [!NOTE]
+        > ⏱️ **Typical time to complete:** 30–90 minutes (once setup is done)  
+        > 🧩 **Difficulty:** Small, well-contained change  
+        > 🎓 **Best for:** New contributors
 
   - type: markdown
     attributes:
@@ -184,6 +187,8 @@ body:
         For good first issues, please keep this as guided and clear as possible.
       value: |
         Edit here. Example provided below.
+
+        ---
     validations:
       required: true
 
@@ -316,14 +321,14 @@ body:
       label: 🧭 Getting help if you’re stuck
       description: How to get support while working on this issue.
       value: |
-        If you run into questions or get blocked, don’t spend more than **20 minutes** stuck on your own.
+        If questions come up, don’t spend more than **20 minutes** blocked.
 
-        You can:
-        - comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
-        - ask for help in [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+        ### Ways to get help
+        - Comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
+        - Ask in [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
 
-        Getting stuck and reaching out for help is a normal part of the contribution process.
-        Even partial progress or draft pull requests are welcome!
+        Reaching out early is part of the contribution process.  
+        Draft pull requests and partial progress are welcome.
 
   - type: textarea
     id: pr_expectations
@@ -331,53 +336,63 @@ body:
       label: 🤔 What to expect after submitting a PR
       description: Explain what happens after a pull request is opened.
       value: |
-        Once you open a pull request, here’s what happens next:
+        Once you open a pull request, here’s what happens next.
 
-        #### 🤖 Automated checks
-        A few automated checks will run and **all must pass** before your PR can be merged, such as:
-        - signing 
-        - changelog entry
-        - solo unit and integration tests
-        - examples
-        - code quality checks
+        ---
 
-        👉 You can open each check to see detailed results and error messages if anything fails.
+        **🤖 Automated checks**
+        Before your PR can be merged, a small set of automated checks must pass:
 
+        - Signing
+        - Changelog entry
+        - Unit and integration tests
+        - Examples
+        - Code quality checks
 
-        #### 🤝 AI feedback (CodeRabbit)
-        You’ll receive quick feedback from **CodeRabbit AI**, which may:
-        - point out potential issues
-        - suggest improvements or alternatives
+        You can open each check to see detailed results if something fails.
 
-        AI feedback is **advisory** — it can make mistakes - use what’s helpful and relevant to the issue description.
+        ---
 
+        **🤝 AI feedback (CodeRabbit)**
+        CodeRabbit AI may leave early feedback on your PR, including:
+        - potential issues
+        - suggested improvements or alternatives
 
-        #### 😎 Team Member review
+        AI feedback is advisory. Use what’s helpful.
+
+        ---
+
+        **😎 Team review**
         A Python SDK team member will review your PR, typically within **1–3 days**.
-        Reviews focus on clarity and learning.
 
-        - You may be asked to make changes, or
-        - Your PR may be approved as-is ✅
+        Reviews focus on clarity and learning:
+        - you may be asked to make changes, or
+        - your PR may be approved as-is ✅
 
         Once approved, PRs are usually merged within **one day**.
 
-        #### 🔄 Merge conflicts
-        Merge conflicts can occasionally happen as the SDK updates. This is normal and fixable.
+        ---
+
+        **🔄 Merge conflicts**
+        Merge conflicts can occasionally happen as the SDK updates.
 
         - **Changelog conflicts**  
-          These are common and can usually be resolved by accepting both changes using GitHub’s online editor in the pull request.
+          Usually resolved by accepting both changes in GitHub’s online editor.
 
         - **Other conflicts**  
-          More complex conflicts may require rebasing your branch and resolving them locally.  
-          👉 Follow the step-by-step **[Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)** for help.
+          May require rebasing your branch locally.  
+          👉 Follow the **[Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)**.
 
-        ### 🏁 What success looks like
+        ---
 
+        **🏁 What success looks like**
         When this issue is complete, you will have:
-          ✅ Solved a real issue we need resolving
-          ✅ a merged pull request in the Hiero Python SDK
-          ✅ your name permanently in the project history
-          ✅ confidence to take on larger issues next
+
+        - ✅ Solved a real issue we needed
+        - ✅ A merged pull request in the Hiero Python SDK
+        - ✅ Your name in the project history
+        - ✅ Confidence to take on larger issues next
+
     validations:
       required: true
 
