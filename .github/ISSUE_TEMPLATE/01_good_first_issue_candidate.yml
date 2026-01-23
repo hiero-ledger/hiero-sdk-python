@@ -23,10 +23,9 @@ body:
         > It is being evaluated for suitability and may require
         > clarification or refinement before it is ready to be picked up.
         > 
-        > Please wait for maintainer confirmation before starting work.
+        > **Please wait for maintainer confirmation before asking to be assigned.**
         >
-        > Maintainers and reviewers can read more about Good First Issues:
-        > docs/maintainers/good_first_issue_guidelines.md
+        > Maintainers and reviewers can read more about [Good First Issues](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issues_guidelines.md) and [Good First Issue Candidates](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issue_candidate_guidelines.md)
 
     validations:
       required: false
