@@ -19,10 +19,15 @@ body:
       label: 🆕🐥 Newcomer Friendly
       description: Who is this issue for?
       value: |
-        Welcome 👋! 
-        This [Good First Issue](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+) is friendly to newcomers to the Hiero Python SDK.
-        No prior knowledge of Hiero, Hedera, or distributed ledger technology is required.
-        Basic familiarity with Python and Git is enough.
+        Welcome 👋  
+
+        This **Good First Issue** is a beginner-friendly starting point for the Hiero Python SDK.
+
+        You don’t need any background in:
+        - Hiero or Hedera
+        - distributed ledger technology
+
+        If you’re comfortable with **basic Python** and **Git**, you’re ready to get started.
 
   - type: markdown
     attributes:
