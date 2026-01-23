@@ -45,7 +45,7 @@ The Hiero Python SDK uses `uv` for extremely fast Python package and environment
 1.  In your PowerShell window, run the following command to install `uv`:
 
 ```powershell
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 > ⚠️ **Important**: After the installation finishes, you **must** close your current PowerShell window and open a new one for the changes to take effect. Alternatively, you can reload your environment variables.
