@@ -10,7 +10,7 @@ body:
         ---
         ## **Thanks for creating a good first issue candidate!** 😊
 
-        We truly appreciate your time and effort, welcome!.
+        We truly appreciate your time and effort, welcome!
         This template is designed to help you create a Good First Issue Candidate (GFI) : a small, well-scoped task that may be missing some documentation or there is uncertainty if it is a good fit for a GFI.
         ---
 
@@ -71,7 +71,7 @@ body:
       value: |
         > [!IMPORTANT]
         > #### 📋 Good First Issue (GFI) Guidelines
-        > A **Good First Issue [Guidelines](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issue_candidate_guidelines.md)** is a small, well-scoped task that helps new contributors get familiar with the codebase and contribution workflow.
+        > A **Good First Issue [Guidelines](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issue_guidelines.md)** is a small, well-scoped task that helps new contributors get familiar with the codebase and contribution workflow.
         >
         > **Often a good fit for Good First Issues:**
         > - Spelling or grammar fixes
@@ -269,7 +269,7 @@ body:
 
         - [ ] **Connect** origin with upstream: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/03_staying_in_sync.md)
 
-        - [ ] **Install Packages** and protobuffs: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
+        - [ ] **Install Packages** and protobufs: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
 
         - [ ] **Sync Main** pull any recent upstream changes: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
 
