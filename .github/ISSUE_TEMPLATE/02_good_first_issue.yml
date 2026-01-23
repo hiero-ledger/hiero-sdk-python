@@ -349,45 +349,28 @@ body:
         Once you open a pull request, here’s what happens next.
 
         **🤖 1. Automated checks**
-        Before your PR can be merged, a small set of automated checks must pass:
-
-        - Signing
-        - Changelog entry
-        - Unit and integration tests
-        - Examples
-        - Code quality checks
-
-        You can open each check to see detailed results if something fails.
+        A small set of automated checks must pass before merging (signing, changelog, tests, examples, code quality).
+        Open any failed check to see details.
 
         ---
 
         **🤝 2. AI feedback (CodeRabbit)**
-        CodeRabbit AI may leave early feedback on your PR, including:
-        - potential issues
-        - suggested improvements or alternatives
-
-        AI feedback is advisory. Use what’s helpful.
+        CodeRabbit AI may suggest improvements or flag issues.
+        Feedback is advisory — use what’s relevant and helpful.
 
         ---
 
         **😎 3. Team review**
-        A Python SDK team member will review your PR, typically within **1–3 days**.
+        A Python SDK team member reviews your PR within **1–3 days**.
+        You may be asked to make changes or your PR may be approved.
+        Approved PRs are usually merged within **one day**.
 
-        Reviews focus on clarity and learning:
-        - you may be asked to make changes, or
-        - your PR may be approved as-is ✅
+        ---
 
-        Once approved, PRs are usually merged within **one day**.
-
-        **🔄 Merge conflicts**
-        Merge conflicts can occasionally happen as the SDK updates (this is normal).
-
-        - **Changelog conflicts**  
-          Usually resolved by accepting both changes in GitHub’s online editor.
-
-        - **Other conflicts**  
-          May require rebasing your branch locally.  
-          👉 Follow the **[Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)**.
+        **🔄 Merge conflicts (sometimes)**
+        Conflicts can happen and are normal as the SDK updates.
+        Changelog conflicts can be resolved online in the PR in the merge editor, accepting both entries
+        Others may require **[rebasing](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)**.
 
         ---
 
