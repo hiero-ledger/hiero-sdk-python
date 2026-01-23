@@ -134,7 +134,9 @@ Hi @$USER, this is InactivityBot 👋
 You were assigned to this issue **${ASSIGNED_AGE_DAYS} days** ago, and there is currently no open pull request linked to it.
 To keep the backlog available for active contributors, I'm unassigning you for now.
 
-If you're no longer interested in working on this issue, no action is needed — or you can comment \`/unassign\` at any time to unassign yourself.
+If you're no longer interested, no action is needed.
+
+**Tip:** You can comment \`/unassign\` on any issue to proactively step away before this bot kicks in.
 
 If you'd like to continue working on this later, feel free to comment \`/assign\` to get re-assigned. We'll gladly assign it back to you. 🙂
 EOF
@@ -190,7 +192,9 @@ Hi @$USER, this is InactivityBot 👋
 
 This pull request has had no new commits for **${PR_AGE_DAYS} days**, so I'm closing it and unassigning you from the linked issue to keep the backlog healthy.
 
-If you're no longer interested in working on this issue, no action is needed — or you can comment \`/unassign\` at any time to unassign yourself.
+If you're no longer interested, no action is needed.
+
+**Tip:** You can comment \`/unassign\` on any issue to proactively step away before this bot kicks in.
 
 If you'd like to continue working on this later, feel free to comment \`/assign\` on the issue to get re-assigned, and open a new PR when you're ready. 🚀
 EOF
