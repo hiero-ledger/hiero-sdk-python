@@ -331,8 +331,8 @@ class AccountId:
                 num=num,
                 evm_address=self.evm_address,
             )
-        except (ValueError, AttributeError):
-            raise ValueError(f"Invalid account format received: {account_id}")
+        except (ValueError, AttributeError) as e:
+            raise ValueError(f"Invalid account format received: {account_id}") from e
 
     def populate_evm_address(self, client: "Client") -> "AccountId":
         """
@@ -359,7 +359,7 @@ class AccountId:
 
             evm_addr = data.get("evm_address")
             if not evm_addr:
-                raise ValueError(f"Mirror node response missing 'evm_address'")
+                raise ValueError("Mirror node response missing 'evm_address'")
 
         except RuntimeError as e:
             raise RuntimeError(
