@@ -9,11 +9,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 ### Tests
+- Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
+- Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
+- Formatted unit test files using Black.
 - Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
 
 ### Added
+- Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
 - Added advanced CodeRabbit reviewer guidance for `tokens` module changes, with specialized validation rules for token transactions, token classes, and enums. (#1496)
@@ -111,12 +115,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 - Add StakingInfo class ([1364](https://github.com/hiero-ledger/hiero-sdk-python/issues/1364))
+- Added a visible confirmation comment when a user unassigns themselves from an issue (#1506)
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 
 ### Changed
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
-
+- Good First Issue template to have more guidance and renamed other templates for consistency with upstream 
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
@@ -191,10 +196,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
 - Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
+- Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 
 ### Fixed
 - Prevent spam email notifications from `bot-advanced-check`
 workflow on non-advanced issues by using early success exit instead of job skip (#1517)
+- Prevented linkbot from commenting on or auto-closing bot-authored pull requests. (#1516)
 - Respect `dry-run` input in `bot-community-calls.yml` workflow (#1425)
 - Updated LinkBot regex in the GitHub Actions bot script to support "Closes" and "Resolves" keywords for improved PR body-link detection (#1465)
 - Fixed CodeRabbit plan trigger workflow running multiple times when issues are created with multiple labels by switching to labeled event trigger only. (#1427)
@@ -227,6 +234,7 @@ workflow on non-advanced issues by using early success exit instead of job skip 
 ### Removed
 
 - Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
+- Transaction byte generation to respect valid `node_account_ids` during `external signing` and `manual freezing workflows`, preventing execution failures caused by node mismatches.
 
 ### Breaking Change
 
