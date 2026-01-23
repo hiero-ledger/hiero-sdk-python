@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Tests
+- Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
@@ -111,13 +112,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
 - Add StakingInfo class ([1364](https://github.com/hiero-ledger/hiero-sdk-python/issues/1364))
+- Added a visible confirmation comment when a user unassigns themselves from an issue (#1506)
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 
 ### Changed
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
-
+- Good First Issue template to have more guidance and renamed other templates for consistency with upstream 
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
