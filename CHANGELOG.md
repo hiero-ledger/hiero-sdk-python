@@ -7,11 +7,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Changed
+- Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 
 ### Tests
 - Format account test files with Black (#1519)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
-- Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
+- Formatted unit test files using Black.
+
 
 ### Added
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
@@ -225,7 +227,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Removed
 
 - Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
-- Transaction byte generation to respect valid `node_account_ids` during `external signing` and `manual freezing workflows`, preventing execution failures caused by node mismatches.
 
 ### Breaking Change
 
