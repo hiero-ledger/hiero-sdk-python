@@ -210,28 +210,25 @@ body:
       label: 📋 Step-by-Step Setup Guide
       description: Provide a step-by-step setup guide for new contributors
       value: |
-        Please follow these steps to setup:
-        ### Suggested Pre-requisites
-            
-            - [ ] Visual Studio (VS) Code [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
-            
-            - [ ] GitHub Desktop [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
-            
-            - [ ] Hedera Testnet Account with root .env file [Guide](docs/sdk_developers/training/setup/03_setting_up_env.md)
-            
-            - [ ] Create a GPG key linked to GitHub [Guide](docs/sdk_developers/signing.md)
+        ### Suggestions:
+        - [ ] Visual Studio (VS) Code [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md).
+
+        - [ ] GitHub Desktop [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md).
+
+        - [ ] Hedera Testnet Account with root .env file [Guide](docs/sdk_developers/training/setup/03_setting_up_env.md).
+
+        - [ ] Create a GPG key linked to GitHub [Guide](docs/sdk_developers/signing.md).
 
         ### Setup the Hiero Python SDK for development
-            
-            - [ ] **Fork** Create an online and local copy of the repository [Guide](docs/sdk_developers/training/workflow/02_forking_python_sdk.md)
-            
-            - [ ] **Connect** origin with upstream [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md)
-            
-            - [ ] **Install Packages** Install packages and protobuffs [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
-            
-            - [ ] **Sync Main** pull any recent upstream changes [Guide](docs/sdk_developers/rebasing.md)
+        - [ ] **Fork** Create an online and local copy of the repository [Guide](docs/sdk_developers/training/workflow/02_forking_python_sdk.md).
 
-        That's it! 🎉 We are ready to get started.
+        - [ ] **Connect** origin with upstream [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md).
+
+        - [ ] **Install Packages** Install packages and protobuffs [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md).
+
+        - [ ] **Sync Main** pull any recent upstream changes [Guide](docs/sdk_developers/rebasing.md).
+
+        You are set up! 🎉
     validations:
       required: true
 
@@ -241,34 +238,32 @@ body:
       label: 📋 Step-by-step contribution guide
       description: Provide a contribution workflow suitable for new contributors.
       value: |
-        Please follow these steps to contribute:
-
         ### ✅ Get ready
-        - [ ] **Claim the issue:**  Comment `/assign` [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        - [ ] **Claim the issue:**  Comment `/assign` [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md).
 
         - [ ] **Double check the Issue and AI plan:**. Carefully re-read the issue description and the CodeRabbit AI plan.
 
-        - [ ] **Ask questions early:**. Ask on [Discord](docs/discord.md), your mentor (Python SDK help) or the `@good_first_issue_support_team` (setup help)
+        - [ ] **Ask questions early:** Ask on [Discord](docs/discord.md), your `@mentor` (Python SDK help) and the `@good_first_issue_support_team` (setup and workflow help).
 
-        - [ ] **Sync with main:**. Pull the latest upstream changes [Guide](docs/sdk_developers/rebasing.md)
+        - [ ] **Sync with main:** Pull the latest upstream changes [Guide](docs/sdk_developers/rebasing.md).
 
         ### 🛠️ Solve the Issue
-        - [ ] **Create a branch from `main`:** [Guide](docs/sdk_developers/training/workflow/05_working_branches.md)
+        - [ ] **Create a branch from `main`:** [Guide](docs/sdk_developers/training/workflow/05_working_branches.md).
 
-        - [ ] **Implement the solution**
+        - [ ] **Implement the solution**: Follow the implementation steps in the issue description.
 
-        - [ ] **Commit with DCO and GPG signing:**  Commit your changes using: `git commit -S -s -m "chore: your message"` [Guide](docs/sdk_developers/signing.md)
+        - [ ] **Commit with DCO and GPG signing:**  Commit changes using: `git commit -S -s -m "chore: your message"` [Guide](docs/sdk_developers/signing.md).
 
-        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and `git commit -S -s -m "chore: changelog entry"` [Guide](docs/sdk_developers/changelog_entry.md)
+        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and commit as `git commit -S -s -m "chore: changelog entry"` [Guide](docs/sdk_developers/changelog_entry.md).
 
         ### 🚀 Create the pull request
         - [ ] **Push your commits:**  Push your branch to your fork `git push origin your-branch-name`.
 
-        - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+        - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md).
 
         - [ ] **Complete the PR description:**  Briefly describe your changes and link the issue [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md).
 
-        - [ ] **Submit the pull request:**  Click **Create pull request** 🎉
+        - [ ] **Submit the pull request:**  Click `**Create pull request**` 🎉.
 
     validations:
       required: true
@@ -279,18 +274,42 @@ body:
       label: 🤔 What to expect after submitting a PR
       description: Explain what happens after a pull request is opened.
       value: |
-        Once you open a pull request, a few automated checks will run that will all need to pass (signing, changelog, tests, examples, and code quality). Open each test result to see details.
+        Once you open a pull request, here’s what happens next:
 
-        You’ll also get quick feedback from CodeRabbit AI, which may point out issues or suggest improvements. AI feedback is advisory—use what’s helpful.
+        ### 🤖 Automated checks
+        A few automated checks will run and **all must pass** before your PR can be merged, such as:
+        - signing 
+        - changelog entry
+        - solo unit and integration tests
+        - examples
+        - code quality checks
 
-        A Python SDK team member will review your PR, usually within 1–3 days. You may be asked to make changes or your PR may be approved.
+        👉 You can open each check to see detailed results and error messages if anything fails.
 
-        After approval, PRs are typically merged within a day.
+        ### 🤝 AI feedback (CodeRabbit)
+        You’ll receive quick feedback from **CodeRabbit AI**, which may:
+        - point out potential issues
+        - suggest improvements or alternatives
 
-        🔄 Merge conflicts
-        Merge conflicts can happen as the SDK updates:
-        - Changelog conflicts: use the online editor in the PR
-        - Other conflicts may require rebasing and manual resolution [Guide](docs/sdk_developers/rebasing.md)
+        AI feedback is **advisory** — it can make mistakes - use what’s helpful and feel free to ask questions.
+
+        ### 👀 Maintainer review
+        A Python SDK team member will review your PR, typically within **1–3 days**.
+        - You may be asked to make changes, or
+        - Your PR may be approved as-is ✅
+
+        ### 🚀 Merge
+        Once approved, PRs are usually merged within **one day**.
+
+        ### 🔄 Merge conflicts
+        Merge conflicts can occasionally happen as the SDK updates. This is normal and fixable.
+
+        - **Changelog conflicts**  
+          These are common and can usually be resolved directly using GitHub’s online editor in the pull request.
+
+        - **Other conflicts**  
+          More complex conflicts may require rebasing your branch and resolving them locally.  
+          👉 Follow the step-by-step **[Rebasing Guide](docs/sdk_developers/rebasing.md)** for help.
     validations:
       required: true
 
@@ -333,6 +352,8 @@ body:
       description: |
         Edit or expand this checklist with what is required to merge a pull request for this issue.
       value: |
+        To be able to close this issue, the following criteria must be met:
+
         - [ ] **The issue is solved:**  I’ve carefully read and implemented the issue requirements.
 
         - [ ] **I did not add extra changes:**  I did not modify anything beyond what is described in the issue.
@@ -349,7 +370,12 @@ body:
       label: 🤖 AI usage guidelines
       description: Guidance on using AI tools responsibly for this issue.
       value: |
-        You’re welcome to use AI tools responsibly while working on this issue.
-        Please review suggestions carefully, build step by step, and test changes as you go.
+        You’re welcome to use AI tools while working on this issue.
 
-        If anything’s unclear, a mentor or maintainer is happy to help.
+        **Use AI responsibly:**
+        - Verify suggestions before applying them, such as by looking at similar examples
+        - Work one small change at a time
+        - Create small tests/checks as you go
+
+        **For Hiero Python SDK expert guidance:**
+        - Ask a mentor/maintainer, they are happy to guide you on our best practices
