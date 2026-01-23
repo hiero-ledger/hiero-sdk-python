@@ -45,7 +45,7 @@ body:
       value: |
         > [!IMPORTANT]
         > #### 📋 Good First Issue (GFI) Guidelines
-        > A **Good First Issue [Guidelines](docs/maintainers/good_first_issue_candidate_guidelines.md)** is a small, well-scoped task that helps new contributors get familiar with the codebase and contribution workflow.
+        > A **Good First Issue [Guidelines](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issue_candidate_guidelines.md)** is a small, well-scoped task that helps new contributors get familiar with the codebase and contribution workflow.
         >
         > **Often a good fit for Good First Issues:**
         > - Spelling or grammar fixes
@@ -230,22 +230,22 @@ body:
       description: Provide a step-by-step setup guide for new contributors
       value: |
         #### Suggestions:
-        - [ ] Visual Studio (VS) Code: [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
+        - [ ] Visual Studio (VS) Code: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
 
-        - [ ] GitHub Desktop: [Guide](docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
+        - [ ] GitHub Desktop: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
 
-        - [ ] Hedera Testnet Account with root .env file: [Guide](docs/sdk_developers/training/setup/03_setting_up_env.md)
+        - [ ] Hedera Testnet Account with root .env file: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/03_setting_up_env.md)
 
-        - [ ] Create a GPG key linked to GitHub: [Guide](docs/sdk_developers/signing.md)
+        - [ ] Create a GPG key linked to GitHub: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
 
         #### Setup the Hiero Python SDK for development
-        - [ ] **Fork** Create an online and local copy of the repository: [Guide](docs/sdk_developers/training/workflow/02_forking_python_sdk.md)
+        - [ ] **Fork** Create an online and local copy of the repository: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/02_forking_python_sdk.md)
 
-        - [ ] **Connect** origin with upstream: [Guide](docs/sdk_developers/training/workflow/03_staying_in_sync.md)
+        - [ ] **Connect** origin with upstream: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/03_staying_in_sync.md)
 
-        - [ ] **Install Packages** and protobuffs: [Guide](docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
+        - [ ] **Install Packages** and protobuffs: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md)
 
-        - [ ] **Sync Main** pull any recent upstream changes: [Guide](docs/sdk_developers/rebasing.md)
+        - [ ] **Sync Main** pull any recent upstream changes: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
 
         You are set up! 🎉
     validations:
@@ -258,33 +258,33 @@ body:
       description: Provide a contribution workflow suitable for new contributors.
       value: |
         #### ✅ Get ready
-        - [ ] **Claim the issue:**  comment `/assign`: [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        - [ ] **Claim the issue:**  comment `/assign`: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
 
         - [ ] **Double check the Issue and AI plan:** carefully re-read the issue description and the CodeRabbit AI plan
 
-        - [ ] **Ask questions early:** ask on [Discord](docs/discord.md), your `@mentor` (Python SDK help) and the `@good_first_issue_support_team` (setup and workflow help)
+        - [ ] **Ask questions early:** ask on [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md), your `@mentor` (Python SDK help) and the `@good_first_issue_support_team` (setup and workflow help)
 
-        - [ ] **Sync with main:** pull the latest upstream changes [Guide](docs/sdk_developers/rebasing.md)
+        - [ ] **Sync with main:** pull the latest upstream changes [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
 
         - [ ] 💡 Tip: Before coding, leave a short comment describing what you plan to change. We’ll confirm you’re on the right track.
 
         #### 🛠️ Solve the Issue
-        - [ ] **Create a branch from `main`:** [Guide](docs/sdk_developers/training/workflow/05_working_branches.md)
+        - [ ] **Create a branch from `main`:** [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/05_working_branches.md)
 
         - [ ] **Implement the solution**: follow the implementation steps in the issue description.
 
-        - [ ] **Commit with DCO and GPG signing:**  commit changes using: `git commit -S -s -m "chore: your message"`, [Guide](docs/sdk_developers/signing.md)
+        - [ ] **Commit with DCO and GPG signing:**  commit changes using: `git commit -S -s -m "chore: your message"`, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
 
-        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and commit as `git commit -S -s -m "chore: changelog entry"` [Guide](docs/sdk_developers/changelog_entry.md)
+        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and commit as `git commit -S -s -m "chore: changelog entry"` [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
 
         #### 🚀 Create the pull request
         - [ ] **Push your commits:**  push your branch to your fork `git push origin your-branch-name`
 
-        - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+        - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
-        - [ ] **Complete the PR description:**  briefly describe your changes, [Guide](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+        - [ ] **Complete the PR description:**  briefly describe your changes, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
-        - [ ] **Link the Issue:**  link the issue the PR solves in the PR description, [Guide](docs/sdk_developers/how_to_link_issues.md)
+        - [ ] **Link the Issue:**  link the issue the PR solves in the PR description, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how_to_link_issues.md)
 
         - [ ] **Submit the pull request:**  click `**Create pull request**` 🎉
 
@@ -320,7 +320,7 @@ body:
 
         You can:
         - comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
-        - ask for help in [Discord](docs/discord.md)
+        - ask for help in [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
 
         Getting stuck and reaching out for help is a normal part of the contribution process.
         Even partial progress or draft pull requests are welcome!
@@ -369,7 +369,7 @@ body:
 
         - **Other conflicts**  
           More complex conflicts may require rebasing your branch and resolving them locally.  
-          👉 Follow the step-by-step **[Rebasing Guide](docs/sdk_developers/rebasing.md)** for help.
+          👉 Follow the step-by-step **[Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)** for help.
 
         ### 🏁 What success looks like
 
@@ -408,28 +408,28 @@ body:
       description: Provide any extra resources or context for contributors to solve this good first issue
       value: |
         #### First Points of Contact:
-        - [Discord](docs/discord.md)
+        - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
         - Comment with `@mentor_name` (for Python SDK questions)
         - Comment with `@hiero-ledger/hiero-sdk-good-first-issue-support` (for setup and workflow questions)
         The more you ask, the more you learn and so do we!
 
         #### Documentation:
-        - [README.md](./README.md)
-        - [CONTRIBUTING.md](./CONTRIBUTING.md)
-        - [Project Structure](docs/sdk_developers/training/setup/project_structure.md)
-        - [DCO and Verified Signing Guide](docs/sdk_developers/signing.md)
-        - [Changelog Guide](docs/sdk_developers/changelog_entry.md)
-        - [Rebasing Guide](docs/sdk_developers/rebasing.md)
-        - [Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)
-        - [Linking Issues Guide](docs/sdk_developers/how_to_link_issues.md)
-        - [Workflow Guide](docs/sdk_developers/workflow.md)
+        - [README.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md)
+        - [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
+        - [Project Structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
+        - [DCO and Verified Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+        - [Changelog Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+        - [Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
+        - [Merge Conflicts Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
+        - [Linking Issues Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how_to_link_issues.md)
+        - [Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/workflow.md)
 
-        - [Pin Github Actions Guide](docs/sdk_developers/how-to-pin-github-actions.md)
-        - [Running Examples](docs/sdk_developers/examples.md)
-        - [Testing on Forks](docs/sdk_developers/training/testing_forks.md)
+        - [Pin Github Actions Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how-to-pin-github-actions.md)
+        - [Running Examples](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/examples.md)
+        - [Testing on Forks](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/testing_forks.md)
 
-        - [General Training](docs/sdk_developers/training)
-        - [General SDK Developer Docs](docs/sdk_developers)
+        - [General Training](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training)
+        - [General SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers)
 
         #### Calls:
         - Get hands-on-help by our expert team at our [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
