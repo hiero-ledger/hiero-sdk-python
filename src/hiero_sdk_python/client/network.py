@@ -28,7 +28,7 @@ class Network:
         'mainnet': 'https://mainnet-public.mirrornode.hedera.com',
         'testnet': 'https://testnet.mirrornode.hedera.com',
         'previewnet': 'https://previewnet.mirrornode.hedera.com',
-        'solo': 'http://localhost:8080'  # Local development only
+        'solo': 'http://localhost:5551'  # Local development only
     }
 
     DEFAULT_NODES: Dict[str,List[_Node]] = {
