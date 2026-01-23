@@ -13,21 +13,43 @@ body:
         We truly appreciate your time and effort, welcome!.
         This template is designed to help you create a Good First Issue (GFI) : a small, well-scoped task that helps new contributors learn the codebase and workflow.
         ---
+
   - type: textarea
     id: intro
     attributes:
       label: 🆕🐥 Newcomer Friendly
       description: Who is this issue for?
       value: |
-        Welcome 👋  
+        This **Good First Issue** is a guided, well-scoped task intended for new contributors to the Hiero Python SDK.
 
-        This **Good First Issue** is a beginner-friendly starting point for the Hiero Python SDK.
+        It is designed to help you:
+        - understand how the repository is structured
+        - practice the standard contribution workflow
+        - submit and merge a pull request
 
-        You don’t need any background in:
-        - Hiero or Hedera
-        - distributed ledger technology
+        No prior knowledge of Hiero, Hedera, or distributed ledger technology is required.
+        Familiarity with **basic Python** and **Git** is sufficient.
 
-        If you have **basic Python** and **Git**, you’re ready to get started.
+        A maintainer or mentor actively monitors this issue and will help guide it to completion.
+
+        ⏱️ **Typical time to complete:** 30–90 minutes (once setup is done)  
+        🧩 **Difficulty:** Small, well-contained change  
+        🎓 **Best for:** New contributors
+
+  - type: textarea
+    id: getting_help
+    attributes:
+      label: 🧭 Getting help if you’re stuck
+      description: How to get support while working on this issue.
+      value: |
+        If you run into questions or get blocked, don’t spend more than **20 minutes** stuck on your own.
+
+        You can:
+        - comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
+        - ask for help in [Discord](docs/discord.md)
+
+        Getting stuck and reaching out for help is a normal part of the contribution process.
+        Even partial progress or draft pull requests are welcome!
 
   - type: markdown
     attributes:
@@ -54,9 +76,12 @@ body:
       label: 👾 Issue description
       description: |
         Describe the issue in a way that’s easy for new contributors to understand.
+        Briefly explain why this change is useful or needed, even if the impact seems small.
         Please avoid assuming prior knowledge of the language, codebase, or Hiero, as Good First Issues are often surfaced to new developers.
         Links to relevant documentation or code are very welcome.
       value: |
+        This issue addresses a small but real improvement needed at the Hiero Python SDK.
+
         Edit here. Example provided below.
     validations:
       required: true
@@ -252,6 +277,8 @@ body:
 
         - [ ] **Sync with main:** pull the latest upstream changes [Guide](docs/sdk_developers/rebasing.md)
 
+        - [ ] 💡 Tip: Before coding, leave a short comment describing what you plan to change. We’ll confirm you’re on the right track.
+
         #### 🛠️ Solve the Issue
         - [ ] **Create a branch from `main`:** [Guide](docs/sdk_developers/training/workflow/05_working_branches.md)
 
@@ -323,6 +350,8 @@ body:
 
         #### 😎 Team Member review
         A Python SDK team member will review your PR, typically within **1–3 days**.
+        Reviews focus on clarity and learning, and do not expect perfection.
+
         - You may be asked to make changes, or
         - Your PR may be approved as-is ✅
 
@@ -337,6 +366,14 @@ body:
         - **Other conflicts**  
           More complex conflicts may require rebasing your branch and resolving them locally.  
           👉 Follow the step-by-step **[Rebasing Guide](docs/sdk_developers/rebasing.md)** for help.
+
+        ### 🏁 What success looks like
+
+        When this issue is complete, you will have:
+        ✅ Solved a real issue we need resolving
+        ✅ a merged pull request in the Hiero Python SDK
+        ✅ your name permanently in the project history
+        ✅ confidence to take on larger issues next
     validations:
       required: true
 
@@ -382,10 +419,14 @@ body:
       value: |
         You’re welcome to use AI tools while working on this issue.
 
-        **Use AI responsibly:**
-        - Verify suggestions before applying them, such as by looking at similar examples
-        - Work one small change at a time
-        - Create small tests/checks as you go
+        Many contributors do — especially for:
+        - understanding unfamiliar code
+        - drafting small refactors
+        - sanity-checking approaches
 
-        **For Hiero Python SDK expert guidance:**
-        - Ask a mentor/maintainer, they are happy to guide you on our best practices
+        **Use AI responsibly:**
+        - review suggestions carefully
+        - apply changes incrementally
+        - test as you go
+
+        If in doubt, ask — maintainers are happy to help.
