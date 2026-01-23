@@ -117,7 +117,7 @@ def test_from_string_with_evm_address():
         "0.0.1-addefgh",
         "0.0.1 - abcde",
         " 0.0.100 ",
-        " 1.2.abcdef0123456789abcdef0123456789abcdef01 "
+        " 1.2.abcdef0123456789abcdef0123456789abcdef01 ",
         "1.2.001122334455667788990011223344556677",
     ],
 )
