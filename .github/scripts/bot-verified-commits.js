@@ -46,6 +46,7 @@ const CONFIG = {
     const parsed = Number.parseInt(process.env.MAX_PAGES ?? '5', 10);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : 5;
   })(),
+  DRY_RUN: process.env.DRY_RUN === 'true',
 };
 
 // Validates PR number is a positive integer
@@ -212,9 +213,16 @@ async function postVerificationComment(
   unverifiedCount,
   truncated
 ) {
+  // Skip posting in dry-run mode
+  if (CONFIG.DRY_RUN) {
+    console.log(`[${CONFIG.BOT_NAME}] DRY_RUN enabled; skipping comment.`);
+    return true;
+  }
+
   console.log(`[${CONFIG.BOT_NAME}] Posting verification failure comment...`);
   
   try {
+
     await github.rest.issues.createComment({
       owner,
       repo,
