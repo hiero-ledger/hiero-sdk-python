@@ -143,6 +143,7 @@ Hi ${ASSIGNEE_MENTIONS} 👋
 This issue has been assigned but no pull request has been created yet.
 Are you still planning on working on it?
 If you are, please create a draft PR linked to this issue so we know you are working on it.
+If you’re no longer able to work on this issue, you can comment \`/unassign\` to release it.
 
 From the Python SDK Team"
 

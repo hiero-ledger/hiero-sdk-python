@@ -114,15 +114,18 @@ def query_contract_call():
 
     contract_id = create_contract(client, file_id)
 
-    result = (
+    query = (
         ContractCallQuery()
         .set_contract_id(contract_id)
         .set_gas(2000000)
         .set_function(
             "getMessageAndOwner"
         )  # Call the contract's getMessageAndOwner() function
-        .execute(client)
     )
+    cost = query.get_cost(client)
+    query.set_max_query_payment(cost)
+    
+    result = query.execute(client)
     # You can also use set_function_parameters() instead of set_function() e.g.:
     # .set_function_parameters(ContractFunctionParameters("getMessageAndOwner"))
 

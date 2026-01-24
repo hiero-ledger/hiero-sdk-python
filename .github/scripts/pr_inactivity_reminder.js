@@ -49,6 +49,7 @@ async function hasExistingBotComment(github, pr, owner, repo, marker) {
 async function postInactivityComment(github, pr, owner, repo, marker, inactivityDays, discordLink, office_hours_calendar) {
   const comment = `${marker}
 Hi @${pr.user.login},\n\nThis pull request has had no commit activity for ${inactivityDays} days. Are you still working on the issue? please push a commit to keep the PR active or it will be closed due to inactivity.
+If you’re no longer able to work on this issue, please comment `/unassign` on the linked **issue** (not this pull request) to release it.
 Reach out on discord or join our office hours if you need assistance.\n\n- ${discordLink}\n- ${office_hours_calendar} \n\nFrom the Python SDK Team`;
   if (dryRun) {
     console.log(`DRY-RUN: Would comment on PR #${pr.number} (${pr.html_url}) with body:\n---\n${comment}\n---`);

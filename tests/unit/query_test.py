@@ -1,3 +1,5 @@
+from decimal import Decimal
+import re
 import pytest
 from unittest.mock import MagicMock
 
@@ -9,6 +11,8 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.executable import _ExecutionState
 from hiero_sdk_python.hapi.services import query_header_pb2, response_pb2, response_header_pb2, crypto_get_account_balance_pb2, token_get_info_pb2
 from tests.unit.mock_server import mock_hedera_servers
+
+pytestmark = pytest.mark.unit
 
 # By default we test query that doesn't require payment
 @pytest.fixture
@@ -55,6 +59,7 @@ def test_before_execute_payment_required(query_requires_payment, mock_client):
     mock_get_cost = MagicMock()
     mock_get_cost.return_value = Hbar(2)
     query_requires_payment.get_cost = mock_get_cost
+    query_requires_payment.set_max_query_payment(Hbar(3))
     
     # payment_amount is None, should set payment_amount to 2 Hbars
     query_requires_payment._before_execute(mock_client)
@@ -246,3 +251,135 @@ def test_query_payment_requirement_defaults_to_true(query_requires_payment):
     assert query._is_payment_required() == True
     # Verify that payment-requiring query also defaults to requiring payment
     assert query_requires_payment._is_payment_required() == True
+
+@pytest.mark.parametrize(
+    'valid_amount,expected',
+    [
+        (1, Hbar(1)),
+        (0.1, Hbar(0.1)),
+        (Decimal('0.1'), Hbar(Decimal('0.1'))),
+        (Hbar(1), Hbar(1)),
+        (Hbar(0), Hbar(0))
+    ]  
+)
+def test_set_max_query_payment_valid_param(query, valid_amount, expected):
+    """Test that set_max_query_payment correctly converts various input types to Hbar."""
+    # by default is none before setting it
+    assert query.max_query_payment is None
+    query.set_max_query_payment(valid_amount)
+    assert query.max_query_payment == expected
+
+@pytest.mark.parametrize(
+    'negative_amount',
+    [-1, -0.1, Decimal('-0.1'), Decimal('-1'), Hbar(-1), Hbar(-0.2)]
+)
+def test_set_max_query_payment_negative_value(query, negative_amount):
+    """Test set_max_query_payment for negative amount values."""
+    with pytest.raises(ValueError, match="max_query_payment must be non-negative"):
+        query.set_max_query_payment(negative_amount)
+
+@pytest.mark.parametrize(
+    'invalid_amount',
+    ['1', 'abc', True, False, None, object()]  
+)
+def test_set_max_query_payment_invalid_param(query, invalid_amount):
+    """Test that set_max_query_payment raise error for invalid param."""
+    with pytest.raises(TypeError, match=(
+        "max_query_payment must be int, float, Decimal, or Hbar, "
+        f"got {type(invalid_amount).__name__}"
+    )):
+        query.set_max_query_payment(invalid_amount)
+
+@pytest.mark.parametrize(
+    'invalid_amount',
+    [float('inf'), float('nan')]  
+)
+def test_set_max_query_payment_non_finite_value(query, invalid_amount):
+    """Test that set_max_query_payment raise error for non finite value."""
+    with pytest.raises(ValueError, match="Hbar amount must be finite"):
+        query.set_max_query_payment(invalid_amount)
+
+def test_set_max_payment_override_client_max_payment(query_requires_payment, mock_client):
+    """
+    Test that a query can override the Client's default_max_query_payment
+    """
+    # assert mock_client default max_query_payment = 1 hbar
+    assert mock_client.default_max_query_payment == Hbar(1)
+
+    # set max_payment in query to 2 hbar
+    query_requires_payment.set_max_query_payment(2)
+    assert query_requires_payment.max_query_payment == Hbar(2)
+
+    # mock the get_cost to return 2 hbar as required paymnet
+    mock_get_cost = MagicMock()
+    mock_get_cost.return_value = Hbar(2)
+
+    # should succeed because 2 <= query.max_query_payment
+    query_requires_payment.get_cost = mock_get_cost
+    query_requires_payment._before_execute(mock_client)
+
+    assert query_requires_payment.payment_amount == Hbar(2)
+
+def test_set_max_payment_override_client_max_payment_and_error(query_requires_payment, mock_client):
+    """
+    Test that a query can override the Client's default_max_query_payment
+    and that execution fails if the query cost exceeds the query-specific max.
+    """
+     # Check Client's default max_query_payment
+    assert mock_client.default_max_query_payment == Hbar(1)
+
+    # Update Client's default max_query_payment to 2 Hbar
+    mock_client.set_default_max_query_payment(Hbar(2))
+    assert mock_client.default_max_query_payment == Hbar(2)
+
+    # Set max_query_payment for this query to 1 Hbar (override client default)
+    query_requires_payment.set_max_query_payment(1)
+    assert query_requires_payment.max_query_payment == Hbar(1)
+
+    # Mock get_cost to return 2 Hbar, exceeding the query.max_query_payment
+    mock_get_cost = MagicMock(return_value=Hbar(2))
+    query_requires_payment.get_cost = mock_get_cost
+    
+    # Execution should raise ValueError because 2 > query.max_query_payment (1)
+    expected_msg = "Query cost ℏ2.0 HBAR exceeds max set query payment: ℏ1.0 HBAR"
+    with pytest.raises(ValueError, match=re.escape(expected_msg)):
+        query_requires_payment._before_execute(mock_client)
+
+
+def test_payment_query_use_client_max_payment(query_requires_payment, mock_client):
+    """
+    Test that a query uses Client's default_max_query_payment if no query override.
+    """
+    # assert mock_client default max_query_payment = 1 hbar
+    assert mock_client.default_max_query_payment == Hbar(1)
+
+    # Update Client's default max_query_payment to 2 Hbar
+    mock_client.set_default_max_query_payment(Hbar(2))
+    assert mock_client.default_max_query_payment == Hbar(2)
+
+    # mock the get_cost to return 2 hbar as required paymnet
+    mock_get_cost = MagicMock()
+    mock_get_cost.return_value = Hbar(2)
+
+    # should succeed because 2 <= client.default_max_query_payment
+    query_requires_payment.get_cost = mock_get_cost
+    query_requires_payment._before_execute(mock_client)
+
+    assert query_requires_payment.payment_amount == Hbar(2)
+
+def test_payment_query_use_client_max_payment_and_error(query_requires_payment, mock_client):
+    """
+    Test that execution fails if cost > client default max when query doesn't override.
+    """
+    # Check Client's default max_query_payment
+    assert mock_client.default_max_query_payment == Hbar(1)
+
+    # Mock get_cost to return 2 Hbar, exceeding the client.default_max_query_payment
+    mock_get_cost = MagicMock(return_value=Hbar(2))
+    query_requires_payment.get_cost = mock_get_cost
+
+    # Execution should raise ValueError because 2 > client.default_max_query_payment
+    expected_msg = "Query cost ℏ2.0 HBAR exceeds max set query payment: ℏ1.0 HBAR"
+    with pytest.raises(ValueError, match=re.escape(expected_msg)):
+        query_requires_payment._before_execute(mock_client)
+

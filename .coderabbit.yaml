@@ -19,6 +19,146 @@ reviews:
   poem: false # Do not write a literal poem (spammy)
   enable_prompt_for_ai_agents: false # Disable prompts for AI agents (spammy)
 
+  # TOKEN REVIEW INSTRUCTIONS
+  token_review_instructions: &token_review_instructions |
+    You are acting as a senior maintainer reviewing token-related code
+    in the hiero-sdk-python project.
+
+    This includes:
+    - Token transaction classes (inherit from Transaction)
+    - Token data classes (e.g. TokenInfo)
+    - Token enums and status types
+
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when behavior, safety, or API stability is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/tokens/
+    - Their interaction with shared SDK base classes
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    (CONTRACTUAL / HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Token APIs are public and user-facing.
+
+    The following MUST remain stable:
+    - Public class names
+    - Method names and signatures
+    - Default values and behaviors
+    - Fluent setter chaining semantics
+
+    Flag any change that:
+    - Alters method signatures or return types
+    - Changes default behavior
+    - Renames or removes public attributes
+
+    If a breaking change is unavoidable:
+    - Require explicit deprecation warnings
+    - Require unit + integration tests
+    - Require inline comments explaining migration impact
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — TRANSACTION BASE CLASS CONTRACT
+    ----------------------------------------------------------
+    Applies to classes inheriting from Transaction.
+
+    REQUIRED STRUCTURE:
+    - Must call super().__init__() correctly
+    - Must implement:
+      * _build_proto_body()
+      * build_transaction_body()
+    - build_scheduled_body():
+      * may be less strict, but must be intentional and documented
+    - _get_method():
+      * MUST reference the correct Hedera service stub
+      * MUST align with protobuf service definitions
+
+    Subclasses MUST NOT:
+    - Override execution, retry, or backoff logic
+    - Manage gRPC deadlines manually
+    - Bypass Transaction lifecycle hooks
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — PROTOBUF ALIGNMENT
+    ----------------------------------------------------------
+    Token behavior MUST align with official Hedera protobuf definitions:
+    https://github.com/hashgraph/hedera-protobufs/tree/8c27786cec93abab974309074feaef9b48a695b7/services
+
+    Verify that:
+    - Protobuf field names match exactly
+    - Optional vs required fields are respected
+    - Defaults match protobuf expectations
+    - No silent divergence in semantics
+
+    Flag mismatches explicitly.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — VALIDATION & ERROR BEHAVIOR
+    ----------------------------------------------------------
+    Validation rules:
+    - All required identifiers must be validated before proto construction
+    - Errors must be deterministic and user-readable
+    - Exceptions should be raised early and consistently
+
+    Avoid:
+    - Deferred runtime failures
+    - Ambiguous or generic error messages
+    - Silent no-op behavior
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — IMPORT & HALLUCINATION SAFETY
+    ----------------------------------------------------------
+    STRICT IMPORT RULES:
+    - All imports MUST exist in src/hiero_sdk_python/
+    - Validate paths against existing token modules or shared SDK code
+    - Do NOT assume helpers, enums, or utilities exist
+
+    Flag immediately:
+    - Non-existent modules
+    - Inferred helpers not present in the codebase
+    - Copy-paste artifacts from examples or other SDKs
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — DATA CLASSES & ENUMS
+    ----------------------------------------------------------
+    Applies to non-transaction token files.
+
+    Verify that:
+    - Enums map cleanly to protobuf or documented values
+    - No magic numbers or undocumented defaults exist
+    - Public classes are extensible and documented
+    - Convenience methods (__str__, __repr__) are present where useful
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — TEST & EXAMPLE EXPECTATIONS
+    ----------------------------------------------------------
+    Good to check whether:
+    - Unit tests exist for new or modified behavior
+    - Integration tests exist for new transactions
+    - Examples reference real, existing APIs
+
+    Missing coverage should be flagged clearly.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Propose refactors unless correctness or safety is impacted
+    - Review unrelated SDK components
+    - Comment on formatting or lint-only issues
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure token code is:
+    - Backward-compatible
+    - Transaction-lifecycle correct
+    - Protobuf-aligned
+    - Deterministic and user-safe
+
   # QUERY REVIEW INSTRUCTIONS
   query_review_instructions: &query_review_instructions | 
     You are acting as a senior maintainer reviewing the Query base class
@@ -153,6 +293,8 @@ reviews:
       - Do NOT suggest fixes inline.
       - Instead, aggregate all out-of-scope issues into a single comment with a list of recommendations for one or more follow-up issues that can be created.
   path_instructions:
+    - path: "src/hiero_sdk_python/tokens/**/*.py"
+      instructions: *token_review_instructions
     # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
     - path: "examples/**/*"
       instructions: |
