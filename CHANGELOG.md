@@ -199,6 +199,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 
 ### Fixed
+- Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
 - Fixed jq syntax in bot-office-hours.sh (#1502)
 - Prevented linkbot from commenting on or auto-closing bot-authored pull requests. (#1516)
 - Respect `dry-run` input in `bot-community-calls.yml` workflow (#1425)
