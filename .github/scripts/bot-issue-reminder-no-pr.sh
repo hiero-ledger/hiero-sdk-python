@@ -26,9 +26,9 @@ fi
 
 echo "------------------------------------------------------------"
 echo " Issue Reminder Bot (No PR)"
-echo " Repo:      $REPO"
-echo " Threshold: $DAYS days"
-echo " Dry Run:   $DRY_RUN"
+echo " Repo:       $REPO"
+echo " Threshold:  $DAYS days"
+echo " Dry Run:    $DRY_RUN"
 echo "------------------------------------------------------------"
 echo
 
@@ -42,6 +42,35 @@ parse_ts() {
   else
     date -j -f "%Y-%m-%dT%H:%M:%SZ" "$ts" +"%s"   # macOS/BSD
   fi
+}
+
+# Check for /working command from the specific user within the last X days
+has_recent_working_command() {
+  local issue_num="$1"
+  local user="$2"
+  local days_threshold="$3"
+  
+  # Fetch comments, filter for user and "/working" string
+  local working_comments
+  working_comments=$(gh api "repos/$REPO/issues/$issue_num/comments" --paginate \
+    --jq ".[] | select(.user.login == \"$user\") | select(.body | test(\"/(^|\\\\s)\\\\/working(\\\\s|$)\"; \"i\")) | .created_at")
+  
+  if [[ -z "$working_comments" ]]; then
+    return 1 # False
+  fi
+
+  local cutoff_ts=$((NOW_TS - (days_threshold * 86400)))
+
+  # Check if any of the comments are recent enough
+  for created_at in $working_comments; do
+    local comment_ts
+    comment_ts=$(parse_ts "$created_at")
+    if (( comment_ts >= cutoff_ts )); then
+      return 0 # True
+    fi
+  done
+
+  return 1 # False
 }
 
 # Fetch open ISSUES (not PRs) that have assignees
@@ -79,6 +108,20 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
   if [ -n "$EXISTING_COMMENT" ]; then
     echo "[INFO] Reminder comment already posted on this issue."
     echo
+    continue
+  fi
+
+  # Immunity Check: If ANY assignee has said /working, we skip the reminder for the whole issue
+  SKIP_REMINDER=false
+  for USER in $ASSIGNEES; do
+    if has_recent_working_command "$ISSUE" "$USER" "$DAYS"; then
+      echo "[SKIP] User @$USER posted '/working' recently. Skipping reminder."
+      SKIP_REMINDER=true
+      break
+    fi
+  done
+
+  if [ "$SKIP_REMINDER" = "true" ]; then
     continue
   fi
 
@@ -142,7 +185,7 @@ Hi ${ASSIGNEE_MENTIONS} 👋
 
 This issue has been assigned but no pull request has been created yet.
 Are you still planning on working on it?
-If you are, please create a draft PR linked to this issue so we know you are working on it.
+If you are, please create a draft PR linked to this issue or comment \`/working\` to let us know.
 If you’re no longer able to work on this issue, you can comment \`/unassign\` to release it.
 
 From the Python SDK Team"

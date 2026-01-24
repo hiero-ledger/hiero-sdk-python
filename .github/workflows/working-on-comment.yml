@@ -1,0 +1,29 @@
+name: "Bot: Working On Comment"
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  working-command:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Handle /working command
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const handler = require('./.github/scripts/bot-working-on-comment.js')
+            await handler({github, context})
