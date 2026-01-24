@@ -53,7 +53,7 @@ has_recent_working_command() {
   # Fetch comments, filter for user and "/working" string
   local working_comments
   working_comments=$(gh api "repos/$REPO/issues/$issue_num/comments" --paginate \
-    --jq ".[] | select(.user.login == \"$user\") | select(.body | test(\"/(^|\\\\s)\\\\/working(\\\\s|$)\"; \"i\")) | .created_at")
+    --jq ".[] | select(.user.login == \"$user\") | select(.body | test(\"(^|\\\\s)/working(\\\\s|$)\"; \"i\")) | .created_at")
   
   if [[ -z "$working_comments" ]]; then
     return 1 # False

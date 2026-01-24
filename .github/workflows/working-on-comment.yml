@@ -12,6 +12,9 @@ permissions:
 jobs:
   working-command:
     runs-on: ubuntu-latest
+    concurrency:
+      group: working-command-${{ github.event.issue.number }}
+      cancel-in-progress: false
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481

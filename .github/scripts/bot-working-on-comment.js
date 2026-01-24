@@ -28,7 +28,7 @@ function commentRequestsWorking(body) {
 
 function isAuthorizedUser(issue, username) {
   // If it's a PR, the author can trigger it
-  if (issue.pull_request && issue.user.login === username) {
+  if (issue.pull_request && issue.user?.login === username) {
     return true;
   }
   // If it's an issue (or PR), any assignee can trigger it
@@ -41,6 +41,11 @@ module.exports = async ({ github, context }) => {
     const { owner, repo } = context.repo;
 
     // 1. Basic Validation
+    if (!issue) {
+      console.log("[working] No issue in payload. Ignoring.");
+      return;
+    }
+
     if (!isValidContext(comment)) return;
 
     // 2. Check for Command

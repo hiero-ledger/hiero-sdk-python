@@ -229,15 +229,7 @@ Hi @$USER, this is InactivityBot 👋
 
 This pull request has had no new commits for **${PR_AGE_DAYS} days**, so I'm closing it and unassigning you from the linked issue to keep the backlog healthy.
 
-<<<<<<< HEAD
-If you're no longer interested, no action is needed.
-
-**Tip:** You can comment \`/unassign\` on any issue to proactively step away before this bot kicks in.
-
-If you'd like to continue working on this later, feel free to comment \`/assign\` on the issue to get re-assigned, and open a new PR when you're ready. 🚀
-=======
 If you are still working on this, you can comment \`/working\` in the future to pause this bot, or ask to be re-assigned when you are ready. 🚀
->>>>>>> c19cab3 (feat: add `/working` command to reset inactivity timer)
 EOF
 )
           gh pr comment "$PR_NUM" --repo "$REPO" --body "$MESSAGE" || echo "WARN: couldn't comment on PR"

@@ -38,60 +38,6 @@ async function getLastCommitDate(github, pr, owner, repo) {
   }
 }
 
-// Look for an existing bot comment using our unique marker.
-async function hasExistingBotComment(github, pr, owner, repo, marker) {
-  try {
-    const comments = await github.paginate(github.rest.issues.listComments, {
-      owner,
-      repo,
-      issue_number: pr.number,
-      per_page: 100,
-    });
-    return comments.find((c) => c.body && c.body.includes(marker)) || false;
-  } catch (err) {
-    console.log(
-      `Failed to list comments for PR #${pr.number}:`,
-      err.message || err,
-    );
-    return null; // Prevent duplicate comment if we cannot check
-  }
-}
-
-// Check for recent /working command from the author
-async function hasRecentWorkingCommand(
-  github,
-  pr,
-  owner,
-  repo,
-  inactivityThresholdDays,
-) {
-  try {
-    const comments = await github.paginate(github.rest.issues.listComments, {
-      owner,
-      repo,
-      issue_number: pr.number,
-      per_page: 100,
-    });
-
-    const cutoff = new Date(
-      Date.now() - inactivityThresholdDays * 24 * 60 * 60 * 1000,
-    );
-
-    return comments.some((c) => {
-      const isAuthor = c.user?.login === pr.user?.login;
-      const hasCommand = c.body && /(^|\s)\/working(\s|$)/i.test(c.body);
-      const isRecent = new Date(c.created_at) > cutoff;
-      return isAuthor && hasCommand && isRecent;
-    });
-  } catch (err) {
-    console.log(
-      `Failed to check comments for /working on PR #${pr.number}:`,
-      err.message || err,
-    );
-    return false;
-  }
-}
-
 // Helper to post an inactivity comment
 async function postInactivityComment(
   github,
@@ -157,7 +103,7 @@ module.exports = async ({ github, context }) => {
   });
 
   for (const pr of prs) {
-    // 1. Check inactivity
+    // 1. Check inactivity based on Commits
     const lastCommitDate = await getLastCommitDate(github, pr, owner, repo);
     const inactivityDays = Math.floor(
       (Date.now() -
@@ -175,28 +121,44 @@ module.exports = async ({ github, context }) => {
       continue;
     }
 
-    // 2. Check for recent /working command (IMMUNITY CHECK)
-    const hasWorking = await hasRecentWorkingCommand(
-      github,
-      pr,
-      owner,
-      repo,
-      inactivityThresholdDays,
-    );
+    // 2. Fetch Comments (OPTIMIZED: Single API call for both checks)
+    let comments = [];
+    try {
+      comments = await github.paginate(github.rest.issues.listComments, {
+        owner,
+        repo,
+        issue_number: pr.number,
+        per_page: 100,
+      });
+    } catch (err) {
+      console.log(
+        `Failed to list comments for PR #${pr.number}:`,
+        err.message || err,
+      );
+      // Fallback: assume activity to be safe, or continue to next PR
+      continue;
+    }
+
+    // 3. Check for recent /working command (IMMUNITY CHECK)
+    // Logic: Must be from Author, contain /working, and be recent
+    const hasWorking = comments.some((c) => {
+      const isAuthor = c.user?.login === pr.user?.login;
+      const hasCommand = c.body && /(^|\s)\/working(\s|$)/i.test(c.body);
+      const isRecent = new Date(c.created_at) > cutoff;
+      return isAuthor && hasCommand && isRecent;
+    });
+
     if (hasWorking) {
       skippedCount++;
       console.log(`PR #${pr.number} has recent /working command - skipping`);
       continue;
     }
 
-    // 3. Check for existing comment
-    const existingBotComment = await hasExistingBotComment(
-      github,
-      pr,
-      owner,
-      repo,
-      marker,
+    // 4. Check for existing bot comment
+    const existingBotComment = comments.find(
+      (c) => c.body && c.body.includes(marker),
     );
+
     if (existingBotComment) {
       skippedCount++;
       const idInfo =
@@ -209,7 +171,7 @@ module.exports = async ({ github, context }) => {
       continue;
     }
 
-    // 4. Post inactivity comment
+    // 5. Post inactivity comment
     const commented = await postInactivityComment(
       github,
       pr,
