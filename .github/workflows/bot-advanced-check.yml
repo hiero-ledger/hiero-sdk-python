@@ -46,7 +46,7 @@ jobs:
           echo "::notice::Skipping: event=${{ github.event_name }}, action=${{ github.event.action }}, has_advanced_label=${{ contains(github.event.issue.labels.*.name, 'advanced') }}"
       - name: Checkout scripts
         if: steps.should_run.outputs.value == 'true'
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # Current v4 tag SHA
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           sparse-checkout: |
             .github/scripts
