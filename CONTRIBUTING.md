@@ -24,6 +24,7 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 - [Project Structure](docs/sdk_developers/project_structure.md)
 - [Setup](docs/sdk_developers/training/setup)
+- [Setup (Windows)](docs/sdk_developers/training/setup/setup_windows.md)
 - [Workflow](docs/sdk_developers/training/workflow)
 
 **Quick Start:**

@@ -63,13 +63,17 @@ def test_integration_contract_call_query_can_execute_with_constructor(env):
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
-    result = (
+    query = (
         ContractCallQuery()
         .set_contract_id(contract_id)
         .set_gas(10000000)
         .set_function("getMessage")
-        .execute(env.client)
     )
+
+    cost = query.get_cost(env.client)
+    query.set_max_query_payment(cost)
+
+    result = query.execute(env.client)
 
     assert result is not None, "Contract call result should not be None"
     assert result.get_bytes32(0) == message
@@ -109,14 +113,17 @@ def test_integration_contract_call_query_can_execute(env):
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
-    result = (
+    query = (
         ContractCallQuery()
         .set_contract_id(contract_id)
         .set_gas(10000000)
         .set_function("greet")
-        .execute(env.client)
     )
 
+    cost = query.get_cost(env.client)
+    query.set_max_query_payment(cost)
+
+    result = query.execute(env.client)
     assert result is not None, "Contract call result should not be None"
     assert result.get_string(0) == "Hello, world!"
 
