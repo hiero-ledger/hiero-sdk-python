@@ -24,7 +24,7 @@ jobs:
   # Automatic enforcement + manual dry-run
   #######################################
   check-advanced-qualification:
-    # Skip the entire job (no run steps, no checkout, minimal visibility) when not relevant
+    # steps are skipped, job completes successfully
     runs-on: ubuntu-latest
     steps:
       - name: Filter
@@ -40,6 +40,10 @@ jobs:
               (github.event.action == 'labeled' && github.event.label.name == 'advanced' && join(github.event.issue.assignees.*.login, ',') != '')
             )
           )
+      - name: Log skip reason
+        if: steps.should_run.outputs.value != 'true'
+        run: |
+          echo "::notice::Skipping: event=${{ github.event_name }}, action=${{ github.event.action }}, has_advanced_label=${{ contains(github.event.issue.labels.*.name, 'advanced') }}"
       - name: Checkout scripts
         if: steps.should_run.outputs.value == 'true'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # Current v4 tag SHA
