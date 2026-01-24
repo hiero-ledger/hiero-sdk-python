@@ -266,9 +266,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - fixed workflow: changelog check with improved sensitivity to deletions, additions, new releases
 
-- Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
-
-
 ## [0.1.9] - 2025-11-26
 
 ### Added
