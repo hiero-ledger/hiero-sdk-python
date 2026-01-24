@@ -25,22 +25,23 @@ jobs:
   #######################################
   check-advanced-qualification:
     # Skip the entire job (no run steps, no checkout, minimal visibility) when not relevant
-    if: |-
-      github.event_name == 'workflow_dispatch' ||
-      (
-        contains(github.event.issue.labels.*.name, 'advanced') &&
-        (
-          github.event.action == 'assigned' ||
-          (
-            github.event.action == 'labeled' &&
-            github.event.label.name == 'advanced' &&
-            join(github.event.issue.assignees.*.login, ',') != ''
-          )
-        )
-      )
     runs-on: ubuntu-latest
     steps:
+      - name: Filter
+        id: should_run
+        run: echo "value=true" >> $GITHUB_OUTPUT
+        if: |
+          github.event_name == 'workflow_dispatch' ||
+          (
+            github.event_name == 'issues' &&
+            contains(github.event.issue.labels.*.name, 'advanced') &&
+            (
+              github.event.action == 'assigned' ||
+              (github.event.action == 'labeled' && github.event.label.name == 'advanced' && join(github.event.issue.assignees.*.login, ',') != '')
+            )
+          )
       - name: Checkout scripts
+        if: steps.should_run.outputs.value == 'true'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # Current v4 tag SHA
         with:
           sparse-checkout: |
@@ -48,6 +49,7 @@ jobs:
           sparse-checkout-cone-mode: false
 
       - name: Verify User Qualification
+        if: steps.should_run.outputs.value == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
