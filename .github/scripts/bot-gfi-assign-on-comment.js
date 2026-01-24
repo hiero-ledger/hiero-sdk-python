@@ -221,6 +221,8 @@ module.exports = async ({ github, context }) => {
                 });
 
                 if (isTeamMember) {
+                        // Team members comment for discussion, not assignment.
+                        // Do not send /assign reminders to collaborators.
                     console.log('[gfi-assign] Skip reminder: commenter is collaborator');
                     return;
                 }
