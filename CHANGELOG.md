@@ -6,8 +6,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Changed
-
 ### Tests
 - Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
@@ -119,6 +117,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 
 ### Changed
+- Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
 - Good First Issue template to have more guidance and renamed other templates for consistency with upstream 
@@ -232,7 +231,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Removed
 
 - Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
-- Transaction byte generation to respect valid `node_account_ids` during `external signing` and `manual freezing workflows`, preventing execution failures caused by node mismatches.
 
 ### Breaking Change
 
