@@ -18,7 +18,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted client_test.py using Black.
 
 ### Added
-- Added correct handling for `/unassign` command in the `pr_inactivity_reminder.js` workflow to unassign users from issues when they comment the command. (#1582)
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
@@ -205,13 +204,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 
 ### Fixed
-
-<<<<<<< HEAD
-
 - Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
-- # Fixed jq syntax in bot-office-hours.sh (#1502)
+- Fixed jq syntax in bot-office-hours.sh (#1502)
 - Fixed formatting of `/unassign` command in the PR inactivity reminder message so it displays correctly with backticks. (#1582)
-  > > > > > > > 62b5ac7 (chore: fix /unassign formatting in reminder)
 - Prevented linkbot from commenting on or auto-closing bot-authored pull requests. (#1516)
 - Respect `dry-run` input in `bot-community-calls.yml` workflow (#1425)
 - Updated LinkBot regex in the GitHub Actions bot script to support "Closes" and "Resolves" keywords for improved PR body-link detection (#1465)
