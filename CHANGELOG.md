@@ -92,7 +92,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added Issue Reminder (no-PR) bot, .github/scripts/issue_reminder_no_pr.sh and .github/workflows/bot-issue-reminder-no-pr.yml to automatically detect assigned issues with no linked pull requests for 7+ days and post a gentle ReminderBot comment.(#951)
 - Add support for include_children in TransactionGetReceiptQuery (#1100)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1100)
 - Add new `.github/ISSUE_TEMPLATE/05_intermediate_issue.yml` file (1072)(https://github.com/hiero-ledger/hiero-sdk-python/issues/1072)
-- Add a workflow to notify the team when issues are labeled as "good first issues" or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
+- Add a workflow to notify the team when issues are labeled as “good first issues” or identified as candidates for that label: `bot-gfi-notify-team.yml`(#1115)
 - Added **str** and **repr** to AccountBalance
 - Added GitHub workflow that makes sure newly added test files follow pytest test files naming conventions (#1054)
 - Added advanced issue template
@@ -134,7 +134,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
 - Refactored `bot-verified-commits.yml` workflow to use modular JavaScript with configurable environment variables, input sanitization, dry-run mode support, and SHA-pinned actions. (#1482)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
-
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
 - Make the required signed commit command explicit in all issue templates to reduce PR signing errors for contributors (#1489)
 - Refactored `file_info_query.py` to use `print(info)` instead of manual formatting (#1451)
@@ -219,7 +218,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Respect `dry-run` input in `bot-community-calls.yml` workflow (#1425)
 - Updated LinkBot regex in the GitHub Actions bot script to support "Closes" and "Resolves" keywords for improved PR body-link detection (#1465)
 - Fixed CodeRabbit plan trigger workflow running multiple times when issues are created with multiple labels by switching to labeled event trigger only. (#1427)
-- Prevent LinkBot from posting duplicate "missing linked issue" comments on pull requests. (#1475)
+- Prevent LinkBot from posting duplicate “missing linked issue” comments on pull requests. (#1475)
 - Refined intermediate assignment guard to validate Beginner issue completion with improved logging and GraphQL-based counting. (#1424)
 - Improved filename-related error handling with clearer and more descriptive error messages.(#1413)
 - Good First Issue bot no longer posts `/assign` reminders for repository collaborators. (#1367)
@@ -516,10 +515,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Incompatible Types assignment in token_transfer_list.py
 - Corrected references to \_require_not_frozen() and removed the surplus \_is_frozen
 - Removed duplicate static methods in `TokenInfo` class:
-  - `_copy_msg_to_proto`
-  - `_copy_key_if_present`
-  - `_parse_custom_fees`
-    Kept robust versions with proper docstrings and error handling.
+    - `_copy_msg_to_proto`
+    - `_copy_key_if_present`
+    - `_parse_custom_fees`
+    Kept robust versions with proper docstrings and error handling.
 - Add strict type hints to `TransactionGetReceiptQuery` (#420)
 - Fixed broken documentation links in CONTRIBUTING.md by converting absolute GitHub URLs to relative paths
 - Updated all documentation references to use local paths instead of pointing to hiero-sdk project hub
@@ -744,9 +743,9 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 - SimpleContract and StatefulContract constructors to be payable
 - added new_pending_airdrops to TransactionRecord Class
 - Reorganized SDK developer documentation:
-  - Renamed and moved `README_linting.md` to `linting.md`
-  - Renamed and moved `README_types.md` to `types.md`
-  - Renamed and moved `Commit_Signing.md` to `signing.md`
+    - Renamed and moved `README_linting.md` to `linting.md`
+    - Renamed and moved `README_types.md` to `types.md`
+    - Renamed and moved `Commit_Signing.md` to `signing.md`
 - Created `sdk_users` docs folder and renamed `examples/README.md` to `running_examples.md`
 - Updated references and links accordingly
 
@@ -788,3 +787,28 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Changed
 
 - README now split into root README for project overview and /examples README for transaction types and syntax.
+- Python version incremented from 3.9 to 3.10
+
+### Removed
+
+- pdm.lock & uv.lock file
+
+## [0.1.0] - 2025-02-19
+
+### Added
+
+- Initial release of the Python SDK core functionality.
+- Basic documentation on how to install and use the SDK.
+- Example scripts illustrating setup and usage.
+
+### Changed
+
+- N/A
+
+### Fixed
+
+- N/A
+
+### Removed
+
+- N/A

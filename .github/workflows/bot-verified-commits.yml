@@ -15,6 +15,9 @@ on:
     types: [opened, synchronize]
   workflow_dispatch:
     inputs:
+      pr_number:
+        description: "PR number to verify (required for manual runs)"
+        required: true
       dry_run:
         description: "Run without posting comments"
         required: false
@@ -26,7 +29,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: "verify-commits-${{ github.event.pull_request.number }}"
+  group: "verify-commits-${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}"
   cancel-in-progress: true
 
 jobs:
@@ -55,6 +58,9 @@ jobs:
       # Dry-run mode (workflow_dispatch uses input, PR events default to false)
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
 
+      # PR number (supports both PR events and manual workflow_dispatch)
+      PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}
+
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
@@ -62,18 +68,24 @@ jobs:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           sparse-checkout: .github/scripts
           persist-credentials: false
 
-      - name: Log dry-run status
+      - name: Log workflow context
         run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "PR: ${{ env.PR_NUMBER }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Event: ${{ github.event_name }}"
           echo "Dry run mode: ${{ env.DRY_RUN }}"
 
       - name: Verify PR commits
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         id: verify
+        env:
+          PR_NUMBER: ${{ env.PR_NUMBER }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: json
@@ -91,6 +103,7 @@ jobs:
         if: steps.verify.outputs.success != 'true' && env.DRY_RUN != 'true'
         run: |
           echo "❌ Pull request has unverified commits."
+          echo "Unverified commits: ${{ steps.verify.outputs.unverified_count }}"
           echo "Please sign your commits with GPG."
           echo "See: ${{ env.SIGNING_GUIDE_URL }}"
           exit 1

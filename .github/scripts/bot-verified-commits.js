@@ -247,7 +247,10 @@ async function postVerificationComment(
 async function main({ github, context }) {
   const owner = sanitizeString(context.repo?.owner);
   const repo = sanitizeString(context.repo?.repo);
-  const prNumber = validatePRNumber(context.payload?.pull_request?.number);
+  // Support PR_NUMBER env var for workflow_dispatch, fallback to context payload
+  const prNumber = validatePRNumber(
+    process.env.PR_NUMBER || context.payload?.pull_request?.number
+  );
   const repoPattern = /^[A-Za-z0-9_.-]+$/;
   
   // Validate repo context
