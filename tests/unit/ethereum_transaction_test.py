@@ -206,12 +206,14 @@ def test_to_proto(mock_client, ethereum_params):
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
 
+
 def test_build_scheduled_body_raises_exception():
     """Test that build_scheduled_body raises ValueError."""
     schedule_tx = EthereumTransaction()
 
     with pytest.raises(ValueError, match="Cannot schedule an EthereumTransaction"):
         schedule_tx.build_scheduled_body()
+
 
 def test_ethereum_transaction_can_execute():
     """Test that an ethereum transaction can be executed successfully."""
