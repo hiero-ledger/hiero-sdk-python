@@ -7,7 +7,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Tests
-
 - Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
 - Improve unit test coverage for Hbar, including edge cases, validation, comparisons, and hashing. (#1483)
@@ -122,7 +121,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 
 ### Changed
-
+- Updated actions/checkout to v6.0.1 and actions/github-script v8.0.0 in bot-next-issue-recommendation workflow (#1586)
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
