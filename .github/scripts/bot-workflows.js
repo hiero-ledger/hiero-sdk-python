@@ -150,6 +150,12 @@ if (!/^\d+$/.test(FAILED_RUN_ID)) {
   process.exit(1);
 }
 
+// Validate PR_NUMBER if provided
+if (PR_NUMBER && PR_NUMBER !== 'null' && !/^\d+$/.test(PR_NUMBER)) {
+  console.error(`ERROR: PR_NUMBER must be a numeric integer (got: '${PR_NUMBER}')`);
+  process.exit(1);
+}
+
 if (!GH_TOKEN) {
   if (DRY_RUN === 1) {
     console.log('WARN: GH_TOKEN not set. Some dry-run operations may fail.');
@@ -216,6 +222,12 @@ if (PR_NUMBER && PR_NUMBER !== 'null') {
   }
 
   console.log(`Found head branch: ${HEAD_BRANCH}`);
+
+  // Validate branch name format
+  if (HEAD_BRANCH.startsWith('-') || !/^[\w.\/-]+$/.test(HEAD_BRANCH)) {
+    console.error(`ERROR: HEAD_BRANCH contains invalid characters: ${HEAD_BRANCH}`);
+    process.exit(1);
+  }
 
   // Find PR number for this branch (only open PRs)
   try {

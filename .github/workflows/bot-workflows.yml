@@ -19,7 +19,7 @@ on:
       - completed
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
   issues: write
 concurrency:
   group: "workflow-failure-${{ github.event.workflow_run.head_branch || github.run_id }}"
