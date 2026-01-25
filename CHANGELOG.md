@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+- Style: formatted `tests/unit/prng_transaction_test.py` with black (#1546)
 
 ### Tests
 - Formatted contract unit tests with black for consistent style. (#1523)
