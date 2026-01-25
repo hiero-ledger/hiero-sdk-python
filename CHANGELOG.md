@@ -122,10 +122,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 
 ### Changed
+
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
-- Good First Issue template to have more guidance and renamed other templates for consistency with upstream 
+- Good First Issue template to have more guidance and renamed other templates for consistency with upstream
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
@@ -199,12 +200,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
 - Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
 - Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
-- Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
+- Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a \_to_proto method.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 
 ### Fixed
 - Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
 - Fixed jq syntax in bot-office-hours.sh (#1502)
+- Fixed formatting of `/unassign` command in the PR inactivity reminder message so it displays correctly with backticks. (#1582)
 - Prevented linkbot from commenting on or auto-closing bot-authored pull requests. (#1516)
 - Respect `dry-run` input in `bot-community-calls.yml` workflow (#1425)
 - Updated LinkBot regex in the GitHub Actions bot script to support "Closes" and "Resolves" keywords for improved PR body-link detection (#1465)
@@ -233,7 +235,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed bot-pr-missing-linked-issue to skip commenting on pull requests created by automated bots. (#1382)
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
-
 
 ### Removed
 
