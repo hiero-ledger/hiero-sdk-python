@@ -860,32 +860,94 @@ def test_set_max_backoff_less_than_min_backoff():
 
         query.set_max_backoff(2)
 
-def test_execution_config_inherits_from_client():
+def test_execution_config_inherits_from_client(mock_client):
     """Test that resolve_execution_config inherits config from client if not set."""
-    with mock_hedera_servers([[]]) as client:
-        client.max_attempts = 7
-        client._min_backoff = 1
-        client._max_backoff = 8
-        client._grpc_deadline = 9
-        client._request_timeout = 20
+    mock_client.max_attempts = 7
+    mock_client._min_backoff = 1
+    mock_client._max_backoff = 8
+    mock_client._grpc_deadline = 9
+    mock_client._request_timeout = 20
 
-        tx = AccountCreateTransaction()
+    tx = AccountCreateTransaction()
 
-        tx._resolve_execution_config(client)
+    tx._resolve_execution_config(mock_client)
 
-        assert tx._max_attempts == 7
-        assert tx._min_backoff == 1
-        assert tx._max_backoff == 8
-        assert tx._grpc_deadline == 9
-        assert tx._request_timeout == 20
+    assert tx._max_attempts == 7
+    assert tx._min_backoff == 1
+    assert tx._max_backoff == 8
+    assert tx._grpc_deadline == 9
+    assert tx._request_timeout == 20
 
-def test_executable_overrides_client_config():
+def test_executable_overrides_client_config(mock_client):
     """Test the set value override the set config property."""
-    with mock_hedera_servers([[]]) as client:
-        client.max_attempts = 10
+    mock_client.max_attempts = 10
 
-        tx = AccountCreateTransaction().set_max_attempts(3)
+    tx = AccountCreateTransaction().set_max_attempts(3)
+    tx._resolve_execution_config(mock_client)
 
-        tx._resolve_execution_config(client)
+    assert tx._max_attempts == 3
 
-        assert tx._max_attempts == 3
+
+def test_no_healthy_nodes_raises(mock_client):
+    """Test that execution fails if no healthy nodes are available."""
+    mock_client.network._healthy_nodes = []
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate().public_key())
+        .set_initial_balance(1)
+    )
+
+    with pytest.raises(RuntimeError, match="No healthy nodes available"):
+        tx.execute(mock_client)
+
+
+def test_set_node_account_ids_overrides_client_nodes(mock_client):
+    """Explicit node_account_ids should override client network."""
+    node = AccountId(0, 0, 999)
+
+    tx = AccountCreateTransaction().set_node_account_id(node)
+    tx._resolve_execution_config(mock_client)
+
+    assert tx.node_account_ids == [node]
+
+
+def test_request_timeout_exceeded_stops_execution():
+    """Test that execution stops when request_timeout is exceeded."""
+    busy_response = TransactionResponseProto(
+        nodeTransactionPrecheckCode=ResponseCode.BUSY
+    )
+
+    response_sequences = [[busy_response]]
+
+    def fake_time():
+        yield 0     # start
+        yield 5     # attempt 1
+        while True:
+            yield 11  # timeout exceeded
+
+    time_iter = fake_time()
+
+    with (
+        mock_hedera_servers(response_sequences) as client,
+        patch("hiero_sdk_python.executable.time.sleep"),
+        patch("hiero_sdk_python.executable.time.time", side_effect=lambda: next(time_iter)),
+        patch("hiero_sdk_python.node._Node.is_healthy", return_value=True),
+        patch(
+            "hiero_sdk_python.executable._execute_method",
+            return_value=busy_response,
+        ),
+    ):
+        client._request_timeout = 10
+        client.max_attempts = 5
+
+        tx = (
+            AccountCreateTransaction()
+            .set_key_without_alias(PrivateKey.generate().public_key())
+            .set_initial_balance(1)
+        )
+
+        with pytest.raises(MaxAttemptsError):
+            tx.execute(client)
+
+            
