@@ -20,8 +20,9 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 concurrency:
-  group: "workflow-failure-${{ github.event.workflow_run.head_branch }}"
+  group: "workflow-failure-${{ github.event.workflow_run.head_branch || github.run_id }}"
   cancel-in-progress: true
 jobs:
   notify-pr:
@@ -39,10 +40,10 @@ jobs:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '20'
 
@@ -54,5 +55,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           DRY_RUN: ${{ env.DRY_RUN }}
-          PR_NUMBER: ${{ fromJson(github.event.workflow_run.pull_requests)[0].number || '' }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
         run: node .github/scripts/bot-workflows.js

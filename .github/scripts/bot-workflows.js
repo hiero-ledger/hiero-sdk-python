@@ -61,7 +61,7 @@ function ghCommand(args = [], silent = false) {
 function ghExists() {
   try {
     if (process.platform === 'win32') {
-      const result = spawnSync('where', ['jq'], {
+      const result = spawnSync('where', ['gh'], {
         encoding: 'utf8',
         stdio: 'pipe',
         shell: false
@@ -111,6 +111,12 @@ let GH_TOKEN = process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '';
 const REPO = process.env.REPO || process.env.GITHUB_REPOSITORY || '';
 let DRY_RUN = normaliseDryRun(process.env.DRY_RUN || '1');
 let PR_NUMBER = process.env.PR_NUMBER || '';
+
+// Validate workflow name contains only safe characters
+if (FAILED_WORKFLOW_NAME && !/^[\w\s\-\.]+$/.test(FAILED_WORKFLOW_NAME)) {
+  console.error(`ERROR: FAILED_WORKFLOW_NAME contains invalid characters: ${FAILED_WORKFLOW_NAME}`);
+  process.exit(1);
+}
 
 // Set GH_TOKEN environment variable for gh CLI
 if (GH_TOKEN) {
@@ -174,12 +180,12 @@ if (!ghExists()) {
 
 try {
   ghCommand(['auth', 'status'], true);
-} catch {
+} catch (error) {
   if (DRY_RUN === 0) {
     console.error('ERROR: gh authentication required for non-dry-run mode.');
     process.exit(1);
   } else {
-    console.log('WARN: gh auth status failed — some dry-run operations may not work.');
+    console.log(`WARN: gh auth status failed — some dry-run operations may not work. (${error.message})`);
   }
 }
 
@@ -255,7 +261,8 @@ while (PAGE <= MAX_PAGES) {
   let COMMENTS_PAGE = '';
   try {
     COMMENTS_PAGE = ghCommand(['api', '--header', 'Accept: application/vnd.github.v3+json', `/repos/${REPO}/issues/${PR_NUMBER}/comments?per_page=100&page=${PAGE}`], true);
-  } catch {
+  } catch (error) {
+    console.log(`WARN: Failed to fetch comments page ${PAGE}: ${error.message}`);
     COMMENTS_PAGE = '[]';
   }
 
@@ -263,7 +270,8 @@ while (PAGE <= MAX_PAGES) {
   let comments = [];
   try {
     comments = JSON.parse(COMMENTS_PAGE);
-  } catch {
+  } catch (error) {
+    console.log(`WARN: Failed to parse comments JSON on page ${PAGE}: ${error.message}`);
     comments = [];
   }
 
