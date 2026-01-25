@@ -9,11 +9,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Tests
 - Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
-- Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
-- Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
+- Improve unit test coverage for Hbar, including edge cases, validation, comparisons, and hashing. (#1483)
+- Standardize formatting of evm_address_test.py using Black for improved consistency and readability (#1529)
 - Formatted unit test files using Black.
-- Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
-- Formatted client_test.py using black.
+- Format tests/unit/network_tls_test.py with black for code style consistency (#1543)
+- Formatted `ethereum_transaction_test.py` using Black.
+- Formatted client_test.py using Black.
 
 ### Added
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
