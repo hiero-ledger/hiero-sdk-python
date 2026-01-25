@@ -10,16 +10,18 @@
 const { spawnSync } = require('child_process');
 const process = require('process');
 
-/**
- * Sanitize a string to prevent command injection
- * @param {string} str - String to sanitize
- * @returns {string} - Sanitized string
- */
-function sanitize(str) {
-  // Remove or escape potentially dangerous characters
-  // Allow alphanumeric, hyphens, underscores, slashes, and dots
-  return String(str).replace(/[^a-zA-Z0-9\-_/.]/g, '_');
-}
+// Configuration constants
+const MARKER = '<!-- workflowbot:workflow-failure-notifier -->';
+const MAX_PAGES = 10; // Safety bound for comment pagination
+
+// Documentation links (edit these when URLs change)
+const DOC_SIGNING = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md';
+const DOC_CHANGELOG = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md';
+const DOC_MERGE_CONFLICTS = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md';
+const DOC_REBASING = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md';
+const DOC_TESTING = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md';
+const DOC_DISCORD = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md';
+const COMMUNITY_CALLS = 'https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week';
 
 /**
  * Execute gh CLI command safely
@@ -185,7 +187,7 @@ try {
 console.log('Looking up PR for failed workflow run...');
 
 // Use PR_NUMBER from workflow_run payload if provided (optimized path)
-if (PR_NUMBER) {
+if (PR_NUMBER && PR_NUMBER !== 'null') {
   console.log(`Using PR number from workflow_run payload: ${PR_NUMBER}`);
 } else {
   console.log('PR_NUMBER not provided, falling back to branch-based lookup...');
@@ -230,26 +232,24 @@ if (PR_NUMBER) {
 console.log(`Found PR #${PR_NUMBER}`);
 
 // Build notification message with failure details and documentation links
-const MARKER = '<!-- workflowbot:workflow-failure-notifier -->';
 const COMMENT = `${MARKER}
 Hi, this is WorkflowBot. 
 Your pull request cannot be merged as it is not passing all our workflow checks. 
 Please click on each check to review the logs and resolve issues so all checks pass.
 To help you:
-- [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
-- [Changelog guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
-- [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
-- [Rebase guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
-- [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md)
-- [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
-- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+- [DCO signing guide](${DOC_SIGNING})
+- [Changelog guide](${DOC_CHANGELOG})
+- [Merge conflicts guide](${DOC_MERGE_CONFLICTS})
+- [Rebase guide](${DOC_REBASING})
+- [Testing guide](${DOC_TESTING})
+- [Discord](${DOC_DISCORD})
+- [Community Calls](${COMMUNITY_CALLS})
 Thank you for contributing!
 From the Hiero Python SDK Team`;
 
 // Check for duplicate comments using the correct endpoint for issue comments
 let PAGE = 1;
 let DUPLICATE_EXISTS = false;
-const MAX_PAGES = 10;  // Safety bound
 
 while (PAGE <= MAX_PAGES) {
   let COMMENTS_PAGE = '';
