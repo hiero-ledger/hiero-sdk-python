@@ -14,6 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
 - Formatted unit test files using Black.
 - Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
+- Format `tests/unit/conftest.py` with black for code style consistency. (#1544)
 
 ### Added
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
@@ -193,6 +194,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
 - Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
+- Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 
 ### Fixed
 - Prevented linkbot from commenting on or auto-closing bot-authored pull requests. (#1516)
