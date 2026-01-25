@@ -15,7 +15,6 @@ pytestmark = pytest.mark.unit
 @pytest.fixture
 def client(mock_client):
     mock_client.network.ledger_id = bytes.fromhex("00")  # mainnet ledger id
-    mock_client.network.ledger_id = bytes.fromhex("00")  # mainnet ledger id
     return mock_client
 
 
@@ -87,7 +86,6 @@ def test_from_string_for_valid_str(contract_str, expected):
 
 @pytest.mark.parametrize(
     "invalid_id",
-    "invalid_id",
     [
         "1.2",  # Too few parts
         "1.2.3.4",  # Too many parts
@@ -100,8 +98,8 @@ def test_from_string_for_valid_str(contract_str, expected):
         "0.0.1-addefgh",
         "0.0.1 - abcde",
         " 0.0.100 ",
-        " 1.2.abcdef0123456789abcdef0123456789abcdef01 "
-        "1.2.0xabcdef0123456789abcdef0123456789abcdef01"
+        " 1.2.abcdef0123456789abcdef0123456789abcdef01 ",
+        "1.2.0xabcdef0123456789abcdef0123456789abcdef01",
         "1.2.001122334455667788990011223344556677",
         "1.2.000000000000000000000000000000000000000000",
     ],
@@ -327,10 +325,6 @@ def test_str_representaion_checksum_with_evm_address(client):
     """Should raise error on to_string_with_checksum is called when evm_address is set"""
     contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
 
-    with pytest.raises(
-        ValueError,
-        match="to_string_with_checksum cannot be applied to ContractId with evm_address",
-    ):
     with pytest.raises(
         ValueError,
         match="to_string_with_checksum cannot be applied to ContractId with evm_address",
