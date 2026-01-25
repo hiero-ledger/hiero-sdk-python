@@ -118,6 +118,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add StakingInfo class ([1364](https://github.com/hiero-ledger/hiero-sdk-python/issues/1364))
 - Added a visible confirmation comment when a user unassigns themselves from an issue (#1506)
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
+- Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 
 ### Changed
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
