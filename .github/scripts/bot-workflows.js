@@ -59,32 +59,6 @@ function ghCommand(args = [], silent = false) {
 function ghExists() {
   try {
     if (process.platform === 'win32') {
-      const result = spawnSync('where', ['gh'], {
-        encoding: 'utf8',
-        stdio: 'pipe',
-        shell: false
-      });
-      return result.status === 0;
-    } else {
-      const result = spawnSync('which', ['gh'], {
-        encoding: 'utf8',
-        stdio: 'pipe',
-        shell: false
-      });
-      return result.status === 0;
-    }
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if jq exists
- * @returns {boolean}
- */
-function jqExists() {
-  try {
-    if (process.platform === 'win32') {
       const result = spawnSync('where', ['jq'], {
         encoding: 'utf8',
         stdio: 'pipe',
@@ -92,7 +66,7 @@ function jqExists() {
       });
       return result.status === 0;
     } else {
-      const result = spawnSync('which', ['jq'], {
+      const result = spawnSync('which', ['gh'], {
         encoding: 'utf8',
         stdio: 'pipe',
         shell: false
@@ -193,11 +167,6 @@ console.log('------------------------------------------------------------');
 // Quick gh availability/auth checks
 if (!ghExists()) {
   console.error('ERROR: gh CLI not found. Install it and ensure it\'s on PATH.');
-  process.exit(1);
-}
-
-if (!jqExists()) {
-  console.error('ERROR: jq not found. Install it and ensure it\'s on PATH.');
   process.exit(1);
 }
 

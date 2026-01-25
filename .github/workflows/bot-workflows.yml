@@ -41,6 +41,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Notify PR of workflow failure
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.failed_run_id != ''
         env:
@@ -50,4 +55,4 @@ jobs:
           REPO: ${{ github.repository }}
           DRY_RUN: ${{ env.DRY_RUN }}
           PR_NUMBER: ${{ fromJson(github.event.workflow_run.pull_requests)[0].number || '' }}
-        run: bash .github/scripts/bot-workflows.sh
+        run: node .github/scripts/bot-workflows.js
