@@ -245,6 +245,7 @@ def test_build_scheduled_body(mock_account_ids, contract_params):
     )
     assert schedulable_body.contractCreateInstance.initcode == b""
 
+
 def test_build_transaction_body_validation_errors():
     """Test that build_transaction_body raises appropriate validation errors."""
     # Test missing bytecode_file_id and bytecode

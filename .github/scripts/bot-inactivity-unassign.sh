@@ -134,7 +134,11 @@ Hi @$USER, this is InactivityBot 👋
 You were assigned to this issue **${ASSIGNED_AGE_DAYS} days** ago, and there is currently no open pull request linked to it.
 To keep the backlog available for active contributors, I'm unassigning you for now.
 
-If you'd like to continue working on this later, feel free to get re-assigned or comment here and we'll gladly assign it back to you. 🙂
+If you're no longer interested, no action is needed.
+
+**Tip:** You can comment \`/unassign\` on any issue to proactively step away before this bot kicks in.
+
+If you'd like to continue working on this later, feel free to comment \`/assign\` to get re-assigned. We'll gladly assign it back to you. 🙂
 EOF
 )
           gh issue comment "$ISSUE" --repo "$REPO" --body "$MESSAGE" || echo "WARN: couldn't post comment (gh error)"
@@ -188,7 +192,11 @@ Hi @$USER, this is InactivityBot 👋
 
 This pull request has had no new commits for **${PR_AGE_DAYS} days**, so I'm closing it and unassigning you from the linked issue to keep the backlog healthy.
 
-You're very welcome to open a new PR or ask to be re-assigned when you're ready to continue working on this. 🚀
+If you're no longer interested, no action is needed.
+
+**Tip:** You can comment \`/unassign\` on any issue to proactively step away before this bot kicks in.
+
+If you'd like to continue working on this later, feel free to comment \`/assign\` on the issue to get re-assigned, and open a new PR when you're ready. 🚀
 EOF
 )
           gh pr comment "$PR_NUM" --repo "$REPO" --body "$MESSAGE" || echo "WARN: couldn't comment on PR"

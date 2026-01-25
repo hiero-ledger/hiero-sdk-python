@@ -108,7 +108,7 @@ brew install uv
 
 **On Windows:**
 ```powershell
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 **Other installation methods:** [uv Installation Guide](https://docs.astral.sh/uv/getting-started/installation/)

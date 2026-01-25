@@ -63,6 +63,7 @@ print(f"Balance: {balance.hbars} HBAR")
 
 - **[Contributing Guide](CONTRIBUTING.md)** - Start here!
 - **[Setup Guide](docs/sdk_developers/setup.md)** - First-time environment setup
+- **[Windows Setup Guide](docs/sdk_developers/training/setup/setup_windows.md)** - Step-by-step guide for Windows users
 - **[Workflow Guide](docs/sdk_developers/workflow.md)** - Day-to-day development workflow
 - **[Signing Guide](docs/sdk_developers/signing.md)** - GPG and DCO commit signing (required)
 - **[Changelog Guide](docs/sdk_developers/changelog_entry.md)** - How to write changelog entries

@@ -1,34 +1,18 @@
-name: Good First Issue Candidate Template
-description: Propose a potential Good First Issue (candidate)
-title: "[Good First Issue]:"
-labels: ["Good First Issue Candidate"]
+name: Good First Issue Template
+description: Create a Good First Issue for new contributors
+title: "[Good First Issue]: "
+labels: ["Good First Issue"]
 assignees: []
 body:
   - type: markdown
     attributes:
       value: |
         ---
-        ## **Thanks for creating a good first issue candidate!** 😊
+        ## **Thanks for creating a good first issue!** 😊
 
         We truly appreciate your time and effort, welcome!
-        This template is designed to help you create a Good First Issue Candidate (GFI) : a small, well-scoped task that may be missing some documentation or there is uncertainty if it is a good fit for a GFI.
+        This template is designed to help you create a Good First Issue (GFI) : a small, well-scoped task that helps new contributors learn the codebase and workflow.
         ---
-
-  - type: textarea
-    id: intro-gfi-candidate
-    attributes:
-      label: ⚠️ Good First Issue — Candidate
-      value: |
-        > This issue is not yet a confirmed Good First Issue.
-        > It is being evaluated for suitability and may require
-        > clarification or refinement before it is ready to be picked up.
-        > 
-        > **Please wait for maintainer confirmation before asking to be assigned.**
-        > 
-        > Maintainers and reviewers can read more about [Good First Issues](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issues_guidelines.md) and [Good First Issue Candidates](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issue_candidate_guidelines.md)
-
-    validations:
-      required: false
 
   - type: textarea
     id: intro

@@ -280,6 +280,7 @@ def test_build_transaction_body_with_all_parameters(
     # Verify other fields are present (the actual protobuf structure may vary)
     assert transaction_body.contractUpdateInstance.HasField("contractID")
 
+
 def test_build_scheduled_body_with_all_parameters(
     update_params, mock_account_ids, transaction_id
 ):
