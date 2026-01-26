@@ -48,7 +48,9 @@ def test_account_allowance_transaction_initialization(account_allowance_transact
     assert account_allowance_transaction.hbar_allowances == []
     assert account_allowance_transaction.token_allowances == []
     assert account_allowance_transaction.nft_allowances == []
-    assert account_allowance_transaction._default_transaction_fee == Hbar(1).to_tinybars()
+    assert (
+        account_allowance_transaction._default_transaction_fee == Hbar(1).to_tinybars()
+    )
 
 
 def test_approve_hbar_allowance(account_allowance_transaction, sample_accounts):
@@ -57,7 +59,9 @@ def test_approve_hbar_allowance(account_allowance_transaction, sample_accounts):
     spender = sample_accounts["spender"]
     amount = Hbar(100)
 
-    result = account_allowance_transaction.approve_hbar_allowance(owner, spender, amount)
+    result = account_allowance_transaction.approve_hbar_allowance(
+        owner, spender, amount
+    )
 
     assert result is account_allowance_transaction
     assert len(account_allowance_transaction.hbar_allowances) == 1
@@ -68,7 +72,9 @@ def test_approve_hbar_allowance(account_allowance_transaction, sample_accounts):
     assert allowance.amount == amount.to_tinybars()
 
 
-def test_approve_hbar_allowance_multiple(account_allowance_transaction, sample_accounts):
+def test_approve_hbar_allowance_multiple(
+    account_allowance_transaction, sample_accounts
+):
     """Test approving multiple HBAR allowances"""
     owner = sample_accounts["owner"]
     spender1 = sample_accounts["spender"]
@@ -78,18 +84,28 @@ def test_approve_hbar_allowance_multiple(account_allowance_transaction, sample_a
     account_allowance_transaction.approve_hbar_allowance(owner, spender2, Hbar(200))
 
     assert len(account_allowance_transaction.hbar_allowances) == 2
-    assert account_allowance_transaction.hbar_allowances[0].amount == Hbar(100).to_tinybars()
-    assert account_allowance_transaction.hbar_allowances[1].amount == Hbar(200).to_tinybars()
+    assert (
+        account_allowance_transaction.hbar_allowances[0].amount
+        == Hbar(100).to_tinybars()
+    )
+    assert (
+        account_allowance_transaction.hbar_allowances[1].amount
+        == Hbar(200).to_tinybars()
+    )
 
 
-def test_approve_token_allowance(account_allowance_transaction, sample_accounts, sample_tokens):
+def test_approve_token_allowance(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
     """Test approving token allowance"""
     token_id = sample_tokens["token1"]
     owner = sample_accounts["owner"]
     spender = sample_accounts["spender"]
     amount = 1000
 
-    result = account_allowance_transaction.approve_token_allowance(token_id, owner, spender, amount)
+    result = account_allowance_transaction.approve_token_allowance(
+        token_id, owner, spender, amount
+    )
 
     assert result is account_allowance_transaction
     assert len(account_allowance_transaction.token_allowances) == 1
@@ -118,14 +134,18 @@ def test_approve_token_allowance_multiple(
     assert account_allowance_transaction.token_allowances[1].amount == 2000
 
 
-def test_approve_token_nft_allowance(account_allowance_transaction, sample_accounts, sample_tokens):
+def test_approve_token_nft_allowance(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
     """Test approving NFT allowance"""
     token_id = sample_tokens["token1"]
     nft_id = NftId(token_id, 1)
     owner = sample_accounts["owner"]
     spender = sample_accounts["spender"]
 
-    result = account_allowance_transaction.approve_token_nft_allowance(nft_id, owner, spender)
+    result = account_allowance_transaction.approve_token_nft_allowance(
+        nft_id, owner, spender
+    )
 
     assert result is account_allowance_transaction
     assert len(account_allowance_transaction.nft_allowances) == 1
@@ -195,7 +215,9 @@ def test_approve_token_nft_allowance_all_serials_existing(
     account_allowance_transaction.approve_token_nft_allowance(nft_id, owner, spender)
 
     # Then approve all serials
-    account_allowance_transaction.approve_token_nft_allowance_all_serials(token_id, owner, spender)
+    account_allowance_transaction.approve_token_nft_allowance_all_serials(
+        token_id, owner, spender
+    )
 
     assert len(account_allowance_transaction.nft_allowances) == 1
     allowance = account_allowance_transaction.nft_allowances[0]
@@ -226,7 +248,9 @@ def test_delete_token_nft_allowance_all_serials(
     assert allowance.approved_for_all is False
 
 
-def test_add_all_token_nft_approval(account_allowance_transaction, sample_accounts, sample_tokens):
+def test_add_all_token_nft_approval(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
     """Test adding all token NFT approval"""
     token_id = sample_tokens["token1"]
     spender = sample_accounts["spender"]
@@ -265,7 +289,9 @@ def test_build_proto_body_with_allowances(
 
     # Add all types of allowances
     account_allowance_transaction.approve_hbar_allowance(owner, spender, Hbar(100))
-    account_allowance_transaction.approve_token_allowance(token_id, owner, spender, 1000)
+    account_allowance_transaction.approve_token_allowance(
+        token_id, owner, spender, 1000
+    )
     account_allowance_transaction.approve_token_nft_allowance(nft_id, owner, spender)
 
     proto_body = account_allowance_transaction._build_proto_body()
@@ -325,7 +351,9 @@ def test_require_not_frozen(account_allowance_transaction, sample_accounts):
         )
 
 
-def test_mixed_allowance_types(account_allowance_transaction, sample_accounts, sample_tokens):
+def test_mixed_allowance_types(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
     """Test transaction with mixed allowance types"""
     owner = sample_accounts["owner"]
     spender = sample_accounts["spender"]
@@ -334,7 +362,9 @@ def test_mixed_allowance_types(account_allowance_transaction, sample_accounts, s
 
     # Add all types of allowances
     account_allowance_transaction.approve_hbar_allowance(owner, spender, Hbar(100))
-    account_allowance_transaction.approve_token_allowance(token_id, owner, spender, 1000)
+    account_allowance_transaction.approve_token_allowance(
+        token_id, owner, spender, 1000
+    )
     account_allowance_transaction.approve_token_nft_allowance(nft_id, owner, spender)
     account_allowance_transaction.approve_token_nft_allowance_all_serials(
         sample_tokens["token2"], owner, spender
@@ -352,7 +382,9 @@ def test_mixed_allowance_types(account_allowance_transaction, sample_accounts, s
     assert len(proto_body.nftAllowances) == 2
 
 
-def test_zero_amount_allowances(account_allowance_transaction, sample_accounts, sample_tokens):
+def test_zero_amount_allowances(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
     """Test allowances with zero amounts (for removal)"""
     owner = sample_accounts["owner"]
     spender = sample_accounts["spender"]

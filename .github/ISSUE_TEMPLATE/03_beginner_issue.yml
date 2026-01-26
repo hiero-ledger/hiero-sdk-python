@@ -155,13 +155,17 @@ body:
       description: |
         EDIT OR EXPAND THE CHECKLIST ON WHAT IS REQUIRED TO BE ABLE TO MERGE A PULL REQUEST FOR THIS ISSUE
       value: |
-        To be able to merge a pull request for this issue, we need:
-        - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
-        - [ ] **Changelog Entry:** Correct changelog entry [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
-        - [ ] **Signed commits:** commits must be DCO and GPG key signed as `git commit -S -s -m "chore: my change"` with a GPG key set up [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
-        - [ ] **All Tests Pass:** our workflow checks like unit and integration tests must pass
-        - [ ] **Issue is Solved:** The implementation fully addresses the issue requirements as described above
-        - [ ] **No Further Changes are Made:** Code review feedback has been addressed and no further changes are requested
+        - [ ] **The issue is solved:**  
+              My changes do exactly what the issue asked for.
+
+        - [ ] **I did not add extra changes:**  
+              I did not modify anything that was not mentioned in the issue description.
+
+        - [ ] **Nothing else was broken:**  
+              All existing features still work the same as before.
+
+        - [ ] **All checks pass:**  
+              The automated tests (unit and integration tests) run successfully.
     validations:
       required: true
 
@@ -172,7 +176,7 @@ body:
       description: Provide a contribution workflow suitable for new contributors
       value: |
         - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
-        - [ ] **Fork, Branch and Work on the issue:** Create a copy of the repository, create a branch for the issue and solve the problem. For instructions, please read our [Contributing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) file. Further help can be found at [Set-up Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/setup) and [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
+        - [ ] **Fork, Branch and Work on the issue:** Create a copy of the repository, create a branch for the issue and solve the problem. For instructions, please read our [Contributing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) file. Further help can be found at [Set-up Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/setup) (including the [Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/setup_windows.md) for Windows users) and [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
         - [ ] **DCO and GPG key sign each commit :** each commit must be -s and -S signed. An explanation on how to do this is at [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
         - [ ] **Add a Changelog Entry :** your pull request will require a changelog. Read [Changelog Entry Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md) to learn how.
         - [ ] **Push and Create a Pull Request :** Once your issue is resolved, and your commits are signed, and you have a changelog entry, push your changes and create a pull request. Detailed instructions can be found at [Submit PR Training](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md), part of [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).

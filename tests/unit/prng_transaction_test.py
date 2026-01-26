@@ -162,4 +162,6 @@ def test_prng_transaction_can_execute():
 
         receipt = transaction.execute(client)
 
-        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), "Transaction should have succeeded"
