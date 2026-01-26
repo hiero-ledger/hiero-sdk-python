@@ -77,6 +77,7 @@ def test_from_string_for_valid_str(contract_str, expected):
 
     contract_id = ContractId.from_string(contract_str)
 
+    assert isinstance(contract_id, ContractId)
     assert contract_id.shard == shard
     assert contract_id.realm == realm
     assert contract_id.contract == contract
@@ -151,6 +152,7 @@ def test_from_proto():
 
     contract_id = ContractId._from_proto(proto)
 
+    assert isinstance(contract_id, ContractId)
     assert contract_id.shard == 1
     assert contract_id.realm == 2
     assert contract_id.contract == 3
@@ -168,6 +170,7 @@ def test_from_proto_with_evm_address():
 
     contract_id = ContractId._from_proto(proto)
 
+    assert isinstance(contract_id, ContractId)
     assert contract_id.shard == 1
     assert contract_id.realm == 2
     assert contract_id.contract == 0
@@ -180,6 +183,7 @@ def test_from_proto_zero_values():
 
     contract_id = ContractId._from_proto(proto)
 
+    assert isinstance(contract_id, ContractId)
     assert contract_id.shard == 0
     assert contract_id.realm == 0
     assert contract_id.contract == 0
@@ -314,14 +318,14 @@ def test_to_evm_address():
 
 
 
-def test_str_representaion_with_checksum(client):
+def test_str_representation_with_checksum(client):
     """Should return string representation with checksum"""
     contract_id = ContractId.from_string("0.0.1")
     assert contract_id.to_string_with_checksum(client) == "0.0.1-dfkxr"
 
 
 
-def test_str_representaion_checksum_with_evm_address(client):
+def test_str_representation_checksum_with_evm_address(client):
     """Should raise error on to_string_with_checksum is called when evm_address is set"""
     contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
 
@@ -348,8 +352,8 @@ def test_validate_checksum_failure(client):
         contract_id.validate_checksum(client)
 
 
-def test_str_representaion_with_evm_address():
-    """Should return str represention with evm_address"""
+def test_str_representation_with_evm_address():
+    """Should return str representing with evm_address"""
     contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
     assert contract_id.__str__() == "0.0.abcdef0123456789abcdef0123456789abcdef01"
 
@@ -395,6 +399,7 @@ def test_from_evm_address_valid_params(evm_address_str, expected):
 
     contract_id = ContractId.from_evm_address(0, 0, evm_address_str)
 
+    assert isinstance(contract_id, ContractId)
     assert contract_id.shard == shard
     assert contract_id.realm == realm
     assert contract_id.contract == contract
@@ -508,7 +513,7 @@ def test_populate_contract_num_success(client):
     assert populated.evm_address == evm_address
 
 
-def test_populate_contract_num_invlid_response(client):
+def test_populate_contract_num_invalid_response(client):
     """Should raise error when populating contract number invalid response."""
     evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
     contract_id = ContractId(shard=0, realm=0, evm_address=evm_address)

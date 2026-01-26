@@ -90,7 +90,7 @@ def test_populate_account_id_evm_address(env, evm_address):
 
     account_id = transfer_receipt.children[0].account_id
 
-    # Wait for mirrornode to update
+    # Wait for mirror_node to update
     time.sleep(5)
 
     new_account_id = account_id.populate_evm_address(env.client)

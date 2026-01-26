@@ -50,6 +50,7 @@ def test_populate_contract_id_num(env):
     )
     assert contract_receipt.status == ResponseCode.SUCCESS
     contract_id_with_num = contract_receipt.contract_id
+
     assert contract_id_with_num is not None
 
     # Query contract info to get evm_address
@@ -58,10 +59,13 @@ def test_populate_contract_id_num(env):
         0, 0, info.contract_account_id
     )
 
-    # Wait for mirrornode to update
+    # Wait for mirror_node to update
     time.sleep(5)
 
     final_contract_id = contract_id_with_evm_addr.populate_contract_num(env.client)
+
+    # should not update
+    assert contract_id_with_evm_addr.contract == 0
 
     assert final_contract_id.shard == contract_id_with_num.shard
     assert final_contract_id.realm == contract_id_with_num.realm
