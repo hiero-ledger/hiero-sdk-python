@@ -36,6 +36,7 @@ function isAuthorizedUser(issue, username) {
 }
 
 module.exports = async ({ github, context }) => {
+  const dryRun = (process.env.DRY_RUN || "false").toLowerCase() === "true";
   try {
     const { issue, comment } = context.payload;
     const { owner, repo } = context.repo;
@@ -66,6 +67,10 @@ module.exports = async ({ github, context }) => {
 
     // 4. Acknowledge with a reaction
     // We don't need to save state here; the other bots will query the comment timestamp directly.
+    if (dryRun) {
+      console.log(`[working] DRY-RUN: Would have reacted to comment ${comment.id} with 'eyes'.`);
+      return;
+    }
     await github.rest.reactions.createForIssueComment({
       owner,
       repo,

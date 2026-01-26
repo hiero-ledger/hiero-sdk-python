@@ -48,19 +48,25 @@ has_recent_working_command() {
   local issue_num="$1"
   local user="$2"
   local days_threshold="$3"
-  
-  # Fetch comments, filter for user and "/working" string
+
+  local cutoff_ts=$((NOW_TS - (days_threshold * 86400)))
+  local cutoff_iso
+  if date --version >/dev/null 2>&1; then
+    cutoff_iso=$(date -u -d "@$cutoff_ts" +"%Y-%m-%dT%H:%M:%SZ")
+  else
+    cutoff_iso=$(date -u -r "$cutoff_ts" +"%Y-%m-%dT%H:%M:%SZ")
+  fi
+  # Fetch recent comments only, filter for user and "/working" string
   local working_comments
-  working_comments=$(gh api "repos/$REPO/issues/$issue_num/comments" --paginate \
-    --jq ".[] | select(.user.login == \"$user\") | select(.body | test(\"/(^|\\\\s)\\\\/working(\\\\s|$)\"; \"i\")) | .created_at")
-  
+  working_comments=$(gh api "repos/$REPO/issues/$issue_num/comments?since=$cutoff_iso" \
+    --jq ".[] | select(.user.login == \"$user\") | select(.body | test(\"(^|\\\\s)/working(\\\\s|$)\"; \"i\")) | .created_at")
+
   if [[ -z "$working_comments" ]]; then
     return 1 # False
   fi
 
-  local cutoff_ts=$((NOW_TS - (days_threshold * 86400)))
-
-  # Check if any of the comments are recent enough
+  # The 'since' parameter is an optimization, but the API may still return comments 
+  # updated since the cutoff, not just created. We still need to check the create time.
   for created_at in $working_comments; do
     local comment_ts
     comment_ts=$(parse_ts "$created_at")
@@ -202,11 +208,7 @@ EOF
         continue
       fi
 
-      # Check immunity on the PR specifically (user might have commented /working on the PR, not the issue)
-      if has_recent_working_command "$PR_NUM" "$USER" "$DAYS"; then
-         echo "    [SKIP] User @$USER posted '/working' on PR #$PR_NUM. Skipping cleanup."
-         continue
-      fi
+
 
       COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate 2>/dev/null || echo "[]")
       LAST_TS_STR=$(jq -r 'last? | (.commit.committer.date // .commit.author.date) // empty' <<<"$COMMITS_JSON" 2>/dev/null || echo "")
