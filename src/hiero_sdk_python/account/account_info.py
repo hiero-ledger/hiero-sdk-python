@@ -56,9 +56,8 @@ class AccountInfo:
     account_memo: Optional[str] = None
     owned_nfts: Optional[int] = None
     max_automatic_token_associations: Optional[int] = None
-    staked_account_id: Optional[AccountId] = None
-    staked_node_id: Optional[int] = None
-    decline_staking_reward: Optional[bool] = None
+    staking_info: Optional[StakingInfo] = None
+
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
@@ -102,18 +101,11 @@ class AccountInfo:
             max_automatic_token_associations=proto.max_automatic_token_associations,
         )
 
-        staking_info = proto.staking_info if proto.HasField('staking_info') else None
-
-        if staking_info:
-            account_info.staked_account_id = (
-                AccountId._from_proto(staking_info.staked_account_id) 
-                if staking_info.HasField('staked_account_id') else None
-            )
-            account_info.staked_node_id = (
-                staking_info.staked_node_id 
-                if staking_info.HasField('staked_node_id') else None
-            )
-            account_info.decline_staking_reward = staking_info.decline_reward
+        staking_info=(
+           StakingInfo.from_proto(proto.staking_info)
+           if proto.HasField("staking_info")
+           else None
+         )
 
         return account_info
 
@@ -147,11 +139,11 @@ class AccountInfo:
             memo=self.account_memo,
             ownedNfts=self.owned_nfts,
             max_automatic_token_associations=self.max_automatic_token_associations,
-            staking_info=StakingInfo(
-                staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None,
-                staked_node_id=self.staked_node_id if self.staked_node_id else None,
-                decline_reward=self.decline_staking_reward
-            ),
+            staking_info=(
+            self.staking_info.to_proto()
+            if self.staking_info is not None
+            else None
+          ),
         )
 
     def __str__(self) -> str:
@@ -166,8 +158,8 @@ class AccountInfo:
             (self.account_memo, "Memo"),
             (self.owned_nfts, "Owned NFTs"),
             (self.max_automatic_token_associations, "Max Automatic Token Associations"),
-            (self.staked_account_id, "Staked Account ID"),
-            (self.staked_node_id, "Staked Node ID"),
+            (self.staking_info, "Staked Account ID"),
+            (self.staking_info, "Staked Node ID"),
             (self.proxy_received, "Proxy Received"),
             (self.expiration_time, "Expiration Time"),
             (self.auto_renew_period, "Auto Renew Period"),
@@ -183,8 +175,8 @@ class AccountInfo:
         if self.receiver_signature_required is not None:
             lines.append(f"Receiver Signature Required: {self.receiver_signature_required}")
             
-        if self.decline_staking_reward is not None:
-            lines.append(f"Decline Staking Reward: {self.decline_staking_reward}")
+        if self.staking_info is not None:
+            lines.append(f"Decline Staking Reward: {self.staking_info}")
 
         if self.token_relationships:
             lines.append(f"Token Relationships: {len(self.token_relationships)}")
@@ -202,7 +194,7 @@ class AccountInfo:
             f"receiver_signature_required={self.receiver_signature_required!r}, "
             f"owned_nfts={self.owned_nfts!r}, "
             f"account_memo={self.account_memo!r}, "
-            f"staked_node_id={self.staked_node_id!r}, "
-            f"staked_account_id={self.staked_account_id!r}"
+            f"staked_node_id={self.staking_info!r}, "
+            f"staked_account_id={self.staking_info!r}"
             f")"
         )
