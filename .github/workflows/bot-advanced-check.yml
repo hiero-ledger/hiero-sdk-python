@@ -1,9 +1,7 @@
 name: PythonBot - Advanced Requirement Check
-
 on:
   issues:
     types: [assigned, labeled]
-
   workflow_dispatch:
     inputs:
       dry_run:
@@ -15,56 +13,54 @@ on:
         description: "GitHub username to dry-run qualification check"
         required: true
         type: string
-
 permissions:
-  contents: read   # required for actions/checkout
+  contents: read
   issues: write
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.issue.number || github.run_id }}
   cancel-in-progress: true
-
 jobs:
   #######################################
   # Automatic enforcement + manual dry-run
   #######################################
   check-advanced-qualification:
-    if: >
-      (
-        github.event_name == 'issues' &&
-        contains(github.event.issue.labels.*.name, 'advanced') &&
-        (
-          github.event.action == 'assigned' ||
-          (
-            github.event.action == 'labeled' &&
-            github.event.label.name == 'advanced' &&
-            github.event.issue.assignees[0] != null
-          )
-        )
-      ) ||
-      github.event_name == 'workflow_dispatch'
-
+    # steps are skipped, job completes successfully
     runs-on: ubuntu-latest
-
     steps:
+      - name: Filter
+        id: should_run
+        run: echo "value=true" >> $GITHUB_OUTPUT
+        if: |
+          github.event_name == 'workflow_dispatch' ||
+          (
+            github.event_name == 'issues' &&
+            contains(github.event.issue.labels.*.name, 'advanced') &&
+            (
+              github.event.action == 'assigned' ||
+              (github.event.action == 'labeled' && github.event.label.name == 'advanced' && join(github.event.issue.assignees.*.login, ',') != '')
+            )
+          )
+      - name: Log skip reason
+        if: steps.should_run.outputs.value != 'true'
+        run: |
+          echo "::notice::Skipping: event=${{ github.event_name }}, action=${{ github.event.action }}, has_advanced_label=${{ contains(github.event.issue.labels.*.name, 'advanced') }}"
       - name: Checkout scripts
+        if: steps.should_run.outputs.value == 'true'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          sparse-checkout: .github/scripts
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: false
 
       - name: Verify User Qualification
+        if: steps.should_run.outputs.value == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-
-          # Issue-driven execution
           TRIGGER_ASSIGNEE: ${{ github.event.assignee.login || '' }}
           ISSUE_NUMBER: ${{ github.event.issue.number || '' }}
-
-          # Manual execution (workflow_dispatch)
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
           DRY_RUN_USER: ${{ github.event_name == 'workflow_dispatch' && inputs.username || '' }}
-
         run: |
           chmod +x .github/scripts/bot-advanced-check.sh
-          ./.github/scripts/bot-advanced-check.sh
+          .github/scripts/bot-advanced-check.sh
