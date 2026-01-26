@@ -232,9 +232,7 @@ module.exports = async ({ github, context }) => {
                     username,
                 });
 
-                if (isTeamMember) {
-                        // Team members comment for discussion, not assignment.
-                        // Do not send /assign reminders to collaborators.
+                if (isTeamMember) {          
                     console.log('[gfi-assign] Skip reminder: commenter is collaborator');
                     return;
                 }
