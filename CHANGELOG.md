@@ -7,10 +7,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Tests
+
 - Style: formatted `tests/unit/prng_transaction_test.py` with black (#1546)
 - Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
-- Format node unit test files with Black.
 - Improve unit test coverage for Hbar, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of evm_address_test.py using Black for improved consistency and readability (#1529)
 - Formatted unit test files using Black.
@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted client_test.py using Black.
 
 ### Added
+
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
@@ -125,6 +126,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 
 ### Changed
+
 - Updated actions/checkout to v6.0.1 and actions/github-script v8.0.0 in bot-next-issue-recommendation workflow (#1586)
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
@@ -207,6 +209,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 
 ### Fixed
+
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
 - Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
 - Fixed jq syntax in bot-office-hours.sh (#1502)
