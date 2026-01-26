@@ -1,7 +1,10 @@
 import unittest
+import pytest
 from unittest.mock import Mock
 from hiero_sdk_python.exceptions import PrecheckError, MaxAttemptsError, ReceiptStatusError
 from hiero_sdk_python.response_code import ResponseCode
+
+pytestmark = pytest.mark.unit
 
 class TestExceptions(unittest.TestCase):
     def test_precheck_error_typing_and_defaults(self):
@@ -31,10 +34,15 @@ class TestExceptions(unittest.TestCase):
         self.assertEqual(err.last_error, inner_error)
         self.assertIn("Max attempts reached", str(err))
         self.assertIn("Connection failed", str(err))
+        self.assertEqual(
+            repr(err),
+            "MaxAttemptsError(message='Max attempts reached; last error: Connection failed', node_id='0.0.3')",
+        )
 
         # Case 2: Without last_error
         err_simple = MaxAttemptsError("Just failed", "0.0.4")
         self.assertEqual(str(err_simple), "Just failed")
+        
 
     def test_receipt_status_error_typing(self):
         """Test ReceiptStatusError initialization."""
@@ -44,6 +52,7 @@ class TestExceptions(unittest.TestCase):
         # Case 1: Default message
         err = ReceiptStatusError(ResponseCode.RECEIPT_NOT_FOUND, tx_id_mock, receipt_mock)
         self.assertEqual(err.status, ResponseCode.RECEIPT_NOT_FOUND)
+        self.assertIs(err.transaction_id, tx_id_mock)
         self.assertEqual(err.transaction_receipt, receipt_mock)
         self.assertIn("RECEIPT_NOT_FOUND", str(err))
 

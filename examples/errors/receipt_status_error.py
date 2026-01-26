@@ -18,12 +18,8 @@ def main() -> None:
     # Client.from_env() automatically loads .env and sets up the operator
     client = Client.from_env()
     
-    # Get operator details from the client
-    if not client.operator:
-        raise ValueError("Operator must be set. Ensure OPERATOR_ID and OPERATOR_KEY are in your .env file")
-    
-    operator_id = client.operator.account_id
-    operator_key = client.operator.private_key
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
     print("Creating transaction...")
     transaction = (
@@ -43,9 +39,12 @@ def main() -> None:
 
         # Check if the execution raised something other than SUCCESS
         # If not, we raise our custom ReceiptStatusError for handling.
+        if receipt.status is None:
+            raise ValueError("Receipt missing status")
         if receipt.status != ResponseCode.SUCCESS:
-            if receipt.transaction_id:
-                raise ReceiptStatusError(receipt.status, receipt.transaction_id, receipt)
+            if not receipt.transaction_id:
+                raise ValueError("Receipt missing transaction_id; cannot raise ReceiptStatusError")
+            raise ReceiptStatusError(receipt.status, receipt.transaction_id, receipt)
 
         print("Transaction successful!")
 
