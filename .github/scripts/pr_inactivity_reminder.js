@@ -38,6 +38,25 @@ async function getLastCommitDate(github, pr, owner, repo) {
   }
 }
 
+// Look for an existing bot comment using our unique marker.
+async function hasExistingBotComment(github, pr, owner, repo, marker) {
+  try {
+    const comments = await github.paginate(github.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: pr.number,
+      per_page: 100,
+    });
+    return comments.find((c) => c.body && c.body.includes(marker)) || false;
+  } catch (err) {
+    console.log(
+      `Failed to list comments for PR #${pr.number}:`,
+      err.message || err,
+    );
+    return null; // Prevent duplicate comment if we cannot check
+  }
+}
+
 // Helper to post an inactivity comment
 async function postInactivityComment(
   github,
@@ -50,9 +69,23 @@ async function postInactivityComment(
   office_hours_calendar,
 ) {
   const comment = `${marker}
-Hi @${pr.user.login},\n\nThis pull request has had no commit activity for ${inactivityDays} days. Are you still working on the issue? please push a commit or comment \`/working\` to keep the PR active or it will be closed due to inactivity.
-If you’re no longer able to work on this issue, please comment \`/unassign\` on the linked **issue** (not this pull request) to release it.
-Reach out on discord or join our office hours if you need assistance.\n\n- ${discordLink}\n- ${office_hours_calendar} \n\nFrom the Python SDK Team`;
+Hi @${pr.user.login},
+
+This pull request has had no commit activity for ${inactivityDays} days. Are you still working on it?
+To keep the PR active, you can:
+
+- Push a new commit.
+- Comment \`/working\` on the linked **issue** (not this PR).
+
+If you're no longer working on this, please comment \`/unassign\` on the linked issue to release it for others. Otherwise, this PR may be closed due to inactivity.
+
+Reach out on discord or join our office hours if you need assistance.
+
+- ${discordLink}
+- ${office_hours_calendar} 
+
+From the Python SDK Team`;
+
   if (dryRun) {
     console.log(
       `DRY-RUN: Would comment on PR #${pr.number} (${pr.html_url}) with body:\n---\n${comment}\n---`,
@@ -103,8 +136,9 @@ module.exports = async ({ github, context }) => {
   });
 
   for (const pr of prs) {
-    // 1. Check inactivity based on Commits
+    // 1. Check inactivity
     const lastCommitDate = await getLastCommitDate(github, pr, owner, repo);
+
     const inactivityDays = Math.floor(
       (Date.now() -
         (lastCommitDate
@@ -115,63 +149,39 @@ module.exports = async ({ github, context }) => {
 
     if (lastCommitDate > cutoff) {
       skippedCount++;
+
       console.log(
         `PR #${pr.number} has recent commit on ${lastCommitDate.toISOString()} - skipping`,
       );
+
       continue;
     }
 
-    // 2. Fetch Comments (OPTIMIZED: Single API call for both checks)
-    let comments = [];
-    try {
-      comments = await github.paginate(github.rest.issues.listComments, {
-        owner,
-        repo,
-        issue_number: pr.number,
-        per_page: 100,
-      });
-    } catch (err) {
-      console.log(
-        `Failed to list comments for PR #${pr.number}:`,
-        err.message || err,
-      );
-      // Fallback: assume activity to be safe, or continue to next PR
-      continue;
-    }
-
-    // 3. Check for recent /working command (IMMUNITY CHECK)
-    // Logic: Must be from Author, contain /working, and be recent
-    const hasWorking = comments.some((c) => {
-      const isAuthor = c.user?.login === pr.user?.login;
-      const hasCommand = c.body && /(^|\s)\/working(\s|$)/i.test(c.body);
-      const isRecent = new Date(c.created_at) > cutoff;
-      return isAuthor && hasCommand && isRecent;
-    });
-
-    if (hasWorking) {
-      skippedCount++;
-      console.log(`PR #${pr.number} has recent /working command - skipping`);
-      continue;
-    }
-
-    // 4. Check for existing bot comment
-    const existingBotComment = comments.find(
-      (c) => c.body && c.body.includes(marker),
+    // 2. Check for existing comment
+    const existingBotComment = await hasExistingBotComment(
+      github,
+      pr,
+      owner,
+      repo,
+      marker,
     );
 
     if (existingBotComment) {
       skippedCount++;
+
       const idInfo =
         existingBotComment && existingBotComment.id
           ? existingBotComment.id
           : "(unknown)";
+
       console.log(
         `PR #${pr.number} already has an inactivity comment (id: ${idInfo}) - skipping`,
       );
+
       continue;
     }
 
-    // 5. Post inactivity comment
+    // 3. Post inactivity comment
     const commented = await postInactivityComment(
       github,
       pr,
@@ -182,12 +192,11 @@ module.exports = async ({ github, context }) => {
       discordLink,
       office_hours_calendar,
     );
+
     if (commented) commentedCount++;
   }
 
   console.log("=== Summary ===");
   console.log(`PRs commented: ${commentedCount}`);
-  console.log(
-    `PRs skipped (existing comment present or active): ${skippedCount}`,
-  );
+  console.log(`PRs skipped (existing comment present): ${skippedCount}`);
 };
