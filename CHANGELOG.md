@@ -212,6 +212,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 
 ### Fixed
+- Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
 - Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
 - Fixed jq syntax in bot-office-hours.sh (#1502)

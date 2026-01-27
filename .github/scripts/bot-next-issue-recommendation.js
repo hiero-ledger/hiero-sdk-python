@@ -1,6 +1,6 @@
 module.exports = async ({ github, context, core }) => {
   const { payload } = context;
-  
+
   // Get PR information from automatic pull_request_target trigger
   let prNumber = payload.pull_request?.number;
   let prBody = payload.pull_request?.body || '';
@@ -69,23 +69,37 @@ module.exports = async ({ github, context, core }) => {
     }
     
     let recommendedIssues = [];
+    let recommendedLabel = null;
+    let isFallback = false;
     
     if (difficultyLevels.goodFirstIssue) {
       // Recommend beginner issues first, then Good First Issues
       recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
+      recommendedLabel = 'Beginner';
+
       if (recommendedIssues.length === 0) {
+        isFallback = true;
         recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
+        recommendedLabel = 'Good First Issue'
       }
+
     } else if (difficultyLevels.beginner) {
       // Recommend beginner or Good First Issues
       recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
+      recommendedLabel = 'Beginner';
+
       if (recommendedIssues.length === 0) {
+        isFallback = true;
         recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
+        recommendedLabel = 'Good First Issue'
       }
     }
+
+    // Remove the issue they just solved
+    recommendedIssues = recommendedIssues.filter(i => i.number !== issueNumber);
     
     // Generate and post comment
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, difficultyLevels.goodFirstIssue);
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner Issue' , recommendedLabel, isFallback);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
@@ -94,7 +108,7 @@ module.exports = async ({ github, context, core }) => {
 
 async function searchIssues(github, core, owner, repo, label) {
   try {
-    const query = `repo:${owner}/${repo} is:issue is:open label:"${label}" no:assignee`;
+    const query = `repo:${owner}/${repo} type:issue state:open label:"${label}" assignee:none`;
     core.info(`Searching for issues with query: ${query}`);
     
     const { data: searchResult } = await github.rest.search.issuesAndPullRequests({
@@ -110,15 +124,19 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, wasGoodFirstIssue) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel, recommendedLabel, isFallback) {
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
-  let comment = `${marker}\n\n🎉 **Congratulations on completing a beginner/Good First Issue!**\n\n`;
+  let comment = `${marker}\n\n🎉 **Nice work completing a ${completedLabel} issue!**\n\n`;
   comment += `Thank you for your contribution to the Hiero Python SDK! We're excited to have you as part of our community.\n\n`;
   
   if (recommendedIssues.length > 0) {
-    comment += `Here are some ${wasGoodFirstIssue ? 'beginner-level' : 'similar'} issues you might be interested in working on next:\n\n`;
+    if(isFallback){
+      comment += `Here are some issues at a similar level you might be interested in working on next:\n\n`;
+    } else{
+      comment += `Here are some ${recommendedLabel} issues you might be interested in working on next:\n\n`;
+    }
     
     // Sanitize title: escape markdown link syntax and special characters
     const sanitizeTitle = (title) => title
@@ -143,8 +161,8 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       }
     });
   } else {
-    comment += `There are currently no open ${wasGoodFirstIssue ? 'beginner' : 'similar'} issues in this repository. \n\n`;
-    comment += `You can check out good first issues across the entire Hiero organization: [Hiero Good First Issues](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+)\n\n`;
+    comment += `There are currently no open issues available at or near the ${completedLabel} level in this repository.\n\n`;
+    comment += `You can check out good first issues across the entire Hiero organization: [Hiero Good First Issues](https://github.com/issues?q=org%3Ahiero-ledger+type%3Aissue+state%3Aopen+label%3A%22good+first+issue%22)\n\n`;
   }
   
   comment += `🌟 **Stay connected with the project:**\n`;
