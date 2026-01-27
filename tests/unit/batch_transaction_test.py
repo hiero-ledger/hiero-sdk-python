@@ -29,7 +29,7 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.fixture
-def mock_tx(mock_account_ids):
+def mock_tx(mock_client, mock_account_ids):
     """Return a factory that builds a TransferTransaction with optional batch_key and freeze."""
     sender_id, receiver_id, _, _, _ = mock_account_ids
 
@@ -413,7 +413,7 @@ def test_batch_transaction_execute_successful(mock_account_ids, mock_client):
         ), f"Transaction should have succeeded, got {receipt.status}"
 
 
-def test_batch_key_accepts_public_key(mock_client, mock_account_ids):
+def test_batch_key_accepts_public_key(mock_account_ids):
     """Test that batch_key can accept PublicKey (not just PrivateKey)."""
     sender, receiver, _, _, _ = mock_account_ids
 
