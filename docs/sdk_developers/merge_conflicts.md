@@ -38,7 +38,7 @@ Changelog conflicts in CHANGELOG.md are very common in this repository because m
 
 For these conflicts, there is a much simpler alternative to the full local rebase process: you can resolve them directly in your Pull Request on GitHub using the built-in web editor. No local setup or force push is required.
 
-**Strong Recommendation**: Use the local VS Code rebase method (described above) to ensure full signing compliance. Use the web editor only if you are prepared to amend and re-sign the resolution commit locally afterward.
+**Strong Recommendation**: Use the local VS Code rebase method (described below) to ensure full signing compliance. Use the web editor only if you are prepared to amend and re-sign the resolution commit locally afterward.
 
 ### When to Use This Method
 
@@ -48,23 +48,23 @@ For these conflicts, there is a much simpler alternative to the full local rebas
 **Important**: The warnings above about not blindly accepting changes apply to code files. For CHANGELOG.md, "accepting both" is safe and recommended.
 
 ### Steps
-
-1. Click the **Resolve conflicts** button — this takes you to a new screen with GitHub's web-based editor:
+1. In your PR, go to **Files changed** and scroll to the bottom. In the merge‑conflict banner, click **Resolve conflicts** to open the web editor.
+2. Click the **Resolve conflicts** button — this takes you to a new screen with GitHub's web-based editor:
    - Conflicted sections are highlighted (usually in red/yellow).
    - You'll see **Incoming change** (from main) and **Current change** (from your branch) marked in red/highlighted areas.
 
-2. **For a changelog conflict**:
+3. **For a changelog conflict**:
    - Click **Accept both** (if the button is available) — this combines all the bullet-point entries perfectly.
    - If no "Accept both" button appears, manually remove the conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>> your-branch`) and keep all entries from both sides.
    - Optionally, sort or group similar entries for neatness.
 
-3. Once all conflicts are resolved, click **Mark as resolved** at the top of the editor.
+4. Once all conflicts are resolved, click **Mark as resolved** at the top of the editor.
 
-4. You'll see a **Sign off and Commit** section:
+5. You'll see a **Sign off and Commit** section:
    - Review your commit message
    - Click **Commit merge** (or **Commit directly to...** depending on your GitHub UI).
 
-5. Your PR will update automatically, and the conflict will be resolved.
+6. Your PR will update automatically, and the conflict will be resolved.
 
 This method is especially beginner-friendly and avoids the more advanced local rebase steps.
 
