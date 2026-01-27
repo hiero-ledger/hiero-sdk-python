@@ -351,8 +351,7 @@ def test_secure_connect_raise_error_if_no_certificate_is_available(
 ):
     """Test get channel raise error if no certificate available if transport security true."""
     node = mock_node_without_address_book
-    node._apply_transport_security(True)
-
+    node._apply_transport_security(enabled=True)
     with pytest.raises(ValueError, match=r"No certificate available\."):
         node._get_channel()
 
