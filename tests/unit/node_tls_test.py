@@ -254,7 +254,7 @@ def test_node_validate_tls_certificate_no_address_book():
 @patch("grpc.secure_channel")
 @patch("grpc.insecure_channel")
 def test_node_get_channel_secure(
-    mock_insecure, mock_secure, mock_node_with_address_book
+    _mock_insecure, mock_secure, mock_node_with_address_book
 ):
     """Test channel creation for secure connection."""
     node = mock_node_with_address_book
@@ -272,24 +272,24 @@ def test_node_get_channel_secure(
         channel = node._get_channel()
 
         mock_secure.assert_called_once()
-        mock_insecure.assert_not_called()
+        _mock_insecure.assert_not_called()
         assert channel is not None
 
 
 @patch("grpc.secure_channel")
 @patch("grpc.insecure_channel")
 def test_node_get_channel_insecure(
-    mock_insecure, mock_secure, mock_node_without_address_book
+    _mock_insecure, mock_secure, mock_node_without_address_book
 ):
     """Test channel creation for insecure connection."""
     node = mock_node_without_address_book
 
     mock_channel = Mock()
-    mock_insecure.return_value = mock_channel
+    _mock_insecure.return_value = mock_channel
 
     channel = node._get_channel()
 
-    mock_insecure.assert_called_once()
+    _mock_insecure.assert_called_once()
     mock_secure.assert_not_called()
     assert channel is not None
 
@@ -297,7 +297,7 @@ def test_node_get_channel_insecure(
 @patch("grpc.secure_channel")
 @patch("grpc.insecure_channel")
 def test_node_get_channel_reuses_existing(
-    mock_insecure, mock_secure, mock_node_with_address_book
+    __mock_insecure, mock_secure, mock_node_with_address_book
 ):
     """Test that channel is reused when already created."""
     node = mock_node_with_address_book
