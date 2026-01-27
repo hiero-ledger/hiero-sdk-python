@@ -7,7 +7,8 @@ Merge conflicts are caused by working on out-dated versions of the codebase, or 
 ## Table of Contents
 
 - [Handling Conflicts](#handling-conflicts)
-- [Step by Step Guide to Resolve Merge Conflicts](#step-by-step-guide-to-resolve-merge-conflicts)
+- [Resolving CHANGELOG.md Conflicts Using GitHub's Web Editor](#resolving-changelogmd-conflicts-using-githubs-web-editor)
+- [Step by Step Guide to Resolve Merge Conflicts Locally](#step-by-step-guide-to-resolve-merge-conflicts-locally)
   - [1. See which files are conflicted](#1-see-which-files-are-conflicted)
   - [2. Understand what conflicts](#2-understand-what-conflicts)
   - [3. Decide what the final code should be](#3-decide-what-the-final-code-should-be)
@@ -24,7 +25,6 @@ Merge conflicts are caused by working on out-dated versions of the codebase, or 
   - [Common issues](#common-issues)
   - [If you need to stop](#if-you-need-to-stop)
   - [What NOT to do](#what-not-to-do)
-- [Resolving CHANGELOG.md Conflicts Using GitHub's Web Editor](#resolving-changelogmd-conflicts-using-githubs-web-editor)
   - [When to Use This Method](#when-to-use-this-method)
   - [Steps](#steps)
 - [Recovery Tips](#recovery-tips)
@@ -32,8 +32,47 @@ Merge conflicts are caused by working on out-dated versions of the codebase, or 
 - [Helpful Resources](#helpful-resources)
 
 
+## Resolving CHANGELOG.md Conflicts Using GitHub's Web Editor
 
-## Step by Step Guide to Resolve Merge Conflicts
+Changelog conflicts in CHANGELOG.md are very common in this repository because multiple pull requests frequently add new entries to the "Unreleased" section at the same time.
+
+For these conflicts, there is a much simpler alternative to the full local rebase process: you can resolve them directly in your Pull Request on GitHub using the built-in web editor. No local setup or force push is required.
+
+**Strong Recommendation**: Use the local VS Code rebase method (described above) to ensure full signing compliance. Use the web editor only if you are prepared to amend and re-sign the resolution commit locally afterward.
+
+### When to Use This Method
+
+- The conflict is only (or primarily) in `CHANGELOG.md`.
+- You want to keep both sets of changes — this is almost always the correct choice for changelogs, as they are designed to accumulate all entries over time.
+
+**Important**: The warnings above about not blindly accepting changes apply to code files. For CHANGELOG.md, "accepting both" is safe and recommended.
+
+### Steps
+
+1. Click the **Resolve conflicts** button — this takes you to a new screen with GitHub's web-based editor:
+   - Conflicted sections are highlighted (usually in red/yellow).
+   - You'll see **Incoming change** (from main) and **Current change** (from your branch) marked in red/highlighted areas.
+
+2. **For a changelog conflict**:
+   - Click **Accept both** (if the button is available) — this combines all the bullet-point entries perfectly.
+   - If no "Accept both" button appears, manually remove the conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>> your-branch`) and keep all entries from both sides.
+   - Optionally, sort or group similar entries for neatness.
+
+3. Once all conflicts are resolved, click **Mark as resolved** at the top of the editor.
+
+4. You'll see a **Sign off and Commit** section:
+   - Review your commit message
+   - Click **Commit merge** (or **Commit directly to...** depending on your GitHub UI).
+
+5. Your PR will update automatically, and the conflict will be resolved.
+
+This method is especially beginner-friendly and avoids the more advanced local rebase steps.
+
+For more details on GitHub's web-based editor, see: [The GitHub.dev web-based editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
+**Example**: See [PR `#1587`](https://github.com/hiero-ledger/hiero-sdk-python/pull/1587) for a real example of resolving a CHANGELOG.md conflict using this method.
+
+
+## Step by Step Guide to Resolve Merge Conflicts Locally
 
 ### 1. See which files are conflicted
 ```bash
@@ -175,64 +214,6 @@ git rebase --abort
 → Always create a feature branch for your changes.
 
 At each conflict instance, you'll have to repeat: fix the conflict, stage the files and continue rebasing.
-
-## Resolving CHANGELOG.md Conflicts Using GitHub's Web Editor
-
-Changelog conflicts in CHANGELOG.md are very common in this repository because multiple pull requests frequently add new entries to the "Unreleased" section at the same time.
-
-For these conflicts, there is a much simpler alternative to the full local rebase process: you can resolve them directly in your Pull Request on GitHub using the built-in web editor. No local setup or force push is required.
-
-### ⚠️ Critical Warning: Commit Signing Requirements
-
-This repository **requires all commits to be both DCO signed and GPG verified** (see [Signing Guide](signing.md)).
-
-**Strong Recommendation**: Use the local VS Code rebase method (described above) to ensure full signing compliance. Use the web editor only if you are prepared to amend and re-sign the resolution commit locally afterward.
-
-### When to Use This Method
-
-- The conflict is only (or primarily) in `CHANGELOG.md`.
-- You want to keep both sets of changes — this is almost always the correct choice for changelogs, as they are designed to accumulate all entries over time.
-
-**Important**: The warnings above about not blindly accepting changes apply to code files. For CHANGELOG.md, "accepting both" is safe and recommended.
-
-### Steps
-
-1. Open your Pull Request on GitHub and go to the **Files changed** tab.
-
-2. Find the conflicted CHANGELOG.md file. You'll see a preview of the conflict with markers, often looking like this:
-  ```
-  <<<<<<< HEAD
-  [Content from current branch/HEAD]
-  =======
-  [Content from incoming branch]
-  >>>>>>> [commit-hash-or-branch-name]
-  ```
-
-3. Look for the online editor at the bottom of the PR file preview.
-
-4. Click the **Resolve conflicts** button — this takes you to a new screen with GitHub's web-based editor:
-   - Conflicted sections are highlighted (usually in red/yellow).
-   - You'll see **Incoming change** (from main) and **Current change** (from your branch) marked in red/highlighted areas.
-
-5. **For a changelog conflict**:
-   - Click **Accept both** (if the button is available) — this combines all the bullet-point entries perfectly.
-   - If no "Accept both" button appears, manually remove the conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>> your-branch`) and keep all entries from both sides.
-   - Optionally, sort or group similar entries for neatness.
-
-6. Preview the changes at the editor.
-
-7. Once all conflicts are resolved, click **Mark as resolved** at the top of the editor.
-8. You'll see a **Sign off and Commit** section:
-   - Review your commit message
-   - Click **Commit merge** (or **Commit directly to...** depending on your GitHub UI).
-
-9. Your PR will update automatically, and the conflict will be resolved.
-
-This method is especially beginner-friendly and avoids the more advanced local rebase steps.
-
-For more details on GitHub's web-based editor, see: [The GitHub.dev web-based editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
-**Example**: See [PR `#1587`](https://github.com/hiero-ledger/hiero-sdk-python/pull/1587) for a real example of resolving a CHANGELOG.md conflict using this method.
-
 
 ## Recovery Tips:
 
