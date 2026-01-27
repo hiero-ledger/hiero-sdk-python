@@ -6,17 +6,27 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Changed
+
 
 ### Tests
+- Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
+- Format tests/unit/logger_test.py with black for code style consistency (#1541)
+- Format `tests/unit/batch_transaction_test.py` with Black.(`#1520`)
+- Style: formatted `tests/unit/prng_transaction_test.py` with black (#1546)
+- Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
 - Formatted node unit test files with Black (#1545)
 - Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of `evm_address_test.py` using Black for improved consistency and readability (#1529)
+- Improve unit test coverage for Hbar, including edge cases, validation, comparisons, and hashing. (#1483)
+- Standardize formatting of evm_address_test.py using Black for improved consistency and readability (#1529)
 - Formatted unit test files using Black.
-- Format `tests/unit/network_tls_test.py` with black for code style consistency (#1543)
+- Format tests/unit/network_tls_test.py with black for code style consistency (#1543)
+- Formatted `ethereum_transaction_test.py` using Black.
+- Formatted client_test.py using Black.
 
 ### Added
+- Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
 - Added advanced CodeRabbit reviewer guidance for `tokens` module changes, with specialized validation rules for token transactions, token classes, and enums. (#1496)
@@ -113,13 +123,20 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add GitHub Actions script and workflow for automatic spam list updates.
 - Added technical docstrings and hardening (set -euo pipefail) to the pr-check-test-files.sh script (#1336)
 - Added prompt for coderabbit to review `Query` and it's sub-classes.
+- Updated the mentor assignment bot welcome message to be more structured. ([#1487](https://github.com/hiero-ledger/hiero-sdk-python/issues/1487))
 - Add StakingInfo class ([1364](https://github.com/hiero-ledger/hiero-sdk-python/issues/1364))
+- Added a visible confirmation comment when a user unassigns themselves from an issue (#1506)
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
+- Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
+- Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 
 ### Changed
+- chore: format tests/unit/mock_server.py with black (#1542)
+- Updated actions/checkout to v6.0.1 and actions/github-script v8.0.0 in bot-next-issue-recommendation workflow (#1586)
+- Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
-
+- Good First Issue template to have more guidance and renamed other templates for consistency with upstream
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
@@ -193,10 +210,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Modified and renamed hasIntermediateOrAdvancedLabel() to check if issue label is beginner or higher (#1385)
 - Updated `.github/scripts/bot-office-hours.sh` to detect and skip PRs created by bot accounts when posting office hours reminders. (#1384)
 - Refactored `examples/account/account_create_transaction_create_with_alias.py` and `examples/account/account_create_transaction_evm_alias.py` to use the native `AccountInfo.__str__` method for printing account details, replacing manual JSON serialization. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
-- Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a _to_proto method.
+- Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a \_to_proto method.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
+- Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 
 ### Fixed
+- Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
+- Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
+- Fixed jq syntax in bot-office-hours.sh (#1502)
+- Fixed formatting of `/unassign` command in the PR inactivity reminder message so it displays correctly with backticks. (#1582)
 - Prevented linkbot from commenting on or auto-closing bot-authored pull requests. (#1516)
 - Respect `dry-run` input in `bot-community-calls.yml` workflow (#1425)
 - Updated LinkBot regex in the GitHub Actions bot script to support "Closes" and "Resolves" keywords for improved PR body-link detection (#1465)
@@ -226,11 +248,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
 
-
 ### Removed
 
 - Deleted `examples/utils.py` as its helper functions are no longer needed. ([#1263](https://github.com/hiero-ledger/hiero-sdk-python/issues/1263))
-- Transaction byte generation to respect valid `node_account_ids` during `external signing` and `manual freezing workflows`, preventing execution failures caused by node mismatches.
 
 ### Breaking Change
 

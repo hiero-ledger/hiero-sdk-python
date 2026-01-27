@@ -292,6 +292,7 @@ def test_proto_conversion_multiple_token_relationships(multiple_token_relationsh
     assert second.token_id == TokenId(0, 0, 600)
     assert second.symbol == "TEST2"
 
+
 def test_proto_conversion_minimal_fields():
     """Test proto conversion with minimal fields"""
     contract_info = ContractInfo(
