@@ -157,6 +157,7 @@ async function isRepoCollaborator({ github, owner, repo, username }) {
         const isTeamMember =
             permission === 'admin' ||
             permission === 'write' ||
+            permission === 'maintain' ||
             permission === 'read';
 
         console.log('[gfi-assign] isRepoCollaborator:', {
