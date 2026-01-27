@@ -29,7 +29,7 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.fixture
-def mock_tx(mock_client, mock_account_ids):
+def mock_tx(mock_account_ids):
     """Return a factory that builds a TransferTransaction with optional batch_key and freeze."""
     sender_id, receiver_id, _, _, _ = mock_account_ids
 
