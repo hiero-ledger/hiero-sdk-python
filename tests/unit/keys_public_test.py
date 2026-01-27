@@ -11,12 +11,14 @@ from hiero_sdk_python.utils.crypto_utils import keccak256
 
 pytestmark = pytest.mark.unit
 
+
 @pytest.fixture
 def ed25519_keypair():
     """Returns (private_key, public_key) for Ed25519."""
     private = ed25519.Ed25519PrivateKey.generate()
     public = private.public_key()
     return private, public
+
 
 @pytest.fixture
 def ecdsa_keypair():
@@ -43,10 +45,7 @@ def test_from_bytes_ed25519_valid(ed25519_keypair):
 
     # The loader emits a warning because a 32-byte blob could also be
     # an Ed25519 *private* seed
-    with pytest.warns(
-        UserWarning,
-        match="cannot distinguish Ed25519 private seeds"
-    ):
+    with pytest.warns(UserWarning, match="cannot distinguish Ed25519 private seeds"):
         # Attempt to construct a PublicKey wrapper from the raw bytes
         pubk = PublicKey.from_bytes_ed25519(raw_bytes)
 
@@ -62,6 +61,7 @@ def test_from_bytes_ed25519_wrong_length():
     data = b"\x01" * 31
     with pytest.raises(ValueError, match="must be 32 bytes"):
         PublicKey.from_bytes_ed25519(data)
+
 
 def test_from_bytes_ed25519_private_seed(ed25519_keypair):
     """
@@ -87,6 +87,7 @@ def test_from_bytes_ed25519_private_seed(ed25519_keypair):
     # Round-tripping back to raw bytes returns the same 32 bytes (the seed)
     assert pk.to_bytes_ed25519() == seed
 
+
 # ------------------------------------------------------------------------------
 # Test: from_bytes_ecdsa
 # ------------------------------------------------------------------------------
@@ -96,7 +97,7 @@ def test_from_bytes_ecdsa_compressed_valid(ecdsa_keypair):
     # Serialize the public key into its SEC1 compressed form (33 bytes):
     compressed = pub.public_bytes(
         encoding=serialization.Encoding.X962,
-        format=serialization.PublicFormat.CompressedPoint, #Compressed
+        format=serialization.PublicFormat.CompressedPoint,  # Compressed
     )
     assert len(compressed) == 33
 
@@ -116,7 +117,7 @@ def test_from_bytes_ecdsa_uncompressed_valid(ecdsa_keypair):
     # Serialize the public key into its SEC1 uncompressed form (65 bytes):
     uncompressed = pub.public_bytes(
         encoding=serialization.Encoding.X962,
-        format=serialization.PublicFormat.UncompressedPoint, #Uncompressed
+        format=serialization.PublicFormat.UncompressedPoint,  # Uncompressed
     )
     assert len(uncompressed) == 65
 
@@ -134,11 +135,13 @@ def test_from_bytes_ecdsa_uncompressed_valid(ecdsa_keypair):
     # And the total length of the compressed point must be 33 bytes
     assert len(compressed) == 33
 
+
 def test_from_bytes_ecdsa_wrong_length():
     # 32 bytes is not a valid ECDSA public point
     data = b"\x02" + b"\x00" * 31
     with pytest.raises(ValueError, match="must be 33 or 65 bytes"):
         PublicKey.from_bytes_ecdsa(data)
+
 
 def test_from_bytes_ecdsa_invalid():
     # 33 bytes but invalid prefix or data
@@ -146,6 +149,7 @@ def test_from_bytes_ecdsa_invalid():
     data = b"\x05" + b"\x00" * 32
     with pytest.raises(ValueError, match="Invalid ECDSA public key bytes"):
         PublicKey.from_bytes_ecdsa(data)
+
 
 # ------------------------------------------------------------------------------
 # Test: from_der
@@ -190,6 +194,7 @@ def test_from_der_ecdsa(ecdsa_keypair):
     # Converting back to DER should match the original exactly
     assert pk.to_bytes_der() == der
 
+
 def test_from_der_unsupported_curve():
     """
     Ensure that DER-encoded keys on curves other than secp256k1
@@ -216,7 +221,7 @@ def test_from_der_invalid():
     in from_der().
     """
     # Create a bogus DER-like blob
-    der = b"\x30\x82" + b"\xFF" * 50
+    der = b"\x30\x82" + b"\xff" * 50
 
     # Expect a ValueError indicating failure to parse DER public key
     with pytest.raises(ValueError, match="Could not parse DER public key"):
@@ -315,6 +320,7 @@ def test_from_bytes_invalid():
         with pytest.raises(ValueError, match="Failed to load public key"):
             PublicKey.from_bytes(data)
 
+
 # ------------------------------------------------------------------------------
 # Test: from_string_xxx
 # ------------------------------------------------------------------------------
@@ -326,12 +332,13 @@ def test_from_string_ed25519(ed25519_keypair):
     """
     _, pub = ed25519_keypair
     raw = pub.public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw
+        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
     )
     hex_str = raw.hex()
 
-    with pytest.warns(UserWarning, match="cannot distinguish Ed25519 private seeds from public keys"):
+    with pytest.warns(
+        UserWarning, match="cannot distinguish Ed25519 private seeds from public keys"
+    ):
         pubk = PublicKey.from_string_ed25519(hex_str)
     assert pubk.is_ed25519()
     assert pubk.to_string_ed25519() == hex_str
@@ -387,6 +394,7 @@ def test_from_string_ecdsa_invalid_hex():
     with pytest.raises(ValueError, match="Invalid hex string for ECDSA public key"):
         PublicKey.from_string_ecdsa("not-a-hex")
 
+
 def test_from_string_catch_all_ecdsa(ecdsa_keypair):
     _, pub = ecdsa_keypair
     compressed = pub.public_bytes(
@@ -432,14 +440,14 @@ def test_from_string_catch_all_ed25519(ed25519_keypair):
     """
     _, pub = ed25519_keypair
     raw = pub.public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw
+        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
     )
     hex_str = raw.hex()
 
     with pytest.warns(UserWarning, match="from_string.*cannot distinguish"):
         pubk = PublicKey.from_string(hex_str)
     assert pubk.is_ed25519()
+
 
 # ------------------------------------------------------------------------------
 # Test: _from_proto
@@ -450,29 +458,32 @@ def test_from_proto_ed25519(ed25519_keypair):
     proto = pubk._to_proto()
     assert pubk._from_proto(proto).to_bytes_raw() == pubk.to_bytes_raw()
 
+
 def test_from_proto_ecdsa(ecdsa_keypair):
     _, pub = ecdsa_keypair
     pubk = PublicKey(pub)
     proto = pubk._to_proto()
     assert pubk._from_proto(proto).to_bytes_raw() == pubk.to_bytes_raw()
 
+
 def test_from_proto_unsupported_type():
     # Create a Key proto with an unsupported type
     proto = Key()
     # Set some arbitrary bytes to a RSA_3072 as currently we do not support it
     proto.RSA_3072 = b"currently unsupported"
-    
+
     # Verify that attempting to parse an unsupported key type raises ValueError
     with pytest.raises(ValueError, match="Unsupported public key type in protobuf"):
         PublicKey._from_proto(proto)
+
 
 # ------------------------------------------------------------------------------
 # Test: _to_proto
 # ------------------------------------------------------------------------------
 def test_to_proto_ed25519(ed25519_keypair):
-    _, pub = ed25519_keypair    
+    _, pub = ed25519_keypair
     pubk = PublicKey(pub)
-    
+
     # Convert to the protobuf Key message
     proto = pubk._to_proto()
     # Ensure the oneof field named “key” is set to the ed25519 variant
@@ -482,15 +493,16 @@ def test_to_proto_ed25519(ed25519_keypair):
 
 
 def test_to_proto_ecdsa(ecdsa_keypair):
-    _, pub = ecdsa_keypair    
+    _, pub = ecdsa_keypair
     pubk = PublicKey(pub)
-    
+
     # Convert to the protobuf Key message
     proto = pubk._to_proto()
     # Ensure the oneof field named “key” is set to the ECDSA_secp256k1 variant
     assert proto.WhichOneof("key") == "ECDSA_secp256k1"
     # The bytes in the proto should exactly match the compressed secp256k1 bytes
     assert proto.ECDSA_secp256k1 == pubk.to_bytes_ecdsa()
+
 
 # ------------------------------------------------------------------------------
 # Test: verify signatures
@@ -537,6 +549,7 @@ def test_verify_ecdsa_success(ecdsa_keypair):
     # If the signature is correct, verify() returns None and raises no error.
     pk.verify(signature, msg)
 
+
 def test_verify_ecdsa_fail(ecdsa_keypair):
     priv, pub = ecdsa_keypair
     pk = PublicKey(pub)
@@ -563,6 +576,7 @@ def test_repr_ed25519(ed25519_keypair):
     # It must include the raw public-key hex string
     assert pubk.to_string_raw() in r
 
+
 def test_repr_ecdsa(ecdsa_keypair):
     _, pub = ecdsa_keypair
     pubk = PublicKey(pub)
@@ -571,6 +585,7 @@ def test_repr_ecdsa(ecdsa_keypair):
     assert "ECDSA" in r
     # It must include the raw public-key hex string
     assert pubk.to_string_raw() in r
+
 
 def test_to_evm_address_ecdsa_key(ecdsa_keypair):
     """Test that the evm_address is created."""
@@ -583,6 +598,7 @@ def test_to_evm_address_ecdsa_key(ecdsa_keypair):
     assert isinstance(evm_address, EvmAddress)
     assert len(evm_address.address_bytes) == 20
 
+
 def test_to_evm_address_from_ecdsa_key_manual_derivation(ecdsa_keypair):
     """Verify that to_evm_address() matches manual derivation."""
     _, pub = ecdsa_keypair
@@ -594,7 +610,8 @@ def test_to_evm_address_from_ecdsa_key_manual_derivation(ecdsa_keypair):
 
     derived_bytes = public_key.to_evm_address().address_bytes
 
-    assert evm_bytes== derived_bytes
+    assert evm_bytes == derived_bytes
+
 
 def test_to_evm_address_with_same_ecdsa_key(ecdsa_keypair):
     """Test deriving EVM address from a valid same ECDSA public key."""
@@ -612,6 +629,7 @@ def test_to_evm_address_with_same_ecdsa_key(ecdsa_keypair):
     assert len(evm_addr1.address_bytes) == 20
 
     assert evm_addr1 == evm_addr2
+
 
 def test_to_evm_address_raises_for_ed25519(ed25519_keypair):
     """Ensure ValueError is raised when deriving EVM address from Ed25519 key."""
