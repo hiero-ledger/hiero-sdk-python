@@ -8,7 +8,7 @@ Merge conflicts are caused by working on out-dated versions of the codebase, or 
 
 - [Handling Conflicts](#handling-conflicts)
 - [Resolving CHANGELOG.md Conflicts Using GitHub's Web Editor](#resolving-changelogmd-conflicts-using-githubs-web-editor)
-- [Step by Step Guide to Resolve Merge Conflicts Locally](#step-by-step-guide-to-resolve-merge-conflicts-locally)
+- [Step-by-Step Guide to Resolve Merge Conflicts Locally](#step-by-step-guide-to-resolve-merge-conflicts-locally)
   - [1. See which files are conflicted](#1-see-which-files-are-conflicted)
   - [2. Understand what conflicts](#2-understand-what-conflicts)
   - [3. Decide what the final code should be](#3-decide-what-the-final-code-should-be)
@@ -48,8 +48,9 @@ For these conflicts, there is a much simpler alternative to the full local rebas
 **Important**: The warnings above about not blindly accepting changes apply to code files. For CHANGELOG.md, "accepting both" is safe and recommended.
 
 ### Steps
+
 1. In your PR, go to **Files changed** and scroll to the bottom. In the merge‑conflict banner, click **Resolve conflicts** to open the web editor.
-2. Click the **Resolve conflicts** button — this takes you to a new screen with GitHub's web-based editor:
+2. In GitHub's web-based editor:
    - Conflicted sections are highlighted (usually in red/yellow).
    - You'll see **Incoming change** (from main) and **Current change** (from your branch) marked in red/highlighted areas.
 
@@ -69,10 +70,10 @@ For these conflicts, there is a much simpler alternative to the full local rebas
 This method is especially beginner-friendly and avoids the more advanced local rebase steps.
 
 For more details on GitHub's web-based editor, see: [The GitHub.dev web-based editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
-**Example**: See [PR `#1587`](https://github.com/hiero-ledger/hiero-sdk-python/pull/1587) for a real example of resolving a CHANGELOG.md conflict using this method.
+**Example**: See [PR `#1589`](https://github.com/hiero-ledger/hiero-sdk-python/pull/1589) for a real example of resolving a CHANGELOG.md conflict using this method.
 
 
-## Step by Step Guide to Resolve Merge Conflicts Locally
+## Step-by-Step Guide to Resolve Merge Conflicts Locally
 
 ### 1. See which files are conflicted
 ```bash

@@ -7,7 +7,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Tests
+- Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
 - Format tests/unit/logger_test.py with black for code style consistency (#1541)
+- Format `tests/unit/batch_transaction_test.py` with Black.(`#1520`)
 - Style: formatted `tests/unit/prng_transaction_test.py` with black (#1546)
 - Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
@@ -19,6 +21,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted client_test.py using Black.
 
 ### Added
+- Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
@@ -124,7 +127,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 
 ### Changed
-- Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
 - chore: format tests/unit/mock_server.py with black (#1542)
 - Updated actions/checkout to v6.0.1 and actions/github-script v8.0.0 in bot-next-issue-recommendation workflow (#1586)
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
