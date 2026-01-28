@@ -11,6 +11,7 @@ from hiero_sdk_python.hapi.services import (
     transaction_record_pb2,
     transaction_receipt_pb2,
 )
+from hiero_sdk_python.hapi.services import query_header_pb2
 
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -92,7 +93,30 @@ def test_transaction_record_query_execute(transaction_id):
         assert result.transaction_fee == 100000
         assert result.transaction_hash == b'\x01' * 48
         assert result.transaction_memo == "Test transaction"
-        
+
+from hiero_sdk_python.hapi.services import query_header_pb2, transaction_get_record_pb2
+def test_transaction_record_query_with_children_mapping(transaction_id):
+    
+    child_proto = transaction_record_pb2.TransactionRecord(
+        memo="Child Record"
+    )
+    child_proto.transactionID.CopyFrom(transaction_id._to_proto())
+
+    record_response = transaction_get_record_pb2.TransactionGetRecordResponse()
+    
+    record_response.header.nodeTransactionPrecheckCode = ResponseCode.OK
+
+    record_response.transactionRecord.memo = "Parent Record"
+    record_response.transactionRecord.transactionID.CopyFrom(transaction_id._to_proto())
+    
+    record_response.child_transaction_records.extend([child_proto, child_proto])
+    
+    query = TransactionRecordQuery(transaction_id)
+    children = query._map_record_list(record_response.child_transaction_records)
+    
+    assert len(children) == 2
+    assert children[0].transaction_memo == "Child Record"
+
 def get_transaction_record_responses(transaction_record):
         return [[
             response_pb2.Response(
