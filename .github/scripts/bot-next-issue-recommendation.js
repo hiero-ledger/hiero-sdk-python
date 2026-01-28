@@ -72,34 +72,20 @@ module.exports = async ({ github, context, core }) => {
     let recommendedLabel = null;
     let isFallback = false;
     
-    if (difficultyLevels.goodFirstIssue) {
-      // Recommend beginner issues first, then Good First Issues
-      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
-      recommendedLabel = 'Beginner';
-
-      if (recommendedIssues.length === 0) {
-        isFallback = true;
-        recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
-        recommendedLabel = 'Good First Issue';
-      }
-
-    } else if (difficultyLevels.beginner) {
-      // Recommend beginner or Good First Issues
-      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
-      recommendedLabel = 'Beginner';
-
-      if (recommendedIssues.length === 0) {
-        isFallback = true;
-        recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
-        recommendedLabel = 'Good First Issue';
-      }
+    recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
+    recommendedLabel = 'Beginner';
+    if (recommendedIssues.length === 0) {
+      isFallback = true;
+      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
+      recommendedLabel = 'Good First Issue';
     }
 
     // Remove the issue they just solved
     recommendedIssues = recommendedIssues.filter(i => i.number !== issueNumber);
     
     // Generate and post comment
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner Issue' , recommendedLabel, isFallback);
+    const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner Issue';
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel , recommendedLabel, isFallback);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
