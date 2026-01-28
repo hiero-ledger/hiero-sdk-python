@@ -15,7 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Style: formatted `tests/unit/prng_transaction_test.py` with black (#1546)
 - Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
-- Formatted node unit test files with Black (#1545)
+- Format `tests/unit/node*.py` with Black for consistent code style (#1545)
 - Improve unit test coverage for Hbar, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of evm_address_test.py using Black for improved consistency and readability (#1529)
 - Formatted unit test files using Black.
