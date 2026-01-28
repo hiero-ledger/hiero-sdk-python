@@ -1,6 +1,6 @@
 module.exports = async ({ github, context, core }) => {
   const { payload } = context;
-
+  
   // Get PR information from automatic pull_request_target trigger
   let prNumber = payload.pull_request?.number;
   let prBody = payload.pull_request?.body || '';
@@ -80,7 +80,7 @@ module.exports = async ({ github, context, core }) => {
       if (recommendedIssues.length === 0) {
         isFallback = true;
         recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
-        recommendedLabel = 'Good First Issue'
+        recommendedLabel = 'Good First Issue';
       }
 
     } else if (difficultyLevels.beginner) {
@@ -91,7 +91,7 @@ module.exports = async ({ github, context, core }) => {
       if (recommendedIssues.length === 0) {
         isFallback = true;
         recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
-        recommendedLabel = 'Good First Issue'
+        recommendedLabel = 'Good First Issue';
       }
     }
 
@@ -128,14 +128,14 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
-  let comment = `${marker}\n\n🎉 **Nice work completing a ${completedLabel} !**\n\n`;
+  let comment = `${marker}\n\n🎉 **Nice work completing a ${completedLabel}!**\n\n`;
   comment += `Thank you for your contribution to the Hiero Python SDK! We're excited to have you as part of our community.\n\n`;
   
   if (recommendedIssues.length > 0) {
     if(isFallback){
       comment += `Here are some issues at a similar level you might be interested in working on next:\n\n`;
     } else{
-      comment += `Here are some ${recommendedLabel} issues you might be interested in working on next:\n\n`;
+      comment += `Here are some issues labeled **${recommendedLabel}** you might be interested in working on next:\n\n`;
     }
     
     // Sanitize title: escape markdown link syntax and special characters
