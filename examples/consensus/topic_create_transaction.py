@@ -2,7 +2,7 @@
 uv run examples/consensus/topic_create_transaction.py
 python examples/consensus/topic_create_transaction.py
 """
-from hiero_sdk_python import Client, TopicCreateTransaction
+from hiero_sdk_python import Client, TopicCreateTransaction, ResponseCode, PrivateKey
 
 def setup_client():
     """
@@ -14,7 +14,7 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client, client.operator_private_key
 
-def create_topic(client: Client, operator_key: "PrivateKey"):
+def create_topic(client: Client, operator_key: PrivateKey):
     """
     Builds, signs, and executes a new topic creation transaction.
     """
@@ -27,11 +27,13 @@ def create_topic(client: Client, operator_key: "PrivateKey"):
     )
     try:
         receipt = transaction.execute(client)
-        if receipt and receipt.topic_id:
-            print(f"Success! Topic created with ID: {receipt.topic_id}")
-        else:
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"Topic creation failed: {ResponseCode(receipt.status).name}")
+            raise SystemExit(1)
+        if not receipt.topic_id:
             print("Topic creation failed: Topic ID not returned in receipt.")
             raise SystemExit(1)
+        print(f"Success! Topic created with ID: {receipt.topic_id}")
     except Exception as e:
         print(f"Topic creation failed: {str(e)}")
         raise SystemExit(1)
