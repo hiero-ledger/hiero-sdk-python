@@ -1,4 +1,5 @@
 """Unit tests for _HederaTrustManager certificate validation."""
+
 import hashlib
 import pytest
 from src.hiero_sdk_python.node import _HederaTrustManager
@@ -11,7 +12,7 @@ def test_trust_manager_init_with_cert_hash():
     cert_hash = b"abc123def456"
     trust_manager = _HederaTrustManager(cert_hash, verify_certificate=True)
     # UTF-8 decodable strings are decoded directly, not converted to hex
-    assert trust_manager.cert_hash == cert_hash.decode('utf-8').lower()
+    assert trust_manager.cert_hash == cert_hash.decode("utf-8").lower()
 
 
 def test_trust_manager_init_with_utf8_hex_string():
@@ -45,8 +46,10 @@ def test_trust_manager_check_server_trusted_matching_hash():
     pem_cert = b"-----BEGIN CERTIFICATE-----\nTEST_CERT\n-----END CERTIFICATE-----\n"
     cert_hash_bytes = hashlib.sha384(pem_cert).digest()
     cert_hash_hex = cert_hash_bytes.hex().lower()
-    
-    trust_manager = _HederaTrustManager(cert_hash_hex.encode('utf-8'), verify_certificate=True)
+
+    trust_manager = _HederaTrustManager(
+        cert_hash_hex.encode("utf-8"), verify_certificate=True
+    )
     # Should not raise
     assert trust_manager.check_server_trusted(pem_cert) is True
 
@@ -55,9 +58,9 @@ def test_trust_manager_check_server_trusted_mismatched_hash():
     """Test certificate validation raises error on hash mismatch."""
     pem_cert = b"-----BEGIN CERTIFICATE-----\nTEST_CERT\n-----END CERTIFICATE-----\n"
     wrong_hash = b"wrong_hash_value"
-    
+
     trust_manager = _HederaTrustManager(wrong_hash, verify_certificate=True)
-    
+
     with pytest.raises(ValueError, match="Failed to confirm the server's certificate"):
         trust_manager.check_server_trusted(pem_cert)
 
@@ -65,7 +68,7 @@ def test_trust_manager_check_server_trusted_mismatched_hash():
 def test_trust_manager_check_server_trusted_no_verification():
     """Test certificate validation skipped when verification disabled."""
     pem_cert = b"-----BEGIN CERTIFICATE-----\nTEST_CERT\n-----END CERTIFICATE-----\n"
-    
+
     trust_manager = _HederaTrustManager(None, verify_certificate=False)
     # Should not raise even without cert hash
     assert trust_manager.check_server_trusted(pem_cert) is True
@@ -88,8 +91,7 @@ def test_trust_manager_normalize_hash_lowercase():
 def test_trust_manager_normalize_hash_unicode_decode_error():
     """Test hash normalization handles Unicode decode errors."""
     # Create bytes that can't be decoded as UTF-8
-    cert_hash = bytes([0xff, 0xfe, 0xfd])
+    cert_hash = bytes([0xFF, 0xFE, 0xFD])
     trust_manager = _HederaTrustManager(cert_hash, verify_certificate=True)
     # Should fall back to hex encoding
     assert trust_manager.cert_hash == cert_hash.hex().lower()
-
