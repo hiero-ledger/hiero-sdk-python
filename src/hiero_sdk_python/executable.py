@@ -337,20 +337,17 @@ class _Executable(ABC):
         """
         Resolve unset execution configuration from the Client defaults.
         """
-        if self._min_backoff is None:
-            self._min_backoff = client._min_backoff
+        defaults = (
+            ("_min_backoff", client._min_backoff),
+            ("_max_backoff", client._max_backoff),
+            ("_grpc_deadline", client._grpc_deadline),
+            ("_request_timeout", client._request_timeout),
+            ("_max_attempts", client.max_attempts),
+        )
 
-        if self._max_backoff is None:
-            self._max_backoff = client._max_backoff
-
-        if self._grpc_deadline is None:
-            self._grpc_deadline = client._grpc_deadline
-
-        if self._request_timeout is None:
-            self._request_timeout = client._request_timeout
-
-        if self._max_attempts is None:
-            self._max_attempts = client.max_attempts
+        for attr, default in defaults:
+            if getattr(self, attr) is None:
+                setattr(self, attr, default)
 
         # nodes to which the executaion must be run against, if not provided used nodes from client
         if not self.node_account_ids:
