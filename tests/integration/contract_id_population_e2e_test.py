@@ -19,7 +19,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env
+from tests.integration.utils import env, wait_for_mirror_node
 
 
 @pytest.mark.integration
@@ -49,25 +49,22 @@ def test_populate_contract_id_num(env):
         .execute(env.client)
     )
     assert contract_receipt.status == ResponseCode.SUCCESS
-    contract_id_with_num = contract_receipt.contract_id
 
-    assert contract_id_with_num is not None
+    created_contract_id = contract_receipt.contract_id
+    assert created_contract_id is not None
 
     # Query contract info to get evm_address
-    info = ContractInfoQuery().set_contract_id(contract_id_with_num).execute(env.client)
-    contract_id_with_evm_addr = ContractId.from_evm_address(
-        0, 0, info.contract_account_id
-    )
+    info = ContractInfoQuery().set_contract_id(created_contract_id).execute(env.client)
+    contract_with_evm = ContractId.from_evm_address(0, 0, info.contract_account_id)
+    assert contract_with_evm.contract == 0
 
     # Wait for mirror_node to update
-    time.sleep(5)
+    resolved_contract_id = wait_for_mirror_node(
+        fn=lambda: contract_with_evm.populate_contract_num(env.client),
+        predicate=lambda contract: contract.contract != 0,
+    )
 
-    final_contract_id = contract_id_with_evm_addr.populate_contract_num(env.client)
-
-    # should not update
-    assert contract_id_with_evm_addr.contract == 0
-
-    assert final_contract_id.shard == contract_id_with_num.shard
-    assert final_contract_id.realm == contract_id_with_num.realm
-    assert final_contract_id.contract == contract_id_with_num.contract
-    assert final_contract_id.evm_address == contract_id_with_evm_addr.evm_address
+    assert resolved_contract_id.shard == created_contract_id.shard
+    assert resolved_contract_id.realm == created_contract_id.realm
+    assert resolved_contract_id.contract == created_contract_id.contract
+    assert resolved_contract_id.evm_address == contract_with_evm.evm_address
