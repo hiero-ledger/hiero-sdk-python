@@ -134,7 +134,7 @@ class _Executable(ABC):
         self._max_attempts = max_attempts
         return self
 
-    def set_grpc_deadline(self, grpc_deadline: Union[int, float]) -> "_Executable":
+    def set_grpc_deadline(self, grpc_deadline: Union[int, float]):
         """
         Set the gRPC call deadline (per attempt).
 
@@ -217,7 +217,7 @@ class _Executable(ABC):
         self._min_backoff = min_backoff
         return self
 
-    def set_max_backoff(self, max_backoff: Union[int, float]) -> "Client":
+    def set_max_backoff(self, max_backoff: Union[int, float]):
         """
         Set the maximum backoff delay between retries.
 
