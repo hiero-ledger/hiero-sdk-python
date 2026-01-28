@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Changed
+
 - chore: update merge conflict bot message with web editor tips (#1592)
 
 
