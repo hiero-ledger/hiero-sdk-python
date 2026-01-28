@@ -84,7 +84,7 @@ module.exports = async ({ github, context, core }) => {
     recommendedIssues = recommendedIssues.filter(i => i.number !== issueNumber);
     
     // Generate and post comment
-    const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner Issue';
+    const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner';
     await generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel , recommendedLabel, isFallback);
     
   } catch (error) {
@@ -94,12 +94,12 @@ module.exports = async ({ github, context, core }) => {
 
 async function searchIssues(github, core, owner, repo, label) {
   try {
-    const query = `repo:${owner}/${repo} type:issue state:open label:"${label}" assignee:none`;
+    const query = `repo:${owner}/${repo} type:issue state:open label:"${label}" no:assignee`;
     core.info(`Searching for issues with query: ${query}`);
     
     const { data: searchResult } = await github.rest.search.issuesAndPullRequests({
       q: query,
-      per_page: 5,
+      per_page: 6,
     });
     
     core.info(`Found ${searchResult.items.length} issues with label "${label}"`);
