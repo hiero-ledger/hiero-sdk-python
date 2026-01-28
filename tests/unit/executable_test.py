@@ -1,14 +1,17 @@
 import pytest
 import grpc
 from unittest.mock import patch
+from itertools import chain, repeat
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
+from hiero_sdk_python.executable import _is_transaction_receipt_or_record_request
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     crypto_get_account_balance_pb2,
+    query_pb2,
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
@@ -19,7 +22,10 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 )
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
+from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import RealRpcError, mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -723,6 +729,32 @@ def test_set_request_timeout_with_invalid_value(invalid_request_timeout):
         query = CryptoGetAccountBalanceQuery()
         query.set_request_timeout(invalid_request_timeout)
 
+def test_warning_when_grpc_deadline_exceeds_request_timeout():
+    """Warn when grpc_deadline is greater than request_timeout."""
+    tx = AccountCreateTransaction()
+
+    tx.set_request_timeout(5)
+
+    with pytest.warns(FutureWarning):
+        tx.set_grpc_deadline(10)
+
+def test_warning_when_request_timeout_less_than_grpc_deadline():
+    """Warn when request_timeout is less than grpc_deadline."""
+    tx = AccountCreateTransaction()
+    tx.set_grpc_deadline(10)
+
+    with pytest.warns(FutureWarning):
+        tx.set_request_timeout(5)
+
+def test_is_transaction_receipt_or_record_request():
+    """Detect receipt and record query requests correctly."""
+    receipt_query = query_pb2.Query(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptQuery()
+    )
+
+    assert _is_transaction_receipt_or_record_request(receipt_query) is True
+    assert _is_transaction_receipt_or_record_request(object()) is False
+
 # Set min_backoff
 def test_set_min_backoff_with_valid_param():
     """Test that set_min_backoff updates default value of _min_backoff."""
@@ -860,6 +892,17 @@ def test_set_max_backoff_less_than_min_backoff():
 
         query.set_max_backoff(2)
 
+def test_backoff_is_capped_by_max_backoff():
+    """Backoff delay must not exceed max_backoff."""
+    tx = AccountCreateTransaction()
+    tx.set_min_backoff(2)
+    tx.set_max_backoff(5)
+
+    # attempt=0  min * 2 = 4
+    assert tx._calculate_backoff(0) == 4
+    # attempt=1  min * 4 = 8 : capped to 5
+    assert tx._calculate_backoff(1) == 5
+
 def test_execution_config_inherits_from_client(mock_client):
     """Test that resolve_execution_config inherits config from client if not set."""
     mock_client.max_attempts = 7
@@ -911,7 +954,7 @@ def test_set_node_account_ids_overrides_client_nodes(mock_client):
 
     assert tx.node_account_ids == [node]
 
-
+# reuest timeout
 def test_request_timeout_exceeded_stops_execution():
     """Test that execution stops when request_timeout is exceeded."""
     busy_response = TransactionResponseProto(
@@ -950,4 +993,178 @@ def test_request_timeout_exceeded_stops_execution():
         with pytest.raises(MaxAttemptsError):
             tx.execute(client)
 
+
+@pytest.mark.parametrize(
+    'error',
+    [
+        RealRpcError(grpc.StatusCode.DEADLINE_EXCEEDED, "timeout"),
+        RealRpcError(grpc.StatusCode.UNAVAILABLE, "unavailable"),
+        RealRpcError(grpc.StatusCode.RESOURCE_EXHAUSTED, "busy")
+    ]
+)
+def test_should_exponential_error_mark_node_unhealty_and_advance(error):
+    """Exponential gRPC retry errors advance the node without sleep-based backoff."""
+    ok_response = TransactionResponseProto(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequences = [
+        [error],
+        [ok_response, receipt_response],
+    ]
+
+    with mock_hedera_servers(response_sequences) as client, patch("hiero_sdk_python.executable.time.sleep") as mock_sleep:
+        tx = (
+            AccountCreateTransaction()
+            .set_key_without_alias(PrivateKey.generate().public_key())
+            .set_initial_balance(1)
+        )
+
+        receipt = tx.execute(client)
+
+        assert receipt.status == ResponseCode.SUCCESS
+        # No delay_for_attempt backoff call, Node is mark unhealthy and advance
+        assert mock_sleep.call_count == 0
+        # Node must have changed
+        assert tx._node_account_ids_index == 1
+
             
+def test_rst_stream_error_marks_node_unhealthy_and_advances_without_backoff():
+    """INTERNAL RST_STREAM errors trigger exponential retry by advancing the node without sleep-based backoff."""
+    error = RealRpcError(
+        grpc.StatusCode.INTERNAL,
+        "received rst stream"
+    )
+
+    ok_response = TransactionResponseProto(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequences = [
+        [error],
+        [ok_response, receipt_response],
+    ]
+
+    with (
+        mock_hedera_servers(response_sequences) as client,
+        patch("hiero_sdk_python.executable.time.sleep") as mock_sleep,
+    ):
+        tx = (
+            AccountCreateTransaction()
+            .set_key_without_alias(PrivateKey.generate().public_key())
+            .set_initial_balance(1)
+        )
+
+        receipt = tx.execute(client)
+
+        # Retry succeeds
+        assert receipt.status == ResponseCode.SUCCESS
+        # RST_STREAM exponential retry does not use delay-based backoff
+        assert mock_sleep.call_count == 0
+        # Node must advance after marking the first node unhealthy
+        assert tx._node_account_ids_index == 1
+
+
+@pytest.mark.parametrize(
+    'error',
+    [
+        RealRpcError(grpc.StatusCode.ALREADY_EXISTS, "already exists"),
+        RealRpcError(grpc.StatusCode.ABORTED, "aborted"),
+        RealRpcError(grpc.StatusCode.UNAUTHENTICATED, "unauthenticated")
+    ]
+)
+def test_non_exponential_grpc_error_raises_exception(error):
+    """Errors that are not retried exponentially should raise error immediately"""
+    response_sequences = [
+        [error]
+    ]
+
+    with mock_hedera_servers(response_sequences) as client, pytest.raises(grpc.RpcError):
+        tx = (
+            AccountCreateTransaction()
+            .set_key_without_alias(PrivateKey.generate().public_key())
+            .set_initial_balance(1)
+        )
+
+        tx.execute(client)
+
+def test_execution_skips_unhealthy_nodes_and_advances():
+    """Execution should skip unhealthy nodes and advance to the next healthy one."""
+    busy_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.BUSY)
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+        )
+    )
+
+    response_sequences = [
+        [busy_response],  # first node (unhealthy)
+        [ok_response, receipt_response],  # second node (healthy)
+    ]
+
+    with mock_hedera_servers(response_sequences) as client, patch("hiero_sdk_python.node._Node.is_healthy", side_effect=chain([False, True], repeat(True))):
+        tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
+        
+        receipt = tx.execute(client)
+
+        assert receipt.status == ResponseCode.SUCCESS
+        # Ensure the node index advanced past the unhealthy node
+        assert tx._node_account_ids_index == 1
+
+
+def test_execution_raises_if_all_nodes_unhealthy(mock_client):
+    """Execution should raise RuntimeError if all nodes are unhealthy."""
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
+
+    # Patch node health to always return False
+    with patch("hiero_sdk_python.node._Node.is_healthy", side_effect=repeat(False)):
+        with pytest.raises(RuntimeError, match="All nodes are unhealthy"):
+            tx.execute(mock_client)
+
+
+@pytest.mark.parametrize(
+    'tx',
+    [
+        TransactionRecordQuery().set_transaction_id(TransactionId.from_string("0.0.3@1769674705.770340600")),
+        TransactionGetReceiptQuery().set_transaction_id(TransactionId.from_string("0.0.3@1769674705.770340600"))
+    ]
+)
+def test_unhealthy_node_receipt_request_triggers_delay_and_no_node_change(tx, mock_client):
+    """Unhealthy node with transaction receipt/record request calls _delay_for_attempt but does not advance node."""
+    initial_index = tx._node_account_ids_index
+
+    with patch("hiero_sdk_python.node._Node.is_healthy", return_value=False), \
+         patch("hiero_sdk_python.executable._delay_for_attempt") as mock_delay:
+
+        with pytest.raises(Exception):
+            tx.execute(mock_client)
+
+        # _delay_for_attempt called
+        assert mock_delay.call_count > 0
+        # Node index did NOT change
+        assert tx._node_account_ids_index == initial_index
