@@ -85,7 +85,7 @@ module.exports = async ({ github, context, core }) => {
     
     // Generate and post comment
     const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner';
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel , recommendedLabel, isFallback);
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel, recommendedLabel, isFallback);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
@@ -118,9 +118,9 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
   comment += `Thank you for your contribution to the Hiero Python SDK! We're excited to have you as part of our community.\n\n`;
   
   if (recommendedIssues.length > 0) {
-    if(isFallback){
-      comment += `Here are some issues at a similar level you might be interested in working on next:\n\n`;
-    } else{
+    if (isFallback){
+      comment += `Here are some **${recommendedLabel}** issues at a similar level you might be interested in working on next:\n\n`;
+    } else {
       comment += `Here are some issues labeled **${recommendedLabel}** you might be interested in working on next:\n\n`;
     }
     
