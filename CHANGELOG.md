@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
+- Format `tests/unit/executable_test.py` with Black.(#1530)
 - Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
 - Format tests/unit/logger_test.py with black for code style consistency (#1541)
 - Format `tests/unit/batch_transaction_test.py` with Black.(`#1520`)
@@ -128,6 +129,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 
 ### Changed
+- Updated GitHub Actions setup-node action to v6.2.0.
 - chore: format tests/unit/mock_server.py with black (#1542)
 - Updated actions/checkout to v6.0.1 and actions/github-script v8.0.0 in bot-next-issue-recommendation workflow (#1586)
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
@@ -214,6 +216,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
+- Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
 - Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
 - Fixed jq syntax in bot-office-hours.sh (#1502)
@@ -246,6 +249,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed bot-pr-missing-linked-issue to skip commenting on pull requests created by automated bots. (#1382)
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
+- Update `.github/scripts/bot-advanced-check.sh` to unassign unqualified users.
 
 ### Removed
 
