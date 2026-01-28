@@ -128,7 +128,7 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
-  let comment = `${marker}\n\n🎉 **Nice work completing a ${completedLabel} issue!**\n\n`;
+  let comment = `${marker}\n\n🎉 **Nice work completing a ${completedLabel} !**\n\n`;
   comment += `Thank you for your contribution to the Hiero Python SDK! We're excited to have you as part of our community.\n\n`;
   
   if (recommendedIssues.length > 0) {
