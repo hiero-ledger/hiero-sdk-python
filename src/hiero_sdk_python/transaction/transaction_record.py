@@ -18,7 +18,7 @@ The module provides functionality to:
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, List
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
@@ -73,6 +73,7 @@ class TransactionRecord:
 
     prng_number: Optional[int] = None
     prng_bytes: Optional[bytes] = None
+    children: List[TransactionId] = None
 
     def __repr__(self) -> str:
         """Returns a human-readable string representation of the TransactionRecord.
@@ -166,6 +167,7 @@ class TransactionRecord:
             nft_transfers=nft_transfers,
             transfers=transfers,
             new_pending_airdrops=new_pending_airdrops,
+            #childrens = childrens,
             call_result=(
                 ContractFunctionResult._from_proto(proto.contractCallResult)
                 if proto.HasField("contractCallResult")
