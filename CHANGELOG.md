@@ -210,6 +210,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a \_to_proto method.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
+- chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 
 ### Fixed
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
