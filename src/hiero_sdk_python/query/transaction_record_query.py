@@ -1,4 +1,4 @@
-from typing import Optional, Any, Union
+from typing import Optional, Any, Union, List
 from hiero_sdk_python.hapi.services import query_header_pb2, transaction_get_record_pb2, query_pb2
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
@@ -16,12 +16,14 @@ class TransactionRecordQuery(Query):
     Represents a query for a transaction record on the Hedera network.
     """
 
-    def __init__(self, transaction_id: Optional[TransactionId] = None):
+    def __init__(self, transaction_id: Optional[TransactionId] = None, include_children: bool = False):
         """
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
         super().__init__()
         self.transaction_id : Optional[TransactionId] = transaction_id
+        self.include_children = include_children
+        
         
     def set_transaction_id(self, transaction_id: TransactionId):
         """
@@ -34,6 +36,9 @@ class TransactionRecordQuery(Query):
         """
         self.transaction_id = transaction_id
         return self
+    
+    def set_include_children(self, include_children):
+        self.include_children = include_children
 
     def _make_request(self):
         """
@@ -57,6 +62,7 @@ class TransactionRecordQuery(Query):
             query_header = self._make_request_header()
             transaction_get_record = transaction_get_record_pb2.TransactionGetRecordQuery()
             transaction_get_record.header.CopyFrom(query_header)
+            transaction_get_record.include_child_records = self.include_children
             transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
             
             query = query_pb2.Query()
@@ -182,7 +188,7 @@ class TransactionRecordQuery(Query):
         """
         self._before_execute(client)
         response = self._execute(client)
-
+        #childrens = self._map_record_list(response.child_transaction_records)
         return TransactionRecord._from_proto(response.transactionGetRecord.transactionRecord, self.transaction_id)
 
     def _get_query_response(self, response: Any):
@@ -199,3 +205,10 @@ class TransactionRecordQuery(Query):
             The transaction get record response object
         """
         return response.transactionGetRecord
+    
+    def _map_record_list(self, proto_records: List[transaction_get_record_pb2.TransactionGetRecordResponse]) -> List[TransactionRecord]:
+        records: List[TransactionRecord] = []
+        for record in proto_records:
+            records.append(TransactionRecord._from_proto(record, self.transaction_id))
+
+        return records
