@@ -148,7 +148,10 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     });
   } else {
     comment += `There are currently no open issues available at or near the ${completedLabel} level in this repository.\n\n`;
-    comment += `You can check out good first issues across the entire Hiero organization: [Hiero Good First Issues](https://github.com/issues?q=org%3Ahiero-ledger+type%3Aissue+state%3Aopen+label%3A%22good+first+issue%22)\n\n`;
+    const orgLabel = recommendedLabel === 'Beginner' ? 'beginner' : 'good first issue';
+    const orgLabelQuery = encodeURIComponent(`label:"${orgLabel}"`);
+    comment += `You can check out ${recommendedLabel.toLowerCase()} issues across the entire Hiero organization: ` +
+      `[Hiero ${recommendedLabel} Issues](https://github.com/issues?q=org%3Ahiero-ledger+type%3Aissue+state%3Aopen+${orgLabelQuery})\n\n`;
   }
   
   comment += `🌟 **Stay connected with the project:**\n`;
