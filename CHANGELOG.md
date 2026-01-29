@@ -9,7 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
-
+- Format `tests/unit/nft_id_test.py with` with Black.(#1544)
 - Format `tests/unit/executable_test.py` with Black.(#1530)
 - Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
 - Format tests/unit/logger_test.py with black for code style consistency (#1541)
