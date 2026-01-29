@@ -89,26 +89,20 @@ get_intermediate_count() {
 already_commented() {
   local user=$1
   local marker="$COMMENT_MARKER_PREFIX @$user"
-
   gh issue view "$ISSUE_NUMBER" --repo "$REPO" \
     --json comments \
-    --jq --arg marker "$marker" '
-      .comments[].body
-      | select(contains($marker))
-    ' | grep -q .
+    --jq '.comments[].body' | grep -Fq "$marker"
 }
 
 #######################################
 # Helper: is user currently assigned?
 #######################################
+
 is_assigned() {
   local user=$1
-
   gh issue view "$ISSUE_NUMBER" --repo "$REPO" \
     --json assignees \
-    --jq --arg user "$user" '
-      .assignees[].login | select(. == $user)
-    ' | grep -q .
+    --jq '.assignees[].login' | grep -Fxq "$user"
 }
 
 #######################################
@@ -215,8 +209,20 @@ $COMMENT_MARKER_PREFIX @$user"
   fi
 
   if is_assigned "$user"; then
-    log "Unassigning @$user."
-    gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --remove-assignee "$user"
+  log "Unassigning @$user ..."
+  json_body="{\"assignees\": [\"$user\"]}"
+  response=$(
+    gh api \
+      --method DELETE \
+      "repos/$REPO/issues/$ISSUE_NUMBER/assignees" \
+      --input <(echo "$json_body") \
+      || echo "error"
+    )
+    if [[ "$response" != "error" ]]; then
+      log "Successfully unassigned @$user."
+    else
+      log "Failed to unassign @$user."
+    fi
   else
     log "User @$user already unassigned. Skipping."
   fi
