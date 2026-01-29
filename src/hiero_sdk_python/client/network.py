@@ -1,5 +1,6 @@
 """Network module for managing Hedera SDK connections."""
 import secrets
+import time
 from typing import Dict, List, Optional, Any, Tuple
 
 import requests
@@ -7,7 +8,6 @@ import requests
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.node import _Node
-
 
 
 class Network:
@@ -113,30 +113,55 @@ class Network:
         self._transport_security: bool = self.network in hosted_networks
         self._verify_certificates: bool = True  # Always enabled by default
         self._root_certificates: Optional[bytes] = None
+    
+        self.nodes: List[_Node] = []
+        self._healthy_nodes: List[_Node] = []
 
-        if nodes is not None:
-            final_nodes = nodes
-        elif self.network in ('solo', 'localhost', 'local'):
-            final_nodes = self._fetch_nodes_from_default_nodes()
-        else:
-            fetched = self._fetch_nodes_from_mirror_node()
-            if not fetched and self.network in self.DEFAULT_NODES:
-                final_nodes = self._fetch_nodes_from_default_nodes()
-            elif fetched:
-                final_nodes = fetched
-            else:
-                raise ValueError(f"No default nodes for network='{self.network}'")
+        self._set_network_nodes(nodes)
 
-        self.nodes: List[_Node] = final_nodes
+        self._node_min_readmit_period = 8 # seconds
+        self._node_max_readmit_period = 3600 # seconds
+        self._earliest_readmit_time = time.time() + self._node_min_readmit_period
+
+        self._node_index: int = secrets.randbelow(len(self._healthy_nodes))
+        self.current_node: _Node = self._healthy_nodes[self._node_index]
+
+    def _set_network_nodes(self, nodes: Optional[List[_Node]]):
+        """
+        Configure the consensus nodes used by this network.
+        """
+        final_nodes = self._resolve_nodes(nodes)
         
         # Apply TLS configuration to all nodes
-        for node in self.nodes:
+        for node in final_nodes:
             node._apply_transport_security(self._transport_security)  # pylint: disable=protected-access
             node._set_verify_certificates(self._verify_certificates)  # pylint: disable=protected-access
             node._set_root_certificates(self._root_certificates)  # pylint: disable=protected-access
+        
+        self.nodes = final_nodes
+        self._healthy_nodes = []
 
-        self._node_index: int = secrets.randbelow(len(self.nodes))
-        self.current_node: _Node = self.nodes[self._node_index]
+        for node in self.nodes:
+            if not node.is_healthy(): continue
+            self._healthy_nodes.append(node)
+
+    def _resolve_nodes(self, nodes: Optional[List[_Node]]) -> List[_Node]:
+        if nodes is not None:
+            return nodes
+        
+        if self.network in ('solo', 'localhost', 'local'):
+            return self._fetch_nodes_from_default_nodes()
+        
+        fetched = self._fetch_nodes_from_mirror_node()
+        
+        if fetched:
+            return fetched
+        
+        if self.network in self.DEFAULT_NODES:    
+            return self._fetch_nodes_from_default_nodes()
+        
+        raise ValueError(f"No default nodes for network='{self.network}'")
+
 
     def _fetch_nodes_from_mirror_node(self) -> List[_Node]:
         """
@@ -192,10 +217,12 @@ class Network:
         Returns:
             _Node: The selected node instance.
         """
-        if not self.nodes:
-            raise ValueError("No nodes available to select.")
-        self._node_index = (self._node_index + 1) % len(self.nodes)
-        self.current_node = self.nodes[self._node_index]
+        self._readmit_nodes()
+        if not self._healthy_nodes:
+            raise ValueError("No healthy node available to select.")
+
+        self._node_index = (self._node_index + 1) % len(self._healthy_nodes)
+        self.current_node = self._healthy_nodes[self._node_index]
         return self.current_node
     
     def _get_node(self, account_id: AccountId) -> Optional[_Node]:
@@ -208,7 +235,8 @@ class Network:
         Returns:
             Optional[_Node]: The matching node, or None if not found.
         """
-        for node in self.nodes:
+        self._readmit_nodes()
+        for node in self._healthy_nodes:
             if node._account_id == account_id:
                 return node
         return None
@@ -342,3 +370,50 @@ class Network:
         Determine if certificate verification is enabled.
         """
         return self._verify_certificates
+    
+    def _readmit_nodes(self) -> None:
+        """
+        Re-admit nodes whose backoff period has expired.
+        """
+        now = time.time()
+
+        if self._earliest_readmit_time > now:
+            return
+
+        next_earliest_readmit_time = float("inf")
+
+        for node in self.nodes:
+            if node in self._healthy_nodes:
+                continue
+
+            if node._readmit_time > now:
+                next_earliest_readmit_time = min(next_earliest_readmit_time, node._readmit_time)
+                continue
+
+            self._healthy_nodes.append(node)
+
+        delay = min(
+            self._node_max_readmit_period, 
+            max(self._node_min_readmit_period, next_earliest_readmit_time - now)
+        )
+        
+        self._earliest_readmit_time = now + delay
+    
+    def _increase_backoff(self, node: _Node) -> None:
+        """
+        Increase the node's backoff duration after a failure and remove node from healty node.
+        """
+        if not isinstance(node, _Node):
+            raise TypeError("node must be of type _Node")
+        
+        node._increase_backoff()
+        self._healthy_nodes.remove(node)
+    
+    def _decrease_backoff(self, node: _Node) -> None:
+        """
+        Decrease the node's backoff duration after a successful operation.
+        """
+        if not isinstance(node, _Node):
+            raise TypeError("node must be of type _Node")
+        
+        node._decrease_backoff()
