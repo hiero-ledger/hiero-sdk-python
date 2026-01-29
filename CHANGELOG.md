@@ -17,6 +17,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Style: formatted `tests/unit/prng_transaction_test.py` with black (#1546)
 - Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
+- Format `tests/unit/node*.py` with Black for consistent code style (#1545)
 - Improve unit test coverage for Hbar, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of evm_address_test.py using Black for improved consistency and readability (#1529)
 - Formatted unit test files using Black.
@@ -217,7 +218,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a \_to_proto method.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
-- chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 
 ### Fixed
 
