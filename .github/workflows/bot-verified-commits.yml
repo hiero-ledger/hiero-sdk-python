@@ -1,8 +1,27 @@
+# .github/workflows/bot-verified-commits.yml
+#
+# Verifies that all commits in a pull request are GPG-signed.
+# Posts a one-time VerificationBot comment if unverified commits are found.
+#
+# This workflow uses pull_request_target for security with fork PRs.
+# Logic is handled by .github/scripts/bot-verified-commits.js
+#
+# Configuration is done via environment variables for easy customization.
+
 name: PythonBot - Verify PR Commits
 
 on:
   pull_request_target:
     types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to verify (required for manual runs)"
+        required: true
+      dry_run:
+        description: "Run without posting comments"
+        required: false
+        default: "true"
 
 permissions:
   contents: read
@@ -10,67 +29,81 @@ permissions:
   issues: write
 
 concurrency:
-  group: "verify-commits-${{ github.event.pull_request.number }}"
+  group: "verify-commits-${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}"
   cancel-in-progress: true
 
 jobs:
   verify-commits:
     runs-on: ubuntu-latest
 
+    # =========================================================================
+    # CONFIGURATION - All customizable values are defined here as env vars
+    # =========================================================================
+    env:
+      # Bot identity
+      BOT_NAME: "VerificationBot"
+      BOT_LOGIN: "github-actions"
+
+      # Comment marker for duplicate detection
+      COMMENT_MARKER: "[commit-verification-bot]"
+
+      # Documentation links
+      SIGNING_GUIDE_URL: "https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md"
+      README_URL: "https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md"
+      DISCORD_URL: "https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md"
+
+      # Team signature
+      TEAM_NAME: "Hiero Python SDK Team"
+
+      # Dry-run mode (workflow_dispatch uses input, PR events default to false)
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+
+      # PR number (supports both PR events and manual workflow_dispatch)
+      PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}
+
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
         with:
           egress-policy: audit
-      
-      - name: Check for unverified commits
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - name: Log workflow context
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          REPO="${{ github.repository }}"
-          COMMITS_URL="https://github.com/$REPO/pull/${PR_NUMBER}/commits"
+          echo "Repository: ${{ github.repository }}"
+          echo "PR: ${{ env.PR_NUMBER }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Dry run mode: ${{ env.DRY_RUN }}"
 
-          echo "Checking commits in PR #$PR_NUMBER for repository $REPO..."
+      - name: Verify PR commits
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        id: verify
+        env:
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          result-encoding: json
+          script: |
+            const script = require('./.github/scripts/bot-verified-commits.js');
+            const result = await script({ github, context });
 
-          COMMITS_JSON=$(gh api repos/$REPO/pulls/$PR_NUMBER/commits)
-          UNVERIFIED_COUNT=$(echo "$COMMITS_JSON" | jq '[.[] | select(.commit.verification.verified == false)] | length')
+            // Set outputs for downstream steps if needed
+            core.setOutput('success', result.success);
+            core.setOutput('unverified_count', result.unverifiedCount);
 
-          echo "Unverified commits: $UNVERIFIED_COUNT"
+            return result;
 
-          EXISTING_BOT_COMMENT_COUNT=$(gh pr view $PR_NUMBER --repo $REPO --json comments | jq '[.comments[] | select(.author.login == "github-actions" and (.body | contains("[commit-verification-bot]")))] | length')
-
-          echo "Existing verification commit bot comments: $EXISTING_BOT_COMMENT_COUNT"
-    
-          if [ "$UNVERIFIED_COUNT" -gt 0 ]; then
-            if [ "$EXISTING_BOT_COMMENT_COUNT" -ge 1 ]; then   
-              echo "VerificationBot already commented. Skipping additional comments."
-            else 
-              COMMENT=$(cat <<EOF
-            [commit-verification-bot]
-            Hi, this is VerificationBot. 
-            Your pull request cannot be merged as it has **unverified commits**. 
-            View your commit verification status: [Commits Tab]($COMMITS_URL).
-            
-            To achieve verified status, please read:
-            - [Signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
-            - [README](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md)
-            - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
-
-            Remember, you require a GPG key and each commit must be signed with:
-            \`git commit -S -s -m "Your message here"\`
-
-            Thank you for contributing!
-
-            From the Hiero Python SDK Team
-          EOF
-            )
-
-              gh pr comment $PR_NUMBER --repo $REPO --body "$COMMENT"
-              echo "Comment added to PR #$PR_NUMBER"
-            fi
-
-            exit 1
-          else
-            echo "All commits in PR #$PR_NUMBER are verified."
-          fi
+      - name: Fail if unverified commits found
+        if: steps.verify.outputs.success != 'true' && env.DRY_RUN != 'true'
+        run: |
+          echo "❌ Pull request has unverified commits."
+          echo "Unverified commits: ${{ steps.verify.outputs.unverified_count }}"
+          echo "Please sign your commits with GPG."
+          echo "See: ${{ env.SIGNING_GUIDE_URL }}"
+          exit 1
