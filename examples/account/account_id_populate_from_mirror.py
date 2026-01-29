@@ -20,8 +20,9 @@ from hiero_sdk_python import (
     PrivateKey,
     TransferTransaction,
     Hbar,
-    TransactionGetReceiptQuery
+    TransactionGetReceiptQuery,
 )
+
 
 def generate_evm_address():
     """
@@ -79,21 +80,21 @@ def populate_account_num_example(client, evm_address, created_account_id):
     time.sleep(5)
 
     try:
-        mirror_account_id.populate_account_num(client)
+        new_account_id = mirror_account_id.populate_account_num(client)
     except Exception as e:
         print(f"Failed to populate account number: {e}")
         sys.exit(1)
 
     print("After populate:")
-    print(f"  Shard: {mirror_account_id.shard}")
-    print(f"  Realm: {mirror_account_id.realm}")
-    print(f"  Num:   {mirror_account_id.num}")
+    print(f"  Shard: {new_account_id.shard}")
+    print(f"  Realm: {new_account_id.realm}")
+    print(f"  Num:   {new_account_id.num}")
 
-    if mirror_account_id.num != created_account_id.num:
+    if new_account_id.num != created_account_id.num:
         print(
             "Account number mismatch:\n"
             f"  Expected: {created_account_id.num}\n"
-            f"  Got:      {mirror_account_id.num}"
+            f"  Got:      {new_account_id.num}"
         )
         sys.exit(1)
 
@@ -109,18 +110,18 @@ def populate_evm_address_example(client, created_account_id, evm_address):
     time.sleep(5)
 
     try:
-        created_account_id.populate_evm_address(client)
+        new_account_id = created_account_id.populate_evm_address(client)
     except Exception as e:
         print(f"Failed to populate EVM address: {e}")
         sys.exit(1)
 
-    print(f"After populate: evm_address = {created_account_id.evm_address}")
+    print(f"After populate: evm_address = {new_account_id.evm_address}")
 
-    if created_account_id.evm_address != evm_address:
+    if new_account_id.evm_address != evm_address:
         print(
             "EVM address mismatch:\n"
             f"  Expected: {evm_address}\n"
-            f"  Got:      {created_account_id.evm_address}"
+            f"  Got:      {new_account_id.evm_address}"
         )
         sys.exit(1)
 
@@ -137,7 +138,6 @@ def main():
 
     populate_account_num_example(client, evm_address, created_account_id)
     populate_evm_address_example(client, created_account_id, evm_address)
-
 
 
 if __name__ == "__main__":
