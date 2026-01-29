@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
+
 - Format `tests/unit/executable_test.py` with Black.(#1530)
 - Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
 - Format tests/unit/logger_test.py with black for code style consistency (#1541)
@@ -24,6 +25,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted client_test.py using Black.
 
 ### Added
+- Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
+
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
@@ -138,6 +141,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
 - Good First Issue template to have more guidance and renamed other templates for consistency with upstream
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
+- Refactored `bot-verified-commits.yml` workflow to use modular JavaScript with configurable environment variables, input sanitization, dry-run mode support, and SHA-pinned actions. (#1482)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
 - Align Good First Issue and Good First Issue — Candidate guidelines with the Hiero C++ SDK for clarity and consistency.(#1421)
 - Make the required signed commit command explicit in all issue templates to reduce PR signing errors for contributors (#1489)
@@ -216,6 +220,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 
 ### Fixed
+
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
 - Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
