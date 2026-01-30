@@ -96,7 +96,13 @@ module.exports = async ({ github, context, core }) => {
     
     // Generate and post comment
     const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner';
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel, recommendedLabel, isFallback, recommendationScope);
+    const recommendationMeta = {
+      completedLabel,
+      recommendedLabel,
+      isFallback,
+      recommendationScope,
+    };
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, recommendationMeta);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
@@ -121,7 +127,7 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel, recommendedLabel, isFallback, recommendationScope) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabel, recommendedLabel, isFallback, recommendationScope }) {
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
@@ -206,4 +212,3 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     core.setFailed(`Error posting comment: ${error.message}`);
   }
 }
-
