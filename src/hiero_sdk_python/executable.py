@@ -375,7 +375,7 @@ class _Executable(ABC):
                 grpc.StatusCode.UNAVAILABLE,
                 grpc.StatusCode.RESOURCE_EXHAUSTED,
             ) or (
-                err.code() == grpc.StatusCode.INTERNAL and RST_STREAM.search(err.details())
+                err.code() == grpc.StatusCode.INTERNAL and bool(RST_STREAM.search(err.details()))
             )
         
         return True

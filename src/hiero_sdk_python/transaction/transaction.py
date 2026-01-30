@@ -138,6 +138,7 @@ class Transaction(_Executable):
             ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
             ResponseCode.PLATFORM_NOT_ACTIVE,
             ResponseCode.BUSY,
+            ResponseCode.INVALID_NODE_ACCOUNT
         }
 
         if status in retryable_statuses:
