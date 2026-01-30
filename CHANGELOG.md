@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
+- Add Missing Type to to_bytes Method in Transaction Class at `src/hiero_sdk_python/transaction/transaction.py`.(#1631)
 - Add Missing Return Type to parse_from_string Function at `src/hiero_sdk_python/utils/entity_id_helper.py`.(#1622)
 - format `black tests/unit/nft_id_test.py` with Black.(#1544)
 - Format `tests/unit/executable_test.py` with Black.(#1530)

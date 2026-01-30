@@ -565,7 +565,7 @@ class Transaction(_Executable):
         self.transaction_id = transaction_id
         return self
 
-    def to_bytes(self):
+    def to_bytes(self) -> bytes:
         """
         Serializes the frozen transaction into its protobuf-encoded byte representation.
 
@@ -595,8 +595,7 @@ class Transaction(_Executable):
         ```
 
         Returns:
-            bytes: The protobuf-encoded transaction bytes.
-
+            bytes: The serialized transaction as bytes. 
         Raises:
             Exception: If the transaction has not been frozen yet.
         """
