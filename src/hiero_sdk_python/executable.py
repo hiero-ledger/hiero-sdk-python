@@ -337,6 +337,9 @@ class _Executable(ABC):
         """
         Resolve unset execution configuration from the Client defaults.
         """
+        # Set request_timeout explicitly set via set_request_timeout()
+        # If not set use timeout passed to execute()
+        # Else clients default request_timeout
         if self._request_timeout is None:
             self._request_timeout = timeout
 
@@ -380,6 +383,25 @@ class _Executable(ABC):
     def _calculate_backoff(self, attempt: int):
         """Calculate backoff for the given attempt, attempt start from 0"""
         return min(self._max_backoff, self._min_backoff * (2 ** (attempt + 1)))
+    
+    def _handle_unhealthy_node(self, proto_request, attempt, logger, err) -> bool:
+        # Check if the request is a transaction receipt or record because they are single node requests
+        if _is_transaction_receipt_or_record_request(proto_request):
+            _delay_for_attempt(
+                self._get_request_id(),
+                self._min_backoff,
+                attempt,
+                logger,
+                err,
+            )
+            return True
+
+        if self._node_account_ids_index == len(self.node_account_ids) - 1:
+            raise RuntimeError("All nodes are unhealthy")
+
+        self._advance_node_index()
+        return True
+
 
     def _execute(self, client: "Client", timeout: Optional[Union[int, float]] = None):
         """
@@ -387,6 +409,11 @@ class _Executable(ABC):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+                Precedence as follow:
+                1. Explicitly set via set_request_timeout()
+                2. Timeout passed to execute()
+                3. Client default request_timeout
 
         Returns:
             The response from executing the operation:
@@ -444,21 +471,7 @@ class _Executable(ABC):
             proto_request = self._make_request()
 
             if not node.is_healthy():
-                # Check if the request is a transaction receipt or record because they are single node requests
-                if _is_transaction_receipt_or_record_request(proto_request):
-                    _delay_for_attempt(
-                        self._get_request_id(),
-                        self._min_backoff,
-                        attempt,
-                        logger,
-                        err_persistant,
-                    )
-                    continue
-
-                if self._node_account_ids_index == len(self.node_account_ids) - 1:
-                    raise RuntimeError("All nodes are unhealthy")
-
-                self._advance_node_index()
+                self._handle_unhealthy_node(proto_request, attempt, logger, err_persistant)
                 continue
 
             # Execute the GRPC call
