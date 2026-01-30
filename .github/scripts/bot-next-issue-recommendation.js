@@ -86,7 +86,7 @@ module.exports = async ({ github, context, core }) => {
       recommendationScope = 'org';
       recommendedLabel = 'Good First Issue';
       recommendedIssues = await github.rest.search.issuesAndPullRequests({
-        q: `org:hiero-ledger type:issue state:open label:"good first issue"`,
+        q: `org:hiero-ledger type:issue state:open label:"good first issue" no:assignee`,
         per_page: 6,
       }).then(res => res.data.items);
     }
@@ -96,8 +96,9 @@ module.exports = async ({ github, context, core }) => {
     
     // Generate and post comment
     const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner';
+    const completedLabelText = completedLabel === 'Beginner' ? 'Beginner issue' : completedLabel;
     const recommendationMeta = {
-      completedLabel,
+      completedLabelText,
       recommendedLabel,
       isFallback,
       recommendationScope,
@@ -127,11 +128,11 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabel, recommendedLabel, isFallback, recommendationScope }) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback, recommendationScope }) {
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
-  let comment = `${marker}\n\n🎉 **Nice work completing a ${completedLabel}!**\n\n`;
+  let comment = `${marker}\n\n🎉 **Nice work completing a ${completedLabelText}!**\n\n`;
   comment += `Thank you for your contribution to the Hiero Python SDK! We're excited to have you as part of our community.\n\n`;
   
   if (recommendedIssues.length > 0) {
@@ -166,7 +167,7 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       }
     });
   } else {
-    comment += `There are currently no open issues available at or near the ${completedLabel} level in this repository.\n\n`;
+    comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
     const orgLabel = recommendedLabel === 'Beginner' ? 'beginner' : 'good first issue';
     const orgLabelQuery = encodeURIComponent(`label:"${orgLabel}"`);
     comment += `You can check out ${recommendedLabel.toLowerCase()} issues across the entire Hiero organization: ` +
