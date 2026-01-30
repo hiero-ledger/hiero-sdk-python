@@ -104,7 +104,8 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, node_par
     )
     assert len(node_create.service_endpoint) == 1
     assert (
-        node_create.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
+        node_create.service_endpoint[0]
+        == node_params["service_endpoints"][0]._to_proto()
     )
     assert node_create.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert node_create.grpc_certificate_hash == node_params["grpc_certificate_hash"]
@@ -139,7 +140,8 @@ def test_build_scheduled_body(node_params):
     )
     assert len(node_create.service_endpoint) == 1
     assert (
-        node_create.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
+        node_create.service_endpoint[0]
+        == node_params["service_endpoints"][0]._to_proto()
     )
     assert node_create.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert node_create.grpc_certificate_hash == node_params["grpc_certificate_hash"]
