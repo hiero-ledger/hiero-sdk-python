@@ -12,8 +12,8 @@ from hiero_sdk_python.client import client as client_module
 from hiero_sdk_python import Client, AccountId, PrivateKey
 from hiero_sdk_python.hbar import Hbar
 
-
 pytestmark = pytest.mark.unit
+
 
 @pytest.mark.parametrize(
     "factory_method, expected_network",
@@ -257,7 +257,7 @@ def test_set_default_max_query_payment_non_finite_value(invalid_amount):
 def test_set_max_attempts_with_valid_param():
     """Test that set_max_attempts updates default max_attempts value for client."""
     client = Client.for_testnet()
-    assert client.max_attempts == 10 # default max_attempt 10
+    assert client.max_attempts == 10  # default max_attempt 10
 
     returned = client.set_max_attempts(20)
     assert client.max_attempts == 20
@@ -265,10 +265,8 @@ def test_set_max_attempts_with_valid_param():
 
     client.close()
 
-@pytest.mark.parametrize(
-    "invalid_max_attempts",
-    ["1", 0.2, True, False, object(), {}]
-)
+
+@pytest.mark.parametrize("invalid_max_attempts", ["1", 0.2, True, False, object(), {}])
 def test_set_max_attempts_with_invalid_type(invalid_max_attempts):
     """Test that set_max_attempts raises TypeError for non-int values."""
     client = Client.for_testnet()
@@ -279,10 +277,8 @@ def test_set_max_attempts_with_invalid_type(invalid_max_attempts):
     ):
         client.set_max_attempts(invalid_max_attempts)
 
-@pytest.mark.parametrize(
-    "invalid_max_attempts",
-    [0, -10]
-)
+
+@pytest.mark.parametrize("invalid_max_attempts", [0, -10])
 def test_set_max_attempts_with_invalid_value(invalid_max_attempts):
     """Test that set_max_attempts raises ValueError for non-positive values."""
     client = Client.for_testnet()
@@ -290,11 +286,12 @@ def test_set_max_attempts_with_invalid_value(invalid_max_attempts):
     with pytest.raises(ValueError, match="max_attempts must be greater than 0"):
         client.set_max_attempts(invalid_max_attempts)
 
+
 # Set grpc_deadline
 def test_set_grpc_deadline_with_valid_param():
     """Test that set_grpc_deadline updates default value of _grpc_deadline."""
     client = Client.for_testnet()
-    assert client._grpc_deadline == 10 # default grpc_deadline 10 sec
+    assert client._grpc_deadline == 10  # default grpc_deadline 10 sec
 
     returned = client.set_grpc_deadline(20)
     assert client._grpc_deadline == 20
@@ -302,10 +299,8 @@ def test_set_grpc_deadline_with_valid_param():
 
     client.close()
 
-@pytest.mark.parametrize(
-    "invalid_grpc_deadline",
-    ["1", True, False, object(), {}]
-)
+
+@pytest.mark.parametrize("invalid_grpc_deadline", ["1", True, False, object(), {}])
 def test_set_grpc_deadline_with_invalid_type(invalid_grpc_deadline):
     """Test that set_grpc_deadline raises TypeError for invalid types."""
     client = Client.for_testnet()
@@ -316,22 +311,25 @@ def test_set_grpc_deadline_with_invalid_type(invalid_grpc_deadline):
     ):
         client.set_grpc_deadline(invalid_grpc_deadline)
 
+
 @pytest.mark.parametrize(
-    "invalid_grpc_deadline",
-    [0, -10, 0.0, -2.3, float('inf'), float('nan')]
+    "invalid_grpc_deadline", [0, -10, 0.0, -2.3, float("inf"), float("nan")]
 )
 def test_set_grpc_deadline_with_invalid_value(invalid_grpc_deadline):
     """Test that set_grpc_deadline raises ValueError for non-positive values."""
     client = Client.for_testnet()
 
-    with pytest.raises(ValueError, match="grpc_deadline must be a finite value greater than 0"):
+    with pytest.raises(
+        ValueError, match="grpc_deadline must be a finite value greater than 0"
+    ):
         client.set_grpc_deadline(invalid_grpc_deadline)
+
 
 # Set request_timeout
 def test_set_request_timeout_with_valid_param():
     """Test that set_request_timeout updates default value of _request_timeout."""
     client = Client.for_testnet()
-    assert client._request_timeout == 120 # default request_timeout 120 sec
+    assert client._request_timeout == 120  # default request_timeout 120 sec
 
     returned = client.set_request_timeout(200)
     assert client._request_timeout == 200
@@ -339,10 +337,8 @@ def test_set_request_timeout_with_valid_param():
 
     client.close()
 
-@pytest.mark.parametrize(
-    "invalid_request_timeout",
-    ["1", True, False, object(), {}]
-)
+
+@pytest.mark.parametrize("invalid_request_timeout", ["1", True, False, object(), {}])
 def test_set_request_timeout_with_invalid_type(invalid_request_timeout):
     """Test that set_request_timeout raises TypeError for invalid types."""
     client = Client.for_testnet()
@@ -353,16 +349,19 @@ def test_set_request_timeout_with_invalid_type(invalid_request_timeout):
     ):
         client.set_request_timeout(invalid_request_timeout)
 
+
 @pytest.mark.parametrize(
-    "invalid_request_timeout",
-    [0, -10, 0.0, -2.3, float('inf'), float('nan')]
+    "invalid_request_timeout", [0, -10, 0.0, -2.3, float("inf"), float("nan")]
 )
 def test_set_request_timeout_with_invalid_value(invalid_request_timeout):
     """Test that set_request_timeout raises ValueError for non-positive values."""
     client = Client.for_testnet()
 
-    with pytest.raises(ValueError, match="request_timeout must be a finite value greater than 0"):
+    with pytest.raises(
+        ValueError, match="request_timeout must be a finite value greater than 0"
+    ):
         client.set_request_timeout(invalid_request_timeout)
+
 
 # Set min_backoff
 def test_set_min_backoff_with_valid_param():
@@ -376,10 +375,8 @@ def test_set_min_backoff_with_valid_param():
 
     client.close()
 
-@pytest.mark.parametrize(
-    "invalid_min_backoff",
-    ["1", True, False, object(), {}]
-)
+
+@pytest.mark.parametrize("invalid_min_backoff", ["1", True, False, object(), {}])
 def test_set_min_backoff_with_invalid_type(invalid_min_backoff):
     """Test that set_min_backoff raises TypeError for invalid types."""
     client = Client.for_testnet()
@@ -390,9 +387,9 @@ def test_set_min_backoff_with_invalid_type(invalid_min_backoff):
     ):
         client.set_min_backoff(invalid_min_backoff)
 
+
 @pytest.mark.parametrize(
-    "invalid_min_backoff",
-    [-1, -10, float("inf"), float("-inf"), float("nan")]
+    "invalid_min_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")]
 )
 def test_set_min_backoff_with_invalid_value(invalid_min_backoff):
     """Test that set_min_backoff raises ValueError for invalid values."""
@@ -401,6 +398,7 @@ def test_set_min_backoff_with_invalid_value(invalid_min_backoff):
     with pytest.raises(ValueError, match="min_backoff must be a finite value >= 0"):
         client.set_min_backoff(invalid_min_backoff)
 
+
 def test_set_min_backoff_exceeds_max_backoff():
     """Test that set_min_backoff raises ValueError if it exceeds max_backoff."""
     client = Client.for_testnet()
@@ -408,6 +406,7 @@ def test_set_min_backoff_exceeds_max_backoff():
 
     with pytest.raises(ValueError, match="min_backoff cannot exceed max_backoff"):
         client.set_min_backoff(10)
+
 
 # Set max_backoff
 def test_set_max_backoff_with_valid_param():
@@ -421,10 +420,8 @@ def test_set_max_backoff_with_valid_param():
 
     client.close()
 
-@pytest.mark.parametrize(
-    "invalid_max_backoff",
-    ["1", True, False, object(), {}]
-)
+
+@pytest.mark.parametrize("invalid_max_backoff", ["1", True, False, object(), {}])
 def test_set_max_backoff_with_invalid_type(invalid_max_backoff):
     """Test that set_max_backoff raises TypeError for invalid types."""
     client = Client.for_testnet()
@@ -437,8 +434,7 @@ def test_set_max_backoff_with_invalid_type(invalid_max_backoff):
 
 
 @pytest.mark.parametrize(
-    "invalid_max_backoff",
-    [-1, -10, float("inf"), float("-inf"), float("nan")]
+    "invalid_max_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")]
 )
 def test_set_max_backoff_with_invalid_value(invalid_max_backoff):
     """Test that set_max_backoff raises ValueError for invalid values."""
@@ -456,6 +452,7 @@ def test_set_max_backoff_less_than_min_backoff():
     with pytest.raises(ValueError, match="max_backoff cannot be less than min_backoff"):
         returned = client.set_max_backoff(2)
         assert returned is client
+
 
 # Test update_network
 def test_update_network_refreshes_nodes_and_returns_self():

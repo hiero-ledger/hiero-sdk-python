@@ -673,6 +673,14 @@ def test_set_grpc_deadline_with_invalid_value(invalid_grpc_deadline):
         query = CryptoGetAccountBalanceQuery()
         query.set_grpc_deadline(invalid_grpc_deadline)
 
+def test_warning_when_request_timeout_less_than_grpc_deadline():
+    """Warn when request_timeout is less than grpc_deadline."""
+    tx = AccountCreateTransaction()
+    tx.set_grpc_deadline(10)
+
+    with pytest.warns(FutureWarning):
+        tx.set_request_timeout(5)
+
 # Set request_timeout
 def test_set_request_timeout_with_valid_param():
     """Test that set_request_timeout updates default value of _request_timeout."""
@@ -738,14 +746,7 @@ def test_warning_when_grpc_deadline_exceeds_request_timeout():
     with pytest.warns(FutureWarning):
         tx.set_grpc_deadline(10)
 
-def test_warning_when_request_timeout_less_than_grpc_deadline():
-    """Warn when request_timeout is less than grpc_deadline."""
-    tx = AccountCreateTransaction()
-    tx.set_grpc_deadline(10)
-
-    with pytest.warns(FutureWarning):
-        tx.set_request_timeout(5)
-
+# Test is transaction_recepit_or_record
 def test_is_transaction_receipt_or_record_request():
     """Detect receipt and record query requests correctly."""
     receipt_query = query_pb2.Query(
@@ -903,6 +904,7 @@ def test_backoff_is_capped_by_max_backoff():
     # attempt=1  min * 4 = 8 : capped to 5
     assert tx._calculate_backoff(1) == 5
 
+# Resolve config
 def test_execution_config_inherits_from_client(mock_client):
     """Test that resolve_execution_config inherits config from client if not set."""
     mock_client.max_attempts = 7
@@ -913,7 +915,7 @@ def test_execution_config_inherits_from_client(mock_client):
 
     tx = AccountCreateTransaction()
 
-    tx._resolve_execution_config(mock_client)
+    tx._resolve_execution_config(mock_client, None)
 
     assert tx._max_attempts == 7
     assert tx._min_backoff == 1
@@ -926,7 +928,7 @@ def test_executable_overrides_client_config(mock_client):
     mock_client.max_attempts = 10
 
     tx = AccountCreateTransaction().set_max_attempts(3)
-    tx._resolve_execution_config(mock_client)
+    tx._resolve_execution_config(mock_client, None)
 
     assert tx._max_attempts == 3
 
@@ -944,17 +946,31 @@ def test_no_healthy_nodes_raises(mock_client):
     with pytest.raises(RuntimeError, match="No healthy nodes available"):
         tx.execute(mock_client)
 
-
 def test_set_node_account_ids_overrides_client_nodes(mock_client):
     """Explicit node_account_ids should override client network."""
     node = AccountId(0, 0, 999)
 
     tx = AccountCreateTransaction().set_node_account_id(node)
-    tx._resolve_execution_config(mock_client)
+    tx._resolve_execution_config(mock_client, None)
 
     assert tx.node_account_ids == [node]
 
-# reuest timeout
+def test_parameter_timeout_overrides_client_default(mock_client):
+    """Explicit timeout pass on the executable should override the client default timeout."""
+    tx = AccountCreateTransaction()
+    tx._resolve_execution_config(mock_client, 2)
+
+    assert tx._request_timeout == 2
+
+def test_set_timeout_overrides_parameter_timeout(mock_client):
+    """Explicit timeout set on the tx should override the pass timeout."""
+    tx = AccountCreateTransaction()
+    tx.set_request_timeout(5)
+    tx._resolve_execution_config(mock_client, 2)
+
+    assert tx._request_timeout == 5
+
+# Reuest timeout
 def test_request_timeout_exceeded_stops_execution():
     """Test that execution stops when request_timeout is exceeded."""
     busy_response = TransactionResponseProto(
@@ -1039,7 +1055,7 @@ def test_should_exponential_error_mark_node_unhealty_and_advance(error):
         # Node must have changed
         assert tx._node_account_ids_index == 1
 
-            
+
 def test_rst_stream_error_marks_node_unhealthy_and_advances_without_backoff():
     """INTERNAL RST_STREAM errors trigger exponential retry by advancing the node without sleep-based backoff."""
     error = RealRpcError(
@@ -1168,3 +1184,4 @@ def test_unhealthy_node_receipt_request_triggers_delay_and_no_node_change(tx, mo
         assert mock_delay.call_count > 0
         # Node index did NOT change
         assert tx._node_account_ids_index == initial_index
+

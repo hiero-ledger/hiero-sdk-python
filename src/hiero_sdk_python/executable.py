@@ -139,7 +139,7 @@ class _Executable(ABC):
         Set the gRPC call deadline (per attempt).
 
         Args:
-            grpc_deadline (int | float): gRPC deadline in seconds.
+            grpc_deadline (Union[int,float]): gRPC deadline in seconds.
                 Must be greater than zero.
 
         Returns:
@@ -160,7 +160,7 @@ class _Executable(ABC):
                 "grpc_deadline should be smaller than request_timeout", FutureWarning
             )
 
-        self._grpc_deadline = grpc_deadline
+        self._grpc_deadline = float(grpc_deadline)
         return self
 
     def set_request_timeout(self, request_timeout: Union[int, float]):
@@ -168,7 +168,7 @@ class _Executable(ABC):
         Set the total execution timeout for this operation.
 
         Args:
-            request_timeout (int | float): Total execution timeout in seconds.
+            request_timeout (Union[int,float]: Total execution timeout in seconds.
                 Must be greater than zero.
 
         Returns:
@@ -189,7 +189,7 @@ class _Executable(ABC):
                 "request_timeout should be larger than grpc_deadline,", FutureWarning
             )
 
-        self._request_timeout = request_timeout
+        self._request_timeout = float(request_timeout)
         return self
 
     def set_min_backoff(self, min_backoff: Union[int, float]):
@@ -197,7 +197,7 @@ class _Executable(ABC):
         Set the minimum backoff delay between retries.
 
         Args:
-            min_backoff (int | float): Minimum backoff delay in seconds.
+            min_backoff ((Union[int,float]): Minimum backoff delay in seconds.
                 Must be finite and non-negative.
 
         Returns:
@@ -214,7 +214,7 @@ class _Executable(ABC):
         if self._max_backoff is not None and min_backoff > self._max_backoff:
             raise ValueError("min_backoff cannot exceed max_backoff")
 
-        self._min_backoff = min_backoff
+        self._min_backoff = float(min_backoff)
         return self
 
     def set_max_backoff(self, max_backoff: Union[int, float]):
@@ -222,7 +222,7 @@ class _Executable(ABC):
         Set the maximum backoff delay between retries.
 
         Args:
-            max_backoff (int | float): Maximum backoff delay in seconds.
+            max_backoff (Union[int,float]): Maximum backoff delay in seconds.
                 Must be finite and greater than or equal to min_backoff.
 
         Returns:
@@ -239,7 +239,7 @@ class _Executable(ABC):
         if self._min_backoff is not None and max_backoff < self._min_backoff:
             raise ValueError("max_backoff cannot be less than min_backoff")
 
-        self._max_backoff = max_backoff
+        self._max_backoff = float(max_backoff)
         return self
 
     def _select_node_account_id(self) -> Optional[AccountId]:
@@ -333,10 +333,13 @@ class _Executable(ABC):
         """
         return f"{self.__class__.__name__}:{time.time_ns()}"
 
-    def _resolve_execution_config(self, client: "Client") -> None:
+    def _resolve_execution_config(self, client: "Client", timeout: Optional[Union[int, float]]) -> None:
         """
         Resolve unset execution configuration from the Client defaults.
         """
+        if self._request_timeout is None:
+            self._request_timeout = timeout
+
         defaults = (
             ("_min_backoff", client._min_backoff),
             ("_max_backoff", client._max_backoff),
@@ -363,22 +366,22 @@ class _Executable(ABC):
         Determine whether a gRPC error represents a failure that should be
         retried using exponential backoff.
         """
-        if not isinstance(err, grpc.RpcError):
-            return True
-
-        return err.code() in (
-            grpc.StatusCode.DEADLINE_EXCEEDED,
-            grpc.StatusCode.UNAVAILABLE,
-            grpc.StatusCode.RESOURCE_EXHAUSTED,
-        ) or (
-            err.code() == grpc.StatusCode.INTERNAL and RST_STREAM.search(err.details())
-        )
+        if isinstance(err, grpc.RpcError):
+            return err.code() in (
+                grpc.StatusCode.DEADLINE_EXCEEDED,
+                grpc.StatusCode.UNAVAILABLE,
+                grpc.StatusCode.RESOURCE_EXHAUSTED,
+            ) or (
+                err.code() == grpc.StatusCode.INTERNAL and RST_STREAM.search(err.details())
+            )
+        
+        return False
 
     def _calculate_backoff(self, attempt: int):
         """Calculate backoff for the given attempt, attempt start from 0"""
         return min(self._max_backoff, self._min_backoff * (2 ** (attempt + 1)))
 
-    def _execute(self, client: "Client"):
+    def _execute(self, client: "Client", timeout: Optional[Union[int, float]] = None):
         """
         Execute a transaction or query with retry logic.
 
@@ -395,16 +398,16 @@ class _Executable(ABC):
             MaxAttemptsError: If the operation fails after the maximum number of attempts
             ReceiptStatusError: If the operation fails with a receipt status error
         """
-        self._resolve_execution_config(client)
+        self._resolve_execution_config(client, timeout)
 
         err_persistant: Optional[Exception] = None
         tx_id = getattr(self, "transaction_id", None)
 
         logger = client.logger
-        start = time.time()
+        start = time.monotonic()
 
         for attempt in range(self._max_attempts):
-            if time.time() - start >= self._request_timeout:
+            if time.monotonic() - start >= self._request_timeout:
                 break
 
             # Select node
@@ -463,7 +466,7 @@ class _Executable(ABC):
                 logger.trace("Executing gRPC call", "requestId", self._get_request_id())
                 response = _execute_method(method, proto_request, self._grpc_deadline)
 
-            except grpc.RpcError as e:
+            except Exception as e:
                 if not self._should_retry_exponentially(e):
                     raise e
 

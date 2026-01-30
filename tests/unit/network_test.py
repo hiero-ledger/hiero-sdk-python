@@ -1,6 +1,6 @@
 import time
 import pytest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
@@ -9,49 +9,48 @@ from hiero_sdk_python.node import _Node
 
 pytestmark = pytest.mark.unit
 
+
 @pytest.fixture(autouse=True)
 def mock_network_nodes(monkeypatch):
     """Helper to mock fetch_node_from_mirror_nodes apply to all instead of making mirror rest call"""
     fake_nodes = [
-        _Node(AccountId(0,0,3), "127.0.0.1:50211", NodeAddress()),
-        _Node(AccountId(0,0,4), "127.0.0.1:50212", NodeAddress()),
-        _Node(AccountId(0,0,5), "127.0.0.1:50212", NodeAddress()),
+        _Node(AccountId(0, 0, 3), "127.0.0.1:50211", NodeAddress()),
+        _Node(AccountId(0, 0, 4), "127.0.0.1:50212", NodeAddress()),
+        _Node(AccountId(0, 0, 5), "127.0.0.1:50212", NodeAddress()),
     ]
 
     def fake_fetch_nodes(self):
         return fake_nodes
 
-    monkeypatch.setattr(
-        Network,
-        "_fetch_nodes_from_mirror_node",
-        fake_fetch_nodes
-    )
+    monkeypatch.setattr(Network, "_fetch_nodes_from_mirror_node", fake_fetch_nodes)
 
     return fake_nodes
 
-# Tests  _readmit_nodes
-def test_readmit_nodes_returns_early(monkeypatch, mock_network_nodes): 
-  """
-  Test _readmit_nodes returns immediately if _earliest_readmit_time has not passed yet.
-  """
-  network = Network('testnet')
-  now = 1000.0
-  monkeypatch.setattr(time, "time", lambda: now)
 
-  network._earliest_readmit_time = now + 10
-  network._healthy_nodes = []
-  network._readmit_nodes()
-  
-  assert network._healthy_nodes == []
+# Tests  _readmit_nodes
+def test_readmit_nodes_returns_early(monkeypatch):
+    """
+    Test _readmit_nodes returns immediately if _earliest_readmit_time has not passed yet.
+    """
+    network = Network("testnet")
+    now = 1000.0
+    monkeypatch.setattr(time, "monotonic", lambda: now)
+
+    network._earliest_readmit_time = now + 10
+    network._healthy_nodes = []
+    network._readmit_nodes()
+
+    assert network._healthy_nodes == []
+
 
 def test_readmit_nodes_adds_expired_node(monkeypatch):
     """
     Test readmit_nodes adds a node whose backoff period has expired to the healthy nodes list.
     """
-    network = Network('testnet')
+    network = Network("testnet")
 
     now = 1000.0
-    monkeypatch.setattr(time, "time", lambda: now)
+    monkeypatch.setattr(time, "monotonic", lambda: now)
 
     # Node ready to be readmitted
     node = Mock(spec=_Node)
@@ -67,14 +66,15 @@ def test_readmit_nodes_adds_expired_node(monkeypatch):
     assert node in network._healthy_nodes
     assert network._earliest_readmit_time >= now
 
+
 def test_readmit_nodes_skips_unexpired_node(monkeypatch):
     """
     Test _readmit_nodes does not add nodes whose backoff period has not yet expired.
     """
-    network = Network('testnet')
+    network = Network("testnet")
 
     now = 1000.0
-    monkeypatch.setattr(time, "time", lambda: now)
+    monkeypatch.setattr(time, "monotonic", lambda: now)
 
     # Node not ready to be readmitted
     node = Mock(spec=_Node)
@@ -93,16 +93,17 @@ def test_readmit_nodes_skips_unexpired_node(monkeypatch):
 
     assert network._earliest_readmit_time == now + expected_delay
 
+
 def test_readmit_nodes_updates_earliest_readmit_time(monkeypatch):
     """
-    Test _readmit_nodes correctly calculates _earliest_readmit_time  based 
+    Test _readmit_nodes correctly calculates _earliest_readmit_time  based
     on multiple nodes with different _readmit_time values and the configured
     min/max readmit periods.
     """
-    network = Network('testnet')
+    network = Network("testnet")
 
     now = 1000.0
-    monkeypatch.setattr(time, "time", lambda: now)
+    monkeypatch.setattr(time, "monotonic", lambda: now)
 
     node_ready = Mock(spec=_Node)
     node_ready._readmit_time = now - 5  # ready to be readmitted
@@ -125,17 +126,37 @@ def test_readmit_nodes_updates_earliest_readmit_time(monkeypatch):
     # _earliest_readmit_time should reflect the next node's readmit time with min/max applied
     expected_delay = min(
         network._node_max_readmit_period,
-        max(network._node_min_readmit_period, node_not_ready._readmit_time - now)
+        max(network._node_min_readmit_period, node_not_ready._readmit_time - now),
     )
     assert network._earliest_readmit_time == now + expected_delay
+
+
+def test_readmit_nodes_does_not_duplicate_healthy_nodes(monkeypatch):
+    """Test that the _readmit_nodes method does not add duplicate nodes."""
+    network = Network("testnet")
+
+    now = 1000.0
+    monkeypatch.setattr(time, "monotonic", lambda: now)
+
+    node = Mock(spec=_Node)
+    node._readmit_time = now - 10
+
+    network.nodes = [node]
+    network._healthy_nodes = [node]
+    network._earliest_readmit_time = 0
+
+    network._readmit_nodes()
+
+    assert network._healthy_nodes.count(node) == 1
+
 
 # Tests _increase_backoff
 def test_increase_backoff_removes_node_from_healthy():
     """
     Test _increase_backoff calls _increase_backoff on the node and removes it from the healthy nodes list.
     """
-    network = Network('testnet')
-    
+    network = Network("testnet")
+
     # Mock node
     node = Mock(spec=_Node)
     network.nodes = [node]
@@ -150,11 +171,12 @@ def test_increase_backoff_removes_node_from_healthy():
     # Node should be removed from healthy nodes
     assert node not in network._healthy_nodes
 
+
 def test_increase_backoff_type_error_for_invalid_input():
     """
     Test _increase_backoff raises TypeError if the argument is not of type _Node.
     """
-    network = Network('testnet')
+    network = Network("testnet")
 
     invalid_values = [None, True, object, 123, "node", [], {}]
 
@@ -162,11 +184,12 @@ def test_increase_backoff_type_error_for_invalid_input():
         with pytest.raises(TypeError, match="node must be of type _Node"):
             network._increase_backoff(invalid)
 
+
 def test_increase_backoff_does_not_affect_other_nodes():
     """
     Test _increase_backoff only affects the target node and does not remove other nodes from healthy_nodes.
     """
-    network = Network('testnet')
+    network = Network("testnet")
 
     node1 = Mock(spec=_Node)
     node2 = Mock(spec=_Node)
@@ -184,12 +207,13 @@ def test_increase_backoff_does_not_affect_other_nodes():
     # node2's _increase_backoff not called
     node2._increase_backoff.assert_not_called()
 
+
 # Tests _decrease_backoff
 def test_decrease_backoff_calls_node_method():
     """
     Test _decrease_backoff calls _decrease_backoff on the target node.
     """
-    network = Network('testnet')
+    network = Network("testnet")
 
     node = Mock(spec=_Node)
     network.nodes = [node]
@@ -204,11 +228,12 @@ def test_decrease_backoff_calls_node_method():
     # Node should remain in healthy_nodes (unlike _increase_backoff)
     assert node in network._healthy_nodes
 
+
 def test_decrease_backoff_type_error_for_invalid_input():
     """
     Test _decrease_backoff raises TypeError if the argument is not of type _Node.
     """
-    network = Network('testnet')
+    network = Network("testnet")
 
     invalid_values = [None, 123, True, object, "node", [], {}]
 
@@ -216,11 +241,12 @@ def test_decrease_backoff_type_error_for_invalid_input():
         with pytest.raises(TypeError, match="node must be of type _Node"):
             network._decrease_backoff(invalid)
 
+
 def test_decrease_backoff_does_not_affect_other_nodes():
     """
     Test _decrease_backoff only affects the target node and does not call _decrease_backoff on other nodes.
     """
-    network = Network('testnet')
+    network = Network("testnet")
 
     node1 = Mock(spec=_Node)
     node2 = Mock(spec=_Node)
@@ -237,6 +263,7 @@ def test_decrease_backoff_does_not_affect_other_nodes():
     # Both nodes remain in healthy_nodes
     assert node1 in network._healthy_nodes
     assert node2 in network._healthy_nodes
+
 
 # Test set_network_nodes
 def test_set_network_nodes_with_explicit_nodes():
@@ -257,6 +284,7 @@ def test_set_network_nodes_with_explicit_nodes():
     assert network.nodes == [node1, node2]
     assert network._healthy_nodes == [node1]
 
+
 def test_set_network_nodes_resets_healthy_nodes():
     """
     Test _set_network_nodes clears previously healthy nodes.
@@ -274,7 +302,22 @@ def test_set_network_nodes_resets_healthy_nodes():
     assert old_node not in network._healthy_nodes
     assert network._healthy_nodes == [new_node]
 
+
 # Test select_node
+def test_select_node_round_robin():
+    """Test that _select_node cycles through healthy nodes using round-robin selection."""
+    network = Network("testnet")
+
+    node1 = Mock(spec=_Node)
+    node2 = Mock(spec=_Node)
+
+    network._healthy_nodes = [node1, node2]
+    network._node_index = 0
+
+    assert network._select_node() is node2
+    assert network._select_node() is node1
+
+
 def test_select_node_raises_when_no_healthy_nodes():
     """
     Test _select_node raises ValueError if no healthy nodes exist.
@@ -284,6 +327,7 @@ def test_select_node_raises_when_no_healthy_nodes():
 
     with pytest.raises(ValueError, match="No healthy node available"):
         network._select_node()
+
 
 # Test get_node
 def test_get_node_by_account_id():
@@ -297,8 +341,14 @@ def test_get_node_by_account_id():
 
     network._healthy_nodes = [node]
 
-    result = network._get_node("0.0.3")
+    with patch(
+        "hiero_sdk_python.client.network.Network._readmit_nodes"
+    ) as mock_readmit:
+        result = network._get_node("0.0.3")
+
+    assert mock_readmit.call_count == 1
     assert result is node
+
 
 def test_get_node_returns_none_when_not_found():
     """
