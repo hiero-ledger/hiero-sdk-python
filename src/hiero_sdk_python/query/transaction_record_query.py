@@ -1,5 +1,5 @@
 from typing import Optional, Any, Union
-from hiero_sdk_python.hapi.services import query_header_pb2, transaction_get_record_pb2, query_pb2
+from hiero_sdk_python.hapi.services import query_header_pb2, transaction_get_record_pb2, query_pb2, transaction_record_pb2
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -16,7 +16,7 @@ class TransactionRecordQuery(Query):
     Represents a query for a transaction record on the Hedera network.
     """
 
-    def __init__(self, transaction_id: Optional[TransactionId] = None):
+    def __init__(self, transaction_id: Optional[TransactionId] = None, *, include_duplicates: bool = False)->None:
         """
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
@@ -24,6 +24,19 @@ class TransactionRecordQuery(Query):
         self.transaction_id : Optional[TransactionId] = transaction_id
         self.include_duplicates: bool = bool(include_duplicates)
     def set_include_duplicates(self, include: bool) -> 'TransactionRecordQuery':
+        """
+        Sets whether to include duplicate transaction records in the query results.
+
+        Args:
+            include: Whether to include duplicates.
+
+        Returns:
+            TransactionRecordQuery: The current instance for method chaining.
+
+        Raises:
+            ValueError: If the query is frozen and cannot be modified.
+        """
+        self._require_not_frozen()
         self.include_duplicates = bool(include)
         return self
     def set_transaction_id(self, transaction_id: TransactionId):
@@ -53,29 +66,27 @@ class TransactionRecordQuery(Query):
             AttributeError: If the Query protobuf structure is invalid.
             Exception: If any other error occurs during request construction.
         """
-        try:
-            if not self.transaction_id:
-                raise ValueError("Transaction ID must be set before making the request.")
+        if not self.transaction_id:
+            raise ValueError("Transaction ID must be set before making the request.")
 
-            query_header = self._make_request_header()
-            transaction_get_record = transaction_get_record_pb2.TransactionGetRecordQuery()
-            transaction_get_record.header.CopyFrom(query_header)
-            transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
-            transaction_get_record.includeDuplicates = self.include_duplicates
-            query = query_pb2.Query()
-            if not hasattr(query, 'transactionGetRecord'):
-                raise AttributeError("Query object has no attribute 'transactionGetRecord'")
-            query.transactionGetRecord.CopyFrom(transaction_get_record)
-    
-            return query
-        except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            raise
+        query_header = self._make_request_header()
+        transaction_get_record = transaction_get_record_pb2.TransactionGetRecordQuery()
+        transaction_get_record.header.CopyFrom(query_header)
+        transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
+        transaction_get_record.includeDuplicates = self.include_duplicates
+
+        query = query_pb2.Query()
+        if not hasattr(query, 'transactionGetRecord'):
+            raise AttributeError("Query object has no attribute 'transactionGetRecord'")
+
+        query.transactionGetRecord.CopyFrom(transaction_get_record)
+
+        return query
     def _map_record_list(
         self,
-        proto_records: List[transaction_record_pb2.TransactionRecord]
-    ) -> List[TransactionRecord]:
-        records: List[TransactionRecord] = []
+        proto_records: list[transaction_record_pb2.TransactionRecord]
+    ) -> list[TransactionRecord]:
+        records: list[TransactionRecord] = []
         for proto_record in proto_records:
             # We pass the same transaction_id as the main record
             record = TransactionRecord._from_proto(

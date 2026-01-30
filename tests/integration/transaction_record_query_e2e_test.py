@@ -1,4 +1,5 @@
 import pytest
+from hiero_sdk_python import Client, TransactionRecord
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -99,6 +100,7 @@ def test_transaction_record_query_can_execute_nft_transfer():
     finally:
         env.close()
 
+@pytest.mark.integration
 def test_transaction_record_query_can_execute_fungible_transfer():
     env = IntegrationTestEnv()
     
@@ -143,30 +145,38 @@ def test_transaction_record_query_can_execute_fungible_transfer():
         assert record.transaction_hash is not None, "Transaction hash should not be None"
     finally:
         env.close()
+
 @pytest.mark.integration
 def test_query_with_include_duplicates():
-    client = Client.for_testnet()  # or use IntegrationTestEnv().client if project has it
+    env = IntegrationTestEnv()
+    try:
+        new_account_private_key = PrivateKey.generate_ed25519()
+        new_account_public_key = new_account_private_key.public_key()
 
-    # Create a transaction to get a fresh tx_id
-    receipt = (
-        AccountCreateTransaction()
-        .set_initial_balance(Hbar.from_tinybars(1_000_000_00))  # 0.1 HBAR
-        .execute(client)
-    )
+        # Create a transaction to get a fresh tx_id
+        receipt = (
+            AccountCreateTransaction()
+            .set_key_without_alias(new_account_public_key)
+            .set_initial_balance(Hbar.from_tinybars(10_000_000))  # 0.1 HBAR 
+            .execute(env.client)
+        )
 
-    tx_id = receipt.transaction_id
+        tx_id = receipt.transaction_id
 
-    # Query with duplicates enabled
-    record = (
-        TransactionRecordQuery()
-        .set_transaction_id(tx_id)
-        .set_include_duplicates(True)
-        .execute(client)
-    )
+        # Query with duplicates enabled
+        record = (
+            TransactionRecordQuery()
+            .set_transaction_id(tx_id)
+            .set_include_duplicates(True)
+            .execute(env.client)
+        )
 
-    assert isinstance(record, TransactionRecord)
-    assert record.transaction_id == tx_id
-    assert isinstance(record.duplicates, list)
-    # Usually 0 for fresh tx, but confirms no crash/parsing error
-    assert all(isinstance(d, TransactionRecord) for d in record.duplicates)
-    assert all(d.transaction_id == tx_id for d in record.duplicates)
+        assert isinstance(record, TransactionRecord)
+        assert record.transaction_id == tx_id
+        assert isinstance(record.duplicates, list)
+        # Usually 0 for fresh tx, but confirms no crash/parsing error
+        assert all(isinstance(d, TransactionRecord) for d in record.duplicates)
+        assert all(d.transaction_id == tx_id for d in record.duplicates)
+
+    finally:
+        env.close()
