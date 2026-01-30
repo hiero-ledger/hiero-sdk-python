@@ -378,7 +378,7 @@ class _Executable(ABC):
                 err.code() == grpc.StatusCode.INTERNAL and RST_STREAM.search(err.details())
             )
         
-        return False
+        return True
 
     def _calculate_backoff(self, attempt: int):
         """Calculate backoff for the given attempt, attempt start from 0"""
