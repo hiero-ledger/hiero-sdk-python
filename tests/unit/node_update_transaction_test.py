@@ -109,10 +109,15 @@ def test_build_transaction_body(mock_account_ids, node_params):
     )
     assert len(node_update.service_endpoint) == 1
     assert (
-        node_update.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
+        node_update.service_endpoint[0]
+        == node_params["service_endpoints"][0]._to_proto()
     )
-    assert node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
-    assert node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
+    assert (
+        node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
+    )
+    assert (
+        node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
+    )
     assert node_update.admin_key == node_params["admin_key"]._to_proto()
     assert node_update.decline_reward.value == node_params["decline_reward"]
     assert (
@@ -144,9 +149,16 @@ def test_build_scheduled_body(node_params):
         node_update.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
     )
     assert len(node_update.service_endpoint) == 1
-    assert node_update.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
-    assert node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
-    assert node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
+    assert (
+        node_update.service_endpoint[0]
+        == node_params["service_endpoints"][0]._to_proto()
+    )
+    assert (
+        node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
+    )
+    assert (
+        node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
+    )
     assert node_update.admin_key == node_params["admin_key"]._to_proto()
     assert node_update.decline_reward.value == node_params["decline_reward"]
     assert (
