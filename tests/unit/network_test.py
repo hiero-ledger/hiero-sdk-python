@@ -361,3 +361,90 @@ def test_get_node_returns_none_when_not_found():
     network._healthy_nodes = [node]
 
     assert network._get_node("0.0.999") is None
+
+
+# Tests parse_mirror_address
+@pytest.mark.parametrize(
+    "mirror_addr,expected_host,expected_port",
+    [
+        ("localhost:5551", "localhost", 5551),
+        ("127.0.0.1:8080", "127.0.0.1", 8080),
+        ("mirror.hedera.com:443", "mirror.hedera.com", 443),
+        ("justhost", "justhost", 443),  # no port defaults to 443
+        ("badport:abc", "badport", 443),  # invalid port defaults to 443
+    ],
+)
+def test_parse_mirror_address(mirror_addr, expected_host, expected_port):
+    """Test that _parse_mirror_address correctly splits mirror_address into host and port."""
+    network = Network("testnet", mirror_address=mirror_addr)
+    host, port = network._parse_mirror_address()
+    assert host == expected_host
+    assert port == expected_port
+
+
+# Tests _determine_scheme_and_port
+@pytest.mark.parametrize(
+    "host,port,expected_scheme,expected_port",
+    [
+        ("localhost", 443, "http", 8080),
+        ("127.0.0.1", 80, "http", 80),
+        ("127.0.0.1", 5000, "http", 5000),
+        ("hedera.com", 5600, "https", 443),
+        ("hedera.com", 443, "https", 443),
+        ("hedera.com", 8443, "https", 8443),
+    ],
+)
+def test_determine_scheme_and_port(host, port, expected_scheme, expected_port):
+    """Test that _determine_scheme_and_port correctly computes the scheme (http/https)."""
+    network = Network("testnet")
+    scheme, out_port = network._determine_scheme_and_port(host, port)
+    assert out_port == expected_port
+    assert scheme == expected_scheme
+
+
+# Tests for _build_rest_url
+@pytest.mark.parametrize(
+    "scheme,host,port,expected_url",
+    [
+        ("https", "hedera.com", 443, "https://hedera.com/api/v1"),
+        ("https", "hedera.com", 8443, "https://hedera.com:8443/api/v1"),
+        ("http", "localhost", 80, "http://localhost/api/v1"),
+        ("http", "localhost", 8080, "http://localhost:8080/api/v1"),
+    ],
+)
+def test_build_rest_url(scheme, host, port, expected_url):
+    """Test that _build_rest_url constructs the correct REST API URL."""
+    network = Network("testnet")
+    url = network._build_rest_url(scheme, host, port)
+    assert url == expected_url
+
+
+def test_get_mirror_rest_url_fallback():
+    """Test get_mirror_rest_url fallback behavior when network is not in MIRROR_NODE_URLS."""
+    # Custom network with no entry in MIRROR_NODE_URLS
+    network = Network("customnet", mirror_address="localhost:1234")
+
+    scheme, port = network._determine_scheme_and_port(*network._parse_mirror_address())
+    expected_url = network._build_rest_url(scheme, "localhost", port)
+
+    assert network.get_mirror_rest_url() == expected_url
+
+
+@pytest.mark.unit
+def test_resolve_nodes_fallback_to_default(monkeypatch):
+    """Test that _resolve_nodes falls back to DEFAULT_NODES if no nodes are provided and mirror fetch returns empty."""
+    network_name = "testnet"
+    network = Network(network_name)
+
+    # Patch _fetch_nodes_from_mirror_node to return empty list
+    monkeypatch.setattr(network, "_fetch_nodes_from_mirror_node", lambda: [])
+
+    # Call _resolve_nodes with nodes=None should fallback to DEFAULT_NODES
+    resolved_nodes = network._resolve_nodes(None)
+
+    # DEFAULT_NODES for testnet has 4 entries (0..3)
+    expected_count = len(network.DEFAULT_NODES[network_name])
+    assert isinstance(resolved_nodes, list)
+    assert all(isinstance(n, _Node) for n in resolved_nodes)
+    assert len(resolved_nodes) == expected_count
+    assert resolved_nodes[0]._account_id == network.DEFAULT_NODES[network_name][0][1]

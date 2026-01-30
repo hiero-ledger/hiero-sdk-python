@@ -5,12 +5,13 @@ Unit tests for Client methods (eg. from_env, for_testnet, for_mainnet, for_previ
 from decimal import Decimal
 import os
 import pytest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from hiero_sdk_python.client import client as client_module
 
 from hiero_sdk_python import Client, AccountId, PrivateKey
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
 
@@ -464,5 +465,76 @@ def test_update_network_refreshes_nodes_and_returns_self():
 
         mock_set_nodes.assert_called_once()
         assert returned is client
+
+    client.close()
+
+def test_warning_when_grpc_deadline_exceeds_request_timeout():
+    """Warn when grpc_deadline is greater than request_timeout."""
+    client = Client.for_testnet()
+    client.set_request_timeout(2)
+
+    with pytest.warns(FutureWarning):
+        client.set_grpc_deadline(7)
+
+
+def test_warning_when_request_timeout_less_than_grpc_deadline():
+    """Warn when request_timeout is less than grpc_deadline."""
+    client = Client.for_testnet()
+    client.set_grpc_deadline(7)
+
+    with pytest.warns(FutureWarning):
+        client.set_request_timeout(2)
+
+
+def test_generate_transaction_id_requires_operator_set():
+    """Test that generate_transaction_id raises ValueError if operator_account_id is not set."""
+    client = Client.for_testnet()
+    client.operator_account_id = None  # ensure not set
+
+    with pytest.raises(ValueError, match="Operator account ID must be set"):
+        client.generate_transaction_id()
+
+    client.close()
+
+
+def test_generate_transaction_id_returns_transaction_id(monkeypatch):
+    """Test that generate_transaction_id returns a TransactionId object when operator is set."""
+    client = Client.for_testnet()
+    client.operator_account_id = AccountId(0, 0, 1234)
+
+    fake_txid = MagicMock(spec=TransactionId)
+    monkeypatch.setattr("hiero_sdk_python.transaction.transaction_id.TransactionId.generate", lambda account_id: fake_txid)
+
+    txid = client.generate_transaction_id()
+    assert txid is fake_txid
+
+    client.close()
+
+
+def test_get_node_account_ids_returns_correct_list():
+    """Test that get_node_account_ids returns a list of node AccountIds."""
+    client = Client.for_testnet()
+
+    # Mock some nodes with _account_id attributes
+    mock_node1 = MagicMock()
+    mock_node1._account_id = AccountId(0, 0, 1001)
+    mock_node2 = MagicMock()
+    mock_node2._account_id = AccountId(0, 0, 1002)
+
+    client.network.nodes = [mock_node1, mock_node2]
+
+    node_ids = client.get_node_account_ids()
+    assert node_ids == [mock_node1._account_id, mock_node2._account_id]
+
+    client.close()
+
+
+def test_get_node_account_ids_raises_when_no_nodes():
+    """Test that get_node_account_ids raises ValueError if no nodes are configured."""
+    client = Client.for_testnet()
+    client.network.nodes = []
+
+    with pytest.raises(ValueError, match="No nodes available"):
+        client.get_node_account_ids()
 
     client.close()
