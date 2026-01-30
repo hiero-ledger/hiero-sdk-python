@@ -11,19 +11,20 @@ from hiero_sdk_python.transaction.transaction_record import TransactionRecord
 from hiero_sdk_python.executable import _ExecutionState
 
 
+
 class TransactionRecordQuery(Query):
     """
     Represents a query for a transaction record on the Hedera network.
     """
 
-    def __init__(self, transaction_id: Optional[TransactionId] = None, *, include_duplicates: bool = False)->None:
+    def __init__(self, transaction_id: Optional[TransactionId] = None, include_duplicates: bool = False)->None:
         """
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
         super().__init__()
         self.transaction_id : Optional[TransactionId] = transaction_id
         self.include_duplicates: bool = bool(include_duplicates)
-    def set_include_duplicates(self, include: bool) -> 'TransactionRecordQuery':
+    def set_include_duplicates(self, include_duplicates: bool) -> 'TransactionRecordQuery':
         """
         Sets whether to include duplicate transaction records in the query results.
 
@@ -36,8 +37,11 @@ class TransactionRecordQuery(Query):
         Raises:
             ValueError: If the query is frozen and cannot be modified.
         """
-        self._require_not_frozen()
-        self.include_duplicates = bool(include)
+        if not isinstance(include_duplicates, bool):
+            raise TypeError(
+                "include_duplicates must be a boolean (True or False)"
+            )
+        self.include_duplicates = include_duplicates
         return self
     def set_transaction_id(self, transaction_id: TransactionId):
         """
