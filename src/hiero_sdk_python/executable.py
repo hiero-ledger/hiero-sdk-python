@@ -385,6 +385,7 @@ class _Executable(ABC):
         return min(self._max_backoff, self._min_backoff * (2 ** (attempt + 1)))
     
     def _handle_unhealthy_node(self, proto_request, attempt, logger, err) -> bool:
+        """Hnadle node switching and backoff for unhealthy node"""
         # Check if the request is a transaction receipt or record because they are single node requests
         if _is_transaction_receipt_or_record_request(proto_request):
             _delay_for_attempt(
@@ -452,17 +453,7 @@ class _Executable(ABC):
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
 
-            logger.trace(
-                "Executing",
-                "requestId",
-                self._get_request_id(),
-                "nodeAccountID",
-                self.node_account_id,
-                "attempt",
-                attempt + 1,
-                "maxAttempts",
-                self._max_attempts,
-            )
+            logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self.node_account_id, "attempt", attempt + 1, "maxAttempts", self._max_attempts,)
 
             # Get the appropriate gRPC method to call
             method = self._get_method(channel)
@@ -495,17 +486,7 @@ class _Executable(ABC):
 
             # Determine if we should retry based on the response
             execution_state = self._should_retry(response)
-            logger.trace(
-                f"{self.__class__.__name__} status received",
-                "nodeAccountID",
-                self.node_account_id,
-                "network",
-                client.network.network,
-                "state",
-                execution_state.name,
-                "txID",
-                tx_id,
-            )
+            logger.trace(f"{self.__class__.__name__} status received", "nodeAccountID", self.node_account_id, "network", client.network.network, "state", execution_state.name, "txID", tx_id,)
 
             # Handle the execution state
             match execution_state:
@@ -537,13 +518,7 @@ class _Executable(ABC):
                         response, self.node_account_id, proto_request
                     )
 
-        logger.error(
-            "Exceeded maximum attempts for request",
-            "requestId",
-            self._get_request_id(),
-            "last exception being",
-            err_persistant,
-        )
+        logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant,)
         raise MaxAttemptsError(
             "Exceeded maximum attempts or request timeout",
             self.node_account_id,
@@ -568,17 +543,7 @@ def _delay_for_attempt(request_id: str, backoff: float, attempt: int, logger, er
         attempt (int): The current attempt number (0-based)
         backoff (float): The current backoff period in seconds
     """
-    logger.trace(
-        f"Retrying request attempt",
-        "requestId",
-        request_id,
-        "delay",
-        backoff,
-        "attempt",
-        attempt,
-        "error",
-        error,
-    )
+    logger.trace(f"Retrying request attempt", "requestId", request_id, "delay", backoff, "attempt", attempt, "error", error,)
     time.sleep(backoff)
 
 
