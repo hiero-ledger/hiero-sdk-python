@@ -13,7 +13,7 @@ MULTIPLIER = 1000003
 P3 = 26**3
 P5 = 26**5
 
-def parse_from_string(address: str):
+def parse_from_string(address: str) -> tuple[str, str, str, str | None]:
     """
     Parse an address string of the form: <shard>.<realm>.<num>[-<checksum>]
     Examples:
@@ -21,7 +21,7 @@ def parse_from_string(address: str):
         "0.0.123-abcde"
 
     Returns:
-        An instance of cls with shard, realm, num, and optional checksum.
+        tuple[str, str, str, str | None]: A tuple of (shard, realm, num, checksum) where checksum may be None.
     """
     match = ID_REGEX.match(address)
     if not match:
