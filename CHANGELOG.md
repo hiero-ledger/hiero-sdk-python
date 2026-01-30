@@ -133,6 +133,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 
 ### Changed
+- Added missing type hints to sign method in Transaction class (#1630)
 - Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
 - Updated GitHub Actions setup-node action to v6.2.0.
 - chore: format tests/unit/mock_server.py with black (#1542)
@@ -220,7 +221,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 
 ### Fixed
-- Added Missing Type Hints to sign Method in Transaction Class (#1630)
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
