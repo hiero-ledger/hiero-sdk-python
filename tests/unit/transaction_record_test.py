@@ -389,3 +389,43 @@ def test_proto_conversion_with_call_result():
     assert converted.call_result.gas_used == record.call_result.gas_used
     assert converted.call_result.gas_available == record.call_result.gas_available
     assert converted.call_result.amount == record.call_result.amount
+def test_transaction_record_initializes_with_empty_duplicates():
+    record = TransactionRecord()
+    assert isinstance(record.duplicates, list)
+    assert len(record.duplicates) == 0
+
+
+def test_from_proto_accepts_and_stores_duplicates(transaction_id):
+    proto = transaction_record_pb2.TransactionRecord()
+    proto.memo = "Main"
+
+    dup1 = TransactionRecord(transaction_id=transaction_id, transaction_memo="dup1")
+    dup2 = TransactionRecord(transaction_id=transaction_id, transaction_memo="dup2")
+
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup1, dup2])
+
+    assert len(record.duplicates) == 2
+    assert record.duplicates[0].transaction_memo == "dup1"
+    assert record.duplicates[1].transaction_memo == "dup2"
+
+
+def test_from_proto_with_empty_duplicates_list(transaction_id):
+    proto = transaction_record_pb2.TransactionRecord()
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[])
+    assert len(record.duplicates) == 0
+
+
+def test_from_proto_with_duplicates_instances(transaction_id):
+    proto = transaction_record_pb2.TransactionRecord()
+    dup = TransactionRecord(transaction_id=transaction_id, transaction_memo="example dup")
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup])
+    assert record.duplicates == [dup]
+
+
+def test_repr_includes_duplicates_count(transaction_id):
+    record = TransactionRecord(transaction_id=transaction_id)
+    assert "duplicates_count=0" in repr(record)
+
+    dup = TransactionRecord(transaction_id=transaction_id)
+    record.duplicates = [dup, dup]
+    assert "duplicates_count=2" in repr(record)

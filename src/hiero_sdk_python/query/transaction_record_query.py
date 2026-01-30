@@ -22,7 +22,10 @@ class TransactionRecordQuery(Query):
         """
         super().__init__()
         self.transaction_id : Optional[TransactionId] = transaction_id
-        
+        self.include_duplicates: bool = bool(include_duplicates)
+    def set_include_duplicates(self, include: bool) -> 'TransactionRecordQuery':
+        self.include_duplicates = bool(include)
+        return self
     def set_transaction_id(self, transaction_id: TransactionId):
         """
         Sets the transaction ID for the query.
@@ -58,16 +61,29 @@ class TransactionRecordQuery(Query):
             transaction_get_record = transaction_get_record_pb2.TransactionGetRecordQuery()
             transaction_get_record.header.CopyFrom(query_header)
             transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
-            
+            transaction_get_record.includeDuplicates = self.include_duplicates
             query = query_pb2.Query()
             if not hasattr(query, 'transactionGetRecord'):
                 raise AttributeError("Query object has no attribute 'transactionGetRecord'")
             query.transactionGetRecord.CopyFrom(transaction_get_record)
-            
+    
             return query
         except Exception as e:
             print(f"Exception in _make_request: {e}")
             raise
+    def _map_record_list(
+        self,
+        proto_records: List[transaction_record_pb2.TransactionRecord]
+    ) -> List[TransactionRecord]:
+        records: List[TransactionRecord] = []
+        for proto_record in proto_records:
+            # We pass the same transaction_id as the main record
+            record = TransactionRecord._from_proto(
+                proto_record,
+                transaction_id=self.transaction_id
+            )
+            records.append(record)
+        return records
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
@@ -182,8 +198,18 @@ class TransactionRecordQuery(Query):
         """
         self._before_execute(client)
         response = self._execute(client)
-
-        return TransactionRecord._from_proto(response.transactionGetRecord.transactionRecord, self.transaction_id)
+        primary_proto = response.transactionGetRecord.transactionRecord
+        if self.include_duplicates:
+            duplicates = self._map_record_list(
+                response.transactionGetRecord.duplicateTransactionRecords
+            )
+        else:
+            duplicates = []
+        return TransactionRecord._from_proto(
+            primary_proto,
+            transaction_id=self.transaction_id,
+            duplicates=duplicates
+        )
 
     def _get_query_response(self, response: Any):
         """
