@@ -27,7 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added ProtoBuff Training guide to enhance developer understand of proto serialization
-and deserialization (#PR_Num)
+and deserialization (#1645)
 - Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
 
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
