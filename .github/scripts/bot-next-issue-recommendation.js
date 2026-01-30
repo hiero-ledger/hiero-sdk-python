@@ -71,13 +71,24 @@ module.exports = async ({ github, context, core }) => {
     let recommendedIssues = [];
     let recommendedLabel = null;
     let isFallback = false;
+    let recommendationScope = 'repo';
     
     recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
     recommendedLabel = 'Beginner';
+
     if (recommendedIssues.length === 0) {
       isFallback = true;
       recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
       recommendedLabel = 'Good First Issue';
+    }
+
+    if (recommendedIssues.length === 0) {
+      recommendationScope = 'org';
+      recommendedLabel = 'Good First Issue';
+      recommendedIssues = await github.rest.search.issuesAndPullRequests({
+        q: `org:hiero-ledger type:issue state:open label:"good first issue"`,
+        per_page: 6,
+      }).then(res => res.data.items);
     }
 
     // Remove the issue they just solved
@@ -85,7 +96,7 @@ module.exports = async ({ github, context, core }) => {
     
     // Generate and post comment
     const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner';
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel, recommendedLabel, isFallback);
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel, recommendedLabel, isFallback, recommendationScope);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
@@ -110,7 +121,7 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel, recommendedLabel, isFallback) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, completedLabel, recommendedLabel, isFallback, recommendationScope) {
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
@@ -118,7 +129,9 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
   comment += `Thank you for your contribution to the Hiero Python SDK! We're excited to have you as part of our community.\n\n`;
   
   if (recommendedIssues.length > 0) {
-    if (isFallback){
+    if (recommendationScope === 'org') {
+      comment += `Here are some **Good First Issues across the Hiero organization** you might be interested in working on next:\n\n`;
+    } else if (isFallback) {
       comment += `Here are some **${recommendedLabel}** issues at a similar level you might be interested in working on next:\n\n`;
     } else {
       comment += `Here are some issues labeled **${recommendedLabel}** you might be interested in working on next:\n\n`;
@@ -193,3 +206,4 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     core.setFailed(`Error posting comment: ${error.message}`);
   }
 }
+
