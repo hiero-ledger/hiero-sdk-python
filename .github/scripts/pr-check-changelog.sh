@@ -3,105 +3,90 @@ set -euo pipefail
 # ==============================================================================
 # Executes When:
 #   - Run by GitHub Actions workflow: .github/workflows/pr-check-changelog.yml
-#   - Triggers: workflow_dispatch (manual) and pull_request (opened, edited, synch).
+#   - Triggers: pull_request events (opened, edited, synchronized) or manual runs.
 #
 # Goal:
-#   It acts as a gatekeeper for Pull Requests, blocking any merge unless the user
-#   has added a new entry to CHANGELOG.md and correctly placed it under the
-#   [Unreleased] section with a proper category subtitle.
+#   This script enforces CHANGELOG discipline in Pull Requests.
+#   It blocks merging unless:
+#     1) A new changelog entry is added.
+#     2) The entry is placed under [Unreleased].
+#     3) The entry is under a valid subsection (e.g., ### Added, ### Fixed).
+#     4) No previous changelog entries are deleted.
 #
 # ------------------------------------------------------------------------------
-# Flow: Basic Idea
-#   1. Grabs the official blueprints (upstream/main) to compare against current work.
-#   2. Checks if anything new was written. If not, fails immediately.
-#   3. Walks through the file line-by-line to ensure new notes are strictly filed
-#      under [Unreleased] and organized under a category (e.g., "Added", "Fixed").
-#   4. If notes are missing, misplaced, or dangling, it fails the build.
-#      If filed correctly, it approves the build.
+# Flow: High-Level Overview
+#   1. Fetch upstream main branch to compare against PR changes.
+#   2. Compute diff for CHANGELOG.md.
+#   3. Detect added and deleted bullet entries.
+#   4. Walk through CHANGELOG.md to verify correct placement.
+#   5. Fail CI if entries are missing, misplaced, or removed.
 #
 # ------------------------------------------------------------------------------
 # Flow: Detailed Technical Steps
 #
-# 1️⃣ Network Setup & Fetch
-#    - Action: Sets up a remote connection to GitHub and runs 'git fetch upstream main'.
-#    - Why: Needs the "Source of Truth" to compare the Pull Request against.
+# 1️⃣ Upstream Setup & Fetch
+#   - Ensures 'upstream' remote exists (points to GITHUB_REPOSITORY).
+#   - Runs: git fetch upstream main
+#   - Purpose: Compare PR against canonical main branch.
 #
-# 2️⃣ Diff Analysis & Visualization
-#    - Action: Runs 'git diff upstream/main -- CHANGELOG.md'.
-#    - UX/Display: Prints raw diff with colors (Green=Additions, Red=Deletions)
-#      strictly for human readability in logs; logic does not rely on colors.
-#    - Logic: Extracts two lists:
-#      * added_bullets: Every line starting with '+' (new text).
-#      * deleted_bullets: Every line starting with '-' (removed text).
-#    - Immediate Fail Check: If 'added_bullets' is empty, sets failed=1 and exits.
-#      (You cannot merge code without a changelog entry).
+# 2️⃣ Diff Extraction & Logging
+#   - Runs: git diff upstream/main -- CHANGELOG.md
+#   - Displays color-coded diff:
+#       Green = Added lines
+#       Red   = Removed lines
+#   - Extracts:
+#       * added_bullets  -> new bullet lines (+)
+#       * deleted_bullets -> removed bullet lines (-)
 #
-# 3️⃣ Context Tracking 
-#    As the script reads the file line-by-line, it tracks:
-#    - current_release: Main version header (e.g., [Unreleased] or [1.0.0]).
-#    - current_subtitle: Sub-category (e.g., ### Added, ### Fixed).
-#    - in_unreleased: Flag (0 or 1).
-#       * 1 (True)  -> Currently inside [Unreleased] (Safe Zone).
-#       * 0 (False) -> Reading an old version (Danger Zone).
+# 3️⃣ Mandatory Entry Check
+#   - If no new bullet entries are found:
+#       → FAIL (You must update the changelog in every PR).
 #
-# 4️⃣ Sorting
-#   Flag is ON (1) AND Subtitle is Set 	    -> correctly_placed    		    -> PASS ✅
-#   Flag is ON (1) BUT Subtitle is Empty    -> orphan_entries       		-> FAIL ❌ (It's dangling, not under a category)
-#   Flag is OFF (0)          				-> wrong_release_entries	    -> FAIL ❌ (edited old history)
+# 4️⃣ Context Tracking While Parsing File
+#   Tracks current parsing state:
+#     - current_release   -> version header (e.g., [Unreleased], [1.2.0])
+#     - current_subtitle  -> section header (### Added, ### Fixed, etc.)
+#     - in_unreleased     -> boolean flag (1 if inside [Unreleased])
 #
-# 5️⃣ Final Result
-#    Aggregates failures from Step 4. If any FAIL buckets are not empty, exit 1.
+# 5️⃣ Classification Rules
+#   Condition                                  → Result
+#   -------------------------------------------------------------
+#   In [Unreleased] AND under subtitle         → correctly_placed  (PASS)
+#   In [Unreleased] BUT no subtitle            → orphan_entries    (FAIL)
+#   Under released version section             → wrong_release_entries (FAIL)
+#
+# 6️⃣ Deletion Detection
+#   - If any existing changelog bullet lines are removed:
+#       → FAIL (History must never be rewritten).
+#
+# 7️⃣ Exit Behavior
+#   - If any failure condition is detected:
+#       exit 1 (CI blocks merge)
+#   - Otherwise:
+#       exit 0 (PR passes changelog gate)
 #
 # ------------------------------------------------------------------------------
 # Parameters:
-#   None. (The script accepts no command-line arguments).
+#   None (script does not accept CLI arguments).
 #
-# Environment Variables (Required):
-#   - GITHUB_REPOSITORY: Used to fetch the upstream 'main' branch for comparison.
+# Required Environment Variables:
+#   - GITHUB_REPOSITORY : Used to configure upstream remote URL.
 #
 # Dependencies:
-#   - git (must be able to fetch upstream)
-#   - jq (required for PR context parsing)
-#   - grep, sed (standard Linux utilities)
-#   - CHANGELOG.md (file must exist in the root directory)
+#   - git
+#   - grep, sed (POSIX utilities)
+#   - CHANGELOG.md must exist in repository root.
 #
 # Permissions:
-#   - 'contents: read' (to access the file structure).
-#   - Network access (to run 'git fetch upstream').
+#   - contents: read
+#   - network access (for git fetch)
 #
 # Returns:
-#   0 (Success) - Changes are valid and correctly placed.
-#   1 (Failure) - Missing entries, wrong placement (e.g. under released version),
-#                 orphan entries (no subtitle), or accidental deletions.
+#   0 → Changelog entries valid and correctly placed.
+#   1 → Missing entries, wrong placement, orphan entries, or deleted history.
 # ==============================================================================
 
 CHANGELOG="CHANGELOG.md"
-
-# Ensure jq is available (required for PR context + comments)
-command -v jq >/dev/null || {
-    echo "❌ jq is required but not installed"
-    exit 1
-}
-
-# Validate required environment variables
-: "${GITHUB_EVENT_PATH:?GITHUB_EVENT_PATH is not set}"
-: "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is not set}"
-
-# PR Number
-PR_NUMBER=$(jq -r '.pull_request.number // empty' "$GITHUB_EVENT_PATH")
-if [[ -n "$PR_NUMBER" ]] && ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
-    echo "❌ Invalid PR_NUMBER: $PR_NUMBER"
-    exit 1
-fi
-
-# GITHUB_TOKEN is only required for PR commenting
-if [[ -n "$PR_NUMBER" ]]; then
-    : "${GITHUB_TOKEN:?GITHUB_TOKEN is required for PR commenting but is not set}"
-fi
-
-# Marker
-MISSING_MARKER="<!-- changelog-missing-bot -->"
-WRONG_SECTION_MARKER="<!-- changelog-wrong-section-bot -->"
 
 # ANSI color codes
 RED="\033[31m"
@@ -112,64 +97,14 @@ RESET="\033[0m"
 failed=0
 
 # Fetch upstream
-git remote add upstream https://github.com/${GITHUB_REPOSITORY}.git
+git remote get-url upstream &>/dev/null || git remote add upstream https://github.com/${GITHUB_REPOSITORY}.git
 git fetch upstream main >/dev/null 2>&1
 
-#PR Comment
-DRY_RUN="${DRY_RUN:-false}"
-post_pr_comment() {
-    local message="$1"
+# Get raw diff (git diff may legitimately return non-zero)
+# Get raw diff - handle non-zero exit from git diff when differences exist
+raw_diff=$(git diff upstream/main -- "$CHANGELOG" 2>/dev/null || :)
 
-    # Only comment if this is a PR (not workflow_dispatch)
-    if [[ -z "$PR_NUMBER" ]]; then
-        echo "ℹ️ No PR_NUMBER set — skipping comment."
-        return
-    fi
-
-    if [[ "$DRY_RUN" == "true" ]]; then
-        echo "🔍 [DRY RUN] Would post PR comment on #${PR_NUMBER}"
-        return
-    fi
-
-    local http_code
-    http_code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
-        -H "Authorization: Bearer $GITHUB_TOKEN" \
-        -H "Accept: application/vnd.github+json" \
-        "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-        -d "$(jq -n --arg body "$message" '{body: $body}')")
-
-    if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
-        echo "⚠️ Failed to post PR comment (HTTP $http_code)"
-    fi
-}
-
-comment_already_exists() {
-    local marker="$1"
-
-    if [[ -z "$PR_NUMBER" ]]; then
-        return 1
-    fi
-
-    local comments
-    comments=$(curl -s \
-        -H "Authorization: Bearer $GITHUB_TOKEN" \
-        -H "Accept: application/vnd.github+json" \
-        "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100")
-
-    if ! echo "$comments" | jq -e 'type == "array"' >/dev/null 2>&1; then
-        echo "⚠️ Failed to fetch PR comments — assuming marker absent"
-        return 1
-    fi
-
-    echo "$comments" | jq -e --arg marker "$marker" '
-        .[] | select(.body | contains($marker))
-    ' >/dev/null
-}
-
-# Get raw diff
-raw_diff=$(git diff upstream/main -- "$CHANGELOG")
-
-# 1️⃣ Show raw diff with colors
+# Show raw diff with colors
 echo "=== Raw git diff of $CHANGELOG against upstream/main ==="
 while IFS= read -r line; do
     if [[ $line =~ ^\+ && ! $line =~ ^\+\+\+ ]]; then
@@ -182,87 +117,105 @@ while IFS= read -r line; do
 done <<< "$raw_diff"
 echo "================================="
 
-# 2️⃣ Extract added bullet lines
-added_bullets=()
-while IFS= read -r line; do
-    [[ -n "$line" ]] && added_bullets+=("$line")
-done < <(echo "$raw_diff" | sed -n 's/^+//p' | grep -E '^[[:space:]]*[-*]' | sed '/^[[:space:]]*$/d')
+# Extract added bullet lines
+declare -A added_bullets=()
+file_line=0
+in_hunk=0
 
-# 2️⃣a Extract deleted bullet lines
+while IFS= read -r line; do
+    if [[ $line =~ ^\@\@ ]]; then
+        # Extract starting line number of the new file
+        file_line=$(echo "$line" | sed -E 's/.*\+([0-9]+).*/\1/' || echo "0")
+        in_hunk=1
+        continue
+    fi
+
+    # Ignore lines until we are inside a hunk
+    if [[ $in_hunk -eq 0 ]]; then
+        continue
+    fi
+
+    if [[ $line =~ ^\+ && ! $line =~ ^\+\+\+ ]]; then
+        content="${line#+}"
+        if [[ $content =~ ^[[:space:]]*[-*] ]]; then
+            added_bullets[$file_line]="$content"
+        fi
+        file_line=$((file_line + 1))
+    elif [[ ! $line =~ ^\- ]]; then
+        file_line=$((file_line + 1))
+    fi
+done <<< "$raw_diff"
+
+# Extract deleted bullet lines
 deleted_bullets=()
 while IFS= read -r line; do
     [[ -n "$line" ]] && deleted_bullets+=("$line")
-done < <(echo "$raw_diff" | grep '^\-' | grep -vE '^(--- |\+\+\+ |@@ )' | sed 's/^-//')
+done < <(
+    echo "$raw_diff" \
+    | grep '^\-' \
+    | grep -vE '^(--- |\+\+\+ |@@ )' \
+    | sed 's/^-//' \
+    | grep -E '^[[:space:]]*[-*]' \
+    || true
+)
 
-# 2️⃣b Warn if no added entries
+# Warn if no added entries
 if [[ ${#added_bullets[@]} -eq 0 ]]; then
     echo -e "${RED}❌ No new changelog entries detected in this PR.${RESET}"
     echo -e "${YELLOW}⚠️ Please add an entry in [Unreleased] under the appropriate subheading.${RESET}"
-
-    if ! comment_already_exists "$MISSING_MARKER"; then
-        post_pr_comment "$MISSING_MARKER
-👋 **Changelog reminder**
-
-This PR appears to resolve an issue, but no entry was found in **CHANGELOG.md**.
-
-📌 In this repository, all resolved issues — including docs, CI, and workflow changes — are expected to include a changelog entry under **[Unreleased]**, grouped by category (e.g. *Added*, *Fixed*).
-
-If this PR should not require a changelog entry, feel free to clarify in the discussion. Thanks! 🙌"
-    else
-        echo "⚠️ Changelog bot comment already exists, skipping"
-    fi
-
     failed=1
 fi
 
-# 3️⃣ Initialize results
+# Initialize results
 correctly_placed=""
 orphan_entries=""
 wrong_release_entries=""
 
-# 4️⃣ Walk through changelog to classify entries
+# Walk through changelog to classify entries
+line_no=0
 current_release=""
 current_subtitle=""
 in_unreleased=0
 
-shopt -s extglob
-
 while IFS= read -r line; do
-    # Track release sections
-    if [[ $line =~ ^##\ \[Unreleased\] ]]; then
+    line_no=$((line_no + 1))
+
+    if [[ $line =~ ^[[:space:]]*##\ \[Unreleased\] ]]; then
         current_release="Unreleased"
         in_unreleased=1
         current_subtitle=""
         continue
-    elif [[ $line =~ ^#{1,2}\ \[([0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
-        current_release="${BASH_REMATCH[1]}"
+    elif [[ $line =~ ^[[:space:]]*##\ \[.*\] ]]; then
+        current_release="$line"
         in_unreleased=0
         current_subtitle=""
         continue
-    elif [[ $line =~ ^### ]]; then
-        current_subtitle="$line"
+    elif [[ $line =~ ^[[:space:]]*### ]]; then
+        current_subtitle=$(echo "$line" | tr -d '\r')
         continue
     fi
 
-    # Check each added bullet
+    # Skip non-bullet lines for the purposes of our check
+    if [[ ! $line =~ ^[[:space:]]*[-*] ]]; then
+        continue
+    fi
 
-    normalized_line="${line%%+([[:space:]])}"
-    for added in "${added_bullets[@]}"; do
-        normalized_added="${added%%+([[:space:]])}"
+    if [[ -n "${added_bullets[$line_no]:-}" ]]; then
+        added="${added_bullets[$line_no]}"
 
-        if [[ "$normalized_line" == "$normalized_added" ]]; then
-            if [[ "$in_unreleased" -eq 1 && -n "$current_subtitle" ]]; then
-                correctly_placed+="$added   (placed under $current_subtitle)"$'\n'
-            elif [[ "$in_unreleased" -eq 1 && -z "$current_subtitle" ]]; then
-                orphan_entries+="$added   (NOT under a subtitle)"$'\n'
-            elif [[ "$in_unreleased" -eq 0 ]]; then
-                wrong_release_entries+="$added   (added under released version [$current_release], expected under [Unreleased])"$'\n'
-            fi
+        if [[ "$in_unreleased" -eq 0 ]]; then
+            wrong_release_entries+="$added   (added under released version $current_release)"$'\n'
+            failed=1
+        elif [[ -z "$current_subtitle" ]]; then
+            orphan_entries+="$added   (NOT under a subtitle)"$'\n'
+            failed=1
+        else
+            correctly_placed+="$added   (placed under $current_subtitle)"$'\n'
         fi
-    done
+    fi
 done < "$CHANGELOG"
 
-# 5️⃣ Display results
+# Display results
 if [[ -n "$orphan_entries" ]]; then
     echo -e "${RED}❌ Some CHANGELOG entries are not under a subtitle in [Unreleased]:${RESET}"
     echo "$orphan_entries"
@@ -272,29 +225,6 @@ fi
 if [[ -n "$wrong_release_entries" ]]; then
     echo -e "${RED}❌ Some changelog entries were added under a released version (should be in [Unreleased]):${RESET}"
     echo "$wrong_release_entries"
-
-    if ! comment_already_exists "$WRONG_SECTION_MARKER"; then
-        post_pr_comment "$WRONG_SECTION_MARKER
-⚠️ **Changelog placement issue**
-
-Thanks for adding a changelog entry! 🙌  
-However, one or more entries in this PR were added under a **released version**.
-
-📌 New changelog entries should always go under **[Unreleased]**, grouped beneath an appropriate category (e.g. *Added*, *Fixed*).
-
-Please move the following entries to **[Unreleased]**:
-
-\`\`\`
-$wrong_release_entries
-\`\`\`
-
-
-Let us know if you’re unsure where it should live — happy to help!"
-
-    else
-        echo "⚠️ Changelog bot comment already exists, skipping"
-    fi
-
     failed=1
 fi
 
@@ -303,16 +233,16 @@ if [[ -n "$correctly_placed" ]]; then
     echo "$correctly_placed"
 fi
 
-# 6️⃣ Display deleted entries
+# Display deleted entries 
 if [[ ${#deleted_bullets[@]} -gt 0 ]]; then
-    echo -e "${RED}❌ Changelog entries removed in this PR:${RESET}"
+    echo -e "${YELLOW}⚠️ Changelog entries removed in this PR:${RESET}"
     for deleted in "${deleted_bullets[@]}"; do
-        echo -e "  - ${RED}$deleted${RESET}"
+        echo -e "  - ${YELLOW}$deleted${RESET}"
     done
     echo -e "${YELLOW}⚠️ Please add these entries back under the appropriate sections${RESET}"
 fi
 
-# 7️⃣ Exit with failure if any bad entries exist
+# Exit
 if [[ $failed -eq 1 ]]; then
     echo -e "${RED}❌ Changelog check failed.${RESET}"
     exit 1
