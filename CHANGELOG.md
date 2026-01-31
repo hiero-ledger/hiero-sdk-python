@@ -6,9 +6,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Changed
-
-- chore: update merge conflict bot message with web editor tips (#1592)
 
 
 ### Tests
@@ -214,6 +211,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
+- chore: update merge conflict bot message with web editor tips (#1592)
 
 ### Fixed
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
