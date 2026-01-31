@@ -1,5 +1,5 @@
 name: Beginner Issue Template
-description: Create a Beginner Issue for fairly new contributors
+description: Create a Beginner Issue for contributors who have completed a Good First Issue
 title: "[Beginner]: "
 labels: ["beginner"]
 assignees: []
@@ -8,20 +8,36 @@ body:
     attributes:
       value: |
         ---
-        ## **Thanks for contributing!** 😊
+        ## 🌱 Level Up: Beginner Issue
 
-        We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
-        This template is designed to help you create a Beginner-friendly issue: an easy, well-scoped task that helps fairly new contributors learn the codebase and build their skills.
+        **You've already proven yourself.** By completing a Good First Issue, you showed you can:
+        - ✅ Fork, branch, and open a pull request
+        - ✅ Navigate DCO and GPG signing
+        - ✅ Work with the Hiero team
+
+        This beginner issue is your **next step** — a chance to build confidence through slightly more independent work.
+        You're not starting over; you're leveling up. 📈
         ---
+
   - type: textarea
     id: intro
     attributes:
-      label: 🐥 Beginner Friendly
-      description: Who is this issue for?
+      label: 🌱 What Makes This a Beginner Issue
+      description: Context for beginner contributors
       value: |
-        This issue is intended for contributors who have previously completed a Good First Issue in [Hiero](https://hiero.org) and are at a beginner level.
-        We recognize that gaining confidence and building skills are equally important steps in the open-source contributor journey.
-        The purpose of this issue—and others listed under [**Find a beginner issue**](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3Abeginner%20no%3Aassignee)—is to provide a supportive, low-pressure environment where you can learn, practice, and grow your contribution skills with confidence.
+        This issue is intended for contributors who have previously completed a Good First Issue in
+        [Hiero](https://hiero.org) and are ready to take on slightly more independent work.
+
+        **Expected time:** A few hours to a day
+        **Scope:** One or a few related files
+        **Challenge:** Exploration, learning, light decision-making
+
+        Unlike Good First Issues (which are fully guided), Beginner Issues encourage you to:
+        - Read and understand existing code patterns
+        - Make small, thoughtful implementation choices
+        - Ask questions when stuck (that's a skill, not a weakness!)
+
+        You're building the confidence to tackle Intermediate issues next.
     validations:
       required: false
 
@@ -29,44 +45,33 @@ body:
     attributes:
       value: |
         > [!IMPORTANT]
-        > ### 🐥 Beginner Issue Guidelines
+        > ### What Beginner Issues Are (and Aren't)
         >
-        > Beginner Issues are intended for contributors who are familiar with the project workflow and have **some programming experience** and are wanting opportunities to build skills.
-        > These issues may require **light investigation, interpretation of existing code, and some self-initiative**, but should remain **well-scoped with a clear intent**.
+        > **Good fits for Beginner Issues:**
+        > - Small, well-scoped updates to existing tests
+        > - Implementing or refining `__str__` or `__repr__` methods
+        > - Adding type hints or fixing type issues
+        > - Creating or improving docstrings for existing functions
+        > - Enhancing existing examples with better demonstrations
         >
-        > **What we generally consider beginner issues:**
-        >
-        > - **Small, well-scoped updates to existing tests**:
-        >   - Adjusting or extending an existing test to cover a simple case
-        > - **Narrow changes or additions to `src` functionality** using common Python skills, such as:
-        >   - Implementing or refining `__str__` methods
-        >   - Implementing or refining `__repr__` methods
-        >   - Typing improvements, such as return type hints or basic type conflicts
-        > - **Documentation improvements** in examples such as creating new examples or docstrings for existing functions
-        > - **Functional improvements to existing examples**:
-        >   - Adding steps or variations to better demonstrate functionality
-        >
-        > **What we generally do NOT consider beginner issues:**
-        > - Tasks better suited for Good First Issues (purely mechanical or fully guided changes)
+        > **Not Beginner Issues:**
+        > - Purely mechanical tasks (those are Good First Issues)
         > - Creating entirely new examples or test suites
-        > - Changes to core DLT functionality (for example, `to_proto` or `from_proto`)
-        > - Work that requires deep knowledge across multiple areas of the codebase
-
-        > 📖 *For a more detailed explanation, refer to:  
-        > [`docs/maintainers/beginner_issue_guidelines.md`](docs/maintainers/beginner_issue_guidelines.md).*
+        > - Core DLT logic (`to_proto`, `from_proto`)
+        > - Work spanning many unrelated areas of the codebase
+        >
+        > 📖 *Full guidelines: [`docs/maintainers/beginner_issues_guidelines.md`](docs/maintainers/beginner_issues_guidelines.md)*
 
   - type: textarea
     id: issue
     attributes:
-      label: 👾 Description of the issue
+      label: 👾 Issue Description
       description: |
-        DESCRIBE THE ISSUE IN A WAY THAT IS UNDERSTANDABLE AND APPROACHABLE TO BEGINNER CONTRIBUTORS.
-        ASSUME SUCH CONTRIBUTORS HAVE AT MOST BEGINNER-LEVEL KNOWLEDGE ABOUT PROGRAMMING, THE CODEBASE AND HIERO.
-        IT IS HELPFUL TO ADD LINKS TO THE RELEVANT DOCUMENTATION AND/OR CODE SECTIONS.
-        SLIGHTLY CHALLENGE THEM TO ENCOURAGE LEARNING AND RESEARCH BUT MAKE SURE THE ISSUE IS STILL SIMPLE.
-        BELOW IS AN EXAMPLE.
+        DESCRIBE THE ISSUE IN A WAY THAT IS UNDERSTANDABLE TO BEGINNER CONTRIBUTORS.
+        ASSUME THEY HAVE BASIC PYTHON KNOWLEDGE AND COMPLETED ONE GOOD FIRST ISSUE.
+        SLIGHTLY CHALLENGE THEM TO ENCOURAGE LEARNING AND RESEARCH.
       value: |
-        Edit here. Example provided below.
+        [Describe the issue here. Example below.]
 
     validations:
       required: true
@@ -74,31 +79,28 @@ body:
   - type: markdown
     attributes:
       value: |
-        <!-- Example for problem (hidden in submission) -->
-        ## 👾 Description of the issue - Example
+        <!-- Example (hidden in submission) -->
+        ### 👾 Example Issue Description
 
-        The `AccountId` class at src/hiero_sdk_python/account/account_id.py implements a `__repr__()` method which currently falls back to the default object representation, which is less helpful
-        when debugging.
-
-        For example, printing an `AccountId` instance in a REPL currently produces output similar to:
+        The `AccountId` class at `src/hiero_sdk_python/account/account_id.py` implements a
+        `__repr__()` method that currently falls back to the default object representation:
 
         ```python
         <hiero.account_id.AccountId object at 0x7f9c2a3b8d60>
         ```
 
-        This makes it difficult to quickly identify the actual account ID value during debugging sessions.
+        This isn't helpful when debugging. We want it to show the actual account details
+        so developers can quickly identify values during debugging sessions.
 
   - type: textarea
     id: solution
     attributes:
       label: 💡 Proposed Solution
       description: |
-        AT THIS SECTION YOU NEED TO DESCRIBE THE STEPS NEEDED TO SOLVE THE ISSUE.
-        PLEASE BREAK DOWN THE STEPS AS MUCH AS POSSIBLE AND MAKE SURE THAT THEY
-        ARE EASY TO FOLLOW. IF POSSIBLE, ADD LINKS TO THE RELEVANT
-        DOCUMENTATION AND/OR CODE SECTIONS.
+        DESCRIBE THE EXPECTED OUTCOME.
+        EXPLAIN WHAT SHOULD CHANGE AND WHAT SHOULD STAY THE SAME.
       value: |
-        Edit here. Example provided below.
+        [Describe the expected outcome. Example below.]
 
     validations:
       required: true
@@ -106,26 +108,35 @@ body:
   - type: markdown
     attributes:
       value: |
-        <!-- Example for the solution (hidden in submission) -->
-        To improve this, we want to implement a more informative `__repr__()` method for the `AccountId` class that clearly displays the account ID in a recognizable format.
+        <!-- Example (hidden in submission) -->
+        ### 💡 Example Solution
 
-        After this improvement, `repr(account_id)` should return a clear and descriptive value that reflects
-        the account’s shard, realm, and number. For example:
-
+        After your change, `repr(account_id)` should return a clear, informative string:
         ```python
         AccountId(shard=0, realm=0, num=1234)
         ```
 
+        This follows the pattern used by other ID classes in the SDK.
+
   - type: textarea
     id: implementation
     attributes:
-      label: 👩‍💻 Implementation Steps
+      label: 🛠️ Implementation Approach
       description: |
-        AT THIS SECTION YOU NEED TO DESCRIBE THE TECHNICAL STEPS NEEDED TO SOLVE THE ISSUE.
-        PLEASE BREAK DOWN THE STEPS AS MUCH AS POSSIBLE AND MAKE SURE THAT THEY ARE EASY TO FOLLOW.
-        IF POSSIBLE, ADD LINKS TO THE RELEVANT DOCUMENTATION AND/OR CODE.
+        GUIDE THEM TO INVESTIGATE AND EXPLORE, NOT JUST COPY-PASTE.
+        POINT THEM TO PATTERNS IN THE CODEBASE.
       value: |
-        Edit here. Example provided below.
+        **Start by exploring:**
+        - [ ] Find the relevant file in `src/`
+        - [ ] Look at how similar classes handle this (check for patterns)
+        - [ ] Review the `__init__()` method to understand the class fields
+
+        **Then implement:**
+        - [ ] [Add specific implementation steps here]
+
+        **Verify your work:**
+        - [ ] Run relevant tests: `uv run pytest tests/unit/test_[relevant].py`
+        - [ ] Test manually in a Python REPL if helpful
 
     validations:
       required: true
@@ -133,90 +144,115 @@ body:
   - type: markdown
     attributes:
       value: |
-        <!-- Example implementation (hidden in submission) -->
-        ### 👩‍💻 Implementation - Example
-
-        To implement this change, beginner contributors should:
-
-        - [ ] Locate the `AccountId` class in the `src/` directory
-        - [ ] Review the existing `__str__()` method to understand how account IDs are currently formatted
-        - [ ] Review the `__init__()` method to see which fields (`shard`, `realm`, `num`, `alias_key`) define an account
-        - [ ] Check whether other ID classes in the SDK implement `__repr__()` and follow a similar pattern
-        - [ ] Implement or refine the `__repr__()` method so it:
-          - Clearly displays `shard`, `realm`, and `num` values
-          - Includes `alias_key` when the account is created using an alias
-          - Uses keyword-style formatting for readability
-        - [ ] Test the new `__repr__()` method expanding the unit test for AccountId
+        > [!WARNING]
+        > ### ⚠️ Common Mistakes to Avoid
+        >
+        > Based on past beginner PRs, watch out for:
+        >
+        > 1. **Changing more than needed** — Only modify files mentioned in this issue
+        > 2. **Forgetting to test** — Always run `uv run pytest` before pushing
+        > 3. **Copying AI output blindly** — Verify methods actually exist in the codebase
+        > 4. **Skipping the changelog** — Your PR cannot merge without it
+        > 5. **Breaking existing behavior** — Check that existing tests still pass
+        > 6. **Changing return types unexpectedly** — This can break other code that depends on them
 
   - type: textarea
     id: acceptance-criteria
     attributes:
       label: ✅ Acceptance Criteria
-      description: |
-        EDIT OR EXPAND THE CHECKLIST ON WHAT IS REQUIRED TO BE ABLE TO MERGE A PULL REQUEST FOR THIS ISSUE
+      description: What defines "done" for this issue
       value: |
-        - [ ] **The issue is solved:**  
+        - [ ] **The issue is solved:**
               My changes do exactly what the issue asked for.
 
-        - [ ] **I did not add extra changes:**  
+        - [ ] **I did not add extra changes:**
               I did not modify anything that was not mentioned in the issue description.
 
-        - [ ] **Nothing else was broken:**  
+        - [ ] **Nothing else was broken:**
               All existing features still work the same as before.
 
-        - [ ] **All checks pass:**  
+        - [ ] **All checks pass:**
               The automated tests (unit and integration tests) run successfully.
+
+        - [ ] **Commits are signed:**
+              Each commit has DCO and GPG signatures.
+
+        - [ ] **Changelog is updated:**
+              I added an entry under `[Unreleased]` in CHANGELOG.md.
     validations:
       required: true
 
-  - type: textarea
-    id: contribution_steps
+  - type: markdown
     attributes:
-      label: 📋 Step-by-Step Contribution Guide
-      description: Provide a contribution workflow suitable for new contributors
       value: |
-        - [ ] **Assignment:** You must be assigned to the issue, comment: `/assign` in the issue to get assigned [see guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
-        - [ ] **Fork, Branch and Work on the issue:** Create a copy of the repository, create a branch for the issue and solve the problem. For instructions, please read our [Contributing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) file. Further help can be found at [Set-up Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/setup) (including the [Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/setup_windows.md) for Windows users) and [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
-        - [ ] **DCO and GPG key sign each commit :** each commit must be -s and -S signed. An explanation on how to do this is at [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
-        - [ ] **Add a Changelog Entry :** your pull request will require a changelog. Read [Changelog Entry Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md) to learn how.
-        - [ ] **Push and Create a Pull Request :** Once your issue is resolved, and your commits are signed, and you have a changelog entry, push your changes and create a pull request. Detailed instructions can be found at [Submit PR Training](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md), part of [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow).
-        - [ ] **You did it 🎉:** A maintainer or committer will review your pull request and provide feedback. If approved, we will merge the fix in the main branch. Thanks for being part of the Hiero community as an open-source contributor ❤️
+        ---
+        ## 📋 Contribution Workflow
 
-        ***IMPORTANT*** You will ONLY be assigned to the issue if you comment: `/assign`
-        ***IMPORTANT*** Your pull request CANNOT BE MERGED until you add a changelog entry AND sign your commits each with `git commit -S -s -m "chore: your commit message"` with a GPG key setup.
-    validations:
-      required: true
+        You've done this before — here are quick reminders:
+
+        | Step | Command/Action | Need help? |
+        |------|----------------|------------|
+        | Get assigned | Comment `/assign` | [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md) |
+        | Sync your fork | `git fetch upstream && git rebase upstream/main` | [Rebasing](docs/sdk_developers/rebasing.md) |
+        | Sign commits | `git commit -S -s -m "chore: message"` | [Signing](docs/sdk_developers/signing.md) |
+        | Add changelog | Edit `CHANGELOG.md` under `[Unreleased]` | [Changelog](docs/sdk_developers/changelog_entry.md) |
+        | Open PR | Push and create pull request | [Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md) |
+
+        > **IMPORTANT:** You will ONLY be assigned to the issue if you comment `/assign`
+        > **IMPORTANT:** Your PR CANNOT BE MERGED without a changelog entry AND signed commits
+
+  - type: markdown
+    attributes:
+      value: |
+        > [!TIP]
+        > ### 🆘 Getting Unstuck
+        >
+        > **Stuck for 30+ minutes?** That's your signal to ask for help.
+        >
+        > - Comment below with what you've tried
+        > - Join our [Discord](docs/discord.md) community
+        > - Attend [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) (Wed 2pm UTC)
+        >
+        > Asking good questions is a professional skill — senior developers do it all the time! 🙂
 
   - type: textarea
-    id: ai_usage_guidelines
+    id: ai_usage
     attributes:
-      label: 🤖 AI Usage Guidelines
-      description: Guidance on using AI tools responsibly for this issue
+      label: 🤖 Using AI Tools Wisely
+      description: AI can help, but use it thoughtfully
       value: |
         You are welcome to use AI to help you understand and solve this issue.
 
-        Because AI tools can sometimes make mistakes, please take care to:
+        **Good uses:**
+        - Explaining what existing code does
+        - Suggesting approaches to investigate
+        - Understanding error messages
 
-        - Only implement what is described in this issue  
-        - Avoid changing anything else in the file  
-        - Be careful when modifying parameters or return statements, as this may affect runtime behavior  
+        **Risky uses (be careful!):**
+        - Generating code without verifying it compiles and works
+        - Using methods that don't exist in this codebase
+        - Changing parameters or return types without understanding the impact
 
-        If you're unsure, ask your mentor or the maintainers for help — they can provide expert Python SDK guidance and point you to the right examples or methods.
+        When in doubt, check the source code directly or ask a maintainer.
     validations:
       required: false
 
   - type: textarea
-    id: information
+    id: resources
     attributes:
-      label: 🤔 Additional Information
-      description: Provide any extra resources or context for contributors to solve this beginner issue
+      label: 📚 Resources & Community
+      description: Where to find help when you need it
       value: |
-        For more help, we have extensive documentation:
-        - [SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers)
-        - [SDK Developer Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training)
+        **When you need...**
+        - Setup help → [Training Docs](docs/sdk_developers/training/setup) | [Windows Guide](docs/sdk_developers/training/setup/setup_windows.md)
+        - Workflow help → [Workflow Training](docs/sdk_developers/training/workflow)
+        - Merge conflict help → [Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)
+        - Human help → [Discord](docs/discord.md) | Comment below!
 
-        Additionally, we invite you to join our community on our [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) server.
+        **Community:**
+        - [Office Hours & Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) — Every Wednesday, 2pm UTC
+        - Office Hour is for hands-on help, Community Call is for general discussion
 
-        We also invite you to attend each Wednesday, 2pm UTC our [Python SDK Office Hour and Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week). The Python SDK Office hour is for hands-on-help and the Community Call for general community discussion.
-
-        You can also ask for help in a comment below!
+        We're here to support you. Don't hesitate to reach out! 🎉
+    validations:
+      required: false
