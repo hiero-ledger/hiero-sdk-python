@@ -136,6 +136,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 
 ### Changed
+- Added missing type hints to sign method in Transaction class (#1630)
 - Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
 - Updated GitHub Actions setup-node action to v6.2.0.
 - chore: format tests/unit/mock_server.py with black (#1542)
