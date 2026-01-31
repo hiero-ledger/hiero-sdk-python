@@ -28,8 +28,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted client_test.py using Black.
 
 ### Added
-- Added ProtoBuf Training guide to enhance developer understanding of proto serialization
-and deserialization (#1645)
+- Added Protobuf Training guide to enhance developer understanding of proto serialization
+  and deserialization (#1645)
 - Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
 
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
