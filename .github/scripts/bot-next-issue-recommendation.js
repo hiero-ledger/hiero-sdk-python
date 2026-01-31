@@ -69,23 +69,41 @@ module.exports = async ({ github, context, core }) => {
     }
     
     let recommendedIssues = [];
+    let recommendedLabel = null;
+    let isFallback = false;
+    let recommendationScope = 'repo';
     
-    if (difficultyLevels.goodFirstIssue) {
-      // Recommend beginner issues first, then Good First Issues
-      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
-      if (recommendedIssues.length === 0) {
-        recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
-      }
-    } else if (difficultyLevels.beginner) {
-      // Recommend beginner or Good First Issues
-      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
-      if (recommendedIssues.length === 0) {
-        recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
-      }
+    recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
+    recommendedLabel = 'Beginner';
+
+    if (recommendedIssues.length === 0) {
+      isFallback = true;
+      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
+      recommendedLabel = 'Good First Issue';
     }
+
+    if (recommendedIssues.length === 0) {
+      recommendationScope = 'org';
+      recommendedLabel = 'Good First Issue';
+      recommendedIssues = await github.rest.search.issuesAndPullRequests({
+        q: `org:hiero-ledger type:issue state:open label:"good first issue" no:assignee`,
+        per_page: 6,
+      }).then(res => res.data.items);
+    }
+
+    // Remove the issue they just solved
+    recommendedIssues = recommendedIssues.filter(i => i.number !== issueNumber);
     
     // Generate and post comment
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, difficultyLevels.goodFirstIssue);
+    const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner';
+    const completedLabelText = completedLabel === 'Beginner' ? 'Beginner issue' : completedLabel;
+    const recommendationMeta = {
+      completedLabelText,
+      recommendedLabel,
+      isFallback,
+      recommendationScope,
+    };
+    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, recommendationMeta);
     
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
@@ -94,12 +112,12 @@ module.exports = async ({ github, context, core }) => {
 
 async function searchIssues(github, core, owner, repo, label) {
   try {
-    const query = `repo:${owner}/${repo} is:issue is:open label:"${label}" no:assignee`;
+    const query = `repo:${owner}/${repo} type:issue state:open label:"${label}" no:assignee`;
     core.info(`Searching for issues with query: ${query}`);
     
     const { data: searchResult } = await github.rest.search.issuesAndPullRequests({
       q: query,
-      per_page: 5,
+      per_page: 6,
     });
     
     core.info(`Found ${searchResult.items.length} issues with label "${label}"`);
@@ -110,15 +128,21 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, wasGoodFirstIssue) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback, recommendationScope }) {
   const marker = '<!-- next-issue-bot-marker -->';
   
   // Build comment content
-  let comment = `${marker}\n\n🎉 **Congratulations on completing a beginner/Good First Issue!**\n\n`;
+  let comment = `${marker}\n\n🎉 **Nice work completing a ${completedLabelText}!**\n\n`;
   comment += `Thank you for your contribution to the Hiero Python SDK! We're excited to have you as part of our community.\n\n`;
   
   if (recommendedIssues.length > 0) {
-    comment += `Here are some ${wasGoodFirstIssue ? 'beginner-level' : 'similar'} issues you might be interested in working on next:\n\n`;
+    if (recommendationScope === 'org') {
+      comment += `Here are some **Good First Issues across the Hiero organization** you might be interested in working on next:\n\n`;
+    } else if (isFallback) {
+      comment += `Here are some **${recommendedLabel}** issues at a similar level you might be interested in working on next:\n\n`;
+    } else {
+      comment += `Here are some issues labeled **${recommendedLabel}** you might be interested in working on next:\n\n`;
+    }
     
     // Sanitize title: escape markdown link syntax and special characters
     const sanitizeTitle = (title) => title
@@ -143,8 +167,11 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       }
     });
   } else {
-    comment += `There are currently no open ${wasGoodFirstIssue ? 'beginner' : 'similar'} issues in this repository. \n\n`;
-    comment += `You can check out good first issues across the entire Hiero organization: [Hiero Good First Issues](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Ahiero-ledger+archived%3Afalse+label%3A%22good+first+issue%22+)\n\n`;
+    comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
+    const orgLabel = recommendedLabel === 'Beginner' ? 'beginner' : 'good first issue';
+    const orgLabelQuery = encodeURIComponent(`label:"${orgLabel}"`);
+    comment += `You can check out ${recommendedLabel.toLowerCase()} issues across the entire Hiero organization: ` +
+      `[Hiero ${recommendedLabel} Issues](https://github.com/issues?q=org%3Ahiero-ledger+type%3Aissue+state%3Aopen+${orgLabelQuery})\n\n`;
   }
   
   comment += `🌟 **Stay connected with the project:**\n`;

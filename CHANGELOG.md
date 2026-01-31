@@ -11,6 +11,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Tests
 
 - Added tests for ProtoBuf Training Example Implementation
+- format `black tests/unit/nft_id_test.py` with Black.(#1544)
 - Format `tests/unit/executable_test.py` with Black.(#1530)
 - Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
 - Format tests/unit/logger_test.py with black for code style consistency (#1541)
@@ -18,6 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Style: formatted `tests/unit/prng_transaction_test.py` with black (#1546)
 - Formatted contract unit tests with black for consistent style. (#1523)
 - Format account test files with Black (#1519)
+- Format `tests/unit/node*.py` with Black for consistent code style (#1545)
 - Improve unit test coverage for Hbar, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of evm_address_test.py using Black for improved consistency and readability (#1529)
 - Formatted unit test files using Black.
@@ -134,8 +136,12 @@ and deserialization (#1645)
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 
-### Changed
+### Documentation
+- Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 
+### Changed
+- Added missing type hints to sign method in Transaction class (#1630)
+- Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
 - Updated GitHub Actions setup-node action to v6.2.0.
 - chore: format tests/unit/mock_server.py with black (#1542)
 - Updated actions/checkout to v6.0.1 and actions/github-script v8.0.0 in bot-next-issue-recommendation workflow (#1586)
@@ -221,9 +227,10 @@ and deserialization (#1645)
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
+- chore: update merge conflict bot message with web editor tips (#1592)
 
 ### Fixed
-
+- Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
 - Aligned token freeze example filename references and improved error handling by catching broader exceptions with clearer messages. (#1412)
