@@ -219,7 +219,7 @@ Rather than introducing new concepts, it demonstrates how all of the pieces work
 See how protobufs function across the full lifecycle of a Hedera SDK request.
 
 **Resources:**
-[Worked Example Documentation](Work_Example.md)
+[Worked Example Documentation](ProtoBuf_Example.md)
 [Runnable Python Script](../../../../examples/protobuf_round_trip.py)
 
 ---
