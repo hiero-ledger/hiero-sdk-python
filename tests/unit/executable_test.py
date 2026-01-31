@@ -8,7 +8,6 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from hiero_sdk_python.executable import (
-    _ExecutionState,
     _is_transaction_receipt_or_record_request,
 )
 from hiero_sdk_python.hapi.services import (
@@ -692,7 +691,7 @@ def test_warning_when_request_timeout_less_than_grpc_deadline():
     tx = AccountCreateTransaction()
     tx.set_grpc_deadline(10)
 
-    with pytest.warns(FutureWarning):
+    with pytest.warns(UserWarning):
         tx.set_request_timeout(5)
 
 
@@ -760,7 +759,7 @@ def test_warning_when_grpc_deadline_exceeds_request_timeout():
 
     tx.set_request_timeout(5)
 
-    with pytest.warns(FutureWarning):
+    with pytest.warns(UserWarning):
         tx.set_grpc_deadline(10)
 
 

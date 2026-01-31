@@ -473,7 +473,7 @@ def test_warning_when_grpc_deadline_exceeds_request_timeout():
     client = Client.for_testnet()
     client.set_request_timeout(2)
 
-    with pytest.warns(FutureWarning):
+    with pytest.warns(UserWarning):
         client.set_grpc_deadline(7)
 
 
@@ -482,7 +482,7 @@ def test_warning_when_request_timeout_less_than_grpc_deadline():
     client = Client.for_testnet()
     client.set_grpc_deadline(7)
 
-    with pytest.warns(FutureWarning):
+    with pytest.warns(UserWarning):
         client.set_request_timeout(2)
 
 

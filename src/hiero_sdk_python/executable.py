@@ -158,8 +158,8 @@ class _Executable(ABC):
         if self._request_timeout is not None and grpc_deadline > self._request_timeout:
             warnings.warn(
                 "grpc_deadline should be smaller than request_timeout. "
-                "This configuration may cause operations to fail unexpectedly."
-                , FutureWarning
+                "This configuration may cause operations to fail unexpectedly.",
+                UserWarning
             )
 
         self._grpc_deadline = float(grpc_deadline)
@@ -190,7 +190,7 @@ class _Executable(ABC):
             warnings.warn(
                 "request_timeout should be larger than grpc_deadline. "
                 "This configuration may cause operations to fail unexpectedly.",
-                FutureWarning
+                UserWarning
             )
 
         self._request_timeout = float(request_timeout)

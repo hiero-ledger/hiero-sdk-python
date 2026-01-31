@@ -363,7 +363,7 @@ class Client:
             warnings.warn(
                 "grpc_deadline should be smaller than request_timeout. "
                 "This configuration may cause operations to fail unexpectedly.",
-                FutureWarning,
+                UserWarning,
             )
 
         self._grpc_deadline = float(grpc_deadline)
@@ -399,7 +399,7 @@ class Client:
             warnings.warn(
                 "request_timeout should be larger than grpc_deadline. "
                 "This configuration may cause operations to fail unexpectedly.",
-                FutureWarning,
+                UserWarning,
             )
 
         self._request_timeout = float(request_timeout)

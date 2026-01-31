@@ -151,7 +151,8 @@ class Network:
             self._healthy_nodes.append(node)
 
     def _resolve_nodes(self, nodes: Optional[List[_Node]]) -> List[_Node]:
-        if nodes: return nodes
+        if nodes:
+            return nodes
 
         if self.network in ("solo", "localhost", "local"):
             return self._fetch_nodes_from_default_nodes()
@@ -414,7 +415,7 @@ class Network:
 
     def _increase_backoff(self, node: _Node) -> None:
         """
-        Increase the node's backoff duration after a failure and remove node from healty node.
+        Increase the node's backoff duration after a failure and remove node from healthy node.
         """
         if not isinstance(node, _Node):
             raise TypeError("node must be of type _Node")

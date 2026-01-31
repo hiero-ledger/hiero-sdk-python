@@ -1,7 +1,7 @@
 import hashlib
 import socket
-import ssl
-import time  # Python's ssl module implements TLS (despite the name)
+import ssl # Python's ssl module implements TLS (despite the name)
+import time
 import grpc
 from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
