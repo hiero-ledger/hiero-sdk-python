@@ -192,11 +192,11 @@ body:
 
         | Step | Command/Action | Need help? |
         |------|----------------|------------|
-        | Get assigned | Comment `/assign` | [Guide](docs/sdk_developers/training/workflow/04_assigning_issues.md) |
-        | Sync your fork | `git fetch upstream && git rebase upstream/main` | [Rebasing](docs/sdk_developers/rebasing.md) |
-        | Sign commits | `git commit -S -s -m "chore: message"` | [Signing](docs/sdk_developers/signing.md) |
-        | Add changelog | Edit `CHANGELOG.md` under `[Unreleased]` | [Changelog](docs/sdk_developers/changelog_entry.md) |
-        | Open PR | Push and create pull request | [Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md) |
+        | Get assigned | Comment `/assign` | [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md) |
+        | Sync your fork | `git fetch upstream && git rebase upstream/main` | [Rebasing](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md) |
+        | Sign commits | `git commit -S -s -m "chore: message"` | [Signing](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md) |
+        | Add changelog | Edit `CHANGELOG.md` under `[Unreleased]` | [Changelog](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md) |
+        | Open PR | Push and create pull request | [Submit PR](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md) |
 
         > **IMPORTANT:** You will ONLY be assigned to the issue if you comment `/assign`
         > **IMPORTANT:** Your PR CANNOT BE MERGED without a changelog entry AND signed commits
@@ -210,7 +210,7 @@ body:
         > **Stuck for 30+ minutes?** That's your signal to ask for help.
         >
         > - Comment below with what you've tried
-        > - Join our [Discord](docs/discord.md) community
+        > - Join our [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) community
         > - Attend [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
         >
         > Asking good questions is a professional skill — senior developers do it all the time! 🙂
@@ -244,10 +244,10 @@ body:
       description: Where to find help when you need it
       value: |
         **When you need...**
-        - Setup help → [Training Docs](docs/sdk_developers/training/setup) | [Windows Guide](docs/sdk_developers/training/setup/setup_windows.md)
-        - Workflow help → [Workflow Training](docs/sdk_developers/training/workflow)
-        - Merge conflict help → [Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)
-        - Human help → [Discord](docs/discord.md) | Comment below!
+        - Setup help → [Training Docs](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/setup) | [Windows Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/setup_windows.md)
+        - Workflow help → [Workflow Training](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/docs/sdk_developers/training/workflow)
+        - Merge conflict help → [Merge Conflicts Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
+        - Human help → [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) | Comment below!
 
         **Community:**
         - [Office Hours & Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) — Every Wednesday, 2pm UTC
