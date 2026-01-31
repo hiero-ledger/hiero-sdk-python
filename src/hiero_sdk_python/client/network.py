@@ -118,10 +118,13 @@ class Network:
         self._node_max_readmit_period = 3600  # seconds
         self._earliest_readmit_time = time.monotonic() + self._node_min_readmit_period
 
+        if not self._healthy_nodes:
+            raise ValueError("No healthy nodes available to initialize network")
+
         self._node_index: int = secrets.randbelow(len(self._healthy_nodes))
         self.current_node: _Node = self._healthy_nodes[self._node_index]
 
-    def _set_network_nodes(self, nodes: Optional[List[_Node]]):
+    def _set_network_nodes(self, nodes: Optional[List[_Node]] = None):
         """
         Configure the consensus nodes used by this network.
         """
@@ -148,8 +151,7 @@ class Network:
             self._healthy_nodes.append(node)
 
     def _resolve_nodes(self, nodes: Optional[List[_Node]]) -> List[_Node]:
-        if nodes is not None:
-            return nodes
+        if nodes: return nodes
 
         if self.network in ("solo", "localhost", "local"):
             return self._fetch_nodes_from_default_nodes()

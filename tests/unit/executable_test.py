@@ -1014,7 +1014,7 @@ def test_request_timeout_exceeded_stops_execution():
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.executable.time.sleep"),
         patch(
-            "hiero_sdk_python.executable.time.time", side_effect=lambda: next(time_iter)
+            "hiero_sdk_python.executable.time.monotonic", side_effect=lambda: next(time_iter)
         ),
         patch("hiero_sdk_python.node._Node.is_healthy", return_value=True),
         patch(
