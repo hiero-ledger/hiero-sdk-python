@@ -218,6 +218,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Enhance TopicInfo `__str__` method and tests with additional coverage, and update the format_key function in `key_format.py` to handle objects with a \_to_proto method.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
+- Add return type hint to `ContractId.__str__`. (#1654)
+
 
 ### Fixed
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
@@ -825,3 +827,6 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
+
+
+# [0.1.0] - 2025-02-19

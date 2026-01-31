@@ -134,7 +134,7 @@ class ContractId:
                     f"Expected format 'shard.realm.contract'."
                 ) from e
 
-    def __str__(self): -> str:
+    def __str__(self) -> str:
         """
         Returns the string representation of the ContractId.
 
