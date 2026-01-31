@@ -106,7 +106,7 @@ class TransactionRecord:
                 f"call_result={self.call_result}, "
                 f"prng_number={self.prng_number}, "
                 f"prng_bytes={self.prng_bytes}, "
-                f"duplicates_count={len(self.duplicates)}"
+                f"duplicates_count={len(self.duplicates)})"
                 )
 
     @classmethod
