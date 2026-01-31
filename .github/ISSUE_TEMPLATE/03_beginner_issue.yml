@@ -60,7 +60,7 @@ body:
         > - Core DLT logic (`to_proto`, `from_proto`)
         > - Work spanning many unrelated areas of the codebase
         >
-        > 📖 *Full guidelines: [`docs/maintainers/beginner_issues_guidelines.md`](docs/maintainers/beginner_issues_guidelines.md)*
+        > 📖 *Full guidelines: [`docs/maintainers/beginner_issues_guidelines.md`](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/beginner_issues_guidelines.md)*
 
   - type: textarea
     id: issue
