@@ -2,56 +2,17 @@
 uv run examples/consensus/topic_create_transaction.py
 python examples/consensus/topic_create_transaction.py
 """
+from hiero_sdk_python import Client, TopicCreateTransaction, ResponseCode, PrivateKey
 
-import os
-import sys
-from typing import Tuple
-from dotenv import load_dotenv
-
-from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    TopicCreateTransaction,
-    Network,
-)
-
-# Load environment variables from .env file
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
-def setup_client() -> Tuple[Client, PrivateKey]:
+def setup_client():
     """
-    Sets up and configures the Hiero client for the testnet.
-    Reads OPERATOR_ID and OPERATOR_KEY from environment variables.
+    Sets up and configures the Hiero client.
+    Reads OPERATOR_ID and OPERATOR_KEY from environment variables via Client.from_env().
     """
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id_str = os.getenv("OPERATOR_ID")
-    operator_key_str = os.getenv("OPERATOR_KEY")
-
-    # Check if the environment variables are loaded correctly
-    if not operator_id_str or not operator_key_str:
-        print("Error: OPERATOR_ID or OPERATOR_KEY not found in environment.")
-        print("Please create a .env file in the project's root directory with:")
-        print("\nOPERATOR_ID=your_id_here")
-        print("OPERATOR_KEY=your_key_here\n")
-        sys.exit(1)
-
-    try:
-        operator_id = AccountId.from_string(operator_id_str)
-        operator_key = PrivateKey.from_string(operator_key_str)
-    except (TypeError, ValueError) as e:
-        print(f"Error: Invalid OPERATOR_ID or OPERATOR_KEY format: {e}")
-        sys.exit(1)
-
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-    return client, operator_key
-
+    return client, client.operator_private_key
 
 def create_topic(client: Client, operator_key: PrivateKey):
     """
@@ -64,18 +25,18 @@ def create_topic(client: Client, operator_key: PrivateKey):
         .freeze_with(client)
         .sign(operator_key)
     )
-
     try:
         receipt = transaction.execute(client)
-        if receipt and receipt.topic_id:
-            print(f"Success! Topic created with ID: {receipt.topic_id}")
-        else:
+        if receipt.status != ResponseCode.SUCCESS:
+            print(f"Topic creation failed: {ResponseCode(receipt.status).name}")
+            raise SystemExit(1)
+        if not receipt.topic_id:
             print("Topic creation failed: Topic ID not returned in receipt.")
-            sys.exit(1)
+            raise SystemExit(1)
+        print(f"Success! Topic created with ID: {receipt.topic_id}")
     except Exception as e:
         print(f"Topic creation failed: {str(e)}")
-        sys.exit(1)
-
+        raise SystemExit(1)
 
 def main():
     """
@@ -83,7 +44,6 @@ def main():
     """
     client, operator_key = setup_client()
     create_topic(client, operator_key)
-
 
 if __name__ == "__main__":
     main()
