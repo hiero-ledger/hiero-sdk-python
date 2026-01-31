@@ -3,7 +3,7 @@
 This worked example demonstrates a complete protobuf request/response lifecycle
 as used internally by the Hedera SDK.
 
-The accompanying Python script (`worked_example.py`) is fully runnable and
+The accompanying Python script (`examples/protobuf_round_trip.py`) is fully runnable and
 contains no instructional narration — all explanation is contained here.
 
 ---
@@ -86,4 +86,4 @@ Understanding this flow allows SDK developers to:
 - Inspect raw network payloads
 - Understand SDK abstraction boundaries
 
-The full runnable implementation can be found in `worked_example.py`.
+The full runnable implementation can be found in `protobuf_round_trip.py`.

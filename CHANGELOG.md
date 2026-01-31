@@ -10,7 +10,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Tests
 
-- Added tests for ProtoBuff Training Example Implementation
+- Added tests for ProtoBuf Training Example Implementation
 - Format `tests/unit/executable_test.py` with Black.(#1530)
 - Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
 - Format tests/unit/logger_test.py with black for code style consistency (#1541)
@@ -26,7 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted client_test.py using Black.
 
 ### Added
-- Added ProtoBuff Training guide to enhance developer understand of proto serialization
+- Added ProtoBuf Training guide to enhance developer understanding of proto serialization
 and deserialization (#1645)
 - Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
 

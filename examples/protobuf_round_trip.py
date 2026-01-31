@@ -1,3 +1,15 @@
+"""
+Worked Example: Hedera Protobuf Round Trip
+
+This script demonstrates constructing, serializing, and deserializing
+Hedera protobuf messages without connecting to the network. It shows:
+- Building a CryptoGetInfoQuery with an AccountID
+- Wrapping queries in Hedera's Query envelope
+- Serializing and parsing protobuf messages
+- Extracting data from parsed responses
+
+This example accompanies the ProtoBuff Training documentation.
+"""
 from hiero_sdk_python.hapi.services import (
     query_pb2,
     crypto_get_info_pb2,
