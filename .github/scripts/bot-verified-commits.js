@@ -28,7 +28,7 @@ function sanitizeUrl(input, fallback) {
 const CONFIG = {
   BOT_NAME: sanitizeString(process.env.BOT_NAME) || 'VerificationBot',
   BOT_LOGIN: sanitizeString(process.env.BOT_LOGIN) || 'github-actions',
-  COMMENT_MARKER: sanitizeString(process.env.COMMENT_MARKER) || '[commit-verification-bot]',
+  COMMENT_MARKER: sanitizeString(process.env.COMMENT_MARKER) || '[<!-- commit-verification-bot -->]',
   SIGNING_GUIDE_URL: sanitizeUrl(
     process.env.SIGNING_GUIDE_URL,
     'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md'
