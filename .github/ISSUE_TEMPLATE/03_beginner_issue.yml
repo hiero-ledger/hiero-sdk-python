@@ -135,7 +135,7 @@ body:
         - [ ] [Add specific implementation steps here]
 
         **Verify your work:**
-        - [ ] Run relevant tests: `uv run pytest tests/unit/test_[relevant].py`
+        - [ ] Run relevant tests: `uv run pytest tests/unit/[relevant]_test.py`
         - [ ] Test manually in a Python REPL if helpful
 
     validations:
@@ -211,7 +211,7 @@ body:
         >
         > - Comment below with what you've tried
         > - Join our [Discord](docs/discord.md) community
-        > - Attend [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) (Wed 2pm UTC)
+        > - Attend [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
         >
         > Asking good questions is a professional skill — senior developers do it all the time! 🙂
 
