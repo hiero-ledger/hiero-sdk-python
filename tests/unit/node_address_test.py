@@ -3,16 +3,24 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.address_book.node_address import NodeAddress
-from hiero_sdk_python.hapi.services.basic_types_pb2 import NodeAddress as NodeAddressProto
+from hiero_sdk_python.hapi.services.basic_types_pb2 import (
+    NodeAddress as NodeAddressProto,
+)
+
 pytestmark = pytest.mark.unit
+
 
 def test_init():
     """Test initialization of _NodeAddress."""
     # Create test data
     account_id = AccountId(0, 0, 123)
-    addresses = [Endpoint(address=bytes("192.168.1.1", 'utf-8'), port=8080, domain_name="example.com")]
-    cert_hash = b'sample-cert-hash'
-    
+    addresses = [
+        Endpoint(
+            address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com"
+        )
+    ]
+    cert_hash = b"sample-cert-hash"
+
     # Initialize _NodeAddress
     node_address = NodeAddress(
         public_key="sample-public-key",
@@ -20,9 +28,9 @@ def test_init():
         node_id=1234,
         cert_hash=cert_hash,
         addresses=addresses,
-        description="Sample Node"
+        description="Sample Node",
     )
-    
+
     # Assert properties are set correctly
     assert node_address._public_key == "sample-public-key"
     assert node_address._account_id == account_id
@@ -31,30 +39,35 @@ def test_init():
     assert node_address._addresses == addresses
     assert node_address._description == "Sample Node"
 
+
 def test_string_representation():
     """Test string representation of _NodeAddress."""
     # Create AccountId
     account_id = AccountId(0, 0, 123)
-    
-    # Create    
-    endpoint = Endpoint(address=bytes("192.168.1.1", 'utf-8'), port=8080, domain_name="example.com")
-    
+
+    # Create
+    endpoint = Endpoint(
+        address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com"
+    )
+
     # Create NodeAddress
     node_address = NodeAddress(
         public_key="sample-public-key",
         account_id=account_id,
         node_id=1234,
-        cert_hash=b'sample-cert-hash',
+        cert_hash=b"sample-cert-hash",
         addresses=[endpoint],
-        description="Sample Node"
+        description="Sample Node",
     )
-    
+
     # Get string representation
     result = str(node_address)
-    
+
     # Check if expected fields are in the result
     assert "NodeAccountId: 0.0.123" in result
-    assert "CertHash: 73616d706c652d636572742d68617368" in result  # hex representation of sample-cert-hash
+    assert (
+        "CertHash: 73616d706c652d636572742d68617368" in result
+    )  # hex representation of sample-cert-hash
     assert "NodeId: 1234" in result
     assert "PubKey: sample-public-key" in result
 
@@ -63,9 +76,15 @@ def test_to_proto():
     """Test conversion of NodeAddress to protobuf with endpoints."""
     account_id = AccountId(0, 0, 123)
     endpoints = [
-        Endpoint(address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example1.com"),
-        Endpoint(address=bytes("192.168.1.2", "utf-8"), port=8081, domain_name="example2.com"),
-        Endpoint(address=bytes("192.168.1.3", "utf-8"), port=8082, domain_name="example3.com"),
+        Endpoint(
+            address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example1.com"
+        ),
+        Endpoint(
+            address=bytes("192.168.1.2", "utf-8"), port=8081, domain_name="example2.com"
+        ),
+        Endpoint(
+            address=bytes("192.168.1.3", "utf-8"), port=8082, domain_name="example3.com"
+        ),
     ]
     node_address = NodeAddress(
         public_key="sample-public-key",
@@ -73,7 +92,7 @@ def test_to_proto():
         node_id=1234,
         cert_hash=b"sample-cert-hash",
         addresses=endpoints,
-        description="Sample Node"
+        description="Sample Node",
     )
 
     node_address_proto = node_address._to_proto()
@@ -146,9 +165,7 @@ def test_from_proto():
     """Test creation of NodeAddress from protobuf with endpoint."""
     account_id_proto = AccountId(0, 0, 123)._to_proto()
     endpoint_proto = Endpoint(
-        address=bytes("192.168.1.1", "utf-8"),
-        port=8080,
-        domain_name="example.com"
+        address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com"
     )._to_proto()
 
     # Create NodeAddressProto
@@ -178,9 +195,7 @@ def test_round_trip():
     """Ensure NodeAddress → Proto → NodeAddress round trip works."""
     account_id = AccountId(0, 0, 123)
     endpoint = Endpoint(
-        address=bytes("192.168.1.1", "utf-8"),
-        port=8080,
-        domain_name="example.com"
+        address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com"
     )
 
     # Create NodeAddress
@@ -190,7 +205,7 @@ def test_round_trip():
         node_id=1234,
         cert_hash=b"sample-cert-hash",
         addresses=[endpoint],
-        description="Sample Node"
+        description="Sample Node",
     )
 
     # Convert to proto
@@ -220,11 +235,12 @@ def test_empty_addresses():
         node_id=1234,
         cert_hash=b"sample-cert-hash",
         addresses=[],
-        description="No endpoints"
+        description="No endpoints",
     )
 
     proto = node_address._to_proto()
     assert len(proto.serviceEndpoint) == 0
+
 
 def test_to_proto_none_account_id():
     """Test _to_proto handles None account_id gracefully."""
@@ -234,10 +250,10 @@ def test_to_proto_none_account_id():
         node_id=1234,
         cert_hash=b"sample-cert-hash",
         addresses=[],
-        description="No account"
+        description="No account",
     )
 
     proto = node_address._to_proto()
 
     # Should not have nodeAccountId set
-    assert not proto.HasField('nodeAccountId')
+    assert not proto.HasField("nodeAccountId")
