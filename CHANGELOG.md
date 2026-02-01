@@ -28,6 +28,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted client_test.py using Black.
 
 ### Added
+- Added support for the `includeDuplicates` flag in `TransactionRecordQuery` (`#1635`)
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
 - Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)

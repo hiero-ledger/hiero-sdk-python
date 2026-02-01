@@ -122,6 +122,63 @@ def test_transaction_record_query_execute(transaction_id):
         assert result.transaction_hash == b'\x01' * 48
         assert result.transaction_memo == "Test transaction"
         
+def test_transaction_record_query_execute_with_duplicates(transaction_id):
+    """Test TransactionRecordQuery returns duplicates when include_duplicates=True."""
+    receipt = transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS)
+    
+    primary_record = transaction_record_pb2.TransactionRecord(
+        receipt=receipt,
+        memo="primary",
+        transactionFee=100000
+    )
+    
+    duplicate_record = transaction_record_pb2.TransactionRecord(
+        receipt=receipt,
+        memo="duplicate",
+        transactionFee=100000
+    )
+
+    response_sequences = [[
+        # Cost query responses...
+        response_pb2.Response(
+            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2
+                )
+            )
+        ),
+        response_pb2.Response(
+            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2
+                )
+            )
+        ),
+        response_pb2.Response(
+            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.ANSWER_ONLY,
+                ),
+                transactionRecord=primary_record,
+                duplicateTransactionRecords=[duplicate_record]
+            )
+        )
+    ]]
+    
+    with mock_hedera_servers(response_sequences) as client:
+        query = TransactionRecordQuery(transaction_id, include_duplicates=True)
+        result = query.execute(client)
+        
+        assert result.transaction_memo == "primary"
+        assert hasattr(result, 'duplicates'), "duplicates attribute must exist"
+        assert len(result.duplicates) == 1
+        assert result.duplicates[0].transaction_memo == "duplicate"
+
 def get_transaction_record_responses(transaction_record):
         return [[
             response_pb2.Response(
@@ -163,7 +220,6 @@ def test_make_request_constructs_correct_protobuf(mock_make_header, transaction_
     # Mock the header that normally comes from Query base class
     fake_header = query_header_pb2.QueryHeader(
         responseType=ResponseType.ANSWER_STATE_PROOF,
-        nodeTransactionPrecheckCode=ResponseCode.OK,
     )
     mock_make_header.return_value = fake_header
 
@@ -225,32 +281,33 @@ def test_make_request_checks_for_transactionGetRecord_field(mock_make_header, tr
 
 def test_map_record_list_converts_protobuf_list(transaction_id):
     """_map_record_list should convert each proto record using TransactionRecord._from_proto."""
-    proto_record_1 = transaction_record_pb2.TransactionRecord()
-    proto_record_2 = transaction_record_pb2.TransactionRecord()
-
-    fake_records = [proto_record_1, proto_record_2]
+    # Create actual proto records with distinct data
+    receipt = transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS)
+    proto_record_1 = transaction_record_pb2.TransactionRecord(
+        receipt=receipt,
+        memo="record1",
+        transactionFee=100
+    )
+    proto_record_2 = transaction_record_pb2.TransactionRecord(
+        receipt=receipt,
+        memo="record2",
+        transactionFee=200
+    )
 
     query = TransactionRecordQuery(transaction_id=transaction_id)
-
-    with patch("hiero_sdk_python.transaction.transaction_record.TransactionRecord._from_proto") as mock_from_proto:
-        # Simulate what _from_proto returns
-        mock_from_proto.side_effect = [
-            MagicMock(transaction_id=transaction_id, memo="record1"),
-            MagicMock(transaction_id=transaction_id, memo="record2"),
-        ]
-
-        result = query._map_record_list(fake_records)
-
+    result = query._map_record_list([proto_record_1, proto_record_2])
+    
     assert len(result) == 2
-    assert mock_from_proto.call_count == 2
-
-    # Verify returned objects are the ones from _from_proto
-    assert result[0].memo == "record1"
-    assert result[1].memo == "record2"
-
-    # Verify it passes the correct transaction_id every time
-    for call in mock_from_proto.call_args_list:
-        assert call.kwargs["transaction_id"] == transaction_id
+    # Verify actual TransactionRecord instances are returned
+    from hiero_sdk_python.transaction.transaction_record import TransactionRecord
+    assert isinstance(result[0], TransactionRecord)
+    assert isinstance(result[1], TransactionRecord)
+    # Verify transaction_id was propagated
+    assert result[0].transaction_id == transaction_id
+    assert result[1].transaction_id == transaction_id
+    # Verify data was correctly mapped
+    assert result[0].transaction_memo == "record1"
+    assert result[1].transaction_memo == "record2"
 
 def test_map_record_list_handles_empty_list(transaction_id):
     """_map_record_list returns empty list for empty input."""
