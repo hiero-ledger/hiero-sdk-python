@@ -30,6 +30,12 @@ class TransactionRecordQuery(Query):
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
         super().__init__()
+
+        if not isinstance(include_duplicates, bool):
+            raise TypeError(
+                f"include_duplicates must be a bool (True or False), got {type(include_duplicates).__name__}"
+            )
+
         self.transaction_id: Optional[TransactionId] = transaction_id
         self.include_duplicates: bool = bool(include_duplicates)
 
@@ -40,28 +46,36 @@ class TransactionRecordQuery(Query):
         Sets whether to include duplicate transaction records in the query results.
 
         Args:
-            include: Whether to include duplicates.
+            include_duplicates: Whether to include duplicate transaction records.
 
         Returns:
             TransactionRecordQuery: The current instance for method chaining.
-
-        Raises:
-            ValueError: If the query is frozen and cannot be modified.
         """
         if not isinstance(include_duplicates, bool):
             raise TypeError("include_duplicates must be a boolean (True or False)")
         self.include_duplicates = include_duplicates
         return self
 
-    def set_transaction_id(self, transaction_id: TransactionId):
+    def set_transaction_id(
+        self,
+        transaction_id: Optional[TransactionId],
+    ) -> "TransactionRecordQuery":
         """
-        Sets the transaction ID for the query.
+        Sets the ID of the transaction whose record is to be queried.
+
+        This is a required parameter before executing the query.
 
         Args:
-            transaction_id (TransactionId): The ID of the transaction to query.
+            transaction_id: The transaction ID to query, or None to unset.
+
         Returns:
-            TransactionRecordQuery: This query instance.
+            TransactionRecordQuery: This query instance for chaining.
         """
+        if transaction_id is not None and not isinstance(transaction_id, TransactionId):
+            raise TypeError(
+                f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
+            )
+
         self.transaction_id = transaction_id
         return self
 
@@ -100,6 +114,22 @@ class TransactionRecordQuery(Query):
     def _map_record_list(
         self, proto_records: list[transaction_record_pb2.TransactionRecord]
     ) -> list[TransactionRecord]:
+        """
+        Converts a list of protobuf TransactionRecord messages into SDK TransactionRecord objects.
+
+        Each protobuf record returned by the network is transformed into a
+        `TransactionRecord` instance. The original transaction ID of this query is
+        attached to every mapped record for context, since duplicate and child
+        records may not always include the full ID information in a convenient form.
+
+        Args:
+            proto_records: A list of protobuf TransactionRecord messages returned
+                from the Hiero/Hedera network.
+
+        Returns:
+            list[TransactionRecord]: A list of SDK TransactionRecord objects
+                corresponding to the provided protobuf records.
+        """
         records: list[TransactionRecord] = []
         for proto_record in proto_records:
             # We pass the same transaction_id as the main record
