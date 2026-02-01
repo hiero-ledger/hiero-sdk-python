@@ -9,6 +9,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
+
+- Formatted `tests/unit/conftest.py` with black for code style consistency. (#1522)
 - format `black tests/unit/nft_id_test.py` with Black.(#1544)
 - Format `tests/unit/executable_test.py` with Black.(#1530)
 - Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
@@ -27,8 +29,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added `AssessedCustomFee` domain model to represent assessed custom fees. (`#1637`)
+- Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
 - Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
-
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
@@ -133,10 +135,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 
+### Changed
+
 ### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 
 ### Changed
+- Hide the commit verification bot marker in pull request comments.
 - Added missing type hints to sign method in Transaction class (#1630)
 - Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
 - Updated GitHub Actions setup-node action to v6.2.0.
