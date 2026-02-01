@@ -162,13 +162,6 @@ git rebase main -S
 
 **Full guide:** [Rebasing Guide](docs/sdk_developers/rebasing.md)
 
----
-
-## Common Issues
-
-**HELP! I have an issue...**  
-No worries, we're here to help. But please first see the [Common Issues Guide](docs/common_issues.md).
-
 
 ---
 
