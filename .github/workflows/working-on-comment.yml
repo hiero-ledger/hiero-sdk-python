@@ -23,16 +23,16 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@20cf3058034d60565886e8487e41f6a157127110 # v2.8.0
+        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
         with:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@8e8c4832c3f1a3036bf690509a27e8346f33290d # v4.1.7
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Handle /working command
         id: working
-        uses: actions/github-script@ed59741695cf082c5b2938b25d19485747644318 # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
           DRY_RUN: ${{ github.event.inputs.dry_run }}
         with:
