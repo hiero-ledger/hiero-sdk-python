@@ -2,16 +2,33 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.hapi.services.custom_fees_pb2 import AssessedCustomFee as AssessedCustomFeeProto
+from hiero_sdk_python.hapi.services.custom_fees_pb2 import (
+    AssessedCustomFee as AssessedCustomFeeProto,
+)
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
 @dataclass
 class AssessedCustomFee:
+    """Assessed custom fee information included in transaction records.
+
+    This class represents fees assessed due to custom fee schedules on tokens or
+    topics. It appears in `TransactionRecord.assessed_custom_fees` (repeated field).
+
+    Example:
+        Suppose you have a TransactionRecord from getTransactionRecord():
+
+        record = client.get_transaction_record(tx_id)
+
+        for fee in record.assessed_custom_fees:
+            if fee.token_id is None:
+                print(f"HBAR fee of {fee.amount} tinybars collected by {fee.fee_collector_account_id}")
+            else:
+                print(f"Token fee of {fee.amount} units of {fee.token_id} "
+                    f"collected by {fee.fee_collector_account_id}, "
+                    f"paid by {', '.join(str(p) for p in fee.effective_payer_account_ids)}")
     """
-    Represents an assessed custom fee as returned in transaction records.
-    Mirrors the AssessedCustomFee protobuf message from Hedera/Hiero.
-    """
+
     amount: int
     """The amount of the fee assessed, in the smallest units of the token (or tinybars for HBAR)."""
 
@@ -26,24 +43,28 @@ class AssessedCustomFee:
 
     def __post_init__(self) -> None:
         if self.fee_collector_account_id is None:
-            raise ValueError("fee_collector_account_id is required for AssessedCustomFee")
+            raise ValueError(
+                "fee_collector_account_id is required for AssessedCustomFee"
+            )
 
     @classmethod
     def _from_proto(cls, proto: AssessedCustomFeeProto) -> "AssessedCustomFee":
         """Create an AssessedCustomFee instance from the protobuf message."""
         token_id = (
-            TokenId._from_proto(proto.token_id)
-            if proto.HasField("token_id")
-            else None
+            TokenId._from_proto(proto.token_id) if proto.HasField("token_id") else None
         )
 
         if not proto.HasField("fee_collector_account_id"):
-            raise ValueError("fee_collector_account_id is required in AssessedCustomFee proto")
-        
+            raise ValueError(
+                "fee_collector_account_id is required in AssessedCustomFee proto"
+            )
+
         return cls(
             amount=proto.amount,
             token_id=token_id,
-            fee_collector_account_id=AccountId._from_proto(proto.fee_collector_account_id),
+            fee_collector_account_id=AccountId._from_proto(
+                proto.fee_collector_account_id
+            ),
             effective_payer_account_ids=[
                 AccountId._from_proto(payer_proto)
                 for payer_proto in proto.effective_payer_account_id
@@ -64,7 +85,7 @@ class AssessedCustomFee:
             proto.effective_payer_account_id.append(payer._to_proto())
 
         return proto
-        
+
     def __str__(self) -> str:
         """Returns a human-readable string representation."""
         return (
@@ -74,5 +95,4 @@ class AssessedCustomFee:
             f"fee_collector_account_id={self.fee_collector_account_id}, "
             f"effective_payer_account_ids={self.effective_payer_account_ids}"
             f")"
-        )  
-    
+        )
