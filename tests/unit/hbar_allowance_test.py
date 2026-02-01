@@ -287,7 +287,9 @@ def test_from_proto_field_helper():
 
     # Test with empty field (should not happen in this proto, but testing the method)
     proto_empty = CryptoAllowanceProto(amount=1000)
-    result = HbarAllowance._from_proto_field(proto_empty, "owner", AccountId._from_proto)
+    result = HbarAllowance._from_proto_field(
+        proto_empty, "owner", AccountId._from_proto
+    )
     assert result is None
 
 
