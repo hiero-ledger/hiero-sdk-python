@@ -137,6 +137,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 
 ### Changed
+- Inactivity bot now skips closing pull requests labeled `discussion`.
 
 ### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
