@@ -69,3 +69,12 @@ def test_validate_checksum_failure(mock_client):
 
     with pytest.raises(ValueError):
         token_id.validate_checksum(client)
+
+def test_token_id_repr():
+    """Should return constructor-style representation without checksum."""
+    token_id = TokenId(0, 0, 123)
+    assert repr(token_id) == "TokenId(shard=0, realm=0, num=123)"
+
+    # Test with different values
+    token_id2 = TokenId(1, 2, 456)
+    assert repr(token_id2) == "TokenId(shard=1, realm=2, num=456)"
