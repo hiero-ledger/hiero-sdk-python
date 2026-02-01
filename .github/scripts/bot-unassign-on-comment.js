@@ -20,16 +20,13 @@ Safeguards:
 function isValidUnassignContext(issue, comment) {
   if (!issue?.number || issue.pull_request) return false;
   if (!comment?.body || !comment?.user?.login) return false;
-  if (comment.user.type === 'Bot') return false;
-  if (issue.state !== 'open') return false;
+  if (comment.user.type === "Bot") return false;
+  if (issue.state !== "open") return false;
   return true;
 }
 
 function commentRequestsUnassign(body) {
-  return (
-    typeof body === 'string' &&
-    /(^|\s)\/unassign(\s|$)/i.test(body)
-  );
+  return typeof body === "string" && /(^|\s)\/unassign(\s|$)/i.test(body);
 }
 
 function buildUnassignMarker(username) {
@@ -37,7 +34,7 @@ function buildUnassignMarker(username) {
 }
 
 function isCurrentAssignee(issue, username) {
-  return issue.assignees?.some(a => a.login === username);
+  return issue.assignees?.some((a) => a.login === username);
 }
 
 module.exports = async ({ github, context }) => {
@@ -45,7 +42,7 @@ module.exports = async ({ github, context }) => {
     const { issue, comment } = context.payload;
     const { owner, repo } = context.repo;
 
-    console.log('[unassign] Payload snapshot:', {
+    console.log("[unassign] Payload snapshot:", {
       issueNumber: issue?.number,
       commenter: comment?.user?.login,
       commenterType: comment?.user?.type,
@@ -54,59 +51,56 @@ module.exports = async ({ github, context }) => {
 
     // Basic validation
     if (!isValidUnassignContext(issue, comment)) {
-      console.log('[unassign] Exit: invalid unassign context', {
+      console.log("[unassign] Exit: invalid unassign context", {
         issueNumber: issue?.number,
         commenter: comment?.user?.login,
         issueState: issue?.state,
-        isBot: comment?.user?.type === 'Bot',
+        isBot: comment?.user?.type === "Bot",
       });
       return;
     }
 
     if (!commentRequestsUnassign(comment.body)) {
-      console.log('[unassign] Exit: comment does not request unassign');
+      console.log("[unassign] Exit: comment does not request unassign");
       return;
     }
 
     const username = comment.user.login;
     const issueNumber = issue.number;
 
-    console.log('[unassign] Unassign command detected by', username);
+    console.log("[unassign] Unassign command detected by", username);
 
     // Check if user is currently assigned
     if (!isCurrentAssignee(issue, username)) {
-      console.log('[unassign] Exit: commenter is not an assignee', {
+      console.log("[unassign] Exit: commenter is not an assignee", {
         requester: username,
-        currentAssignees: issue.assignees?.map(a => a.login),
+        currentAssignees: issue.assignees?.map((a) => a.login),
       });
       return;
     }
 
     // Fetch comments to check for prior unassign
-    const comments = await github.paginate(
-      github.rest.issues.listComments,
-      {
-        owner,
-        repo,
-        issue_number: issueNumber,
-        per_page: 100,
-      }
-    );
+    const comments = await github.paginate(github.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: issueNumber,
+      per_page: 100,
+    });
 
     const marker = buildUnassignMarker(username);
-    const alreadyUnassigned = comments.some(c =>
-      typeof c.body === 'string' && c.body.includes(marker)
+    const alreadyUnassigned = comments.some(
+      (c) => typeof c.body === "string" && c.body.includes(marker),
     );
 
     if (alreadyUnassigned) {
-      console.log('[unassign] Exit: unassign already requested previously', {
+      console.log("[unassign] Exit: unassign already requested previously", {
         requester: username,
         issueNumber,
       });
       return;
     }
 
-    console.log('[unassign] Proceeding to unassign user', {
+    console.log("[unassign] Proceeding to unassign user", {
       requester: username,
       issueNumber,
     });
@@ -131,14 +125,12 @@ module.exports = async ({ github, context }) => {
       body: `${marker}\n\n${confirmationMessage}`,
     });
 
-
-   console.log('[unassign] Unassign completed successfully', {
+    console.log("[unassign] Unassign completed successfully", {
       requester: username,
       issueNumber,
-   });
-
+    });
   } catch (error) {
-    console.error('[unassign] Error:', {
+    console.error("[unassign] Error:", {
       message: error.message,
       status: error.status,
       issueNumber: context.payload?.issue?.number,
