@@ -81,6 +81,10 @@ def test_transaction_record_default_initialization():
     assert record.new_pending_airdrops == []
     assert record.prng_number is None
     assert record.prng_bytes is None
+    assert hasattr(record, 'duplicates'), "TransactionRecord should have duplicates attribute"
+    assert isinstance(record.duplicates, list)
+    assert len(record.duplicates) == 0
+    assert record.duplicates == []
 
 def test_from_proto(proto_transaction_record, transaction_id):
     """Test the from_proto method of the TransactionRecord class"""
@@ -279,6 +283,10 @@ def test_repr_method(transaction_id):
     """Test the __repr__ method of TransactionRecord."""
     # Test with default values
     record_default = TransactionRecord()
+    repr_default = repr(record_default)
+    assert "duplicates_count=0" in repr_default
+    assert "transaction_id='None'" in repr_default
+    assert "receipt_status='None'" in repr_default
     expected_repr_default = (
         "TransactionRecord(transaction_id='None', "
         "transaction_hash=None, "
@@ -291,7 +299,8 @@ def test_repr_method(transaction_id):
         "new_pending_airdrops=[], "
         "call_result=None, "
         "prng_number=None, "
-        "prng_bytes=None)"
+        "prng_bytes=None, "
+        "duplicates_count=0)"
     )
     assert repr(record_default) == expected_repr_default
     
@@ -305,6 +314,10 @@ def test_repr_method(transaction_id):
     record_with_receipt = TransactionRecord(
         transaction_id=transaction_id, receipt=receipt
     )
+    repr_receipt = repr(record_with_receipt)
+    assert "duplicates_count=0" in repr_receipt
+    assert f"transaction_id='{transaction_id}'" in repr_receipt
+    assert "receipt_status='SUCCESS'" in repr_receipt
     expected_repr_with_receipt = (
         f"TransactionRecord(transaction_id='{transaction_id}', "
         f"transaction_hash=None, "
@@ -317,7 +330,8 @@ def test_repr_method(transaction_id):
         f"new_pending_airdrops={[]}, "
         f"call_result=None, "
         f"prng_number=None, "
-        f"prng_bytes=None)"
+        f"prng_bytes=None, "
+        f"duplicates_count=0)"
     )
     assert repr(record_with_receipt) == expected_repr_with_receipt
 
@@ -329,6 +343,13 @@ def test_repr_method(transaction_id):
         transaction_fee=100000,
         receipt=receipt,
     )
+    repr_full = repr(record_full)
+    assert "duplicates_count=0" in repr_full
+    assert f"transaction_id='{transaction_id}'" in repr_full
+    assert "transaction_hash=b'\\x01\\x02\\x03\\x04'" in repr_full
+    assert "transaction_memo='Test memo'" in repr_full
+    assert "transaction_fee=100000" in repr_full
+    assert "receipt_status='SUCCESS'" in repr_full
     expected_repr_full = (f"TransactionRecord(transaction_id='{transaction_id}', "
                          f"transaction_hash=b'\\x01\\x02\\x03\\x04', "
                          f"transaction_memo='Test memo', "
@@ -340,7 +361,8 @@ def test_repr_method(transaction_id):
                          f"new_pending_airdrops={[]}, "
                          f"call_result=None, "
                          f"prng_number=None, "
-                         f"prng_bytes=None)")
+                         f"prng_bytes=None, "
+                         f"duplicates_count=0)")
     assert repr(record_full) == expected_repr_full
 
     # Test with transfers
@@ -349,6 +371,9 @@ def test_repr_method(transaction_id):
     )
     record_with_transfers.transfers[AccountId(0, 0, 100)] = -1000
     record_with_transfers.transfers[AccountId(0, 0, 200)] = 1000
+    repr_transfers = repr(record_with_transfers)
+    assert "duplicates_count=0" in repr_transfers
+    assert "transfers={AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}" in repr_transfers
     
     expected_repr_with_transfers = (f"TransactionRecord(transaction_id='{transaction_id}', "
                                   f"transaction_hash=None, "
@@ -361,7 +386,8 @@ def test_repr_method(transaction_id):
                                   f"new_pending_airdrops={[]}, "
                                   f"call_result=None, "
                                   f"prng_number=None, "
-                                  f"prng_bytes=None)")
+                                  f"prng_bytes=None, "
+                                  f"duplicates_count=0)")
     assert repr(record_with_transfers) == expected_repr_with_transfers
 
 
@@ -389,3 +415,48 @@ def test_proto_conversion_with_call_result():
     assert converted.call_result.gas_used == record.call_result.gas_used
     assert converted.call_result.gas_available == record.call_result.gas_available
     assert converted.call_result.amount == record.call_result.amount
+
+def test_from_proto_accepts_and_stores_duplicates(transaction_id):
+    proto = transaction_record_pb2.TransactionRecord()
+    proto.memo = "Main"
+
+    dup1 = TransactionRecord(transaction_id=transaction_id, transaction_memo="dup1")
+    dup2 = TransactionRecord(transaction_id=transaction_id, transaction_memo="dup2")
+
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup1, dup2])
+
+    assert len(record.duplicates) == 2
+    assert record.duplicates[0].transaction_memo == "dup1"
+    assert record.duplicates[1].transaction_memo == "dup2"
+
+def test_from_proto_without_duplicates_param_backward_compat(transaction_id):
+    """Test _from_proto works without duplicates parameter (backward compatibility)."""
+    proto = transaction_record_pb2.TransactionRecord()
+    proto.memo = "Test"
+
+    # Call without duplicates parameter - should not raise
+    record = TransactionRecord._from_proto(proto, transaction_id)
+
+    assert record.duplicates == []  
+    assert record.transaction_memo == "Test"  
+
+def test_from_proto_with_empty_duplicates_list(transaction_id):
+    proto = transaction_record_pb2.TransactionRecord()
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[])
+    assert len(record.duplicates) == 0
+
+
+def test_from_proto_with_duplicates_instances(transaction_id):
+    proto = transaction_record_pb2.TransactionRecord()
+    dup = TransactionRecord(transaction_id=transaction_id, transaction_memo="example dup")
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup])
+    assert record.duplicates == [dup]
+
+
+def test_repr_includes_duplicates_count(transaction_id):
+    record = TransactionRecord(transaction_id=transaction_id)
+    assert "duplicates_count=0" in repr(record)
+
+    dup = TransactionRecord(transaction_id=transaction_id)
+    record.duplicates = [dup, dup]
+    assert "duplicates_count=2" in repr(record)

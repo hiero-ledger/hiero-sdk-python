@@ -73,6 +73,7 @@ class TransactionRecord:
 
     prng_number: Optional[int] = None
     prng_bytes: Optional[bytes] = None
+    duplicates: list['TransactionRecord'] = field(default_factory=list)
 
     def __repr__(self) -> str:
         """Returns a human-readable string representation of the TransactionRecord.
@@ -104,10 +105,12 @@ class TransactionRecord:
                 f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
                 f"call_result={self.call_result}, "
                 f"prng_number={self.prng_number}, "
-                f"prng_bytes={self.prng_bytes})")
+                f"prng_bytes={self.prng_bytes}, "
+                f"duplicates_count={len(self.duplicates)})"
+                )
 
     @classmethod
-    def _from_proto(cls, proto: transaction_record_pb2.TransactionRecord, transaction_id: Optional[TransactionId] = None) -> 'TransactionRecord':
+    def _from_proto(cls, proto: transaction_record_pb2.TransactionRecord, transaction_id: Optional[TransactionId] = None, duplicates: Optional[list['TransactionRecord']] = None) -> 'TransactionRecord':
         """Creates a TransactionRecord instance from a protobuf transaction record.
 
         This method performs complex data aggregation from the protobuf message,
@@ -129,11 +132,16 @@ class TransactionRecord:
             transaction_id (Optional[TransactionId]): Optional transaction ID to 
                 associate with the record. If not provided, will be extracted from
                 the protobuf message if available.
+            duplicates (Optional[list['TransactionRecord']]): Optional list of
+                duplicate transaction records to associate with this record.
+                Defaults to an empty list if not provided.
 
         Returns:
             TransactionRecord: A new TransactionRecord instance containing all the
             processed and structured data from the protobuf message.
         """
+        if duplicates is None:
+            duplicates = []
         token_transfers = defaultdict(lambda: defaultdict(int))
         for token_transfer_list in proto.tokenTransferLists:
             token_id = TokenId._from_proto(token_transfer_list.token)
@@ -173,6 +181,7 @@ class TransactionRecord:
             ),
             prng_number=proto.prng_number,
             prng_bytes=proto.prng_bytes,
+            duplicates=duplicates,
         )
 
     def _to_proto(self) -> transaction_record_pb2.TransactionRecord:
