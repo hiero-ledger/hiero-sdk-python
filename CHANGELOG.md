@@ -9,7 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
-
+- format black `tests/unit/hbar*.py`.(#1538)
 - Formatted `tests/unit/conftest.py` with black for code style consistency. (#1522)
 - format `black tests/unit/nft_id_test.py` with Black.(#1544)
 - Format `tests/unit/executable_test.py` with Black.(#1530)
