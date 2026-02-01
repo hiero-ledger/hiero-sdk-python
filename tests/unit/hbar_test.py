@@ -7,6 +7,7 @@ from hiero_sdk_python.hbar_unit import HbarUnit
 
 pytestmark = pytest.mark.unit
 
+
 def test_constructor():
     """Test creation with int, float, and Decimal values in hbars."""
     hbar1 = Hbar(50)
@@ -21,29 +22,29 @@ def test_constructor():
     assert hbar3.to_tinybars() == 50_000_000
     assert hbar3.to_hbars() == 0.5
 
-@pytest.mark.parametrize(
-    'invalid_amount',
-    ['1', True, False, {}, object] 
-)
+
+@pytest.mark.parametrize("invalid_amount", ["1", True, False, {}, object])
 def test_constructor_invalid_amount_type(invalid_amount):
     """Test creation with invalid type raise errors."""
-    with pytest.raises(TypeError, match="Amount must be of type int, float, or Decimal"):
+    with pytest.raises(
+        TypeError, match="Amount must be of type int, float, or Decimal"
+    ):
         Hbar(invalid_amount)
 
-@pytest.mark.parametrize(
-    'invalid_amount',
-    [float('inf'), float('nan')] 
-)
+
+@pytest.mark.parametrize("invalid_amount", [float("inf"), float("nan")])
 def test_constructor_non_finite_amount_value(invalid_amount):
     """Test creation raise errors for non finite amount."""
     with pytest.raises(ValueError, match="Hbar amount must be finite"):
         Hbar(invalid_amount)
+
 
 def test_constructor_with_tinybar_unit():
     """Test creation with unit set to HbarUnit.TINYBAR."""
     hbar1 = Hbar(50, unit=HbarUnit.TINYBAR)
     assert hbar1.to_tinybars() == 50
     assert hbar1.to_hbars() == 0.0000005
+
 
 def test_constructor_with_unit():
     """Test creation directly in tinybars."""
@@ -59,7 +60,7 @@ def test_constructor_with_unit():
     assert hbar3.to_tinybars() == 5_000_000
     assert hbar3.to_hbars() == 0.05
 
-    hbar4 = Hbar(50, unit=HbarUnit.HBAR) # Default
+    hbar4 = Hbar(50, unit=HbarUnit.HBAR)  # Default
     assert hbar4.to_tinybars() == 5_000_000_000
     assert hbar4.to_hbars() == 50
 
@@ -75,15 +76,20 @@ def test_constructor_with_unit():
     assert hbar7.to_tinybars() == 5_000_000_000_000_000_000
     assert hbar7.to_hbars() == 50_000_000_000
 
+
 def test_constructor_fractional_tinybar():
     """Test creation with fractional tinybars."""
     with pytest.raises(ValueError, match="Fractional tinybar value not allowed"):
         Hbar(0.1, unit=HbarUnit.TINYBAR)
 
+
 def test_constructor_invalid_type():
     """Test creation of Hbar with invalid type."""
-    with pytest.raises(TypeError, match="Amount must be of type int, float, or Decimal"):
-        Hbar('10')
+    with pytest.raises(
+        TypeError, match="Amount must be of type int, float, or Decimal"
+    ):
+        Hbar("10")
+
 
 def test_from_string():
     """Test creation of HBAR from valid string"""
@@ -95,26 +101,29 @@ def test_from_string():
     assert Hbar.from_string("+3").to_tinybars() == 300_000_000
     assert Hbar.from_string("-3").to_tinybars() == -300_000_000
 
+
 @pytest.mark.parametrize(
-    'invalid_str', 
+    "invalid_str",
     [
-        '1 ',
-        '-1 ',
-        '+1 ',
-        '1.151 ',
-        '-1.151 ',
-        '+1.151 ',
-        '1.',
-        '1.151.',
-        '.1',
-        '1.151 uℏ',
-        '1.151 h',
-        'abcd'
-    ]
+        "1 ",
+        "-1 ",
+        "+1 ",
+        "1.151 ",
+        "-1.151 ",
+        "+1.151 ",
+        "1.",
+        "1.151.",
+        ".1",
+        "1.151 uℏ",
+        "1.151 h",
+        "abcd",
+    ],
 )
 def test_from_string_invalid(invalid_str):
     """Test creation of HBAR from invalid string"""
-    with pytest.raises(ValueError, match=re.escape(f"Invalid Hbar format: '{invalid_str}'")):
+    with pytest.raises(
+        ValueError, match=re.escape(f"Invalid Hbar format: '{invalid_str}'")
+    ):
         Hbar.from_string(invalid_str)
 
 
@@ -128,6 +137,7 @@ def test_creation_using_of_method():
     assert Hbar.of(50, HbarUnit.MEGABAR).to_tinybars() == 5_000_000_000_000_000
     assert Hbar.of(50, HbarUnit.GIGABAR).to_tinybars() == 5_000_000_000_000_000_000
 
+
 def test_to_unit():
     assert Hbar(50).to(HbarUnit.HBAR) == 50
     assert Hbar(50).to(HbarUnit.TINYBAR) == 5_000_000_000
@@ -136,6 +146,7 @@ def test_to_unit():
     assert Hbar(50).to(HbarUnit.KILOBAR) == 0.05
     assert Hbar(50).to(HbarUnit.MEGABAR) == 0.00005
     assert Hbar(50).to(HbarUnit.GIGABAR) == 0.00000005
+
 
 def test_negated():
     """Test negation of Hbar values."""
@@ -146,10 +157,12 @@ def test_negated():
     # Check that again become equal to original
     assert neg_hbar.negated() == hbar
 
+
 def test_hbar_constant():
     assert Hbar.ZERO.to_hbars() == 0
     assert Hbar.MAX.to_hbars() == 50_000_000_000
     assert Hbar.MIN.to_hbars() == -50_000_000_000
+
 
 def test_comparison():
     """Test comparison and equality operators."""
@@ -168,10 +181,11 @@ def test_comparison():
     assert (h1 == 5) is False
     with pytest.raises(TypeError):
         _ = h1 < 5
-        
+
+
 def test_factory_methods():
     """Test the convenient from_X factory methods."""
-    
+
     # from_microbars
     # 1 microbar = 100 tinybars
     result = Hbar.from_microbars(1)
@@ -224,6 +238,7 @@ def test_factory_methods():
 # NEW TESTS: Coverage improvements for issue #1447
 # ---------------------------------------------------------------------------
 
+
 def test_from_tinybars_rejects_non_int():
     """from_tinybars() should reject non-integer input."""
     with pytest.raises(TypeError, match="tinybars must be an int"):
@@ -234,7 +249,6 @@ def test_from_tinybars_rejects_non_int():
 
     with pytest.raises(TypeError, match="tinybars must be an int"):
         Hbar.from_tinybars(Decimal("1000"))
-
 
 
 @pytest.mark.parametrize("other", [1, 1.0, "1", None])
@@ -255,7 +269,6 @@ def test_comparison_with_non_hbar_raises_type_error(other):
         _ = h >= other
 
 
-
 def test_str_formatting_and_negatives():
     """String representation should use fixed 8 decimal places."""
     assert str(Hbar(1)) == "1.00000000 ℏ"
@@ -269,7 +282,6 @@ def test_repr_contains_class_name_and_value():
 
     assert r.startswith("Hbar(")
     assert "2" in r
-
 
 
 def test_hash_consistency_for_equal_values():
@@ -288,11 +300,9 @@ def test_hash_consistency_for_equal_values():
     assert len(d) == 1
     assert d[h1] == "value2"
 
-    
 
 @pytest.mark.parametrize(
-    'invalid_tinybars',
-    ['1', 0.1, Decimal('0.1'), True, False, object, {}]
+    "invalid_tinybars", ["1", 0.1, Decimal("0.1"), True, False, object, {}]
 )
 def test_from_tinybars_invalid_type_param(invalid_tinybars):
     """Test from_tinybar method raises error if the type is not int."""
