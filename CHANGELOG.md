@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format tests/unit/network_tls_test.py with black for code style consistency (#1543)
 - Formatted `ethereum_transaction_test.py` using Black.
 - Formatted client_test.py using Black.
+- Format tests/unit/query*.py using black (#1547)
 
 ### Added
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
