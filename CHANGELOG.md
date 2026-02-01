@@ -271,6 +271,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
 - Update `.github/scripts/bot-advanced-check.sh` to unassign unqualified users.
+- Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
 
 ### Removed
 
@@ -430,7 +431,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed incorrect `TokenType` import (protobuf vs. SDK enum) in 18 example files.
 - Update `schedule_sign_transaction_e2e_test` to check for key presence instead of relying on index.
 - Add `localhost` and `local` as network names
-- Fixed broken project structure link in CONTRIBUTING.md (#1664)
 
 ### Breaking Changes
 
