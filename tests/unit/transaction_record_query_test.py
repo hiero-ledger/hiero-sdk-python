@@ -170,7 +170,10 @@ def test_transaction_record_query_execute_with_duplicates(transaction_id):
         assert hasattr(result, 'duplicates'), "duplicates attribute must exist"
         assert len(result.duplicates) == 1
         assert result.duplicates[0].transaction_memo == "duplicate"
-
+        from hiero_sdk_python.transaction.transaction_record import TransactionRecord
+        assert isinstance(result.duplicates[0], TransactionRecord)
+        assert result.duplicates[0].transaction_id == transaction_id
+        
 def get_transaction_record_responses(transaction_record):
         return [[
             response_pb2.Response(

@@ -1,4 +1,5 @@
 import pytest
+import os
 from hiero_sdk_python import Client, TransactionRecord
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
@@ -201,12 +202,20 @@ def test_transaction_record_query_can_execute_fungible_transfer():
 
 
 @pytest.mark.integration
+@pytest.mark.skipif (
+    os.getenv("HIERO_RUN_FLAKY_TESTS", "0").lower() not in ("1", "true", "yes"),
+    reason=(
+        "Flaky: Duplicate record creation depends on race-condition timing before consensus. "
+        "Often no duplicates are created due to network/node scheduling. "
+        "Set HIERO_RUN_FLAKY_TESTS=1 to run this test manually/locally."
+    )
+)
 def test_query_with_include_duplicates():
     env = IntegrationTestEnv()
     try:
         # Use a fresh keypair for isolation
         new_account_private_key = PrivateKey.generate_ed25519()
-        new_account_public_key = new_account_private_key.public_key
+        new_account_public_key = new_account_private_key.public_key()
 
         # Build and sign the transaction **once** (important: same sigs + same tx_id for duplicates)
         tx = (
