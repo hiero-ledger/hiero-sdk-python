@@ -206,6 +206,7 @@ def test_query_with_include_duplicates():
     try:
         # Use a fresh keypair for isolation
         new_account_private_key = PrivateKey.generate_ed25519()
+        new_account_public_key = new_account_private_key.public_key
 
         # Build and sign the transaction **once** (important: same sigs + same tx_id for duplicates)
         tx = (
