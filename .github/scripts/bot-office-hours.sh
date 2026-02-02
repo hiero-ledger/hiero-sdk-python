@@ -73,7 +73,7 @@ Details:
 - Time: 14:00 UTC
 - Join Link: [Zoom Meeting]($MEETING_LINK)
 
-Disclaimer: This is an automated reminder. Please verify the schedule [here]($MEETING_LINK) for any changes.
+Disclaimer: This is an automated reminder. Meeting schedules may change; please confirm with maintainers if needed.
 
 From,
 The Python SDK Team
