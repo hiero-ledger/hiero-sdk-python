@@ -142,6 +142,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 
 ### Changed
+- Update Office Hours with direct link instead of the general calendar
 - Removed outdated "Common Issues" section from CONTRIBUTING.md that referenced non-existent docs/common_issues.md (`#1665`)
 - Hide the commit verification bot marker in pull request comments.
 - Added missing type hints to sign method in Transaction class (#1630)
