@@ -21,7 +21,7 @@ const DOC_MERGE_CONFLICTS = 'https://github.com/hiero-ledger/hiero-sdk-python/bl
 const DOC_REBASING = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md';
 const DOC_TESTING = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md';
 const DOC_DISCORD = 'https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md';
-const COMMUNITY_CALLS = 'https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week';
+const COMMUNITY_CALLS = 'https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581';
 
 /**
  * Execute gh CLI command safely
