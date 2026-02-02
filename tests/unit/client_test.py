@@ -2,6 +2,7 @@
 Unit tests for Client methods (eg. from_env, for_testnet, for_mainnet, for_previewnet).
 """
 
+import builtins
 from decimal import Decimal
 import os
 import pytest
@@ -73,7 +74,7 @@ def test_from_env_missing_operator_id_raises_error():
     """Test that from_env raises ValueError when OPERATOR_ID is missing."""
     dummy_key = PrivateKey.generate_ed25519().to_string_der()
 
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, {"OPERATOR_KEY": dummy_key}, clear=True):
             with pytest.raises(ValueError) as exc_info:
                 Client.from_env()
@@ -82,7 +83,7 @@ def test_from_env_missing_operator_id_raises_error():
 
 def test_from_env_missing_operator_key_raises_error():
     """Test that from_env raises ValueError when OPERATOR_KEY is missing."""
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, {"OPERATOR_ID": "0.0.1234"}, clear=True):
             with pytest.raises(ValueError) as exc_info:
                 Client.from_env()
@@ -99,7 +100,7 @@ def test_from_env_with_valid_credentials():
         "OPERATOR_KEY": test_key_str,
     }
 
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, env_vars, clear=True):
             client = Client.from_env()
             assert isinstance(client, Client)
@@ -118,7 +119,7 @@ def test_from_env_with_explicit_network_parameter():
         "NETWORK": "testnet",
     }
 
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, env_vars, clear=True):
             client = Client.from_env(network="mainnet")
             assert client.network.network == "mainnet"
@@ -135,7 +136,7 @@ def test_from_env_defaults_to_testnet():
         "OPERATOR_KEY": test_key_str,
     }
 
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, env_vars, clear=True):
             client = Client.from_env()
             assert client.network.network == "testnet"
@@ -153,7 +154,7 @@ def test_from_env_uses_network_env_var():
         "NETWORK": "previewnet",
     }
 
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, env_vars, clear=True):
             client = Client.from_env()
             assert client.network.network == "previewnet"
@@ -168,7 +169,7 @@ def test_from_env_with_invalid_network_name():
         "OPERATOR_KEY": test_key.to_string_der(),
     }
 
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, env_vars, clear=True):
             with pytest.raises(ValueError, match="Invalid network name"):
                 Client.from_env(network="mars_network")
@@ -182,7 +183,7 @@ def test_from_env_with_malformed_operator_id():
         "OPERATOR_KEY": test_key.to_string_der(),
     }
 
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, env_vars, clear=True):
             with pytest.raises(ValueError, match="Invalid account ID"):
                 Client.from_env()
@@ -195,7 +196,7 @@ def test_from_env_with_malformed_operator_key():
         "OPERATOR_KEY": "not-a-valid-key",
     }
 
-    with patch.object(client_module, "load_dotenv"):
+    with patch("dotenv.load_dotenv"):
         with patch.dict(os.environ, env_vars, clear=True):
             with pytest.raises(ValueError):
                 Client.from_env()
