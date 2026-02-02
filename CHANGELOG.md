@@ -135,6 +135,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
+- Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 
 ### Changed
 
@@ -142,6 +143,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 
 ### Changed
+- Removed outdated "Common Issues" section from CONTRIBUTING.md that referenced non-existent docs/common_issues.md (`#1665`)
 - Hide the commit verification bot marker in pull request comments.
 - Added missing type hints to sign method in Transaction class (#1630)
 - Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
@@ -270,6 +272,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
 - Update `.github/scripts/bot-advanced-check.sh` to unassign unqualified users.
+- Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
 
 ### Removed
 

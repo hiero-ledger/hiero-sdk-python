@@ -43,6 +43,42 @@ parse_ts() {
   fi
 }
 
+# Check for /working command from the specific user within the last X days
+has_recent_working_command() {
+  local issue_num="$1"
+  local user="$2"
+  local days_threshold="$3"
+
+  local NOW_TS=$(date +%s)
+  local cutoff_ts=$((NOW_TS - (days_threshold * 86400)))
+  local cutoff_iso
+  if date --version >/dev/null 2>&1; then
+    cutoff_iso=$(date -u -d "@$cutoff_ts" +"%Y-%m-%dT%H:%M:%SZ")
+  else
+    cutoff_iso=$(date -u -r "$cutoff_ts" +"%Y-%m-%dT%H:%M:%SZ")
+  fi
+  # Fetch recent comments only, filter for user and "/working" string
+  local working_comments
+  working_comments=$(gh api "repos/$REPO/issues/$issue_num/comments?since=$cutoff_iso" \
+     --jq ".[] | select(.user.login == \"$user\") | select(.body | test(\"(^|\\\\s)/working(\\\\s|$)\"; \"i\")) | .created_at")
+
+  if [[ -z "$working_comments" ]]; then
+    return 1 # False
+  fi
+
+  # Double check timestamp just in case API returned older items
+
+  for created_at in $working_comments; do
+    local comment_ts
+    comment_ts=$(parse_ts "$created_at")
+    if (( comment_ts >= cutoff_ts )); then
+      return 0 # True
+    fi
+  done
+
+  return 1 # False
+}
+
 # Quick gh availability/auth checks
 if ! command -v gh >/dev/null 2>&1; then
   echo "ERROR: gh CLI not found. Install it and ensure it's on PATH."
@@ -93,7 +129,7 @@ for ISSUE in $ISSUES; do
       ASSIGNED_AT=$(echo "$ASSIGN_EVENT_JSON" | jq -r '.created_at // empty')
       ASSIGN_SOURCE="assignment_event"
     else
-      # FIX: Do not fallback to issue creation date
+
       ASSIGNED_AT=""
       ASSIGN_SOURCE="not_found"
     fi
@@ -102,13 +138,18 @@ for ISSUE in $ISSUES; do
       ASSIGNED_TS=$(parse_ts "$ASSIGNED_AT")
       ASSIGNED_AGE_DAYS=$(( (NOW_TS - ASSIGNED_TS) / 86400 ))
     else
-      # Safety valve: if assignment event is missing, skip checking to prevent false positives
+
       echo "    [WARN] Could not find 'assigned' event in timeline. Skipping inactivity check for safety."
       continue
     fi
 
     echo "    [INFO] Assignment source: $ASSIGN_SOURCE"
-    echo "    [INFO] Assigned at:      ${ASSIGNED_AT:-(unknown)} (~${ASSIGNED_AGE_DAYS} days ago)"
+    echo "    [INFO] Assigned at:       ${ASSIGNED_AT:-(unknown)} (~${ASSIGNED_AGE_DAYS} days ago)"
+
+    if has_recent_working_command "$ISSUE" "$USER" "$DAYS"; then
+      echo "    [SKIP] User @$USER posted '/working' recently. Resetting timer."
+      continue
+    fi
 
     # Determine PRs cross-referenced from the same repo
     PR_NUMBERS=$(jq -r --arg repo "$REPO" '
@@ -138,7 +179,7 @@ If you're no longer interested, no action is needed.
 
 **Tip:** You can comment \`/unassign\` on any issue to proactively step away before this bot kicks in.
 
-If you'd like to continue working on this later, feel free to comment \`/assign\` to get re-assigned. We'll gladly assign it back to you. 🙂
+If you'd like to continue working on this later, feel free to comment \`/assign\` on the issue to get re-assigned, and open a new PR when you're ready. 🚀
 EOF
 )
           gh issue comment "$ISSUE" --repo "$REPO" --body "$MESSAGE" || echo "WARN: couldn't post comment (gh error)"
@@ -170,6 +211,8 @@ EOF
         echo "    [SKIP] PR #$PR_NUM is not open"
         continue
       fi
+
+
 
       COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate 2>/dev/null || echo "[]")
       LAST_TS_STR=$(jq -r 'last? | (.commit.committer.date // .commit.author.date) // empty' <<<"$COMMITS_JSON" 2>/dev/null || echo "")
