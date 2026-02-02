@@ -258,6 +258,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update merge conflict bot message with web editor tips (#1592)
 - chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
 - chore: clarify wording in the bot-assignment-check.sh (#1748)
+- Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
+
 
 ### Fixed
 - Corrected broken documentation links in SDK developer training files.(#1707)
