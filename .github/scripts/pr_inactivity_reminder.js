@@ -66,7 +66,7 @@ async function postInactivityComment(
   marker,
   inactivityDays,
   discordLink,
-  office_hours_calendar,
+  office_hours_link,
 ) {
   const comment = `${marker}
 Hi @${pr.user.login},
@@ -82,7 +82,7 @@ If you're no longer working on this, please comment \`/unassign\` on the linked 
 Reach out on discord or join our office hours if you need assistance.
 
 - ${discordLink}
-- ${office_hours_calendar} 
+- ${office_hours_link} 
 
 From the Python SDK Team`;
 
@@ -117,7 +117,7 @@ module.exports = async ({ github, context }) => {
   const owner = context.repo.owner;
   const repo = context.repo.repo;
   const discordLink = `[Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)`;
-  const office_hours_calendar = `[Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)`;
+  const office_hours_link = `[Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)`;
   // Unique marker so we can find the bot's own comment later.
   const marker = "<!-- pr-inactivity-bot-marker -->";
 
@@ -190,7 +190,7 @@ module.exports = async ({ github, context }) => {
       marker,
       inactivityDays,
       discordLink,
-      office_hours_calendar,
+      office_hours_link,
     );
 
     if (commented) commentedCount++;

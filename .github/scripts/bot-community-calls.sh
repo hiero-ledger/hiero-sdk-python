@@ -5,6 +5,7 @@ DRY_RUN="${DRY_RUN:-true}"
 
 ANCHOR_DATE="2025-11-12"
 MEETING_LINK="https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581"
+CALENDAR_LINK="https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week"
 
 CANCELLED_DATES=(
   "2025-12-24"
@@ -73,7 +74,7 @@ Details:
 - Time: 14:00 UTC
 - Join Link: [Zoom Meeting]($MEETING_LINK)
 
-Disclaimer: This is an automated reminder. Please verify the schedule [here]($MEETING_LINK) for any changes.
+Disclaimer: This is an automated reminder. Please verify the schedule on the [Hiero Calendar]($CALENDAR_LINK) for any changes.
 EOF
 )
 

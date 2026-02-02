@@ -112,7 +112,7 @@ uv run pytest
 
 - **Blog**: [Hiero Blog](https://hiero.org/blog/)
 - **Videos**: [LFDT YouTube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
-- **Community Calls**: [Hiero Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) (Wednesdays, 2pm UTC)
+- **Community Calls**: [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581) (Wednesdays, 2pm UTC)
 
 ---
 
