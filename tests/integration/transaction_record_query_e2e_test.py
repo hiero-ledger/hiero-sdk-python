@@ -201,66 +201,67 @@ def test_transaction_record_query_can_execute_fungible_transfer():
 
 
 @pytest.mark.integration
-def test_query_with_include_duplicates(
-    env: IntegrationTestEnv,
-):  # assuming env fixture provides IntegrationTestEnv
-    # Use a fresh keypair for isolation
-    new_account_private_key = PrivateKey.generate_ed25519()
-    new_account_public_key = new_account_private_key.public_key()
+def test_query_with_include_duplicates():
+    env = IntegrationTestEnv()
+    try:
+        # Use a fresh keypair for isolation
+        new_account_private_key = PrivateKey.generate_ed25519()
 
-    # Build and sign the transaction **once** (important: same sigs + same tx_id for duplicates)
-    tx = (
-        AccountCreateTransaction()
-        .set_key_without_alias(new_account_public_key)
-        .set_initial_balance(Hbar.from_tinybars(10_000_000))  # 0.1 HBAR
-    )
+        # Build and sign the transaction **once** (important: same sigs + same tx_id for duplicates)
+        tx = (
+            AccountCreateTransaction()
+            .set_key_without_alias(new_account_public_key)
+            .set_initial_balance(Hbar.from_tinybars(10_000_000))  # 0.1 HBAR
+        )
 
-    # Freeze and sign (this sets the tx_id based on payer/validStart)
-    tx.freeze_with(env.client)
-    tx.sign(env.operator_private_key)  # assuming env has operator key for payer
+        # Freeze and sign (this sets the tx_id based on payer/validStart)
+        tx.freeze_with(env.client)
+        tx.sign(env.operator_private_key)  # assuming env has operator key for payer
 
-    # Step 1: Submit once → success
-    receipt = tx.execute(env.client)
-    tx_id = receipt.transaction_id  # or tx.transaction_id
+        # Step 1: Submit once → success
+        receipt = tx.execute(env.client)
+        tx_id = receipt.transaction_id  # or tx.transaction_id
 
-    assert receipt.status == ResponseCode.SUCCESS  # or equivalent enum
+        assert receipt.status == ResponseCode.SUCCESS  # or equivalent enum
 
-    # Step 2: Submit the **same tx object** again → should be duplicate
-    duplicate_receipt = tx.execute(env.client)
+        # Step 2: Submit the **same tx object** again → should be duplicate
+        duplicate_receipt = tx.execute(env.client)
 
-    # On testnet/local, this should be DUPLICATE_TRANSACTION
-    assert duplicate_receipt.status in (
-        ResponseCode.DUPLICATE_TRANSACTION,
-        ResponseCode.SUCCESS,
-    )  # sometimes timing allows second to win
+        # On testnet/local, this should be DUPLICATE_TRANSACTION
+        assert duplicate_receipt.status in (
+            ResponseCode.DUPLICATE_TRANSACTION,
+            ResponseCode.SUCCESS,
+        )  # sometimes timing allows second to win
 
-    # Optional: submit a third time for more duplicates
-    tx.execute(env.client)  # ignore receipt
+        # Optional: submit a third time for more duplicates
+        tx.execute(env.client)  # ignore receipt
 
-    # Give the network a moment to process (usually fast, but helps reliability)
-    # import time; time.sleep(1)  # if needed on slow networks
+        # Give the network a moment to process (usually fast, but helps reliability)
+        # import time; time.sleep(1)  # if needed on slow networks
 
-    # Step 3: Query with include_duplicates=True
-    record = (
-        TransactionRecordQuery()
-        .set_transaction_id(tx_id)
-        .set_include_duplicates(True)
-        .execute(env.client)
-    )
+        # Step 3: Query with include_duplicates=True
+        record = (
+            TransactionRecordQuery()
+            .set_transaction_id(tx_id)
+            .set_include_duplicates(True)
+            .execute(env.client)
+        )
 
-    # Core assertions for the feature
-    assert record.transaction_id == tx_id
-    assert (
-        len(record.duplicate_transaction_records) >= 1
-    ), "No duplicate records found — include_duplicates=True didn't return expected duplicates"
+        # Core assertions for the feature
+        assert record.transaction_id == tx_id
+        assert (
+            len(record.duplicates) >= 2
+        ), f"Expected at least 2 duplicates after 3 submissions, got {len(record.duplicates)}"
 
-    # Optional stronger checks
-    assert (
-        record.duplicate_transaction_records[0].consensus_timestamp
-        > record.consensus_timestamp
-    ), "Duplicates should be in chronological order after the main record"
+        # Verify duplicates are TransactionRecord instances
+        if record.duplicates:
+            assert isinstance(record.duplicates[0], TransactionRecord)
+            # Verify duplicate has expected fields populated
+            for dup in record.duplicates:
+                assert dup.receipt is not None, "Duplicate record should have receipt"
 
-    # If you submitted 3 times, expect >=2 duplicates, etc.
-    # print(f"Found {len(record.duplicate_transaction_records)} duplicates")  # for debug
+        # If you submitted 3 times, expect >=2 duplicates, etc.
+        # print(f"Found {len(record.duplicates)} duplicates")  # for debug
 
-    env.close()
+    finally:
+        env.close()

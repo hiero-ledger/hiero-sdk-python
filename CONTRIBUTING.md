@@ -22,7 +22,7 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 
 **Get Started By Reading:**
 
-- [Project Structure](docs/sdk_developers/project_structure.md)
+- [Project Structure](docs/sdk_developers/training/setup/project_structure.md)
 - [Setup](docs/sdk_developers/training/setup)
 - [Setup (Windows)](docs/sdk_developers/training/setup/setup_windows.md)
 - [Workflow](docs/sdk_developers/training/workflow)
@@ -161,13 +161,6 @@ git rebase main -S
 ```
 
 **Full guide:** [Rebasing Guide](docs/sdk_developers/rebasing.md)
-
----
-
-## Common Issues
-
-**HELP! I have an issue...**  
-No worries, we're here to help. But please first see the [Common Issues Guide](docs/common_issues.md).
 
 
 ---

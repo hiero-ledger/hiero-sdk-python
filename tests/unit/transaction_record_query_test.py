@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
@@ -130,16 +130,12 @@ def test_transaction_record_query_execute_with_duplicates(transaction_id):
         receipt=receipt,
         memo="primary",
         transactionFee=100000,
-        transactionID=transaction_id._to_proto(),          # ← add this
-        transactionHash=b'\x01' * 48,                      # ← add this (matches your non-duplicate test)
     )
     
     duplicate_record = transaction_record_pb2.TransactionRecord(
         receipt=receipt,
         memo="duplicate",
-        transactionFee=100000,
-        transactionID=transaction_id._to_proto(),          # ← add this
-        transactionHash=b'\x01' * 48,                      # ← add this (matches your non-duplicate test)
+        transactionFee=100000,     
     )
 
     response_sequences = [[
@@ -153,15 +149,7 @@ def test_transaction_record_query_execute_with_duplicates(transaction_id):
                 )
             )
         ),
-        response_pb2.Response(
-            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
-                header=response_header_pb2.ResponseHeader(
-                    nodeTransactionPrecheckCode=ResponseCode.OK,
-                    responseType=ResponseType.COST_ANSWER,
-                    cost=2
-                )
-            )
-        ),
+
         response_pb2.Response(
             transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
                 header=response_header_pb2.ResponseHeader(
