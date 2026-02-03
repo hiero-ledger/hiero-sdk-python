@@ -34,7 +34,7 @@
 /.github/**                                    @hiero-ledger/hiero-sdk-python/python-maintainers @hiero-ledger/github-maintainers
 
 # Python packaging & build system
-/pyproject.toml                                 @hiero-ledger/hiero-sdk-python/python-maintainers
+/pyproject.toml                                 @hiero-ledger/hiero-sdk-python/python-maintainers @hiero-ledger/github-maintainers @hiero-ledger/tsc
 
 # Tooling
 /mypy.ini                                      @hiero-ledger/hiero-sdk-python/python-maintainers
