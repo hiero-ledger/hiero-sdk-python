@@ -2,7 +2,7 @@
 ##### Global Protection Rule ######
 ###################################
 # Catch-all rule for all files not covered by more specific rules.
-*                                              @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
+*                                               @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
 
 
 ############################
@@ -10,17 +10,17 @@
 ############################
 
 # Python source
-/src/**                                        @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
+/src/**                                         @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Tests
-/tests/**                                      @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
+/tests/**                                       @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Examples & docs
-/examples/**                                   @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
-/docs/**                                       @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
+/examples/**                                    @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
+/docs/**                                        @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
 
 # Workflow
-/CONTRIBUTING.md                               @hiero-ledger/hiero-sdk-python/python-triage @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
+/CONTRIBUTING.md                                @hiero-ledger/hiero-sdk-python/python-committers @hiero-ledger/hiero-sdk-python/python-maintainers
 
 #########################
 #####  Core Files  ######
