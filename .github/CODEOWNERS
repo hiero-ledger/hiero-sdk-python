@@ -2,7 +2,7 @@
 ##### Global Protection Rule ######
 ###################################
 # Catch-all rule for all files not covered by more specific rules.
-*                                               @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
+*                                              @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
 
 
 ############################
@@ -10,17 +10,17 @@
 ############################
 
 # Python source
-/src/**                                         @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
+/src/**                                        @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
 
 # Tests
-/tests/**                                       @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
+/tests/**                                      @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
 
 # Examples & docs
-/examples/**                                    @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
-/docs/**                                        @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
+/examples/**                                   @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
+/docs/**                                       @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
 
 # Workflow
-/CONTRIBUTING.md                                @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
+/CONTRIBUTING.md                               @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
 
 #########################
 #####  Core Files  ######
@@ -34,7 +34,7 @@
 /.github/**                                    @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
 
 # Python packaging & build system
-/pyproject.toml                                 @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers @hiero-ledger/tsc
+/pyproject.toml                                @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers @hiero-ledger/tsc
 
 # Tooling
 /mypy.ini                                      @hiero-ledger/hiero-sdk-python-maintainers
@@ -43,11 +43,11 @@
 
 # Self-protection
 /MAINTAINERS.md                                @hiero-ledger/hiero-sdk-python-maintainers
-/CODEOWNERS                            @hiero-ledger/github-maintainers
+/CODEOWNERS                                    @hiero-ledger/github-maintainers
 
 # Documentation & legal
 /README.md                                     @hiero-ledger/hiero-sdk-python-maintainers
-/LICENSE                                        @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers @hiero-ledger/tsc 
+/LICENSE                                       @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers @hiero-ledger/tsc 
 
 # Git ignore definitions
 **/.gitignore                                  @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
