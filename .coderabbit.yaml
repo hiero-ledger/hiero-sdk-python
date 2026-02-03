@@ -382,6 +382,10 @@ reviews:
         - Duplicate patterns that are shadowed by broader ones, that do not improve clarity
         - Rules referencing directories or files not present in the repo
 
+        EXCEPTION:
+        The following paths are intentional future-protection rules and MUST
+        NOT be flagged as dead even if the file does not currently exist:
+        - /CODEOWNERS
         ----------------------------------------------------------
         EXPLICIT NON-GOALS (CRITICAL IMPORTANCE)
         ----------------------------------------------------------
