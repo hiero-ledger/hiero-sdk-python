@@ -47,7 +47,7 @@
 
 # Documentation & legal
 /README.md                                     @hiero-ledger/hiero-sdk-python/python-maintainers
-/LICENSE                                     @hiero-ledger/hiero-sdk-python/python-maintainers @hiero-ledger/tsc
+/LICENSE                                        @hiero-ledger/hiero-sdk-python/python-maintainers @hiero-ledger/github-maintainers @hiero-ledger/tsc 
 
 # Git ignore definitions
 **/.gitignore                                  @hiero-ledger/hiero-sdk-python/python-maintainers
