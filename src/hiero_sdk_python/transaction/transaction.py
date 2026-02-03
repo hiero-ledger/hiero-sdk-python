@@ -14,6 +14,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (Transaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
@@ -367,7 +368,10 @@ class Transaction(_Executable):
         response.transaction = self
         response.transaction_id = self.transaction_id
 
-        return response.get_receipt(client)
+        if wait_for_receipt:
+            return response.get_receipt(client)
+        
+        return response
 
     def is_signed_by(self, public_key):
         """
