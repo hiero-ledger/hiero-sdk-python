@@ -43,7 +43,7 @@
 
 # Self-protection
 /MAINTAINERS.md                                @hiero-ledger/hiero-sdk-python/python-maintainers
-/.github/CODEOWNERS                            @hiero-ledger/hiero-sdk-python/python-maintainers
+/CODEOWNERS                            @hiero-ledger/github-maintainers
 
 # Documentation & legal
 /README.md                                     @hiero-ledger/hiero-sdk-python/python-maintainers
