@@ -2,7 +2,7 @@
 ##### Global Protection Rule ######
 ###################################
 # Catch-all rule for all files not covered by more specific rules.
-*                                              @hiero-ledger/hiero-sdk-python-committers @hiero-ledger/hiero-sdk-python-maintainers
+*                                              @hiero-ledger/hiero-sdk-python-maintainers
 
 
 ############################
@@ -28,10 +28,10 @@
 # Must be placed last to ensure enforcement over all other rules
 
 # GitHub configuration and workflows
-/.github/ISSUE_TEMPLATE                        @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
-/.github/scripts                               @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
-/.github/workflows                             @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
 /.github/**                                    @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
+/.github/ISSUE_TEMPLATE/**                     @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
+/.github/scripts/**                            @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
+/.github/workflows/**                          @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
 
 # Python packaging & build system
 /pyproject.toml                                @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers @hiero-ledger/tsc
@@ -43,6 +43,7 @@
 
 # Self-protection
 /MAINTAINERS.md                                @hiero-ledger/hiero-sdk-python-maintainers
+/.github/CODEOWNERS                            @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
 /CODEOWNERS                                    @hiero-ledger/github-maintainers
 
 # Documentation & legal
@@ -52,4 +53,3 @@
 # Git ignore definitions
 **/.gitignore                                  @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
 **/.gitignore.*                                @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
-/.gitignore                                    @hiero-ledger/hiero-sdk-python-maintainers @hiero-ledger/github-maintainers
