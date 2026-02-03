@@ -202,15 +202,17 @@ def test_transaction_record_query_can_execute_fungible_transfer():
 
 
 @pytest.mark.integration
-@pytest.mark.skipif (
+@pytest.mark.skipif(
     os.getenv("HIERO_RUN_FLAKY_TESTS", "0").lower() not in ("1", "true", "yes"),
     reason=(
         "Flaky: Duplicate record creation depends on race-condition timing before consensus. "
         "Often no duplicates are created due to network/node scheduling. "
         "Set HIERO_RUN_FLAKY_TESTS=1 to run this test manually/locally."
-    )
+    ),
 )
 def test_query_with_include_duplicates():
+    if not (os.getenv("OPERATOR_ID") and os.getenv("OPERATOR_KEY")):
+        pytest.skip("OPERATOR_ID/OPERATOR_KEY not set; skipping E2E test.")
     env = IntegrationTestEnv()
     try:
         # Use a fresh keypair for isolation
@@ -226,7 +228,7 @@ def test_query_with_include_duplicates():
 
         # Freeze and sign (this sets the tx_id based on payer/validStart)
         tx.freeze_with(env.client)
-        tx.sign(env.operator_private_key)  # assuming env has operator key for payer
+        tx.sign(env.operator_key)  # assuming env has operator key for payer
 
         # Step 1: Submit once → success
         receipt = tx.execute(env.client)
@@ -272,6 +274,6 @@ def test_query_with_include_duplicates():
 
         # If you submitted 3 times, expect >=2 duplicates, etc.
         # print(f"Found {len(record.duplicates)} duplicates")  # for debug
-
     finally:
         env.close()
+        
