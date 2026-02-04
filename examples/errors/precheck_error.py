@@ -30,17 +30,10 @@ def main() -> None:
         TransferTransaction()
         .add_hbar_transfer(operator_id, -1)
         .add_hbar_transfer(AccountId(0, 0, 3), 1)
-    )
-
-    # Set the invalid duration directly on the attribute
-    transaction.transaction_valid_duration = 0
-
-    transaction = (
-        transaction
+        .set_transaction_valid_duration(0)
         .freeze_with(client)
         .sign(operator_key)
     )
-    
 
     try:
         print("Executing transaction...")

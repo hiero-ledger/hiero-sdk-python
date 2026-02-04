@@ -1,5 +1,5 @@
 from __future__ import annotations 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from hiero_sdk_python.response_code import ResponseCode
 
@@ -57,7 +57,7 @@ class MaxAttemptsError(Exception):
         last_error (Exception): The last error that occurred during the final attempt
     """
 
-    def __init__(self, message: str, node_id: str, last_error: Optional[Exception] = None) -> None:
+    def __init__(self, message: str, node_id: str, last_error: Optional[Union[Exception, str]] = None) -> None:
         self.node_id = node_id
         self.last_error = last_error
 
@@ -79,35 +79,38 @@ class MaxAttemptsError(Exception):
 class ReceiptStatusError(Exception):
     """
     Exception raised when a transaction receipt contains an error status.
-
+    
     Attributes:
         status (ResponseCode): The error status code from the receipt
-        transaction_id (TransactionId): The ID of the transaction that failed
+        transaction_id (TransactionId): The ID of the transaction that failed (Optional)
         transaction_receipt (TransactionReceipt): The receipt containing the error status
         message (str): The error message describing the failure
     """
-
+    
     def __init__(
-        self,
-        status: ResponseCode,
-        transaction_id: TransactionId,
-        transaction_receipt: TransactionReceipt,
-        message: Optional[str] = None,
+        self, 
+        status: ResponseCode, 
+        transaction_id: Optional[TransactionId], 
+        transaction_receipt: TransactionReceipt, 
+        message: Optional[str] = None
     ) -> None:
         self.status = status
         self.transaction_id = transaction_id
         self.transaction_receipt = transaction_receipt
-
+        
         # Build a default message if none provided
         if message is None:
             status_name = ResponseCode(status).name
-            message = f"Receipt for transaction {transaction_id} contained error status: {status_name} ({status})"
-
+            if transaction_id:
+                message = f"Receipt for transaction {transaction_id} contained error status: {status_name} ({status})"
+            else:
+                message = f"Receipt contained error status: {status_name} ({status})"
+            
         self.message = message
         super().__init__(self.message)
-
+    
     def __str__(self) -> str:
         return self.message
-
+    
     def __repr__(self) -> str:
         return f"ReceiptStatusError(status={self.status}, transaction_id={self.transaction_id})"

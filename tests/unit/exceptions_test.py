@@ -51,3 +51,35 @@ def test_receipt_status_error_typing():
     # Case 2: Custom message
     err_custom = ReceiptStatusError(ResponseCode.FAIL_INVALID, tx_id_mock, receipt_mock, "Fatal receipt error")
     assert str(err_custom) == "Fatal receipt error"
+
+def test_receipt_status_error_with_none_transaction_id():
+    """Test ReceiptStatusError when transaction_id is None."""
+    receipt_mock = Mock()
+    
+    # Case 1: None transaction_id with default message
+    err = ReceiptStatusError(ResponseCode.INVALID_ACCOUNT_ID, None, receipt_mock)
+    assert err.status == ResponseCode.INVALID_ACCOUNT_ID
+    assert err.transaction_id is None
+    assert err.transaction_receipt is receipt_mock
+    # Message should not include transaction ID when it's None
+    assert "contained error status: INVALID_ACCOUNT_ID" in str(err)
+    assert "transaction" not in str(err).split("contained")[0]  # No tx ID before "contained"
+    
+    # Case 2: None transaction_id with custom message
+    err_custom = ReceiptStatusError(ResponseCode.FAIL_INVALID, None, receipt_mock, "No transaction ID available")
+    assert err_custom.transaction_id is None
+    assert str(err_custom) == "No transaction ID available"
+
+def test_precheck_error_with_none_transaction_id():
+    """Test PrecheckError when transaction_id is None."""
+    # Case 1: None transaction_id with default message
+    err = PrecheckError(ResponseCode.INSUFFICIENT_ACCOUNT_BALANCE, None)
+    assert err.status == ResponseCode.INSUFFICIENT_ACCOUNT_BALANCE
+    assert err.transaction_id is None
+    expected_msg = f"Transaction failed precheck with status: INSUFFICIENT_ACCOUNT_BALANCE ({ResponseCode.INSUFFICIENT_ACCOUNT_BALANCE})"
+    assert str(err) == expected_msg
+    
+    # Case 2: None transaction_id with custom message
+    err_custom = PrecheckError(ResponseCode.INVALID_SIGNATURE, None, "Missing transaction context")
+    assert err_custom.transaction_id is None
+    assert str(err_custom) == "Missing transaction context"

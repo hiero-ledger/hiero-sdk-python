@@ -15,7 +15,6 @@ from hiero_sdk_python import (
 from hiero_sdk_python.exceptions import ReceiptStatusError
 
 def main() -> None:
-    # Client.from_env() automatically loads .env and sets up the operator
     client = Client.from_env()
     
     operator_id = client.operator_account_id
@@ -32,18 +31,13 @@ def main() -> None:
 
     try:
         print("Executing transaction...")
-        # execute() submits the transaction to the network and returns a receipt
-        # Note: this does NOT automatically raise an exception if the transaction fails post-consensus.
         receipt = transaction.execute(client)
         print(f"Transaction submitted. ID: {receipt.transaction_id}")
 
         # Check if the execution raised something other than SUCCESS
-        # If not, we raise our custom ReceiptStatusError for handling.
         if receipt.status is None:
             raise ValueError("Receipt missing status")
         if receipt.status != ResponseCode.SUCCESS:
-            if not receipt.transaction_id:
-                raise ValueError("Receipt missing transaction_id; cannot raise ReceiptStatusError")
             raise ReceiptStatusError(receipt.status, receipt.transaction_id, receipt)
 
         print("Transaction successful!")
