@@ -91,13 +91,6 @@ class Client:
             # Defaults to testnet if no env vars set
             client = Client.from_env()
         """
-        try:
-            from dotenv import load_dotenv
-        except ImportError as e:
-            raise ImportError(
-                "Client.from_env() requires python-dotenv"
-            ) from e
-        
         load_dotenv()
 
         if network:
