@@ -13,7 +13,7 @@ MULTIPLIER = 1000003
 P3 = 26**3
 P5 = 26**5
 
-def parse_from_string(address: str):
+def parse_from_string(address: str) -> tuple[str, str, str, str | None]:
     """
     Parse an address string of the form: <shard>.<realm>.<num>[-<checksum>]
 
