@@ -245,6 +245,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
+- chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
 
 ### Fixed
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
