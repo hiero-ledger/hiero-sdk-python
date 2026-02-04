@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Union
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
 from hiero_sdk_python.executable import _Method
@@ -88,7 +88,7 @@ class TokenNftInfoQuery(Query):
             query_func=channel.token.getTokenNftInfo
         )
 
-    def execute(self, client: Client) -> TokenNftInfo:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> TokenNftInfo:
         """
         Executes the nft info query.
         
@@ -99,6 +99,7 @@ class TokenNftInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TokenNftInfo: The token nft info from the network
@@ -109,7 +110,7 @@ class TokenNftInfoQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return TokenNftInfo._from_proto(response.tokenGetNftInfo.nft)
 
