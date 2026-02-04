@@ -11,6 +11,7 @@ from hiero_sdk_python.client import client as client_module
 
 from hiero_sdk_python import Client, AccountId, PrivateKey
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.node import _Node
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
@@ -502,11 +503,9 @@ def test_generate_transaction_id_returns_transaction_id(monkeypatch):
     client = Client.for_testnet()
     client.operator_account_id = AccountId(0, 0, 1234)
 
-    fake_txid = MagicMock(spec=TransactionId)
-    monkeypatch.setattr("hiero_sdk_python.transaction.transaction_id.TransactionId.generate", lambda account_id: fake_txid)
-
     txid = client.generate_transaction_id()
-    assert txid is fake_txid
+    assert isinstance(txid, TransactionId)
+    assert txid.account_id == client.operator_account_id
 
     client.close()
 
@@ -515,16 +514,13 @@ def test_get_node_account_ids_returns_correct_list():
     """Test that get_node_account_ids returns a list of node AccountIds."""
     client = Client.for_testnet()
 
-    # Mock some nodes with _account_id attributes
-    mock_node1 = MagicMock()
-    mock_node1._account_id = AccountId(0, 0, 1001)
-    mock_node2 = MagicMock()
-    mock_node2._account_id = AccountId(0, 0, 1002)
-
-    client.network.nodes = [mock_node1, mock_node2]
+    # Some nodes with _account_id attributes
+    node1 = _Node(AccountId(0, 0, 101), "127.0.0.1:50211", None)
+    node2 = _Node(AccountId(0, 0, 102), "127.0.0.1:50212", None)
+    client.network.nodes = [node1, node2]
 
     node_ids = client.get_node_account_ids()
-    assert node_ids == [mock_node1._account_id, mock_node2._account_id]
+    assert node_ids == [node1._account_id, node2._account_id]
 
     client.close()
 

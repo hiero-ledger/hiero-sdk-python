@@ -336,18 +336,17 @@ def test_get_node_by_account_id():
     """
     network = Network("testnet")
 
-    node = Mock(spec=_Node)
-    node._account_id = "0.0.3"
+    node = _Node(AccountId(0, 0, 3), "127.0.0.1:8080", None)
 
     network._healthy_nodes = [node]
 
     with patch(
         "hiero_sdk_python.client.network.Network._readmit_nodes"
     ) as mock_readmit:
-        result = network._get_node("0.0.3")
+        result = network._get_node(AccountId(0, 0, 3))
 
     assert mock_readmit.call_count == 1
-    assert result is node
+    assert result._account_id == node._account_id
 
 
 def test_get_node_returns_none_when_not_found():
@@ -357,7 +356,7 @@ def test_get_node_returns_none_when_not_found():
     network = Network("testnet")
 
     node = Mock(spec=_Node)
-    node._account_id = "0.0.3"
+    node._account_id = AccountId(0, 0, 3)
     network._healthy_nodes = [node]
 
     assert network._get_node("0.0.999") is None

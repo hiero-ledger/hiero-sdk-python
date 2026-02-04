@@ -11,7 +11,8 @@ import grpc
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.hapi.services import query_pb2
+from hiero_sdk_python.hapi.services import query_pb2, transaction_pb2
+from hiero_sdk_python.logger.logger import Logger
 from hiero_sdk_python.response_code import ResponseCode
 
 if TYPE_CHECKING:
@@ -159,7 +160,7 @@ class _Executable(ABC):
             warnings.warn(
                 "grpc_deadline should be smaller than request_timeout. "
                 "This configuration may cause operations to fail unexpectedly.",
-                UserWarning
+                UserWarning,
             )
 
         self._grpc_deadline = float(grpc_deadline)
@@ -190,7 +191,7 @@ class _Executable(ABC):
             warnings.warn(
                 "request_timeout should be larger than grpc_deadline. "
                 "This configuration may cause operations to fail unexpectedly.",
-                UserWarning
+                UserWarning,
             )
 
         self._request_timeout = float(request_timeout)
@@ -368,7 +369,7 @@ class _Executable(ABC):
         if not self.node_account_ids:
             raise RuntimeError("No healthy nodes available for execution")
 
-    def _should_retry_exponentially(self, err) -> bool:
+    def _should_retry_exponentially(self, err: Exception) -> bool:
         """
         Determine whether a gRPC error represents a failure that should be
         retried using exponential backoff.
@@ -379,17 +380,18 @@ class _Executable(ABC):
                 grpc.StatusCode.UNAVAILABLE,
                 grpc.StatusCode.RESOURCE_EXHAUSTED,
             ) or (
-                err.code() == grpc.StatusCode.INTERNAL and bool(RST_STREAM.search(err.details()))
+                err.code() == grpc.StatusCode.INTERNAL
+                and bool(RST_STREAM.search(err.details()))
             )
-        
+
         return True
 
     def _calculate_backoff(self, attempt: int):
         """Calculate backoff for the given attempt, attempt start from 0"""
         return min(self._max_backoff, self._min_backoff * (2 ** (attempt + 1)))
-    
+
     def _handle_unhealthy_node(self, proto_request, attempt, logger, err) -> bool:
-        """Hnadle node switching and backoff for unhealthy node"""
+        """Handle node switching and backoff for unhealthy node"""
         # Check if the request is a transaction receipt or record because they are single node requests
         if _is_transaction_receipt_or_record_request(proto_request):
             _delay_for_attempt(
@@ -406,7 +408,6 @@ class _Executable(ABC):
 
         self._advance_node_index()
         return True
-
 
     def _execute(self, client: "Client", timeout: Optional[Union[int, float]] = None):
         """
@@ -432,7 +433,7 @@ class _Executable(ABC):
         """
         self._resolve_execution_config(client, timeout)
 
-        err_persistant: Optional[Exception] = None
+        err_persistant = None
         tx_id = getattr(self, "transaction_id", None)
 
         logger = client.logger
@@ -466,7 +467,9 @@ class _Executable(ABC):
             proto_request = self._make_request()
 
             if not node.is_healthy():
-                self._handle_unhealthy_node(proto_request, attempt, logger, err_persistant)
+                self._handle_unhealthy_node(
+                    proto_request, attempt, logger, err_persistant
+                )
                 continue
 
             # Execute the GRPC call
@@ -479,7 +482,7 @@ class _Executable(ABC):
                     raise e
 
                 client.network._increase_backoff(node)
-                err_persistant = f"Status: {e.code()}, Details: {e.details()}"
+                err_persistant = e
                 self._advance_node_index()
                 continue
 
@@ -530,7 +533,9 @@ class _Executable(ABC):
         )
 
 
-def _is_transaction_receipt_or_record_request(request):
+def _is_transaction_receipt_or_record_request(
+    request: Union[transaction_pb2.Transaction, query_pb2.Query],
+) -> bool:
     if not isinstance(request, query_pb2.Query):
         return False
 
@@ -539,7 +544,7 @@ def _is_transaction_receipt_or_record_request(request):
     )
 
 
-def _delay_for_attempt(request_id: str, backoff: float, attempt: int, logger, error):
+def _delay_for_attempt(request_id: str, backoff: float, attempt: int, logger: Logger, error) -> None:
     """
     Delay for the specified backoff period before retrying.
 
@@ -547,11 +552,11 @@ def _delay_for_attempt(request_id: str, backoff: float, attempt: int, logger, er
         attempt (int): The current attempt number (0-based)
         backoff (float): The current backoff period in seconds
     """
-    logger.trace(f"Retrying request attempt", "requestId", request_id, "delay", backoff, "attempt", attempt, "error", error,)
+    logger.trace("Retrying request attempt", "requestId", request_id, "delay", backoff, "attempt", attempt, "error", error,)
     time.sleep(backoff)
 
 
-def _execute_method(method, proto_request, timeout):
+def _execute_method(method, proto_request, timeout: float):
     """
     Executes either a transaction or query method with the given protobuf request.
 

@@ -246,7 +246,7 @@ class Network:
             Optional[_Node]: The matching node, or None if not found.
         """
         self._readmit_nodes()
-        for node in self._healthy_nodes:
+        for node in self.nodes:
             if node._account_id == account_id:
                 return node
         return None
