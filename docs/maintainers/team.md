@@ -22,6 +22,12 @@ GitHub IDs and names are provided as listed on GitHub.
 | Priyanshu          | @tech0priyanshu    |
 | Akshat              | @Akshat8510        |
 | Nadine Loepfe      | @nadineloepfe      |
+| Mounil2005         | @Mounil2005        |
+| parvninama         | @parvninama        |
+| drtoxic69          | @drtoxic69         |
+| prajeeta15         | @prajeeta15        |
+| undefinedIsMyLife  | @undefinedIsMyLife |
+| cheese-cakee       | @cheese-cakee      |
 
 [View Triage Team on GitHub](https://github.com/orgs/hiero-ledger/teams/hiero-sdk-python-triage)
 
@@ -35,6 +41,10 @@ GitHub IDs and names are provided as listed on GitHub.
 | Manish Dait     | @manishdait     |
 | Dosi Kolev      | @Dosik13        |
 | Nadine Loepfe   | @nadineloepfe   |
+| Adityarya11     | @Adityarya11    |
+| MonaaEid        | @MonaaEid       |
+| aceppaluni      | @aceppaluni     |
+| AntonioCeppellini |@AntonioCeppellini  |
 
 [View Committer Team on GitHub](https://github.com/orgs/hiero-ledger/teams/hiero-sdk-python-committers)
 
@@ -47,6 +57,7 @@ GitHub IDs and names are provided as listed on GitHub.
 | Richard Bair  | @rbair23       |
 | Sophie Bulloch  | @exploreriii   |
 | Nadine Loepfe| @nadineloepfe  |
+| manishdait | @manishdait      |
 
 [View Maintainer Team on GitHub](https://github.com/orgs/hiero-ledger/teams/hiero-sdk-python-maintainers)
 
