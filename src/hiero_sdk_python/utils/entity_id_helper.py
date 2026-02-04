@@ -16,12 +16,17 @@ P5 = 26**5
 def parse_from_string(address: str):
     """
     Parse an address string of the form: <shard>.<realm>.<num>[-<checksum>]
+
+    Args:
+        address: The entity ID string to parse.
+
     Examples:
         "0.0.123"
         "0.0.123-abcde"
 
     Returns:
-        An instance of cls with shard, realm, num, and optional checksum.
+        tuple[str, str, str, str | None]: A tuple of (shard, realm, num, checksum)
+            where checksum is None if not present in the input string.
     """
     match = ID_REGEX.match(address)
     if not match:

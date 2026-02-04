@@ -11,6 +11,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Tests
 
 - Added tests for ProtoBuf Training Example Implementation
+- Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)
 - format black `tests/unit/hbar*.py`.(#1538)
 - Formatted `tests/unit/conftest.py` with black for code style consistency. (#1522)
 - format `black tests/unit/nft_id_test.py` with Black.(#1544)
@@ -29,6 +30,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted `ethereum_transaction_test.py` using Black.
 - Formatted client_test.py using Black.
 - Format tests/unit/query*.py using black (#1547)
+- Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
 - Added Protobuf Training guide to enhance developer understanding of proto serialization
@@ -138,13 +140,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
+- Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 
 ### Changed
 
 ### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
+- Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+- Update `verify_freeze()` to treat only ACCOUNT_FROZEN_FOR_TOKEN as a successful freeze verification (#1515)
+- Updated team.md with new triage, committers and maintainer (#1692)
+- Removed outdated "Common Issues" section from CONTRIBUTING.md that referenced non-existent docs/common_issues.md (`#1665`)
 - Hide the commit verification bot marker in pull request comments.
 - Added missing type hints to sign method in Transaction class (#1630)
 - Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
@@ -273,6 +280,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
 - Update `.github/scripts/bot-advanced-check.sh` to unassign unqualified users.
+- Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
 
 ### Removed
 
