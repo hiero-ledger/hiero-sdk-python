@@ -81,6 +81,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `.github/workflows/bot-pr-auto-draft-on-changes.yml` to automatically convert PRs to draft and notify authors when reviewers request changes.
 - Add beginner issue template
 - Add relevant examples to the beginner issue template
+- Add Github CODEOWNERS
 - Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
 - Phase 2 of the inactivity-unassign bot: Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added `__str__()` to CustomFixedFee and updated examples and tests accordingly.
