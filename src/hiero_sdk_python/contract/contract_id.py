@@ -149,6 +149,19 @@ class ContractId:
 
         return f"{self.shard}.{self.realm}.{self.contract}"
 
+    def __repr__(self) -> str:
+        """
+        Returns a detailed string representation of the ContractId for debugging.
+
+        Returns:
+            str: ContractId(shard=X, realm=Y, contract=Z) or
+            ContractId(shard=X, realm=Y, evm_address=...) if evm_address is set.
+        """
+        if self.evm_address is not None:
+            return f"ContractId(shard={self.shard}, realm={self.realm}, evm_address={self.evm_address.hex()})"
+
+        return f"ContractId(shard={self.shard}, realm={self.realm}, contract={self.contract})"
+
     def to_evm_address(self) -> str:
         """
         Converts the ContractId to a 20-byte EVM address string (hex).
