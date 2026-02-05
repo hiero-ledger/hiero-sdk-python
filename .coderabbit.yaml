@@ -293,6 +293,82 @@ reviews:
       - Instead, aggregate all out-of-scope issues into a single comment with a list of recommendations for one or more follow-up issues that can be created.
   path_instructions:
     # --- CODEOWNERS REVIEW INSTRUCTIONS ---
+    - path: "src/hiero_sdk_python/**/*"
+      instructions: |
+        You are reviewing the `src/hiero_sdk_python/file` module in the `hiero-sdk-python` repository.
+
+        This module handles:
+          - File creation
+          - File append (chunking logic)
+          - File update
+          - Memo handling
+          - Large content segmentation
+
+        This is a critical SDK component. Review must be architecture-aware.
+
+        Context:
+          - SDK uses protobuf-based transaction bodies
+          - Follows builder pattern across transactions
+          - Must preserve backward compatibility
+          - Supports freeze(), sign(), and execution logic
+          - Chunked operations must be deterministic
+
+        Review Checklist:
+
+        1) API Consistency
+          - Match patterns used in token, account, and contract modules
+          - Method naming consistency
+          - Optional parameter handlin
+        2) Transaction Builder Pattern
+          - Proper protobuf body construction
+          - freeze() prevents mutation
+          - sign() behavior correct
+          - Default values correctly applied
+
+        3) Chunking Logic (CRITICAL)
+          - Deterministic content splitting
+          - Correct sequential chunk indexes
+          - Proper transaction ID handling across chunks
+          - Prevent duplicate or missing chunks
+          - Enforce max transaction size
+
+        4) Error Handling
+          - Clear validation errors
+          - Invalid states prevented early
+          - Meaningful exceptions
+
+        5) Backward Compatibility
+          - No breaking public API changes
+          - Serialization format unchanged
+
+        6) Test Coverage
+          nsure tests exist for:
+          - Large file chunking
+          - Boundary size conditions
+          - Empty content
+          - Large memos
+          - Freeze behavior
+          - Multiple signers
+          - Regression cases
+
+        7) Performance
+          - Avoid unnecessary byte copying
+          - Avoid large memory duplication
+
+        8) Security
+          - No DOS via chunk size
+          - No unvalidated input
+          - No replay issues with transaction IDs
+
+        Output format:
+          1. Architecture health summary
+          2. High-risk issues
+          3. Medium-risk improvements
+          4. Low-risk suggestions
+          5. Missing test cases
+          6. Suggested refactors
+
+          Avoid purely stylistic suggestions.
     - path: ".github/CODEOWNERS"
       instructions: |
         You are acting as a senior maintainer reviewing the CODEOWNERS file
