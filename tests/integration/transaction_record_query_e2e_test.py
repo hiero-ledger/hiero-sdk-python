@@ -211,8 +211,6 @@ def test_transaction_record_query_can_execute_fungible_transfer():
     ),
 )
 def test_query_with_include_duplicates():
-    if not (os.getenv("OPERATOR_ID") and os.getenv("OPERATOR_KEY")):
-        pytest.skip("OPERATOR_ID/OPERATOR_KEY not set; skipping E2E test.")
     env = IntegrationTestEnv()
     try:
         # Use a fresh keypair for isolation
