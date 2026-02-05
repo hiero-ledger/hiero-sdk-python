@@ -144,6 +144,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `grpc_deadline` support for transaction and query execution.
 
 ### Changed
+- Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
 
 ### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
