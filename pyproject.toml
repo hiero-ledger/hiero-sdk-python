@@ -14,12 +14,12 @@ license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10, <3.15"
 dependencies = [
-    "protobuf>=4.21.8,<7",
-    "grpcio>=1.52.0,<2",
+    "protobuf>=4.21.12,<7",
+    "grpcio>=1.76.0,<2",
     "cryptography>=44.0.1,<47",
-    "requests>=2.25.0,<3",
-    "pycryptodome>=3.15.0,<4",
-    "eth-abi>=5.0.0,<6",
+    "requests>=2.31.0,<3",
+    "pycryptodome>=3.18.0,<4",
+    "eth-abi>=5.1.0,<6",
     "python-dotenv>=1.2.1,<3",
 ]
 classifiers = [
@@ -37,20 +37,21 @@ classifiers = [
 
 [project.optional-dependencies]
 eth = [
-    "eth-keys>=0.6,<0.8",
-    "rlp>=4,<5",
+    "eth-keys>=0.7.0,<0.8",
+    "rlp>=4.0.1,<5",
 ]
 
 [dependency-groups]
 dev = [
-    "grpcio-tools>=1.71.0,<2",
-    "pytest>=8.3.4",
-    "pytest-cov>=7.0.0",
+    "grpcio-tools>=1.75.0,<2",
+    "pytest>=8.3.4,<9",
+    "pytest-cov>=7.0.0,<8",
 ]
+
 lint = [
-    "ruff>=0.14.9",
-    "mypy>=1.18.2",
-    "typing-extensions>=4.15.0",
+    "ruff>=0.14.9,<1",
+    "mypy>=1.18.2,<2",
+    "typing-extensions>=4.15.0,<5",
 ]
 
 [tool.uv]
