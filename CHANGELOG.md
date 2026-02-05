@@ -7,9 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 
-
 ### Tests
-
 - Added tests for ProtoBuf Training Example Implementation
 - Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)
 - format black `tests/unit/hbar*.py`.(#1538)
@@ -33,6 +31,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+- Add __repr__ method for ContractId class to improve debugging (#1714)
 - Added Protobuf Training guide to enhance developer understanding of proto serialization
   and deserialization (#1645)
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
