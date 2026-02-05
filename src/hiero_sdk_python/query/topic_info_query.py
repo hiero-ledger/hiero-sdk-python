@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Union
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, consensus_get_topic_info_pb2, response_pb2
 from hiero_sdk_python.client.client import Client
@@ -149,7 +149,7 @@ class TopicInfoQuery(Query):
         else:
             return _ExecutionState.ERROR
 
-    def execute(self, client: Client) -> TopicInfo:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> TopicInfo:
         """
         Executes the topic info query.
         
@@ -160,6 +160,7 @@ class TopicInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TopicInfo: The topic info from the network
@@ -170,7 +171,7 @@ class TopicInfoQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
         
         return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
 
