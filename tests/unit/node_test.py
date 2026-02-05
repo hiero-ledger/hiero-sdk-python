@@ -66,7 +66,7 @@ def test_increase_backoff_updates_readmit_time(node):
 
     before = time.monotonic()
     node._increase_backoff()
-    assert node._readmit_time >= before + 10
+    assert node._readmit_time > before + 10
 
 
 # Test decrease_backoff
@@ -85,12 +85,3 @@ def test_decrease_backoff_floors_at_min(node):
     node._decrease_backoff()
     assert node._current_backoff == node._min_backoff
 
-
-# Test get_remaining_time
-def test_get_remaining_time_zero(node, monkeypatch):
-    """Test that get_remaining_time returns zero when readmit time equals last used time."""
-    now = time.monotonic()
-    monkeypatch.setattr(time, "monotonic", lambda: now)
-    node._readmit_time = now
-
-    assert node.get_remaining_time() == 0

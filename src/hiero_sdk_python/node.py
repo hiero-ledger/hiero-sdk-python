@@ -320,8 +320,3 @@ class _Node:
         """
         self._current_backoff = max(self._current_backoff / 2, self._min_backoff)
 
-    def get_remaining_time(self) -> float:
-        """
-        Return the remaining backoff time before this node becomes eligible for reuse.
-        """
-        return self._readmit_time - time.monotonic()
