@@ -123,3 +123,8 @@ def test_validate_checksum_failure(client):
 
     with pytest.raises(ValueError):
         topic_id.validate_checksum(client)
+
+def test_topic_id_repr():
+    """Test that __repr__ returns the expected format."""
+    topic_id = TopicId(0, 0, 42)
+    assert repr(topic_id) == "TopicId(shard=0, realm=0, num=42)"

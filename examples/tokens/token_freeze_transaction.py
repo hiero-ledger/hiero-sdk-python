@@ -110,7 +110,7 @@ def verify_freeze(token_id, client, operator_id, operator_key):
 
         status_name = ResponseCode(transfer_receipt.status).name
 
-        if status_name in ["ACCOUNT_FROZEN_FOR_TOKEN", "ACCOUNT_FROZEN"]:
+        if status_name == "ACCOUNT_FROZEN_FOR_TOKEN":
             print(
                 f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}"
             )

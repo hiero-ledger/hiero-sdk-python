@@ -35,7 +35,7 @@ jobs:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.dry_run == 'true' && '1' || '0') || '0' }}
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
         with:
           egress-policy: audit
 
@@ -43,10 +43,10 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: '20'
-
+          
       - name: Notify PR of workflow failure
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.failed_run_id != ''
         env:
