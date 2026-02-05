@@ -16,6 +16,7 @@ permissions:
   contents: read
   checks: write
   statuses: write
+  pull-requests: write  # Added for bot to comment
 
 concurrency:
   group: pr-checks-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -29,6 +30,7 @@ jobs:
     permissions:
       checks: write
       statuses: write
+      pull-requests: write  # Added for bot to comment
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
@@ -36,6 +38,33 @@ jobs:
           egress-policy: audit
 
       - name: Check PR Title
+        id: check-title
         uses: step-security/conventional-pr-title-action@cb1c5657ccf4c42f5c0a6c0708cb8251b960d902 # v3.2.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Checkout repository to access bot script
+      - name: Checkout repository
+        if: failure()
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Run bot to comment on PR with helpful guidance
+      - name: Comment on PR with title guidance
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/bot-conventional-pr-title.js');
+            const core = require('@actions/core');
+            
+            // Set inputs for the bot script using environment variables (secure)
+            core.setInput('github-token', process.env.GITHUB_TOKEN);
+            core.setInput('pr-number', process.env.PR_NUMBER);
+            core.setInput('pr-title', process.env.PR_TITLE);
+            
+            // Run the bot
+            await script.run();

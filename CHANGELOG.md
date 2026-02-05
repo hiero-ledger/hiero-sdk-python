@@ -36,7 +36,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added Protobuf Training guide to enhance developer understanding of proto serialization
   and deserialization (#1645)
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
-- Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
+- Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (#1591)
+- Added automated bot to comment on PRs with invalid conventional commit titles, providing helpful guidance on fixing the title format. (#1705)
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
