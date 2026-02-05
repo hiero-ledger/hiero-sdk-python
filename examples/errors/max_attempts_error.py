@@ -21,7 +21,7 @@ def main() -> None:
 
     # Configure client to fail quickly
     # This sets the maximum number of attempts for any request to 1
-    client.max_attempts = 1
+    client.set_max_attempts(1)
 
     print("Attempting to fetch receipt with restricted max attempts...")
 
@@ -32,6 +32,7 @@ def main() -> None:
     # Note: Triggering a pure MaxAttemptsError usually requires a timeout or busy node.
     # This example demonstrates the structure of handling the error.
     
+
     # Using a generated TransactionId
     tx_id = TransactionId.generate(operator_id)
 

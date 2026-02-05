@@ -23,17 +23,17 @@ class PrecheckError(Exception):
 
     def __init__(
         self,
-        status: ResponseCode,
+        status: Union[ResponseCode, int],
         transaction_id: Optional[TransactionId] = None,
         message: Optional[str] = None,
     ) -> None:
-        self.status = status
+        self.status = ResponseCode(status)
         self.transaction_id = transaction_id
 
         # Build a default message if none provided
         if message is None:
-            status_name = ResponseCode(status).name
-            message = f"Transaction failed precheck with status: {status_name} ({status})"
+            status_name = self.status.name
+            message = f"Transaction failed precheck with status: {status_name} ({int(self.status)})"
             if transaction_id:
                 message += f", transaction ID: {transaction_id}"
 
@@ -54,10 +54,10 @@ class MaxAttemptsError(Exception):
     Attributes:
         message (str): The error message explaining why the maximum attempts were reached
         node_id (str): The ID of the node that was being contacted when the max attempts were reached
-        last_error (Exception): The last error that occurred during the final attempt
+        last_error (BaseException): The last error that occurred during the final attempt
     """
 
-    def __init__(self, message: str, node_id: str, last_error: Optional[Union[Exception, str]] = None) -> None:
+    def __init__(self, message: str, node_id: str, last_error: Optional[BaseException] = None) -> None:
         self.node_id = node_id
         self.last_error = last_error
 
@@ -89,22 +89,22 @@ class ReceiptStatusError(Exception):
     
     def __init__(
         self, 
-        status: ResponseCode, 
+        status: Union[ResponseCode, int], 
         transaction_id: Optional[TransactionId], 
         transaction_receipt: TransactionReceipt, 
         message: Optional[str] = None
     ) -> None:
-        self.status = status
+        self.status = ResponseCode(status)
         self.transaction_id = transaction_id
         self.transaction_receipt = transaction_receipt
         
         # Build a default message if none provided
         if message is None:
-            status_name = ResponseCode(status).name
+            status_name = self.status.name
             if transaction_id:
-                message = f"Receipt for transaction {transaction_id} contained error status: {status_name} ({status})"
+                message = f"Receipt for transaction {transaction_id} contained error status: {status_name} ({int(self.status)})"
             else:
-                message = f"Receipt contained error status: {status_name} ({status})"
+                message = f"Receipt contained error status: {status_name} ({int(self.status)})"
             
         self.message = message
         super().__init__(self.message)

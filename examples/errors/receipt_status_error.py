@@ -45,7 +45,7 @@ def main() -> None:
     # This exception is raised when the transaction raised something other than SUCCESS
     except ReceiptStatusError as e:
         print("\nCaught ReceiptStatusError!")
-        print(f"Status: {e.status} ({ResponseCode(e.status).name})")
+        print(f"Status: {e.status.name} ({e.status})")
         print(f"Transaction ID: {e.transaction_id}")
         print(
             "This error means the transaction reached consensus but failed logic execution."

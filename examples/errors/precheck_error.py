@@ -11,7 +11,6 @@ from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python import (
     Client,
     TransferTransaction,
-    ResponseCode,
     AccountId
 )
 
@@ -42,8 +41,7 @@ def main() -> None:
 
     except PrecheckError as e:
         print("\nCaught PrecheckError!")
-        # This should print: Status: INVALID_TRANSACTION_DURATION (ResponseCode)
-        print(f"Status: {e.status} ({ResponseCode(e.status).name})")
+        print(f"Status: {e.status.name} ({e.status})")
         print(f"Transaction ID: {e.transaction_id}")
         print("This error means the transaction failed validation at the node *before* reaching consensus.")
 

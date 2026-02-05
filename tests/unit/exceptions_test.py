@@ -23,9 +23,20 @@ def test_precheck_error_typing_and_defaults():
     expected_msg = "Transaction failed precheck with status: INVALID_TRANSACTION (1), transaction ID: 0.0.123@111.222"
     assert str(err_default) == expected_msg
 
+def test_precheck_error_with_int_status():
+    """Test PrecheckError accepts int status for backwards compatibility."""
+    tx_id_mock = Mock()
+    tx_id_mock.__str__ = Mock(return_value="0.0.123@111.222")
+
+    # Pass int directly (mimicking protobuf field)
+    err = PrecheckError(1, tx_id_mock)
+    assert err.status == ResponseCode.INVALID_TRANSACTION
+    assert isinstance(err.status, ResponseCode)
+    assert "INVALID_TRANSACTION" in str(err)
+
 def test_max_attempts_error_typing():
     """Test MaxAttemptsError with required and optional arguments."""
-    # Case 1: With last_error
+    # Case 1: With last_error as BaseException
     inner_error = ValueError("Connection failed")
     err = MaxAttemptsError("Max attempts reached", "0.0.3", inner_error)
     assert err.node_id == "0.0.3"
@@ -36,6 +47,12 @@ def test_max_attempts_error_typing():
     # Case 2: Without last_error
     err_simple = MaxAttemptsError("Just failed", "0.0.4")
     assert str(err_simple) == "Just failed"
+    
+    # Case 3: With other BaseException types
+    runtime_error = RuntimeError("Network timeout")
+    err_runtime = MaxAttemptsError("Request failed", "0.0.5", runtime_error)
+    assert err_runtime.last_error is runtime_error
+    assert "Network timeout" in str(err_runtime)
 
 def test_receipt_status_error_typing():
     """Test ReceiptStatusError initialization."""
@@ -51,6 +68,17 @@ def test_receipt_status_error_typing():
     # Case 2: Custom message
     err_custom = ReceiptStatusError(ResponseCode.FAIL_INVALID, tx_id_mock, receipt_mock, "Fatal receipt error")
     assert str(err_custom) == "Fatal receipt error"
+
+def test_receipt_status_error_with_int_status():
+    """Test ReceiptStatusError accepts int status for backwards compatibility."""
+    tx_id_mock = Mock()
+    receipt_mock = Mock()
+    
+    # Pass int directly (mimicking protobuf field)
+    err = ReceiptStatusError(22, tx_id_mock, receipt_mock)
+    assert err.status == ResponseCode.SUCCESS
+    assert isinstance(err.status, ResponseCode)
+    assert "SUCCESS" in str(err)
 
 def test_receipt_status_error_with_none_transaction_id():
     """Test ReceiptStatusError when transaction_id is None."""
