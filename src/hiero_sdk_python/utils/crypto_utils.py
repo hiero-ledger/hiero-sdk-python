@@ -56,8 +56,21 @@ def decompress_point(data: bytes) -> Tuple[int, int]:
 
 def compress_with_cryptography(encoded: bytes) -> bytes:
     """
-    Takes either a 33-byte compressed or 65-byte uncompressed,
-    returns a 33-byte compressed via cryptography.
+    Compress an elliptic curve public key to SEC1 compressed format.
+
+    Accepts either a 33-byte compressed or 65-byte uncompressed secp256k1
+    public key and returns the 33-byte compressed representation using
+    the cryptography library.
+
+    Args:
+        encoded: A secp256k1 public key in either compressed (33 bytes)
+            or uncompressed (65 bytes) SEC1 format.
+
+    Returns:
+        bytes: The 33-byte compressed public key.
+
+    Raises:
+        ValueError: If the input is not a valid SEC1 encoded point.
     """
     pub = ec.EllipticCurvePublicKey.from_encoded_point(SECP256K1_CURVE, encoded)
     compressed = pub.public_bytes(

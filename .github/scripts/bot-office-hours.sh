@@ -82,6 +82,7 @@ The Python SDK Team
 EOF
 )
 
+
 echo "$PR_DATA" |
   jq -r '
     sort_by(.author.login)
@@ -89,7 +90,7 @@ echo "$PR_DATA" |
     | .[]
     | max_by(.createdAt)
     | ((.author.login | endswith("[bot]")) as $is_bot
-      | "\(.number) \(.author.login) \($is_bot)"
+      | "\(.number) \(.author.login) \($is_bot)")
   ' |
   while read -r PR_NUM AUTHOR IS_BOT; do
     if [[ "$IS_BOT" == "true" ]]; then

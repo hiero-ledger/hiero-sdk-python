@@ -1,0 +1,427 @@
+name: Good First Issue Template
+description: Create a Good First Issue for new contributors
+title: "[Good First Issue]: "
+labels: ["Good First Issue"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## **Thanks for creating a good first issue!** 😊
+
+        We truly appreciate your time and effort, welcome!
+        This template is designed to help you create a Good First Issue (GFI) : a small, well-scoped task that helps new contributors learn the codebase and workflow.
+        ---
+
+  - type: textarea
+    id: intro
+    attributes:
+      label: 🆕🐥 Newcomer Friendly
+      description: Who is this issue for?
+      value: |
+        This **[Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee)** is a guided, well-scoped task intended for new contributors to the Hiero Python SDK.
+
+        #### What you’ll do
+        - ✅ understand how the repository is structured
+        - ✅ practice the standard contribution workflow
+        - ✅ submit and merge a pull request
+
+        #### Support
+        A maintainer or mentor actively monitors this issue and will help **guide it to completion**.
+
+        > [!IMPORTANT]
+        > **This issue does not require prior domain knowledge.**
+        >
+        > - No Hiero or Hedera experience needed  
+        > - No distributed ledger background required  
+        > - **Basic Python and Git are sufficient**
+
+        > [!NOTE]
+        > ⏱️ **Typical time to complete:** 30–90 minutes (once setup is done)  
+        > 🧩 **Difficulty:** Small, well-contained change  
+        > 🎓 **Best for:** New contributors
+
+        **🏁 Completion**
+        When this issue is complete, you will have:
+
+        - ✅ Solved a real issue
+        - ✅ A merged pull request in the Hiero Python SDK
+        - ✅ Your name in the project history
+        - ✅ Confidence to take on larger issues next
+
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > #### 📋 Good First Issue (GFI) Guidelines
+        > A **Good First Issue [Guidelines](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/maintainers/good_first_issue_guidelines.md)** is a small, well-scoped task that helps new contributors get familiar with the codebase and contribution workflow.
+        >
+        > **Often a good fit for Good First Issues:**
+        > - Spelling or grammar fixes
+        > - Small documentation formatting improvements
+        > - Purely structural refactors of examples
+        > - Minor, clearly described edits to docstrings or comments
+        > - Light file moves or renames for clarity
+        > - Applying formatting tools (e.g. `black`, `ruff`) in limited areas
+        >
+        > More involved tasks may be a better fit for **Beginner**, **Intermediate**, or **Advanced** issues.
+        >
+        > If you’re unsure, the **Good First Issue Candidate Template** can be used.
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: 👾 Issue description
+      description: |
+        Describe the issue in a way that’s easy for new contributors to understand.
+        Briefly explain why this change is useful or needed, even if the impact seems small.
+        Please avoid assuming prior knowledge of the language, codebase, or Hiero, as Good First Issues are often surfaced to new developers.
+        Links to relevant documentation or code are very welcome.
+      value: |
+        Edit here. Example provided below.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example for problem (hidden in submission) -->
+        ## 👾 Description of the issue - Example
+
+        The example for Token Associate Transaction located at examples/tokens/token_associate_transaction.py can be improved. It correctly illustrates how to associate a token, however, it does so all from one function main()
+
+        As everything is grouped together in main(), it is difficult for a user to understand all the individual steps required to associate a token.
+
+        For example:
+        ```python
+
+        def run_demo():
+            """Monolithic token association demo."""
+            print(f"🚀 Connecting to Hedera {network_name} network!")    
+            client = Client(Network(network_name))
+            operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
+            operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
+            client.set_operator(operator_id, operator_key)
+            print(f"✅ Client ready (operator {operator_id})")
+
+            test_key = PrivateKey.generate_ed25519()
+            receipt = (
+                AccountCreateTransaction()
+                .set_key(test_key.public_key())
+                .set_initial_balance(Hbar(1))
+                .set_account_memo("Test account for token association demo")
+                .freeze_with(client)
+                .sign(operator_key)
+                .execute(client)
+            )
+            if receipt.status != ResponseCode.SUCCESS:
+                raise Exception(receipt.status)
+            account_id = receipt.account_id
+            print(f"✅ Created test account {account_id}")
+
+            # Create tokens
+            tokens = []
+            for i in range(3):
+                try:
+                    receipt = (
+                        TokenCreateTransaction()
+                        .set_token_name(f"DemoToken{i}")
+                        .set_token_symbol(f"DTK{i}")
+                        .set_decimals(2)
+                        .set_initial_supply(100_000)
+                        .set_treasury_account_id(operator_id)
+                        .freeze_with(client)
+                        .sign(operator_key)
+                        .execute(client)
+                    )
+                    if receipt.status != ResponseCode.SUCCESS:
+                        raise Exception(receipt.status)
+                    token_id = receipt.token_id
+                    tokens.append(token_id)
+                    print(f"✅ Created token {token_id}")
+                except Exception as e:
+                    print(f"❌ Token creation failed: {e}")
+                    sys.exit(1)
+
+            # Associate first token
+            try:
+                TokenAssociateTransaction().set_account_id(account_id).add_token_id(tokens[0]).freeze_with(client).sign(test_key).execute(client)
+                print(f"✅ Token {tokens[0]} associated with account {account_id}")
+            except Exception as e:
+                print(f"❌ Token association failed: {e}")
+                sys.exit(1)
+        ```
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 Proposed Solution
+      description: |
+        Describe what a good solution would look like.
+        Keep this high-level and easy to understand. Implementation details can go in the subsequent Implementation Steps section.
+      value: |
+        Edit here. Example provided below.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example for the solution (hidden in submission) -->
+        ## 💡 Solution - Example
+
+        For the TokenAssociateTransaction example, the solution is to split the monolithic main() function for illustrating TokenAssociateTransaction into separate smaller functions which are called from main().
+        Such as:
+        - Setting up the client
+        - Creating an account
+        - Creating a token
+        - Associating the account to the token
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 🛠️ Implementation Steps
+      description: |
+        To make this issue easy to pick up and complete, please include:
+        - Which files need to be changed or added
+        - Any functions, classes, or modules involved
+        - The complete steps to implement the solution
+        - What the final result or output should look like
+        - Links to relevant documentation or code (if helpful)
+        For good first issues, please keep this as guided and clear as possible.
+      value: |
+        Edit here. Example provided below.
+
+        ---
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example implementation (hidden in submission) -->
+        #### 👩‍💻 Implementation - Example
+
+        To break down the monolithic main function, you need to:
+        - [ ] Extract the Key Steps (set up a client, create a test account, create a token, associate the token)
+        - [ ] Copy and paste the functionality for each key step into its own function
+        - [ ] Pass to each function the variables you need to run it
+        - [ ] Call each function in main()
+        - [ ] Ensure you return the values you'll need to pass on to the next step in main
+        - [ ] Ensure the example still runs and has the same output!
+
+        For example:
+        ```python
+
+        def setup_client():
+            """Initialize and set up the client with operator account."""
+
+        def create_test_account(client, operator_key):
+            """Create a new test account for demonstration."""
+
+        def create_fungible_token(client, operator_id, operator_key):
+            """Create a fungible token for association with test account."""
+
+        def associate_token_with_account(client, token_id, account_id, account_key):
+            """Associate the token with the test account."""
+
+        def main():
+            client, operator_id, operator_key = setup_client()
+            account_id, account_private_key = create_test_account(client, operator_key)
+            token_id = create_fungible_token(client, operator_id, operator_key)
+            associate_token_with_account(client, token_id, account_id, account_private_key)
+        ```
+
+  - type: textarea
+    id: setup_steps
+    attributes:
+      label: 📋 Step-by-Step Setup Guide
+      description: Provide a step-by-step setup guide for new contributors
+      value: |
+        #### Suggestions:
+        - [ ] Visual Studio (VS) Code: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
+
+        - [ ] GitHub Desktop: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/01_supporting_infrastructure.md)
+
+        - [ ] Hedera Testnet Account with root .env file: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/03_setting_up_env.md)
+
+        - [ ] Create a GPG key linked to GitHub: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+
+        #### Setup the Hiero Python SDK for development
+        - [ ] **Fork** Create an online and local copy of the repository: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/02_forking_python_sdk.md)
+
+        - [ ] **Connect** origin with upstream: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/03_staying_in_sync.md)
+
+        - [ ] **Install Packages** and protobufs: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md) (or [Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/setup_windows.md) for Windows users)
+
+        - [ ] **Sync Main** pull any recent upstream changes: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
+
+        You are set up! 🎉
+    validations:
+      required: true
+
+  - type: textarea
+    id: contribution_steps
+    attributes:
+      label: 📋 Step-by-step contribution guide
+      description: Provide a contribution workflow suitable for new contributors.
+      value: |
+        #### ✅ Get ready
+        - [ ] **Claim the issue:**  comment `/assign`: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+
+        - [ ] **Double check the Issue and AI plan:** carefully re-read the issue description and the CodeRabbit AI plan
+
+        - [ ] **Ask questions early:** ask on [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md), your `@mentor` (Python SDK help) and the `@good_first_issue_support_team` (setup and workflow help)
+
+        - [ ] **Sync with main:** pull the latest upstream changes [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
+
+        - [ ] 💡 Tip: Before coding, leave a short comment describing what you plan to change. We’ll confirm you’re on the right track.
+
+        #### 🛠️ Solve the Issue
+        - [ ] **Create a branch from `main`:** [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/05_working_branches.md)
+
+        - [ ] **Implement the solution**: follow the implementation steps in the issue description.
+
+        - [ ] **Commit with DCO and GPG signing:**  commit changes using: `git commit -S -s -m "chore: your message"`, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+
+        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and commit as `git commit -S -s -m "chore: changelog entry"` [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+
+        #### 🚀 Create the pull request
+        - [ ] **Push your commits:**  push your branch to your fork `git push origin your-branch-name`
+
+        - [ ] **Open a pull request:** [here](https://github.com/hiero-ledger/hiero-sdk-python/pulls) [guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+
+        - [ ] **Complete the PR description:**  briefly describe your changes, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+
+        - [ ] **Link the Issue:**  link the issue the PR solves in the PR description, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how_to_link_issues.md)
+
+        - [ ] **Submit the pull request:**  click `**Create pull request**` 🎉
+
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ Acceptance criteria
+      description: |
+        Edit or expand this checklist with what is required to merge a pull request for this issue.
+      value: |
+        To be able to close this issue, the following criteria must be met:
+
+        - [ ] **The issue is solved:**  I’ve carefully read and implemented the issue requirements
+
+        - [ ] **I did not add extra changes:**  I did not modify anything beyond what is described in the issue
+
+        - [ ] **Behavior:**  All other existing features continue to work as before
+
+        - [ ] **Checks and feedback:**  All checks pass and any requested changes have been made
+    validations:
+      required: true
+
+  - type: textarea
+    id: getting_help
+    attributes:
+      label: 🧭 Getting help if you’re stuck
+      description: How to get support while working on this issue.
+      value: |
+        If questions come up, don’t spend more than **20 minutes** blocked.
+
+        > [!TIP]
+        >
+        > - Comment on this issue and tag `@good_first_issue_support_team` or `@mentor_name`
+        > - Ask for help in [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+        >
+
+        ---
+
+  - type: textarea
+    id: pr_expectations
+    attributes:
+      label: 🤔 What to expect after submitting a PR
+      description: Explain what happens after a pull request is opened.
+      value: |
+        Once you open a pull request, here’s what happens next.
+
+        **🤖 1. Automated checks**
+        A small set of automated checks must pass before merging (signing, changelog, tests, examples, code quality).
+        Open any failed check to see details.
+
+        ---
+
+        **🤝 2. AI feedback (CodeRabbit)**
+        CodeRabbit AI may suggest improvements or flag issues.
+        Feedback is advisory — use what’s relevant and helpful.
+
+        ---
+
+        **😎 3. Team review**
+        A Python SDK team member reviews your PR within **1–3 days**.
+        You may be asked to make changes or your PR may be approved.
+        Approved PRs are usually merged within **one day**.
+
+
+        **🔄 Merge conflicts (sometimes)**
+        Conflicts can happen and are normal as the SDK updates.
+        Changelog conflicts can be resolved online in the PR in the merge editor, accepting both entries
+        Others may require **[rebasing](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)**.
+
+        ---
+
+    validations:
+      required: true
+
+  - type: textarea
+    id: ai_usage_guidelines
+    attributes:
+      label: 🤖 AI usage guidelines
+      description: Guidance on using AI tools responsibly for this issue.
+      value: |
+        You’re welcome to use AI tools while working on this issue.
+
+        Many contributors do — especially for:
+        - understanding unfamiliar code
+        - drafting small refactors
+        - sanity-checking approaches
+
+        **Use AI responsibly:**
+        - review suggestions carefully
+        - apply changes incrementally
+        - test as you go
+
+        If in doubt, ask — maintainers are happy to help.
+
+  - type: textarea
+    id: information
+    attributes:
+      label: 🤔 Additional Help
+      description: Provide any extra resources or context for contributors to solve this good first issue
+      value: |
+        #### First Points of Contact:
+        - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+        - Comment with `@mentor_name` (for Python SDK questions)
+        - Comment with `@hiero-ledger/hiero-sdk-good-first-issue-support` (for setup and workflow questions)
+        The more you ask, the more you learn and so do we!
+
+        #### Documentation:
+        - [README.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md)
+        - [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
+        - [Project Structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
+        - [DCO and Verified Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+        - [Changelog Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+        - [Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
+        - [Merge Conflicts Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
+        - [Linking Issues Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how_to_link_issues.md)
+        - [Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/workflow.md)
+
+        - [Pin Github Actions Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how-to-pin-github-actions.md)
+        - [Running Examples](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/examples.md)
+        - [Testing on Forks](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/testing_forks.md)
+
+        - [General Training](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training)
+        - [General SDK Developer Docs](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers)
+
+        #### Calls:
+        - Get hands-on-help by our expert team at our [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
+        - Learn, raise issues and provide feedback at [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581)

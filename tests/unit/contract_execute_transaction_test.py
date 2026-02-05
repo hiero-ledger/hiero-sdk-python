@@ -95,6 +95,7 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, execute_
         == execute_params["function_parameters"]
     )
 
+
 def test_build_scheduled_body_with_valid_parameters(mock_account_ids, execute_params):
     """Test building a schedulable contract execute transaction body with valid parameters."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
