@@ -1,0 +1,59 @@
+name: Dependency Compatibility Check
+
+on:
+  push:
+    paths:
+      - "pyproject.toml"
+  pull_request:
+    paths:
+      - "pyproject.toml"
+
+permissions:
+  contents: read
+
+jobs:
+  min-deps:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.14"]
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        with:
+          egress-policy: audit
+      
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41 # v7.2.1
+
+      - name: Create virtual environment
+        run: uv venv
+
+      - name: Install minimum dependencies
+        run: |
+          uv pip install --resolution=lowest-direct -e ".[dev,lint,eth]"
+
+      - name: Show resolved core dependency versions
+        run: |
+          echo "Resolved core dependency versions:"
+          uv pip list | grep -E '^(protobuf|grpcio|cryptography|requests|pycryptodome|eth-abi|python-dotenv)\s'
+
+      - name: Generate Proto Files
+        run: |
+          uv run python generate_proto.py
+
+      - name: Run unit tests (min deps)
+        run: |
+          uv run pytest tests/unit -v
