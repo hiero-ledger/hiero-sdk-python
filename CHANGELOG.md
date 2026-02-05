@@ -11,7 +11,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
 
 ### Tests
-
 - Added tests for ProtoBuf Training Example Implementation
 - Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)
 - format black `tests/unit/hbar*.py`.(#1538)
@@ -35,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+- Add __repr__ method for ContractId class to improve debugging (#1714)
 - Added Protobuf Training guide to enhance developer understanding of proto serialization
   and deserialization (#1645)
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
@@ -144,6 +144,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
+- Added `grpc_deadline` support for transaction and query execution.
 
 ### Changed
 
