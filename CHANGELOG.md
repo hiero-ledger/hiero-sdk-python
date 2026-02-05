@@ -33,7 +33,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
-- Added Prompt for code rabbit on how to review src/hiero_sdk_python/file
+- Added Prompt for code rabbit on how to review src/hiero_sdk_python/file (`#1697`)
 - Added Protobuf Training guide to enhance developer understanding of proto serialization
   and deserialization (#1645)
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
