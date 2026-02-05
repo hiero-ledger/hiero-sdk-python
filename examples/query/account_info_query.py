@@ -30,18 +30,12 @@ from hiero_sdk_python.tokens.nft_id import NftId
 
 load_dotenv()
 
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to the Hedera {network} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key

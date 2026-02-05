@@ -26,27 +26,14 @@ from hiero_sdk_python.tokens.token_id import TokenId
 
 # Load environment variables from .env file
 load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 key_type = os.getenv("KEY_TYPE", "ecdsa")
 
 
 def setup_client():
     """Setup Client"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    # Get the operator account from the .env file
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        # Set the operator (payer) account for the client
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client
-    except (TypeError, ValueError):
-        print("Error: Please check OPERATOR_ID and OPERATOR_KEY in your .env file.")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
 def create_account(client, name, initial_balance=Hbar(10)):
