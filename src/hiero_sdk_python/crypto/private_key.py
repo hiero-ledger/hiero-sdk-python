@@ -469,3 +469,16 @@ class PrivateKey:
             return ec.derive_private_key(private_int, ec.SECP256K1())
         except Exception as exc:
             raise ValueError(f"Failed to derive ECDSA private key: {exc}") from exc
+    
+    def __eq__(self, other: object) -> bool:
+        """
+        Compare two PrivateKey objects for equality.
+        """
+        if not isinstance(other, PrivateKey):
+            return NotImplemented
+
+        # Different algorithms can never be equal
+        if self.is_ed25519() != other.is_ed25519():
+            return False
+
+        return self.to_bytes_raw() == other.to_bytes_raw()

@@ -554,3 +554,16 @@ class PublicKey:
         if self.is_ed25519():
             return f"<PublicKey (Ed25519) hex={self.to_string_raw()}>"
         return f"<PublicKey (ECDSA) hex={self.to_string_raw()}>"
+    
+    def __eq__(self, other: object) -> bool:
+        """
+        Compare two PublicKey objects for equality.
+        """
+        if not isinstance(other, PublicKey):
+            return NotImplemented
+
+        # Different algorithms can never be equal
+        if self.is_ed25519() != other.is_ed25519():
+            return False
+
+        return self.to_bytes_raw() == other.to_bytes_raw()
