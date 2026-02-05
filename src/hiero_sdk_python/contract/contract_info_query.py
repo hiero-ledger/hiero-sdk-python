@@ -3,7 +3,7 @@ Query to get information about a contract on the network.
 """
 
 import traceback
-from typing import Optional
+from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -98,7 +98,7 @@ class ContractInfoQuery(Query):
             transaction_func=None, query_func=channel.smart_contract.getContractInfo
         )
 
-    def execute(self, client: Client) -> ContractInfo:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> ContractInfo:
         """
         Executes the contract info query.
 
@@ -110,6 +110,7 @@ class ContractInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             ContractInfo: The contract info from the network
@@ -120,7 +121,7 @@ class ContractInfoQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return ContractInfo._from_proto(response.contractGetInfo.contractInfo)
 

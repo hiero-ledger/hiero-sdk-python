@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, crypto_get_info_pb2
 from hiero_sdk_python.executable import _Method
@@ -90,7 +90,7 @@ class AccountInfoQuery(Query):
             query_func=channel.crypto.getAccountInfo
         )
 
-    def execute(self, client):
+    def execute(self, client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the account info query.
         
@@ -98,6 +98,7 @@ class AccountInfoQuery(Query):
         to return an AccountInfo object.
 
         This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
+        timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Args:
             client (Client): The client instance to use for execution
@@ -111,7 +112,7 @@ class AccountInfoQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return AccountInfo._from_proto(response.cryptoGetInfo.accountInfo)
 

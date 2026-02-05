@@ -1,4 +1,5 @@
 from typing import Optional, Any, Union
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.hapi.services import query_header_pb2, transaction_get_record_pb2, query_pb2
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
@@ -160,7 +161,7 @@ class TransactionRecordQuery(Query):
         
         return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt, self.transaction_id))
         
-    def execute(self, client):
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the transaction record query.
         
@@ -171,6 +172,7 @@ class TransactionRecordQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionRecord: The transaction record from the network
@@ -181,7 +183,7 @@ class TransactionRecordQuery(Query):
             ReceiptStatusError: If the transaction record contains an error status
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return TransactionRecord._from_proto(response.transactionGetRecord.transactionRecord, self.transaction_id)
 

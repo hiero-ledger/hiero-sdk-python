@@ -5,7 +5,7 @@ Query to call a contract on the network.
 """
 
 import traceback
-from typing import Optional
+from typing import Optional, Union
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -187,7 +187,7 @@ class ContractCallQuery(Query):
             query_func=channel.smart_contract.contractCallLocalMethod,
         )
 
-    def execute(self, client: Client) -> ContractFunctionResult:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> ContractFunctionResult:
         """
         Executes the contract call query.
 
@@ -199,6 +199,7 @@ class ContractCallQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             ContractFunctionResult: The result of the contract call
@@ -209,7 +210,7 @@ class ContractCallQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return ContractFunctionResult._from_proto(
             response.contractCallLocal.functionResult
