@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional
+from typing import List, Optional, Union
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -284,11 +284,23 @@ class TopicMessageSubmitTransaction(Transaction):
         return super().freeze_with(client)
 
 
-    def execute(self, client: "Client"):
+    def execute(self, client: "Client", timeout: Optional[Union[int, float]] = None):
+        """
+        Executes the topic message submit transaction.
+        
+        For multi-chunk transactions, this method will execute all chunks sequentially.
+        
+        Args:
+            client: The client to execute the transaction with.
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            
+        Returns:
+            TransactionReceipt: The receipt from the first chunk execution.
+        """
         self._validate_chunking()
 
         if self.get_required_chunks() == 1:
-            return super().execute(client)
+            return super().execute(client, timeout)
 
         # Multi-chunk transaction - execute all chunks
         responses = []
@@ -308,7 +320,7 @@ class TopicMessageSubmitTransaction(Transaction):
                 super().sign(signing_key)
 
             # Execute the chunk
-            response = super().execute(client)
+            response = super().execute(client, timeout)
             responses.append(response)
 
         # Return the first response as the JS SDK does

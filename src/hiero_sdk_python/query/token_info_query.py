@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, token_get_info_pb2, response_pb2
 from hiero_sdk_python.executable import _Method
@@ -90,7 +90,7 @@ class TokenInfoQuery(Query):
             query_func=channel.token.getTokenInfo
         )
 
-    def execute(self, client: Client) -> TokenInfo:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> TokenInfo:
         """
         Executes the token info query.
         
@@ -101,6 +101,7 @@ class TokenInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TokenInfo: The token info from the network
@@ -111,7 +112,7 @@ class TokenInfoQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return TokenInfo._from_proto(response.tokenGetInfo.tokenInfo)
 

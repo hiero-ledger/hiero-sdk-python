@@ -75,6 +75,15 @@ class TopicId:
         """
         return f"{self.shard}.{self.realm}.{self.num}"
 
+    def __repr__(self) -> str:
+        """
+        Returns a detailed representation of the TopicId suitable for debugging.
+
+        Returns:
+            str: A string in constructor format 'TopicId(shard=X, realm=Y, num=Z)'.
+        """
+        return f"TopicId(shard={self.shard}, realm={self.realm}, num={self.num})"
+
     @classmethod
     def from_string(cls, topic_id_str: str) -> "TopicId":
         """

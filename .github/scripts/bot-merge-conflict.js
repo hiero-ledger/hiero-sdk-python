@@ -44,8 +44,7 @@ module.exports = async ({ github, context, core }) => {
       return;
     }
 
-    const body = `Hi, this is MergeConflictBot.\nYour pull request cannot be merged because it contains **merge conflicts**.\n\nPlease resolve these conflicts locally and push the changes.\n\nTo assist you, please read:\n- [Resolving Merge Conflicts](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/merge_conflicts.md)\n- [Rebasing Guide](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/rebasing.md)\n\nThank you for contributing!\n<!-- \nFrom the Hiero Python SDK Team\n${BOT_SIGNATURE} -->`;
-
+    const body = `Hi, this is MergeConflictBot.\nYour pull request cannot be merged because it contains **merge conflicts**.\n\nPlease resolve these conflicts locally and push the changes.\n\n### Quick Fix for CHANGELOG.md Conflicts\nIf your conflict is only in **CHANGELOG.md**, you can resolve it easily using the [GitHub web editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor):\n1. Click on the "Resolve conflicts" button in the PR\n2. Accept both changes (keep both changelog entries)\n3. Click "Mark as resolved"\n4. Commit the merge\n\nFor all other merge conflicts, please read:\n- [Resolving Merge Conflicts](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/merge_conflicts.md)\n- [Rebasing Guide](https://github.com/${owner}/${repo}/blob/main/docs/sdk_developers/rebasing.md)\n\nThank you for contributing!\n<!-- \nFrom the Hiero Python SDK Team\n${BOT_SIGNATURE} -->`;
     if (dryRun) {
       console.log(`[DRY RUN] Would post comment to PR #${prNumber}: ${body}`);
       return;
