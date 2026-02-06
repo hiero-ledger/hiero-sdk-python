@@ -4,15 +4,10 @@ python examples/query/payment_query.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
-    PrivateKey,
-    Network,
 )
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
@@ -21,8 +16,6 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
-
-load_dotenv()
 
 
 def setup_client():

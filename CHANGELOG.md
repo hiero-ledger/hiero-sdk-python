@@ -6,9 +6,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
-
-
 ### Tests
 - Added tests for ProtoBuf Training Example Implementation
 - Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)

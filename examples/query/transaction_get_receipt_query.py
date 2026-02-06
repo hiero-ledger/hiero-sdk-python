@@ -4,14 +4,10 @@ python examples/query/transaction_get_receipt_query.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
     Client,
-    AccountId,
     PrivateKey,
     TransferTransaction,
     Hbar,
@@ -19,8 +15,6 @@ from hiero_sdk_python import (
     ResponseCode,
     AccountCreateTransaction,
 )
-
-load_dotenv()
 
 
 def setup_client():

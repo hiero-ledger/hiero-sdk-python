@@ -4,15 +4,11 @@ python examples/query/transaction_record_query.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     Hbar,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -25,8 +21,6 @@ from hiero_sdk_python.tokens.token_associate_transaction import (
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-
-load_dotenv()
 
 
 def setup_client():

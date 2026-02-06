@@ -4,15 +4,10 @@ python examples/query/token_nft_info_query.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
-    PrivateKey,
-    Network,
 )
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
@@ -21,8 +16,6 @@ from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-
-load_dotenv()
 
 
 def setup_client():

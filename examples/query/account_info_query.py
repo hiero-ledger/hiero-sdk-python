@@ -4,14 +4,10 @@ python examples/query/account_info_query.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    Network,
-    AccountId,
     PrivateKey,
     AccountCreateTransaction,
     ResponseCode,
@@ -27,8 +23,6 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.nft_id import NftId
-
-load_dotenv()
 
 
 def setup_client():

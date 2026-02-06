@@ -4,22 +4,15 @@ python examples/query/topic_message_query.py
 
 """
 
-import os
-import time
 import sys
+import time
 from datetime import datetime, timezone
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
     Client,
-    AccountId,
-    PrivateKey,
     TopicCreateTransaction,
     TopicMessageQuery,
 )
-
-load_dotenv()
 
 
 def setup_client():

@@ -6,12 +6,10 @@ HBAR and token balances, including minting NFTs to the account."""
 
 import os
 import sys
-from dotenv import load_dotenv
+
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
     TokenCreateTransaction,
     AccountCreateTransaction,
     Hbar,
@@ -24,8 +22,6 @@ from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalance
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
-# Load environment variables from .env file
-load_dotenv()
 key_type = os.getenv("KEY_TYPE", "ecdsa")
 
 

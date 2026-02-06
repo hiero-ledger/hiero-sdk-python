@@ -13,15 +13,11 @@ Run with:
 
 """
 
-import os
 import sys
 import time
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
     Client,
-    AccountId,
     PrivateKey,
     AccountCreateTransaction,
     TransferTransaction,
@@ -29,8 +25,6 @@ from hiero_sdk_python import (
     ResponseCode,
     Hbar,
 )
-
-load_dotenv()
 
 
 def setup_client():
