@@ -52,19 +52,15 @@ jobs:
       - name: Comment on PR with title guidance
         if: failure()
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const script = require('./.github/scripts/bot-conventional-pr-title.js');
-            const core = require('@actions/core');
             
-            // Set inputs for the bot script using environment variables (secure)
-            core.setInput('github-token', process.env.GITHUB_TOKEN);
-            core.setInput('pr-number', process.env.PR_NUMBER);
-            core.setInput('pr-title', process.env.PR_TITLE);
-            
-            // Run the bot
-            await script.run();
+            // Run the bot with required parameters
+            await script.run({
+              github: github,
+              context: context,
+              prNumber: context.issue.number,
+              prTitle: context.payload.pull_request.title
+            });
