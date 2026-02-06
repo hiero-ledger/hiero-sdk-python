@@ -9,7 +9,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
-- Improve unit test coverage for `Hbar`, including edge cases, validation, comparisons, and hashing. (#1483)
 - Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
 
 - Format `tests/unit/executable_test.py` with Black.(#1530)
@@ -141,6 +140,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
 - Add return type hint to `AccountId.__repr__` for type consistency. (#1503)
+- Good First Issue template to have more guidance and renamed other templates for consistency with upstream
 - Added AI usage guidelines to the Good First Issue and Beginner issue templates to guide contributors on responsible AI use. (#1490)
 - Refactored `bot-verified-commits.yml` workflow to use modular JavaScript with configurable environment variables, input sanitization, dry-run mode support, and SHA-pinned actions. (#1482)
 - Refactored the advanced issue assignment guard to use a single configurable variable for the required number of completed intermediate issues. (#1479)
