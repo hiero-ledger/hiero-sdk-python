@@ -14,7 +14,7 @@ to build and execute a file append transaction.
 """
 
 import math
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -321,7 +321,7 @@ class FileAppendTransaction(Transaction):
         return self
 
 
-    def execute(self, client: "Client") -> Any:
+    def execute(self, client: "Client", timeout: Optional[Union[int, float]] = None) -> Any:
         """
         Executes the file append transaction.
         
@@ -329,6 +329,7 @@ class FileAppendTransaction(Transaction):
         
         Args:
             client: The client to execute the transaction with.
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
             
         Returns:
             TransactionReceipt: The receipt from the first chunk execution.
@@ -337,7 +338,7 @@ class FileAppendTransaction(Transaction):
 
         if self.get_required_chunks() == 1:
             # Single chunk transaction
-            return super().execute(client)
+            return super().execute(client, timeout)
 
         # Multi-chunk transaction - execute all chunks
         responses = []
@@ -361,7 +362,7 @@ class FileAppendTransaction(Transaction):
                 super().sign(signing_key)
 
             # Execute the chunk
-            response = super().execute(client)
+            response = super().execute(client, timeout)
             responses.append(response)
 
             # Return the first response (as per JavaScript implementation)

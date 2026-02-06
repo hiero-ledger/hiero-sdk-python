@@ -263,7 +263,7 @@ class TransactionGetReceiptQuery(Query):
         ]
 
 
-    def execute(self, client: Client) -> TransactionReceipt:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> TransactionReceipt:
         """
         Executes the transaction receipt query.
 
@@ -274,6 +274,7 @@ class TransactionGetReceiptQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionReceipt: The transaction receipt from the network
@@ -284,7 +285,7 @@ class TransactionGetReceiptQuery(Query):
             ReceiptStatusError: If the transaction receipt contains an error status
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
         parent = TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id)
 
         if self.include_children:

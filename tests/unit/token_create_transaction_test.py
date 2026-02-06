@@ -562,8 +562,8 @@ def test_transaction_execution_failure(mock_account_ids):
             # Attempt to execute - this should raise the mocked PrecheckError
             token_tx.execute(token_tx.client)
 
-        # Verify _execute was called with client
-        mock_execute.assert_called_once_with(token_tx.client)
+        # Verify _execute was called with client and timeout as None
+        mock_execute.assert_called_once_with(token_tx.client, None)
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter
 def test_overwrite_defaults(mock_account_ids, mock_client):

@@ -336,3 +336,16 @@ def test_str_representaion__with_evm_address():
     """Should return str represention with evm_address"""
     contract_id = ContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
     assert contract_id.__str__() == "0.0.abcdef0123456789abcdef0123456789abcdef01"
+
+def test_contract_id_repr_numeric():
+    """Test __repr__ output for numeric contract ID."""
+    contract_id = ContractId(0, 0, 12345)
+    expected = "ContractId(shard=0, realm=0, contract=12345)"
+    assert repr(contract_id) == expected
+
+def test_contract_id_repr_evm_address():
+    """Test __repr__ output for EVM-based contract ID."""
+    evm_bytes = bytes.fromhex("a" * 40)
+    contract_id = ContractId(1, 2, evm_address=evm_bytes)
+    expected = f"ContractId(shard=1, realm=2, evm_address={evm_bytes.hex()})"
+    assert repr(contract_id) == expected
