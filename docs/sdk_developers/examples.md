@@ -24,6 +24,23 @@ python examples/name_of_file.py
 python -m examples.name_of_module
 ```
 
+### Optional Dependencies for Examples
+
+Some example scripts (notably those related to Ethereum / EVM functionality) require **optional dependencies** that are not installed by default.
+
+If you encounter import errors related to Ethereum libraries, install the ETH extra before running those examples.
+
+#### Using uv (recommended)
+
+```bash
+uv sync --dev --extra eth
+```
+
+Using pip
+```
+pip install -e ".[eth]"
+```
+
 You'll need your environment variables and uv set up as outlined in /README.md [README](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md)
 
 
