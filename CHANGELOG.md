@@ -8,6 +8,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
+- Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
+
 - Added tests for ProtoBuf Training Example Implementation
 - Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)
 - format black `tests/unit/hbar*.py`.(#1538)
