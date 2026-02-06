@@ -27,9 +27,13 @@ key_type = os.getenv("KEY_TYPE", "ecdsa")
 
 def setup_client():
     """Setup Client"""
-    client = Client.from_env()
-    print(f"Client set up with operator id {client.operator_account_id}")
-    return client
+    try:
+        client = Client.from_env()
+        print(f"Client set up with operator id {client.operator_account_id}")
+        return client
+    except ValueError as e:
+        print(f"Error setting up client: {e}")
+        sys.exit(1)
 
 
 def create_account(client, name, initial_balance=Hbar(10)):

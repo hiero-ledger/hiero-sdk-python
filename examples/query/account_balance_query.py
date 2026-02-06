@@ -37,12 +37,16 @@ def setup_client():
     Raises:
         ValueError: If OPERATOR_ID or OPERATOR_KEY environment variables are not set.
     """
-    client = Client.from_env()
-    operator_id = client.operator_account_id
-    operator_key = client.operator_private_key
+    try:
+        client = Client.from_env()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
 
-    print(f"Client set up with operator id {client.operator_account_id}")
-    return client, operator_id, operator_key
+        print(f"Client set up with operator id {client.operator_account_id}")
+        return client, operator_id, operator_key
+    except ValueError as e:
+        print(f"Error setting up client: {e}")
+        sys.exit(1)
 
 
 def create_account(client, operator_key, initial_balance=Hbar(10)):

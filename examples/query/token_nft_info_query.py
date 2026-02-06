@@ -20,12 +20,16 @@ from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    client = Client.from_env()
-    operator_id = client.operator_account_id
-    operator_key = client.operator_private_key
-    print(f"Client set up with operator id {client.operator_account_id}")
+    try:
+        client = Client.from_env()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
+        print(f"Client set up with operator id {client.operator_account_id}")
 
-    return client, operator_id, operator_key
+        return client, operator_id, operator_key
+    except ValueError as e:
+        print(f"Error setting up client: {e}")
+        sys.exit(1)
 
 
 def create_nft(client, operator_id, operator_key):
