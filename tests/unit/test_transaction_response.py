@@ -22,6 +22,19 @@ pytestmark = pytest.mark.unit
 def test_transaction_response_fields(transaction_id):
     """asserting response is correctly populated"""
     resp = TransactionResponse()
+    
+    # Assert public attributes exist (PRIORITY 1: protect against breaking changes)
+    assert hasattr(resp, 'transaction_id'), "Missing public attribute: transaction_id"
+    assert hasattr(resp, 'node_id'), "Missing public attribute: node_id"
+    assert hasattr(resp, 'hash'), "Missing public attribute: hash"
+    assert hasattr(resp, 'validate_status'), "Missing public attribute: validate_status"
+    assert hasattr(resp, 'transaction'), "Missing public attribute: transaction"
+ 
+    # Assert default values
+    assert resp.hash == bytes(), "Default hash should be empty bytes"
+    assert resp.validate_status is False, "Default validate_status should be False"
+    assert resp.transaction is None, "Default transaction should be None"
+
     resp.transaction_id = transaction_id
     resp.node_id = AccountId(0, 0, 3)
 
