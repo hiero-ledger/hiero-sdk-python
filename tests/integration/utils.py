@@ -46,7 +46,12 @@ class Account:
 class IntegrationTestEnv:
 
     def __init__(self) -> None:
-        network = Network(os.getenv("NETWORK"))
+        network_name = os.getenv("NETWORK", "solo").lower()
+
+        if network_name == "mainnet":
+            raise ValueError("Running tests against mainnet is not allowed")
+
+        network = Network(network=network_name)
         self.client = Client(network)
         self.operator_id: Optional[AccountId] = None
         self.operator_key: Optional[PrivateKey] = None
@@ -56,6 +61,8 @@ class IntegrationTestEnv:
             self.operator_id = AccountId.from_string(operator_id)
             self.operator_key = PrivateKey.from_string(operator_key)
             self.client.set_operator(self.operator_id, self.operator_key)
+        else:
+            raise ValueError("OPERATOR_ID and OPERATOR_KEY must be set for integration tests")
 
         self.client.logger.set_level(LogLevel.ERROR)
         self.public_operator_key = self.operator_key.public_key()

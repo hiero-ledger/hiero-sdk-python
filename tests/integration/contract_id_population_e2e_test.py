@@ -2,7 +2,6 @@
 Integration tests for ContractId.
 """
 
-import time
 import pytest
 
 from examples.contract.contracts.contract_utils import (
