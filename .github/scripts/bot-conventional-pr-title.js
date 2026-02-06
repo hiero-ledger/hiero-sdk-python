@@ -1,6 +1,8 @@
 /**
  * Bot that comments on PRs with invalid conventional commit titles
  * Provides helpful guidance on fixing the title format
+ * 
+ * @module bot-conventional-pr-title
  */
 
 // Unique identifier to find/update existing bot comments
@@ -11,6 +13,8 @@ const MAX_COMMENTS_TO_FETCH = 500;
 
 /**
  * Suggest appropriate conventional commit type based on PR title keywords
+ * @param {string} title - The PR title to analyze
+ * @returns {string} The suggested conventional commit type
  */
 function suggestConventionalType(title) {
   console.log('[Bot] Analyzing title for type suggestion:', title);
@@ -62,6 +66,10 @@ function suggestConventionalType(title) {
 
 /**
  * Format the bot comment message with title guidance
+ * @param {string} currentTitle - The current PR title
+ * @param {string} suggestedType - The suggested conventional type
+ * @param {number} prNumber - The PR number
+ * @returns {string} Formatted markdown message
  */
 function formatMessage(currentTitle, suggestedType, prNumber) {
   console.log('[Bot] Formatting message with suggestion:', suggestedType);
@@ -119,6 +127,13 @@ gh pr edit ${prNumber} --title "${suggestedType}: ${escapedTitle}"
 
 /**
  * Main bot execution function
+ * @param {Object} params - Function parameters
+ * @param {Object} params.github - GitHub API client
+ * @param {Object} params.context - GitHub Actions context
+ * @param {number} params.prNumber - Pull request number
+ * @param {string} params.prTitle - Pull request title
+ * @param {boolean} [params.dryRun=false] - Dry run mode flag
+ * @returns {Promise<void>}
  */
 async function run({ github, context, prNumber, prTitle, dryRun = false }) {
   try {
