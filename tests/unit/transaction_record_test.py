@@ -364,7 +364,6 @@ def test_repr_method(transaction_id):
                          f"prng_bytes=None, "
                          f"duplicates_count=0)")
     assert repr(record_full) == expected_repr_full
-
     # Test with transfers
     record_with_transfers = TransactionRecord(
         transaction_id=transaction_id, receipt=receipt
@@ -389,7 +388,6 @@ def test_repr_method(transaction_id):
                                   f"prng_bytes=None, "
                                   f"duplicates_count=0)")
     assert repr(record_with_transfers) == expected_repr_with_transfers
-
 
 def test_proto_conversion_with_call_result():
     """Test the call_result property of TransactionRecord."""
@@ -417,6 +415,7 @@ def test_proto_conversion_with_call_result():
     assert converted.call_result.amount == record.call_result.amount
 
 def test_from_proto_accepts_and_stores_duplicates(transaction_id):
+    """Test that _from_proto correctly stores provided duplicate records."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.memo = "Main"
 
@@ -425,9 +424,10 @@ def test_from_proto_accepts_and_stores_duplicates(transaction_id):
 
     record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup1, dup2])
 
-    assert len(record.duplicates) == 2
-    assert record.duplicates[0].transaction_memo == "dup1"
-    assert record.duplicates[1].transaction_memo == "dup2"
+    assert len(record.duplicates) == 2, "Should store exactly two duplicates"
+    assert record.duplicates[0].transaction_memo == "dup1", "First duplicate memo mismatch"
+    assert record.duplicates[1].transaction_memo == "dup2", "Second duplicate memo mismatch"
+
 
 def test_from_proto_without_duplicates_param_backward_compat(transaction_id):
     """Test _from_proto works without duplicates parameter (backward compatibility)."""
@@ -437,26 +437,63 @@ def test_from_proto_without_duplicates_param_backward_compat(transaction_id):
     # Call without duplicates parameter - should not raise
     record = TransactionRecord._from_proto(proto, transaction_id)
 
-    assert record.duplicates == []  
-    assert record.transaction_memo == "Test"  
+    assert record.duplicates == [], "Duplicates should default to empty list when omitted"
+    assert record.transaction_memo == "Test"
+
 
 def test_from_proto_with_empty_duplicates_list(transaction_id):
+    """Test _from_proto with explicit empty duplicates list."""
     proto = transaction_record_pb2.TransactionRecord()
+
     record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[])
-    assert len(record.duplicates) == 0
+
+    assert len(record.duplicates) == 0, "Empty duplicates list should remain empty"
+
+
+def test_from_proto_with_duplicates_none(transaction_id):
+    """Test explicit duplicates=None uses the fallback to empty list."""
+    proto = transaction_record_pb2.TransactionRecord()
+    proto.memo = "With None duplicates"
+
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=None)
+
+    assert record.duplicates == [], "duplicates=None should resolve to empty list"
+    assert record.transaction_memo == "With None duplicates"
 
 
 def test_from_proto_with_duplicates_instances(transaction_id):
+    """Test that provided duplicate instances are stored by reference."""
     proto = transaction_record_pb2.TransactionRecord()
-    dup = TransactionRecord(transaction_id=transaction_id, transaction_memo="example dup")
-    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup])
-    assert record.duplicates == [dup]
 
+    dup = TransactionRecord(transaction_id=transaction_id, transaction_memo="example dup")
+
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup])
+
+    assert record.duplicates[0] is dup, "Should store the exact duplicate instance by reference"
+
+def test_to_proto_does_not_serialize_duplicates(transaction_id):
+    """Test that _to_proto excludes duplicates, preserving the query-only invariant."""
+    dup = TransactionRecord(transaction_id=transaction_id, transaction_memo="dup")
+    record = TransactionRecord(
+        transaction_id=transaction_id,
+        transaction_memo="primary",
+        duplicates=[dup],
+    )
+    assert len(record.duplicates) == 1, "Pre-condition: duplicates exist"
+
+    proto = record._to_proto()
+    round_tripped = TransactionRecord._from_proto(proto, transaction_id)
+
+    assert round_tripped.duplicates == [], "Duplicates must not survive round-trip through proto"
+    assert round_tripped.transaction_memo == "primary"
 
 def test_repr_includes_duplicates_count(transaction_id):
+    """Test that __repr__ shows correct duplicates_count."""
     record = TransactionRecord(transaction_id=transaction_id)
-    assert "duplicates_count=0" in repr(record)
+    assert "duplicates_count=0" in repr(record), "Default duplicates_count should be 0"
 
     dup = TransactionRecord(transaction_id=transaction_id)
     record.duplicates = [dup, dup]
-    assert "duplicates_count=2" in repr(record)
+
+    assert "duplicates_count=2" in repr(record), "duplicates_count should reflect list length"
+    

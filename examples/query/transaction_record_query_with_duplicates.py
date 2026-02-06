@@ -13,13 +13,54 @@ from hiero_sdk_python.account.account_create_transaction import AccountCreateTra
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.exceptions import PrecheckError
+
 
 def main():
+    try:
+        _run()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def submit_duplicates(tx, client, count=2):
+    """Submit the same transaction multiple times and handle expected duplicate responses."""
+    for i in range(1, count + 1):
+        print(f"Submitting duplicate #{i}...")
+        try:
+            receipt = tx.execute(client)
+            status_name = ResponseCode(receipt.status).name
+            print(f"  → receipt status: {status_name}")
+        except PrecheckError as e:
+            if e.status == ResponseCode.DUPLICATE_TRANSACTION:
+                print("  → DUPLICATE_TRANSACTION in precheck (normal/expected)")
+            else:
+                print(f"  → Unexpected precheck failure: {e}", file=sys.stderr)
+                sys.exit(1)
+        except Exception as e:
+            print(f"  → Submission failed: {e}", file=sys.stderr)
+            sys.exit(1)
+
+
+def print_record_info(record):
+    """Print main record and duplicates information."""
+    main_status = ResponseCode(record.receipt.status).name
+    memo = record.transaction_memo or '(none)'
+    print(f"Main record   : status = {main_status:18}  memo = {memo}")
+
+    print(f"Duplicates found: {len(record.duplicates)}")
+
+    for i, dup in enumerate(record.duplicates, 1):
+        dup_status = ResponseCode(dup.receipt.status).name
+        memo = dup.transaction_memo or '(none)'
+        print(f"  Duplicate #{i}: status = {dup_status:18}  memo = {memo}")
+
+
+def _run():
     client = Client.from_env()  # reads OPERATOR_ID, OPERATOR_KEY, HEDERA_NETWORK from env
-    if not client.operator_account_id or not client.operator_key:
-        print("Error: OPERATOR_ID and OPERATOR_KEY environment variables must be set.")
-        return
-    
+
     new_key = PrivateKey.generate_ed25519()
 
     tx = (
@@ -27,43 +68,28 @@ def main():
         .set_key_without_alias(new_key.public_key())
         .set_initial_balance(Hbar.from_tinybars(10_000_000))
         .freeze_with(client)
-        .sign(client.operator_key)
+        .sign(client.operator_private_key)
     )
 
     print("Submitting original transaction...")
     receipt = tx.execute(client)
+
     if receipt.status != ResponseCode.SUCCESS:
-        print(f"AccountCreate failed: {ResponseCode(receipt.status).name}")
+        print(f"AccountCreate failed: {ResponseCode(receipt.status).name}", file=sys.stderr)
         sys.exit(1)
 
     tx_id = receipt.transaction_id
-    print(f"TxID: {tx_id}")
+    print(f"Transaction ID: {tx_id}")
 
-    print("Submitting duplicate #1...")
-    dup1_receipt = tx.execute(client)
-    if dup1_receipt.status not in (
-        ResponseCode.DUPLICATE_TRANSACTION,
-        ResponseCode.SUCCESS,
-    ):
-        print(
-            f"Duplicate `#1` unexpected status: {ResponseCode(dup1_receipt.status).name}"
-        )
-        sys.exit(1)
+    # ────────────────────────────────────────────────
+    # Submit duplicates — expect DUPLICATE_TRANSACTION
+    # ────────────────────────────────────────────────
+    submit_duplicates(tx, client, count=2)
 
-    print("Submitting duplicate #2...")
-    dup2_receipt = tx.execute(client)
-    if dup2_receipt.status not in (
-        ResponseCode.DUPLICATE_TRANSACTION,
-        ResponseCode.SUCCESS,
-    ):
-        print(
-            f"Duplicate `#2` unexpected status: {ResponseCode(dup2_receipt.status).name}"
-        )
-        sys.exit(1)
+    print("Waiting for consensus and mirror node propagation...")
+    time.sleep(6)  # 3s is often too short on testnet/previewnet/local
 
-    time.sleep(3)  # give consensus time (increase if needed)
-
-    print("\nQuerying with include_duplicates=True...")
+    print("\nQuerying transaction record with include_duplicates=True...")
     record = (
         TransactionRecordQuery()
         .set_transaction_id(tx_id)
@@ -71,15 +97,12 @@ def main():
         .execute(client)
     )
 
-    print(f"Main record: memo={record.transaction_memo or '(none)'}, "
-          f"status={record.receipt.status.name}")
+    print_record_info(record)
 
-    print(f"Duplicates found: {len(record.duplicates)}")
+    if not record.duplicates:
+        print("\nTip: On some networks you may see 0 duplicates even after several submissions "
+              "due to aggressive deduplication or mirror-node delay.")
 
-    for i, dup in enumerate(record.duplicates, 1):
-        print(f"  Duplicate #{i}: "
-              f"status={dup.receipt.status.name}, "
-              f"memo={dup.transaction_memo or '(none)'}")
 
 if __name__ == "__main__":
     main()

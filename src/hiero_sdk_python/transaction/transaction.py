@@ -1,5 +1,5 @@
 import hashlib
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from typing import TYPE_CHECKING
 
@@ -138,6 +138,7 @@ class Transaction(_Executable):
             ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
             ResponseCode.PLATFORM_NOT_ACTIVE,
             ResponseCode.BUSY,
+            ResponseCode.INVALID_NODE_ACCOUNT
         }
 
         if status in retryable_statuses:
@@ -328,7 +329,7 @@ class Transaction(_Executable):
         return self
         
 
-    def execute(self, client):
+    def execute(self, client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the transaction on the Hedera network using the provided client.
 
@@ -336,6 +337,7 @@ class Transaction(_Executable):
 
         Args:
             client (Client): The client instance to use for execution.
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionReceipt: The receipt of the transaction.
@@ -359,7 +361,7 @@ class Transaction(_Executable):
             self.sign(client.operator_private_key)
 
         # Call the _execute function from executable.py to handle the actual execution
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         response.validate_status = True
         response.transaction = self

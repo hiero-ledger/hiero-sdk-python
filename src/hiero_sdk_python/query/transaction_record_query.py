@@ -5,6 +5,7 @@ from hiero_sdk_python.hapi.services import (
     query_pb2,
     transaction_record_pb2,
 )
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -30,10 +31,15 @@ class TransactionRecordQuery(Query):
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
         super().__init__()
-
+        self._frozen = False
         if not isinstance(include_duplicates, bool):
             raise TypeError(
                 f"include_duplicates must be a bool (True or False), got {type(include_duplicates).__name__}"
+            )
+        
+        if transaction_id is not None and not isinstance(transaction_id, TransactionId):
+            raise TypeError(
+                f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
             )
 
         self.transaction_id: Optional[TransactionId] = transaction_id
@@ -51,10 +57,21 @@ class TransactionRecordQuery(Query):
         Returns:
             TransactionRecordQuery: The current instance for method chaining.
         """
+        self._require_not_frozen()
         if not isinstance(include_duplicates, bool):
             raise TypeError("include_duplicates must be a boolean (True or False)")
         self.include_duplicates = include_duplicates
         return self
+    
+    def _require_not_frozen(self) -> None:
+        """
+        Raises an exception if the query has already been frozen (executed or cost-queried).
+        Prevents modification of a query after it has been submitted to the network.
+        """
+        if self._frozen:
+            raise RuntimeError(
+                "Cannot modify a query after it has been frozen (executed or cost-queried)."
+            ) 
 
     def set_transaction_id(
         self,
@@ -71,6 +88,8 @@ class TransactionRecordQuery(Query):
         Returns:
             TransactionRecordQuery: This query instance for chaining.
         """
+        self._require_not_frozen()
+        
         if transaction_id is not None and not isinstance(transaction_id, TransactionId):
             raise TypeError(
                 f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
@@ -104,9 +123,6 @@ class TransactionRecordQuery(Query):
         transaction_get_record.includeDuplicates = self.include_duplicates
 
         query = query_pb2.Query()
-        if not hasattr(query, "transactionGetRecord"):
-            raise AttributeError("Query object has no attribute 'transactionGetRecord'")
-
         query.transactionGetRecord.CopyFrom(transaction_get_record)
 
         return query
@@ -233,14 +249,10 @@ class TransactionRecordQuery(Query):
             return PrecheckError(status)
 
         receipt = response.transactionGetRecord.transactionRecord.receipt
-
-        return ReceiptStatusError(
-            status,
-            self.transaction_id,
-            TransactionReceipt._from_proto(receipt, self.transaction_id),
-        )
-
-    def execute(self, client):
+        
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt, self.transaction_id))
+        
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the transaction record query.
 
@@ -251,6 +263,7 @@ class TransactionRecordQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionRecord: The transaction record from the network
@@ -260,8 +273,9 @@ class TransactionRecordQuery(Query):
             MaxAttemptsError: If the query fails after the maximum number of attempts
             ReceiptStatusError: If the transaction record contains an error status
         """
+        self._frozen = True
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
         primary_proto = response.transactionGetRecord.transactionRecord
         if self.include_duplicates:
             duplicates = self._map_record_list(

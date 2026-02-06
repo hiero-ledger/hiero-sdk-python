@@ -1,5 +1,6 @@
 import traceback
-from typing import Optional, Any
+from typing import Optional, Any, Union
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
 from hiero_sdk_python.account.account_id import AccountId
@@ -133,7 +134,7 @@ class CryptoGetAccountBalanceQuery(Query):
             transaction_func=None, query_func=channel.crypto.cryptoGetBalance
         )
 
-    def execute(self, client) -> AccountBalance:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> AccountBalance:
         """
         Executes the account balance query.
 
@@ -144,6 +145,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             AccountBalance: The account balance from the network
@@ -154,7 +156,7 @@ class CryptoGetAccountBalanceQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return AccountBalance._from_proto(response.cryptogetAccountBalance)
 
