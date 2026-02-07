@@ -97,34 +97,7 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
   echo " ISSUE #$ISSUE"
   echo "============================================================"
 
-  # ASSIGNEES=$(echo "$ISSUE_JSON" | jq -r '.assignees[].login')
-  
-  ASSIGN_INFO=$(gh api graphql -f query="
-  query {
-    repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
-      issue(number: $ISSUE) {
-        timelineItems(itemTypes: [ASSIGNED_EVENT], last: 1) {
-          nodes {
-            ... on AssignedEvent {
-              createdAt
-              assignees(first: 100) {
-                nodes {
-                  login
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-" --jq '.data.repository.issue.timelineItems.nodes[0]' 2>/dev/null || {
-          echo "[WARN] No assignment event found. Skipping."
-          continue
-        })
-
-ASSIGN_TS=$(echo "$ASSIGN_INFO" | jq -r '.createdAt')
-ASSIGNEES=$(echo "$ASSIGN_INFO" | jq -r '.assignees[].login // empty')
+  ASSIGNEES=$(echo "$ISSUE_JSON" | jq -r '.assignees[].login')
 
   if [ -z "$ASSIGNEES" ]; then
     echo "[INFO] No assignees? Skipping."
@@ -161,28 +134,28 @@ ASSIGNEES=$(echo "$ASSIGN_INFO" | jq -r '.assignees[].login // empty')
   fi
 
 #   # Get assignment time (use the last assigned event)
-#   ASSIGN_TS=$(gh api graphql -f query="
-#   query {
-#     repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
-#       issue(number: $ISSUE) {
-#         timelineItems(itemTypes: [ASSIGNED_EVENT], last: 1) {
-#           nodes {
-#             ... on AssignedEvent {
-#               createdAt
-#               assignee {
-#                 __typename
-#                 ... on User { login }
-#               }
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# " --jq '.data.repository.issue.timelineItems.nodes[0].createdAt' 2>/dev/null || {
-#           echo "[WARN] No assignment event found. Skipping."
-#           continue
-#         })
+  ASSIGN_TS=$(gh api graphql -f query="
+  query {
+    repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
+      issue(number: $ISSUE) {
+        timelineItems(itemTypes: [ASSIGNED_EVENT], last: 1) {
+          nodes {
+            ... on AssignedEvent {
+              createdAt
+              assignee {
+                __typename
+                ... on User { login }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+" --jq '.data.repository.issue.timelineItems.nodes[0].createdAt' 2>/dev/null || {
+          echo "[WARN] No assignment event found. Skipping."
+          continue
+        })
 
   ASSIGN_TS_SEC=$(parse_ts "$ASSIGN_TS")
   DIFF_DAYS=$(( (NOW_TS - ASSIGN_TS_SEC) / 86400 ))
