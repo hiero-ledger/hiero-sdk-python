@@ -114,7 +114,6 @@ class TransactionRecord:
         cls,
         proto: transaction_record_pb2.TransactionRecord,
         transaction_id: Optional[TransactionId] = None,
-        *,
         duplicates: Optional[list['TransactionRecord']] = None,
     ) -> 'TransactionRecord':
         """Creates a TransactionRecord instance from a protobuf transaction record.

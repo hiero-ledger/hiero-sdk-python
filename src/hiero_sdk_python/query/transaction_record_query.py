@@ -31,7 +31,6 @@ class TransactionRecordQuery(Query):
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
         super().__init__()
-        self._frozen = False
         if not isinstance(include_duplicates, bool):
             raise TypeError(
                 f"include_duplicates must be a bool (True or False), got {type(include_duplicates).__name__}"
@@ -57,22 +56,11 @@ class TransactionRecordQuery(Query):
         Returns:
             TransactionRecordQuery: The current instance for method chaining.
         """
-        self._require_not_frozen()
         if not isinstance(include_duplicates, bool):
             raise TypeError("include_duplicates must be a boolean (True or False)")
         self.include_duplicates = include_duplicates
         return self
     
-    def _require_not_frozen(self) -> None:
-        """
-        Raises an exception if the query has already been frozen (executed or cost-queried).
-        Prevents modification of a query after it has been submitted to the network.
-        """
-        if self._frozen:
-            raise RuntimeError(
-                "Cannot modify a query after it has been frozen (executed or cost-queried)."
-            ) 
-
     def set_transaction_id(
         self,
         transaction_id: Optional[TransactionId],
@@ -88,7 +76,6 @@ class TransactionRecordQuery(Query):
         Returns:
             TransactionRecordQuery: This query instance for chaining.
         """
-        self._require_not_frozen()
         
         if transaction_id is not None and not isinstance(transaction_id, TransactionId):
             raise TypeError(
@@ -273,7 +260,6 @@ class TransactionRecordQuery(Query):
             MaxAttemptsError: If the query fails after the maximum number of attempts
             ReceiptStatusError: If the transaction record contains an error status
         """
-        self._frozen = True
         self._before_execute(client)
         response = self._execute(client, timeout)
         primary_proto = response.transactionGetRecord.transactionRecord
