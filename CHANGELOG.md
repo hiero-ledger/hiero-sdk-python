@@ -6,8 +6,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
 ### Tests
+- Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
+
 - Added tests for ProtoBuf Training Example Implementation
 - Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)
 - format black `tests/unit/hbar*.py`.(#1538)
@@ -32,6 +33,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added support for the `includeDuplicates` flag in `TransactionRecordQuery` and `duplicates` field in `TransactionRecord` (#1635)
+- Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
+- Added `AssessedCustomFee` domain model to represent assessed custom fees. (`#1637`)
 - Add __repr__ method for ContractId class to improve debugging (#1714)
 - Added Protobuf Training guide to enhance developer understanding of proto serialization
   and deserialization (#1645)
@@ -150,6 +153,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+- Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
 - Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
 - Added missing return type `src/hiero_sdk_python/utils/entity_id_helper.py`. (#1622)
 - Update `verify_freeze()` to treat only ACCOUNT_FROZEN_FOR_TOKEN as a successful freeze verification (#1515)
