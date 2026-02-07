@@ -167,7 +167,7 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       }
     });
   } else {
-  comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
+  comment += `There are currently no open unassigned issues at or near the ${completedLabelText} level.\n\n`;
   comment += `You can check out **Good First Issues** in other Hiero repositories:\n\n`;
   const gfiQuery =
     'https://github.com/issues?q=' +
