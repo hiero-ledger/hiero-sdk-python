@@ -10,7 +10,7 @@
 const fs = require('fs').promises;
 // const path = require('path');
 
-// const SPAM_LIST_PATH = '.github/spam-list.txt';
+const SPAM_LIST_PATH = '.github/spam-list.txt';
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
 
 // Load current spam list and compute updates based on spam vs rehabilitated users
