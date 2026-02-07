@@ -1,3 +1,6 @@
+# Workflow to check PR titles follow conventional commit format
+# and provide automated guidance when titles are invalid
+
 name: PR Formatting
 
 on:
@@ -8,33 +11,35 @@ on:
         type: boolean
         default: true
   pull_request_target:
-    types: [opened, edited, synchronize, reopened]
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
 
-permissions:
-  checks: write
-  statuses: write
-  pull-requests: write
+concurrency:
+  group: pr-title-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   check-pr-title:
     name: Title Check
     runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.base.repo.fork }}
     permissions:
       checks: write
       statuses: write
       pull-requests: write
-      contents: read  # Required for checkout
+      contents: read
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
         with:
           egress-policy: audit
 
-      - name: Check PR title
-        id: check-title
+      - name: Check PR title format
         uses: amannn/action-semantic-pull-request@0723387faaf9b38adef4775cd42cfd5155ed6017 # v5.5.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: lint_pr_title
         with:
           types: |
             feat
@@ -48,13 +53,13 @@ jobs:
             ci
             chore
             revert
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Checkout repository to access bot script
       - name: Checkout repository
         if: failure()
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      # Run bot to comment on PR with helpful guidance
       - name: Comment on PR with title guidance
         if: failure()
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -62,18 +67,23 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const script = require('./.github/scripts/bot-conventional-pr-title.js');
-            
+
             // Validate PR context
             if (!context.payload.pull_request) {
               console.log('[Bot] No pull_request in context, skipping');
               return;
             }
-            
+
+            // Safely determine dry run mode (false for PR events, input value for manual triggers)
+            const isDryRun = context.eventName === 'workflow_dispatch' 
+              ? (context.payload.inputs?.dry_run === 'true')
+              : false;
+
             // Run the bot with required parameters
             await script.run({
               github: github,
               context: context,
               prNumber: context.payload.pull_request.number,
               prTitle: context.payload.pull_request.title,
-              dryRun: ${{ github.event.inputs.dry_run || 'false' }}
+              dryRun: isDryRun
             });
