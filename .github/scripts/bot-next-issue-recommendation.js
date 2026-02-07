@@ -128,6 +128,31 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
+function extractIssueDescription(body) {
+  if (!body || body.length === 0) {
+    return null;
+  }
+  
+  // Extract content from the section marked with 👾 Description of the issue or 👾 Issue description
+  const sectionRegex = /##*\s*👾\s*(Description of the issue|Issue description)[^\n]*\n([\s\S]*?)(\n##|\n###|$)/i;
+  const match = body.match(sectionRegex);
+  
+  if (!match || !match[2]) {
+    return null;
+  }
+  
+  // Sanitize: strip HTML, normalize whitespace, escape markdown links
+  const sanitized = match[2]
+    .replace(/<[^>]*>/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\s+/g, ' ') 
+    .trim();
+  
+  // Limit to 150 characters
+  const description = sanitized.substring(0, 150);
+  return description;
+}
+
 async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback, recommendationScope }) {
   const marker = '<!-- next-issue-bot-marker -->';
   
@@ -154,14 +179,12 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     recommendedIssues.slice(0, 5).forEach((issue, index) => {
       comment += `${index + 1}. [${sanitizeTitle(issue.title)}](${issue.html_url})\n`;
       if (issue.body && issue.body.length > 0) {
-        // Sanitize: strip HTML, normalize whitespace, escape markdown links
-        const sanitized = issue.body
-          .replace(/<[^>]*>/g, '') // Remove HTML tags
-          .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // Remove markdown links, keep text
-          .replace(/\s+/g, ' ') // Normalize whitespace
-          .trim();
-        const description = sanitized.substring(0, 150);
-        comment += `   ${description}${sanitized.length > 150 ? '...' : ''}\n\n`;
+        const description = extractIssueDescription(issue.body);
+        if (description) {
+          comment += `   ${description}${description.length >= 150 ? '...' : ''}\n\n`;
+        } else {
+          comment += `   *No description available*\n\n`;
+        }
       } else {
         comment += `   *No description available*\n\n`;
       }
