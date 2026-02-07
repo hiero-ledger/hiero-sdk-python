@@ -167,11 +167,20 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       }
     });
   } else {
-    comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
-    const orgLabel = recommendedLabel === 'Beginner' ? 'beginner' : 'good first issue';
-    const orgLabelQuery = encodeURIComponent(`label:"${orgLabel}"`);
-    comment += `You can check out ${recommendedLabel.toLowerCase()} issues across the entire Hiero organization: ` +
-      `[Hiero ${recommendedLabel} Issues](https://github.com/issues?q=org%3Ahiero-ledger+type%3Aissue+state%3Aopen+${orgLabelQuery})\n\n`;
+  comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
+  comment += `You can check out **Good First Issues** in other Hiero repositories that actively support them:\n\n`;
+  const gfiQuery =
+    'https://github.com/issues?q=' +
+    'is%3Aopen+is%3Aissue+' +
+    'org%3Ahiero-ledger+' +
+    'archived%3Afalse+' +
+    'no%3Aassignee+' +
+    '(label%3A%22good+first+issue%22+OR+label%3A%22skill%3A+good+first+issue%22)+' +
+    '(repo%3Ahiero-ledger%2Fhiero-sdk-cpp+' +
+    'OR+repo%3Ahiero-ledger%2Fhiero-sdk-swift+' +
+    'OR+repo%3Ahiero-ledger%2Fhiero-sdk-python+' +
+    'OR+repo%3Ahiero-ledger%2Fhiero-website)';
+  comment += `[View Good First Issues across supported Hiero repositories](${gfiQuery})\n\n`;
   }
   
   comment += `🌟 **Stay connected with the project:**\n`;
