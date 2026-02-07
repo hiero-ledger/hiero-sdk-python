@@ -107,9 +107,10 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
           nodes {
             ... on AssignedEvent {
               createdAt
-              assignee {
-                __typename
-                ... on User { login }
+              assignees(first: 100) {
+                nodes {
+                  login
+                }
               }
             }
           }
