@@ -78,7 +78,6 @@ module.exports = async ({ github, context, core }) => {
     let recommendedIssues = [];
     let recommendedLabel = null;
     let isFallback = false;
-    let recommendationScope = 'repo';
 
     recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
     recommendedLabel = 'Beginner';
@@ -100,7 +99,6 @@ module.exports = async ({ github, context, core }) => {
       completedLabelText,
       recommendedLabel,
       isFallback,
-      recommendationScope,
     };
     await generateAndPostComment(github, context, core, prNumber, recommendedIssues, recommendationMeta);
 
@@ -127,7 +125,7 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback, recommendationScope }) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback}) {
   const marker = '<!-- next-issue-bot-marker -->';
 
   // Build comment content
@@ -225,29 +223,3 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     core.setFailed(`Error posting comment: ${error.message}`);
   }
 }
-// TEMP LOCAL TEST — REMOVE BEFORE COMMIT
-(async () => {
-  const completedLabelText = 'Beginner issue';
-  let comment = '';
-
-  comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
-  comment += `You can check out **Good First Issues** in other Hiero repositories that actively support them:\n\n`;
-
-  const gfiQuery =
-    'https://github.com/issues?q=' +
-    'is%3Aopen+is%3Aissue+' +
-    'org%3Ahiero-ledger+' +
-    'archived%3Afalse+' +
-    'no%3Aassignee+' +
-    '(label%3A%22good+first+issue%22+OR+label%3A%22skill%3A+good+first+issue%22)+' +
-    '(repo%3Ahiero-ledger%2Fhiero-sdk-cpp+' +
-    'OR+repo%3Ahiero-ledger%2Fhiero-sdk-swift+' +
-    'OR+repo%3Ahiero-ledger%2Fhiero-sdk-python+' +
-    'OR+repo%3Ahiero-ledger%2Fhiero-website)';
-
-  comment += `[View Good First Issues across supported Hiero repositories](${gfiQuery})\n\n`;
-
-  console.log('\n--- BOT COMMENT OUTPUT ---\n');
-  console.log(comment);
-})();
-
