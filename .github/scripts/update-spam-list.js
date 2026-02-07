@@ -8,7 +8,6 @@
  */
 
 const fs = require('fs').promises;
-const path = require('path');
 
 const SPAM_LIST_PATH = '.github/spam-list.txt';
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
@@ -72,25 +71,6 @@ async function computeSpamListUpdates(spamUsers, rehabilitatedUsers) {
   };
 }
 
-// Write the updated spam list to file
-async function updateSpamListFile(usernames) {
-  if (dryRun) {
-    console.log('[DRY RUN] Would write to spam list file:');
-    console.log(usernames.join('\n'));
-    return;
-  }
-  
-  const content = usernames.join('\n') + (usernames.length > 0 ? '\n' : '');
-  
-  // Ensure directory exists
-  const dir = path.dirname(SPAM_LIST_PATH);
-  await fs.mkdir(dir, { recursive: true });
-  
-  await fs.writeFile(SPAM_LIST_PATH, content, 'utf8');
-
-}
-
-// Generate PR title and body with summary of changes
 
 function generateSummary(additions, removals) {
   const title = `chore: Update spam list (${additions.length} additions, ${removals.length} removals)`;
@@ -206,8 +186,8 @@ module.exports = async ({github, context, core}) => {
       }
     }
 
-    // ... rest remains the same
-    const { additions, removals, finalSpamList } = await computeSpamListUpdates(
+ // After processing all PRs, compute the final spam list updates
+    const { additions, removals } = await computeSpamListUpdates(
       spamUsers,
       rehabilitatedUsers
     );
@@ -215,28 +195,28 @@ module.exports = async ({github, context, core}) => {
     console.log(`Additions: ${additions.length}`);
     console.log(`Removals: ${removals.length}`);
     
-    if (additions.length > 0 || removals.length > 0) {
-      await updateSpamListFile(finalSpamList);
-    }
-    
     const { title, body } = generateSummary(additions, removals);
     const hasChanges = additions.length > 0 || removals.length > 0;
     
-    const branchName = hasChanges 
-      ? `spam-list-update-${new Date().toISOString().split('T')[0]}`
-      : '';
+    if (hasChanges) {
+      if (dryRun) {
+        console.log('[DRY RUN] Would create issue with:');
+        console.log(`Title: ${title}`);
+        console.log(`Body: ${body}`);
+      } else {
+        await github.rest.issues.create({
+          owner,
+          repo,
+          title,
+          body,
+          labels: ['spam-list-update',]
+        });
+        console.log('Issue created successfully');
+      }
+    } else {
+      console.log('No changes needed, skipping issue creation');
+    }
     
-    core.setOutput('has-changes', hasChanges.toString());
-    core.setOutput('pr-title', title);
-    core.setOutput('pr-body', body);
-    core.setOutput('branch-name', branchName);
-    
-    return {
-      hasChanges,
-      title,
-      body,
-      branchName
-    };
   } catch (error) {
     core.setFailed(`Failed to update spam list: ${error.message}`);
     throw error;
