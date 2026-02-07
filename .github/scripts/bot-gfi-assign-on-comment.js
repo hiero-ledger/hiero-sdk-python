@@ -216,14 +216,29 @@ module.exports = async ({ github, context }) => {
         }
 
         if (!commentRequestsAssignment(comment.body)) {
+            console.log('[gfi-assign] No /assign command - evaluating reminder criteria', {
+                issueNumber: issue?.number,
+                commenter: comment?.user?.login,
+            });
+
+            const isGFI = issueIsGoodFirstIssue(issue);
+            const assigneeCount = issue?.assignees?.length ?? 0;
+            const hasAssignees = assigneeCount > 0;
+            const commenter = comment?.user?.login;
+
+            console.log('[gfi-assign] Reminder criteria summary:', {
+                isGFI,
+                hasAssignees,
+                assigneeCount,
+                commenter,
+                issueNumber: issue?.number,
+            });
+
             // Only remind if:
             // - GFI
             // - unassigned
             // - reminder not already posted
-            if (
-                issueIsGoodFirstIssue(issue) &&
-                !issue.assignees?.length
-            ) {
+            if (isGFI && !hasAssignees) {
                 const username = comment.user.login;
 
                 const isTeamMember = await isRepoCollaborator({
@@ -261,7 +276,15 @@ module.exports = async ({ github, context }) => {
                     });
 
                     console.log('[gfi-assign] Posted /assign reminder');
+                } else {
+                    console.log('[gfi-assign] Skip reminder: already posted on this issue');
                 }
+            } else {
+                console.log('[gfi-assign] Skip reminder: not GFI or already assigned', {
+                    isGFI,
+                    hasAssignees,
+                    assigneeCount,
+                });
             }
 
             console.log('[gfi-assign] Exit: comment does not request assignment');
