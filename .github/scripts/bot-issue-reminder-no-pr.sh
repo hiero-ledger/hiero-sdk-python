@@ -150,10 +150,12 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
       }
     }
   }
-" --jq '.data.repository.issue.timelineItems.nodes[0].createdAt' 2>/dev/null || {
-          echo "[WARN] No assignment event found. Skipping."
-          continue
-        })
+" --jq '.data.repository.issue.timelineItems.nodes[0].createdAt' 2>&1) || true
+
+  if [ -z "$ASSIGN_TS" ] || [ "$ASSIGN_TS" = "null" ]; then
+    echo "[WARN] No assignment event found for issue #$ISSUE. Skipping."
+    continue
+  fi
 
   ASSIGN_TS_SEC=$(parse_ts "$ASSIGN_TS")
   DIFF_DAYS=$(( (NOW_TS - ASSIGN_TS_SEC) / 86400 ))
@@ -166,25 +168,13 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
     query {
       repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
         issue(number: $ISSUE) {
-          closingPullRequests: timelineItems(itemTypes: [CONNECTED_EVENT], first: 100) {
-            nodes {
-              ... on ConnectedEvent {
-                source {
-                  ... on PullRequest {
-                    number
-                    state
-                  }
-                }
-              }
-            }
+          closedByPullRequestsReferences(first: 100, includeClosedPrs: false) {
+            nodes { number state }
           }
         }
       }
     }
-  " --jq '.data.repository.issue.closingPullRequests.nodes[].source | select(.state == "OPEN") | .number' 2>/dev/null || {
-          echo "[ERROR] Failed to fetch timeline for issue #$ISSUE"
-          continue
-        })
+  " --jq '[.data.repository.issue.closedByPullRequestsReferences.nodes[] | select(.state == "OPEN") | .number] | first // empty' 2>&1) || true
 
   if [ -n "$OPEN_PR_FOUND" ]; then
     echo "[KEEP] An OPEN PR #$OPEN_PR_FOUND is linked to this issue → skip reminder."
