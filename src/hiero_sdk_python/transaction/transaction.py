@@ -551,6 +551,22 @@ class Transaction(_Executable):
         self.memo = memo
         return self
 
+    def set_transaction_valid_duration(self, duration: int) -> "Transaction":
+        """
+        Sets the valid duration for the transaction.
+
+        Args:
+            duration (int): The duration in seconds.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+        """
+        self._require_not_frozen()
+        if duration <= 0:
+            raise ValueError("duration must be greater than 0")
+        self.transaction_valid_duration = duration
+        return self
+
     def set_transaction_id(self, transaction_id: TransactionId):
         """
         Sets the transaction ID for the transaction.
