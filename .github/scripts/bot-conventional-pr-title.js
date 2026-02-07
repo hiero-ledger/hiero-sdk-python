@@ -1,7 +1,7 @@
 /**
  * Bot that comments on PRs with invalid conventional commit titles
  * Provides helpful guidance on fixing the title format
- * 
+ *
  * @module bot-conventional-pr-title
  */
 
@@ -18,12 +18,12 @@ const MAX_COMMENTS_TO_FETCH = 500;
  */
 function suggestConventionalType(title) {
   console.log('[Bot] Analyzing title for type suggestion:', title);
-  
+
   if (!title || typeof title !== 'string') {
     console.log('[Bot] ⚠️ Invalid title, defaulting to "chore"');
     return 'chore';
   }
-  
+
   const lowerTitle = title.toLowerCase();
 
   // Priority order for keyword matching
@@ -65,18 +65,12 @@ function suggestConventionalType(title) {
 }
 
 /**
- * Format the bot comment message with title guidance
- * @param {string} currentTitle - The current PR title
- * @param {string} suggestedType - The suggested conventional type
- * @param {number} prNumber - The PR number
- * @returns {string} Formatted markdown message
+ * Generate the header section of the bot message
+ * @param {string} currentTitle - Current PR title
+ * @param {string} suggestedType - Suggested conventional type
+ * @returns {string} Formatted header
  */
-function formatMessage(currentTitle, suggestedType, prNumber) {
-  console.log('[Bot] Formatting message with suggestion:', suggestedType);
-  
-  // Escape shell-sensitive characters for the CLI example
-  const escapedTitle = currentTitle.replace(/["$`\\]/g, '\\$&');
-  
+function generateMessageHeader(currentTitle, suggestedType) {
   return `${COMMENT_IDENTIFIER}
 ## PR Title Needs Conventional Format
 
@@ -91,8 +85,18 @@ ${suggestedType}: ${currentTitle}
 \`\`\`
 
 ---
+`;
+}
 
-### How to Fix This
+/**
+ * Generate the fix instructions section
+ * @param {string} suggestedType - Suggested conventional type
+ * @param {string} escapedTitle - Shell-escaped title
+ * @param {number} prNumber - PR number
+ * @returns {string} Formatted instructions
+ */
+function generateFixInstructions(suggestedType, escapedTitle, prNumber) {
+  return `### How to Fix This
 
 #### Option 1: Via GitHub UI
 1. Go to the top of this PR page
@@ -107,8 +111,15 @@ gh pr edit ${prNumber} --title "${suggestedType}: ${escapedTitle}"
 \`\`\`
 
 ---
+`;
+}
 
-### Valid Conventional Commit Types
+/**
+ * Generate the valid types reference section
+ * @returns {string} Formatted types list
+ */
+function generateValidTypesList() {
+  return `### Valid Conventional Commit Types
 - \`feat\` - New feature
 - \`fix\` - Bug fix
 - \`docs\` - Documentation changes
@@ -123,6 +134,25 @@ gh pr edit ${prNumber} --title "${suggestedType}: ${escapedTitle}"
 
 📖 Learn more: [Conventional Commits](https://www.conventionalcommits.org/)
 `;
+}
+
+/**
+ * Format the bot comment message with title guidance
+ * @param {string} currentTitle - The current PR title
+ * @param {string} suggestedType - The suggested conventional type
+ * @param {number} prNumber - The PR number
+ * @returns {string} Formatted markdown message
+ */
+function formatMessage(currentTitle, suggestedType, prNumber) {
+  console.log('[Bot] Formatting message with suggestion:', suggestedType);
+
+  // Escape shell-sensitive characters for the CLI example
+  const escapedTitle = currentTitle.replace(/["$`\\]/g, '\\$&');
+
+  // Compose message from smaller components
+  return generateMessageHeader(currentTitle, suggestedType) +
+         generateFixInstructions(suggestedType, escapedTitle, prNumber) +
+         generateValidTypesList();
 }
 
 /**
@@ -150,7 +180,7 @@ async function run({ github, context, prNumber, prTitle, dryRun = false }) {
       console.error('[Bot] ❌ Invalid PR number:', prNumber);
       throw new Error('Invalid PR number provided');
     }
-    
+
     if (!prTitle || typeof prTitle !== 'string') {
       console.error('[Bot] ❌ Invalid PR title:', prTitle);
       throw new Error('Invalid PR title provided');
@@ -163,12 +193,12 @@ async function run({ github, context, prNumber, prTitle, dryRun = false }) {
     const message = formatMessage(prTitle, suggestedType, prNumber);
 
     console.log('[Bot] Fetching PR comments with pagination...');
-    
+
     // Fetch comments with pagination and early exit
     let comments = [];
     let page = 1;
     let botComment = null;
-    
+
     while (comments.length < MAX_COMMENTS_TO_FETCH && !botComment) {
       const response = await github.rest.issues.listComments({
         owner: context.repo.owner,
@@ -177,19 +207,19 @@ async function run({ github, context, prNumber, prTitle, dryRun = false }) {
         per_page: 100,
         page: page
       });
-      
+
       comments = comments.concat(response.data);
-      
+
       // Check if we found the bot comment
       botComment = response.data.find(comment =>
         comment.body && comment.body.includes(COMMENT_IDENTIFIER)
       );
-      
+
       // Exit if no more pages or found the comment
       if (response.data.length < 100 || botComment) {
         break;
       }
-      
+
       page++;
     }
 
@@ -208,25 +238,25 @@ async function run({ github, context, prNumber, prTitle, dryRun = false }) {
     if (botComment) {
       console.log('[Bot] Found existing bot comment, updating...');
       console.log('[Bot] Comment ID:', botComment.id);
-      
+
       await github.rest.issues.updateComment({
         owner: context.repo.owner,
         repo: context.repo.repo,
         comment_id: botComment.id,
         body: message,
       });
-      
+
       console.log('[Bot] ✅ Successfully updated existing comment');
     } else {
       console.log('[Bot] No existing bot comment found, creating new one...');
-      
+
       const response = await github.rest.issues.createComment({
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: prNumber,
         body: message,
       });
-      
+
       console.log('[Bot] ✅ Successfully created new comment');
       console.log('[Bot] Comment ID:', response.data.id);
     }
@@ -238,7 +268,7 @@ async function run({ github, context, prNumber, prTitle, dryRun = false }) {
   } catch (error) {
     console.error('='.repeat(60));
     console.error('[Bot] ❌ Error occurred during bot execution');
-    
+
     // Handle permission errors gracefully
     if (error.status === 403) {
       console.error('[Bot] Permission denied - bot lacks write access to this repository');
@@ -247,7 +277,7 @@ async function run({ github, context, prNumber, prTitle, dryRun = false }) {
       console.error('='.repeat(60));
       return; // Exit gracefully, don't fail the workflow
     }
-    
+
     // Log other errors with details
     console.error('[Bot] Error name:', error.name);
     console.error('[Bot] Error message:', error.message);
