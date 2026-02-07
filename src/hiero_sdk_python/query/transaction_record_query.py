@@ -57,7 +57,7 @@ class TransactionRecordQuery(Query):
             TransactionRecordQuery: The current instance for method chaining.
         """
         if not isinstance(include_duplicates, bool):
-            raise TypeError("include_duplicates must be a boolean (True or False)")
+            raise TypeError(f"include_duplicates must be a boolean, got {type(include_duplicates).__name__}")
         self.include_duplicates = include_duplicates
         return self
     

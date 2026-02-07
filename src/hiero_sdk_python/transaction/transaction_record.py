@@ -126,9 +126,9 @@ class TransactionRecord:
         - Contract execution results
         - Airdrop records
         - PRNG (pseudo-random number generation) results
-
         The method maps all nested transfer data from the raw protobuf message into
         the structured format used by the TransactionRecord class & organizing them
+
         into appropriate defaultdict collections for efficient access.
 
         Args:
@@ -140,10 +140,7 @@ class TransactionRecord:
         Returns:
             TransactionRecord: A new instance containing all processed and structured data.
         """
-        if proto.HasField("transactionID"):
-            tx_id = TransactionId._from_proto(proto.transactionID)
-        else:
-            tx_id = transaction_id
+        tx_id = cls._resolve_transaction_id(proto, transaction_id)
         duplicates = duplicates or []
 
         token_transfers, nft_transfers = cls._parse_token_transfers(proto)
@@ -173,16 +170,13 @@ class TransactionRecord:
         transaction_id: Optional[TransactionId],
     ) -> TransactionId:
         """Resolves the transaction ID from proto or raises error if not available."""
-        if transaction_id is not None:
-            return transaction_id
-        
         if proto.HasField("transactionID"):
             return TransactionId._from_proto(proto.transactionID)
-        
-        raise ValueError(
-            "transaction_id is required when proto.transactionID is not present. "
-            "Cannot auto-extract transaction ID from this record."
-        )
+    
+        if transaction_id is not None:
+            return transaction_id
+    
+        raise ValueError("transaction_id is required when proto.transactionID is not present")
 
     @staticmethod
     def _parse_token_transfers(

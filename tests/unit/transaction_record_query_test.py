@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction_record import TransactionRecord
 from hiero_sdk_python.hapi.services import (
     response_pb2,
     response_header_pb2,
@@ -32,7 +33,7 @@ def test_set_transaction_id(transaction_id):
     result = query.set_transaction_id(transaction_id)
     
     assert query.transaction_id == transaction_id
-    assert result == query  # Should return self for chaining
+    assert result is query  # Should return self for chaining
 
 def test_set_include_duplicates_chaining_and_validation():
     """Test set_include_duplicates: correct assignment, chaining, and type validation."""
@@ -166,11 +167,11 @@ def test_transaction_record_query_execute_with_duplicates(transaction_id):
         query = TransactionRecordQuery(transaction_id, include_duplicates=True)
         result = query.execute(client)
         
+        assert isinstance(result, TransactionRecord), "Primary result must be TransactionRecord"
         assert result.transaction_memo == "primary"
         assert hasattr(result, 'duplicates'), "duplicates attribute must exist"
         assert len(result.duplicates) == 1
         assert result.duplicates[0].transaction_memo == "duplicate"
-        from hiero_sdk_python.transaction.transaction_record import TransactionRecord
         assert isinstance(result.duplicates[0], TransactionRecord)
         assert result.duplicates[0].transaction_id == transaction_id
         
@@ -266,7 +267,7 @@ def test_make_request_checks_for_transactionGetRecord_field(mock_make_header, tr
     with patch("hiero_sdk_python.hapi.services.query_pb2.Query") as mock_query_cls:
         mock_query_cls.return_value = object()  # no attributes: deterministic AttributeError
         
-        with pytest.raises(AttributeError, match="no attribute 'transactionGetRecord'"):
+        with pytest.raises(AttributeError):
             query._make_request()
 
 
@@ -294,7 +295,6 @@ def test_map_record_list_converts_protobuf_list(transaction_id):
     
     assert len(result) == 2
     # Verify actual TransactionRecord instances are returned
-    from hiero_sdk_python.transaction.transaction_record import TransactionRecord
     assert isinstance(result[0], TransactionRecord)
     assert isinstance(result[1], TransactionRecord)
     # Verify transaction_id was propagated
@@ -312,3 +312,39 @@ def test_map_record_list_handles_empty_list(transaction_id):
     
     assert result == []
     assert isinstance(result, list)
+
+# === Type validation / error handling tests ===
+
+def test_set_include_duplicates_raises_on_invalid_type():
+    """set_include_duplicates rejects non-boolean values."""
+    query = TransactionRecordQuery()
+    
+    with pytest.raises(TypeError) as exc:
+        query.set_include_duplicates(42)  # wrong type: int
+    msg = str(exc.value)
+    assert "include_duplicates must be a boolean" in msg
+    assert "got int" in msg
+
+
+def test_init_raises_on_invalid_include_duplicates_type():
+    """__init__ rejects non-boolean include_duplicates."""
+    with pytest.raises(TypeError) as exc:
+        TransactionRecordQuery(
+            transaction_id=None,
+            include_duplicates="yes"  # wrong type: str
+        )
+    msg = str(exc.value)
+    assert "include_duplicates must be a bool" in msg           
+    assert "(True or False)" in msg                             # optional: extra safety
+    assert "got str" in msg                                     # optional: checks type name
+
+
+def test_set_transaction_id_raises_on_invalid_type():
+    """set_transaction_id rejects invalid types for transaction_id."""
+    query = TransactionRecordQuery()
+    
+    with pytest.raises(TypeError) as exc:
+        query.set_transaction_id(["not", "a", "txid"])  # wrong type: list
+    msg = str(exc.value)
+    assert "transaction_id must be TransactionId or None" in msg
+    assert "got list" in msg

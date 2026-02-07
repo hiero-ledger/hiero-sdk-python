@@ -497,3 +497,14 @@ def test_repr_includes_duplicates_count(transaction_id):
 
     assert "duplicates_count=2" in repr(record), "duplicates_count should reflect list length"
     
+def test_from_proto_raises_when_no_transaction_id_available():
+    """Verify error is raised when neither transaction_id param nor proto.transactionID is present."""
+    proto = transaction_record_pb2.TransactionRecord()
+    
+    # Force-clear the field (works in protobuf 3 & 4)
+    proto.ClearField("transactionID")
+    
+    assert not proto.HasField("transactionID"), "Field should be absent after ClearField"
+
+    with pytest.raises(ValueError, match=r"transaction_id is required when proto\.transactionID is not present"):
+        TransactionRecord._from_proto(proto, transaction_id=None)
