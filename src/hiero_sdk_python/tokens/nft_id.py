@@ -103,3 +103,7 @@ class NftId:
         :return: a human-readable representation of the NftId
         """
         return f"{self.token_id}/{self.serial_number}"
+    
+    def __repr__(self) -> str:
+    
+        return f"NftId(token_id = {self.token_id}, serial_number = {self.serial_number})"
