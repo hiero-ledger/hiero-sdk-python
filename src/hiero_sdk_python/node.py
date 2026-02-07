@@ -1,13 +1,13 @@
 import hashlib
 import socket
-import ssl  # Python's ssl module implements TLS (despite the name)
+import ssl # Python's ssl module implements TLS (despite the name)
+import time
 import grpc
 from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.managed_node_address import _ManagedNodeAddress
-
 
 # Timeout for fetching server certificates during TLS validation
 CERT_FETCH_TIMEOUT_SECONDS = 10
@@ -23,7 +23,7 @@ class _HederaTrustManager:
     def __init__(self, cert_hash: Optional[bytes], verify_certificate: bool):
         """
         Initialize the trust manager.
-        
+
         Args:
             cert_hash: Expected certificate hash from address book (UTF-8 encoded hex string)
             verify_certificate: Whether to enforce certificate verification
@@ -38,8 +38,8 @@ class _HederaTrustManager:
         else:
             # Convert bytes to hex string (matching Java's String conversion)
             try:
-                self.cert_hash = cert_hash.decode('utf-8').strip().lower()
-                if self.cert_hash.startswith('0x'):
+                self.cert_hash = cert_hash.decode("utf-8").strip().lower()
+                if self.cert_hash.startswith("0x"):
                     self.cert_hash = self.cert_hash[2:]
             except UnicodeDecodeError:
                 self.cert_hash = cert_hash.hex().lower()
@@ -47,13 +47,13 @@ class _HederaTrustManager:
     def check_server_trusted(self, pem_cert: bytes) -> bool:
         """
         Validate a server certificate by comparing its hash to the expected hash.
-        
+
         Args:
             pem_cert: PEM-encoded certificate bytes
-            
+
         Returns:
             True if certificate hash matches expected hash
-            
+
         Raises:
             ValueError: If certificate hash doesn't match expected hash
         """
@@ -78,7 +78,7 @@ class _Node:
     def __init__(self, account_id: AccountId, address: str, address_book: NodeAddress):
         """
         Initialize a new Node instance.
-        
+
         Args:
             account_id (AccountId): The account ID of the node.
             address (str): The address of the node.
@@ -92,11 +92,17 @@ class _Node:
         self._verify_certificates: bool = True
         self._root_certificates: Optional[bytes] = None
         self._node_pem_cert: Optional[bytes] = None
-    
+
+        self._min_backoff: float = 8  # seconds
+        self._max_backoff: float = 3600  # seconds
+        self._current_backoff: float = self._min_backoff
+        self._readmit_time: float = time.monotonic()
+        self._bad_grpc_response_count: int = 0
+
     def _close(self):
         """
         Close the channel for this node.
-        
+
         Returns:
             None
         """
@@ -107,7 +113,7 @@ class _Node:
     def _get_channel(self):
         """
         Get the channel for this node.
-        
+
         Returns:
             _Channel: The channel for this node.
         """
@@ -124,18 +130,20 @@ class _Node:
 
             if not self._node_pem_cert:
                 raise ValueError("No certificate available.")
-            
+
             # Validate certificate if verification is enabled
             if self._verify_certificates:
-                self._validate_tls_certificate_with_trust_manager()            
-            
+                self._validate_tls_certificate_with_trust_manager()
+
             options = self._build_channel_options()
             credentials = grpc.ssl_channel_credentials(
                 root_certificates=self._node_pem_cert,
                 private_key=None,
                 certificate_chain=None,
             )
-            channel = grpc.secure_channel(str(self._address), credentials, options=options)
+            channel = grpc.secure_channel(
+                str(self._address), credentials, options=options
+            )
         else:
             channel = grpc.insecure_channel(str(self._address))
 
@@ -151,9 +159,9 @@ class _Node:
             return
         if not enabled and not self._address._is_transport_security():
             return
-        
+
         self._close()
-        
+
         if enabled:
             self._address = self._address._to_secure()
         else:
@@ -166,16 +174,16 @@ class _Node:
         self._root_certificates = root_certificates
         if self._channel and self._address._is_transport_security():
             self._close()
-            
+
     def _set_verify_certificates(self, verify: bool):
         """
         Set whether TLS certificates should be verified.
         """
         if self._verify_certificates == verify:
             return
-        
+
         self._verify_certificates = verify
-        
+
         if verify and self._channel and self._address._is_transport_security():
             # Force channel recreation to ensure certificates are revalidated.
             self._close()
@@ -188,15 +196,15 @@ class _Node:
         are intentionally set to a fixed value ("127.0.0.1") to bypass standard
         TLS hostname verification.
 
-        This is REQUIRED because Hedera nodes are connected to via IP addresses 
-        from the address book, while their TLS certificates are not issued for 
-        those IPs. As a result, standard hostname verification would fail even 
+        This is REQUIRED because Hedera nodes are connected to via IP addresses
+        from the address book, while their TLS certificates are not issued for
+        those IPs. As a result, standard hostname verification would fail even
         for legitimate nodes.
 
         Although hostname verification is disabled, transport security is NOT
         weakened. Instead of relying on hostnames, the SDK validates the server
-        by performing certificate hash pinning. This guarantees the client is 
-        communicating with the correct Hedera node regardless of the hostname 
+        by performing certificate hash pinning. This guarantees the client is
+        communicating with the correct Hedera node regardless of the hostname
         or IP address used to connect.
         """
         options = [
@@ -204,7 +212,7 @@ class _Node:
             ("grpc.ssl_target_name_override", "127.0.0.1"),
             ("grpc.keepalive_time_ms", 100000),
             ("grpc.keepalive_timeout_ms", 10000),
-            ("grpc.keepalive_permit_without_calls", 1)
+            ("grpc.keepalive_permit_without_calls", 1),
         ]
 
         return options
@@ -214,7 +222,7 @@ class _Node:
         Validate the remote TLS certificate using HederaTrustManager.
         This performs a pre-handshake validation by fetching the server certificate
         and comparing its hash to the expected hash from the address book.
-        
+
         Note: If verification is enabled but no cert hash is available (e.g., in unit tests
         without address books), validation is skipped rather than raising an error.
         """
@@ -223,7 +231,9 @@ class _Node:
 
         cert_hash = None
         if self._address_book:  # pylint: disable=protected-access
-            cert_hash = self._address_book._cert_hash  # pylint: disable=protected-access
+            cert_hash = (
+                self._address_book._cert_hash
+            )  # pylint: disable=protected-access
 
         # Skip validation if no cert hash is available (e.g., in unit tests)
         # This allows tests to run without address books while still enabling
@@ -241,7 +251,7 @@ class _Node:
         Normalize the certificate hash to a lowercase hex string.
         """
         try:
-            decoded = cert_hash.decode('utf-8').strip().lower()
+            decoded = cert_hash.decode("utf-8").strip().lower()
             if decoded.startswith("0x"):
                 decoded = decoded[2:]
 
@@ -252,7 +262,7 @@ class _Node:
     def _fetch_server_certificate_pem(self) -> bytes:
         """
         Perform a TLS handshake and retrieve the server certificate in PEM format.
-        
+
         Returns:
             bytes: PEM-encoded certificate bytes
         """
@@ -266,7 +276,7 @@ class _Node:
         # Create TLS context that accepts any certificate (we validate hash ourselves)
         context = ssl.create_default_context()
         # Restrict SSL/TLS versions to TLSv1.2+ only for security
-        if hasattr(context, 'minimum_version') and hasattr(ssl, 'TLSVersion'):
+        if hasattr(context, "minimum_version") and hasattr(ssl, "TLSVersion"):
             context.minimum_version = ssl.TLSVersion.TLSv1_2
         else:
             # Backwards compatibility for Python <3.7 that lacks minimum_version
@@ -275,10 +285,38 @@ class _Node:
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
 
-        with socket.create_connection((host, port), timeout=CERT_FETCH_TIMEOUT_SECONDS) as sock:
-            with context.wrap_socket(sock, server_hostname=server_hostname) as tls_socket:
+        with socket.create_connection(
+            (host, port), timeout=CERT_FETCH_TIMEOUT_SECONDS
+        ) as sock:
+            with context.wrap_socket(
+                sock, server_hostname=server_hostname
+            ) as tls_socket:
                 der_cert = tls_socket.getpeercert(True)
 
         # Convert DER to PEM format (matching Java's PEM encoding)
-        pem_cert = ssl.DER_cert_to_PEM_cert(der_cert).encode('utf-8')
+        pem_cert = ssl.DER_cert_to_PEM_cert(der_cert).encode("utf-8")
         return pem_cert
+
+    def is_healthy(self) -> bool:
+        """
+        Determine whether this node is currently eligible for use.
+
+        A node is considered healthy if the current time is greater than or equal
+        to its scheduled readmission time (`_readmit_time`). Nodes
+        """
+        return self._readmit_time <= time.monotonic()
+
+    def _increase_backoff(self) -> None:
+        """
+        Increase the node's backoff duration after a failure.
+        """
+        self._bad_grpc_response_count += 1
+        self._current_backoff = min(self._current_backoff * 2, self._max_backoff)
+        self._readmit_time = time.monotonic() + self._current_backoff
+
+    def _decrease_backoff(self) -> None:
+        """
+        Decrease the node's backoff duration after a successful operation.
+        """
+        self._current_backoff = max(self._current_backoff / 2, self._min_backoff)
+
