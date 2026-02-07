@@ -132,14 +132,37 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
   fi
 
   # Get assignment time (use the last assigned event)
-  ASSIGN_TS=$(gh api "repos/$REPO/issues/$ISSUE/events" \
-    --jq ".[] | select(.event==\"assigned\") | .created_at" \
-    | tail -n1)
+  ASSIGN_TS=$(gh api graphql -f query="
+  query {
+    repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
+      issue(number: $ISSUE) {
+        timelineItems(itemTypes: [ASSIGNED_EVENT], last: 1) {
+          nodes {
+            ... on AssignedEvent {
+              createdAt
+              assignee {
+                __typename
+                ... on User { login }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+" --jq '.data.repository.issue.timelineItems.nodes[0].createdAt' 2>/dev/null || {
+          echo "[WARN] No assignment event found. Skipping."
+          continue
+        })
 
-  if [ -z "$ASSIGN_TS" ]; then
-    echo "[WARN] No assignment event found. Skipping."
-    continue
-  fi
+  # ASSIGN_TS=$(gh api "repos/$REPO/issues/$ISSUE/events" \
+  #   --jq ".[] | select(.event==\"assigned\") | .created_at" \
+  #   | tail -n1)
+
+  # if [ -z "$ASSIGN_TS" ]; then
+  #   echo "[WARN] No assignment event found. Skipping."
+  #   continue
+  # fi
 
   ASSIGN_TS_SEC=$(parse_ts "$ASSIGN_TS")
   DIFF_DAYS=$(( (NOW_TS - ASSIGN_TS_SEC) / 86400 ))
