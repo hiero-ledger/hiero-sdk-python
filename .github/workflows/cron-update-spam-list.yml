@@ -12,7 +12,7 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
+  issues: write
 
 env:
   DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
@@ -37,17 +37,3 @@ jobs:
           script: |
             const updateSpamList = require('./.github/scripts/update-spam-list.js');
             await updateSpamList({ github, context, core });
-            
-
-      - name: Create pull request
-        if: ${{ steps.update-spam-list.outputs.has-changes == 'true' && env.DRY_RUN != 'true' }}
-        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: ${{ steps.update-spam-list.outputs.pr-title }}
-          branch: ${{ steps.update-spam-list.outputs.branch-name }}
-          title: ${{ steps.update-spam-list.outputs.pr-title }}
-          body: ${{ steps.update-spam-list.outputs.pr-body }}
-          labels: automated, spam-management
-          add-paths: |
-            .github/spam-list.txt
