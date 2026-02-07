@@ -123,7 +123,7 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
         })
 
 ASSIGN_TS=$(echo "$ASSIGN_INFO" | jq -r '.createdAt')
-ASSIGNEES=$(echo "$ASSIGN_INFO" | jq -r '.assignee.login // empty')
+ASSIGNEES=$(echo "$ASSIGN_INFO" | jq -r '.assignees[].login // empty')
 
   if [ -z "$ASSIGNEES" ]; then
     echo "[INFO] No assignees? Skipping."
