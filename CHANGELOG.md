@@ -9,6 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### Tests
+- Format `tests/unit/crypto_utils_test.py` with black" (#1524)
 - Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)
 - format black `tests/unit/hbar*.py`.(#1538)
 - Formatted `tests/unit/conftest.py` with black for code style consistency. (#1522)
