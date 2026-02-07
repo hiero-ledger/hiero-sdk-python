@@ -132,7 +132,7 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
   fi
 
   # Get assignment time (use the last assigned event)
-  ASSIGN_TS=$(gh api graphql -f query="
+  if ! ASSIGN_TS=$(gh api graphql -f query="
   query {
     repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
       issue(number: $ISSUE) {
@@ -150,7 +150,10 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
       }
     }
   }
-" --jq '.data.repository.issue.timelineItems.nodes[0].createdAt' 2>&1) || true
+" --jq '.data.repository.issue.timelineItems.nodes[0].createdAt' 2>&1); then
+    echo "[WARN] GraphQL query failed for issue #$ISSUE: $ASSIGN_TS. Skipping."
+    continue
+  fi
 
   if [ -z "$ASSIGN_TS" ] || [ "$ASSIGN_TS" = "null" ]; then
     echo "[WARN] No assignment event found for issue #$ISSUE. Skipping."
