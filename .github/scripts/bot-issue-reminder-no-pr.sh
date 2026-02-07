@@ -79,8 +79,6 @@ has_recent_working_command() {
   return 1 # False
 }
 
-
-
 # Fetch open ISSUES (not PRs) that have assignees
 ALL_ISSUES_JSON=$(gh api "repos/$REPO/issues" \
   --paginate \
@@ -133,7 +131,7 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
     continue
   fi
 
-#   # Get assignment time (use the last assigned event)
+  # Get assignment time (use the last assigned event)
   ASSIGN_TS=$(gh api graphql -f query="
   query {
     repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
