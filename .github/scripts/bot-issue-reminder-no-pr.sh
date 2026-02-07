@@ -170,7 +170,7 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
   " --jq '.data.repository.issue.closingPullRequests.nodes[].source | select(.state == "OPEN") | .number' 2>/dev/null || {
           echo "[ERROR] Failed to fetch timeline for issue #$ISSUE"
           continue
-        }))
+        })
 
   if [ -n "$OPEN_PR_FOUND" ]; then
     echo "[KEEP] An OPEN PR #$OPEN_PR_FOUND is linked to this issue → skip reminder."
