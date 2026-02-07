@@ -1,4 +1,7 @@
 /**
+ * This bot provides automated guidance for PR titles
+ */
+/**
  * Bot that comments on PRs with invalid conventional commit titles
  * Provides helpful guidance on fixing the title format
  *
