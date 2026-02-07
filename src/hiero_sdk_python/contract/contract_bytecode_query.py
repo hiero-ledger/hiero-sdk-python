@@ -107,7 +107,7 @@ class ContractBytecodeQuery(Query):
         )
 
     def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> bytes:
-        """/
+        """
         Executes the contract bytecode query.
 
         Sends the query to the Hedera network and processes the response
@@ -118,7 +118,7 @@ class ContractBytecodeQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             bytes: The bytecode of the contract from the network

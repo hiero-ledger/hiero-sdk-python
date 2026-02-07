@@ -95,7 +95,7 @@ class FileInfoQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.file.getFileInfo)
 
-    def execute(self, client: Client, timeout: Optional[Union[float, int]] = None) -> FileInfo:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> FileInfo:
         """
         Executes the file info query.
 
@@ -107,7 +107,7 @@ class FileInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             FileInfo: The file info from the network
