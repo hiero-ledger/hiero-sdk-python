@@ -209,7 +209,7 @@ module.exports = async ({github, context, core}) => {
           repo,
           title,
           body,
-          labels: ['spam-list-update',]
+          labels: ['spam-list-update', 'automated']
         });
         console.log('Issue created successfully');
       }
