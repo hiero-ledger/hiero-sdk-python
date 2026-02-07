@@ -146,6 +146,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added MirrorNode based population for `ContractId`, including parsing and serialization support.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 - Added `grpc_deadline` support for transaction and query execution.
+- Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
 
 ### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
