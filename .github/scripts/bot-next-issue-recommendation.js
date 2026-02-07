@@ -135,9 +135,8 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
   comment += `Thank you for your contribution to the Hiero Python SDK! We're excited to have you as part of our community.\n\n`;
 
   if (recommendedIssues.length > 0) {
-    if (recommendationScope === 'org') {
-      comment += `Here are some **Good First Issues across the Hiero organization** you might be interested in working on next:\n\n`;
-    } else if (isFallback) {
+
+    if (isFallback) {
       comment += `Here are some **${recommendedLabel}** issues at a similar level you might be interested in working on next:\n\n`;
     } else {
       comment += `Here are some issues labeled **${recommendedLabel}** you might be interested in working on next:\n\n`;
@@ -169,13 +168,13 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
     comment += `You can check out **Good First Issues** in other Hiero repositories:\n\n`;
     const repoQuery = SUPPORTED_GFI_REPOS
-      .map(repo => `repo:hiero-ledger/${repo}`)
+      .map(repo => `repo:${context.repo.owner}/${repo}`)
       .join(' OR ');
 
     const gfiSearchQuery = [
       'is:open',
       'is:issue',
-      'org:hiero-ledger',
+      `org:${context.repo.owner}`,
       'archived:false',
       'no:assignee',
       '(label:"good first issue" OR label:"skill: good first issue")',
@@ -202,7 +201,7 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       issue_number: prNumber,
     });
 
-    const existingComment = comments.find(comment => comment.body.includes(marker));
+    const existingComment = comments.find(c => c.body.includes(marker));
 
     if (existingComment) {
       core.info('Comment already exists, skipping');
@@ -226,3 +225,29 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     core.setFailed(`Error posting comment: ${error.message}`);
   }
 }
+// TEMP LOCAL TEST — REMOVE BEFORE COMMIT
+(async () => {
+  const completedLabelText = 'Beginner issue';
+  let comment = '';
+
+  comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
+  comment += `You can check out **Good First Issues** in other Hiero repositories that actively support them:\n\n`;
+
+  const gfiQuery =
+    'https://github.com/issues?q=' +
+    'is%3Aopen+is%3Aissue+' +
+    'org%3Ahiero-ledger+' +
+    'archived%3Afalse+' +
+    'no%3Aassignee+' +
+    '(label%3A%22good+first+issue%22+OR+label%3A%22skill%3A+good+first+issue%22)+' +
+    '(repo%3Ahiero-ledger%2Fhiero-sdk-cpp+' +
+    'OR+repo%3Ahiero-ledger%2Fhiero-sdk-swift+' +
+    'OR+repo%3Ahiero-ledger%2Fhiero-sdk-python+' +
+    'OR+repo%3Ahiero-ledger%2Fhiero-website)';
+
+  comment += `[View Good First Issues across supported Hiero repositories](${gfiQuery})\n\n`;
+
+  console.log('\n--- BOT COMMENT OUTPUT ---\n');
+  console.log(comment);
+})();
+
