@@ -148,18 +148,41 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
   echo "[INFO] Days since assignment: $DIFF_DAYS"
 
   # Check if any open PRs are linked to this issue
-  PR_NUMBERS=$(gh api \
-    -H "Accept: application/vnd.github.mockingbird-preview+json" \
-    "repos/$REPO/issues/$ISSUE/timeline" \
-    --jq ".[] 
-          | select(.event == \"cross-referenced\") 
-          | select(.source.issue.pull_request != null) 
-          | .source.issue.number" 2>/dev/null || true)
-
+  # PR_NUMBERS=$(gh api "repos/$REPO/issues/$ISSUE/pulls" --jq '.[].number' 2>/dev/null || true)
+  # PR_NUMBERS=$(gh api \
+  #   -H "Accept: application/vnd.github.mockingbird-preview+json" \
+  #   "repos/$REPO/issues/$ISSUE/timeline" \
+  #   --jq ".[] 
+  #         | select(.event == \"cross-referenced\") 
+  #         | select(.source.issue.pull_request != null) 
+  #         | .source.issue.number" 2>/dev/null || true)
+  PR_NUMBERS=$(gh api graphql -f query="
+  query {
+    repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
+      issue(number: $ISSUE) {
+        closingPullRequests: timelineItems(itemTypes: [CONNECTED_EVENT], first: 100) {
+          nodes {
+            ... on ConnectedEvent {
+              source {
+                ... on PullRequest {
+                  number
+                  state
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+" --jq '.data.repository.issue.closingPullRequests.nodes[].source | select(.state == "OPEN") | .number')
   OPEN_PR_FOUND=""
   if [ -n "$PR_NUMBERS" ]; then
     for PR_NUM in $PR_NUMBERS; do
-      PR_STATE=$(gh pr view "$PR_NUM" --repo "$REPO" --json state --jq '.state' 2>/dev/null || true)
+      PR_STATE=$(gh pr view "$PR_NUM" --repo "$REPO" --json state --jq '.state' 2>/dev/null || {
+        echo "[ERROR] Failed to fetch timeline for issue #$ISSUE"
+        continue
+      })
       if [ "$PR_STATE" = "OPEN" ]; then
         OPEN_PR_FOUND="$PR_NUM"
         break
