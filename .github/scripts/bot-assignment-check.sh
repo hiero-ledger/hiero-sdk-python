@@ -36,8 +36,8 @@ issue_has_gfi() {
 }
 
 assignments_count() {
-  # Count only issues (not PRs) assigned to the user
-  gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number,url --jq '[.[] | select(.url | contains("/pull/") | not)] | length'
+  # Count only issues (not PRs) assigned to the user, using structured isPullRequest field
+  gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number,isPullRequest --jq '[.[] | select(.isPullRequest | not)] | length'
 }
 
 remove_assignee() {
