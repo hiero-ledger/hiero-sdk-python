@@ -4,14 +4,10 @@ python examples/query/transaction_get_receipt_query.py
 
 """
 
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
     Client,
-    AccountId,
     PrivateKey,
     TransferTransaction,
     Hbar,
@@ -20,25 +16,18 @@ from hiero_sdk_python import (
     AccountCreateTransaction,
 )
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
     """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
     try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
+        client = Client.from_env()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
         print(f"Client set up with operator id {client.operator_account_id}")
 
         return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
+    except ValueError as e:
+        print(f"Error setting up client: {e}")
         sys.exit(1)
 
 
