@@ -51,6 +51,7 @@ from .tokens.hbar_transfer import HbarTransfer
 from .tokens.token_unpause_transaction import TokenUnpauseTransaction
 from .tokens.token_pause_transaction import TokenPauseTransaction
 from .tokens.token_airdrop_claim import TokenClaimAirdropTransaction
+from .tokens.assessed_custom_fee import AssessedCustomFee
 
 # Transaction
 from .transaction.transaction import Transaction
@@ -70,6 +71,7 @@ from .hbar_unit import HbarUnit
 
 # Timestamp
 from .timestamp import Timestamp
+from .staking_info import StakingInfo
 
 # Duration
 from .Duration import Duration
@@ -201,6 +203,7 @@ __all__ = [
     "HbarTransfer",
     "TokenPauseTransaction",
     "TokenUnpauseTransaction",
+    "AssessedCustomFee",
 
     # Transaction
     "Transaction",
@@ -245,6 +248,7 @@ __all__ = [
     "ResponseCode",
     "Timestamp",
     "Duration",
+    "StakingInfo",
 
     # File
     "FileCreateTransaction",

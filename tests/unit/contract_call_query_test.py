@@ -17,7 +17,8 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import (
     contract_types_pb2,
     response_header_pb2,
-    response_pb2, contract_call_local_pb2
+    response_pb2,
+    contract_call_local_pb2,
 )
 from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.response_code import ResponseCode

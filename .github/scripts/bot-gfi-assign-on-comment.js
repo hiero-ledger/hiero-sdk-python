@@ -146,26 +146,39 @@ async function isRepoCollaborator({ github, owner, repo, username }) {
     }
 
     try {
-        await github.rest.repos.checkCollaborator({
+        const response = await github.rest.repos.getCollaboratorPermissionLevel({
             owner,
             repo,
             username,
         });
-        return true; // 204 = collaborator
+
+        const permission = response?.data?.permission;
+
+        const isTeamMember =
+            permission === 'admin' ||
+            permission === 'write' ||
+            permission === 'maintain' ||
+            permission === 'read';
+
+        console.log('[gfi-assign] isRepoCollaborator:', {
+            username,
+            permission,
+            isTeamMember,
+        });
+
+        return isTeamMember;
     } catch (error) {
-        if (error?.status === 404 || isPermissionFailure(error)) {
-            if (isPermissionFailure(error)) {
-                console.log(
-                    '[gfi-assign] isRepoCollaborator: insufficient permissions; treating as non-collaborator',
-                    { owner, repo, username, status: error.status }
-                );
-            }
+        if (isPermissionFailure(error) || error?.status === 404) {
+            console.log(
+                '[gfi-assign] isRepoCollaborator: no permission / not collaborator',
+                { username, status: error.status }
+            );
             return false;
         }
-        throw error; // unexpected error
+        throw error;
     }
-
 }
+
 
 
 /// START OF SCRIPT ///
@@ -220,7 +233,7 @@ module.exports = async ({ github, context }) => {
                     username,
                 });
 
-                if (isTeamMember) {
+                if (isTeamMember) {          
                     console.log('[gfi-assign] Skip reminder: commenter is collaborator');
                     return;
                 }

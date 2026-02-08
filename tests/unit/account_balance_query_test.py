@@ -68,9 +68,9 @@ def test_set_account_id_returns_self_for_chaining():
     """set_account_id should return self to enable method chaining."""
     query = CryptoGetAccountBalanceQuery()
     account_id = AccountId(0, 0, 1800)
-    
+
     result = query.set_account_id(account_id)
-    
+
     assert result is query
     assert isinstance(result, CryptoGetAccountBalanceQuery)
 
@@ -79,9 +79,9 @@ def test_set_contract_id_returns_self_for_chaining():
     """set_contract_id should return self to enable method chaining."""
     query = CryptoGetAccountBalanceQuery()
     contract_id = ContractId(0, 0, 1234)
-    
+
     result = query.set_contract_id(contract_id)
-    
+
     assert result is query
     assert isinstance(result, CryptoGetAccountBalanceQuery)
 
@@ -107,7 +107,7 @@ def test_build_account_balance_query_with_contract_id():
     assert query.contract_id == contract_id
     assert query.account_id is None
     assert isinstance(query.contract_id, ContractId)
-    assert hasattr(query, 'contract_id')
+    assert hasattr(query, "contract_id")
 
 
 def test_set_contract_id_method_chaining_resets_account_id(mock_account_ids):
@@ -164,6 +164,7 @@ def test_make_request_populates_contract_id_only():
 
     # accountID should be unset
     assert not balance_query.HasField("accountID")
+
 
 def test_make_request_populates_account_id_only(mock_account_ids):
     """_make_request should populate accountID when only account_id is set."""

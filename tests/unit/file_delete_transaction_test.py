@@ -116,6 +116,7 @@ def test_build_scheduled_body(mock_account_ids, file_id):
     # Verify fields in the schedulable body
     assert schedulable_body.fileDelete.fileID == file_id._to_proto()
 
+
 def test_get_method():
     """Test retrieving the gRPC method for the transaction."""
     delete_tx = FileDeleteTransaction()

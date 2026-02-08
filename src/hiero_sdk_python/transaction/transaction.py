@@ -1,12 +1,11 @@
 import hashlib
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from typing import TYPE_CHECKING
 
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2)
@@ -19,6 +18,7 @@ from hiero_sdk_python.transaction.transaction_response import TransactionRespons
 from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 if TYPE_CHECKING:
+    from hiero_sdk_python.crypto.private_key import PrivateKey
     from hiero_sdk_python.schedule.schedule_create_transaction import (
         ScheduleCreateTransaction,
     )
@@ -103,7 +103,7 @@ class Transaction(_Executable):
             ValueError: If proto_request is not a Transaction
         """
         if not isinstance(proto_request, transaction_pb2.Transaction):
-            return ValueError(f"Expected Transaction but got {type(proto_request)}")
+            raise TypeError(f"Expected Transaction but got {type(proto_request)}")
 
         hash_obj = hashlib.sha384()
         hash_obj.update(proto_request.signedTransactionBytes)
@@ -138,6 +138,7 @@ class Transaction(_Executable):
             ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
             ResponseCode.PLATFORM_NOT_ACTIVE,
             ResponseCode.BUSY,
+            ResponseCode.INVALID_NODE_ACCOUNT
         }
 
         if status in retryable_statuses:
@@ -166,7 +167,7 @@ class Transaction(_Executable):
         
         return PrecheckError(error_code, tx_id)
 
-    def sign(self, private_key):
+    def sign(self, private_key: "PrivateKey") -> "Transaction":
         """
         Signs the transaction using the provided private key.
 
@@ -262,11 +263,19 @@ class Transaction(_Executable):
         if self.transaction_id is None:
             raise ValueError("Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id().")
         
-        if self.node_account_id is None:
-            raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_id.")
+        if self.node_account_id is None and len(self.node_account_ids) == 0:
+            raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids.")
         
+        # Populate node_account_ids for backward compatibility
+        if self.node_account_id:
+            self.set_node_account_id(self.node_account_id)
+            self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+            return self
+
         # Build the transaction body for the single node
-        self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+        for node_account_id in self.node_account_ids:
+            self.node_account_id = node_account_id
+            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
         
         return self
 
@@ -293,21 +302,34 @@ class Transaction(_Executable):
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
 
-        if self.batch_key is None:
-            for node in client.network.nodes:
-                self.node_account_id = node._account_id
-                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
-        
-            # Set the node account id to the current node in the network
-            self.node_account_id = client.network.current_node._account_id
-        else:
+        if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
             self.node_account_id = AccountId(0,0,0)
             self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
+            return self
         
-        return self
+        # Single node
+        if self.node_account_id:
+            self.set_node_account_id(self.node_account_id)
+            self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+            return self
+        
+        # Multiple node
+        if len(self.node_account_ids) > 0:
+            for node_account_id in self.node_account_ids:
+                self.node_account_id = node_account_id
+                self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
 
-    def execute(self, client):
+        else:
+            # Use all nodes from client network
+            for node in client.network.nodes:
+                self.node_account_id = node._account_id
+                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+
+        return self
+        
+
+    def execute(self, client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the transaction on the Hedera network using the provided client.
 
@@ -315,6 +337,7 @@ class Transaction(_Executable):
 
         Args:
             client (Client): The client instance to use for execution.
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionReceipt: The receipt of the transaction.
@@ -338,7 +361,7 @@ class Transaction(_Executable):
             self.sign(client.operator_private_key)
 
         # Call the _execute function from executable.py to handle the actual execution
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         response.validate_status = True
         response.transaction = self
@@ -415,12 +438,13 @@ class Transaction(_Executable):
 
         transaction_id_proto = self.transaction_id._to_proto()
 
-        if self.node_account_id is None:
+        selected_node = self.node_account_id or (self.node_account_ids[0] if self.node_account_ids else None)
+        if selected_node is None:
             raise ValueError("Node account ID is not set.")
 
         transaction_body = transaction_pb2.TransactionBody()
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
-        transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
+        transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
         fee = self.transaction_fee or self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
@@ -544,7 +568,7 @@ class Transaction(_Executable):
         self.transaction_id = transaction_id
         return self
 
-    def to_bytes(self):
+    def to_bytes(self) -> bytes:
         """
         Serializes the frozen transaction into its protobuf-encoded byte representation.
 
@@ -574,7 +598,7 @@ class Transaction(_Executable):
         ```
 
         Returns:
-            bytes: The protobuf-encoded transaction bytes.
+            bytes: The serialized transaction as bytes.
 
         Raises:
             Exception: If the transaction has not been frozen yet.
@@ -801,6 +825,8 @@ class Transaction(_Executable):
             ]
 
         if transaction.node_account_id:
+            # restore for the original frozen node
+            transaction.set_node_account_id(transaction.node_account_id)
             transaction._transaction_body_bytes[transaction.node_account_id] = body_bytes
 
         if sig_map and sig_map.sigPair:

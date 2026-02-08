@@ -8,6 +8,9 @@ const requireAuthorAssigned = (process.env.REQUIRE_AUTHOR_ASSIGNED || 'true').to
 const getDaysOpen = (pr) =>
   Math.floor((Date.now() - new Date(pr.created_at)) / (24 * 60 * 60 * 1000));
 
+// Check if the PR author is a bot
+const isBotAuthor = (pr) => pr.user?.type === 'Bot';
+
 // Check if the PR author is assigned to the issue
 const isAuthorAssigned = (issue, login) => {
   if (!issue || issue.state?.toUpperCase() !== 'OPEN') return false;
@@ -104,6 +107,17 @@ module.exports = async ({ github, context }) => {
     console.log(`Evaluating ${prs.length} open PRs\n`);
 
     for (const pr of prs) {
+
+      const authorLogin = pr.user?.login;
+      if (!authorLogin) {
+        console.warn(`PR #${pr.number} missing author login. Skipping for safety.`);
+        continue;
+      }
+      if (isBotAuthor(pr)) {
+        console.log(`PR #${pr.number} authored by bot (${authorLogin}). Skipping.`);
+        continue;
+      }
+
       const days = getDaysOpen(pr);
       if (days < daysBeforeClose) {
         console.log(`PR #${pr.number} link: ${pr.html_url} is only ${days} days old. Skipping.`);

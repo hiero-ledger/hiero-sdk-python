@@ -44,10 +44,15 @@ def sample_tokens():
     }
 
 
-def test_account_allowance_delete_transaction_initialization(account_allowance_delete_transaction):
+def test_account_allowance_delete_transaction_initialization(
+    account_allowance_delete_transaction,
+):
     """Test the initialization of the AccountAllowanceDeleteTransaction class"""
     assert account_allowance_delete_transaction.nft_wipe == []
-    assert account_allowance_delete_transaction._default_transaction_fee == Hbar(1).to_tinybars()
+    assert (
+        account_allowance_delete_transaction._default_transaction_fee
+        == Hbar(1).to_tinybars()
+    )
 
 
 def test_account_allowance_delete_transaction_initialization_with_allowances(
@@ -58,7 +63,9 @@ def test_account_allowance_delete_transaction_initialization_with_allowances(
     token_id = sample_tokens["token1"]
     nft_id = NftId(token_id, 1)
 
-    nft_wipe = [TokenNftAllowance(token_id=token_id, owner_account_id=owner, serial_numbers=[1])]
+    nft_wipe = [
+        TokenNftAllowance(token_id=token_id, owner_account_id=owner, serial_numbers=[1])
+    ]
 
     tx = AccountAllowanceDeleteTransaction(nft_wipe=nft_wipe)
 
@@ -74,7 +81,9 @@ def test_delete_all_token_nft_allowances(
     nft_id = NftId(token_id, 1)
     owner = sample_accounts["owner"]
 
-    result = account_allowance_delete_transaction.delete_all_token_nft_allowances(nft_id, owner)
+    result = account_allowance_delete_transaction.delete_all_token_nft_allowances(
+        nft_id, owner
+    )
 
     assert result is account_allowance_delete_transaction
     assert len(account_allowance_delete_transaction.nft_wipe) == 1
@@ -116,11 +125,15 @@ def test_delete_all_token_nft_allowances_different_owners(
 
     # Add NFT for first owner
     nft_id1 = NftId(token_id, 1)
-    account_allowance_delete_transaction.delete_all_token_nft_allowances(nft_id1, owner1)
+    account_allowance_delete_transaction.delete_all_token_nft_allowances(
+        nft_id1, owner1
+    )
 
     # Add NFT for second owner
     nft_id2 = NftId(token_id, 2)
-    account_allowance_delete_transaction.delete_all_token_nft_allowances(nft_id2, owner2)
+    account_allowance_delete_transaction.delete_all_token_nft_allowances(
+        nft_id2, owner2
+    )
 
     assert len(account_allowance_delete_transaction.nft_wipe) == 2
     assert account_allowance_delete_transaction.nft_wipe[0].owner_account_id == owner1
@@ -190,7 +203,9 @@ def test_build_transaction_body(account_allowance_delete_transaction, sample_acc
     assert len(proto_body.nftAllowances) == 1
 
 
-def test_build_scheduled_body(account_allowance_delete_transaction, sample_accounts, sample_tokens):
+def test_build_scheduled_body(
+    account_allowance_delete_transaction, sample_accounts, sample_tokens
+):
     """Test building scheduled transaction body"""
     owner = sample_accounts["owner"]
     token_id = sample_tokens["token1"]
@@ -203,7 +218,9 @@ def test_build_scheduled_body(account_allowance_delete_transaction, sample_accou
     assert scheduled_body.cryptoDeleteAllowance is not None
 
 
-def test_require_not_frozen(account_allowance_delete_transaction, sample_accounts, sample_tokens):
+def test_require_not_frozen(
+    account_allowance_delete_transaction, sample_accounts, sample_tokens
+):
     """Test that methods require transaction not to be frozen"""
     owner = sample_accounts["owner"]
     token_id = sample_tokens["token1"]
@@ -214,7 +231,9 @@ def test_require_not_frozen(account_allowance_delete_transaction, sample_account
 
     # This should raise an error
     with pytest.raises(Exception, match="Transaction is immutable"):
-        account_allowance_delete_transaction.delete_all_token_nft_allowances(nft_id, owner)
+        account_allowance_delete_transaction.delete_all_token_nft_allowances(
+            nft_id, owner
+        )
 
 
 def test_duplicate_serial_number_handling(
@@ -234,7 +253,9 @@ def test_duplicate_serial_number_handling(
     assert wipe_entry.serial_numbers == [1]  # Should not have duplicates
 
 
-def test_mixed_nft_deletions(account_allowance_delete_transaction, sample_accounts, sample_tokens):
+def test_mixed_nft_deletions(
+    account_allowance_delete_transaction, sample_accounts, sample_tokens
+):
     """Test transaction with mixed NFT deletions"""
     owner1 = sample_accounts["owner"]
     owner2 = sample_accounts["owner2"]
@@ -242,12 +263,20 @@ def test_mixed_nft_deletions(account_allowance_delete_transaction, sample_accoun
     token2 = sample_tokens["token2"]
 
     # Add various NFT deletions
-    account_allowance_delete_transaction.delete_all_token_nft_allowances(NftId(token1, 1), owner1)
-    account_allowance_delete_transaction.delete_all_token_nft_allowances(NftId(token1, 2), owner1)
-    account_allowance_delete_transaction.delete_all_token_nft_allowances(NftId(token2, 1), owner2)
+    account_allowance_delete_transaction.delete_all_token_nft_allowances(
+        NftId(token1, 1), owner1
+    )
+    account_allowance_delete_transaction.delete_all_token_nft_allowances(
+        NftId(token1, 2), owner1
+    )
+    account_allowance_delete_transaction.delete_all_token_nft_allowances(
+        NftId(token2, 1), owner2
+    )
 
     # Verify all deletions are present
-    assert len(account_allowance_delete_transaction.nft_wipe) == 2  # Grouped by token+owner
+    assert (
+        len(account_allowance_delete_transaction.nft_wipe) == 2
+    )  # Grouped by token+owner
 
     # Verify protobuf body includes all deletions
     proto_body = account_allowance_delete_transaction._build_proto_body()

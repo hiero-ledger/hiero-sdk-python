@@ -52,8 +52,12 @@ def mock_tx(mock_client, mock_account_ids):
 def test_constructor_without_params_creates_empty_inner_transactions():
     """Test create batch transaction without constructor params."""
     batch_tx = BatchTransaction()
-    assert batch_tx.inner_transactions is not None, "inner_transactions should not be none"
-    assert len(batch_tx.inner_transactions) == 0, "inner_transactions should be empty by default"
+    assert (
+        batch_tx.inner_transactions is not None
+    ), "inner_transactions should not be none"
+    assert (
+        len(batch_tx.inner_transactions) == 0
+    ), "inner_transactions should be empty by default"
 
 
 def test_constructor_with_params_accepts_valid_inner_transactions(mock_tx):
@@ -67,7 +71,6 @@ def test_constructor_with_params_accepts_valid_inner_transactions(mock_tx):
     assert batch_tx.inner_transactions is not None
     assert len(batch_tx.inner_transactions) == len(inner_tx)
     assert all(isinstance(t, TransferTransaction) for t in batch_tx.inner_transactions)
-
 
 
 def test_constructor_rejects_transaction_without_batch_key(mock_tx):
@@ -106,12 +109,11 @@ def test_constructor_rejects_blacklisted_transaction_types(mock_client, mock_tx)
     batch_key = PrivateKey.generate()
 
     # FreezeTransaction is not allowed
-    inner_tx1 = [
-        FreezeTransaction()
-        .set_batch_key(batch_key)
-        .freeze_with(mock_client)
-    ]
-    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction'):
+    inner_tx1 = [FreezeTransaction().set_batch_key(batch_key).freeze_with(mock_client)]
+    with pytest.raises(
+        ValueError,
+        match="Transaction type FreezeTransaction is not allowed in a batch transaction",
+    ):
         BatchTransaction(inner_transactions=inner_tx1)
 
     # BatchTransaction as an inner transaction is not allowed
@@ -120,7 +122,10 @@ def test_constructor_rejects_blacklisted_transaction_types(mock_client, mock_tx)
         .set_batch_key(batch_key)
         .freeze_with(mock_client)
     ]
-    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction'):
+    with pytest.raises(
+        ValueError,
+        match="Transaction type BatchTransaction is not allowed in a batch transaction",
+    ):
         BatchTransaction(inner_transactions=inner_tx2)
 
 
@@ -149,16 +154,24 @@ def test_set_inner_transactions_invalid_param(mock_tx, mock_client):
         batch_tx.set_inner_transactions([mock_tx(batch_key=batch_key, freeze=False)])
 
     # FreezeTransaction not allowed
-    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction'):
-        batch_tx.set_inner_transactions([
-            FreezeTransaction().set_batch_key(batch_key).freeze_with(mock_client)
-        ])
+    with pytest.raises(
+        ValueError,
+        match="Transaction type FreezeTransaction is not allowed in a batch transaction",
+    ):
+        batch_tx.set_inner_transactions(
+            [FreezeTransaction().set_batch_key(batch_key).freeze_with(mock_client)]
+        )
 
     # BatchTransaction not allowed
-    nested_batch = BatchTransaction(inner_transactions=[mock_tx(batch_key=batch_key, freeze=True)])
+    nested_batch = BatchTransaction(
+        inner_transactions=[mock_tx(batch_key=batch_key, freeze=True)]
+    )
     nested_batch.set_batch_key(batch_key)
     nested_batch.freeze_with(mock_client)
-    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction'):
+    with pytest.raises(
+        ValueError,
+        match="Transaction type BatchTransaction is not allowed in a batch transaction",
+    ):
         batch_tx.set_inner_transactions([nested_batch])
 
 
@@ -188,16 +201,24 @@ def test_add_inner_transaction_method_invalid_param(mock_tx, mock_client):
         batch_tx.add_inner_transaction(mock_tx(batch_key=batch_key, freeze=False))
 
     # FreezeTransaction
-    with pytest.raises(ValueError, match='Transaction type FreezeTransaction is not allowed in a batch transaction'):
+    with pytest.raises(
+        ValueError,
+        match="Transaction type FreezeTransaction is not allowed in a batch transaction",
+    ):
         batch_tx.add_inner_transaction(
             FreezeTransaction().set_batch_key(batch_key).freeze_with(mock_client)
         )
 
     # BatchTransaction
-    nested_batch = BatchTransaction(inner_transactions=[mock_tx(batch_key=batch_key, freeze=True)])
+    nested_batch = BatchTransaction(
+        inner_transactions=[mock_tx(batch_key=batch_key, freeze=True)]
+    )
     nested_batch.set_batch_key(batch_key)
     nested_batch.freeze_with(mock_client)
-    with pytest.raises(ValueError, match='Transaction type BatchTransaction is not allowed in a batch transaction'):
+    with pytest.raises(
+        ValueError,
+        match="Transaction type BatchTransaction is not allowed in a batch transaction",
+    ):
         batch_tx.add_inner_transaction(nested_batch)
 
 
@@ -205,7 +226,9 @@ def test_get_inner_transactions_ids_returns_transaction_ids(mock_tx):
     """Test get_transaction_ids methods returns transaction_ids."""
     batch_key = PrivateKey.generate()
     batch_tx = BatchTransaction()
-    assert batch_tx.get_inner_transaction_ids() == [], "No inner transactions should return an empty list"
+    assert (
+        batch_tx.get_inner_transaction_ids() == []
+    ), "No inner transactions should return an empty list"
 
     transaction = mock_tx(batch_key=batch_key, freeze=True)
     batch_tx.add_inner_transaction(transaction)
@@ -255,12 +278,18 @@ def test_batchify_sets_required_fields(mock_account_ids, mock_client):
         .batchify(mock_client, batch_key)
     )
 
-    assert tx._transaction_body_bytes is not None, "batchify should set _transaction_body_bytes"
+    assert (
+        tx._transaction_body_bytes is not None
+    ), "batchify should set _transaction_body_bytes"
     assert tx.batch_key == batch_key
-    assert tx.node_account_id == AccountId(0, 0, 0), "node_account_id for batched tx should be 0.0.0"
+    assert tx.node_account_id == AccountId(
+        0, 0, 0
+    ), "node_account_id for batched tx should be 0.0.0"
 
 
-def test_round_trip_to_bytes_and_back_preserves_inner_transactions(mock_account_ids, mock_client):
+def test_round_trip_to_bytes_and_back_preserves_inner_transactions(
+    mock_account_ids, mock_client
+):
     """Test round trip of converting transaction to_bytes and from_bytes."""
     sender, receiver, _, _, _ = mock_account_ids
     batch_key = PrivateKey.generate()
@@ -272,7 +301,12 @@ def test_round_trip_to_bytes_and_back_preserves_inner_transactions(mock_account_
         .batchify(mock_client, batch_key)
     )
 
-    batch_tx = BatchTransaction().add_inner_transaction(transfer_tx).freeze_with(mock_client).sign(batch_key)
+    batch_tx = (
+        BatchTransaction()
+        .add_inner_transaction(transfer_tx)
+        .freeze_with(mock_client)
+        .sign(batch_key)
+    )
 
     batch_tx_bytes = batch_tx.to_bytes()
     assert batch_tx_bytes and len(batch_tx_bytes) > 0
@@ -290,11 +324,13 @@ def test_round_trip_to_bytes_and_back_preserves_inner_transactions(mock_account_
 def test_sign_transaction(mock_client, mock_tx):
     """Test signing the batch transaction with a private key."""
     batch_tx = BatchTransaction()
-    batch_tx.set_inner_transactions([mock_tx(batch_key=PrivateKey.generate(), freeze=True)])
+    batch_tx.set_inner_transactions(
+        [mock_tx(batch_key=PrivateKey.generate(), freeze=True)]
+    )
 
     private_key = MagicMock()
-    private_key.sign.return_value = b'signature'
-    private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    private_key.sign.return_value = b"signature"
+    private_key.public_key().to_bytes_raw.return_value = b"public_key"
 
     batch_tx.freeze_with(mock_client)
     batch_tx.sign(private_key)
@@ -302,28 +338,34 @@ def test_sign_transaction(mock_client, mock_tx):
     node_id = mock_client.network.current_node._account_id
     body_bytes = batch_tx._transaction_body_bytes[node_id]
 
-    assert body_bytes in batch_tx._signature_map, "signature map must contain an entry for the tx body bytes"
+    assert (
+        body_bytes in batch_tx._signature_map
+    ), "signature map must contain an entry for the tx body bytes"
     sig_pairs = batch_tx._signature_map[body_bytes].sigPair
     assert len(sig_pairs) == 1
     sig_pair = sig_pairs[0]
-    assert sig_pair.pubKeyPrefix == b'public_key'
-    assert sig_pair.ed25519 == b'signature'
+    assert sig_pair.pubKeyPrefix == b"public_key"
+    assert sig_pair.ed25519 == b"signature"
 
 
 def test_to_proto(mock_client, mock_tx):
     """Test converting the batch transaction to protobuf format after signing."""
     batch_tx = BatchTransaction()
-    batch_tx.set_inner_transactions([mock_tx(batch_key=PrivateKey.generate(), freeze=True)])
+    batch_tx.set_inner_transactions(
+        [mock_tx(batch_key=PrivateKey.generate(), freeze=True)]
+    )
 
     private_key = MagicMock()
-    private_key.sign.return_value = b'signature'
-    private_key.public_key().to_bytes_raw.return_value = b'public_key'
+    private_key.sign.return_value = b"signature"
+    private_key.public_key().to_bytes_raw.return_value = b"public_key"
 
     batch_tx.freeze_with(mock_client)
     batch_tx.sign(private_key)
     proto = batch_tx._to_proto()
 
-    assert getattr(proto, "signedTransactionBytes", None), "proto must include signedTransactionBytes"
+    assert getattr(
+        proto, "signedTransactionBytes", None
+    ), "proto must include signedTransactionBytes"
     assert len(proto.signedTransactionBytes) > 0
 
 
@@ -344,7 +386,7 @@ def test_batch_transaction_execute_successful(mock_account_ids, mock_client):
             header=response_header_pb2.ResponseHeader(
                 nodeTransactionPrecheckCode=ResponseCode.OK
             ),
-            receipt=mock_receipt_proto
+            receipt=mock_receipt_proto,
         )
     )
 
@@ -366,17 +408,19 @@ def test_batch_transaction_execute_successful(mock_account_ids, mock_client):
         )
 
         receipt = transaction.execute(client)
-        assert receipt.status == ResponseCode.SUCCESS, f"Transaction should have succeeded, got {receipt.status}"
+        assert (
+            receipt.status == ResponseCode.SUCCESS
+        ), f"Transaction should have succeeded, got {receipt.status}"
 
 
-def test_batch_key_accepts_public_key(mock_client, mock_account_ids):
+def test_batch_key_accepts_public_key(mock_account_ids):
     """Test that batch_key can accept PublicKey (not just PrivateKey)."""
     sender, receiver, _, _, _ = mock_account_ids
-    
+
     # Generate a key pair
     private_key = PrivateKey.generate_ed25519()
     public_key = private_key.public_key()
-    
+
     # Test using PublicKey as batch_key
     tx = (
         TransferTransaction()
@@ -384,7 +428,7 @@ def test_batch_key_accepts_public_key(mock_client, mock_account_ids):
         .add_hbar_transfer(account_id=receiver, amount=1)
         .set_batch_key(public_key)  # Using PublicKey instead of PrivateKey
     )
-    
+
     # Verify batch_key was set correctly
     assert tx.batch_key == public_key
     assert isinstance(tx.batch_key, type(public_key))
@@ -393,11 +437,11 @@ def test_batch_key_accepts_public_key(mock_client, mock_account_ids):
 def test_batchify_with_public_key(mock_client, mock_account_ids):
     """Test that batchify method accepts PublicKey."""
     sender, receiver, _, _, _ = mock_account_ids
-    
+
     # Generate a key pair
     private_key = PrivateKey.generate_ed25519()
     public_key = private_key.public_key()
-    
+
     # Test using PublicKey in batchify
     tx = (
         TransferTransaction()
@@ -405,23 +449,25 @@ def test_batchify_with_public_key(mock_client, mock_account_ids):
         .add_hbar_transfer(account_id=receiver, amount=1)
         .batchify(mock_client, public_key)  # Using PublicKey
     )
-    
+
     # Verify batch_key was set and transaction was frozen
     assert tx.batch_key == public_key
     assert tx._transaction_body_bytes  # Should be frozen
 
 
-def test_batch_transaction_with_public_key_inner_transactions(mock_client, mock_account_ids):
+def test_batch_transaction_with_public_key_inner_transactions(
+    mock_client, mock_account_ids
+):
     """Test BatchTransaction can accept inner transactions with PublicKey batch_keys."""
     sender, receiver, _, _, _ = mock_account_ids
-    
+
     # Generate key pairs
     batch_key1 = PrivateKey.generate_ed25519()
     public_key1 = batch_key1.public_key()
-    
+
     batch_key2 = PrivateKey.generate_ecdsa()
     public_key2 = batch_key2.public_key()
-    
+
     # Create inner transactions with PublicKey batch_keys
     inner_tx1 = (
         TransferTransaction()
@@ -430,7 +476,7 @@ def test_batch_transaction_with_public_key_inner_transactions(mock_client, mock_
         .set_batch_key(public_key1)
         .freeze_with(mock_client)
     )
-    
+
     inner_tx2 = (
         TransferTransaction()
         .add_hbar_transfer(account_id=sender, amount=-1)
@@ -438,10 +484,10 @@ def test_batch_transaction_with_public_key_inner_transactions(mock_client, mock_
         .set_batch_key(public_key2)
         .freeze_with(mock_client)
     )
-    
+
     # BatchTransaction should accept these inner transactions
     batch_tx = BatchTransaction(inner_transactions=[inner_tx1, inner_tx2])
-    
+
     assert len(batch_tx.inner_transactions) == 2
     assert batch_tx.inner_transactions[0].batch_key == public_key1
     assert batch_tx.inner_transactions[1].batch_key == public_key2
@@ -450,11 +496,11 @@ def test_batch_transaction_with_public_key_inner_transactions(mock_client, mock_
 def test_batch_key_mixed_private_and_public_keys(mock_client, mock_account_ids):
     """Test that BatchTransaction can handle inner transactions with mixed PrivateKey and PublicKey."""
     sender, receiver, _, _, _ = mock_account_ids
-    
+
     # Generate keys
     private_key = PrivateKey.generate_ed25519()
     public_key = PrivateKey.generate_ecdsa().public_key()
-    
+
     # Inner transaction with PrivateKey
     inner_tx1 = (
         TransferTransaction()
@@ -463,7 +509,7 @@ def test_batch_key_mixed_private_and_public_keys(mock_client, mock_account_ids):
         .set_batch_key(private_key)
         .freeze_with(mock_client)
     )
-    
+
     # Inner transaction with PublicKey
     inner_tx2 = (
         TransferTransaction()
@@ -472,10 +518,10 @@ def test_batch_key_mixed_private_and_public_keys(mock_client, mock_account_ids):
         .set_batch_key(public_key)
         .freeze_with(mock_client)
     )
-    
+
     # BatchTransaction should accept mixed key types
     batch_tx = BatchTransaction(inner_transactions=[inner_tx1, inner_tx2])
-    
+
     assert len(batch_tx.inner_transactions) == 2
     assert isinstance(batch_tx.inner_transactions[0].batch_key, PrivateKey)
     assert isinstance(batch_tx.inner_transactions[1].batch_key, type(public_key))
@@ -485,9 +531,9 @@ def test_set_batch_key_with_private_key():
     """Test that batch_key can be set with PrivateKey."""
     private_key = PrivateKey.generate_ed25519()
     transaction = TransferTransaction()
-    
+
     result = transaction.set_batch_key(private_key)
-    
+
     assert transaction.batch_key == private_key
     assert result == transaction  # Check method chaining
 
@@ -497,9 +543,9 @@ def test_set_batch_key_with_public_key():
     private_key = PrivateKey.generate_ed25519()
     public_key = private_key.public_key()
     transaction = TransferTransaction()
-    
+
     result = transaction.set_batch_key(public_key)
-    
+
     assert transaction.batch_key == public_key
     assert result == transaction  # Check method chaining
 
@@ -507,12 +553,12 @@ def test_set_batch_key_with_public_key():
 def test_batch_key_type_annotation():
     """Test that batch_key accepts both PrivateKey and PublicKey types."""
     transaction = TransferTransaction()
-    
+
     # Test with PrivateKey
     private_key = PrivateKey.generate_ecdsa()
     transaction.set_batch_key(private_key)
     assert isinstance(transaction.batch_key, PrivateKey)
-    
+
     # Test with PublicKey
     public_key = private_key.public_key()
     transaction.set_batch_key(public_key)

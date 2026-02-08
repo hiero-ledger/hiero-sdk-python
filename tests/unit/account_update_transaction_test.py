@@ -76,7 +76,9 @@ def test_constructor_with_account_params():
     assert account_tx.expiration_time == expiration_time
     assert account_tx.max_automatic_token_associations == max_associations
     assert account_tx.staked_account_id == staked_account_id
-    assert account_tx.staked_node_id is None  # Should be cleared when staked_account_id is set
+    assert (
+        account_tx.staked_node_id is None
+    )  # Should be cleared when staked_account_id is set
     assert account_tx.decline_staking_reward == decline_reward
 
 
@@ -135,7 +137,11 @@ def test_set_methods():
             "receiver_signature_required",
         ),
         ("set_expiration_time", expiration_time, "expiration_time"),
-        ("set_max_automatic_token_associations", 100, "max_automatic_token_associations"),
+        (
+            "set_max_automatic_token_associations",
+            100,
+            "max_automatic_token_associations",
+        ),
         ("set_decline_staking_reward", True, "decline_staking_reward"),
     ]
 
@@ -502,6 +508,7 @@ def test_build_transaction_body_with_none_auto_renew_period(mock_account_ids):
     # When auto_renew_period is None, the field should not be set in the protobuf
     assert not transaction_body.cryptoUpdateAccount.HasField("autoRenewPeriod")
 
+
 def test_build_scheduled_body(mock_account_ids):
     """Test building a schedulable account update transaction body with valid values."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
@@ -574,7 +581,9 @@ def test_constructor_with_new_fields():
     assert account_tx.account_id == account_id
     assert account_tx.max_automatic_token_associations == max_associations
     assert account_tx.staked_account_id == staked_account_id
-    assert account_tx.staked_node_id is None  # Should be cleared when staked_account_id is set
+    assert (
+        account_tx.staked_node_id is None
+    )  # Should be cleared when staked_account_id is set
     assert account_tx.decline_staking_reward is True
 
 
@@ -737,8 +746,9 @@ def test_build_transaction_body_with_new_fields(mock_account_ids):
     assert (
         transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
     )
-    assert transaction_body.cryptoUpdateAccount.max_automatic_token_associations == Int32Value(
-        value=max_associations
+    assert (
+        transaction_body.cryptoUpdateAccount.max_automatic_token_associations
+        == Int32Value(value=max_associations)
     )
     assert (
         transaction_body.cryptoUpdateAccount.staked_account_id.accountNum

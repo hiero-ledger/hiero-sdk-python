@@ -200,6 +200,7 @@ def test_build_transaction_body_with_optional_fields(mock_account_ids, file_id):
     # When file_memo is None, the memo field should not be set in the protobuf
     assert not transaction_body.fileUpdate.HasField("memo")
 
+
 def test_build_scheduled_body(mock_account_ids, file_id):
     """Test building a schedulable file update transaction body."""
     operator_id, _, node_account_id, _, _ = mock_account_ids

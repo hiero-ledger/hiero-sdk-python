@@ -10,6 +10,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 
 pytestmark = pytest.mark.unit
 
+
 def test_generate_ed25519():
     """
     Test generating an Ed25519 key, then:
@@ -136,7 +137,7 @@ def test_from_string_der_ed25519():
     """
     Test from_string_der with a known valid DER encoding for Ed25519.
     Then confirm sign/verify works.
-    
+
     This example DER was built using a known Ed25519 seed (all '01').
     """
     der_hex = (
@@ -319,11 +320,7 @@ def test_from_bytes_ambiguity_prefers_ecdsa_when_ed25519_fails(monkeypatch):
     ecdsa_scalar_one = (1).to_bytes(32, "big")
 
     # 2) Force the Ed25519 loader to always return None
-    monkeypatch.setattr(
-        PrivateKey,
-        "_try_load_ed25519",
-        staticmethod(lambda b: None)
-    )
+    monkeypatch.setattr(PrivateKey, "_try_load_ed25519", staticmethod(lambda b: None))
 
     # 3) Now from_bytes should skip Ed25519 and succeed with ECDSA
     with warnings.catch_warnings(record=True) as w:
@@ -387,12 +384,15 @@ def test_from_string_ecdsa_strips_0x():
     assert priv.is_ecdsa()
 
 
-@pytest.mark.parametrize("fn, length", [
-    (PrivateKey.from_bytes_ed25519, 31),
-    (PrivateKey.from_bytes_ed25519, 33),
-    (PrivateKey.from_bytes_ecdsa, 31),
-    (PrivateKey.from_bytes_ecdsa, 33),
-])
+@pytest.mark.parametrize(
+    "fn, length",
+    [
+        (PrivateKey.from_bytes_ed25519, 31),
+        (PrivateKey.from_bytes_ed25519, 33),
+        (PrivateKey.from_bytes_ecdsa, 31),
+        (PrivateKey.from_bytes_ecdsa, 33),
+    ],
+)
 def test_from_bytes_wrong_length(fn, length):
     bad = b"\x00" * length
     with pytest.raises(ValueError):
@@ -434,7 +434,7 @@ def test_repr_contains_full_hex(key_type):
 def test_der_roundtrip(key_type):
     """
     Make sure that if we serialize a key to DER and then load it back,
-    we get the same raw seed/scalar. 
+    we get the same raw seed/scalar.
     """
     priv1 = PrivateKey.generate(key_type)
     der_hex = priv1.to_string_der()

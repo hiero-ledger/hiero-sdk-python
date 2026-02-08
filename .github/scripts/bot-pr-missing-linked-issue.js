@@ -35,7 +35,7 @@ module.exports = async ({ github, context }) => {
     }
 
     const body = prData.body || "";
-    const regex = /\bFixes\s*:?\s*(#\d+)(\s*,\s*#\d+)*/i;
+    const regex = /\b(Fixes|Closes|Resolves)\s*:?\s*(#\d+)(\s*,\s*#\d+)*/i;
 
     const comments = await github.rest.issues.listComments({
       owner: context.repo.owner,
