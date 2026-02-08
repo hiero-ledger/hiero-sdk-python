@@ -18,6 +18,14 @@ reviews:
   in_progress_fortune: false # Do not stall time with a message (spammy)
   poem: false # Do not write a literal poem (spammy)
   enable_prompt_for_ai_agents: false # Disable prompts for AI agents (spammy)
+ instructions:
+  PROTOCOL SOURCE OF TRUTH
+  - Protobuf definitions under /proto are authoritative for what the network accepts.
+  - They define wire compatibility and semantic requirements, not SDK design.
+  - RFC2119 words like MUST, SHALL, REQUIRED are binding unless enforcement is explicitly delegated to the network.
+  - Missing validation of client-responsibility rules is a defect.
+  - Do NOT require SDK structure or naming to mirror protobuf.
+
 
   # TOKEN REVIEW INSTRUCTIONS
   token_review_instructions: &token_review_instructions |
