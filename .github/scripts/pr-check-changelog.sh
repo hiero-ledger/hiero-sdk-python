@@ -231,7 +231,6 @@ while IFS= read -r line; do
     # Track release sections
     if [[ $line =~ ^##\ \[Unreleased\] ]]; then
         current_release="Unreleased"
-        current_version="Unreleased"
         in_unreleased=1
         current_subtitle=""
         continue
