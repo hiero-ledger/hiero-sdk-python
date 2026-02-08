@@ -41,6 +41,7 @@ jobs:
                   --cov-report=term-missing
 
             - name: Upload coverage to Codecov
+              if: github.repository_owner == 'hiero-ledger' && !github.event.pull_request.head.repo.fork
               uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
               with:
                   token: ${{ secrets.CODECOV_TOKEN }}
