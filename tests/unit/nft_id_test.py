@@ -17,7 +17,7 @@ def test_nft_id():
     assert str(nftid_constructor_test) == "0.1.2/1234"
     assert (
         repr(nftid_constructor_test)
-        == "NftId(token_id=TokenId(shard=0, realm=1, num=2, checksum=None), serial_number=1234)"
+        == "NftId(token_id=0.1.2, serial_number=1234)"
     )
     assert nftid_constructor_test._to_proto().__eq__(
         basic_types_pb2.NftID(
@@ -88,3 +88,8 @@ def test_get_nft_id_with_checksum(mock_client):
     nft_id = NftId(token_id, 1)
 
     assert nft_id.to_string_with_checksum(client) == "0.0.1-dfkxr/1"
+
+def test_nft_id_repr():
+    token_id = TokenId(0, 0, 123)
+    nft_id = NftId(token_id, 5)
+    assert repr(nft_id) == "NftId(token_id=0.0.123, serial_number=5)"

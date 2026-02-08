@@ -106,4 +106,4 @@ class NftId:
     
     def __repr__(self) -> str:
     
-        return f"NftId(token_id = {self.token_id}, serial_number = {self.serial_number})"
+        return f"NftId(token_id={self.token_id}, serial_number={self.serial_number})"
