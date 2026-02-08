@@ -153,17 +153,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
-- Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
-- Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
-- Added missing return type `src/hiero_sdk_python/utils/entity_id_helper.py`. (#1622)
-- Update `verify_freeze()` to treat only ACCOUNT_FROZEN_FOR_TOKEN as a successful freeze verification (#1515)
-- Updated team.md with new triage, committers and maintainer (#1692)
-- Removed outdated "Common Issues" section from CONTRIBUTING.md that referenced non-existent docs/common_issues.md (`#1665`)
-- Hide the commit verification bot marker in pull request comments.
-- Added missing type hints to sign method in Transaction class (#1630)
-- Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
-- Updated GitHub Actions setup-node action to v6.2.0.
+- Refactored AccountInfo class to use the staking_info(#1366)
 - chore: format tests/unit/mock_server.py with black (#1542)
+- Refactored AccountInfo class to use the staking_info
 - Updated actions/checkout to v6.0.1 and actions/github-script v8.0.0 in bot-next-issue-recommendation workflow (#1586)
 - Expanded inactivity bot messages to include `/unassign` command information for contributors (#1555)
 - Update the acceptance criteria wording in the issue templates to improve clarity and consistency for contributors (#1491)
