@@ -207,7 +207,7 @@ def test_proto_conversion(transaction_record):
     assert converted.prng_number == transaction_record.prng_number
     assert converted.prng_bytes == b""
 
-def test_proto_conversion_with_transfers():
+def test_proto_conversion_with_transfers(transaction_id):
     """Test proto conversion preserves transfer data"""
     record = TransactionRecord()
     record.transfers = defaultdict(int)
@@ -215,12 +215,12 @@ def test_proto_conversion_with_transfers():
     record.transfers[AccountId(0, 0, 200)] = 1000
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert converted.transfers[AccountId(0, 0, 100)] == -1000
     assert converted.transfers[AccountId(0, 0, 200)] == 1000
 
-def test_proto_conversion_with_token_transfers():
+def test_proto_conversion_with_token_transfers(transaction_id):
     """Test proto conversion preserves token transfer data"""
     record = TransactionRecord()
     token_id = TokenId(0, 0, 300)
@@ -229,12 +229,12 @@ def test_proto_conversion_with_token_transfers():
     record.token_transfers[token_id][AccountId(0, 0, 200)] = 500
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert converted.token_transfers[token_id][AccountId(0, 0, 100)] == -500
     assert converted.token_transfers[token_id][AccountId(0, 0, 200)] == 500
 
-def test_proto_conversion_with_nft_transfers():
+def test_proto_conversion_with_nft_transfers(transaction_id):
     """Test proto conversion preserves NFT transfer data"""
     record = TransactionRecord()
     token_id = TokenId(0, 0, 300)
@@ -249,7 +249,7 @@ def test_proto_conversion_with_nft_transfers():
     record.nft_transfers[token_id].append(nft_transfer)
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert len(converted.nft_transfers[token_id]) == 1
     transfer = converted.nft_transfers[token_id][0]
@@ -258,7 +258,7 @@ def test_proto_conversion_with_nft_transfers():
     assert transfer.serial_number == 1
     assert transfer.is_approved == False
 
-def test_proto_conversion_with_new_pending_airdrops():
+def test_proto_conversion_with_new_pending_airdrops(transaction_id):
     """Test proto conversion preserves PendingAirdropsRecord"""
     sender = AccountId(0,0,100)
     receiver = AccountId(0,0,200)
@@ -270,7 +270,7 @@ def test_proto_conversion_with_new_pending_airdrops():
     record.new_pending_airdrops.append(PendingAirdropRecord(PendingAirdropId(sender, receiver, token_id),amount))
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert len(converted.new_pending_airdrops) == 1
     new_pending_airdrops = converted.new_pending_airdrops[0]
@@ -389,7 +389,7 @@ def test_repr_method(transaction_id):
                                   f"duplicates_count=0)")
     assert repr(record_with_transfers) == expected_repr_with_transfers
 
-def test_proto_conversion_with_call_result():
+def test_proto_conversion_with_call_result(transaction_id):
     """Test the call_result property of TransactionRecord."""
     record = TransactionRecord()
 
@@ -404,7 +404,7 @@ def test_proto_conversion_with_call_result():
     )
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert converted.call_result.contract_id == record.call_result.contract_id
     assert converted.call_result.contract_call_result == record.call_result.contract_call_result

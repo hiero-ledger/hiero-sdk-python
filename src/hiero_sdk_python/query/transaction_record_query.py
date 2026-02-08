@@ -100,7 +100,7 @@ class TransactionRecordQuery(Query):
             AttributeError: If the Query protobuf structure is invalid.
             Exception: If any other error occurs during request construction.
         """
-        if not self.transaction_id:
+        if self.transaction_id is None:
             raise ValueError("Transaction ID must be set before making the request.")
 
         query_header = self._make_request_header()
@@ -144,10 +144,10 @@ class TransactionRecordQuery(Query):
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
-        Returns the appropriate gRPC method for the transaction receipt query.
+        Returns the appropriate gRPC method for the transaction record query.
 
         Implements the abstract method from Query to provide the specific
-        gRPC method for getting transaction receipts.
+        gRPC method for getting transaction records.
 
         Args:
             channel (_Channel): The channel containing service stubs
