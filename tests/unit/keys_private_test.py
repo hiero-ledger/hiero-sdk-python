@@ -462,7 +462,7 @@ def test_from_bytes_fixture(raw_seed):
 
 
 # Test equality
-def test_eq_ed25519_same_key():
+def test_equality_ed25519_same_key():
     """Two PrivateKey objects wrapping the same key must be equal."""
     pr_key = ed25519.Ed25519PrivateKey.generate()
 
@@ -470,9 +470,10 @@ def test_eq_ed25519_same_key():
     k2 = PrivateKey(pr_key)
 
     assert k1 == k2
+    assert hash(k1) == hash(k2)
 
 
-def test_eq_ed25519_different_keys():
+def test_equality_ed25519_different_keys():
     """Different Ed25519 private keys must not be equal."""
     pr_key1 = ed25519.Ed25519PrivateKey.generate()
     pr_key2 = ed25519.Ed25519PrivateKey.generate()
@@ -481,9 +482,10 @@ def test_eq_ed25519_different_keys():
     k2 = PrivateKey(pr_key2)
 
     assert k1 != k2
+    assert hash(k1) != hash(k2)
 
 
-def test_eq_ecdsa_same_key():
+def test_equality_ecdsa_same_key():
     """Two PrivateKey objects wrapping the same ECDSA key must be equal."""
     pr_key =  ec.generate_private_key(ec.SECP256K1())
 
@@ -491,9 +493,10 @@ def test_eq_ecdsa_same_key():
     k2 = PrivateKey(pr_key)
 
     assert k1 == k2
+    assert hash(k1) == hash(k2)
 
 
-def test_eq_ecdsa_different_keys():
+def test_equality_ecdsa_different_keys():
     """Different ECDSA private keys must not be equal."""
     pr_key1 = ec.generate_private_key(ec.SECP256K1())
     pr_key2 = ec.generate_private_key(ec.SECP256K1())
@@ -502,9 +505,9 @@ def test_eq_ecdsa_different_keys():
     k2 = PrivateKey(pr_key2)
 
     assert k1 != k2
+    assert hash(k1) != hash(k2)
 
-
-def test_eq_algorithm_mismatch():
+def test_equality_algorithm_mismatch():
     """Private keys of different algorithms must never be equal."""
     ed_pr = ed25519.Ed25519PrivateKey.generate()
     ec_pr = ec.generate_private_key(ec.SECP256K1())
@@ -513,15 +516,30 @@ def test_eq_algorithm_mismatch():
     ec_key = PrivateKey(ec_pr)
 
     assert ed_key != ec_key
+    assert hash(ed_key) != hash(ec_key)
 
 
 @pytest.mark.parametrize(
     "other",
     [None, 1, 1.0, "key", object(), PublicKey(ed25519.Ed25519PrivateKey.generate().public_key())]
 )
-def test_eq_with_non_publickey_returns_false(other):
+def test_equality_with_non_privatekey_returns_false(other):
     """Equality comparison with a non-PrivateKey type should return False."""
     pr = ed25519.Ed25519PrivateKey.generate()
     key = PrivateKey(pr)
 
     assert (key == other) is False
+    assert hash(key) != hash(other)
+
+
+def test_hash_algorithm_distinction():
+    """
+    Test keys with identical raw bytes but different algorithms must not compare equal.
+    """
+    raw = b"\x01" * 32
+
+    ed = PrivateKey.from_bytes_ed25519(raw)
+    ec = PrivateKey.from_bytes_ecdsa(raw)
+
+    assert ed != ec
+    assert hash(ed) != hash(ec)

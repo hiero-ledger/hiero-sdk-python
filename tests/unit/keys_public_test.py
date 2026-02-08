@@ -642,7 +642,7 @@ def test_to_evm_address_raises_for_ed25519(ed25519_keypair):
 
 
 # Test equality
-def test_eq_ed25519_same_key(ed25519_keypair):
+def test_equality_ed25519_same_key(ed25519_keypair):
     """Two PublicKey objects wrapping the same Ed25519 key must be equal."""
     _, pub = ed25519_keypair
 
@@ -650,9 +650,10 @@ def test_eq_ed25519_same_key(ed25519_keypair):
     k2 = PublicKey(pub)
 
     assert k1 == k2
+    assert hash(k1) == hash(k2)
 
 
-def test_eq_ed25519_different_keys():
+def test_equality_ed25519_different_keys():
     """Different Ed25519 public keys must not be equal."""
     pub1 = ed25519.Ed25519PrivateKey.generate().public_key()
     pub2 = ed25519.Ed25519PrivateKey.generate().public_key()
@@ -661,9 +662,10 @@ def test_eq_ed25519_different_keys():
     k2 = PublicKey(pub2)
 
     assert k1 != k2
+    assert hash(k1) != hash(k2)
 
 
-def test_eq_ecdsa_same_key(ecdsa_keypair):
+def test_equality_ecdsa_same_key(ecdsa_keypair):
     """Two PublicKey objects wrapping the same ECDSA key must be equal."""
     _, pub = ecdsa_keypair
 
@@ -671,9 +673,10 @@ def test_eq_ecdsa_same_key(ecdsa_keypair):
     k2 = PublicKey(pub)
 
     assert k1 == k2
+    assert hash(k1) == hash(k2)
 
 
-def test_eq_ecdsa_different_keys():
+def test_equality_ecdsa_different_keys():
     """Different ECDSA public keys must not be equal."""
     pub1 = ec.generate_private_key(ec.SECP256K1()).public_key()
     pub2 = ec.generate_private_key(ec.SECP256K1()).public_key()
@@ -682,9 +685,10 @@ def test_eq_ecdsa_different_keys():
     k2 = PublicKey(pub2)
 
     assert k1 != k2
+    assert hash(k1) != hash(k2)
 
 
-def test_eq_algorithm_mismatch(ed25519_keypair, ecdsa_keypair):
+def test_equality_algorithm_mismatch(ed25519_keypair, ecdsa_keypair):
     """Public keys of different algorithms must never be equal."""
     _, ed_pub = ed25519_keypair
     _, ec_pub = ecdsa_keypair
@@ -693,15 +697,17 @@ def test_eq_algorithm_mismatch(ed25519_keypair, ecdsa_keypair):
     ec_key = PublicKey(ec_pub)
 
     assert ed_key != ec_key
+    assert hash(ed_key) != hash(ec_key)
 
 
 @pytest.mark.parametrize(
     "other",
     [None, 1, 1.0, "key", object(), PrivateKey(ed25519.Ed25519PrivateKey.generate())]
 )
-def test_eq_with_non_publickey_returns_false(ed25519_keypair, other):
+def test_equality_with_non_publickey_returns_false(ed25519_keypair, other):
     """Equality comparison with a non-PublicKey type should return False."""
     _, pub = ed25519_keypair
     key = PublicKey(pub)
 
     assert (key == other) is False
+
