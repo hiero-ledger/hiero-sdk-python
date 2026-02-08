@@ -18,15 +18,6 @@ reviews:
   in_progress_fortune: false # Do not stall time with a message (spammy)
   poem: false # Do not write a literal poem (spammy)
   enable_prompt_for_ai_agents: false # Disable prompts for AI agents (spammy)
- instructions:
-  PROTOCOL SOURCE OF TRUTH
-  - Protobuf definitions under /proto are authoritative for what the network accepts.
-  - They define wire compatibility and semantic requirements, not SDK design.
-  - RFC2119 words like MUST, SHALL, REQUIRED are binding unless enforcement is explicitly delegated to the network.
-  - Missing validation of client-responsibility rules is a defect.
-  - Do NOT require SDK structure or naming to mirror protobuf.
-
-
   # TOKEN REVIEW INSTRUCTIONS
   token_review_instructions: &token_review_instructions |
     You are acting as a senior maintainer reviewing token-related code
@@ -299,6 +290,14 @@ reviews:
       - Do NOT block the PR on them.
       - Do NOT suggest fixes inline.
       - Instead, aggregate all out-of-scope issues into a single comment with a list of recommendations for one or more follow-up issues that can be created.
+
+    PROTOCOL SOURCE OF TRUTH
+    - Protobuf definitions under /proto are authoritative for what the network accepts.
+    - They define wire compatibility and semantic requirements, not SDK design.
+    - RFC2119 words like MUST, SHALL, REQUIRED are binding unless enforcement is explicitly delegated to the network.
+    - Missing validation of client-responsibility rules is a defect.
+    - Do NOT require SDK structure or naming to mirror protobuf.
+
   path_instructions:
     # --- CODEOWNERS REVIEW INSTRUCTIONS ---
     - path: ".github/CODEOWNERS"
