@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -euo pipefail
 # ==============================================================================
 # Executes When:
 #   - Run by GitHub Actions workflow: .github/workflows/pr-check-changelog.yml
@@ -83,16 +83,25 @@ command -v jq >/dev/null || {
     exit 1
 }
 
+# Validate required environment variables
+: "${GITHUB_EVENT_PATH:?GITHUB_EVENT_PATH is not set}"
+: "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is not set}"
+
 # PR Number
 PR_NUMBER=$(jq -r '.pull_request.number // empty' "$GITHUB_EVENT_PATH")
+if [[ -n "$PR_NUMBER" ]] && ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+    echo "❌ Invalid PR_NUMBER: $PR_NUMBER"
+    exit 1
+fi
+
+# GITHUB_TOKEN is only required for PR commenting
+if [[ -n "$PR_NUMBER" ]]; then
+    : "${GITHUB_TOKEN:?GITHUB_TOKEN is required for PR commenting but is not set}"
+fi
 
 # Marker
 MISSING_MARKER="<!-- changelog-missing-bot -->"
 WRONG_SECTION_MARKER="<!-- changelog-wrong-section-bot -->"
-
-# Version codes
-current_version=""
-latest_released_version=""
 
 # ANSI color codes
 RED="\033[31m"
@@ -107,19 +116,31 @@ git remote add upstream https://github.com/${GITHUB_REPOSITORY}.git
 git fetch upstream main >/dev/null 2>&1
 
 #PR Comment
+DRY_RUN="${DRY_RUN:-false}"
 post_pr_comment() {
     local message="$1"
 
     # Only comment if this is a PR (not workflow_dispatch)
     if [[ -z "$PR_NUMBER" ]]; then
+        echo "ℹ️ No PR_NUMBER set — skipping comment."
         return
     fi
 
-    curl -s -X POST \
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "🔍 [DRY RUN] Would post PR comment on #${PR_NUMBER}"
+        return
+    fi
+
+    local http_code
+    http_code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
         -H "Authorization: Bearer $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github+json" \
         "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-        -d "$(jq -n --arg body "$message" '{body: $body}')"
+        -d "$(jq -n --arg body "$message" '{body: $body}')")
+
+    if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
+        echo "⚠️ Failed to post PR comment (HTTP $http_code)"
+    fi
 }
 
 comment_already_exists() {
@@ -133,7 +154,12 @@ comment_already_exists() {
     comments=$(curl -s \
         -H "Authorization: Bearer $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github+json" \
-        "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments")
+        "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100")
+
+    if ! echo "$comments" | jq -e 'type == "array"' >/dev/null 2>&1; then
+        echo "⚠️ Failed to fetch PR comments — assuming marker absent"
+        return 1
+    fi
 
     echo "$comments" | jq -e --arg marker "$marker" '
         .[] | select(.body | contains($marker))
@@ -182,6 +208,8 @@ This PR appears to resolve an issue, but no entry was found in **CHANGELOG.md**.
 📌 In this repository, all resolved issues — including docs, CI, and workflow changes — are expected to include a changelog entry under **[Unreleased]**, grouped by category (e.g. *Added*, *Fixed*).
 
 If this PR should not require a changelog entry, feel free to clarify in the discussion. Thanks! 🙌"
+    else
+        echo "⚠️ Changelog bot comment already exists, skipping"
     fi
 
     failed=1
@@ -197,6 +225,8 @@ current_release=""
 current_subtitle=""
 in_unreleased=0
 
+shopt -s extglob
+
 while IFS= read -r line; do
     # Track release sections
     if [[ $line =~ ^##\ \[Unreleased\] ]]; then
@@ -205,10 +235,8 @@ while IFS= read -r line; do
         in_unreleased=1
         current_subtitle=""
         continue
-    elif [[ $line =~ ^##\ \[([0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
-        latest_released_version="${BASH_REMATCH[1]}"
-        current_release="$latest_released_version"
-        current_version="$latest_released_version"
+    elif [[ $line =~ ^#{1,2}\ \[([0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
+        current_release="${BASH_REMATCH[1]}"
         in_unreleased=0
         current_subtitle=""
         continue
@@ -218,8 +246,12 @@ while IFS= read -r line; do
     fi
 
     # Check each added bullet
+
+    normalized_line="${line%%+([[:space:]])}"
     for added in "${added_bullets[@]}"; do
-        if [[ "$line" == "$added" ]]; then
+        normalized_added="${added%%+([[:space:]])}"
+
+        if [[ "$normalized_line" == "$normalized_added" ]]; then
             if [[ "$in_unreleased" -eq 1 && -n "$current_subtitle" ]]; then
                 correctly_placed+="$added   (placed under $current_subtitle)"$'\n'
             elif [[ "$in_unreleased" -eq 1 && -z "$current_subtitle" ]]; then
