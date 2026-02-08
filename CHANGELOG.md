@@ -6,8 +6,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
 ### Tests
+
 - Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
 
 - Added tests for ProtoBuf Training Example Implementation
@@ -29,19 +29,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format tests/unit/network_tls_test.py with black for code style consistency (#1543)
 - Formatted `ethereum_transaction_test.py` using Black.
 - Formatted client_test.py using Black.
-- Format tests/unit/query\*.py using black (#1547)
-- Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
 
 - Add constructor-style `__repr__` for `FileId` to improve debugging output (#1628)
-- Format tests/unit/query*.py using black (#1547)
-- Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
-
-### Added
 - Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
 - Added `AssessedCustomFee` domain model to represent assessed custom fees. (`#1637`)
-- Add __repr__ method for ContractId class to improve debugging (#1714)
+- Add `__repr__` method for ContractId class to improve debugging (#1714)
 - Added Protobuf Training guide to enhance developer understanding of proto serialization
   and deserialization (#1645)
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
@@ -157,8 +151,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Documentation
 
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
-
-### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
@@ -429,6 +421,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
+
 - chore: renamed examples to match src where possible
 - Moved examples/ to be inside subfiles to match src structure
 - changed example script workflow to run on new subdirectory structure
@@ -871,6 +864,5 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
-
 
 # [0.1.0] - 2025-02-19
