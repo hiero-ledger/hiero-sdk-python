@@ -1,3 +1,0 @@
-[submodule "proto_src"]
-	path = proto_src
-	url = https://github.com/hashgraph/hedera-protobufs

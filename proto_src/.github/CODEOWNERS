@@ -1,0 +1,39 @@
+###################################
+##### Global Protection Rule ######
+###################################
+# NOTE: This rule is overriden by the more specific rules below. This is the catch-all rule for all files not covered by the more specific rules below
+*                                               @hashgraph/platform-ci @hashgraph/release-engineering-managers @hashgraph/developer-advocates @hashgraph/platform-base @hashgraph/hedera-services @hashgraph/mirror-node @hashgraph/hedera-smart-contracts @hashgraph/block-node
+
+#Platform and mirror folder rules
+/platform/                                      @hashgraph/platform-base
+/mirror/                                        @hashgraph/mirror-node
+
+# Block Node Folder Rules
+/block/                                           @hashgraph/block-node @hashgraph/hedera-services @hashgraph/mirror-node
+
+# Hedera Services (HAPI) Folder Rules
+/services/                                        @hashgraph/hedera-services @hashgraph/mirror-node
+
+#########################
+#####  Core Files  ######
+#########################
+
+# NOTE: Must be placed last to ensure enforcement over all other rules
+
+# Protection Rules for Github Configuration Files and Actions Workflows
+/.github/                                       @hashgraph/release-engineering-managers @hashgraph/platform-ci
+/.github/workflows/                             @hashgraph/platform-ci @hashgraph/platform-ci-committers @hashgraph/release-engineering-managers
+
+# Self-protection for root CODEOWNERS files (this file should not exist and should definitely require approval)
+/CODEOWNERS                                     @hashgraph/release-engineering-managers
+
+# Protect the repository root files
+/README.md                                      @hashgraph/platform-ci @hashgraph/release-engineering-managers @hashgraph/developer-advocates @hashgraph/platform-base @hashgraph/hedera-services @hashgraph/mirror-node @hashgraph/hedera-smart-contracts @hashgraph/block-node
+**/LICENSE                                      @hashgraph/release-engineering-managers
+
+# CodeCov configuration
+**/codecov.yml                                  @hashgraph/release-engineering-managers @hashgraph/platform-ci
+
+# Git Ignore definitions
+**/.gitignore                                   @hashgraph/platform-ci @hashgraph/release-engineering-managers @hashgraph/developer-advocates @hashgraph/platform-base @hashgraph/hedera-services @hashgraph/mirror-node @hashgraph/hedera-smart-contracts @hashgraph/block-node
+**/.gitignore.*                                 @hashgraph/platform-ci @hashgraph/release-engineering-managers @hashgraph/developer-advocates @hashgraph/platform-base @hashgraph/hedera-services @hashgraph/mirror-node @hashgraph/hedera-smart-contracts @hashgraph/block-node
