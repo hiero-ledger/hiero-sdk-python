@@ -247,9 +247,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 - Add return type hint to `ContractId.__str__`. (#1654)
-
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
+- chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
 
 ### Fixed
 - Corrected broken documentation links in SDK developer training files.(#1707)
