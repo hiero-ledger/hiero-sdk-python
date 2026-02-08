@@ -11,8 +11,9 @@ on:
         default: 'true'
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
+  issues: write
 
 env:
   DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
@@ -22,12 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden runner (audit outbound calls)
-        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Update spam list
         id: update-spam-list
@@ -37,17 +38,3 @@ jobs:
           script: |
             const updateSpamList = require('./.github/scripts/update-spam-list.js');
             await updateSpamList({ github, context, core });
-            
-
-      - name: Create pull request
-        if: ${{ steps.update-spam-list.outputs.has-changes == 'true' && env.DRY_RUN != 'true' }}
-        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: ${{ steps.update-spam-list.outputs.pr-title }}
-          branch: ${{ steps.update-spam-list.outputs.branch-name }}
-          title: ${{ steps.update-spam-list.outputs.pr-title }}
-          body: ${{ steps.update-spam-list.outputs.pr-body }}
-          labels: automated, spam-management
-          add-paths: |
-            .github/spam-list.txt
