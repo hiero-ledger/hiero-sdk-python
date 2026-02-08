@@ -1,17 +1,19 @@
-"""
+"""Demonstrate token mint non-fungible functionality.
+
+Run with:
 uv run examples/token_mint_non_fungible.py
 python examples/token_mint_non_fungible.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
+    PrivateKey,
     TokenCreateTransaction,
     TokenMintTransaction,
     TokenType,
@@ -22,9 +24,7 @@ load_dotenv()
 
 
 def token_mint_non_fungible():
-    """
-    Creates an NFT collection and then mints new NFTs with metadata.
-    """
+    """Create an NFT collection and mint new NFTs with metadata."""
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
@@ -59,7 +59,7 @@ def token_mint_non_fungible():
             .set_initial_supply(0)  # NFTs must have an initial supply of 0
             .set_supply_key(supply_key)  # Assign the supply key for minting
         )
-        
+
         receipt = (
             tx.freeze_with(client)
             .sign(operator_key)
@@ -90,9 +90,9 @@ def token_mint_non_fungible():
             .sign(supply_key)  # Must be signed by the supply key
             .execute(client)
         )
-        
+
         # THE FIX: The receipt confirms status, it does not contain serial numbers.
-        print(f"✅ Success! NFT minting complete.")
+        print("✅ Success! NFT minting complete.")
 
     except Exception as e:
         print(f"❌ Error minting NFTs: {e}")

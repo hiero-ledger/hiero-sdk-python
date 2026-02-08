@@ -1,5 +1,6 @@
-"""
-This example demonstrates how to query file contents using the Python SDK.
+"""Demonstrate how to query file contents using the Python SDK.
+
+Run with:
 uv run examples/query_file_contents.py
 python examples/query_file_contents.py
 """
@@ -18,7 +19,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -30,7 +31,7 @@ def setup_client():
 
 
 def create_file(client: Client):
-    """Create a test file"""
+    """Create a test file."""
     file_private_key = PrivateKey.generate_ed25519()
 
     receipt = (
@@ -54,11 +55,11 @@ def create_file(client: Client):
 
 
 def query_file_contents():
-    """
-    Demonstrates querying file contents by:
+    """Demonstrate querying file contents.
+
     1. Setting up client with operator account
     2. Creating a test file
-    3. Querying the file contents
+    3. Querying the file contents.
     """
     client = setup_client()
 

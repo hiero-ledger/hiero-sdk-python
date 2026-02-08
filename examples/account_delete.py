@@ -1,9 +1,8 @@
-"""
-Example demonstrating account delete functionality.
+"""Demonstrate account delete functionality.
+
 Run:
 uv run examples/account_delete.py
 python examples/account_delete.py
-
 """
 import os
 import sys
@@ -19,7 +18,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -31,7 +30,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create a test account"""
+    """Create a test account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -58,8 +57,8 @@ def create_account(client):
 
 
 def account_delete():
-    """
-    Demonstrates account delete functionality by:
+    """Demonstrate account delete functionality.
+
     1. Setting up client with operator account
     2. Creating an account
     3. Deleting the account

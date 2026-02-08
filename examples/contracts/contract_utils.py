@@ -1,5 +1,5 @@
-"""
-This module provides utilities for loading and managing smart contract bytecode.
+"""Utilities for loading and managing smart contract bytecode.
+
 It contains bytecode constants for contracts and configuration constants for deployment.
 
 File Structure:
@@ -24,14 +24,14 @@ Notes:
     - Bytecode files must be hex-encoded strings, not raw binaries
     - Each contract's bytecode is loaded into a constant (e.g. SIMPLE_CONTRACT_BYTECODE)
     - The _load_contract_bytecode() utility handles loading and validation
+
 """
 
 from pathlib import Path
 
 
 def _load_contract_bytecode(contract_name: str, extension: str = "bin") -> str:
-    """
-    Load contract bytecode from file, with proper error handling.
+    """Load contract bytecode from file, with proper error handling.
 
     Args:
         contract_name: Name of the contract (e.g., 'SimpleContract', 'StatefulContract')
@@ -43,6 +43,7 @@ def _load_contract_bytecode(contract_name: str, extension: str = "bin") -> str:
     Raises:
         FileNotFoundError: If the contract .{extension} file is not found
         RuntimeError: If there's an error loading the bytecode
+
     """
     try:
         # Look for contract in the main contracts directory (relative to project root)

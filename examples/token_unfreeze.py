@@ -1,17 +1,19 @@
-"""
+"""Run the token unfreeze example.
+
+Usage:
 uv run examples/token_unfreeze.py
 python examples/token_unfreeze.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
+    PrivateKey,
     TokenCreateTransaction,
     TokenFreezeTransaction,
     TokenUnfreezeTransaction,
@@ -22,10 +24,7 @@ load_dotenv()
 
 
 def token_unfreeze():
-    """
-    Creates a freezeable token, freezes it for the treasury account,
-    and then unfreezes it.
-    """
+    """Create a freezeable token, freeze it for the treasury account, and then unfreeze it."""
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
@@ -59,7 +58,7 @@ def token_unfreeze():
             .set_treasury_account_id(operator_id)
             .set_freeze_key(freeze_key)
         )
-        
+
         # FIX: The .execute() method returns the receipt directly.
         receipt = (
             tx.freeze_with(client)
@@ -85,7 +84,7 @@ def token_unfreeze():
             .sign(freeze_key)
             .execute(client)
         )
-        print(f"✅ Success! Token freeze complete.")
+        print("✅ Success! Token freeze complete.")
     except Exception as e:
         print(f"❌ Error freezing token: {e}")
         sys.exit(1)
@@ -102,7 +101,7 @@ def token_unfreeze():
             .sign(freeze_key)
             .execute(client)
         )
-        print(f"✅ Success! Token unfreeze complete.")
+        print("✅ Success! Token unfreeze complete.")
     except Exception as e:
         print(f"❌ Error unfreezing token: {e}")
         sys.exit(1)

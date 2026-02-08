@@ -1,5 +1,4 @@
-"""
-Revenue Generating Topics Example
+"""Revenue Generating Topics Example.
 
 This example demonstrates how to create and use revenue generating topics with custom fees.
 It covers:
@@ -43,7 +42,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -55,7 +54,7 @@ def setup_client():
 
 
 def create_account(client, name, initial_balance=Hbar(10)):
-    """Create a test account"""
+    """Create a test account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -79,7 +78,7 @@ def create_account(client, name, initial_balance=Hbar(10)):
 
 
 def create_revenue_generating_topic(client, custom_fees):
-    """Create a revenue generating topic with custom fees"""
+    """Create a revenue generating topic with custom fees."""
     receipt = (
         TopicCreateTransaction()
         .set_admin_key(client.operator_private_key.public_key())
@@ -99,7 +98,7 @@ def create_revenue_generating_topic(client, custom_fees):
 
 
 def submit_message_with_custom_fee_limit(client, topic_id, custom_fee_limit):
-    """Submit a message to a topic with custom fee limit"""
+    """Submit a message to a topic with custom fee limit."""
     tx = (
         TopicMessageSubmitTransaction()
         .set_topic_id(topic_id)
@@ -120,7 +119,7 @@ def submit_message_with_custom_fee_limit(client, topic_id, custom_fee_limit):
 
 
 def submit_message_without_custom_fee_limit(client, topic_id):
-    """Submit a message to a topic without custom fee limit"""
+    """Submit a message to a topic without custom fee limit."""
     tx = TopicMessageSubmitTransaction().set_message("message").set_topic_id(topic_id)
     tx.transaction_fee = Hbar(2).to_tinybars()
     receipt = tx.execute(client)
@@ -136,7 +135,7 @@ def submit_message_without_custom_fee_limit(client, topic_id):
 
 
 def get_account_balance(client, account_id):
-    """Get the balance of an account"""
+    """Get the balance of an account."""
     balance = CryptoGetAccountBalanceQuery(account_id).execute(client)
     return balance
 
@@ -147,7 +146,7 @@ def create_fungible_token(
     treasury_key,
     initial_supply=100,
 ):
-    """Create a fungible token"""
+    """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("revenue-generating token")
@@ -170,7 +169,7 @@ def create_fungible_token(
 
 
 def associate_token_with_account(client, account_id, token_id, account_key):
-    """Associate a token with an account"""
+    """Associate a token with an account."""
     receipt = (
         TokenAssociateTransaction()
         .set_account_id(account_id)
@@ -190,7 +189,7 @@ def associate_token_with_account(client, account_id, token_id, account_key):
 
 
 def transfer_tokens(client, token_id, from_account_id, to_account_id, amount):
-    """Transfer tokens between accounts"""
+    """Transfer tokens between accounts."""
     receipt = (
         TransferTransaction()
         .add_token_transfer(token_id, from_account_id, -amount)
@@ -206,7 +205,7 @@ def transfer_tokens(client, token_id, from_account_id, to_account_id, amount):
 
 
 def update_topic_custom_fees(client, topic_id, custom_fees):
-    """Update topic custom fees"""
+    """Update topic custom fees."""
     receipt = (
         TopicUpdateTransaction()
         .set_topic_id(topic_id)
@@ -222,7 +221,7 @@ def update_topic_custom_fees(client, topic_id, custom_fees):
 
 
 def update_topic_fee_exempt_keys(client, topic_id, fee_exempt_keys):
-    """Update topic fee exempt keys"""
+    """Update topic fee exempt keys."""
     receipt = (
         TopicUpdateTransaction()
         .set_topic_id(topic_id)
@@ -240,7 +239,7 @@ def update_topic_fee_exempt_keys(client, topic_id, fee_exempt_keys):
 def test_hbar_fee_flow(
     client, topic_id, alice_id, alice_key, operator_id, operator_key
 ):
-    """Test Steps 3-4: Submit message with custom fee limit and verify Hbar fee collection"""
+    """Test Steps 3-4: Submit message with custom fee limit and verify Hbar fee collection."""
     print("Submitting a message as Alice to the topic")
     alice_balance_before = get_account_balance(client, alice_id)
     fee_collector_balance_before = get_account_balance(client, operator_id)
@@ -277,7 +276,7 @@ def test_hbar_fee_flow(
 def setup_token_and_update_topic(
     client, topic_id, alice_id, alice_key, operator_id, operator_key
 ):
-    """Test Steps 5-6: Create token, transfer to Alice, and update topic with token fee"""
+    """Test Steps 5-6: Create token, transfer to Alice, and update topic with token fee."""
     print("Creating a token")
     token_id = create_fungible_token(client, operator_id, operator_key)
 
@@ -303,7 +302,7 @@ def setup_token_and_update_topic(
 def test_token_fee_flow(
     client, topic_id, token_id, alice_id, alice_key, operator_id, operator_key
 ):
-    """Test Steps 7-8: Submit message without custom fee limit and verify token fee collection"""
+    """Test Steps 7-8: Submit message without custom fee limit and verify token fee collection."""
     print("Submitting a message as Alice to the topic")
     alice_balance_before = get_account_balance(client, alice_id)
     fee_collector_balance_before = get_account_balance(client, operator_id)
@@ -340,7 +339,7 @@ def test_token_fee_flow(
 
 
 def test_fee_exempt_flow(client, topic_id, token_id, operator_id, operator_key):
-    """Test Steps 9-12: Create Bob, update fee exempt keys, and verify Bob isn't charged"""
+    """Test Steps 9-12: Create Bob, update fee exempt keys, and verify Bob isn't charged."""
     print("Creating account - Bob")
     bob_id, bob_key = create_account(client, "Bob")
 
@@ -373,8 +372,8 @@ def test_fee_exempt_flow(client, topic_id, token_id, operator_id, operator_key):
 
 
 def revenue_generating_topics():
-    """
-    Demonstrates revenue generating topics functionality by:
+    """Demonstrate revenue generating topics functionality.
+
     1. Creating Alice account
     2. Creating a topic with Hbar custom fee
     3. Submitting message with custom fee limit
@@ -386,7 +385,7 @@ def revenue_generating_topics():
     9. Creating Bob account
     10. Updating topic's fee exempt keys and add Bob's public key
     11. Submitting message, paid by Bob, without specifying max custom fee amount
-    12. Verifying Bob was not debited the fee amount
+    12. Verifying Bob was not debited the fee amount.
     """
     client = setup_client()
     operator_id = client.operator_account_id

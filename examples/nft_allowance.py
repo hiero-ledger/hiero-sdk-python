@@ -1,6 +1,4 @@
-"""
-Example demonstrating NFT allowance approval and usage.
-"""
+"""Example demonstrating NFT allowance approval and usage."""
 
 import os
 import sys
@@ -29,7 +27,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -41,7 +39,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create an account"""
+    """Create an account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -63,7 +61,7 @@ def create_account(client):
 
 
 def associate_token_with_account(client, account_id, account_private_key, token_id):
-    """Associate token with account"""
+    """Associate token with account."""
     receipt = (
         TokenAssociateTransaction()
         .set_account_id(account_id)
@@ -81,7 +79,7 @@ def associate_token_with_account(client, account_id, account_private_key, token_
 
 
 def create_nft_token(client):
-    """Create an NFT token"""
+    """Create an NFT token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("Test NFT")
@@ -104,7 +102,7 @@ def create_nft_token(client):
 
 
 def mint_nft(client, token_id, metadata):
-    """Mint NFT with metadata"""
+    """Mint NFT with metadata."""
     receipt = TokenMintTransaction().set_token_id(token_id).set_metadata(metadata).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -124,7 +122,7 @@ def mint_nft(client, token_id, metadata):
 
 
 def approve_nft_allowance(client, nft_id, owner_account_id, spender_account_id):
-    """Approve NFT allowance for spender"""
+    """Approve NFT allowance for spender."""
     receipt = (
         AccountAllowanceApproveTransaction()
         .approve_token_nft_allowance_all_serials(
@@ -149,7 +147,7 @@ def approve_nft_allowance(client, nft_id, owner_account_id, spender_account_id):
 
 
 def delete_nft_allowance(client, nft_id, owner_account_id, spender_account_id):
-    """Delete NFT allowance"""
+    """Delete NFT allowance."""
     receipt = (
         AccountAllowanceDeleteTransaction()
         .delete_all_token_nft_allowances(nft_id, owner_account_id)
@@ -176,7 +174,7 @@ def delete_nft_allowance(client, nft_id, owner_account_id, spender_account_id):
 def transfer_nft_without_allowance(
     client, nft_id, spender_account_id, spender_private_key, receiver_account_id
 ):
-    """Fail to transfer NFT without allowance"""
+    """Fail to transfer NFT without allowance."""
     print("Trying to transfer NFT without allowance...")
     client.set_operator(spender_account_id, spender_private_key)
 
@@ -197,8 +195,8 @@ def transfer_nft_without_allowance(
 
 
 def nft_allowance():
-    """
-    Demonstrates NFT allowance functionality by:
+    """Demonstrate NFT allowance functionality.
+
     1. Setting up client with operator account
     2. Creating spender and receiver accounts
     3. Creating an NFT token
@@ -207,7 +205,7 @@ def nft_allowance():
     6. Approving NFT allowance for spender
     7. Transferring NFT using the allowance
     8. Deleting the allowance
-    9. Attempting to transfer without allowance (should fail)
+    9. Attempting to transfer without allowance (should fail).
     """
     client = setup_client()
 

@@ -1,8 +1,8 @@
-"""
-Run: 
+"""Demonstrate file update functionality.
+
+Run:
 uv run examples/file_update.py
 python examples/file_update.py
-
 """
 import os
 import sys
@@ -19,7 +19,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -31,7 +31,7 @@ def setup_client():
 
 
 def create_file(client):
-    """Create a test file"""
+    """Create a test file."""
     file_private_key = PrivateKey.generate_ed25519()
 
     receipt = (
@@ -55,19 +55,20 @@ def create_file(client):
 
 
 def query_file_info(client, file_id):
+    """Query and display file information."""
     info = FileInfoQuery().set_file_id(file_id).execute(client)
 
     print(info)
 
 
 def file_update():
-    """
-    Demonstrates querying file info by:
+    """Demonstrate querying file info.
+
     1. Setting up client with operator account
     2. Creating a test file
     3. Querying the file info
     4. Updating the file info
-    5. Querying the file info again
+    5. Querying the file info again.
     """
     client = setup_client()
 

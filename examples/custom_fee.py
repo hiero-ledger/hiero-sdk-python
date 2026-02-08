@@ -1,16 +1,19 @@
-"""
-Run with: 
+"""Demonstrate custom fee creation.
+
+Run with:
 uv run examples/custom_fee.py
 python examples/custom_fee.py
 """
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 
+
 def main():
+    """Create and display custom fee examples."""
     # Create a CustomFixedFee
     fixed_fee = CustomFixedFee(
         amount=100,
@@ -26,7 +29,7 @@ def main():
 
     # Convert to protobuf
     fixed_fee_proto = fixed_fee._to_proto()
-    
+
     print("Fixed Fee Protobuf:", fixed_fee_proto)
 
     # Create a CustomFractionalFee

@@ -1,5 +1,4 @@
-"""
-Example demonstrating contract deletion on the network.
+"""Example demonstrating contract deletion on the network.
 
 This module shows how to delete a smart contract by:
 1. Setting up a client with operator credentials
@@ -44,7 +43,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -56,7 +55,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the contract bytecode"""
+    """Create a file containing the contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -76,7 +75,7 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id, initial_balance):
-    """Create a contract using the file"""
+    """Create a contract using the file."""
     receipt = (
         ContractCreateTransaction()
         .set_admin_key(client.operator_private_key.public_key())
@@ -100,8 +99,8 @@ def create_contract(client, file_id, initial_balance):
 
 
 def contract_delete():
-    """
-    Demonstrates deleting a contract on the network by:
+    """Demonstrate deleting a contract on the network.
+
     1. Setting up client with operator account
     2. Creating a file containing contract bytecode
     3. Creating two contracts: one with balance, one for transfer

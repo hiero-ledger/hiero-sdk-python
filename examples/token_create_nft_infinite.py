@@ -1,20 +1,23 @@
-"""
-Usage:
+"""Demonstrate creating an infinite NFT using Hiero SDK Python.
+
+Run with:
 uv run examples/token_create_nft_infinite.py
 python examples/token_create_nft_infinite.py
 """
 
 import os
 import sys
+
 from dotenv import load_dotenv
+
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
-    TokenCreateTransaction,
+    Client,
     Network,
-    TokenType,
+    PrivateKey,
     SupplyType,
+    TokenCreateTransaction,
+    TokenType,
 )
 
 # Load environment variables from .env file
@@ -22,9 +25,7 @@ load_dotenv()
 
 
 def create_token_nft_infinite():
-    """
-    Creates an infinite NFT by generating admin and supply keys on the fly.
-    """
+    """Create an infinite NFT by generating admin and supply keys on the fly."""
     # 1. Network and Operator Setup
     print("Connecting to Hedera testnet...")
     network = Network(network="testnet")

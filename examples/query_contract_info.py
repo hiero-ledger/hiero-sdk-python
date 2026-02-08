@@ -1,7 +1,6 @@
-"""
-Example demonstrating contract info query on the network.
+"""Demonstrate contract info query on the network.
 
-This module shows how to query a contract info on the network by:
+This module shows how to query a contract info on the network.
 1. Setting up a client with operator credentials
 2. Creating a file containing contract bytecode
 3. Creating a contract using the file
@@ -38,7 +37,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -50,7 +49,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the simple contract bytecode"""
+    """Create a file containing the simple contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -70,7 +69,7 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id):
-    """Create a contract using the file"""
+    """Create a contract using the file."""
     receipt = (
         ContractCreateTransaction()
         .set_admin_key(client.operator_private_key.public_key())
@@ -97,12 +96,12 @@ def create_contract(client, file_id):
 
 
 def query_contract_info():
-    """
-    Demonstrates querying a contract info by:
+    """Demonstrate querying a contract info.
+
     1. Setting up client with operator account
     2. Creating a file containing contract bytecode
     3. Creating a contract using the file
-    4. Querying the contract info
+    4. Querying the contract info.
     """
     client = setup_client()
 

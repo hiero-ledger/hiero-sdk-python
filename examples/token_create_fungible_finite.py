@@ -1,10 +1,9 @@
-"""
-This is a simple example of how to create a finite fungible token using setting methods.
+"""Demonstrate creating a finite fungible token using setting methods.
 
-It:
-1. Loads environment variables.
-2. Sets up a client and creates a token with the given parameters.
-3. Executes the token creation and prints the result.
+Steps:
+1. Load environment variables.
+2. Set up a client and create a token with the given parameters.
+3. Execute the token creation and print the result.
 
 Required environment variables:
 - OPERATOR_ID, OPERATOR_KEY (mandatory)
@@ -21,16 +20,18 @@ python examples/token_create_fungible_finite.py
 
 import os
 import sys
+
 from dotenv import load_dotenv
+
 from hiero_sdk_python import (
-    Client,
     AccountId,
+    Client,
+    Network,
     PrivateKey,
     TokenCreateTransaction,
-    Network,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def parse_optional_key(key_str):
@@ -113,7 +114,7 @@ def execute_transaction(transaction, client, operator_key, admin_key):
 
 
 def create_token_fungible_finite():
-    """Main function to create finite fungible token."""
+    """Create a finite fungible token."""
     client, operator_id, operator_key = setup_client()
     keys = load_optional_keys()
     transaction = build_transaction(client, operator_id, keys)

@@ -1,14 +1,11 @@
-"""
-This module contains the bytecode constants for the contracts
-and configuration constants for the contracts.
-"""
+"""Bytecode constants and configuration constants for contracts."""
 
 from .contract_utils import (  # Bytecode constants; Configuration constants
+    CONSTRUCTOR_TEST_CONTRACT_BYTECODE,
     CONTRACT_DEPLOY_GAS,
     SIMPLE_CONTRACT_BYTECODE,
-    STATEFUL_CONTRACT_BYTECODE,
-    CONSTRUCTOR_TEST_CONTRACT_BYTECODE,
     SIMPLE_CONTRACT_RUNTIME_BYTECODE,
+    STATEFUL_CONTRACT_BYTECODE,
 )
 
 __all__ = [

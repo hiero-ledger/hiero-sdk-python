@@ -1,6 +1,4 @@
-"""
-Example demonstrating schedule info query on the network.
-"""
+"""Example demonstrating schedule info query on the network."""
 
 import datetime
 import os
@@ -8,13 +6,24 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey, AccountCreateTransaction, ResponseCode, ScheduleInfoQuery, Timestamp, TransferTransaction
+from hiero_sdk_python import (
+    AccountCreateTransaction,
+    AccountId,
+    Client,
+    Hbar,
+    Network,
+    PrivateKey,
+    ResponseCode,
+    ScheduleInfoQuery,
+    Timestamp,
+    TransferTransaction,
+)
 
 load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -26,7 +35,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create a test account"""
+    """Create a test account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -51,7 +60,7 @@ def create_account(client):
 
 
 def create_schedule(client, account_id, account_private_key):
-    """Create a scheduled transaction"""
+    """Create a scheduled transaction."""
     # Amount to transfer in tinybars
     amount = Hbar(1).to_tinybars()
 
@@ -95,12 +104,12 @@ def create_schedule(client, account_id, account_private_key):
 
 
 def query_schedule_info():
-    """
-    Demonstrates querying a schedule info by:
+    """Demonstrate querying a schedule info.
+
     1. Setting up client with operator account
     2. Creating a test account that will schedule the txn
     3. Creating a scheduled transaction
-    4. Querying the schedule info
+    4. Querying the schedule info.
     """
     client = setup_client()
 

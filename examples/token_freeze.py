@@ -1,17 +1,19 @@
-"""
+"""Demonstrate token freeze functionality.
+
+Run with:
 uv run examples/token_freeze.py
 python examples/token_freeze.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
+    PrivateKey,
     TokenCreateTransaction,
     TokenFreezeTransaction,
     TokenUnfreezeTransaction,
@@ -22,10 +24,7 @@ load_dotenv()
 
 
 def freeze_token():
-    """
-    Creates a freezeable token and demonstrates freezing and unfreezing
-    the token for the operator (treasury) account.
-    """
+    """Create a freezeable token and demonstrate freezing and unfreezing."""
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
@@ -59,7 +58,7 @@ def freeze_token():
             .set_treasury_account_id(operator_id)
             .set_freeze_key(freeze_key) # <-- THE FIX: Pass the private key directly
         )
-        
+
         # Freeze, sign with BOTH operator and the new freeze key, then execute
         receipt = (
             tx.freeze_with(client)

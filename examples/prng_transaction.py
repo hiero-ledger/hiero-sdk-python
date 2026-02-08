@@ -1,5 +1,4 @@
-"""
-Example demonstrating PRNG (Pseudo-Random Number Generator) transaction functionality.
+"""Example demonstrating PRNG (Pseudo-Random Number Generator) transaction functionality.
 
 The PRNG transaction is a transaction that generates a pseudo-random number.
 
@@ -21,7 +20,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -33,7 +32,7 @@ def setup_client():
 
 
 def prng_with_range(client, range_value):
-    """Generate a pseudo-random number within a specified range"""
+    """Generate a pseudo-random number within a specified range."""
     receipt = PrngTransaction().set_range(range_value).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -48,7 +47,7 @@ def prng_with_range(client, range_value):
 
 
 def prng_without_range(client):
-    """Generate pseudo-random bytes without specifying a range"""
+    """Generate pseudo-random bytes without specifying a range."""
     receipt = PrngTransaction().execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -63,11 +62,11 @@ def prng_without_range(client):
 
 
 def prng_transaction():
-    """
-    Demonstrates PRNG transaction functionality by:
+    """Demonstrate PRNG transaction functionality.
+
     1. Setting up client with operator account
     2. Generating a random number within a range
-    3. Generating random bytes without a range
+    3. Generating random bytes without a range.
     """
     client = setup_client()
 

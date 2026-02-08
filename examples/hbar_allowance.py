@@ -1,6 +1,4 @@
-"""
-Example demonstrating hbar allowance approval and usage.
-"""
+"""Example demonstrating hbar allowance approval and usage."""
 
 import os
 import sys
@@ -19,7 +17,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -31,7 +29,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create an account"""
+    """Create an account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -53,7 +51,7 @@ def create_account(client):
 
 
 def approve_hbar_allowance(client, owner_account_id, spender_account_id, amount):
-    """Approve Hbar allowance for spender"""
+    """Approve Hbar allowance for spender."""
     receipt = (
         AccountAllowanceApproveTransaction()
         .approve_hbar_allowance(owner_account_id, spender_account_id, amount)
@@ -69,7 +67,7 @@ def approve_hbar_allowance(client, owner_account_id, spender_account_id, amount)
 
 
 def delete_hbar_allowance(client, owner_account_id, spender_account_id):
-    """Delete hbar allowance by setting amount to 0"""
+    """Delete hbar allowance by setting amount to 0."""
     receipt = (
         AccountAllowanceApproveTransaction()
         .approve_hbar_allowance(owner_account_id, spender_account_id, Hbar(0))
@@ -85,7 +83,7 @@ def delete_hbar_allowance(client, owner_account_id, spender_account_id):
 
 
 def transfer_hbar_without_allowance(client, spender_account_id, spender_private_key, amount):
-    """Transfer hbars without allowance"""
+    """Transfer hbars without allowance."""
     print("Trying to transfer hbars without allowance...")
     owner_account_id = client.operator_account_id
     client.set_operator(spender_account_id, spender_private_key)  # Set operator to spender
@@ -107,14 +105,14 @@ def transfer_hbar_without_allowance(client, spender_account_id, spender_private_
 
 
 def hbar_allowance():
-    """
-    Demonstrates hbar allowance functionality by:
+    """Demonstrate hbar allowance functionality.
+
     1. Setting up client with operator account
     2. Creating spender and receiver accounts
     3. Approving hbar allowance for spender
     4. Transferring hbars using the allowance
     5. Deleting the allowance
-    6. Attempting to transfer hbars without allowance (should fail)
+    6. Attempting to transfer hbars without allowance (should fail).
     """
     client = setup_client()
 

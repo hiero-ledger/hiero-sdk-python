@@ -1,24 +1,27 @@
-"""
+"""Demonstrate token cancel airdrop functionality.
+
+Run with:
 uv run examples/token_cancel_airdrop.py
 python examples/token_cancel_airdrop.py
 """
 
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
+    AccountCreateTransaction,
     AccountId,
+    Client,
+    Hbar,
     Network,
     PrivateKey,
-    AccountCreateTransaction,
-    Hbar,
-    TokenCreateTransaction,
+    ResponseCode,
     TokenAirdropTransaction,
-    TransactionRecordQuery,
     TokenCancelAirdropTransaction,
-    ResponseCode
+    TokenCreateTransaction,
+    TransactionRecordQuery,
 )
 
 # Load environment variables from .env file
@@ -29,7 +32,7 @@ def setup_client():
     """Initialize the Hedera client using environment variables."""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
-    
+
     try:
         operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
         operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
@@ -120,6 +123,7 @@ def cancel_airdrops(client, operator_key, pending_airdrops):
 
 
 def token_cancel_airdrop():
+    """Create accounts, tokens, airdrop them, and cancel the airdrops."""
     client, operator_id, operator_key = setup_client()
     recipient_id, _ = create_account(client, operator_key)
 

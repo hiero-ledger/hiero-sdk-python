@@ -1,22 +1,22 @@
-"""
-Example file: Demonstrating how to serialize a PrivateKey to DER (hex)
-and then load it back.
-*WARNING* DER‐encoded private keys should not be printed or exposed in a real-world scenario.
+"""Demonstrate how to serialize a PrivateKey to DER (hex) and then load it back.
 
+WARNING: DER-encoded private keys should not be printed or exposed in a real-world scenario.
+
+Run with:
 uv run examples/keys_private_der.py
 python examples/keys_private_der.py
-
 """
 
-from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
+
 def example_serialize_ed25519_der() -> None:
+    """Serialize and deserialize an Ed25519 private key using DER format."""
     print("=== Ed25519: Serialize to DER ===")
-    
+
     privkey = PrivateKey.generate("ed25519")
     print("Generated Ed25519 key:", privkey)
-    
+
     # This emits Traditional Open SSL DER by default
     der_bytes = privkey.to_bytes_der()
     print("DER bytes length =", len(der_bytes))
@@ -34,12 +34,13 @@ def example_serialize_ed25519_der() -> None:
     print("Ed25519 DER reload: Verified signature OK.\n")
 
 def example_serialize_ecdsa_der() -> None:
+    """Serialize and deserialize an ECDSA private key using DER format."""
     print("=== ECDSA: Serialize to DER ===")
-    
+
     # use generate("ecdsa")
     privkey = PrivateKey.generate("ecdsa")
     print("Generated ECDSA key:", privkey)
-    
+
     der_bytes = privkey.to_bytes_der()
     print("DER bytes length =", len(der_bytes))
 
@@ -54,6 +55,7 @@ def example_serialize_ecdsa_der() -> None:
     print("ECDSA DER reload: Verified signature OK.\n")
 
 def main():
+    """Run the DER serialization examples."""
     example_serialize_ed25519_der()
     example_serialize_ecdsa_der()
 

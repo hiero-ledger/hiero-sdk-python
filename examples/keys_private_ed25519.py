@@ -1,24 +1,26 @@
-"""
-Example file: Working with Ed25519 PrivateKey using the PrivateKey class
-*WARNING* Ed25519 seeds should not be printed or exposed in a real‑world scenario
+"""Demonstrate Ed25519 PrivateKey operations.
 
+WARNING: Ed25519 seeds should not be printed or exposed in a real-world scenario.
+
+Run with:
 uv run examples/keys_private_ed25519.py
 python examples/keys_private_ed25519.py
-
 """
 from cryptography.exceptions import InvalidSignature
+
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
+
 def example_generate_ed25519() -> None:
-    """
-    Demonstrates generating a brand new Ed25519 PrivateKey, signing data,
-    and verifying the signature with its corresponding PublicKey.
+    """Generate a new Ed25519 PrivateKey.
+
+    Signs data and verifies the signature with its corresponding PublicKey.
     """
     print("=== Ed25519: Generate & Sign ===")
     # 1) Generate Ed25519 by specifying in "'"
     privkey = PrivateKey.generate("ed25519")
     print("Generated Ed25519 PrivateKey (hex) =", privkey)
-    
+
     # 2) Get the public key for this ed25519 private key
     pubkey = privkey.public_key()
     print("Derived public key =", pubkey)
@@ -36,8 +38,8 @@ def example_generate_ed25519() -> None:
     print()
 
 def example_load_ed25519_raw() -> None:
-    """
-    Demonstrates creating a PrivateKey from a 32-byte raw Ed25519 seed.
+    """Create a PrivateKey from a 32-byte raw Ed25519 seed.
+
     Then uses it for signing and verifying.
     """
     print("=== Ed25519: Load from Raw ===")
@@ -64,8 +66,8 @@ def example_load_ed25519_raw() -> None:
     print()
 
 def example_load_ed25519_from_hex() -> None:
-    """
-    Demonstrates creating a PrivateKey from a hex-encoded string for Ed25519.
+    """Create a PrivateKey from a hex-encoded string for Ed25519.
+
     Must be 32 bytes in total, i.e. 64 hex characters.
     """
     print("=== Ed25519: Load from Hex ===")
@@ -90,8 +92,8 @@ def example_load_ed25519_from_hex() -> None:
     print()
 
 def example_load_ed25519_der() -> None:
-    """
-    Demonstrates loading an Ed25519 private key from DER bytes (hex form).
+    """Load an Ed25519 private key from DER bytes (hex form).
+
     In actual usage, you might read the raw DER bytes from a file (binary),
     then call from_der(...) or from_string_der(...).
     """
@@ -102,7 +104,7 @@ def example_load_ed25519_der() -> None:
         "302e020100300506032b657004220420"
         "0101010101010101010101010101010101010101010101010101010101010101"
     )
-    
+
     # Create private and public key
     privkey = PrivateKey.from_string_der(der_hex)
     print("Loaded Ed25519 PrivateKey from DER =", privkey)
@@ -119,6 +121,7 @@ def example_load_ed25519_der() -> None:
     print()
 
 def main_ed25519():
+    """Run the Ed25519 private key examples."""
     example_generate_ed25519()
     example_load_ed25519_raw()
     example_load_ed25519_from_hex()

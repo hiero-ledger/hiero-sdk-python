@@ -1,6 +1,4 @@
-"""
-Example demonstrating fungible token allowance approval and usage.
-"""
+"""Example demonstrating fungible token allowance approval and usage."""
 
 import os
 import sys
@@ -23,7 +21,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -35,7 +33,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create an account"""
+    """Create an account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -57,7 +55,7 @@ def create_account(client):
 
 
 def create_fungible_token(client):
-    """Create a fungible token"""
+    """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("Test Token")
@@ -82,7 +80,7 @@ def create_fungible_token(client):
 
 
 def associate_token_with_account(client, account_id, account_private_key, token_id):
-    """Associate token with account"""
+    """Associate token with account."""
     receipt = (
         TokenAssociateTransaction()
         .set_account_id(account_id)
@@ -100,7 +98,7 @@ def associate_token_with_account(client, account_id, account_private_key, token_
 
 
 def approve_token_allowance(client, token_id, owner_account_id, spender_account_id, amount):
-    """Approve token allowance for spender"""
+    """Approve token allowance for spender."""
     receipt = (
         AccountAllowanceApproveTransaction()
         .approve_token_allowance(token_id, owner_account_id, spender_account_id, amount)
@@ -116,7 +114,7 @@ def approve_token_allowance(client, token_id, owner_account_id, spender_account_
 
 
 def delete_token_allowance(client, token_id, owner_account_id, spender_account_id):
-    """Delete token allowance by setting amount to 0"""
+    """Delete token allowance by setting amount to 0."""
     receipt = (
         AccountAllowanceApproveTransaction()
         .approve_token_allowance(token_id, owner_account_id, spender_account_id, 0)
@@ -134,7 +132,7 @@ def delete_token_allowance(client, token_id, owner_account_id, spender_account_i
 def transfer_token_without_allowance(
     client, spender_account_id, spender_private_key, amount, receiver_account_id, token_id
 ):
-    """Transfer tokens without allowance"""
+    """Transfer tokens without allowance."""
     print("Trying to transfer tokens without allowance...")
     owner_account_id = client.operator_account_id
     client.set_operator(spender_account_id, spender_private_key)  # Set operator to spender
@@ -156,15 +154,15 @@ def transfer_token_without_allowance(
 
 
 def token_allowance():
-    """
-    Demonstrates fungible token allowance functionality by:
+    """Demonstrate fungible token allowance functionality.
+
     1. Setting up client with operator account
     2. Creating spender and receiver accounts
     3. Creating a fungible token and associating it with the receiver account
     4. Approving token allowance for spender
     5. Transferring tokens using the allowance
     6. Deleting the allowance
-    7. Attempting to transfer tokens without allowance (should fail)
+    7. Attempting to transfer tokens without allowance (should fail).
     """
     client = setup_client()
 

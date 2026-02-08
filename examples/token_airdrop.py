@@ -1,27 +1,30 @@
+"""Demonstrate token airdrop functionality."""
 import os
 import sys
+
 from dotenv import load_dotenv
+
 from hiero_sdk_python import (
- Client,
- Network,
- AccountId,
- PrivateKey,
- Hbar,
- AccountCreateTransaction,
- TokenCreateTransaction,
- TokenAirdropTransaction,
- TokenAssociateTransaction,
- TokenMintTransaction,
- CryptoGetAccountBalanceQuery,
- TokenType,
- ResponseCode,
- NftId
+    AccountCreateTransaction,
+    AccountId,
+    Client,
+    CryptoGetAccountBalanceQuery,
+    Hbar,
+    Network,
+    NftId,
+    PrivateKey,
+    ResponseCode,
+    TokenAirdropTransaction,
+    TokenAssociateTransaction,
+    TokenCreateTransaction,
+    TokenMintTransaction,
+    TokenType,
 )
 
 load_dotenv()
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -36,7 +39,7 @@ def setup_client():
         sys.exit(1)
 
 def create_account(client, operator_key):
-    """Create a new recipient account"""
+    """Create a new recipient account."""
     print("\nCreating a new account...")
     recipient_key = PrivateKey.generate()
 
@@ -56,7 +59,7 @@ def create_account(client, operator_key):
         sys.exit(1)
 
 def create_token(client, operator_id, operator_key):
-    """Create a fungible token"""
+    """Create a fungible token."""
     print("\nCreating a token...")
     try:
         token_tx = (
@@ -78,7 +81,7 @@ def create_token(client, operator_id, operator_key):
         sys.exit(1)
 
 def create_nft(client, operator_key, operator_id):
-    """Create a NFT"""
+    """Create a NFT."""
     print("\nCreating a nft...")
     try:
         nft_tx = (
@@ -100,7 +103,7 @@ def create_nft(client, operator_key, operator_id):
         sys.exit(1)
 
 def mint_nft(client, operator_key, nft_id):
-    """Mint the NFT with metadata"""
+    """Mint the NFT with metadata."""
     print("\nMinting a nft...")
     try:
         mint_tx = TokenMintTransaction(token_id=nft_id, metadata=[b"NFT data"])
@@ -116,7 +119,7 @@ def mint_nft(client, operator_key, nft_id):
         sys.exit(1)
 
 def associate_tokens(client, recipient_id, recipient_key, tokens):
-    """Associate the token and nft with the recipient"""
+    """Associate the token and nft with the recipient."""
     print("\nAssociating tokens to recipient...")
     try:
         assocciate_tx = TokenAssociateTransaction(
@@ -144,10 +147,7 @@ def associate_tokens(client, recipient_id, recipient_key, tokens):
 
 
 def token_airdrop():
-    """
-    A full example that creates an account, a token, associate token, and 
-    finally perform token airdrop.
-    """
+    """Create an account, a token, associate token, and perform airdrop."""
     # Setup Client
     client, operator_id, operator_key = setup_client()
 

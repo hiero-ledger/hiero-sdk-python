@@ -1,17 +1,19 @@
-"""
+"""Demonstrate token delete functionality.
+
+Run with:
 uv run examples/token_delete.py
 python examples/token_delete.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
+    PrivateKey,
     TokenCreateTransaction,
     TokenDeleteTransaction,
 )
@@ -21,9 +23,7 @@ load_dotenv()
 
 
 def create_and_delete_token():
-    """
-    A full example that creates a token and then immediately deletes it.
-    """
+    """Create a token and then immediately delete it."""
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
@@ -85,8 +85,8 @@ def create_and_delete_token():
             .sign(admin_key)     # Sign with the same admin key used to create it
         )
 
-        delete_receipt = delete_tx.execute(client)
-        print(f"✅ Success! Token deleted.")
+        delete_tx.execute(client)
+        print("✅ Success! Token deleted.")
 
     except Exception as e:
         print(f"❌ Error deleting token: {e}")

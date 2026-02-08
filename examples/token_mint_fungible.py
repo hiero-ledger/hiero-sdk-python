@@ -1,17 +1,19 @@
-"""
+"""Demonstrate token mint fungible functionality.
+
+Run with:
 uv run examples/token_mint_fungible.py
 python examples/token_mint_fungible.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
+    PrivateKey,
     TokenCreateTransaction,
     TokenMintTransaction,
 )
@@ -21,9 +23,7 @@ load_dotenv()
 
 
 def token_mint_fungible():
-    """
-    Creates a mintable fungible token and then mints additional supply.
-    """
+    """Create a mintable fungible token and mint additional supply."""
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
@@ -58,7 +58,7 @@ def token_mint_fungible():
             .set_treasury_account_id(operator_id)
             .set_supply_key(supply_key)  # Assign the supply key
         )
-        
+
         # Freeze, sign with BOTH operator and the new supply key, then execute
         receipt = (
             tx.freeze_with(client)
@@ -86,7 +86,7 @@ def token_mint_fungible():
             .execute(client)
         )
         # THE FIX: The receipt confirms status, it does not contain the new total supply.
-        print(f"✅ Success! Token minting complete.")
+        print("✅ Success! Token minting complete.")
     except Exception as e:
         print(f"❌ Error minting tokens: {e}")
         sys.exit(1)

@@ -1,5 +1,4 @@
-"""
-Query Balance Example
+"""Query Balance Example.
 
 This script demonstrates how to:
 1. Set up a client connection to the Hedera network
@@ -15,32 +14,33 @@ Run with:
 import os
 import sys
 import time
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
-    Client,
-    AccountId,
-    PrivateKey,
     AccountCreateTransaction,
-    TransferTransaction,
+    AccountId,
+    Client,
     CryptoGetAccountBalanceQuery,
-    ResponseCode,
     Hbar,
+    Network,
+    PrivateKey,
+    ResponseCode,
+    TransferTransaction,
 )
 
 load_dotenv()
 
 
 def setup_client():
-    """
-    Initialize and configure the Hiero SDK client with operator credentials.
+    """Initialize and configure the Hiero SDK client with operator credentials.
 
     Returns:
         Client: Configured client ready for transactions and queries.
 
     Raises:
         ValueError: If OPERATOR_ID or OPERATOR_KEY environment variables are not set.
+
     """
     print("Setting up client connection...")
     network = Network(network='testnet')
@@ -62,8 +62,7 @@ def setup_client():
 
 
 def create_account(client, operator_key, initial_balance=Hbar(10)):
-    """
-    Create a new account on the Hedera network with an initial balance.
+    """Create a new account on the Hedera network with an initial balance.
 
     Args:
         client (Client): The Hiero SDK client.
@@ -72,6 +71,7 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
 
     Returns:
         tuple: (new_account_id, new_account_private_key) - The ID and private key of the new account.
+
     """
     print("Creating new account...")
 
@@ -91,7 +91,7 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
     receipt = transaction.execute(client)
     new_account_id = receipt.account_id
 
-    print(f"✓ Account created successfully")
+    print("✓ Account created successfully")
     print(f"  Account ID: {new_account_id}")
     print(
         f"  Initial balance: {initial_balance.to_hbars()} hbars ({initial_balance.to_tinybars()} tinybars)\n")
@@ -100,8 +100,7 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
 
 
 def get_balance(client, account_id):
-    """
-    Query and retrieve the HBAR balance of an account.
+    """Query and retrieve the HBAR balance of an account.
 
     Args:
         client (Client): The Hiero SDK client.
@@ -109,6 +108,7 @@ def get_balance(client, account_id):
 
     Returns:
         Hbar: The account's current balance in HBAR.
+
     """
     print(f"Querying balance for account {account_id}...")
 
@@ -121,8 +121,7 @@ def get_balance(client, account_id):
 
 
 def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
-    """
-    Transfer HBAR from the operator account to a recipient account.
+    """Transfer HBAR from the operator account to a recipient account.
 
     Args:
         client (Client): The Hiero SDK client.
@@ -133,9 +132,11 @@ def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
 
     Returns:
         str: The status of the transfer transaction.
+
     """
     print(
-        f"Transferring {amount.to_tinybars()} tinybars ({amount.to_hbars()} hbars) from {operator_id} to {recipient_id}...")
+        f"Transferring {amount.to_tinybars()} tinybars "
+        f"({amount.to_hbars()} hbars) from {operator_id} to {recipient_id}...")
 
     # Create transfer transaction
     transfer_transaction = (
@@ -156,9 +157,7 @@ def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
 
 
 def main():
-    """
-    Main workflow: Set up client, create account, query balance, and transfer HBAR.
-    """
+    """Set up client, create account, query balance, and transfer HBAR."""
     try:
         #  Initialize client with operator credentials
         client, operator_id, operator_key = setup_client()

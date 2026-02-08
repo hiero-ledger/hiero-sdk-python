@@ -1,20 +1,19 @@
-"""
-Example file: Working with DER-encoded SubjectPublicKeyInfo (SPKI) public keys.
+"""Demonstrate working with DER-encoded SubjectPublicKeyInfo (SPKI) public keys.
 
+Run with:
 uv run examples/keys_public_der.py
 python examples/keys_public_der.py
-
 """
 
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519, utils
-from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519, utils
+
 from hiero_sdk_python.crypto.public_key import PublicKey, keccak256
 
+
 def example_load_ecdsa_der() -> None:
-    """
-    Demonstrate creating a secp256k1 ECDSA PublicKey from DER-encoded bytes.
-    """
+    """Demonstrate creating a secp256k1 ECDSA PublicKey from DER-encoded bytes."""
     # Generate a ECDSA key pair.
     private_key = ec.generate_private_key(ec.SECP256K1())
     public_key = private_key.public_key()
@@ -34,9 +33,7 @@ def example_load_ecdsa_der() -> None:
     print("DER-encoded hex:", der_hex)
 
 def example_load_ed25519_der() -> None:
-    """
-    Demonstrate creating an Ed25519 PublicKey from DER-encoded bytes.
-    """
+    """Demonstrate creating an Ed25519 PublicKey from DER-encoded bytes."""
     # Generate a Ed25519 key pair.
     private_key = ed25519.Ed25519PrivateKey.generate()
     public_key = private_key.public_key()
@@ -56,9 +53,7 @@ def example_load_ed25519_der() -> None:
     print("Ed25519 DER hex:", der_hex)
 
 def example_verify_der_signature() -> None:
-    """
-    Demonstrate verifying an ECDSA signature using a DER-encoded public key.
-    """
+    """Demonstrate verifying an ECDSA signature using a DER-encoded public key."""
     private_key = ec.generate_private_key(ec.SECP256K1())
     public_key = private_key.public_key()
 
@@ -80,6 +75,7 @@ def example_verify_der_signature() -> None:
         print("DER: ECDSA signature invalid.")
 
 def main():
+    """Run the DER public key examples."""
     example_load_ecdsa_der()
     print("-----")
     example_load_ed25519_der()

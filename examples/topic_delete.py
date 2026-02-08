@@ -1,26 +1,28 @@
-"""
+"""Run the topic delete example.
+
+Usage:
 uv run examples/topic_delete.py
 python examples/topic_delete.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
-    TopicDeleteTransaction,
+    Client,
     Network,
+    PrivateKey,
+    ResponseCode,
     TopicCreateTransaction,
-    ResponseCode
+    TopicDeleteTransaction,
 )
 
 load_dotenv()
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -35,7 +37,7 @@ def setup_client():
         sys.exit(1)
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -57,7 +59,7 @@ def create_topic(client, operator_key):
 
 
 def delete_topic():
-    """A example to create a topic and then delete it"""
+    """Run the topic delete example."""
     # Config Client
     client, _, operator_key = setup_client()
 

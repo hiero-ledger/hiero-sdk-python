@@ -1,5 +1,4 @@
-"""
-Example demonstrating contract creation on the network.
+"""Example demonstrating contract creation on the network.
 
 This module shows how to create a smart contract by:
 1. Setting up a client with operator credentials
@@ -34,7 +33,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -46,8 +45,8 @@ def setup_client():
 
 
 def contract_create_with_bytecode():
-    """
-    Demonstrates creating a contract on the network by:
+    """Demonstrate creating a contract on the network.
+
     1. Setting up client with operator account
     2. Creating a contract using the bytecode
     """

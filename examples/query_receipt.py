@@ -1,28 +1,30 @@
-"""
+"""Demonstrate transaction receipt query functionality.
+
+Run with:
 uv run examples/query_receipt.py
 python examples/query_receipt.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
-    Client,
+    AccountCreateTransaction,
     AccountId,
-    PrivateKey,
-    TransferTransaction,
+    Client,
     Hbar,
-    TransactionGetReceiptQuery,
+    Network,
+    PrivateKey,
     ResponseCode,
-    AccountCreateTransaction
+    TransactionGetReceiptQuery,
+    TransferTransaction,
 )
 
 load_dotenv()
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -38,7 +40,7 @@ def setup_client():
 
 
 def create_account(client, operator_key):
-    """Create a new recipient account"""
+    """Create a new recipient account."""
     print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
@@ -51,15 +53,13 @@ def create_account(client, operator_key):
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
         return recipient_id, recipient_key
-    
+
     except Exception as e:
         print(f"Error creating new account: {e}")
         sys.exit(1)
 
 def query_receipt():
-    """
-    A full example that include account creation, Hbar transfer, and receipt querying
-    """
+    """Create account, transfer HBAR, and query transaction receipt."""
     # Config Client
     client, operator_id, operator_key = setup_client()
 

@@ -1,27 +1,29 @@
-"""
-uv run examples/token_associate.py
-python examples/token_associate.py
+"""Demonstrate token association on Hedera testnet.
 
-A modular example demonstrating token association on Hedera testnet.
 This script shows the complete workflow: client setup, account creation,
 token creation, token association, and verification.
+
+Run with:
+uv run examples/token_associate.py
+python examples/token_associate.py
 """
 
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
+    AccountCreateTransaction,
+    AccountId,
     AccountInfoQuery,
     Client,
-    AccountId,
-    PrivateKey,
-    Network,
     Hbar,
-    AccountCreateTransaction,
-    TokenCreateTransaction,
-    TokenAssociateTransaction,
+    Network,
+    PrivateKey,
     ResponseCode,
+    TokenAssociateTransaction,
+    TokenCreateTransaction,
 )
 
 # Load environment variables from .env file
@@ -29,14 +31,14 @@ load_dotenv()
 
 
 def setup_client():
-    """
-    Initialize and set up the client with operator account.
+    """Initialize and set up the client with operator account.
 
     Returns:
         tuple: Configured client, operator account ID, and operator private key
 
     Raises:
         SystemExit: If operator credentials are invalid or missing
+
     """
     print("Connecting to Hedera testnet...")
     network = Network(network="testnet")
@@ -54,8 +56,7 @@ def setup_client():
 
 
 def create_test_account(client, operator_key):
-    """
-    Create a new test account for demonstration.
+    """Create a new test account for demonstration.
 
     Args:
         client: Configured Hedera client instance
@@ -66,6 +67,7 @@ def create_test_account(client, operator_key):
 
     Raises:
         SystemExit: If account creation fails
+
     """
     new_account_private_key = PrivateKey.generate_ed25519()
     new_account_public_key = new_account_private_key.public_key()
@@ -94,8 +96,7 @@ def create_test_account(client, operator_key):
         sys.exit(1)
 
 def create_fungible_token(client, operator_id, operator_key):
-    """
-    Create a fungible token for association with test account.
+    """Create a fungible token for association with test account.
 
     Args:
         client: Configured Hedera client instance
@@ -107,6 +108,7 @@ def create_fungible_token(client, operator_id, operator_key):
 
     Raises:
         SystemExit: If token creation fails
+
     """
     try:
         receipt = (
@@ -135,8 +137,7 @@ def create_fungible_token(client, operator_id, operator_key):
         sys.exit(1)
 
 def associate_token_with_account(client, token_id, account_id, account_key):
-    """
-    Associate the token with the test account.
+    """Associate the token with the test account.
 
     Args:
         client: Configured Hedera client instance
@@ -146,6 +147,7 @@ def associate_token_with_account(client, token_id, account_id, account_key):
 
     Raises:
         SystemExit: If token association fails
+
     """
     try:
         receipt = (
@@ -156,21 +158,20 @@ def associate_token_with_account(client, token_id, account_id, account_key):
             .sign(account_key)
             .execute(client)
         )
-    
+
         if receipt.status != ResponseCode.SUCCESS:
             print(
                 f"❌ Token association failed with status: {ResponseCode(receipt.status).name}"
             )
             sys.exit(1)
-        print(f"✅ Success! Token association complete.")
+        print("✅ Success! Token association complete.")
         print(f"   Account {account_id} can now hold and transfer token {token_id}")
     except Exception as e:
         print(f"❌ Error associating token with account: {e}")
         sys.exit(1)
 
 def verify_token_association(client, account_id, token_id):
-    """
-    Verify that a token is properly associated with an account.
+    """Verify that a token is properly associated with an account.
 
     Args:
         client: Configured Hedera client instance
@@ -179,6 +180,7 @@ def verify_token_association(client, account_id, token_id):
 
     Returns:
         bool: True if token is associated, False otherwise
+
     """
     try:
         # Query account information
@@ -188,19 +190,19 @@ def verify_token_association(client, account_id, token_id):
         if info.token_relationships:
             for relationship in info.token_relationships:
                 if str(relationship.token_id) == str(token_id):
-                    print(f"✅ Verification Successful!")
+                    print("✅ Verification Successful!")
                     print(
                         f"   Token {token_id} is associated with account {account_id}"
                     )
                     print(f"   Balance: {relationship.balance}")
                     return True
-        print(f"❌ Verification Failed!")
+        print("❌ Verification Failed!")
         print(f"   Token {token_id} is NOT associated with account {account_id}")
         if info.token_relationships:
             associated_tokens = [str(rel.token_id) for rel in info.token_relationships]
             print(f"   Associated tokens found: {associated_tokens}")
         else:
-            print(f"   No token associations found for this account")
+            print("   No token associations found for this account")
         return False
     except Exception as e:
         print(f"❌ Error verifying token association: {e}")
@@ -208,8 +210,7 @@ def verify_token_association(client, account_id, token_id):
 
 
 def main():
-    """
-    Demonstrate the complete token association workflow.
+    """Demonstrate the complete token association workflow.
 
     Steps:
     1. Set up client with operator credentials
@@ -238,7 +239,7 @@ def main():
     associate_token_with_account(client, token_id, account_id, account_private_key)
 
     # Step 5: Verify the token association
-    print(f"\nSTEP 5: Verifying token association...")
+    print("\nSTEP 5: Verifying token association...")
     is_associated = verify_token_association(client, account_id, token_id)
 
     # Summary

@@ -1,27 +1,22 @@
-"""
-uv run examples/query_topic_message.py 
-python examples/query_topic_message.py
+"""Demonstrate topic message query functionality.
 
+Run with:
+uv run examples/query_topic_message.py
+python examples/query_topic_message.py
 """
 import os
-import time
 import sys
+import time
 from datetime import datetime, timezone
+
 from dotenv import load_dotenv
 
-from hiero_sdk_python import (
-    Network,
-    Client,
-    AccountId,
-    PrivateKey,
-    TopicCreateTransaction,
-    TopicMessageQuery
-)
+from hiero_sdk_python import AccountId, Client, Network, PrivateKey, TopicCreateTransaction, TopicMessageQuery
 
 load_dotenv()
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -36,7 +31,7 @@ def setup_client():
         sys.exit(1)
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -57,12 +52,10 @@ def create_topic(client, operator_key):
         sys.exit(1)
 
 def query_topic_messages():
-    """
-    A full example that creates a topic and perform query topic messages.
-    """
+    """Create a topic and perform query topic messages."""
     # Config Client
     client, _, operator_key = setup_client()
-    
+
     # Create Topic
     topic_id = create_topic(client, operator_key)
 

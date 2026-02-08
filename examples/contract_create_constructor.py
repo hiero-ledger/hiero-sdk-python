@@ -1,5 +1,4 @@
-"""
-Example demonstrating contract creation with constructor parameters on the network.
+"""Example demonstrating contract creation with constructor parameters on the network.
 
 This module shows how to create a stateful smart contract by:
 1. Setting up a client with operator credentials
@@ -39,7 +38,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -51,7 +50,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the stateful contract bytecode"""
+    """Create a file containing the stateful contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -71,8 +70,8 @@ def create_contract_file(client):
 
 
 def contract_create_constructor():
-    """
-    Demonstrates creating a stateful contract with constructor parameters by:
+    """Demonstrate creating a stateful contract with constructor parameters.
+
     1. Setting up client with operator account
     2. Creating a file containing stateful contract bytecode
     3. Creating a contract using the file with constructor parameters

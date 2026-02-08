@@ -1,26 +1,28 @@
-"""
+"""Run the topic message submit example.
+
+Usage:
 uv run examples/topic_message_submit.py
 python examples/topic_message_submit.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
-    TopicMessageSubmitTransaction,
+    PrivateKey,
+    ResponseCode,
     TopicCreateTransaction,
-    ResponseCode
+    TopicMessageSubmitTransaction,
 )
 
 load_dotenv()
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     print("Connecting to Hedera testnet...")
     client = Client(Network(network='testnet'))
 
@@ -35,7 +37,7 @@ def setup_client():
         sys.exit(1)
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -57,7 +59,7 @@ def create_topic(client, operator_key):
 
 
 def submit_topic_message_transaction(client, topic_id, message, operator_key):
-    """Submit a message to the specified topic"""
+    """Submit a message to the specified topic."""
     print("\nSTEP 2: Submitting message...")
     transaction = (
         TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
@@ -77,11 +79,9 @@ def submit_topic_message_transaction(client, topic_id, message, operator_key):
 
 
 def main():
-    """
-    A example to create a topic and then submit a message to it.
-    """
+    """Run the topic message submit example."""
     message = "Hello, Hiero!"
-    
+
     # Config Client
     client, _, operator_key = setup_client()
 

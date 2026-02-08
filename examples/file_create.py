@@ -1,18 +1,19 @@
-"""
-Run with: 
+"""Demonstrate file creation on the network.
+
+Run with:
 uv run examples/file_create.py
 python examples/file_create.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
+    PrivateKey,
 )
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
@@ -20,27 +21,27 @@ from hiero_sdk_python.response_code import ResponseCode
 load_dotenv()
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network='testnet')
     client = Client(network)
 
     operator_id = AccountId.from_string(os.getenv('OPERATOR_ID'))
     operator_key = PrivateKey.from_string(os.getenv('OPERATOR_KEY'))
     client.set_operator(operator_id, operator_key)
-    
+
     return client
 
 def file_create():
-    """
-    Demonstrates creating a file on the network by:
+    """Demonstrate creating a file on the network.
+
     1. Setting up client with operator account
     2. Creating a file with a private key
-    3. Creating a new file
+    3. Creating a new file.
     """
     client = setup_client()
-    
+
     file_private_key = PrivateKey.generate_ed25519()
-    
+
     # Create file
     receipt = (
         FileCreateTransaction()
@@ -51,14 +52,14 @@ def file_create():
         .sign(file_private_key)
         .execute(client)
     )
-    
+
     # Check if the transaction was successful
     if receipt.status != ResponseCode.SUCCESS:
         print(f"File creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
-    
+
     file_id = receipt.file_id
     print(f"File created successfully with ID: {file_id}")
 
 if __name__ == "__main__":
-    file_create() 
+    file_create()

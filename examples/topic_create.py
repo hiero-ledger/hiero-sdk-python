@@ -1,23 +1,26 @@
-"""
+"""Run the topic create example.
+
+Usage:
 uv run examples/topic_create.py
 python examples/topic_create.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
+    Client,
+    Network,
     PrivateKey,
     TopicCreateTransaction,
-    Network,
 )
 
 load_dotenv()
 
 def create_topic():
+    """Create a new topic."""
     network = Network(network='testnet')
     client = Client(network)
 

@@ -1,5 +1,4 @@
-"""
-Example demonstrating contract execute on the network.
+"""Example demonstrating contract execute on the network.
 
 This module shows how to execute a contract on the network by:
 1. Setting up a client with operator credentials
@@ -43,7 +42,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -55,7 +54,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the stateful contract bytecode"""
+    """Create a file containing the stateful contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -75,7 +74,7 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id):
-    """Create a contract using the file with constructor parameters"""
+    """Create a contract using the file with constructor parameters."""
     initial_message = "This is the initial message!".encode("utf-8")
     constructor_params = ContractFunctionParameters().add_bytes32(initial_message)
     receipt = (
@@ -101,7 +100,7 @@ def create_contract(client, file_id):
 
 
 def get_contract_message(client, contract_id):
-    """Get the message from the contract"""
+    """Get the message from the contract."""
     # Query the contract function to verify that the message was set
     result = (
         ContractCallQuery()
@@ -117,8 +116,8 @@ def get_contract_message(client, contract_id):
 
 
 def execute_contract():
-    """
-    Demonstrates executing a contract by:
+    """Demonstrate executing a contract.
+
     1. Setting up client with operator account
     2. Creating a file containing stateful contract bytecode
     3. Creating a contract using the file with constructor parameters

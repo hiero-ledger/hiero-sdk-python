@@ -1,18 +1,20 @@
-"""
-Example file: Working with ECDSA (secp256k1) PrivateKey using the PrivateKey class
-*WARNING* ECDSA seeds should not be printed or exposed in a real‑world scenario
+"""Demonstrate ECDSA (secp256k1) PrivateKey operations.
 
+WARNING: ECDSA seeds should not be printed or exposed in a real-world scenario.
+
+Run with:
 uv run examples/keys_private_ecdsa.py
 python examples/keys_private_ecdsa.py
-
 """
 from cryptography.exceptions import InvalidSignature
+
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
+
 def example_generate_ecdsa() -> None:
-    """
-    Demonstrates generating a new ECDSA (secp256k1) PrivateKey,
-    signing data, and verifying with the associated PublicKey.
+    """Generate a new ECDSA (secp256k1) PrivateKey.
+
+    Signs data and verifies with the associated PublicKey.
     """
     print("=== ECDSA: Generate & Sign ===")
     # 1) Generate ECDSA
@@ -37,8 +39,8 @@ def example_generate_ecdsa() -> None:
     print()
 
 def example_load_ecdsa_raw() -> None:
-    """
-    Demonstrates creating an ECDSA (secp256k1) PrivateKey from raw 32 bytes (a scalar).
+    """Create an ECDSA (secp256k1) PrivateKey from raw 32 bytes.
+
     Then signs and verifies.
     """
     print("=== ECDSA: Load from Raw ===")
@@ -64,9 +66,7 @@ def example_load_ecdsa_raw() -> None:
     print()
 
 def example_load_ecdsa_from_hex() -> None:
-    """
-    Demonstrates creating an ECDSA (secp256k1) PrivateKey from a hex-encoded 32-byte scalar.
-    """
+    """Demonstrates creating an ECDSA (secp256k1) PrivateKey from a hex-encoded 32-byte scalar."""
     print("=== ECDSA: Load from Hex ===")
     # 32-byte scalar in hex. Must not be zero; example:
     ecdsa_hex = "abcdef0000000000000000000000000000000000000000000000000000000001"
@@ -89,8 +89,8 @@ def example_load_ecdsa_from_hex() -> None:
     print()
 
 def example_load_ecdsa_der() -> None:
-    """
-    Demonstrates loading an ECDSA (secp256k1) private key from DER bytes.
+    """Load an ECDSA (secp256k1) private key from DER bytes.
+
     TraditionalOpenSSL in hex form for demonstration.
     """
     print("=== ECDSA: Load from DER ===")
@@ -102,7 +102,7 @@ def example_load_ecdsa_der() -> None:
         "a00706052b8104000aa1440342000479be667ef9dcbbac55a06295ce870b07029bfc"
         "db2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
     )
-    
+
     # 1) Generate DER
     privkey = PrivateKey.from_string_der(der_hex)
     print("Loaded ECDSA PrivateKey from DER =", privkey)
@@ -121,6 +121,7 @@ def example_load_ecdsa_der() -> None:
     print()
 
 def main_ecdsa():
+    """Run the ECDSA private key examples."""
     example_generate_ecdsa()
     example_load_ecdsa_raw()
     example_load_ecdsa_from_hex()

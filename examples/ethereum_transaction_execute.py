@@ -1,5 +1,4 @@
-"""
-Example demonstrating Ethereum transaction execution on the network.
+"""Example demonstrating Ethereum transaction execution on the network.
 
 This module shows how to execute a contract using Ethereum transaction by:
 1. Setting up a client with operator credentials
@@ -45,7 +44,7 @@ load_dotenv()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network="testnet")
     client = Client(network)
 
@@ -57,13 +56,13 @@ def setup_client():
 
 
 def create_alias_account(client):
-    """
-    Create an alias account for the ECDSA key by transferring HBAR to it.
+    """Create an alias account for the ECDSA key by transferring HBAR to it.
 
     This creates a "hollow" account controlled by the generated ECDSA key.
 
     Returns:
         PrivateKey: The ECDSA private key controlling the alias account
+
     """
     # Generate a new ECDSA private key
     alias_private_key = PrivateKey.generate_ecdsa()
@@ -94,7 +93,7 @@ def create_alias_account(client):
 
 
 def create_contract_file(client):
-    """Create a file containing the stateful contract bytecode"""
+    """Create a file containing the stateful contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -114,7 +113,7 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id):
-    """Create a contract using the file with constructor parameters"""
+    """Create a contract using the file with constructor parameters."""
     initial_message = "Initial message from constructor".encode("utf-8")
     constructor_params = ContractFunctionParameters().add_bytes32(initial_message)
     receipt = (
@@ -140,7 +139,7 @@ def create_contract(client, file_id):
 
 
 def get_contract_message(client, contract_id):
-    """Get the message from the contract"""
+    """Get the message from the contract."""
     # Query the contract function to verify that the message was set
     result = (
         ContractCallQuery()
@@ -157,8 +156,7 @@ def get_contract_message(client, contract_id):
 
 
 def create_ethereum_transaction_data(contract_id, new_message, alias_private_key):
-    """
-    Create Ethereum transaction data for calling the contract's setMessage function.
+    """Create Ethereum transaction data for calling the contract's setMessage function.
 
     Args:
         contract_id: The contract ID to interact with
@@ -167,6 +165,7 @@ def create_ethereum_transaction_data(contract_id, new_message, alias_private_key
 
     Returns:
         bytes: The signed Ethereum transaction data
+
     """
     # Prepare function call data using ContractFunctionParameters
     call_data_bytes = (
@@ -215,15 +214,15 @@ def create_ethereum_transaction_data(contract_id, new_message, alias_private_key
 
 
 def execute_ethereum_transaction():
-    """
-    Demonstrates executing a contract using Ethereum transaction by:
+    """Demonstrate executing a contract using Ethereum transaction.
+
     1. Setting up client with operator account
     2. Creating an alias account for ECDSA key
     3. Creating a file containing contract bytecode
     4. Creating a contract using the file
     5. Getting the current message from the contract
     6. Executing the contract via Ethereum transaction to update the message
-    7. Verifying the contract state was updated
+    7. Verifying the contract state was updated.
     """
     client = setup_client()
 

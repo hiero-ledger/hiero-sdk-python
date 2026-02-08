@@ -1,18 +1,18 @@
-"""
-Example file: Working with an ECDSA (secp256k1) PublicKey using the PublicKey class.
+"""Demonstrate ECDSA (secp256k1) PublicKey operations.
+
+Run with:
 uv run examples/keys_public_ecdsa.py
 python examples/keys_public_ecdsa.py
-
 """
-from cryptography.hazmat.primitives.asymmetric import ec, utils
-from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec, utils
+
 from hiero_sdk_python.crypto.public_key import PublicKey, keccak256
 
+
 def example_load_compressed_ecdsa() -> None:
-    """
-    Demonstrate creating a PublicKey object from a compressed 33-byte ECDSA hex.
-    """
+    """Demonstrate creating a PublicKey object from a compressed 33-byte ECDSA hex."""
     # A mock 33-byte compressed hex:
     compressed_pubkey = bytes.fromhex(
         "0281c2e57fecef82ff4f546dece3684acb6e2fe12a97af066348de81ccaf05d0a4"
@@ -27,9 +27,7 @@ def example_load_compressed_ecdsa() -> None:
     print("Back to compressed hex:", compressed_hex)
 
 def example_load_uncompressed_ecdsa_from_hex() -> None:
-    """
-    Demonstrate creating an ECDSA (secp256k1) public key from an uncompressed 65-byte hex string.
-    """
+    """Demonstrate creating an ECDSA (secp256k1) public key from an uncompressed 65-byte hex string."""
     # Uncompressed secp256k1 public keys start with 0x04 and are 65 bytes total.
     uncompressed_hex = (
         "04"
@@ -46,9 +44,7 @@ def example_load_uncompressed_ecdsa_from_hex() -> None:
     print(f"Compressed ECDSA bytes (len={len(compressed_bytes)}): {compressed_bytes.hex()}")
 
 def example_verify_ecdsa_signature() -> None:
-    """
-    Demonstrate verifying a signature with an ECDSA secp256k1 public key.
-    """
+    """Demonstrate verifying a signature with an ECDSA secp256k1 public key."""
     # Generate a key pair to be able to sign
     private_key = ec.generate_private_key(ec.SECP256K1())
     public_key = private_key.public_key()
@@ -68,6 +64,7 @@ def example_verify_ecdsa_signature() -> None:
         print("ECDSA signature is INVALID!")
 
 def main():
+    """Run the ECDSA public key examples."""
     example_load_compressed_ecdsa()
     print("-----")
     example_load_uncompressed_ecdsa_from_hex()

@@ -1,21 +1,23 @@
-"""
+"""Demonstrate token dissociate functionality.
+
+Run with:
 uv run examples/token_dissociate.py
 python examples/token_dissociate.py
-
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
-    Hbar,
     AccountCreateTransaction,
-    TokenCreateTransaction,
+    AccountId,
+    Client,
+    Hbar,
+    Network,
+    PrivateKey,
     TokenAssociateTransaction,
+    TokenCreateTransaction,
     TokenDissociateTransaction,
 )
 
@@ -24,10 +26,7 @@ load_dotenv()
 
 
 def token_dissociate():
-    """
-    A full example that creates an account, two tokens, associates them,
-    and finally dissociates them.
-    """
+    """Create an account, two tokens, associate them, then dissociate them."""
     # 1. Setup Client
     # =================================================================
     print("Connecting to Hedera testnet...")
@@ -68,12 +67,24 @@ def token_dissociate():
     print("\nSTEP 2: Creating two new tokens...")
     try:
         # Create First Token
-        tx1 = TokenCreateTransaction().set_token_name("First Token").set_token_symbol("TKA").set_initial_supply(1).set_treasury_account_id(operator_id)
+        tx1 = (
+            TokenCreateTransaction()
+            .set_token_name("First Token")
+            .set_token_symbol("TKA")
+            .set_initial_supply(1)
+            .set_treasury_account_id(operator_id)
+        )
         receipt1 = tx1.freeze_with(client).sign(operator_key).execute(client)
         token_id_1 = receipt1.token_id
 
         # Create Second Token
-        tx2 = TokenCreateTransaction().set_token_name("Second Token").set_token_symbol("TKB").set_initial_supply(1).set_treasury_account_id(operator_id)
+        tx2 = (
+            TokenCreateTransaction()
+            .set_token_name("Second Token")
+            .set_token_symbol("TKB")
+            .set_initial_supply(1)
+            .set_treasury_account_id(operator_id)
+        )
         receipt2 = tx2.freeze_with(client).sign(operator_key).execute(client)
         token_id_2 = receipt2.token_id
 
@@ -113,7 +124,7 @@ def token_dissociate():
             .sign(recipient_key) # Recipient must sign to approve
             .execute(client)
         )
-        print(f"✅ Success! Token dissociation complete.")
+        print("✅ Success! Token dissociation complete.")
     except Exception as e:
         print(f"❌ Error dissociating tokens: {e}")
         sys.exit(1)

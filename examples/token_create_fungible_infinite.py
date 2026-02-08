@@ -1,11 +1,10 @@
-"""
-This example creates an infinite fungible token using Hiero SDK Python.
+"""Demonstrate creating an infinite fungible token using Hiero SDK Python.
 
-It:
-1. Loads environment variables.
-2. Sets up a client and operator.
-3. Generates admin and supply keys on the fly.
-4. Builds, signs, and executes a TokenCreateTransaction.
+Steps:
+1. Load environment variables.
+2. Set up a client and operator.
+3. Generate admin and supply keys on the fly.
+4. Build, sign, and execute a TokenCreateTransaction.
 
 Required environment variables:
 - OPERATOR_ID, OPERATOR_KEY
@@ -17,15 +16,17 @@ python examples/token_create_fungible_infinite.py
 
 import os
 import sys
+
 from dotenv import load_dotenv
+
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
-    TokenCreateTransaction,
+    Client,
     Network,
-    TokenType,
+    PrivateKey,
     SupplyType,
+    TokenCreateTransaction,
+    TokenType,
 )
 
 
@@ -96,7 +97,7 @@ def execute_transaction(transaction, client, operator_key, admin_key, supply_key
 
 
 def create_token_fungible_infinite():
-    """Main function to create an infinite fungible token."""
+    """Create an infinite fungible token."""
     client, operator_id, operator_key = setup_client()
     admin_key, supply_key = generate_keys()
     transaction = build_transaction(client, operator_id, admin_key, supply_key)
