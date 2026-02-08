@@ -73,10 +73,10 @@ async function computeSpamListUpdates(spamUsers, rehabilitatedUsers) {
 
 
 function generateSummary(additions, removals) {
-  const title = `chore: Update spam list (${additions.length} additions, ${removals.length} removals)`;
+  const title = `Update spam list (${additions.length} additions, ${removals.length} removals)`;
   
   let body = '## Automated Spam List Update\n\n';
-  body += 'This PR automatically updates the spam list based on recent PR activity.\n\n';
+  body += 'This issue details the updates to the spam list based on recent PR activity.\n\n';
   
   if (additions.length > 0) {
     body += `### ➕ Additions (${additions.length})\n\n`;
@@ -186,7 +186,7 @@ module.exports = async ({github, context, core}) => {
       }
     }
 
- // After processing all PRs, compute the final spam list updates
+    // After processing all PRs, compute the final spam list updates
     const { additions, removals } = await computeSpamListUpdates(
       spamUsers,
       rehabilitatedUsers
@@ -204,6 +204,18 @@ module.exports = async ({github, context, core}) => {
         console.log(`Title: ${title}`);
         console.log(`Body: ${body}`);
       } else {
+        // Check for existing open issue to avoid duplicates
+        const { data: existing } = await github.rest.issues.listForRepo({
+          owner,
+          repo,
+          labels: 'spam-list-update',
+          state: 'open',
+          per_page: 1
+        });
+        if (existing.length > 0) {
+          console.log(`Skipping issue creation: open issue #${existing[0].number} already exists`);
+          return;
+        }
         await github.rest.issues.create({
           owner,
           repo,
