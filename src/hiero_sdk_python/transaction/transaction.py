@@ -330,7 +330,7 @@ class Transaction(_Executable):
         return self
         
 
-    def execute(self, client, timeout: Optional[Union[int, float]] = None):
+    def execute(self, client, timeout: Optional[Union[int, float]] = None, wait_for_receipt: Optional[bool] = True):
         """
         Executes the transaction on the Hedera network using the provided client.
 
