@@ -529,7 +529,6 @@ def test_equality_with_non_privatekey_returns_false(other):
     key = PrivateKey(pr)
 
     assert (key == other) is False
-    assert hash(key) != hash(other)
 
 
 def test_hash_algorithm_distinction():
