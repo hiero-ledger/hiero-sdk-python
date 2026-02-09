@@ -330,7 +330,12 @@ class Transaction(_Executable):
         return self
         
 
-    def execute(self, client, timeout: Optional[Union[int, float]] = None, wait_for_receipt: Optional[bool] = True):
+    def execute(
+        self, 
+        client, 
+        timeout: Optional[Union[int, float]] = None, 
+        wait_for_receipt: Optional[bool] = True
+    ) -> Union[TransactionReceipt, TransactionResponse]:
         """
         Executes the transaction on the Hedera network using the provided client.
 
@@ -338,10 +343,13 @@ class Transaction(_Executable):
 
         Args:
             client (Client): The client instance to use for execution.
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            wait_for_receipt (Optional[bool]): Whether to wait for consensus and return the receipt.
+                If False, the method returns a TransactionResponse immediately after submission.
 
         Returns:
-            TransactionReceipt: The receipt of the transaction.
+            TransactionReceipt: If wait_for_receipt is True (default)
+            TransactionResponse: If wait_for_receipt is False
 
         Raises:
             PrecheckError: If the transaction/query fails with a non-retryable error
