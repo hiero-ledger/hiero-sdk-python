@@ -1,27 +1,28 @@
 """
+
+Example demonstrating token airdrop transaction.
+
 uv run examples/tokens/token_airdrop_transaction.py
 python examples/tokens/token_airdrop_transaction.py
 """
-
 import sys
 
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
-    Hbar,
     AccountCreateTransaction,
-    TokenCreateTransaction,
+    Client,
+    Hbar,
+    NftId,
+    PrivateKey,
+    ResponseCode,
     TokenAirdropTransaction,
     TokenAssociateTransaction,
+    TokenCreateTransaction,
     TokenMintTransaction,
-    TokenType,
-    ResponseCode,
-    NftId,
-    TransactionRecordQuery,
     TokenNftInfoQuery,
+    TokenType,
+    TransactionRecordQuery,
 )
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
-
 
 
 def setup_client():
@@ -32,7 +33,7 @@ def setup_client():
 
 
 def create_account(client, operator_key):
-    """Create a new recipient account"""
+    """Create a new recipient account."""
     print("\nCreating a new account...")
     recipient_key = PrivateKey.generate()
 
@@ -55,7 +56,7 @@ def create_account(client, operator_key):
 
 
 def create_token(client, operator_id, operator_key):
-    """Create a fungible token"""
+    """Create a fungible token."""
     print("\nCreating a token...")
     try:
         token_tx = (
@@ -78,7 +79,7 @@ def create_token(client, operator_id, operator_key):
 
 
 def create_nft(client, operator_key, operator_id):
-    """Create a NFT"""
+    """Create an NFT."""
     print("\nCreating a nft...")
     try:
         nft_tx = (
@@ -101,7 +102,7 @@ def create_nft(client, operator_key, operator_id):
 
 
 def mint_nft(client, operator_key, nft_id):
-    """Mint the NFT with metadata"""
+    """Mint the NFT with metadata."""
     print("\nMinting a nft...")
     try:
         mint_tx = TokenMintTransaction(token_id=nft_id, metadata=[b"NFT data"])
@@ -118,7 +119,7 @@ def mint_nft(client, operator_key, nft_id):
 
 
 def associate_tokens(client, recipient_id, recipient_key, tokens):
-    """Associate the token and nft with the recipient"""
+    """Associate the token and nft with the recipient."""
     print("\nAssociating tokens to recipient...")
     try:
         assocciate_tx = TokenAssociateTransaction(
@@ -150,7 +151,8 @@ def airdrop_tokens(
     client, operator_id, operator_key, recipient_id, token_id, nft_id, serial_number
 ):
     """
-    Build and execute a TokenAirdropTransaction that transfers one fungible token
+    Build and execute a TokenAirdropTransaction that transfers one fungible token.
+
     and the specified NFT serial. Returns the airdrop receipt.
     """
     print(f"\nStep 6: Airdropping tokens to recipient {recipient_id}:")
@@ -238,6 +240,7 @@ def verify_transaction_record(
 ):
     """
     Verify the airdrop transaction record for expected token and NFT transfers.
+
     Returns a dict summarizing results for further analysis.
     """
     result = {
@@ -290,9 +293,10 @@ def verify_post_airdrop_balances(
 ):
     """
     Verify post-airdrop balances and NFT ownership to confirm successful transfer.
+
     Uses AccountInfoQuery for robust token association and balance verification.
     Accepts a `balances_before` mapping with keys 'sender' and 'recipient'.
-    Returns (fully_verified_bool, details_dict)
+    Returns (fully_verified_bool, details_dict).
     """
     sender_balances_before = balances_before.get("sender", {})
     recipient_balances_before = balances_before.get("recipient", {})
@@ -482,7 +486,8 @@ def _print_final_summary(
 
 def token_airdrop():
     """
-    A full example that creates an account, a token, associate token, and
+    A full example that creates an account, a token, associate token, and.
+
     finally perform token airdrop.
     """
     # Setup Client

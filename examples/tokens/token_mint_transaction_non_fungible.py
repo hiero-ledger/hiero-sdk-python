@@ -2,23 +2,24 @@
 # python examples/tokens/token_mint_non_fungible.py
 
 """
-Create a Non-Fungible Token (NFT) Collection and Mint NFTs
+Create a Non-Fungible Token (NFT) Collection and Mint NFTs.
+
 uv run examples/token_mint_transaction_non_fungible.py
 python examples/token_mint_transaction_non_fungible.py
 """
-
 import os
 import sys
 
 from hiero_sdk_python import (
     Client,
     PrivateKey,
+    ResponseCode,
     TokenCreateTransaction,
+    TokenInfoQuery,
     TokenMintTransaction,
     TokenType,
-    TokenInfoQuery,
-    ResponseCode,
 )
+
 
 def setup_client():
     client = Client.from_env()
@@ -36,8 +37,7 @@ def generate_supply_key():
 
 
 def create_nft_collection():
-    """Create the NFT Collection (Token)"""
-
+    """Create the NFT Collection (Token)."""
     client = setup_client()
 
     supply_key = generate_supply_key()
@@ -69,12 +69,11 @@ def create_nft_collection():
 
 def token_mint_non_fungible(client, token_id, supply_key):
     """
-    Mint new NFTs with metadata
+    Mint new NFTs with metadata.
 
     The supply key authorizes minting new NFTs after the collection is created.
     Each NFT is assigned unique metadata, which can be used to identify or describe the token.
     """
-
     # Prepare the metadata for each NFT to be minted
     # Each entry in the list will become a unique NFT with its own metadata
     metadata_list = [
@@ -112,11 +111,12 @@ def token_mint_non_fungible(client, token_id, supply_key):
 
 def main():
     """
-    1. Create a new NFT collection (token) with a supply key
+    1. Create a new NFT collection (token) with a supply key.
+
     2. Prepare metadata for each NFT to be minted
     3. Confirm total supply before minting
     4. Mint the NFTs by submitting a TokenMintTransaction (signed by the supply key)
-    5. Confirm total supply after minting
+    5. Confirm total supply after minting.
     """
     client, token_id, supply_key = create_nft_collection()
     token_mint_non_fungible(client, token_id, supply_key)

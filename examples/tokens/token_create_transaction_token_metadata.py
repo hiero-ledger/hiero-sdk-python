@@ -1,4 +1,6 @@
 """
+
+
 This example creates a fungible token with on-ledger metadata using Hiero SDK Python.
 
 It demonstrates:
@@ -14,20 +16,17 @@ Usage:
 uv run examples/tokens/token_create_transaction_token_metadata.py
 python examples/tokens/token_create_transaction_token_metadata.py
 """
-
 import sys
+
 from hiero_sdk_python import (
     Client,
     PrivateKey,
-    TokenCreateTransaction,
-    TokenUpdateTransaction,
-    TokenType,
     SupplyType,
+    TokenCreateTransaction,
+    TokenType,
+    TokenUpdateTransaction,
 )
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
-
-
 
 
 def setup_client():
@@ -45,9 +44,7 @@ def generate_metadata_key():
 
 
 def create_token_without_metadata_key(client, operator_key, operator_id):
-    """
-    Creating token with on-ledger metadata WITHOUT metadata_key (max 100 bytes)
-    """
+    """Creating token with on-ledger metadata WITHOUT metadata_key (max 100 bytes)."""
     print("\nCreating token WITHOUT metadata_key")
 
     metadata = b"Initial on-ledger metadata"  # < 100 bytes
@@ -105,9 +102,7 @@ def try_update_metadata_without_key(client, operator_key, token_id):
 
 
 def create_token_with_metadata_key(client, metadata_key, operator_id, operator_key):
-    """
-    Create token with metadata_key and on-ledger metadata (max 100 bytes)
-    """
+    """Create token with metadata_key and on-ledger metadata (max 100 bytes)."""
     metadata = b"Example on-ledger token metadata"
 
     print("\nCreating token with metadata and metadata_key...")
@@ -146,9 +141,7 @@ def create_token_with_metadata_key(client, metadata_key, operator_id, operator_k
 
 
 def update_metadata_with_key(client, token_id, metadata_key, operator_key):
-    """
-    Update token metadata with metadata_key
-    """
+    """Update token metadata with metadata_key."""
     print(f"\nUpdating token {token_id} metadata WITH metadata_key...")
     updated_metadata = b"Updated metadata (with key)"
 
@@ -176,7 +169,8 @@ def update_metadata_with_key(client, token_id, metadata_key, operator_key):
 
 def demonstrate_metadata_length_validation(client, operator_key, operator_id):
     """
-    Demonstrate that metadata longer than 100 bytes trigger a ValueError
+    Demonstrate that metadata longer than 100 bytes trigger a ValueError.
+
     in the TokenCreateTransaction.set_metadata() validation.
     """
     print("\nDemonstrating metadata length validation (> 100 bytes)...")
@@ -194,7 +188,7 @@ def demonstrate_metadata_length_validation(client, operator_key, operator_id):
         transaction.sign(operator_key)
         receipt = transaction.execute(client)
         if receipt.status == ResponseCode.SUCCESS:
-            print(f"❌ Unexpected success for this operation!")
+            print("❌ Unexpected success for this operation!")
         else:
             print(
                 "Error: Expected ValueError for metadata > 100 bytes, but none was raised."
@@ -209,11 +203,11 @@ def demonstrate_metadata_length_validation(client, operator_key, operator_id):
 def create_token_with_metadata():
     """
     Main function to create and update fungible token with metadata with two scenarios:
+
     - create token WITHOUT metadata_key (expected to fail)
     - create token WITH metadat_key (expected to succed)
-    and validate metadata length
+    and validate metadata length.
     """
-
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

@@ -1,5 +1,7 @@
 """
-Query Balance Example
+
+
+Query Balance Example.
 
 This script demonstrates how to:
 1. Set up a client connection to the Hedera network
@@ -12,18 +14,17 @@ Run with:
   python examples/query/account_balance_query.py
 
 """
-
 import sys
 import time
 
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
     AccountCreateTransaction,
-    TransferTransaction,
+    Client,
     CryptoGetAccountBalanceQuery,
-    ResponseCode,
     Hbar,
+    PrivateKey,
+    ResponseCode,
+    TransferTransaction,
 )
 
 
@@ -77,7 +78,7 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
     receipt = transaction.execute(client)
     new_account_id = receipt.account_id
 
-    print(f"✓ Account created successfully")
+    print("✓ Account created successfully")
     print(f"  Account ID: {new_account_id}")
     print(
         f"  Initial balance: {initial_balance.to_hbars()} hbars ({initial_balance.to_tinybars()} tinybars)\n"
@@ -144,9 +145,7 @@ def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
 
 
 def main():
-    """
-    Main workflow: Set up client, create account, query balance, and transfer HBAR.
-    """
+    """Main workflow: Set up client, create account, query balance, and transfer HBAR."""
     try:
         #  Initialize client with operator credentials
         client, operator_id, operator_key = setup_client()

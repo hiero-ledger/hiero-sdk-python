@@ -1,10 +1,11 @@
-"""Example of transferring HBAR using the GIGABAR unit.
+"""
+
+Example of transferring HBAR using the GIGABAR unit.
 
 Usage:
     uv run examples/transaction/transfer_transaction_gigabar.py
     python examples/transaction/transfer_transaction_gigabar.py
 """
-
 import os
 import sys
 
@@ -118,7 +119,9 @@ def get_balance(client, account_id, when=""):
 
 
 def main():
-    """Run example demonstrating large-value transfers using GIGABAR units.
+    """
+
+    Run example demonstrating large-value transfers using GIGABAR units.
 
     Steps:
     1. Setup client.

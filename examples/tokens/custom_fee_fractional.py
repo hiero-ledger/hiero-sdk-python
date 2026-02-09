@@ -1,23 +1,25 @@
 """
+
+
 Run with:
+
 python examples/tokens/custom_fractional_fee.py
 uv run examples/tokens/custom_fractional_fee.py
 """
-
 import sys
 
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
+from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenParams,
 )
-from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
-from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.tokens.supply_type import SupplyType
 
 
 def setup_client():
@@ -74,16 +76,14 @@ def print_fractional_fees(token_info, fractional_fee):
     if not token_info.custom_fees:
         print("No custom fees found.")
         return
-    else:
-        print("\n--- Custom Fractional Fee ---")
-        print(fractional_fee)
+    print("\n--- Custom Fractional Fee ---")
+    print(fractional_fee)
 
 
 def query_and_validate_fractional_fee(client: Client, token_id):
     """Fetch token info from Hedera and print the custom fractional fees."""
     print("\nQuerying token info to validate fractional fee...")
-    token_info = TokenInfoQuery(token_id=token_id).execute(client)
-    return token_info
+    return TokenInfoQuery(token_id=token_id).execute(client)
 
 
 def main():

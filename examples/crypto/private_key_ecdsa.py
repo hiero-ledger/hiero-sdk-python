@@ -1,19 +1,23 @@
 """
-Example file: Working with ECDSA (secp256k1) PrivateKey using the PrivateKey class
-*WARNING* ECDSA seeds should not be printed or exposed in a real‑world scenario
+
+
+Example file: Working with ECDSA (secp256k1) PrivateKey using the PrivateKey class.
+
+*WARNING* ECDSA seeds should not be printed or exposed in a real-world scenario.
 
 uv run examples/crypto/private_key_ecdsa.py
 python examples/crypto/private_key_ecdsa.py
 
 """
-
 from cryptography.exceptions import InvalidSignature
+
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
 
 def example_generate_ecdsa() -> None:
     """
-    Demonstrates generating a new ECDSA (secp256k1) PrivateKey,
+    Demonstrates generating a new ECDSA (secp256k1) PrivateKey,.
+
     signing data, and verifying with the associated PublicKey.
     """
     print("=== ECDSA: Generate & Sign ===")
@@ -42,6 +46,7 @@ def example_generate_ecdsa() -> None:
 def example_load_ecdsa_raw() -> None:
     """
     Demonstrates creating an ECDSA (secp256k1) PrivateKey from raw 32 bytes (a scalar).
+
     Then signs and verifies.
     """
     print("=== ECDSA: Load from Raw ===")
@@ -68,9 +73,7 @@ def example_load_ecdsa_raw() -> None:
 
 
 def example_load_ecdsa_from_hex() -> None:
-    """
-    Demonstrates creating an ECDSA (secp256k1) PrivateKey from a hex-encoded 32-byte scalar.
-    """
+    """Demonstrates creating an ECDSA (secp256k1) PrivateKey from a hex-encoded 32-byte scalar."""
     print("=== ECDSA: Load from Hex ===")
     # 32-byte scalar in hex. Must not be zero; example:
     ecdsa_hex = "abcdef0000000000000000000000000000000000000000000000000000000001"
@@ -96,6 +99,7 @@ def example_load_ecdsa_from_hex() -> None:
 def example_load_ecdsa_der() -> None:
     """
     Demonstrates loading an ECDSA (secp256k1) private key from DER bytes.
+
     TraditionalOpenSSL in hex form for demonstration.
     """
     print("=== ECDSA: Load from DER ===")
