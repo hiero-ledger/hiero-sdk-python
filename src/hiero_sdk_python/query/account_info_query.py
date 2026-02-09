@@ -98,10 +98,10 @@ class AccountInfoQuery(Query):
         to return an AccountInfo object.
 
         This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
-        timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             AccountInfo: The account info from the network
