@@ -52,4 +52,4 @@ print(f"🎉 Created new token on the Hedera network with ID: {token_id}")
 ```
 
 ### Extra Support
-Read about Network and Client in more detail [here](docs/sdk_developers/training/network_and_client.md)
+Read about Network and Client in more detail [here](../network_and_client.md)
