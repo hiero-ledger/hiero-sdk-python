@@ -12,7 +12,7 @@ authors = [
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.10, <3.15"
+requires-python = ">=3.10, <4"
 dependencies = [
     "protobuf>=4.21.12,<7",
     "grpcio>=1.76.0,<2",
