@@ -37,6 +37,7 @@ uv sync --dev --extra eth
 ```
 
 #### Using pip
+
 ```bash
 pip install -e ".[eth]"
 ```
