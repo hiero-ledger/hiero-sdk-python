@@ -569,5 +569,5 @@ class PublicKey:
         return self.to_bytes_raw() == other.to_bytes_raw()
     
     def __hash__(self) -> int:
-        """Returns the hash value for the publick key."""
+        """Returns the hash value for the public key."""
         return hash((self.is_ed25519(), self.to_bytes_raw()))
