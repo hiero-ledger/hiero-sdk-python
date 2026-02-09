@@ -1,8 +1,9 @@
 import os
+import time
 from pytest import fixture
 from dotenv import load_dotenv
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional, TypeVar
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
@@ -11,13 +12,22 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_create_transaction import (
+    TokenCreateTransaction,
+    TokenKeys,
+    TokenParams,
+)
+from hiero_sdk_python.tokens.token_associate_transaction import (
+    TokenAssociateTransaction,
+)
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from hiero_sdk_python.hbar                    import Hbar
+from hiero_sdk_python.hbar import Hbar
+
+T = TypeVar("T")
 
 load_dotenv(override=True)
+
 
 @fixture
 def env():
@@ -26,28 +36,37 @@ def env():
     yield e
     e.close()
 
+
 @dataclass
 class Account:
-    id:    AccountId
-    key:   PrivateKey
+    id: AccountId
+    key: PrivateKey
+
 
 class IntegrationTestEnv:
 
     def __init__(self) -> None:
-        network = Network(os.getenv('NETWORK'))
+        network_name = os.getenv("NETWORK", "solo").lower()
+
+        if network_name == "mainnet":
+            raise ValueError("Running tests against mainnet is not allowed")
+
+        network = Network(network=network_name)
         self.client = Client(network)
         self.operator_id: Optional[AccountId] = None
         self.operator_key: Optional[PrivateKey] = None
-        operator_id = os.getenv('OPERATOR_ID')
-        operator_key = os.getenv('OPERATOR_KEY')
+        operator_id = os.getenv("OPERATOR_ID")
+        operator_key = os.getenv("OPERATOR_KEY")
         if operator_id and operator_key:
             self.operator_id = AccountId.from_string(operator_id)
             self.operator_key = PrivateKey.from_string(operator_key)
             self.client.set_operator(self.operator_id, self.operator_key)
+        else:
+            raise ValueError("OPERATOR_ID and OPERATOR_KEY must be set for integration tests")
 
         self.client.logger.set_level(LogLevel.ERROR)
         self.public_operator_key = self.operator_key.public_key()
-        
+
     def close(self):
         self.client.close()
 
@@ -56,8 +75,8 @@ class IntegrationTestEnv:
         key = PrivateKey.generate()
         tx = (
             AccountCreateTransaction()
-                .set_key_without_alias(key.public_key())
-                .set_initial_balance(Hbar(initial_hbar))
+            .set_key_without_alias(key.public_key())
+            .set_initial_balance(Hbar(initial_hbar))
         )
         receipt = tx.execute(self.client)
         if receipt.status != ResponseCode.SUCCESS:
@@ -66,18 +85,20 @@ class IntegrationTestEnv:
             )
         return Account(id=receipt.account_id, key=key)
 
-    def associate_and_transfer(self, receiver: AccountId, receiver_key: PrivateKey, token_id, amount: int):
+    def associate_and_transfer(
+        self, receiver: AccountId, receiver_key: PrivateKey, token_id, amount: int
+    ):
         """
         Associate the token with `receiver`, then transfer `amount` of the token
         from the operator to that receiver.
         """
         assoc_receipt = (
             TokenAssociateTransaction()
-                .set_account_id(receiver)
-                .add_token_id(token_id)
-                .freeze_with(self.client)
-                .sign(receiver_key)
-                .execute(self.client)
+            .set_account_id(receiver)
+            .add_token_id(token_id)
+            .freeze_with(self.client)
+            .sign(receiver_key)
+            .execute(self.client)
         )
         if assoc_receipt.status != ResponseCode.SUCCESS:
             raise AssertionError(
@@ -86,14 +107,15 @@ class IntegrationTestEnv:
 
         transfer_receipt = (
             TransferTransaction()
-                .add_token_transfer(token_id, self.operator_id, -amount)
-                .add_token_transfer(token_id, receiver, amount)
-                .execute(self.client) # auto-signs with operator’s key
+            .add_token_transfer(token_id, self.operator_id, -amount)
+            .add_token_transfer(token_id, receiver, amount)
+            .execute(self.client)  # auto-signs with operator’s key
         )
         if transfer_receipt.status != ResponseCode.SUCCESS:
             raise AssertionError(
                 f"Transfer failed: {ResponseCode(transfer_receipt.status).name}"
             )
+
 
 def create_fungible_token(env, opts=[]):
     """
@@ -106,35 +128,38 @@ def create_fungible_token(env, opts=[]):
              lambda tx: tx.set_treasury_account_id(custom_treasury_id).freeze_with(client)
     """
     token_params = TokenParams(
-            token_name="PTokenTest34",
-            token_symbol="PTT34",
-            decimals=2,
-            initial_supply=1000,
-            treasury_account_id=env.operator_id,
-            token_type=TokenType.FUNGIBLE_COMMON,
-            supply_type=SupplyType.FINITE,
-            max_supply=10000
-        )
-    
+        token_name="PTokenTest34",
+        token_symbol="PTT34",
+        decimals=2,
+        initial_supply=1000,
+        treasury_account_id=env.operator_id,
+        token_type=TokenType.FUNGIBLE_COMMON,
+        supply_type=SupplyType.FINITE,
+        max_supply=10000,
+    )
+
     token_keys = TokenKeys(
-            admin_key=env.operator_key,
-            supply_key=env.operator_key,
-            freeze_key=env.operator_key,
-            wipe_key=env.operator_key
-            # pause_key=  None  # implicitly “no pause key” use opts to add one
-        )
-        
+        admin_key=env.operator_key,
+        supply_key=env.operator_key,
+        freeze_key=env.operator_key,
+        wipe_key=env.operator_key,
+        # pause_key=  None  # implicitly “no pause key” use opts to add one
+    )
+
     token_transaction = TokenCreateTransaction(token_params, token_keys)
-    
+
     # Apply optional functions to the token creation transaction
     for opt in opts:
         opt(token_transaction)
-    
+
     token_receipt = token_transaction.execute(env.client)
-    
-    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
-    
+
+    assert (
+        token_receipt.status == ResponseCode.SUCCESS
+    ), f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
+
     return token_receipt.token_id
+
 
 def create_nft_token(env, opts=[]):
     """
@@ -154,15 +179,14 @@ def create_nft_token(env, opts=[]):
         treasury_account_id=env.operator_id,
         token_type=TokenType.NON_FUNGIBLE_UNIQUE,
         supply_type=SupplyType.FINITE,
-        max_supply=10000  
+        max_supply=10000,
     )
-    
+
     token_keys = TokenKeys(
         admin_key=env.operator_key,
         supply_key=env.operator_key,
-        freeze_key=env.operator_key
+        freeze_key=env.operator_key,
         # pause_key=  None  # implicitly “no pause key” use opts to add one
-
     )
 
     transaction = TokenCreateTransaction(token_params, token_keys)
@@ -172,7 +196,51 @@ def create_nft_token(env, opts=[]):
         opt(transaction)
 
     token_receipt = transaction.execute(env.client)
-    
-    assert token_receipt.status == ResponseCode.SUCCESS, f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
-    
+
+    assert (
+        token_receipt.status == ResponseCode.SUCCESS
+    ), f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
+
     return token_receipt.token_id
+
+
+def wait_for_mirror_node(
+    fn: Callable[[], T],
+    predicate: Callable[[T], bool],
+    timeout: float = 5,
+    interval: float = 1,
+) -> T:
+    """
+    Polls fn until predicate(result) returns True or timeout is reached
+
+    Args:
+        fn: Function that fetches data from mirror node.
+        predicate: Condition that determines success.
+        timeout: Max time to wait (seconds).
+        interval: Sleep interval between retries (seconds).
+
+    Returns:
+        T: The successful result.
+    """
+    deadline = time.monotonic() + timeout
+    last_response = None
+    last_exception = None
+
+    while time.monotonic() < deadline:
+        try:
+            last_response = fn()
+            if predicate(last_response):
+                return last_response
+        except Exception as e:
+            last_exception = e
+
+        time.sleep(interval)
+
+    if last_exception is not None:
+        raise TimeoutError(
+            "Timed out waiting for mirror node, Last call raised an exception"
+        ) from last_exception
+
+    raise TimeoutError(
+        f"Timed out waiting for mirror node. Last response: {last_response}"
+    )

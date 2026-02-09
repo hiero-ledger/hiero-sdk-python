@@ -3,7 +3,7 @@ Query to get information about a file on the network.
 """
 
 import traceback
-from typing import Optional
+from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -95,7 +95,7 @@ class FileInfoQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.file.getFileInfo)
 
-    def execute(self, client: Client) -> FileInfo:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> FileInfo:
         """
         Executes the file info query.
 
@@ -107,6 +107,7 @@ class FileInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             FileInfo: The file info from the network
@@ -117,7 +118,7 @@ class FileInfoQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return FileInfo._from_proto(response.fileGetInfo.fileInfo)
 

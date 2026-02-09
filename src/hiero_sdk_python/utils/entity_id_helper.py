@@ -2,7 +2,7 @@ import re
 import struct
 import requests
 
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
@@ -36,21 +36,22 @@ def parse_from_string(address: str) -> tuple[str, str, str, str | None]:
 
     return shard, realm, num, checksum
 
+
 def generate_checksum(ledger_id: bytes, address: str) -> str:
     """
     Compute the 5-character checksum for a Hiero entity ID string (HIP-15).
-    
+
     Args:
         ledger_id: The ledger identifier as raw bytes (e.g., b"\x00" for mainnet).
         address: A string of the form "shard.realm.num" (e.g., "0.0.123").
-    
+
     Returns:
         A 5-letter checksum string (e.g., "kfmza").
     """
     # Convert "0.0.123" into a digit list with '.' as 10
     d = []
     for ch in address:
-        if ch == '.':
+        if ch == ".":
             d.append(10)
         else:
             d.append(int(ch))
@@ -58,7 +59,7 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
     # Initialize running sums
     sd0 = 0  # sum of digits at even indices mod 11
     sd1 = 0  # sum of digits at odd indices mod 11
-    sd = 0   # weight sum of all position mod P3
+    sd = 0  # weight sum of all position mod P3
 
     for i in range(len(d)):
         sd = (sd * 31 + d[i]) % P3
@@ -81,12 +82,15 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
     letter = []
 
     for _ in range(5):
-        letter.append(chr(ord('a') + (cp % 26)))
+        letter.append(chr(ord("a") + (cp % 26)))
         cp //= 26
 
     return "".join(reversed(letter))
 
-def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client: "Client") -> None:
+
+def validate_checksum(
+    shard: int, realm: int, num: int, checksum: str | None, client: "Client"
+) -> None:
     """
     Validate a Hiero entity ID checksum against the current client's ledger.
 
@@ -114,13 +118,17 @@ def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, cl
     if expected_checksum != checksum:
         raise ValueError(f"Checksum mismatch for {address}")
 
+
 def format_to_string(shard: int, realm: int, num: int) -> str:
     """
     Convert an entity ID into its standard string representation.
     """
     return f"{shard}.{realm}.{num}"
 
-def format_to_string_with_checksum(shard: int, realm: int, num: int, client: "Client") -> str:
+
+def format_to_string_with_checksum(
+    shard: int, realm: int, num: int, client: "Client"
+) -> str:
     """
     Convert an entity ID into its string representation with checksum.
     """
@@ -131,7 +139,8 @@ def format_to_string_with_checksum(shard: int, realm: int, num: int, client: "Cl
     base_str = format_to_string(shard, realm, num)
     return f"{base_str}-{generate_checksum(ledger_id, format_to_string(shard, realm, num))}"
 
-def perform_query_to_mirror_node(url: str, timeout: float=10) -> Dict[str, Any]:
+
+def perform_query_to_mirror_node(url: str, timeout: float = 10) -> Dict[str, Any]:
     """Perform a GET request to the Hedera Mirror Node REST API."""
     if not isinstance(url, str) or not url:
         raise ValueError("url must be a non-empty string")
@@ -141,7 +150,7 @@ def perform_query_to_mirror_node(url: str, timeout: float=10) -> Dict[str, Any]:
         response.raise_for_status()
 
         return response.json()
-    
+
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         raise RuntimeError(f"Mirror node request failed for {url}: {e}") from e
 
@@ -150,7 +159,8 @@ def perform_query_to_mirror_node(url: str, timeout: float=10) -> Dict[str, Any]:
 
     except requests.RequestException as e:
         raise RuntimeError(f"Unexpected error while querying mirror node: {url}") from e
-    
+
+
 def to_solidity_address(shard: int, realm: int, num: int) -> str:
     """Convert entity ID components to a 20-byte Solidity-style address (long-zero format)."""
     # Check shard fits in 32-bit range

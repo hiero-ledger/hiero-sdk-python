@@ -81,6 +81,10 @@ def test_transaction_record_default_initialization():
     assert record.new_pending_airdrops == []
     assert record.prng_number is None
     assert record.prng_bytes is None
+    assert hasattr(record, 'duplicates'), "TransactionRecord should have duplicates attribute"
+    assert isinstance(record.duplicates, list)
+    assert len(record.duplicates) == 0
+    assert record.duplicates == []
 
 def test_from_proto(proto_transaction_record, transaction_id):
     """Test the from_proto method of the TransactionRecord class"""
@@ -203,7 +207,7 @@ def test_proto_conversion(transaction_record):
     assert converted.prng_number == transaction_record.prng_number
     assert converted.prng_bytes == b""
 
-def test_proto_conversion_with_transfers():
+def test_proto_conversion_with_transfers(transaction_id):
     """Test proto conversion preserves transfer data"""
     record = TransactionRecord()
     record.transfers = defaultdict(int)
@@ -211,12 +215,12 @@ def test_proto_conversion_with_transfers():
     record.transfers[AccountId(0, 0, 200)] = 1000
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert converted.transfers[AccountId(0, 0, 100)] == -1000
     assert converted.transfers[AccountId(0, 0, 200)] == 1000
 
-def test_proto_conversion_with_token_transfers():
+def test_proto_conversion_with_token_transfers(transaction_id):
     """Test proto conversion preserves token transfer data"""
     record = TransactionRecord()
     token_id = TokenId(0, 0, 300)
@@ -225,12 +229,12 @@ def test_proto_conversion_with_token_transfers():
     record.token_transfers[token_id][AccountId(0, 0, 200)] = 500
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert converted.token_transfers[token_id][AccountId(0, 0, 100)] == -500
     assert converted.token_transfers[token_id][AccountId(0, 0, 200)] == 500
 
-def test_proto_conversion_with_nft_transfers():
+def test_proto_conversion_with_nft_transfers(transaction_id):
     """Test proto conversion preserves NFT transfer data"""
     record = TransactionRecord()
     token_id = TokenId(0, 0, 300)
@@ -245,7 +249,7 @@ def test_proto_conversion_with_nft_transfers():
     record.nft_transfers[token_id].append(nft_transfer)
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert len(converted.nft_transfers[token_id]) == 1
     transfer = converted.nft_transfers[token_id][0]
@@ -254,7 +258,7 @@ def test_proto_conversion_with_nft_transfers():
     assert transfer.serial_number == 1
     assert transfer.is_approved == False
 
-def test_proto_conversion_with_new_pending_airdrops():
+def test_proto_conversion_with_new_pending_airdrops(transaction_id):
     """Test proto conversion preserves PendingAirdropsRecord"""
     sender = AccountId(0,0,100)
     receiver = AccountId(0,0,200)
@@ -266,7 +270,7 @@ def test_proto_conversion_with_new_pending_airdrops():
     record.new_pending_airdrops.append(PendingAirdropRecord(PendingAirdropId(sender, receiver, token_id),amount))
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert len(converted.new_pending_airdrops) == 1
     new_pending_airdrops = converted.new_pending_airdrops[0]
@@ -279,6 +283,10 @@ def test_repr_method(transaction_id):
     """Test the __repr__ method of TransactionRecord."""
     # Test with default values
     record_default = TransactionRecord()
+    repr_default = repr(record_default)
+    assert "duplicates_count=0" in repr_default
+    assert "transaction_id='None'" in repr_default
+    assert "receipt_status='None'" in repr_default
     expected_repr_default = (
         "TransactionRecord(transaction_id='None', "
         "transaction_hash=None, "
@@ -291,7 +299,8 @@ def test_repr_method(transaction_id):
         "new_pending_airdrops=[], "
         "call_result=None, "
         "prng_number=None, "
-        "prng_bytes=None)"
+        "prng_bytes=None, "
+        "duplicates_count=0)"
     )
     assert repr(record_default) == expected_repr_default
     
@@ -305,6 +314,10 @@ def test_repr_method(transaction_id):
     record_with_receipt = TransactionRecord(
         transaction_id=transaction_id, receipt=receipt
     )
+    repr_receipt = repr(record_with_receipt)
+    assert "duplicates_count=0" in repr_receipt
+    assert f"transaction_id='{transaction_id}'" in repr_receipt
+    assert "receipt_status='SUCCESS'" in repr_receipt
     expected_repr_with_receipt = (
         f"TransactionRecord(transaction_id='{transaction_id}', "
         f"transaction_hash=None, "
@@ -317,7 +330,8 @@ def test_repr_method(transaction_id):
         f"new_pending_airdrops={[]}, "
         f"call_result=None, "
         f"prng_number=None, "
-        f"prng_bytes=None)"
+        f"prng_bytes=None, "
+        f"duplicates_count=0)"
     )
     assert repr(record_with_receipt) == expected_repr_with_receipt
 
@@ -329,6 +343,13 @@ def test_repr_method(transaction_id):
         transaction_fee=100000,
         receipt=receipt,
     )
+    repr_full = repr(record_full)
+    assert "duplicates_count=0" in repr_full
+    assert f"transaction_id='{transaction_id}'" in repr_full
+    assert "transaction_hash=b'\\x01\\x02\\x03\\x04'" in repr_full
+    assert "transaction_memo='Test memo'" in repr_full
+    assert "transaction_fee=100000" in repr_full
+    assert "receipt_status='SUCCESS'" in repr_full
     expected_repr_full = (f"TransactionRecord(transaction_id='{transaction_id}', "
                          f"transaction_hash=b'\\x01\\x02\\x03\\x04', "
                          f"transaction_memo='Test memo', "
@@ -340,15 +361,18 @@ def test_repr_method(transaction_id):
                          f"new_pending_airdrops={[]}, "
                          f"call_result=None, "
                          f"prng_number=None, "
-                         f"prng_bytes=None)")
+                         f"prng_bytes=None, "
+                         f"duplicates_count=0)")
     assert repr(record_full) == expected_repr_full
-
     # Test with transfers
     record_with_transfers = TransactionRecord(
         transaction_id=transaction_id, receipt=receipt
     )
     record_with_transfers.transfers[AccountId(0, 0, 100)] = -1000
     record_with_transfers.transfers[AccountId(0, 0, 200)] = 1000
+    repr_transfers = repr(record_with_transfers)
+    assert "duplicates_count=0" in repr_transfers
+    assert "transfers={AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}" in repr_transfers
     
     expected_repr_with_transfers = (f"TransactionRecord(transaction_id='{transaction_id}', "
                                   f"transaction_hash=None, "
@@ -361,11 +385,11 @@ def test_repr_method(transaction_id):
                                   f"new_pending_airdrops={[]}, "
                                   f"call_result=None, "
                                   f"prng_number=None, "
-                                  f"prng_bytes=None)")
+                                  f"prng_bytes=None, "
+                                  f"duplicates_count=0)")
     assert repr(record_with_transfers) == expected_repr_with_transfers
 
-
-def test_proto_conversion_with_call_result():
+def test_proto_conversion_with_call_result(transaction_id):
     """Test the call_result property of TransactionRecord."""
     record = TransactionRecord()
 
@@ -380,7 +404,7 @@ def test_proto_conversion_with_call_result():
     )
 
     proto = record._to_proto()
-    converted = TransactionRecord._from_proto(proto, None)
+    converted = TransactionRecord._from_proto(proto, transaction_id)
 
     assert converted.call_result.contract_id == record.call_result.contract_id
     assert converted.call_result.contract_call_result == record.call_result.contract_call_result
@@ -389,3 +413,98 @@ def test_proto_conversion_with_call_result():
     assert converted.call_result.gas_used == record.call_result.gas_used
     assert converted.call_result.gas_available == record.call_result.gas_available
     assert converted.call_result.amount == record.call_result.amount
+
+def test_from_proto_accepts_and_stores_duplicates(transaction_id):
+    """Test that _from_proto correctly stores provided duplicate records."""
+    proto = transaction_record_pb2.TransactionRecord()
+    proto.memo = "Main"
+
+    dup1 = TransactionRecord(transaction_id=transaction_id, transaction_memo="dup1")
+    dup2 = TransactionRecord(transaction_id=transaction_id, transaction_memo="dup2")
+
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup1, dup2])
+
+    assert len(record.duplicates) == 2, "Should store exactly two duplicates"
+    assert record.duplicates[0].transaction_memo == "dup1", "First duplicate memo mismatch"
+    assert record.duplicates[1].transaction_memo == "dup2", "Second duplicate memo mismatch"
+
+
+def test_from_proto_without_duplicates_param_backward_compat(transaction_id):
+    """Test _from_proto works without duplicates parameter (backward compatibility)."""
+    proto = transaction_record_pb2.TransactionRecord()
+    proto.memo = "Test"
+
+    # Call without duplicates parameter - should not raise
+    record = TransactionRecord._from_proto(proto, transaction_id)
+
+    assert record.duplicates == [], "Duplicates should default to empty list when omitted"
+    assert record.transaction_memo == "Test"
+
+
+def test_from_proto_with_empty_duplicates_list(transaction_id):
+    """Test _from_proto with explicit empty duplicates list."""
+    proto = transaction_record_pb2.TransactionRecord()
+
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[])
+
+    assert len(record.duplicates) == 0, "Empty duplicates list should remain empty"
+
+
+def test_from_proto_with_duplicates_none(transaction_id):
+    """Test explicit duplicates=None uses the fallback to empty list."""
+    proto = transaction_record_pb2.TransactionRecord()
+    proto.memo = "With None duplicates"
+
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=None)
+
+    assert record.duplicates == [], "duplicates=None should resolve to empty list"
+    assert record.transaction_memo == "With None duplicates"
+
+
+def test_from_proto_with_duplicates_instances(transaction_id):
+    """Test that provided duplicate instances are stored by reference."""
+    proto = transaction_record_pb2.TransactionRecord()
+
+    dup = TransactionRecord(transaction_id=transaction_id, transaction_memo="example dup")
+
+    record = TransactionRecord._from_proto(proto, transaction_id, duplicates=[dup])
+
+    assert record.duplicates[0] is dup, "Should store the exact duplicate instance by reference"
+
+def test_to_proto_does_not_serialize_duplicates(transaction_id):
+    """Test that _to_proto excludes duplicates, preserving the query-only invariant."""
+    dup = TransactionRecord(transaction_id=transaction_id, transaction_memo="dup")
+    record = TransactionRecord(
+        transaction_id=transaction_id,
+        transaction_memo="primary",
+        duplicates=[dup],
+    )
+    assert len(record.duplicates) == 1, "Pre-condition: duplicates exist"
+
+    proto = record._to_proto()
+    round_tripped = TransactionRecord._from_proto(proto, transaction_id)
+
+    assert round_tripped.duplicates == [], "Duplicates must not survive round-trip through proto"
+    assert round_tripped.transaction_memo == "primary"
+
+def test_repr_includes_duplicates_count(transaction_id):
+    """Test that __repr__ shows correct duplicates_count."""
+    record = TransactionRecord(transaction_id=transaction_id)
+    assert "duplicates_count=0" in repr(record), "Default duplicates_count should be 0"
+
+    dup = TransactionRecord(transaction_id=transaction_id)
+    record.duplicates = [dup, dup]
+
+    assert "duplicates_count=2" in repr(record), "duplicates_count should reflect list length"
+    
+def test_from_proto_raises_when_no_transaction_id_available():
+    """Verify error is raised when neither transaction_id param nor proto.transactionID is present."""
+    proto = transaction_record_pb2.TransactionRecord()
+    
+    # Force-clear the field (works in protobuf 3 & 4)
+    proto.ClearField("transactionID")
+    
+    assert not proto.HasField("transactionID"), "Field should be absent after ClearField"
+
+    with pytest.raises(ValueError, match=r"transaction_id is required when proto\.transactionID is not present"):
+        TransactionRecord._from_proto(proto, transaction_id=None)
