@@ -1,8 +1,10 @@
+from typing import Optional, Any, Union, List
 from typing import Optional, Any, Union
 from hiero_sdk_python.hapi.services import (
     query_header_pb2,
     transaction_get_record_pb2,
     query_pb2,
+)
     transaction_record_pb2,
 )
 from hiero_sdk_python.client.client import Client
@@ -25,12 +27,20 @@ class TransactionRecordQuery(Query):
     def __init__(
         self,
         transaction_id: Optional[TransactionId] = None,
+        include_children: bool = False,
+    ):
         include_duplicates: bool = False,
     ) -> None:
         """
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
         super().__init__()
+        self.transaction_id: Optional[TransactionId] = transaction_id
+        self.include_children = include_children
+
+    def set_transaction_id(self, transaction_id: TransactionId):
+        """
+        Sets the transaction ID for the query.
         if not isinstance(include_duplicates, bool):
             raise TypeError(
                 f"include_duplicates must be a bool (True or False), got {type(include_duplicates).__name__}"
@@ -85,6 +95,10 @@ class TransactionRecordQuery(Query):
         self.transaction_id = transaction_id
         return self
 
+    def set_include_children(self, include_children):
+        self.include_children = include_children
+        return self
+
     def _make_request(self):
         """
         Constructs the protobuf request for the transaction record query.
@@ -100,6 +114,37 @@ class TransactionRecordQuery(Query):
             AttributeError: If the Query protobuf structure is invalid.
             Exception: If any other error occurs during request construction.
         """
+        try:
+            if not self.transaction_id:
+                raise ValueError(
+                    "Transaction ID must be set before making the request."
+                )
+
+            query_header = self._make_request_header()
+            transaction_get_record = (
+                transaction_get_record_pb2.TransactionGetRecordQuery()
+            )
+            transaction_get_record.header.CopyFrom(query_header)
+
+            transaction_get_record.transactionID.CopyFrom(
+                self.transaction_id._to_proto()
+            )
+            transaction_get_record.include_child_records = self.include_children
+            query = query_pb2.Query()
+            if not hasattr(query, "transactionGetRecord"):
+                raise AttributeError(
+                    "Query object has no attribute 'transactionGetRecord'"
+                )
+            query.transactionGetRecord.CopyFrom(transaction_get_record)
+
+            return query
+        except Exception as e:
+            print(f"Exception in _make_request: {e}")
+            raise
+
+    def _get_method(self, channel: _Channel) -> _Method:
+        """
+        Returns the appropriate gRPC method for the transaction receipt query.
         if self.transaction_id is None:
             raise ValueError("Transaction ID must be set before making the request.")
 
@@ -189,6 +234,7 @@ class TransactionRecordQuery(Query):
                 == query_header_pb2.ResponseType.COST_ANSWER
             ):
                 return _ExecutionState.FINISHED
+            pass
         elif (
             status in retryable_statuses
             or status == ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED
@@ -236,6 +282,24 @@ class TransactionRecordQuery(Query):
             return PrecheckError(status)
 
         receipt = response.transactionGetRecord.transactionRecord.receipt
+
+        return ReceiptStatusError(
+            status,
+            self.transaction_id,
+            TransactionReceipt._from_proto(receipt, self.transaction_id),
+        )
+
+    def _map_record_list(
+        self,
+        proto_records: List[transaction_get_record_pb2.TransactionGetRecordResponse],
+    ) -> List[TransactionRecord]:
+        records: List[TransactionRecord] = []
+        for record in proto_records:
+            records.append(TransactionRecord._from_proto(record, self.transaction_id))
+
+        return records
+
+    def execute(self, client):
         
         return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt, self.transaction_id))
         
@@ -261,6 +325,15 @@ class TransactionRecordQuery(Query):
             ReceiptStatusError: If the transaction record contains an error status
         """
         self._before_execute(client)
+        response = self._execute(client)
+        if not response.HasField("transactionGetRecord"):
+            raise AttributeError("Response does not contain 'transactionGetRecord'")
+        record_response = response.transactionGetRecord
+        children = self._map_record_list(record_response.child_transaction_records)
+        return TransactionRecord._from_proto(
+            response.transactionGetRecord.transactionRecord,
+            self.transaction_id,
+            children=children,
         response = self._execute(client, timeout)
         primary_proto = response.transactionGetRecord.transactionRecord
         if self.include_duplicates:
