@@ -3,7 +3,7 @@ Query to get records about a specific account on the network.
 """
 
 import traceback
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -96,7 +96,7 @@ class AccountRecordsQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.crypto.getAccountRecords)
 
-    def execute(self, client: Client) -> List[TransactionRecord]:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> List[TransactionRecord]:
         """
         Executes the account records query.
 
@@ -108,6 +108,7 @@ class AccountRecordsQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             List[TransactionRecord]: The account records from the network
@@ -118,7 +119,7 @@ class AccountRecordsQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         records = []
         for record in response.cryptoGetAccountRecords.records:

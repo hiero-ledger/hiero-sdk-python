@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Tests
+- Format `tests/unit/crypto_utils_test.py` with black for code style consistency (#1524)
 - Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
 
 - Added tests for ProtoBuf Training Example Implementation
@@ -33,6 +34,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added 'discussion' label check to inactivity bot to skip closing PRs and unassigning users when the label is present, allowing ongoing discussions to continue without interruption.(#1583)
+- Added new members to the mentor roster. (#1693)
+- Added support for the `includeDuplicates` flag in `TransactionRecordQuery` and `duplicates` field in `TransactionRecord` (#1635)
 - Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
 - Added `AssessedCustomFee` domain model to represent assessed custom fees. (`#1637`)
 - Add __repr__ method for ContractId class to improve debugging (#1714)
@@ -155,6 +158,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
+- Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)
 - Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
 - Added missing return type `src/hiero_sdk_python/utils/entity_id_helper.py`. (#1622)
 - Update `verify_freeze()` to treat only ACCOUNT_FROZEN_FOR_TOKEN as a successful freeze verification (#1515)
@@ -248,12 +252,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 - Add return type hint to `ContractId.__str__`. (#1654)
-
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
 - chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
 
 ### Fixed
+- Corrected broken documentation links in SDK developer training files.(#1707)
+- Fixed assignment limit check to only count issues (not PRs) towards the maximum 2 concurrent assignments, allowing users to be assigned to PRs without affecting their issue assignment capacity. (#1717)
+- Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
@@ -290,6 +296,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
 - Update `.github/scripts/bot-advanced-check.sh` to unassign unqualified users.
 - Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
+- Refactor spam list update logic and remove unused pull request creation step `.github/scripts/update-spam-list.js` `.github/workflows/cron-update-spam-list.yml`.
+- Ensure all Query sub-class `execute()` function to correctly propagate the optional `timeout` parameter.
 
 ### Removed
 
