@@ -212,6 +212,12 @@ EOF
         continue
       fi
 
+      # Check for 'discussion' label
+      HAS_DISCUSSION_LABEL=$(gh pr view "$PR_NUM" --repo "$REPO" --json labels --jq '.labels[].name | select(. == "discussion")' 2>/dev/null || echo "")
+      if [[ -n "$HAS_DISCUSSION_LABEL" ]]; then
+        echo "    [SKIP] PR #$PR_NUM has 'discussion' label, keeping open"
+        continue
+      fi
 
 
       COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate 2>/dev/null || echo "[]")

@@ -32,6 +32,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+- Added 'discussion' label check to inactivity bot to skip closing PRs and unassigning users when the label is present, allowing ongoing discussions to continue without interruption.(#1583)
 - Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
 - Added `AssessedCustomFee` domain model to represent assessed custom fees. (`#1637`)
 - Add __repr__ method for ContractId class to improve debugging (#1714)
