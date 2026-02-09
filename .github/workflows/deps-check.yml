@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - "pyproject.toml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -41,14 +42,30 @@ jobs:
       - name: Create virtual environment
         run: uv venv
 
-      - name: Install minimum dependencies
+      - name: Install minimum dependencies and tooling
         run: |
-          uv pip install --resolution=lowest-direct -e ".[dev,lint,eth]"
+          uv sync --all-extras --resolution=lowest-direct
 
       - name: Show resolved core dependency versions
         run: |
           echo "Resolved core dependency versions:"
-          uv pip list | grep -E '^(protobuf|grpcio|cryptography|requests|pycryptodome|eth-abi|python-dotenv)\s'
+          PATTERN='^(
+            protobuf|
+            grpcio|
+            cryptography|
+            requests|
+            pycryptodome|
+            eth-abi|
+            python-dotenv|
+            eth-keys|
+            rlp|
+            grpcio-tools|
+            ruff|
+            mypy|
+            typing-extensions|
+            pytest
+          )\s'
+          uv pip list | grep -E "$(echo "$PATTERN" | tr -d '\n ')"
 
       - name: Generate Proto Files
         run: |
