@@ -259,7 +259,7 @@ This installs:
 #### Using pip
 If you are using pip instead of uv:
 
-```
+```bash
 pip install -e ".[eth]"
 ```
 

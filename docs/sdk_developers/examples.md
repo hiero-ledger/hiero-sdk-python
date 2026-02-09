@@ -36,8 +36,8 @@ If you encounter import errors related to Ethereum libraries, install the ETH ex
 uv sync --dev --extra eth
 ```
 
-Using pip
-```
+#### Using pip
+```bash
 pip install -e ".[eth]"
 ```
 
