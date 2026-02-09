@@ -161,6 +161,13 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
     for PR_NUM in $PR_NUMBERS; do
       PR_STATE=$(gh pr view "$PR_NUM" --repo "$REPO" --json state --jq '.state' 2>/dev/null || true)
       if [ "$PR_STATE" = "OPEN" ]; then
+        # Check for 'discussion' label on the PR
+        HAS_DISCUSSION_LABEL=$(gh pr view "$PR_NUM" --repo "$REPO" --json labels --jq '.labels[].name | select(. == "discussion")' 2>/dev/null || echo "")
+        if [ -n "$HAS_DISCUSSION_LABEL" ]; then
+          echo "[SKIP] PR #$PR_NUM has 'discussion' label → skip reminder."
+          OPEN_PR_FOUND="$PR_NUM"
+          break
+        fi
         OPEN_PR_FOUND="$PR_NUM"
         break
       fi
