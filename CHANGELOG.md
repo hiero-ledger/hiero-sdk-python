@@ -6,9 +6,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-
-
 ### Tests
+- Format `tests/unit/crypto_utils_test.py` with black for code style consistency (#1524)
+- Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
+
+- Added tests for ProtoBuf Training Example Implementation
+- Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)
+- format black `tests/unit/hbar*.py`.(#1538)
+- Formatted `tests/unit/conftest.py` with black for code style consistency. (#1522)
 - format `black tests/unit/nft_id_test.py` with Black.(#1544)
 - Format `tests/unit/executable_test.py` with Black.(#1530)
 - Format `tests/unit/hedera_trust_manager_test.py` with Black for consistent code style (#1539)
@@ -24,11 +29,20 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format tests/unit/network_tls_test.py with black for code style consistency (#1543)
 - Formatted `ethereum_transaction_test.py` using Black.
 - Formatted client_test.py using Black.
+- Format tests/unit/query*.py using black (#1547)
+- Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
 - Added support for include_children to the TransactionRecordQuery class
+- Added new members to the mentor roster. (#1693)
+- Added support for the `includeDuplicates` flag in `TransactionRecordQuery` and `duplicates` field in `TransactionRecord` (#1635)
+- Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
+- Added `AssessedCustomFee` domain model to represent assessed custom fees. (`#1637`)
+- Add __repr__ method for ContractId class to improve debugging (#1714)
+- Added Protobuf Training guide to enhance developer understanding of proto serialization
+  and deserialization (#1645)
+- Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
 - Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
-
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
 - Added a beginner assignment guard that requires completion of a Good First Issue. (#1484)
 - Added `/unassign` command allowing contributors to remove themselves from assigned issues.(#1472)
@@ -73,6 +87,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `.github/workflows/bot-pr-auto-draft-on-changes.yml` to automatically convert PRs to draft and notify authors when reviewers request changes.
 - Add beginner issue template
 - Add relevant examples to the beginner issue template
+- Add Github CODEOWNERS
 - Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
 - Phase 2 of the inactivity-unassign bot: Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added `__str__()` to CustomFixedFee and updated examples and tests accordingly.
@@ -132,8 +147,25 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
+- Added MirrorNode based population for `ContractId`, including parsing and serialization support.
+- Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
+- Added `grpc_deadline` support for transaction and query execution.
+- Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
+
+### Documentation
+- Added comprehensive docstring to `compress_with_cryptography` function (#1626)
+- Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+- Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
+- Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)
+- Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
+- Added missing return type `src/hiero_sdk_python/utils/entity_id_helper.py`. (#1622)
+- Update `verify_freeze()` to treat only ACCOUNT_FROZEN_FOR_TOKEN as a successful freeze verification (#1515)
+- Updated team.md with new triage, committers and maintainer (#1692)
+- Removed outdated "Common Issues" section from CONTRIBUTING.md that referenced non-existent docs/common_issues.md (`#1665`)
+- Hide the commit verification bot marker in pull request comments.
+- Added missing type hints to sign method in Transaction class (#1630)
 - Refactored `examples/consensus/topic_create_transaction.py` to use `Client.from_env()` (#1611)
 - Updated GitHub Actions setup-node action to v6.2.0.
 - chore: format tests/unit/mock_server.py with black (#1542)
@@ -220,8 +252,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
+- Add return type hint to `ContractId.__str__`. (#1654)
+- chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
+- chore: update merge conflict bot message with web editor tips (#1592)
+- chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
 
 ### Fixed
+- Corrected broken documentation links in SDK developer training files.(#1707)
+- Fixed assignment limit check to only count issues (not PRs) towards the maximum 2 concurrent assignments, allowing users to be assigned to PRs without affecting their issue assignment capacity. (#1717)
+- Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
@@ -257,6 +296,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Updated `.github/scripts/bot-community-calls.sh` to skip posting reminders on issues created by bot accounts. (#1383)
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
 - Update `.github/scripts/bot-advanced-check.sh` to unassign unqualified users.
+- Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
+- Refactor spam list update logic and remove unused pull request creation step `.github/scripts/update-spam-list.js` `.github/workflows/cron-update-spam-list.yml`.
+- Ensure all Query sub-class `execute()` function to correctly propagate the optional `timeout` parameter.
 
 ### Removed
 
@@ -384,7 +426,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
-
 - chore: renamed examples to match src where possible
 - Moved examples/ to be inside subfiles to match src structure
 - changed example script workflow to run on new subdirectory structure
@@ -827,3 +868,6 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
+
+
+# [0.1.0] - 2025-02-19

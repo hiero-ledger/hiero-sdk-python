@@ -12,12 +12,15 @@ from hiero_sdk_python.hapi.services import (
     transaction_get_receipt_pb2,
     transaction_receipt_pb2,
 )
-from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
+from hiero_sdk_python.query.transaction_get_receipt_query import (
+    TransactionGetReceiptQuery,
+)
 from hiero_sdk_python.response_code import ResponseCode
 
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
+
 
 # This test uses fixture transaction_id as parameter
 def test_transaction_get_receipt_query(transaction_id):
@@ -219,9 +222,7 @@ def test_transaction_get_receipt_query_children_empty_when_not_requested(
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery().set_transaction_id(transaction_id)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id)
 
         result = query.execute(client)
 
@@ -229,12 +230,18 @@ def test_transaction_get_receipt_query_children_empty_when_not_requested(
         assert result.children == []
 
 
-def test_transaction_get_receipt_query_include_children_with_no_children(transaction_id):
-    """ Testing that nothing explode if no children ar passed"""
+def test_transaction_get_receipt_query_include_children_with_no_children(
+    transaction_id,
+):
+    """Testing that nothing explode if no children ar passed"""
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
-            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            ),
             # no child_transaction_receipts
         )
     )
@@ -293,7 +300,10 @@ def test_transaction_get_receipt_query_returns_duplicate_receipts_when_requested
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 2
         for idx, duplicate in enumerate(result.duplicates):
-            assert duplicate._to_proto() == response.transactionGetReceipt.duplicateTransactionReceipts[idx]
+            assert (
+                duplicate._to_proto()
+                == response.transactionGetReceipt.duplicateTransactionReceipts[idx]
+            )
 
 
 def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_requested(
@@ -358,10 +368,7 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_not
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id)
 
         result = query.execute(client)
 

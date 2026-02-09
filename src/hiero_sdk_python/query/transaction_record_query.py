@@ -1,9 +1,13 @@
 from typing import Optional, Any, Union, List
+from typing import Optional, Any, Union
 from hiero_sdk_python.hapi.services import (
     query_header_pb2,
     transaction_get_record_pb2,
     query_pb2,
 )
+    transaction_record_pb2,
+)
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -25,6 +29,8 @@ class TransactionRecordQuery(Query):
         transaction_id: Optional[TransactionId] = None,
         include_children: bool = False,
     ):
+        include_duplicates: bool = False,
+    ) -> None:
         """
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
@@ -35,12 +41,57 @@ class TransactionRecordQuery(Query):
     def set_transaction_id(self, transaction_id: TransactionId):
         """
         Sets the transaction ID for the query.
+        if not isinstance(include_duplicates, bool):
+            raise TypeError(
+                f"include_duplicates must be a bool (True or False), got {type(include_duplicates).__name__}"
+            )
+        
+        if transaction_id is not None and not isinstance(transaction_id, TransactionId):
+            raise TypeError(
+                f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
+            )
+
+        self.transaction_id: Optional[TransactionId] = transaction_id
+        self.include_duplicates: bool = bool(include_duplicates)
+
+    def set_include_duplicates(
+        self, include_duplicates: bool
+    ) -> "TransactionRecordQuery":
+        """
+        Sets whether to include duplicate transaction records in the query results.
 
         Args:
-            transaction_id (TransactionId): The ID of the transaction to query.
+            include_duplicates: Whether to include duplicate transaction records.
+
         Returns:
-            TransactionRecordQuery: This query instance.
+            TransactionRecordQuery: The current instance for method chaining.
         """
+        if not isinstance(include_duplicates, bool):
+            raise TypeError(f"include_duplicates must be a boolean, got {type(include_duplicates).__name__}")
+        self.include_duplicates = include_duplicates
+        return self
+    
+    def set_transaction_id(
+        self,
+        transaction_id: Optional[TransactionId],
+    ) -> "TransactionRecordQuery":
+        """
+        Sets the ID of the transaction whose record is to be queried.
+
+        This is a required parameter before executing the query.
+
+        Args:
+            transaction_id: The transaction ID to query, or None to unset.
+
+        Returns:
+            TransactionRecordQuery: This query instance for chaining.
+        """
+        
+        if transaction_id is not None and not isinstance(transaction_id, TransactionId):
+            raise TypeError(
+                f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
+            )
+
         self.transaction_id = transaction_id
         return self
 
@@ -94,9 +145,54 @@ class TransactionRecordQuery(Query):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the transaction receipt query.
+        if self.transaction_id is None:
+            raise ValueError("Transaction ID must be set before making the request.")
+
+        query_header = self._make_request_header()
+        transaction_get_record = transaction_get_record_pb2.TransactionGetRecordQuery()
+        transaction_get_record.header.CopyFrom(query_header)
+        transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
+        transaction_get_record.includeDuplicates = self.include_duplicates
+
+        query = query_pb2.Query()
+        query.transactionGetRecord.CopyFrom(transaction_get_record)
+
+        return query
+
+    def _map_record_list(
+        self, proto_records: list[transaction_record_pb2.TransactionRecord]
+    ) -> list[TransactionRecord]:
+        """
+        Converts a list of protobuf TransactionRecord messages into SDK TransactionRecord objects.
+
+        Each protobuf record returned by the network is transformed into a
+        `TransactionRecord` instance. The original transaction ID of this query is
+        attached to every mapped record for context, since duplicate and child
+        records may not always include the full ID information in a convenient form.
+
+        Args:
+            proto_records: A list of protobuf TransactionRecord messages returned
+                from the Hiero/Hedera network.
+
+        Returns:
+            list[TransactionRecord]: A list of SDK TransactionRecord objects
+                corresponding to the provided protobuf records.
+        """
+        records: list[TransactionRecord] = []
+        for proto_record in proto_records:
+            # We pass the same transaction_id as the main record
+            record = TransactionRecord._from_proto(
+                proto_record, transaction_id=self.transaction_id
+            )
+            records.append(record)
+        return records
+
+    def _get_method(self, channel: _Channel) -> _Method:
+        """
+        Returns the appropriate gRPC method for the transaction record query.
 
         Implements the abstract method from Query to provide the specific
-        gRPC method for getting transaction receipts.
+        gRPC method for getting transaction records.
 
         Args:
             channel (_Channel): The channel containing service stubs
@@ -204,6 +300,10 @@ class TransactionRecordQuery(Query):
         return records
 
     def execute(self, client):
+        
+        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt, self.transaction_id))
+        
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the transaction record query.
 
@@ -214,6 +314,7 @@ class TransactionRecordQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionRecord: The transaction record from the network
@@ -233,6 +334,16 @@ class TransactionRecordQuery(Query):
             response.transactionGetRecord.transactionRecord,
             self.transaction_id,
             children=children,
+        response = self._execute(client, timeout)
+        primary_proto = response.transactionGetRecord.transactionRecord
+        if self.include_duplicates:
+            duplicates = self._map_record_list(
+                response.transactionGetRecord.duplicateTransactionRecords
+            )
+        else:
+            duplicates = []
+        return TransactionRecord._from_proto(
+            primary_proto, transaction_id=self.transaction_id, duplicates=duplicates
         )
 
     def _get_query_response(self, response: Any):

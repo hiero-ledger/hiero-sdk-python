@@ -1,5 +1,5 @@
 import hashlib
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from typing import TYPE_CHECKING
 
@@ -18,6 +18,7 @@ from hiero_sdk_python.transaction.transaction_response import TransactionRespons
 from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 if TYPE_CHECKING:
+    from hiero_sdk_python.crypto.private_key import PrivateKey
     from hiero_sdk_python.schedule.schedule_create_transaction import (
         ScheduleCreateTransaction,
     )
@@ -137,6 +138,7 @@ class Transaction(_Executable):
             ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
             ResponseCode.PLATFORM_NOT_ACTIVE,
             ResponseCode.BUSY,
+            ResponseCode.INVALID_NODE_ACCOUNT
         }
 
         if status in retryable_statuses:
@@ -165,7 +167,7 @@ class Transaction(_Executable):
         
         return PrecheckError(error_code, tx_id)
 
-    def sign(self, private_key):
+    def sign(self, private_key: "PrivateKey") -> "Transaction":
         """
         Signs the transaction using the provided private key.
 
@@ -327,7 +329,7 @@ class Transaction(_Executable):
         return self
         
 
-    def execute(self, client):
+    def execute(self, client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the transaction on the Hedera network using the provided client.
 
@@ -335,6 +337,7 @@ class Transaction(_Executable):
 
         Args:
             client (Client): The client instance to use for execution.
+            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionReceipt: The receipt of the transaction.
@@ -358,7 +361,7 @@ class Transaction(_Executable):
             self.sign(client.operator_private_key)
 
         # Call the _execute function from executable.py to handle the actual execution
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         response.validate_status = True
         response.transaction = self
@@ -548,6 +551,22 @@ class Transaction(_Executable):
         self.memo = memo
         return self
 
+    def set_transaction_valid_duration(self, duration: int) -> "Transaction":
+        """
+        Sets the valid duration for the transaction.
+
+        Args:
+            duration (int): The duration in seconds.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+        """
+        self._require_not_frozen()
+        if duration <= 0:
+            raise ValueError("duration must be greater than 0")
+        self.transaction_valid_duration = duration
+        return self
+
     def set_transaction_id(self, transaction_id: TransactionId):
         """
         Sets the transaction ID for the transaction.
@@ -565,7 +584,7 @@ class Transaction(_Executable):
         self.transaction_id = transaction_id
         return self
 
-    def to_bytes(self):
+    def to_bytes(self) -> bytes:
         """
         Serializes the frozen transaction into its protobuf-encoded byte representation.
 
@@ -595,7 +614,7 @@ class Transaction(_Executable):
         ```
 
         Returns:
-            bytes: The protobuf-encoded transaction bytes.
+            bytes: The serialized transaction as bytes.
 
         Raises:
             Exception: If the transaction has not been frozen yet.

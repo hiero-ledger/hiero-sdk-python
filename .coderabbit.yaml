@@ -160,38 +160,38 @@ reviews:
     - Deterministic and user-safe
 
   # QUERY REVIEW INSTRUCTIONS
-  query_review_instructions: &query_review_instructions | 
+  query_review_instructions: &query_review_instructions |
     You are acting as a senior maintainer reviewing the Query base class
     and its subclasses for the hiero-sdk-python project.
-    
+
     NOTE:
     - Review focus levels indicate areas that are important to check carefully.
     - They do NOT imply severity or urgency.
     - Only recommend fixes when there is a clear behavioral regression.
-    
+
     Scope is STRICTLY LIMITED to:
     - Changes to the base `Query` class
     - Changes to existing `Query` subclasses
     - Newly added `Query` subclasses
-    
+
     ----------------------------------------------------------
     REVIEW FOCUS 1 — QUERY SEMANTICS & PAYMENT BEHAVIOR
     (CONTRACTUAL / HIGH SENSITIVITY)
     ----------------------------------------------------------
     Queries do not reach consensus and use `QueryHeader` for payment and responseType.
-    
+
     The following behaviors are contractual and must remain unchanged:
     - `_is_payment_required()` semantics
     - FREE vs PAID query classification
     - COST_ANSWER vs ANSWER_ONLY behavior
     - Whether a payment transaction is attached
-    
+
     Good to check and verify that changes do NOT:
     - Alter FREE → PAID or PAID → FREE behavior
     - Attach payment to COST_ANSWER queries
     - Bypass `get_cost(client)` for paid queries
     - Hardcode fees or override payment logic
-    
+
     ----------------------------------------------------------
     REVIEW FOCUS 2 — EXECUTION LIFECYCLE & BASE CLASS INTEGRITY
     ----------------------------------------------------------
@@ -199,15 +199,15 @@ reviews:
     - Use the base `Query` execution flow
     - Delegate retries, backoff, and node selection to `_Executable`
     - Call `_before_execute(client)` before `_execute(client)`
-    
+
     Subclasses MUST NOT:
     - Override retry logic
     - Implement custom node selection
     - Manage gRPC deadlines manually
     - Bypass `_Executable` state handling
-    
+
     Flag deviations for review; recommend fixes only if behavior changes.
-    
+
     ----------------------------------------------------------
     REVIEW FOCUS 3 — REQUEST CONSTRUCTION CONTRACT
     ----------------------------------------------------------
@@ -221,7 +221,7 @@ reviews:
     - Set `responseType` directly
     - Inject payment logic
     - Rebuild headers manually
-    
+
     ----------------------------------------------------------
     REVIEW FOCUS 4 — RESPONSE EXTRACTION & DOMAIN MAPPING
     ----------------------------------------------------------
@@ -229,12 +229,12 @@ reviews:
     - Return the exact protobuf response field
     - Perform NO data transformation
     - Match the expected protobuf response type
-    
+
     `execute()` MUST NOT:
     - Implement retries or error handling
     - Modify payment or execution behavior
     - Catch and suppress execution errors
-    
+
     ----------------------------------------------------------
     REVIEW FOCUS 5 — NEW SUBCLASS VALIDATION
     ----------------------------------------------------------
@@ -244,9 +244,9 @@ reviews:
     - Confirm payment semantics match the Hedera API
     - Validate protobuf service and method correctness
     - Ensure naming matches existing query patterns
-    
+
     Missing or incorrect semantics should be flagged clearly.
-    
+
     ----------------------------------------------------------
     REVIEW FOCUS 6 — REGRESSION & BEHAVIOR CHANGE DETECTION
     ----------------------------------------------------------
@@ -257,10 +257,10 @@ reviews:
     - Alters `_get_method()` behavior
     - Introduces side effects (logging, prints, stack traces)
     - Changes error propagation behavior
-    
+
     Small changes should be flagged for verification
     if they could affect execution flow or payment safety.
-    
+
     ----------------------------------------------------------
     REVIEW FOCUS 7 — EXPLICIT NON-GOALS
     ----------------------------------------------------------
@@ -268,7 +268,7 @@ reviews:
     - Review query consumers
     - Propose refactors unless correctness is impacted
     - Comment on style, formatting, or naming unless misleading
-    
+
     ----------------------------------------------------------
     FINAL OBJECTIVE
     ----------------------------------------------------------
@@ -277,7 +277,6 @@ reviews:
     - Payment-safe
     - Execution-consistent
     - Strictly aligned with Hedera query semantics
-
 
   # ============================================================
   # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
@@ -293,6 +292,116 @@ reviews:
       - Do NOT suggest fixes inline.
       - Instead, aggregate all out-of-scope issues into a single comment with a list of recommendations for one or more follow-up issues that can be created.
   path_instructions:
+    # --- CODEOWNERS REVIEW INSTRUCTIONS ---
+    - path: ".github/CODEOWNERS"
+      instructions: |
+        You are acting as a senior maintainer reviewing the CODEOWNERS file
+        for the hiero-sdk-python repository. This file controls review
+        enforcement and repository governance.
+
+        Your role is to verify correctness, coverage, and organizational
+        alignment — not formatting preferences.
+
+        ----------------------------------------------------------
+        REVIEW FOCUS 1 — TEAM SLUG CORRECTNESS (CRITICAL)
+        ----------------------------------------------------------
+        All GitHub team references MUST use the exact, valid organization
+        team slugs that represent teams with write or higher permissions.
+
+        Flag as critical:
+        - Any non-existent team slugs
+        - Use of individual usernames
+        - Inclusion of teams that do NOT have write permissions
+          (eg @hiero-ledger/hiero-sdk-python-triage)
+
+        Expected teams commonly include:
+        - @hiero-ledger/hiero-sdk-python-maintainers
+        - @hiero-ledger/hiero-sdk-python-committers
+        - @hiero-ledger/github-maintainers
+        - @hiero-ledger/tsc
+
+        The following team MUST NOT appear because they do not have write access:
+        - @hiero-ledger/hiero-sdk-python-triage
+        ----------------------------------------------------------
+        REVIEW FOCUS 2 — DIRECTORY VS FILE MATCHING (HIGH IMPORTANCE)
+        ----------------------------------------------------------
+        Directories that are intended to cover their contents MUST use /**
+        Flag directory cases like:
+        - /.github/workflows incorrect, use /.github/workflows/**
+
+        Specific files MUST remain specific to them and NOT use /**
+        - /.github/CODEOWNERS/** incorrect, use /.github/CODEOWNERS
+
+        Ensure rules actually match real repo assets.
+
+        ----------------------------------------------------------
+        REVIEW FOCUS 3 — PRECEDENCE & ORDERING (HIGH IMPORTANCE)
+        ----------------------------------------------------------
+        CODEOWNERS uses last-match-wins precedence.
+
+        Flag if rule ordering breaks CODEOWNERS precedence (last match wins):
+        - A broad rule (e.g. *) appears after more specific rules
+        - A broader path (e.g. /.github/**) appears after a more specific subpath rule
+          (e.g. /.github/workflows/**)        
+        - A sensitive path (e.g. /.github/workflows/**) is followed by a broader rule that would override it
+
+        ----------------------------------------------------------
+        REVIEW FOCUS 4 — REPOSITORY GOVERNANCE PROTECTION (HIGH IMPORTANCE)
+        ----------------------------------------------------------
+        These paths must NOT be owned only by committers.
+
+        Ensure these include @hiero-ledger/github-maintainers:
+        - /.github/workflows/**
+        - /.github/scripts/**
+        - /.github/CODEOWNERS
+        - /CODEOWNERS (enables root-level protection)
+
+        Ensure packaging governance includes:
+        - /pyproject.toml → @hiero-ledger/hiero-sdk-python-maintainers, @hiero-ledger/github-maintainers, @hiero-ledger/tsc
+
+
+        Flag missing governance coverage.
+
+        ----------------------------------------------------------
+        REVIEW FOCUS 5 — SCOPE APPROPRIATENESS (MEDIUM IMPORTANCE)
+        ----------------------------------------------------------
+        Committers may own source, tests, and documentation, but
+        governance and infrastructure files should be maintainer-level
+        or higher.
+
+        Flag if:
+        - TSC or GitHub maintainers are missing from critical governance files
+
+        ----------------------------------------------------------
+        REVIEW FOCUS 6 — REDUNDANCY & DEAD RULES (MEDIUM IMPORTANCE)
+        ----------------------------------------------------------
+        Identify rules that will never apply because a later rule overrides
+        them, or because the path does not exist.
+
+        Examples to flag:
+        - Duplicate patterns that are shadowed by broader ones, that do not improve clarity
+        - Rules referencing directories or files not present in the repo
+
+        EXCEPTION:
+        The following paths are intentional future-protection rules and MUST
+        NOT be flagged as dead even if the file does not currently exist:
+        - /CODEOWNERS
+        ----------------------------------------------------------
+        EXPLICIT NON-GOALS (CRITICAL IMPORTANCE)
+        ----------------------------------------------------------
+        Do NOT:
+        - Suggest stylistic formatting changes
+        - Suggest reordering rules UNLESS precedence is incorrect
+        - Suggest adding reviewers or changing org governance policy
+
+        ----------------------------------------------------------
+        FINAL OBJECTIVE
+        ----------------------------------------------------------
+        Ensure the CODEOWNERS file:
+        - Uses valid GitHub team slugs
+        - Correctly matches repository paths
+        - Enforces intended review governance
+        - Has no precedence bugs that weaken protection
     - path: "src/hiero_sdk_python/tokens/**/*.py"
       instructions: *token_review_instructions
     # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
@@ -686,10 +795,9 @@ reviews:
 
     - path: "src/hiero_sdk_python/query/**/*.py"
       instructions: *query_review_instructions
-    
+
     - path: "src/hiero_sdk_python/contract/**/*_query.py"
       instructions: *query_review_instructions
-        
 
 chat:
   art: false # Don't draw ASCII art (false)
