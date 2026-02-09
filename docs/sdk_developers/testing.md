@@ -445,14 +445,14 @@ Let's walk through creating both unit and integration tests for a hypothetical n
 
 **File:** 
 You may look at an already-created unit test file for better clarity:
-[test_token_pause_transaction.py](tests\unit\test_token_pause_transaction.py)
+[token_pause_transaction_test.py](../../tests/unit/token_pause_transaction_test.py)
 
 
 #### 2. Create Integration Test
 
 **File:**
 You may look at an already-created unit test file for better clarity:
-[token_pause_transaction_e2e_test.py](tests\integration\token_pause_transaction_e2e_test.py)
+[token_pause_transaction_e2e_test.py](../../tests/integration/token_pause_transaction_e2e_test.py)
 
 #### 3. Run Your Tests
 
@@ -1140,11 +1140,11 @@ Before submitting a pull request, ensure:
 
 ### Simple Unit Test Example
 
-**File:** [test_account_id.py](tests\unit\test_account_id.py)
+**File:** [account_id_test.py](../../tests/unit/account_id_test.py)
 
 ### Simple Integration Test Example
 
-**File:** [account_balance_query_e2e_test.py](tests\integration\account_balance_query_e2e_test.py)
+**File:** [account_balance_query_e2e_test.py](../../tests/integration/account_balance_query_e2e_test.py)
 
 ### Complex Integration Test Example
 
@@ -1195,14 +1195,14 @@ If you encounter issues or have questions:
 
 1. **Check this guide** - Most common scenarios are covered
 2. **Review existing tests** - Look at similar tests in the codebase
-3. **Check documentation** - See `/docs/sdk_developers/`
+3. **Check documentation** - See [`/docs/sdk_developers/`](./)
 4. **Ask in Discord** - Ask on the [Linux Foundation Decentralized Trust Discord](https://discord.gg/hyperledger)
 5. **Open an issue** - For bugs or unclear documentation
 
 ### Useful Resources
 
-- **Contributing Guide**: [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Commit Signing Guide**: [docs/sdk_developers/signing.md](docs\sdk_developers\signing.md)
+- **Contributing Guide**: [CONTRIBUTING.md](../../CONTRIBUTING.md)
+- **Commit Signing Guide**: [signing.md](signing.md)
 - **pytest Documentation**: https://docs.pytest.org/
 - **Hedera Documentation**: https://docs.hedera.com/
 - **Hiero Solo**: https://github.com/hiero-ledger/solo
