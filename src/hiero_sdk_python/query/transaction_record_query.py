@@ -1,6 +1,11 @@
 from typing import Optional, Any, Union
+from hiero_sdk_python.hapi.services import (
+    query_header_pb2,
+    transaction_get_record_pb2,
+    query_pb2,
+    transaction_record_pb2,
+)
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.hapi.services import query_header_pb2, transaction_get_record_pb2, query_pb2
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -17,29 +22,73 @@ class TransactionRecordQuery(Query):
     Represents a query for a transaction record on the Hedera network.
     """
 
-    def __init__(self, transaction_id: Optional[TransactionId] = None):
+    def __init__(
+        self,
+        transaction_id: Optional[TransactionId] = None,
+        include_duplicates: bool = False,
+    ) -> None:
         """
         Initializes the TransactionRecordQuery with the provided transaction ID.
         """
         super().__init__()
-        self.transaction_id : Optional[TransactionId] = transaction_id
+        if not isinstance(include_duplicates, bool):
+            raise TypeError(
+                f"include_duplicates must be a bool (True or False), got {type(include_duplicates).__name__}"
+            )
         
-    def set_transaction_id(self, transaction_id: TransactionId):
+        if transaction_id is not None and not isinstance(transaction_id, TransactionId):
+            raise TypeError(
+                f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
+            )
+
+        self.transaction_id: Optional[TransactionId] = transaction_id
+        self.include_duplicates: bool = bool(include_duplicates)
+
+    def set_include_duplicates(
+        self, include_duplicates: bool
+    ) -> "TransactionRecordQuery":
         """
-        Sets the transaction ID for the query.
-        
+        Sets whether to include duplicate transaction records in the query results.
+
         Args:
-            transaction_id (TransactionId): The ID of the transaction to query.
+            include_duplicates: Whether to include duplicate transaction records.
+
         Returns:
-            TransactionRecordQuery: This query instance.
+            TransactionRecordQuery: The current instance for method chaining.
         """
+        if not isinstance(include_duplicates, bool):
+            raise TypeError(f"include_duplicates must be a boolean, got {type(include_duplicates).__name__}")
+        self.include_duplicates = include_duplicates
+        return self
+    
+    def set_transaction_id(
+        self,
+        transaction_id: Optional[TransactionId],
+    ) -> "TransactionRecordQuery":
+        """
+        Sets the ID of the transaction whose record is to be queried.
+
+        This is a required parameter before executing the query.
+
+        Args:
+            transaction_id: The transaction ID to query, or None to unset.
+
+        Returns:
+            TransactionRecordQuery: This query instance for chaining.
+        """
+        
+        if transaction_id is not None and not isinstance(transaction_id, TransactionId):
+            raise TypeError(
+                f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
+            )
+
         self.transaction_id = transaction_id
         return self
 
     def _make_request(self):
         """
         Constructs the protobuf request for the transaction record query.
-        
+
         Builds a TransactionGetRecordQuery protobuf message with the
         appropriate header and transaction ID.
 
@@ -51,31 +100,54 @@ class TransactionRecordQuery(Query):
             AttributeError: If the Query protobuf structure is invalid.
             Exception: If any other error occurs during request construction.
         """
-        try:
-            if not self.transaction_id:
-                raise ValueError("Transaction ID must be set before making the request.")
+        if self.transaction_id is None:
+            raise ValueError("Transaction ID must be set before making the request.")
 
-            query_header = self._make_request_header()
-            transaction_get_record = transaction_get_record_pb2.TransactionGetRecordQuery()
-            transaction_get_record.header.CopyFrom(query_header)
-            transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
-            
-            query = query_pb2.Query()
-            if not hasattr(query, 'transactionGetRecord'):
-                raise AttributeError("Query object has no attribute 'transactionGetRecord'")
-            query.transactionGetRecord.CopyFrom(transaction_get_record)
-            
-            return query
-        except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            raise
+        query_header = self._make_request_header()
+        transaction_get_record = transaction_get_record_pb2.TransactionGetRecordQuery()
+        transaction_get_record.header.CopyFrom(query_header)
+        transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
+        transaction_get_record.includeDuplicates = self.include_duplicates
+
+        query = query_pb2.Query()
+        query.transactionGetRecord.CopyFrom(transaction_get_record)
+
+        return query
+
+    def _map_record_list(
+        self, proto_records: list[transaction_record_pb2.TransactionRecord]
+    ) -> list[TransactionRecord]:
+        """
+        Converts a list of protobuf TransactionRecord messages into SDK TransactionRecord objects.
+
+        Each protobuf record returned by the network is transformed into a
+        `TransactionRecord` instance. The original transaction ID of this query is
+        attached to every mapped record for context, since duplicate and child
+        records may not always include the full ID information in a convenient form.
+
+        Args:
+            proto_records: A list of protobuf TransactionRecord messages returned
+                from the Hiero/Hedera network.
+
+        Returns:
+            list[TransactionRecord]: A list of SDK TransactionRecord objects
+                corresponding to the provided protobuf records.
+        """
+        records: list[TransactionRecord] = []
+        for proto_record in proto_records:
+            # We pass the same transaction_id as the main record
+            record = TransactionRecord._from_proto(
+                proto_record, transaction_id=self.transaction_id
+            )
+            records.append(record)
+        return records
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
-        Returns the appropriate gRPC method for the transaction receipt query.
-        
+        Returns the appropriate gRPC method for the transaction record query.
+
         Implements the abstract method from Query to provide the specific
-        gRPC method for getting transaction receipts.
+        gRPC method for getting transaction records.
 
         Args:
             channel (_Channel): The channel containing service stubs
@@ -84,14 +156,13 @@ class TransactionRecordQuery(Query):
             _Method: The method wrapper containing the query function
         """
         return _Method(
-            transaction_func=None,
-            query_func=channel.crypto.getTxRecordByTxID
+            transaction_func=None, query_func=channel.crypto.getTxRecordByTxID
         )
 
     def _should_retry(self, response: Any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
-        
+
         Implements the abstract method from Query to decide whether to retry
         the query based on the response status code. First checks the header status,
         then the receipt status.
@@ -103,37 +174,44 @@ class TransactionRecordQuery(Query):
             _ExecutionState: The execution state indicating what to do next
         """
         status = response.transactionGetRecord.header.nodeTransactionPrecheckCode
-        
+
         retryable_statuses = {
             ResponseCode.UNKNOWN,
             ResponseCode.BUSY,
             ResponseCode.RECEIPT_NOT_FOUND,
             ResponseCode.RECORD_NOT_FOUND,
-            ResponseCode.PLATFORM_NOT_ACTIVE
+            ResponseCode.PLATFORM_NOT_ACTIVE,
         }
-        
+
         if status == ResponseCode.OK:
-            if response.transactionGetRecord.header.responseType == query_header_pb2.ResponseType.COST_ANSWER:
+            if (
+                response.transactionGetRecord.header.responseType
+                == query_header_pb2.ResponseType.COST_ANSWER
+            ):
                 return _ExecutionState.FINISHED
-            pass
-        elif status in retryable_statuses or status == ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED:
+        elif (
+            status in retryable_statuses
+            or status == ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED
+        ):
             return _ExecutionState.RETRY
         else:
             return _ExecutionState.ERROR
-    
+
         status = response.transactionGetRecord.transactionRecord.receipt.status
-        
+
         if status in retryable_statuses or status == ResponseCode.OK:
             return _ExecutionState.RETRY
         elif status == ResponseCode.SUCCESS:
             return _ExecutionState.FINISHED
         else:
             return _ExecutionState.ERROR
-        
-    def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
+
+    def _map_status_error(
+        self, response: Any
+    ) -> Union[PrecheckError, ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
-        
+
         Implements the abstract method from Executable to create error objects
         from response status codes. Checks both the header status and receipt status.
 
@@ -151,12 +229,12 @@ class TransactionRecordQuery(Query):
             ResponseCode.UNKNOWN,
             ResponseCode.RECEIPT_NOT_FOUND,
             ResponseCode.RECORD_NOT_FOUND,
-            ResponseCode.OK
+            ResponseCode.OK,
         }
-        
+
         if status not in retryable_statuses:
             return PrecheckError(status)
-        
+
         receipt = response.transactionGetRecord.transactionRecord.receipt
         
         return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt, self.transaction_id))
@@ -164,15 +242,15 @@ class TransactionRecordQuery(Query):
     def execute(self, client: Client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the transaction record query.
-        
+
         Sends the query to the Hedera network and processes the response
         to return a TransactionRecord object.
-        
+
         This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionRecord: The transaction record from the network
@@ -184,19 +262,27 @@ class TransactionRecordQuery(Query):
         """
         self._before_execute(client)
         response = self._execute(client, timeout)
-
-        return TransactionRecord._from_proto(response.transactionGetRecord.transactionRecord, self.transaction_id)
+        primary_proto = response.transactionGetRecord.transactionRecord
+        if self.include_duplicates:
+            duplicates = self._map_record_list(
+                response.transactionGetRecord.duplicateTransactionRecords
+            )
+        else:
+            duplicates = []
+        return TransactionRecord._from_proto(
+            primary_proto, transaction_id=self.transaction_id, duplicates=duplicates
+        )
 
     def _get_query_response(self, response: Any):
         """
         Extracts the transaction record response from the full response.
-        
+
         Implements the abstract method from Query to extract the
         specific transaction record response object.
-        
+
         Args:
             response: The full response from the network
-            
+
         Returns:
             The transaction get record response object
         """

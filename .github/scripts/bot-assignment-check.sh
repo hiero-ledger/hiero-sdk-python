@@ -36,7 +36,8 @@ issue_has_gfi() {
 }
 
 assignments_count() {
-  gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number --jq 'length'
+  # Count only issues (not PRs) assigned to the user, using structured isPullRequest field
+  gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number,isPullRequest --jq '[.[] | select(.isPullRequest | not)] | length'
 }
 
 remove_assignee() {
@@ -75,12 +76,12 @@ Hi @$ASSIGNEE, this is the Assignment Bot.
 
 :warning: **Assignment Limit Exceeded**
 
-Your account currently has limited assignment privileges with a maximum of **1 open assignment** at a time.
+Your account currently has limited assignment privileges with a maximum of **1 open issue assignment** at a time.
 
 You currently have $count open issue(s) assigned.  Please complete and merge your existing assignment before requesting a new one.
 
 **Current Restrictions:**
-- Maximum 1 open assignment at a time
+- Maximum 1 open issue assignment at a time
 - Can only be assigned to 'Good First Issue' labeled issues
 
 **How to have restrictions lifted:**
@@ -96,7 +97,7 @@ msg_normal_limit_exceeded() {
   cat <<EOF
 Hi @$ASSIGNEE, this is the Assignment Bot.
 
-Assigning you to this issue would exceed the limit of 2 open assignments.
+Assigning you to this issue would exceed the limit of 2 open issue assignments.
 
 Please resolve and merge your existing assigned issues before requesting new ones.
 EOF
