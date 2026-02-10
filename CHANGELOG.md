@@ -152,6 +152,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
 
 ### Documentation
+- Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
@@ -256,6 +257,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
 - chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
+- chore: clarify wording in the bot-assignment-check.sh (#1748)
 
 ### Fixed
 - Corrected broken documentation links in SDK developer training files.(#1707)
@@ -298,6 +300,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update `.github/scripts/bot-advanced-check.sh` to unassign unqualified users.
 - Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
 - Refactor spam list update logic and remove unused pull request creation step `.github/scripts/update-spam-list.js` `.github/workflows/cron-update-spam-list.yml`.
+- Ensure all Query sub-class `execute()` function to correctly propagate the optional `timeout` parameter.
+- Refactor assignment time retrieval and open PR check to use GraphQL API instead of REST API `.github/scripts/bot-issue-reminder-no-pr.sh` (#1746)
 
 ### Removed
 
