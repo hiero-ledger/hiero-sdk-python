@@ -33,6 +33,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+- Added foundational guide for GitHub Workflows (#1741)
+- Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
 - Added new members to the mentor roster. (#1693)
 - Added support for the `includeDuplicates` flag in `TransactionRecordQuery` and `duplicates` field in `TransactionRecord` (#1635)
 - Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
@@ -150,6 +152,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 - Added `grpc_deadline` support for transaction and query execution.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
+- Added `__eq__` and `__hash__` functions for Keys.
 
 ### Documentation
 - Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
@@ -158,6 +161,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - Reduced linting errors in `examples/` directory by 80% (952 → 185) by fixing docstring formatting, import ordering, and applying auto-fixes (#1768)
+- Improved bot message formatting in LinkBot to display issue linking format as a code block for better clarity (#1762)
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
 - Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)
 - Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
@@ -257,6 +261,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update merge conflict bot message with web editor tips (#1592)
 - chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
 - chore: clarify wording in the bot-assignment-check.sh (#1748)
+- Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
+
 
 ### Fixed
 - Corrected broken documentation links in SDK developer training files.(#1707)
@@ -300,6 +306,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
 - Refactor spam list update logic and remove unused pull request creation step `.github/scripts/update-spam-list.js` `.github/workflows/cron-update-spam-list.yml`.
 - Ensure all Query sub-class `execute()` function to correctly propagate the optional `timeout` parameter.
+- Refactor assignment time retrieval and open PR check to use GraphQL API instead of REST API `.github/scripts/bot-issue-reminder-no-pr.sh` (#1746)
 
 ### Removed
 
