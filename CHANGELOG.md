@@ -158,6 +158,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+- Improved bot message formatting in LinkBot to display issue linking format as a code block for better clarity (#1762)
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
 - Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)
 - Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
