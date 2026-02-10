@@ -154,6 +154,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
+- Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
 
 ### Changed
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
