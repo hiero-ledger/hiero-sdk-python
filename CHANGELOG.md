@@ -34,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
+- Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
 - Added new members to the mentor roster. (#1693)
 - Added support for the `includeDuplicates` flag in `TransactionRecordQuery` and `duplicates` field in `TransactionRecord` (#1635)
 - Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
@@ -158,6 +159,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+- Improved bot message formatting in LinkBot to display issue linking format as a code block for better clarity (#1762)
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
 - Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)
 - Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
