@@ -15,6 +15,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 
+import warnings
 
 @dataclass
 class AccountInfo:
@@ -56,7 +57,36 @@ class AccountInfo:
     account_memo: Optional[str] = None
     owned_nfts: Optional[int] = None
     max_automatic_token_associations: Optional[int] = None
+    _staked_account_id: Optional[AccountId] = None
+    _staked_node_id: Optional[int] = None
+    _decline_staking_reward: Optional[bool] = None
     staking_info: Optional[StakingInfo] = None
+
+
+    @property
+    def staked_account_id(self) -> bool:
+        warnings.warn(
+            "Use `staking_info.staked_account_id` instead.",
+            FutureWarning,
+        )
+        return self.staking_info.staked_account_id
+
+    @property
+    def staked_node_id(self) -> bool:
+        warnings.warn(
+            "Use `staking_info.staked_node.id` instead."
+        )
+        return self.staking_info.staked_node_id
+
+    @property
+    def decline_staking_reward(self) -> bool:
+        warnings.warn(
+            "Use `staking_info.decline_reward` instead.",
+        FutureWarning,
+        )
+        return self.staking_info.decline_reward
+
+
 
 
     @classmethod
@@ -194,3 +224,4 @@ class AccountInfo:
             f"staked_info={self.staking_info!r}, "
             f")"
         )
+        
