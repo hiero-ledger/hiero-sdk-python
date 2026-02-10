@@ -381,6 +381,111 @@ reviews:
     - Gas/value safe
     - Deterministic and user-protective
 
+  # FILE REVIEW INSTRUCTIONS
+  file_review_instructions: &file_review_instructions |
+    You are acting as a senior maintainer reviewing file service code
+    in the hiero-sdk-python project.
+    
+    This includes:
+    - File transaction classes (FileCreate, FileAppend, FileUpdate, FileDelete)
+    - File query classes (FileInfoQuery, FileContentsQuery)
+    - File response classes (FileInfo)
+
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when behavior, safety, or API stability is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/file/
+    - Their interaction with shared SDK base classes
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    (CONTRACTUAL / HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    File APIs are public and user-facing.
+
+    The following MUST remain stable:
+    - Public class names (e.g., FileCreateTransaction)
+    - Method names and signatures
+    - Default values (e.g., default expiration time)
+    - Fluent setter chaining semantics
+
+    Flag any change that:
+    - Alters method signatures or return types
+    - Changes default behavior
+    - Renames or removes public attributes
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — FILE APPEND & CHUNKING LOGIC (CRITICAL)
+    ----------------------------------------------------------
+    `FileAppendTransaction` supports high-level chunking.
+
+    Verify that:
+    - `freeze_with(client)` generates distinct TransactionIds for each chunk
+    - `execute(client)` iterates through ALL chunks sequentially
+    - `max_chunks` limit is respected and validated
+    - `chunk_size` defaults are reasonable (usually 4kb or 2kb)
+    - Retry logic applies correctly to individual chunks (via base Executable)
+
+    Flag if:
+    - Chunking logic is removed or simplified incorrectly
+    - Transaction IDs are reused across chunks (will cause duplicate tx errors)
+    - Partial execution handling is unsafe
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — UPDATE SEMANTICS & WRAPPERS
+    ----------------------------------------------------------
+    `FileUpdateTransaction` uses wrappers to distinguish "set to empty" vs "do not update".
+
+    Verify that:
+    - `memo` updates use `StringValue` or equivalent to handle null vs empty
+    - `contents` update overwrites existing content (not append)
+    - `keys` update replaces the entire key list (if provided)
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — PROTOBUF ALIGNMENT
+    ----------------------------------------------------------
+    File behavior MUST align with official Hedera protobuf definitions.
+
+    Verify that:
+    - `FileCreateTransactionBody` fields match (keys, contents, expirationTime, memo)
+    - `FileAppendTransactionBody` fields match (fileID, contents)
+    - `FileUpdateTransactionBody` fields match (fileID, keys, contents, expirationTime, memo)
+
+    Flag mismatches explicitly.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — VALIDATION & ERROR BEHAVIOR
+    ----------------------------------------------------------
+    Validation rules:
+    - Required fields (e.g., file_id for update/append/delete) must be validated early
+    - Contents encoding (str -> bytes) must be consistent (UTF-8)
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — IMPORT & HALLUCINATION SAFETY
+    ----------------------------------------------------------
+    STRICT IMPORT RULES:
+    - All imports MUST exist in src/hiero_sdk_python/
+    - Do NOT assume helpers exist unless verified
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — TEST EXPECTATIONS
+    ----------------------------------------------------------
+    Good to check whether:
+    - Unit tests exist for chunking logic
+    - Integration tests exist for full lifecycle (create -> append -> update -> delete)
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure file code is:
+    - Backward-compatible
+    - Chunking-safe
+    - Protobuf-aligned
+    - Deterministic and user-safe
+
   # ============================================================
   # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
   # ============================================================
@@ -507,6 +612,8 @@ reviews:
         - Has no precedence bugs that weaken protection
     - path: "src/hiero_sdk_python/tokens/**/*.py"
       instructions: *token_review_instructions
+    - path: "src/hiero_sdk_python/file/**/*.py"
+      instructions: *file_review_instructions
     # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
     - path: "examples/**/*"
       instructions: |
