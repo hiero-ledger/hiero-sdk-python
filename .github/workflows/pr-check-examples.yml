@@ -27,7 +27,7 @@ jobs:
         uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --all-extras
 
       - name: Generate Proto Files
         run: uv run python generate_proto.py
