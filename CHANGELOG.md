@@ -300,6 +300,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
 - Refactor spam list update logic and remove unused pull request creation step `.github/scripts/update-spam-list.js` `.github/workflows/cron-update-spam-list.yml`.
 - Ensure all Query sub-class `execute()` function to correctly propagate the optional `timeout` parameter.
+- Refactor assignment time retrieval and open PR check to use GraphQL API instead of REST API `.github/scripts/bot-issue-reminder-no-pr.sh` (#1746)
 
 ### Removed
 
