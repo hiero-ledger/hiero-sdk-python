@@ -148,7 +148,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
 - Added MirrorNode based population for `ContractId`, including parsing and serialization support.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
-- Added `set_node_account_ids()` to `TransactionResponse.get_receipt()` for correct handling of pre-consensus failures. ([#1686](https://github.com/hiero-ledger/hiero-sdk-python/issues/1686))
 
 ### Documentation
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
@@ -255,6 +254,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
 - Added `grpc_deadline` support for transaction and query execution.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
+- Changed `TransactionResponse.get_receipt()` so now pins receipt queries to the submitting node via `set_node_account_ids()` ([#1686](https://github.com/hiero-ledger/hiero-sdk-python/issues/1686))
 
 ### Fixed
 - Corrected broken documentation links in SDK developer training files.(#1707)
