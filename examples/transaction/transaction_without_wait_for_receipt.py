@@ -16,7 +16,7 @@ from hiero_sdk_python import (
 )
 
 
-def build_transaction() -> AccountCreateTransaction:
+def build_transaction():
     """
     Build a new AccountCreateTransaction with a generated private key
     and a minimal initial balance.
