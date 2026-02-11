@@ -119,7 +119,6 @@ if ! git fetch upstream main >/dev/null 2>&1; then
     exit 1
 fi
 
-# Get raw diff (git diff may legitimately return non-zero)
 # Get raw diff - handle non-zero exit from git diff when differences exist
 raw_diff=$(git diff upstream/main -- "$CHANGELOG" 2>/dev/null || :)
 
@@ -253,7 +252,7 @@ if [[ -n "$correctly_placed" ]]; then
 fi
 
 # Display deleted entries 
-if [[ ${`#deleted_bullets`[@]} -gt 0 ]]; then
+if [[ ${#deleted_bullets[@]} -gt 0 ]]; then
     echo -e "${RED}❌ Changelog entries removed in this PR:${RESET}"
     for deleted in "${deleted_bullets[@]}"; do
         echo -e "  - ${RED}$deleted${RESET}"

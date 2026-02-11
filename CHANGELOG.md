@@ -267,7 +267,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Corrected broken documentation links in SDK developer training files.(#1707)
 - Fixed assignment limit check to only count issues (not PRs) towards the maximum 2 concurrent assignments, allowing users to be assigned to PRs without affecting their issue assignment capacity. (#1717)
 - Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
-- Correct PR changelog validation logic and harden script with strict Bash mode to prevent false positives and missed entries (#1492)
+- Harden changelog validation script: env var checks, quoting, remote handling, fetch error handling, and deleted entry filtering (#1492)
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
