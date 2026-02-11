@@ -81,7 +81,7 @@ Your account currently has limited assignment privileges with a maximum of **1 o
 You currently have $count open issue(s) assigned.  Please complete and merge your existing assignment before requesting a new one.
 
 **Current Restrictions:**
-- Maximum 1 open assignment at a time
+- Maximum 1 open issue assignment at a time
 - Can only be assigned to 'Good First Issue' labeled issues
 
 **How to have restrictions lifted:**
