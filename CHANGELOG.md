@@ -34,6 +34,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Exposed all missing fields from `TransactionRecord` protobuf (#1636)
+- Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
 - Added foundational guide for GitHub Workflows (#1741)
 - Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
 - Added new members to the mentor roster. (#1693)
@@ -153,7 +154,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 - Added `grpc_deadline` support for transaction and query execution.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
-- Added `__eq__` and `__hash__` functions for Keys.
+- Added `__eq__` and `__hash__` functions for Key
 
 ### Documentation
 - Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
@@ -260,11 +261,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
 - chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
+- Changed `TransactionResponse.get_receipt()` so now pins receipt queries to the submitting node via `set_node_account_ids()` ([#1686](https://github.com/hiero-ledger/hiero-sdk-python/issues/1686))
 - chore: clarify wording in the bot-assignment-check.sh (#1748)
 - Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
 
-
 ### Fixed
+- Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
 - Corrected broken documentation links in SDK developer training files.(#1707)
 - Fixed assignment limit check to only count issues (not PRs) towards the maximum 2 concurrent assignments, allowing users to be assigned to PRs without affecting their issue assignment capacity. (#1717)
 - Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
