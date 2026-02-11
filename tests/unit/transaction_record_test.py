@@ -14,6 +14,10 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.schedule.schedule_id import ScheduleId
+from hiero_sdk_python.tokens.assessed_custom_fee import AssessedCustomFee
+from hiero_sdk_python.tokens.token_association import TokenAssociation
 
 pytestmark = pytest.mark.unit
 
@@ -105,6 +109,9 @@ def test_from_proto(proto_transaction_record, transaction_id):
     assert record.receipt.status == ResponseCode.SUCCESS
     assert record.prng_number == 100
     assert record.prng_bytes == b""
+    assert record.alias is None, "Unset proto alias should normalize to None"
+    assert record.ethereum_hash is None, "Unset proto ethereum_hash should normalize to None"
+    assert record.evm_address is None, "Unset proto evm_address should normalize to None"
 
 def test_from_proto_with_transfers(transaction_id):
     """Test from_proto with HBAR transfers"""
@@ -599,18 +606,175 @@ def test_from_proto_with_contract_create_result(transaction_id):
 # ────────────────────────────────────────────────────────────────
 
 def test_round_trip_new_fields(transaction_id):
-    """Round-trip test focused on new fields"""
+    """Round-trip test focused on new/recently added fields in TransactionRecord"""
     proto = transaction_record_pb2.TransactionRecord()
-    proto.consensusTimestamp.seconds = 1730000000
-    proto.alias = b"alias123"
-    proto.paid_staking_rewards.add().accountID.accountNum = 2222
-    proto.paid_staking_rewards[-1].amount = 123456789
 
+    # Timestamps
+    proto.consensusTimestamp.seconds = 1730000000
+    proto.consensusTimestamp.nanos = 456000000
+
+    proto.parent_consensus_timestamp.seconds = 1730001111
+    proto.parent_consensus_timestamp.nanos = 789000000
+
+    # Schedule reference
+    proto.scheduleRef.shardNum = 0
+    proto.scheduleRef.realmNum = 0
+    proto.scheduleRef.scheduleNum = 987654
+
+    # Bytes fields
+    proto.alias = b"\x02\xcaalias example"
+    proto.ethereum_hash = b"\x00" * 12 + b"\xff" * 20  # 32 bytes
+    proto.evm_address = b"\x12\x34\x56\x78\x9a\xbc\xde\xf0" * 2 + b"\x12\x34"  # 20 bytes
+
+    # paid_staking_rewards (repeated)
+    reward = proto.paid_staking_rewards.add()
+    reward.accountID.shardNum = 0
+    reward.accountID.realmNum = 0
+    reward.accountID.accountNum = 2222
+    reward.amount = 123456789
+
+    # assessed_custom_fees (repeated)
+    custom_fee = proto.assessed_custom_fees.add()
+    custom_fee.amount = 10000000
+    custom_fee.token_id.shardNum = 0
+    custom_fee.token_id.realmNum = 0
+    custom_fee.token_id.tokenNum = 98765
+    custom_fee.fee_collector_account_id.shardNum = 0
+    custom_fee.fee_collector_account_id.realmNum = 0
+    custom_fee.fee_collector_account_id.accountNum = 5555
+
+    # automatic_token_associations (repeated)
+    assoc = proto.automatic_token_associations.add()
+    assoc.token_id.shardNum = 0
+    assoc.token_id.realmNum = 0
+    assoc.token_id.tokenNum = 43210
+    assoc.account_id.shardNum = 0
+    assoc.account_id.realmNum = 0
+    assoc.account_id.accountNum = 9999
+
+    # Minimal contract_create_result check (just presence + one field)
+    proto.contractCreateResult.contractID.shardNum = 0
+    proto.contractCreateResult.contractID.realmNum = 0
+    proto.contractCreateResult.contractID.contractNum = 77777
+
+    # ────────────────────────────────────────────────
+    # Round trip
     record = TransactionRecord._from_proto(proto, transaction_id=transaction_id)
     back = record._to_proto()
 
+    # ────────────────────────────────────────────────
+    # Assertions
+
+    # Timestamps
     assert back.consensusTimestamp.seconds == 1730000000
-    assert back.alias == b"alias123"
+    assert back.consensusTimestamp.nanos == 456000000
+    assert back.parent_consensus_timestamp.seconds == 1730001111
+    assert back.parent_consensus_timestamp.nanos == 789000000
+
+    # Schedule
+    assert back.scheduleRef.shardNum == 0
+    assert back.scheduleRef.realmNum == 0
+    assert back.scheduleRef.scheduleNum == 987654
+
+    # Bytes
+    assert back.alias == b"\x02\xcaalias example"
+    assert back.ethereum_hash == b"\x00" * 12 + b"\xff" * 20
+    assert back.evm_address == b"\x12\x34\x56\x78\x9a\xbc\xde\xf0" * 2 + b"\x12\x34"
+
+    # paid_staking_rewards
     assert len(back.paid_staking_rewards) == 1
     assert back.paid_staking_rewards[0].accountID.accountNum == 2222
     assert back.paid_staking_rewards[0].amount == 123456789
+
+    # assessed_custom_fees
+    assert len(back.assessed_custom_fees) == 1
+    assert back.assessed_custom_fees[0].amount == 10000000
+    assert back.assessed_custom_fees[0].token_id.tokenNum == 98765
+    assert back.assessed_custom_fees[0].fee_collector_account_id.accountNum == 5555
+
+    # automatic_token_associations
+    assert len(back.automatic_token_associations) == 1
+    assert back.automatic_token_associations[0].token_id.tokenNum == 43210
+    assert back.automatic_token_associations[0].account_id.accountNum == 9999
+
+    # contract_create_result
+    assert back.HasField("contractCreateResult")
+    assert back.contractCreateResult.contractID.contractNum == 77777
+
+def test_to_proto_raises_when_both_call_and_create_result_set(transaction_id):
+    """Setting both call_result and contract_create_result must raise (protobuf oneof)."""
+    record = TransactionRecord(
+        transaction_id=transaction_id,
+        call_result=ContractFunctionResult(
+            contract_id=ContractId(0, 0, 100),
+        ),
+        contract_create_result=ContractFunctionResult(
+            contract_id=ContractId(0, 0, 200),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        record._to_proto()
+        
+# ────────────────────────────────────────────────────────────────
+# __repr__ coverage helpers
+# ────────────────────────────────────────────────────────────────
+
+def test_repr_shows_new_fields_when_set(transaction_id):
+    """Check that __repr__ includes new fields when they are populated"""
+    record = TransactionRecord(
+        transaction_id=transaction_id,
+        consensus_timestamp=Timestamp(seconds=1730000000, nanos=123456789),
+        parent_consensus_timestamp=Timestamp(seconds=1730001111, nanos=987654321),
+        schedule_ref=ScheduleId(shard=0, realm=0, schedule=888888),
+        alias=b"alias\x01\x02",
+        ethereum_hash=b"\x00" * 32,
+        evm_address=b"\x12\x34\x56\x78" * 5,  # 20 bytes
+        paid_staking_rewards=[(AccountId(0, 0, 8008), 5_000_000)],
+        assessed_custom_fees=[
+        AssessedCustomFee(
+        amount=4200000,
+        fee_collector_account_id=AccountId(0, 0, 999)   # ← required field (any valid AccountId)
+        )],
+        automatic_token_associations=[TokenAssociation(
+            token_id=TokenId(0, 0, 9999),
+            account_id=AccountId(0, 0, 7777)
+        )],
+    )
+
+    r = repr(record)
+
+    # Check presence of new fields in output
+    assert "consensus_timestamp=" in r
+    assert "parent_consensus_timestamp=" in r
+    assert "schedule_ref=" in r
+    assert "alias=" in r
+    assert "ethereum_hash=" in r
+    assert "evm_address=" in r
+    assert "paid_staking_rewards=1 items" in r
+    assert "assessed_custom_fees=1 items" in r
+    assert "automatic_token_associations=1 items" in r
+
+
+def test_repr_falls_back_on_invalid_receipt_status(transaction_id):
+    """Verify that __repr__ falls back to raw status code when ResponseCode lookup fails"""
+    # Use a deliberately invalid status value (outside normal enum range)
+    receipt = TransactionReceipt(
+        receipt_proto=transaction_receipt_pb2.TransactionReceipt(
+            status=999999  # invalid / unknown code
+        ),
+        transaction_id=transaction_id,
+    )
+
+    record = TransactionRecord(
+        transaction_id=transaction_id,
+        receipt=receipt,
+    )
+
+    r = repr(record)
+
+    # Should use numeric fallback instead of raising or showing enum name
+    assert "999999'" in r
+    # Optional – make sure no enum name appears (depends on your ResponseCode impl)
+    assert "SUCCESS" not in r
+    
