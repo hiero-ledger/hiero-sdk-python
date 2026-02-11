@@ -28,7 +28,10 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-
+from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.schedule.schedule_id import ScheduleId
+from hiero_sdk_python.tokens.assessed_custom_fee import AssessedCustomFee
+from hiero_sdk_python.tokens.token_association import TokenAssociation
 
 @dataclass
 class TransactionRecord:
@@ -74,6 +77,18 @@ class TransactionRecord:
 
     prng_number: Optional[int] = None
     prng_bytes: Optional[bytes] = None
+
+    consensus_timestamp: Optional[Timestamp] = None
+    parent_consensus_timestamp: Optional[Timestamp] = None
+    schedule_ref: Optional[ScheduleId] = None
+    assessed_custom_fees: list[AssessedCustomFee] = field(default_factory=list)
+    automatic_token_associations: list[TokenAssociation] = field(default_factory=list)
+    alias: Optional[bytes] = None
+    ethereum_hash: Optional[bytes] = None
+    evm_address: Optional[bytes] = None
+    paid_staking_rewards: list[tuple[AccountId, int]] = field(default_factory=list)
+    contract_create_result: Optional[ContractFunctionResult] = None
+
     duplicates: list['TransactionRecord'] = field(default_factory=list)
 
     def __repr__(self) -> str:
@@ -81,8 +96,9 @@ class TransactionRecord:
         
         This method constructs a detailed string containing all significant fields of the 
         transaction record including transaction ID, hash, memo, fees, status, transfers,
-        and PRNG results. For the receipt status, it attempts to resolve the numeric status
-        to a human-readable ResponseCode name.
+        PRNG results, and newly exposed metadata (consensus timestamps, custom fees, etc.).
+        For the receipt status, it attempts to resolve the numeric status to a 
+        human-readable ResponseCode name.
         
         Returns:
             str: A string representation showing all significant fields of the TransactionRecord.
@@ -91,23 +107,56 @@ class TransactionRecord:
         if self.receipt:
             try:
                 from hiero_sdk_python.response_code import ResponseCode
-
                 status = ResponseCode(self.receipt.status).name
             except (ValueError, AttributeError):
                 status = self.receipt.status
-        return (f"TransactionRecord(transaction_id='{self.transaction_id}', "
-                f"transaction_hash={self.transaction_hash}, "
-                f"transaction_memo='{self.transaction_memo}', "
-                f"transaction_fee={self.transaction_fee}, "
-                f"receipt_status='{status}', "
-                f"token_transfers={dict(self.token_transfers)}, "
-                f"nft_transfers={dict(self.nft_transfers)}, "
-                f"transfers={dict(self.transfers)}, "
-                f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
-                f"call_result={self.call_result}, "
-                f"prng_number={self.prng_number}, "
-                f"prng_bytes={self.prng_bytes}, "
-                f"duplicates_count={len(self.duplicates)})")
+
+        # Build list of parts to include
+        parts = [
+            f"transaction_id='{self.transaction_id}'",
+            f"transaction_hash={self.transaction_hash}",
+            f"transaction_memo='{self.transaction_memo}'",
+            f"transaction_fee={self.transaction_fee}",
+            f"receipt_status='{status}'",
+        ]
+
+        # Core transfer fields (keep existing style)
+        parts.append(f"transfers={dict(self.transfers)}")
+        parts.append(f"token_transfers={dict(self.token_transfers)}")
+        parts.append(f"nft_transfers={dict(self.nft_transfers)}")
+        parts.append(f"new_pending_airdrops={list(self.new_pending_airdrops)}")
+
+        # Contract & PRNG (existing)
+        parts.append(f"call_result={self.call_result}")
+        parts.append(f"contract_create_result={self.contract_create_result}")
+        parts.append(f"prng_number={self.prng_number}")
+        parts.append(f"prng_bytes={self.prng_bytes}")
+
+        # New fields – show value if set, or skip/count for lists
+        if self.consensus_timestamp:
+            parts.append(f"consensus_timestamp={self.consensus_timestamp}")
+        if self.parent_consensus_timestamp:
+            parts.append(f"parent_consensus_timestamp={self.parent_consensus_timestamp}")
+        if self.schedule_ref:
+            parts.append(f"schedule_ref={self.schedule_ref}")
+        if self.assessed_custom_fees:
+            parts.append(f"assessed_custom_fees={len(self.assessed_custom_fees)} items")
+        if self.automatic_token_associations:
+            parts.append(f"automatic_token_associations={len(self.automatic_token_associations)} items")
+        if self.alias:
+            parts.append(f"alias={self.alias!r}")  # !r shows bytes as b'...'
+        if self.ethereum_hash:
+            parts.append(f"ethereum_hash={self.ethereum_hash!r}")
+        if self.evm_address:
+            parts.append(f"evm_address={self.evm_address!r}")
+        if self.paid_staking_rewards:
+            parts.append(f"paid_staking_rewards={len(self.paid_staking_rewards)} items")
+
+        # Duplicates count (existing)
+        parts.append(f"duplicates_count={len(self.duplicates)}")
+
+        # Join everything
+        return f"TransactionRecord({', '.join(parts)})"
 
     @classmethod
     def _from_proto(
@@ -148,6 +197,52 @@ class TransactionRecord:
         new_pending_airdrops = cls._parse_pending_airdrops(proto)
         call_result = cls._parse_contract_call_result(proto)
 
+        consensus_timestamp = (
+            Timestamp._from_protobuf(proto.consensusTimestamp)
+            if proto.HasField("consensusTimestamp")
+            else None
+        )
+
+        parent_consensus_timestamp = (
+            Timestamp._from_protobuf(proto.parent_consensus_timestamp)
+            if proto.HasField("parent_consensus_timestamp")
+            else None
+        )
+
+        schedule_ref = (
+            ScheduleId._from_proto(proto.scheduleRef)
+            if proto.HasField("scheduleRef")
+            else None
+        )
+
+        assessed_custom_fees = [
+            AssessedCustomFee._from_proto(fee)
+            for fee in proto.assessed_custom_fees
+        ]
+
+        automatic_token_associations = [
+            TokenAssociation._from_proto(assoc)
+            for assoc in proto.automatic_token_associations
+        ]
+
+        alias = proto.alias
+        ethereum_hash = proto.ethereum_hash
+        evm_address = proto.evm_address
+        
+        paid_staking_rewards = [
+            (
+                AccountId._from_proto(r.accountID),
+                r.amount
+            )
+            for r in proto.paid_staking_rewards
+        ]
+
+        contract_create_result = (
+            ContractFunctionResult._from_proto(proto.contractCreateResult)
+            if proto.HasField("contractCreateResult")
+            else None
+        )
+
         return cls(
             transaction_id=tx_id,
             transaction_hash=proto.transactionHash,
@@ -161,6 +256,18 @@ class TransactionRecord:
             call_result=call_result,
             prng_number=proto.prng_number,
             prng_bytes=proto.prng_bytes,
+
+            consensus_timestamp=consensus_timestamp,
+            parent_consensus_timestamp=parent_consensus_timestamp,
+            schedule_ref=schedule_ref,
+            assessed_custom_fees=assessed_custom_fees,
+            automatic_token_associations=automatic_token_associations,
+            alias=alias,
+            ethereum_hash=ethereum_hash,
+            evm_address=evm_address,
+            paid_staking_rewards=paid_staking_rewards,
+            contract_create_result=contract_create_result,
+            
             duplicates=duplicates,
         )
 
@@ -292,6 +399,42 @@ class TransactionRecord:
 
         for pending_airdrop in self.new_pending_airdrops:
             record_proto.new_pending_airdrops.add().CopyFrom(pending_airdrop._to_proto())
+        
+        if self.consensus_timestamp is not None:
+            record_proto.consensusTimestamp.CopyFrom(self.consensus_timestamp._to_protobuf())
+
+        if self.parent_consensus_timestamp is not None:
+            record_proto.parent_consensus_timestamp.CopyFrom(self.parent_consensus_timestamp._to_protobuf())
+
+        if self.schedule_ref is not None:
+            record_proto.scheduleRef.CopyFrom(self.schedule_ref._to_proto())
+
+        if self.assessed_custom_fees:
+            record_proto.assessed_custom_fees.extend(
+                fee._to_proto() for fee in self.assessed_custom_fees
+            )
+
+        if self.automatic_token_associations:
+            record_proto.automatic_token_associations.extend(
+                assoc._to_proto() for assoc in self.automatic_token_associations
+            )
+
+        if self.alias is not None:
+            record_proto.alias = self.alias
+
+        if self.ethereum_hash is not None:
+            record_proto.ethereum_hash = self.ethereum_hash
+
+        if self.evm_address is not None:
+            record_proto.evm_address = self.evm_address
+
+        if self.contract_create_result is not None:
+            record_proto.contractCreateResult.CopyFrom(self.contract_create_result._to_proto())
+        
+        for account_id, amount in self.paid_staking_rewards:
+            r = record_proto.paid_staking_rewards.add()
+            r.accountID.CopyFrom(account_id._to_proto())
+            r.amount = amount
 
         return record_proto
     
