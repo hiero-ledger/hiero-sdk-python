@@ -173,8 +173,9 @@ ${COMMENT_MARKER}
 We noticed your pull request has had *recent changes pushed* after *changes were requested*.
 
 If these updates address the feedback, you can:
-- use the \`/review\` command, or
-- click **“Ready for review”** to let reviewers know it's ready again.
+- resolve any open review conversations (reply if clarification is needed, or mark them as resolved),
+- click **“Ready for review”** (recommended), or
+- use the \`/review\` command.
 
 Thanks for keeping things moving! 🙌  
 — Hiero SDK Automation Team
