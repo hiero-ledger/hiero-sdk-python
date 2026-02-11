@@ -235,6 +235,36 @@ TOPIC_ID=0.0.1234569
 
 ---
 
+### Optional Dependencies for Tests
+
+Some unit and integration tests (notably those covering Ethereum / EVM
+functionality) rely on **optional ETH-related dependencies**. These
+dependencies are **not installed by default**.
+
+If these dependencies are missing ETH-related unit tests may fail with import errors.
+
+These dependencies are provided via the `eth` extra.
+
+#### Using uv (recommended)
+
+When working on the SDK locally and running the full test suite:
+
+```bash
+uv sync --dev --extra eth
+```
+This installs:
+- All standard development dependencies (pytest, ruff, mypy, etc.)
+- All ETH-related optional dependencies required for tests and examples
+
+#### Using pip
+If you are using pip instead of uv:
+
+```bash
+pip install -e ".[eth]"
+```
+
+This ensures all ETH-related test code paths execute correctly during development.
+
 ### VS Code Setup
 
 VS Code provides excellent Python testing support with built-in test discovery and debugging.
