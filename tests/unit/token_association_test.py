@@ -1,5 +1,6 @@
 import pytest
 
+from dataclasses import FrozenInstanceError
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_association import TokenAssociation
@@ -31,7 +32,13 @@ def test_default_initialization():
     assoc = TokenAssociation()
     assert assoc.token_id is None
     assert assoc.account_id is None
+    
+    # Immutability checks
+    with pytest.raises(FrozenInstanceError):
+        assoc.token_id = TokenId(0, 0, 1234)
 
+    with pytest.raises(FrozenInstanceError):
+        assoc.account_id = AccountId(0, 0, 5678)
 
 def test_initialization_with_values(sample_token_id, sample_account_id):
     assoc = TokenAssociation(
@@ -42,7 +49,7 @@ def test_initialization_with_values(sample_token_id, sample_account_id):
     assert assoc.account_id == sample_account_id
 
 
-def test_initialization_partial(sample_token_id):
+def test_initialization_partial(sample_token_id, sample_account_id):
     assoc = TokenAssociation(token_id=sample_token_id)
     assert assoc.token_id == sample_token_id
     assert assoc.account_id is None
