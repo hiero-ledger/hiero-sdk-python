@@ -6,6 +6,21 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Src
+- 
+
+### Examples
+
+### Docs
+
+### Tests
+
+### .github
+
+
+
+## [0.2.0] - 2026-11-02
+
 ### Tests
 - Format `tests/unit/crypto_utils_test.py` with black for code style consistency (#1524)
 - Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
