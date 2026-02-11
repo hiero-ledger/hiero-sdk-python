@@ -377,7 +377,7 @@ class Transaction(_Executable):
         response.transaction_id = self.transaction_id
 
         if wait_for_receipt:
-            return response.get_receipt(client)
+            return response.get_receipt(client, timeout=timeout)
         
         return response
 
