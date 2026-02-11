@@ -87,6 +87,10 @@ set -euo pipefail
 # ==============================================================================
 
 CHANGELOG="CHANGELOG.md"
+if [[ ! -f "$CHANGELOG" ]]; then
+    echo -e "${RED}❌ $CHANGELOG not found in repository root.${RESET}"
+    exit 1
+fi
 
 # ANSI color codes
 RED="\033[31m"
@@ -96,9 +100,24 @@ RESET="\033[0m"
 
 failed=0
 
-# Fetch upstream
-git remote get-url upstream &>/dev/null || git remote add upstream https://github.com/${GITHUB_REPOSITORY}.git
-git fetch upstream main >/dev/null 2>&1
+ 
+# Validate required environment variables
+if [[ -z "${GITHUB_REPOSITORY:-}" ]]; then
+    echo -e "${RED} GITHUB_REPOSITORY is not set. This script must run inside GitHub Actions.${RESET}"
+    exit 1
+fi
+
+# Fetch upstream - add remote only if it doesn't exist
+if ! git remote get-url upstream &>/dev/null; then
+    echo "Adding upstream remote: https://github.com/${GITHUB_REPOSITORY}.git"
+    git remote add upstream "https://github.com/${GITHUB_REPOSITORY}.git"
+fi
+
+echo "Fetching upstream/main from ${GITHUB_REPOSITORY}..."
+if ! git fetch upstream main >/dev/null 2>&1; then
+    echo -e "${RED}❌ Failed to fetch upstream/main. Check network access and remote configuration.${RESET}"
+    exit 1
+fi
 
 # Get raw diff (git diff may legitimately return non-zero)
 # Get raw diff - handle non-zero exit from git diff when differences exist
@@ -234,12 +253,13 @@ if [[ -n "$correctly_placed" ]]; then
 fi
 
 # Display deleted entries 
-if [[ ${#deleted_bullets[@]} -gt 0 ]]; then
-    echo -e "${YELLOW}⚠️ Changelog entries removed in this PR:${RESET}"
+if [[ ${`#deleted_bullets`[@]} -gt 0 ]]; then
+    echo -e "${RED}❌ Changelog entries removed in this PR:${RESET}"
     for deleted in "${deleted_bullets[@]}"; do
-        echo -e "  - ${YELLOW}$deleted${RESET}"
+        echo -e "  - ${RED}$deleted${RESET}"
     done
-    echo -e "${YELLOW}⚠️ Please add these entries back under the appropriate sections${RESET}"
+    echo -e "${RED}⚠️ Please add these entries back under the appropriate sections${RESET}"
+    failed=1
 fi
 
 # Exit
