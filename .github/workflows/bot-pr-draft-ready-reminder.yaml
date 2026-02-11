@@ -29,6 +29,9 @@ concurrency:
 jobs:
   draft-ready-reminder:
     runs-on: ubuntu-latest
+    env:
+      DRY_RUN: ${{ inputs.dry_run }}
+      PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -42,9 +45,6 @@ jobs:
 
       - name: Run draft-ready reminder bot
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
-        env:
-          DRY_RUN: ${{ inputs.dry_run }}
-          PR_NUMBER: ${{ inputs.pr_number }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
