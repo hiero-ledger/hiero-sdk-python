@@ -8,9 +8,12 @@ python examples/transaction/transaction_without_wait_for_receipt.py
 
 import sys
 
-from hiero_sdk_python import Client, AccountCreateTransaction
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python import (
+  Client,
+  AccountCreateTransaction,
+  PrivateKey,
+  ResponseCode
+)
 
 
 def build_transaction() -> AccountCreateTransaction:
@@ -20,6 +23,23 @@ def build_transaction() -> AccountCreateTransaction:
     """
     key = PrivateKey.generate()
     return AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(1)
+
+
+def print_transaction_record(record):
+    """Print the transaction record"""
+    print(f"Transaction ID: {record.transaction_id}")
+    print(f"Transaction Fee: {record.transaction_fee}")
+    print(f"Transaction Hash: {record.transaction_hash.hex()}")
+    print(f"Transaction Memo: {record.transaction_memo}")
+    print(f"Transaction Account ID: {record.receipt.account_id}")
+
+
+def print_transaction_receipt(receipt):
+    if receipt.status != ResponseCode.SUCCESS:
+        raise RuntimeError(f"Receipt Query failed with status: {ResponseCode(receipt.status).name}")
+    
+    print(f"Transaction Receipt Status: {ResponseCode(receipt.status).name}")
+    print(f"Transaction Account ID: {receipt.account_id}")
 
 
 def main():
@@ -33,6 +53,7 @@ def main():
         client = Client.from_env()
         tx = build_transaction()
 
+        print("Executing transaction...")
         # Execute the transaction without waiting for receipt immediately
         response = tx.execute(client, wait_for_receipt=False)
         
@@ -40,15 +61,17 @@ def main():
         print(f"Transaction submitted with ID: {response.transaction_id}")
 
         # Retrieve receipt and record after submission
+        print("\n1.Getting Transaction Receipt using Transaction Response...")
         receipt = response.get_receipt(client)
-        print(f"Receipt status: {ResponseCode(receipt.status).name}")
-  
+        print_transaction_receipt(receipt)
         
+        
+        print("\n2.Getting Transaction Record using Transaction Response...")
         record = response.get_record(client)
-        print("Record:", record)
+        print_transaction_record(record)
 
-    except Exception as exc:
-        print(f"Error during transaction execution: {exc}")
+    except Exception as err:
+        print(f"Error during transaction: {err}")
         sys.exit(1)
 
 
