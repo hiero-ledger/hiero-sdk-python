@@ -391,7 +391,7 @@ class Transaction(_Executable):
                 return True
         return False
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_pb2.Transaction:
         """
         Abstract method to build the transaction body.
 
@@ -880,3 +880,13 @@ class Transaction(_Executable):
         self.freeze_with(client)
         self.sign(client.operator_private_key)
         return self
+    
+    def get_size(self) -> int:
+        """Returns the total transaction size in bytes after protobuf encoding"""
+        self._require_frozen()
+        return self._make_request().ByteSize()
+    
+    def get_body_size(self) -> int:
+        """Returns just the transaction body size in bytes after encoding"""
+        self._require_frozen()
+        return self.build_transaction_body().ByteSize()

@@ -340,3 +340,18 @@ class TopicMessageSubmitTransaction(Transaction):
 
         super().sign(private_key)
         return self
+    
+    def get_body_size_all_chunks(self) -> List[int]:
+        """
+        """
+        self._require_frozen()
+        sizes = []
+
+        original_index = self._current_index
+        for transaction_id in self._transaction_ids:
+            self.transaction_id = transaction_id
+            sizes.append(self.get_body_size())
+        
+        self._current_index = original_index
+        return sizes
+       
