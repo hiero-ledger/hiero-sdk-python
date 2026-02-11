@@ -105,5 +105,10 @@ class NftId:
         return f"{self.token_id}/{self.serial_number}"
     
     def __repr__(self) -> str:
-    
+        """
+        Returns a detailed representation of the NftId suitable for debugging.
+
+        Returns:
+            str: A string in the format 'NftId(token_id=X.X.X, serial_number=Y)'.
+        """
         return f"NftId(token_id={self.token_id}, serial_number={self.serial_number})"
