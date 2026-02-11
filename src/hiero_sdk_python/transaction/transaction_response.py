@@ -13,7 +13,7 @@ from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 class TransactionResponse:
     """
-    Represents the response from a transaction submitted to the Hedera network.
+    Represents the response from a transaction submitted to the network.
     """
 
     def __init__(self) -> None:
@@ -42,7 +42,7 @@ class TransactionResponse:
     
     def get_receipt(self, client: "Client", timeout: Optional[Union[int, float]] = None):
         """
-        Retrieves the receipt for this transaction from the Hedera network.
+        Retrieves the receipt for this transaction from the network.
 
         Args:
             client (Client): The client instance to use for receipt retrieval.
