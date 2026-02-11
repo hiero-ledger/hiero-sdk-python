@@ -148,6 +148,7 @@ class TransactionRecord:
         new_pending_airdrops = cls._parse_pending_airdrops(proto)
         call_result = cls._parse_contract_call_result(proto)
 
+        proto.automatic_token_associations
         return cls(
             transaction_id=tx_id,
             transaction_hash=proto.transactionHash,
@@ -162,6 +163,7 @@ class TransactionRecord:
             prng_number=proto.prng_number,
             prng_bytes=proto.prng_bytes,
             duplicates=duplicates,
+
         )
 
     @staticmethod

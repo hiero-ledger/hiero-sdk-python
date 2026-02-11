@@ -18,6 +18,7 @@ from hiero_sdk_python import (
     ResponseCode,
     TopicInfoQuery,
 )
+from hiero_sdk_python.consensus.topic_id import TopicId
 
 BIG_CONTENT = """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur aliquam augue sem, ut mattis dui laoreet a. Curabitur consequat est euismod, scelerisque metus et, tristique dui. Nulla commodo mauris ut faucibus ultricies. Quisque venenatis nisl nec augue tempus, at efficitur elit eleifend. Duis pharetra felis metus, sed dapibus urna vehicula id. Duis non venenatis turpis, sit amet ornare orci. Donec non interdum quam. Sed finibus nunc et risus finibus, non sagittis lorem cursus. Proin pellentesque tempor aliquam. Sed congue nisl in enim bibendum, condimentum vehicula nisi feugiat.
@@ -152,10 +153,20 @@ def main():
     Create a topic and submit a large multi-chunk message to it.
     """
     client = setup_client()
-    topic_id = create_topic(client)
-    fetch_topic_info(client, topic_id)
-    submit_topic_message_transaction(client, topic_id)
-    fetch_topic_info(client, topic_id)
+    # topic_id = create_topic(client)
+    # fetch_topic_info(client, topic_id)
+    # submit_topic_message_transaction(client, topic_id)
+    # fetch_topic_info(client, topic_id)
+    tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(TopicId.from_string("0.0.7895219"))
+            .set_message(BIG_CONTENT)
+            .freeze_with(client)
+    )
+
+    print(tx.get_size())
+    print(tx.get_body_size())
+    print(tx.get_body_size_all_chunks())
 
 
 if __name__ == "__main__":
