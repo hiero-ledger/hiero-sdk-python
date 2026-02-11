@@ -278,6 +278,109 @@ reviews:
     - Execution-consistent
     - Strictly aligned with Hedera query semantics
 
+  # CONTRACT REVIEW INSTRUCTIONS
+  contract_review_instructions: &contract_review_instructions |
+    You are acting as a senior maintainer reviewing smart contract-related code
+    in the hiero-sdk-python project.
+    This includes:
+    - Contract transaction classes (ContractCreateTransaction, ContractExecuteTransaction, EthereumTransaction)
+    - ABI handling (ContractFunctionParameters, ContractFunctionResult)
+    - ContractId and related utilities
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when behavior, safety, ABI correctness, or API stability is impacted.
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/contract/
+    - Their interaction with shared SDK base classes (Transaction, etc.)
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    (CONTRACTUAL / HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Contract APIs are public and user-facing.
+    The following MUST remain stable:
+    - Public class/method names and signatures (set_*, add_*, get_*)
+    - Fluent setter chaining
+    - eth-abi based encoding/decoding behavior
+    - ContractId constructors and string representations
+    - Default gas/initial_balance handling (or lack thereof)
+    Flag any change that:
+    - Alters method signatures, return types, or exceptions
+    - Changes encoding/decoding results for same inputs
+    - Modifies ContractId EVM alias ↔ numeric mapping
+    - Alters payable amount (amount vs initial_balance) semantics
+    
+    If breaking: require deprecation warnings (e.g. warnings.warn(..., DeprecationWarning)), migration docs, dual-behavior tests.
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — ABI ENCODING/DECODING SAFETY (CRITICAL)
+    ----------------------------------------------------------
+    Relies on eth-abi — verify strict adherence:
+    - All add_* / get_* methods match Solidity types exactly (padding, dynamic handling, signed/unsigned)
+    - Function selector computation correct (keccak if function_name set)
+    - Dynamic types (string, bytes, arrays) use proper offset + length encoding
+    - Revert/custom error decoding in ContractFunctionResult (if enhanced)
+    - No silent truncation/overflow in int/uint handling
+    Flag unsafe conversions, missing validation, or non-standard ABI deviations.
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — TRANSACTION LIFECYCLE & PROTOBUF ALIGNMENT
+    ----------------------------------------------------------
+    Classes inherit from Transaction — must follow contract:
+    - super().__init__()
+    - Implement _build_proto_body(), build_transaction_body(), _get_method()
+    - build_scheduled_body() optional but consistent
+    Protobuf fields MUST match Hedera protobufs (ContractCreateTransactionBody, ContractCallTransactionBody, EthereumTransactionBody):
+    - gas, initialBalance/amount, constructorParameters/functionParameters
+    - Correct handling of optional fields (None → omitted)
+    - No manual mutation of protobuf objects
+    EthereumTransaction: cannot be scheduled — enforce raise
+    Flag lifecycle bypasses or protobuf mismatches.
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — GAS, VALUE & PAYABLE SAFETY
+    ----------------------------------------------------------
+    - Gas required for create/execute — enforce validation
+    - Payable amount (initial_balance / amount) in tinybars — verify Hbar conversion
+    - No automatic gas estimation — users set explicitly
+    - Flag missing checks for payable functions (if SDK adds awareness)
+    - Ensure no negative/zero gas without justification
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — EVM ADDRESS & CONTRACT ID HANDLING
+    ----------------------------------------------------------
+    - ContractId supports EVM alias — verify from_evm_address(), to_evm_address()
+    - Mirror-node population (populate_contract_num) safe and optional
+    - Checksum validation only for numeric form
+    - Flag invalid conversions or missing validation
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — VALIDATION, ERRORS & SAFETY
+    ----------------------------------------------------------
+    - Raise early on missing required fields (bytecode/gas/contract_id)
+    - Deterministic, clear exceptions (ValueError preferred)
+    - No silent failures or deferred errors
+    - Avoid unsafe assumptions in eth_abi calls
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — TEST & EXAMPLE EXPECTATIONS
+    ----------------------------------------------------------
+    Good to check:
+    - Unit tests for encoding/decoding round-trips, edge types (large arrays, zero values)
+    - Failure cases: revert, invalid params, gas exhaustion
+    - Integration: deploy → call → query → result parse
+    - Examples use safe patterns (explicit gas, receipt checks, try/except)
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Propose adding gas estimation unless PR claims it
+    - Review unrelated protobuf or transaction base logic
+    - Nitpick style/formatting unless misleading
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure contract code is:
+    - Backward-compatible
+    - ABI-correct & eth-abi safe
+    - Protobuf-aligned with Hedera/Hiero
+    - Gas/value safe
+    - Deterministic and user-protective
+
   # ============================================================
   # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
   # ============================================================
@@ -798,6 +901,9 @@ reviews:
 
     - path: "src/hiero_sdk_python/contract/**/*_query.py"
       instructions: *query_review_instructions
+
+    - path: "src/hiero_sdk_python/contract/**"
+      instructions: *contract_review_instructions
 
 chat:
   art: false # Don't draw ASCII art (false)
