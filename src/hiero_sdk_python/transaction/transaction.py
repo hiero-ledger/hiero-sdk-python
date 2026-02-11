@@ -412,7 +412,7 @@ class Transaction(_Executable):
 
         return any(sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair)
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_pb2.Transaction:
         """
         Abstract method to build the transaction body.
 
@@ -921,3 +921,13 @@ class Transaction(_Executable):
             int: Number of chunks required.
         """
         return 1
+    
+    def get_size(self) -> int:
+        """Returns the total transaction size in bytes after protobuf encoding"""
+        self._require_frozen()
+        return self._make_request().ByteSize()
+    
+    def get_body_size(self) -> int:
+        """Returns just the transaction body size in bytes after encoding"""
+        self._require_frozen()
+        return self.build_transaction_body().ByteSize()
