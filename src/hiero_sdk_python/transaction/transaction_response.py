@@ -52,11 +52,6 @@ class TransactionResponse:
             TransactionReceipt: The receipt from the network, containing the status
                                and any entities created by the transaction
         """
-        # TODO: Decide how to avoid circular imports
-        from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
-        receipt = (
-            TransactionGetReceiptQuery()
-        receipt = self.get_receipt_query().execute(client)
         receipt = self.get_receipt_query().execute(client, timeout)
         return receipt
     
@@ -72,8 +67,6 @@ class TransactionResponse:
             TransactionRecordQuery()
             .set_transaction_id(self.transaction_id)
             .set_node_account_ids([self.node_id])
-            .execute(client)
-            .set_node_account_id(self.node_id)
         )
     
     def get_record(self, client: Client, timeout: Optional[Union[int, float]] = None):
