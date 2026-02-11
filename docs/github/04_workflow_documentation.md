@@ -38,7 +38,7 @@ A header should provide everything needed for initial understanding:
 
 ### Example: Contributor Self-Assignment Workflow
 
-```python
+```yaml
 # PURPOSE
 # -------
 # Handles contributor self-assignment when a user comments "/assign".
@@ -65,7 +65,7 @@ A header should provide everything needed for initial understanding:
 
 ### Example: Labeling Bug Workflow
 
-```python
+```yaml
 # PURPOSE
 # -------
 # Automatically categorizes incoming issues by type (bug, feature, question)
