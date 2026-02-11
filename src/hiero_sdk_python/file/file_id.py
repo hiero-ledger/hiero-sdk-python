@@ -106,6 +106,15 @@ class FileId:
         """
         return f"{self.shard}.{self.realm}.{self.file}"
 
+    def __repr__(self) -> str:
+        """
+        Returns a detailed representation of the FileId suitable for debugging.
+
+        Returns:
+            str: A string in constructor format 'FileId(shard=X, realm=Y, file=Z)'.
+        """
+        return f"FileId(shard={self.shard}, realm={self.realm}, file={self.file})"
+
     def validate_checksum(self, client: Client) -> None:
         """
         Validates the stored checksum against the calculated checksum using the provided client.
