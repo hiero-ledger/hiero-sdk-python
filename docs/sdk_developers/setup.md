@@ -144,6 +144,35 @@ pip install -e .
 
 **Note:** This method requires you to have Python 3.10+ already installed on your system. Changes to your local code will be immediately reflected when you import the SDK.
 
+## Installing Optional Dependencies
+Some SDK features (such as Ethereum-related functionality) rely on optional dependencies that are not installed by default.
+
+These optional dependencies are required for:
+- Integration tests covering ETH-specific features
+- Running ETH-related example scripts
+
+Optional dependencies are provided via **extras**.
+
+#### Using pip
+To install the SDK for local development with Ethereum support enabled:
+```bash
+pip install -e ".[eth]"
+```
+
+#### Using uv (recommended)
+For most contributors, start with the standard development environment:
+```bash
+uv sync
+```
+If you are working on ETH functionality, running ETH-related tests, or executing ETH examples, install the ETH extra explicitly:
+```bash
+uv sync --dev --extra eth
+```
+
+Optional: To install all available extras (useful full-matrix testing):
+```bash
+uv sync --dev --all-extras
+```
 
 ## Generate Protocol Buffers
 

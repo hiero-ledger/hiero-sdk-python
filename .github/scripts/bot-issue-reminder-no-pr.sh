@@ -132,12 +132,31 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
   fi
 
   # Get assignment time (use the last assigned event)
-  ASSIGN_TS=$(gh api "repos/$REPO/issues/$ISSUE/events" \
-    --jq ".[] | select(.event==\"assigned\") | .created_at" \
-    | tail -n1)
+  if ! ASSIGN_TS=$(gh api graphql -f query="
+  query {
+    repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
+      issue(number: $ISSUE) {
+        timelineItems(itemTypes: [ASSIGNED_EVENT], last: 1) {
+          nodes {
+            ... on AssignedEvent {
+              createdAt
+              assignee {
+                __typename
+                ... on User { login }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+" --jq '.data.repository.issue.timelineItems.nodes[0].createdAt' 2>&1); then
+    echo "[WARN] GraphQL query failed for issue #$ISSUE: $ASSIGN_TS. Skipping."
+    continue
+  fi
 
-  if [ -z "$ASSIGN_TS" ]; then
-    echo "[WARN] No assignment event found. Skipping."
+  if [ -z "$ASSIGN_TS" ] || [ "$ASSIGN_TS" = "null" ]; then
+    echo "[WARN] No assignment event found for issue #$ISSUE. Skipping."
     continue
   fi
 
@@ -148,24 +167,17 @@ echo "$ALL_ISSUES_JSON" | jq -c '.' | while read -r ISSUE_JSON; do
   echo "[INFO] Days since assignment: $DIFF_DAYS"
 
   # Check if any open PRs are linked to this issue
-  PR_NUMBERS=$(gh api \
-    -H "Accept: application/vnd.github.mockingbird-preview+json" \
-    "repos/$REPO/issues/$ISSUE/timeline" \
-    --jq ".[] 
-          | select(.event == \"cross-referenced\") 
-          | select(.source.issue.pull_request != null) 
-          | .source.issue.number" 2>/dev/null || true)
-
-  OPEN_PR_FOUND=""
-  if [ -n "$PR_NUMBERS" ]; then
-    for PR_NUM in $PR_NUMBERS; do
-      PR_STATE=$(gh pr view "$PR_NUM" --repo "$REPO" --json state --jq '.state' 2>/dev/null || true)
-      if [ "$PR_STATE" = "OPEN" ]; then
-        OPEN_PR_FOUND="$PR_NUM"
-        break
-      fi
-    done
-  fi
+  OPEN_PR_FOUND=$(gh api graphql -f query="
+    query {
+      repository(owner: \"${REPO%/*}\", name: \"${REPO#*/}\") {
+        issue(number: $ISSUE) {
+          closedByPullRequestsReferences(first: 100, includeClosedPrs: false) {
+            nodes { number state }
+          }
+        }
+      }
+    }
+  " --jq '[.data.repository.issue.closedByPullRequestsReferences.nodes[] | select(.state == "OPEN") | .number] | first // empty' 2>&1) || true
 
   if [ -n "$OPEN_PR_FOUND" ]; then
     echo "[KEEP] An OPEN PR #$OPEN_PR_FOUND is linked to this issue → skip reminder."
