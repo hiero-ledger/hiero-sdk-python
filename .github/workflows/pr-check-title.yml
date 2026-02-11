@@ -7,20 +7,17 @@ on:
       - reopened
       - edited
       - synchronize
-
 defaults:
   run:
     shell: bash
-
 permissions:
   contents: read
   checks: write
   statuses: write
-
+  pull-requests: write
 concurrency:
   group: pr-checks-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
-
 jobs:
   title-check:
     name: Title Check
@@ -29,13 +26,31 @@ jobs:
     permissions:
       checks: write
       statuses: write
+      pull-requests: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
-
       - name: Check PR Title
+        id: check_title
         uses: step-security/conventional-pr-title-action@cb1c5657ccf4c42f5c0a6c0708cb8251b960d902 # v3.2.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Checkout repository
+        if: failure()
+        uses: actions/checkout@6f13f31f798a93a6b08d3be0727120e9af35851f # v6.0.2
+      
+      - name: Comment with PR title guidance
+        if: failure()
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const path = require('path');
+            const scriptPath = path.join(process.env.GITHUB_WORKSPACE, '.github/scripts/bot-conventional-pr-title.js');
+            console.log(`Loading script from: ${scriptPath}`);
+            const script = require(scriptPath);
+            await script({ github, context, core });
+        env:
+          DRY_RUN: 'false'
