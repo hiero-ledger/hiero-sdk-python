@@ -168,7 +168,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 - Added `grpc_deadline` support for transaction and query execution.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
-- Added `__eq__` and `__hash__` functions for Keys.
+- Added `__eq__` and `__hash__` functions for Key
 - Added `wait_for_receipt` parameter for `Transaction.execute()` to supports optional receipt waiting.
 
 ### Documentation
