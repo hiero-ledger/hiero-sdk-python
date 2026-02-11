@@ -5,9 +5,9 @@ transaction_response.py
 Represents the response from a transaction submitted to the Hedera network.
 Provides methods to retrieve the receipt and access core transaction details.
 """
-from multiprocessing.connection import Client
 from typing import Optional, Union
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 # pylint: disable=too-few-public-methods
 
@@ -40,7 +40,7 @@ class TransactionResponse:
             .set_node_account_id(self.node_id)
         )
     
-    def get_receipt(self, client: Client, timeout: Optional[Union[int, float]] = None):
+    def get_receipt(self, client: "Client", timeout: Optional[Union[int, float]] = None):
         """
         Retrieves the receipt for this transaction from the Hedera network.
 
@@ -69,7 +69,7 @@ class TransactionResponse:
             .set_node_account_ids([self.node_id])
         )
     
-    def get_record(self, client: Client, timeout: Optional[Union[int, float]] = None):
+    def get_record(self, client: "Client", timeout: Optional[Union[int, float]] = None):
         """
         Retrieve the transaction record from the Hedera network.
 
