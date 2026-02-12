@@ -17,6 +17,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -260,3 +262,206 @@ def test_topic_message_submit_transaction_with_large_message(topic_id):
 
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
+
+
+
+def test_topic_message_submit_execute_all_multi_chunk_success(topic_id):
+    """Test multi-chunk transaction should return list of receipts for each chunk."""
+    # Create a large message (just under the typical 4KB limit)
+    large_message = "A" * 4000
+
+    # Create a single node response sequence for all chunks
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    # For simplicity, assume 4 chunks are required
+    # All chunks go to the same node, so repeat the same responses for that node
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(large_message)
+            .freeze_with(client)
+        )
+
+        try:
+            receipts = tx.execute_all(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+
+        assert isinstance(receipts, list)
+        assert len(receipts) == 4
+        for receipt in receipts:
+            assert receipt.status == ResponseCode.SUCCESS
+
+
+
+def test_topic_message_submit_execute_all_single_chunk(topic_id):
+    """Test single chunk transaction should return list with one receipt."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response]
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        try:
+            receipts = tx.execute_all(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+
+        # Verify the receipt contains the expected values
+        assert isinstance(receipts, list)
+        assert len(receipts) == 1
+        for receipt in receipts:
+            assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_topic_message_submit_execute_without_wait_for_receipt(topic_id):
+    """Test should return TransactionResponse when wait_for_receipt=False."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    response_sequence = [tx_response]  # No receipt
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        response = tx.execute(client, wait_for_receipt=False)
+
+        assert isinstance(response, TransactionResponse)
+
+
+def test_topic_message_submit_execute_with_wait_for_receipt(topic_id):
+    """Test should return TransactionReceipt when wait_for_receipt=True."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        response = tx.execute(client, wait_for_receipt=True)
+
+        assert isinstance(response, TransactionReceipt)
+
+
+def test_topic_message_submit_execute_all_without_wait_for_receipt(topic_id):
+    """Test should return list of TransactionResponse when wait_for_receipt=False."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    response_sequence = [tx_response]  # No receipt
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        responses = tx.execute_all(client, wait_for_receipt=False)
+
+        assert isinstance(responses, list)
+        assert isinstance(responses[0], TransactionResponse)
+
+
+def test_topic_message_submit_execute_all_with_wait_for_receipt(topic_id):
+    """Test should return list of TransactionReceipt when wait_for_receipt=True."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        responses = tx.execute_all(client, wait_for_receipt=True)
+
+        assert isinstance(responses, list)
+        assert isinstance(responses[0], TransactionReceipt)
