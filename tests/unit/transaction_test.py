@@ -19,7 +19,7 @@ pytestmark = pytest.mark.unit
 
 
 def test_execute_waits_for_receipt_receipt():
-    """Test execute return TransacationReceipt when wait_for_receipt is True (default)."""
+    """Test execute return TransactionReceipt when wait_for_receipt is True (default)."""
     ok_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK
     )
@@ -55,7 +55,7 @@ def test_execute_waits_for_receipt_receipt():
 
 
 def test_execute_without_wait_returns_transaction_response():
-    """Test execute return TransacationResponse when wait_for_receipt is False."""
+    """Test execute return TransactionResponse when wait_for_receipt is False."""
     ok_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK
     )
@@ -83,7 +83,7 @@ def test_execute_without_wait_returns_transaction_response():
             .set_key_without_alias(PrivateKey.generate())
         )
 
-        # Default value of wait_for_receipt = True
+        # Explicitly pass wait_for_receipt=False to get TransactionResponse
         response = tx.execute(client, wait_for_receipt=False)
 
         assert isinstance(response, TransactionResponse)

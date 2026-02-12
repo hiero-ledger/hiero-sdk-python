@@ -14,6 +14,7 @@ from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.query.transaction_get_receipt_query import (
     TransactionGetReceiptQuery,
 )
+from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -74,6 +75,7 @@ def test_get_record_query_builds_query(transaction_response):
     """Test get_record_query builds and returns the transaction record query."""
     query = transaction_response.get_record_query()
 
+    assert isinstance(query, TransactionRecordQuery)
     assert query.transaction_id == transaction_response.transaction_id
     assert len(query.node_account_ids) == 1
     assert query.node_account_ids[0] == transaction_response.node_id

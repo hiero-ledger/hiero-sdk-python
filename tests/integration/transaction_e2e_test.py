@@ -24,7 +24,7 @@ def create_transaction():
 
 @pytest.mark.integration
 def test_execute_waits_for_receipt_receipt(env):
-    """Test execute return TransacationReceipt when wait_for_receipt is True (default)."""
+    """Test execute return TransactionReceipt when wait_for_receipt is True (default)."""
     tx = create_transaction()
     # Default value for wait_for_receipt = True
     receipt = tx.execute(env.client)
@@ -34,7 +34,7 @@ def test_execute_waits_for_receipt_receipt(env):
 
 @pytest.mark.integration
 def test_execute_without_wait_returns_transaction_response(env):
-    """Test execute return TransacationResponse when wait_for_receipt is False."""
+    """Test execute return TransactionResponse when wait_for_receipt is False."""
     tx = create_transaction()
     response = tx.execute(env.client, wait_for_receipt=False)
 
