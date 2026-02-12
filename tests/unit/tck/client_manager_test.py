@@ -24,12 +24,14 @@ class TestClientManager:
         store_client(session_id, mock_client)
         retrieved_client = get_client(session_id)
 
-        assert retrieved_client is mock_client, "Expected stored client to be returned for session123"
+        if retrieved_client is not mock_client:
+            raise AssertionError("Expected stored client to be returned for session123")
 
     def test_retrieve_nonexistent_client_returns_none(self):
         """Test that retrieving a non-existent client returns None."""
         result = get_client("nonexistent_session")
-        assert result is None, "Expected None when retrieving a missing session ID"
+        if result is not None:
+            raise AssertionError("Expected None when retrieving a missing session ID")
 
     def test_store_multiple_clients(self):
         """Test storing and retrieving multiple clients with different session IDs."""
@@ -41,9 +43,12 @@ class TestClientManager:
         store_client("session2", client2)
         store_client("session3", client3)
         
-        assert get_client("session1") is client1
-        assert get_client("session2") is client2
-        assert get_client("session3") is client3
+        if get_client("session1") is not client1:
+            raise AssertionError("Expected client1 to be returned for session1")
+        if get_client("session2") is not client2:
+            raise AssertionError("Expected client2 to be returned for session2")
+        if get_client("session3") is not client3:
+            raise AssertionError("Expected client3 to be returned for session3")
     
     def test_overwrite_existing_client(self):
         """Test that storing a client with an existing session ID overwrites it."""
@@ -55,8 +60,10 @@ class TestClientManager:
         store_client(session_id, new_client)
 
         retrieved = get_client(session_id)
-        assert retrieved is new_client, "Expected new_client after overwrite"
-        assert retrieved is not old_client, "Old client should no longer be stored"
+        if retrieved is not new_client:
+            raise AssertionError("Expected new_client after overwrite")
+        if retrieved is old_client:
+            raise AssertionError("Old client should no longer be stored")
 
         # Verify that close() was called on the old client
         old_client.close.assert_called_once()
@@ -74,7 +81,8 @@ class TestClientManager:
         mock_client.close.assert_called_once()
 
         # Verify client was removed from storage
-        assert get_client(session_id) is None
+        if get_client(session_id) is not None:
+            raise AssertionError("Expected client to be removed from storage")
 
     def test_remove_nonexistent_client_does_not_raise(self):
         """Test that removing a non-existent client does not raise an error."""
@@ -108,11 +116,14 @@ class TestClientManager:
         remove_client("session2")
 
         # session2 should be removed
-        assert get_client("session2") is None
+        if get_client("session2") is not None:
+            raise AssertionError("Expected session2 client to be removed")
         client2.close.assert_called_once()
 
         # Others should remain
-        assert get_client("session1") is client1
-        assert get_client("session3") is client3
+        if get_client("session1") is not client1:
+            raise AssertionError("Expected session1 client to remain")
+        if get_client("session3") is not client3:
+            raise AssertionError("Expected session3 client to remain")
         client1.close.assert_not_called()
         client3.close.assert_not_called()

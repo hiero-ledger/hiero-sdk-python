@@ -34,8 +34,10 @@ class TestHandlerRegistration:
             return {"status": "ok"}
 
         handler = get_handler("test_method")
-        assert handler is not None
-        assert handler({"test": "param"}) == {"status": "ok"}
+        if handler is None:
+            raise AssertionError("Expected handler to be registered")
+        if handler({"test": "param"}) != {"status": "ok"}:
+            raise AssertionError("Expected handler to return ok status")
 
     def test_get_all_handlers(self):
         """Test that get_all_handlers returns copy of all registered handlers."""
@@ -48,14 +50,18 @@ class TestHandlerRegistration:
             return "result2"
 
         all_handlers = get_all_handlers()
-        assert len(all_handlers) == 2
-        assert "method1" in all_handlers
-        assert "method2" in all_handlers
+        if len(all_handlers) != 2:
+            raise AssertionError("Expected two handlers to be registered")
+        if "method1" not in all_handlers:
+            raise AssertionError("Expected method1 to be registered")
+        if "method2" not in all_handlers:
+            raise AssertionError("Expected method2 to be registered")
 
     def test_get_nonexistent_handler_returns_none(self):
         """Test that getting a non-existent handler returns None."""
         handler = get_handler("nonexistent")
-        assert handler is None
+        if handler is not None:
+            raise AssertionError("Expected None for nonexistent handler")
 
     def test_handler_override_behavior(self):
         """Test that registering the same method twice overwrites the first handler."""
@@ -68,7 +74,8 @@ class TestHandlerRegistration:
             return "second"
 
         handler = get_handler("override_method")
-        assert handler({}) == "second", "Second handler should overwrite first"
+        if handler({}) != "second":
+            raise AssertionError("Second handler should overwrite first")
 
     def test_get_all_handlers_returns_copy(self):
         """Test that get_all_handlers returns a copy that doesn't affect the registry."""
@@ -81,8 +88,10 @@ class TestHandlerRegistration:
         all_handlers["injected_method"] = lambda: "injected"
         
         # Original registry should be unchanged
-        assert get_handler("protected_method")({}) == "protected"
-        assert get_handler("injected_method") is None
+        if get_handler("protected_method")({}) != "protected":
+            raise AssertionError("Expected protected_method to be unchanged")
+        if get_handler("injected_method") is not None:
+            raise AssertionError("Expected injected_method to be absent")
 
 
 class TestDispatch:
@@ -95,7 +104,8 @@ class TestDispatch:
             return {"ready": True}
 
         result = dispatch("setup", {"key": "value"}, None)
-        assert result == {"ready": True}
+        if result != {"ready": True}:
+            raise AssertionError("Expected handler result to match")
 
     def test_dispatch_with_session_id(self):
         """Test that dispatch passes session_id to handler when provided."""
@@ -104,15 +114,18 @@ class TestDispatch:
             return {"session": session_id, "params": params}
 
         result = dispatch("session_method", {"data": "test"}, "session123")
-        assert result == {"session": "session123", "params": {"data": "test"}}
+        if result != {"session": "session123", "params": {"data": "test"}}:
+            raise AssertionError("Expected session id and params to be passed through")
 
     def test_dispatch_unknown_method_raises_method_not_found(self):
         """Test that dispatching unknown method raises METHOD_NOT_FOUND error."""
         with pytest.raises(JsonRpcError) as excinfo:
             dispatch("unknown_method", {}, None)
 
-        assert excinfo.value.code == METHOD_NOT_FOUND
-        assert "Method not found" in excinfo.value.message
+        if excinfo.value.code != METHOD_NOT_FOUND:
+            raise AssertionError("Expected METHOD_NOT_FOUND error")
+        if "Method not found" not in excinfo.value.message:
+            raise AssertionError("Expected Method not found message")
 
     def test_dispatch_reraises_json_rpc_error(self):
         """Test that dispatch re-raises JsonRpcError exceptions."""
@@ -123,7 +136,8 @@ class TestDispatch:
         with pytest.raises(JsonRpcError) as excinfo:
             dispatch("error_method", {}, None)
 
-        assert excinfo.value.code == INVALID_PARAMS
+        if excinfo.value.code != INVALID_PARAMS:
+            raise AssertionError("Expected INVALID_PARAMS error")
 
     def test_dispatch_converts_generic_exception_to_internal_error(self):
         """Test that dispatch converts generic exceptions to INTERNAL_ERROR."""
@@ -134,8 +148,10 @@ class TestDispatch:
         with pytest.raises(JsonRpcError) as excinfo:
             dispatch("crash_method", {}, None)
         
-        assert excinfo.value.code == INTERNAL_ERROR
-        assert "Something went wrong" in excinfo.value.data
+        if excinfo.value.code != INTERNAL_ERROR:
+            raise AssertionError("Expected INTERNAL_ERROR error")
+        if "Something went wrong" not in excinfo.value.data:
+            raise AssertionError("Expected error details to include message")
 
     def test_dispatch_converts_precheck_error_to_hiero_error(self):
         """Test that dispatch converts PrecheckError to HIERO_ERROR."""
@@ -146,8 +162,10 @@ class TestDispatch:
         with pytest.raises(JsonRpcError) as excinfo:
             dispatch("precheck_method", {}, None)
         
-        assert excinfo.value.code == HIERO_ERROR
-        assert "Hiero error" in excinfo.value.message
+        if excinfo.value.code != HIERO_ERROR:
+            raise AssertionError("Expected HIERO_ERROR error")
+        if "Hiero error" not in excinfo.value.message:
+            raise AssertionError("Expected Hiero error message")
 
     def test_dispatch_converts_receipt_status_error_to_hiero_error(self):
         """Test that dispatch converts ReceiptStatusError to HIERO_ERROR."""
@@ -159,8 +177,10 @@ class TestDispatch:
         with pytest.raises(JsonRpcError) as excinfo:
             dispatch("receipt_method", {}, None)
         
-        assert excinfo.value.code == HIERO_ERROR
-        assert "Hiero error" in excinfo.value.message
+        if excinfo.value.code != HIERO_ERROR:
+            raise AssertionError("Expected HIERO_ERROR error")
+        if "Hiero error" not in excinfo.value.message:
+            raise AssertionError("Expected Hiero error message")
 
     def test_dispatch_converts_max_attempts_error_to_hiero_error(self):
         """Test that dispatch converts MaxAttemptsError to HIERO_ERROR."""
@@ -171,8 +191,10 @@ class TestDispatch:
         with pytest.raises(JsonRpcError) as excinfo:
             dispatch("max_attempts_method", {}, None)
         
-        assert excinfo.value.code == HIERO_ERROR
-        assert "Hiero error" in excinfo.value.message
+        if excinfo.value.code != HIERO_ERROR:
+            raise AssertionError("Expected HIERO_ERROR error")
+        if "Hiero error" not in excinfo.value.message:
+            raise AssertionError("Expected Hiero error message")
 
 
 class TestSafeDispatch:
@@ -186,7 +208,8 @@ class TestSafeDispatch:
 
         # safe_dispatch should return raw result without wrapping
         result = safe_dispatch("success_method", {}, None, 1)
-        assert result == {"success": True}, "Expected raw handler result from safe_dispatch"
+        if result != {"success": True}:
+            raise AssertionError("Expected raw handler result from safe_dispatch")
 
     def test_safe_dispatch_returns_error_response_for_json_rpc_error(self):
         """Test that safe_dispatch returns error response for JsonRpcError."""
@@ -196,11 +219,16 @@ class TestSafeDispatch:
 
         response = safe_dispatch("json_error_method", {}, None, 42)
 
-        assert "error" in response
-        assert response["error"]["code"] == INVALID_PARAMS
-        assert response["error"]["message"] == "Bad params"
-        assert response["error"]["data"] == "field_name"
-        assert response["id"] == 42
+        if "error" not in response:
+            raise AssertionError("Expected error in response")
+        if response["error"]["code"] != INVALID_PARAMS:
+            raise AssertionError("Expected INVALID_PARAMS error code")
+        if response["error"]["message"] != "Bad params":
+            raise AssertionError("Expected Bad params message")
+        if response["error"]["data"] != "field_name":
+            raise AssertionError("Expected error data to match")
+        if response["id"] != 42:
+            raise AssertionError("Expected response id to match request id")
 
     def test_safe_dispatch_transforms_precheck_error(self):
         """Test that safe_dispatch transforms PrecheckError to HIERO_ERROR."""
@@ -210,9 +238,12 @@ class TestSafeDispatch:
 
         response = safe_dispatch("precheck_method", {}, None, 1)
 
-        assert "error" in response
-        assert response["error"]["code"] == HIERO_ERROR
-        assert "Hiero error" in response["error"]["message"]
+        if "error" not in response:
+            raise AssertionError("Expected error in response")
+        if response["error"]["code"] != HIERO_ERROR:
+            raise AssertionError("Expected HIERO_ERROR error code")
+        if "Hiero error" not in response["error"]["message"]:
+            raise AssertionError("Expected Hiero error message")
 
     def test_safe_dispatch_transforms_receipt_status_error(self):
         """Test that safe_dispatch transforms ReceiptStatusError to HIERO_ERROR."""
@@ -222,8 +253,10 @@ class TestSafeDispatch:
             raise ReceiptStatusError(status=21, transaction_id=None, transaction_receipt=mock_receipt, message="Transaction failed")
         response = safe_dispatch("receipt_method", {}, None, 2)
 
-        assert "error" in response
-        assert response["error"]["code"] == HIERO_ERROR
+        if "error" not in response:
+            raise AssertionError("Expected error in response")
+        if response["error"]["code"] != HIERO_ERROR:
+            raise AssertionError("Expected HIERO_ERROR error code")
 
     def test_safe_dispatch_transforms_max_attempts_error(self):
         """Test that safe_dispatch transforms MaxAttemptsError to HIERO_ERROR."""
@@ -232,8 +265,10 @@ class TestSafeDispatch:
             raise MaxAttemptsError("Max retries exceeded", node_id="0.0.1")
         response = safe_dispatch("max_attempts_method", {}, None, 3)
 
-        assert "error" in response
-        assert response["error"]["code"] == HIERO_ERROR
+        if "error" not in response:
+            raise AssertionError("Expected error in response")
+        if response["error"]["code"] != HIERO_ERROR:
+            raise AssertionError("Expected HIERO_ERROR error code")
 
     def test_safe_dispatch_transforms_generic_exception(self):
         """Test that safe_dispatch transforms generic Exception to INTERNAL_ERROR."""
@@ -243,9 +278,12 @@ class TestSafeDispatch:
 
         response = safe_dispatch("generic_error_method", {}, None, 4)
 
-        assert "error" in response
-        assert response["error"]["code"] == INTERNAL_ERROR
-        assert response["id"] == 4
+        if "error" not in response:
+            raise AssertionError("Expected error in response")
+        if response["error"]["code"] != INTERNAL_ERROR:
+            raise AssertionError("Expected INTERNAL_ERROR error code")
+        if response["id"] != 4:
+            raise AssertionError("Expected response id to match request id")
     
     def test_safe_dispatch_includes_request_id_in_response(self):
         """Test that safe_dispatch returns raw result without id field (id is added at server level)."""
@@ -255,7 +293,8 @@ class TestSafeDispatch:
         
         # safe_dispatch returns raw result; request_id is added by server layer
         response = safe_dispatch("test_id_method", {}, None, "request_id_123")
-        assert response == {"data": "test"}
+        if response != {"data": "test"}:
+            raise AssertionError("Expected raw response to be returned")
 
 
 class TestValidateRequestParams:
@@ -280,8 +319,10 @@ class TestValidateRequestParams:
         with pytest.raises(JsonRpcError) as excinfo:
             validate_request_params(params, required)
 
-        assert excinfo.value.code == INVALID_PARAMS
-        assert "sequence_number" in excinfo.value.message
+        if excinfo.value.code != INVALID_PARAMS:
+            raise AssertionError("Expected INVALID_PARAMS error")
+        if "sequence_number" not in excinfo.value.message:
+            raise AssertionError("Expected missing field name in message")
 
     def test_validate_incorrect_field_type(self):
         """Test that incorrect field type raises INVALID_PARAMS."""
@@ -291,15 +332,18 @@ class TestValidateRequestParams:
         with pytest.raises(JsonRpcError) as excinfo:
             validate_request_params(params, required)
 
-        assert excinfo.value.code == INVALID_PARAMS
-        assert "sequence_number" in excinfo.value.message
+        if excinfo.value.code != INVALID_PARAMS:
+            raise AssertionError("Expected INVALID_PARAMS error")
+        if "sequence_number" not in excinfo.value.message:
+            raise AssertionError("Expected field name in message")
 
     def test_validate_non_dict_params_raises_invalid_params(self):
         """Test that non-dict params raises INVALID_PARAMS."""
         with pytest.raises(JsonRpcError) as excinfo:
             validate_request_params(["not", "a", "dict"], {"memo": str})
 
-        assert excinfo.value.code == INVALID_PARAMS
+        if excinfo.value.code != INVALID_PARAMS:
+            raise AssertionError("Expected INVALID_PARAMS error")
 
     def test_validate_none_value_for_required_field(self):
         """Test that None value for required field raises INVALID_PARAMS."""
@@ -309,5 +353,7 @@ class TestValidateRequestParams:
         with pytest.raises(JsonRpcError) as excinfo:
             validate_request_params(params, required)
 
-        assert excinfo.value.code == INVALID_PARAMS
-        assert "memo" in excinfo.value.message
+        if excinfo.value.code != INVALID_PARAMS:
+            raise AssertionError("Expected INVALID_PARAMS error")
+        if "memo" not in excinfo.value.message:
+            raise AssertionError("Expected field name in message")

@@ -100,7 +100,6 @@ ignore = [
     "D212",     # disable "summary on same line"
     "E501",     # line length -> formatter
     "B008",     # function calls in argument defaults 
-    "S101",     # Allow assert statements in tests
 ]
 
 [tool.ruff.format]
