@@ -54,6 +54,29 @@ async function commentExists({ github, owner, repo, issueNumber, marker }) {
 }
 
 /**
+ * Builds the draft-ready reminder comment body.
+ *
+ * @param {string} username - PR author username.
+ * @returns {string} - Formatted reminder message.
+ */
+function buildReminderComment(username) {
+    return `
+${COMMENT_MARKER}
+👋 Hi @${username},
+
+We noticed your pull request has had *recent changes pushed* after *changes were requested*.
+
+If these updates address the feedback, you can:
+- resolve any open review conversations (reply if clarification is needed, or mark them as resolved),
+- click **“Ready for review”** (recommended), or
+- use the \`/review\` command.
+
+Thanks for keeping things moving! 🙌  
+— Hiero SDK Automation Team
+`.trim();
+}
+
+/**
  * Main entry point for the PR Draft Ready Reminder Bot.
  *
  * This function:
@@ -61,17 +84,10 @@ async function commentExists({ github, owner, repo, issueNumber, marker }) {
  * 2. Ensures the PR is a draft and not bot-authored.
  * 3. Checks whether the review decision is CHANGES_REQUESTED.
  * 4. Prevents duplicate reminder comments.
- * 5. Posts a reminder comment (unless running in DRY_RUN mode).
- *
- * Environment Variables:
- * - DRY_RUN (optional): If "true", logs intended actions without posting comments.
- * - PR_NUMBER (optional): Used when triggered via workflow_dispatch.
+ * 5. Posts a reminder comment.
  */
 
 module.exports = async function ({ github, context }) {
-    const dryRun = process.env.DRY_RUN === "true";
-
-    console.log(`DRY_RUN mode: ${dryRun}`);
 
     // Resolve PR number from event or workflow_dispatch
     const prNumber =
@@ -165,36 +181,11 @@ module.exports = async function ({ github, context }) {
         return;
     }
 
-    // Reminder message
-    const message = `
-${COMMENT_MARKER}
-👋 Hi @${pr.user.login},
-
-We noticed your pull request has had *recent changes pushed* after *changes were requested*.
-
-If these updates address the feedback, you can:
-- resolve any open review conversations (reply if clarification is needed, or mark them as resolved),
-- click **“Ready for review”** (recommended), or
-- use the \`/review\` command.
-
-Thanks for keeping things moving! 🙌  
-— Hiero SDK Automation Team
-`.trim();
-
-    // Dry-run mode
-    if (dryRun) {
-        console.log("[DRY RUN] Would post the following comment:");
-        console.log("--------------------------------------------------");
-        console.log(message);
-        console.log("--------------------------------------------------");
-        return;
-    }
-
     await github.rest.issues.createComment({
         owner,
         repo,
         issue_number: prNumber,
-        body: message,
+        body: buildReminderComment(pr.user.login),
     });
 
     console.log(`Reminder successfully posted on PR #${prNumber}`);

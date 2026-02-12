@@ -5,33 +5,14 @@ on:
   pull_request_target:
     types: [synchronize]
 
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: "Pull Request number to run the reminder against"
-        required: true
-        type: number
-      dry_run:
-        description: "Run without posting comments"
-        required: false
-        default: true
-        type: boolean
-
 permissions:
   contents: read
   pull-requests: write
   issues: write
 
-concurrency:
-  group: draft-ready-reminder-${{ github.event.pull_request.number || inputs.pr_number }}
-  cancel-in-progress: false
-
 jobs:
   draft-ready-reminder:
     runs-on: ubuntu-latest
-    env:
-      DRY_RUN: ${{ inputs.dry_run }}
-      PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
