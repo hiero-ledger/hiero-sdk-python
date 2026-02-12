@@ -1,10 +1,25 @@
 """
 Module defining the TokenAssociation class.
 
-This class represents an association between a token and an account,
-typically appearing in TransactionRecord.automatic_token_associations
-when the network automatically creates token associations (e.g. during
-token airdrops or transfers to unassociated accounts in certain conditions).
+This class provides a lightweight, immutable representation of a token ↔ account association
+as reported by the Hedera network — specifically for associations that the network creates
+**automatically** during transaction execution.
+
+These appear in:
+    TransactionRecord.automatic_token_associations
+        (a list of TokenAssociation objects)
+
+Common triggers include:
+- Transfers to accounts with available auto-association slots
+  (configured via max_automatic_token_associations on the account)
+- Payer-sponsored transfers to non-existent aliases (HIP-542: auto-account creation + association)
+- Frictionless token airdrops (HIP-904: automatic association on transfer when allowed)
+
+**Important: Informational / read-only only**
+Creating an instance of this object has no effect on ledger state.
+Instances of TokenAssociation cannot be submitted in any transaction.
+
+To create an association explicitly, submit a TokenAssociateTransaction.
 """
 
 from dataclasses import dataclass
