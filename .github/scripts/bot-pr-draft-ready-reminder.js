@@ -30,6 +30,7 @@ async function commentExists({ github, owner, repo, issueNumber, marker }) {
     console.log("Checking for existing reminder comments...");
 
     let scanned = 0;
+    const MAX_COMMENTS = 500;
 
     for await (const response of github.paginate.iterator(
         github.rest.issues.listComments,
@@ -41,11 +42,16 @@ async function commentExists({ github, owner, repo, issueNumber, marker }) {
         }
     )) {
         for (const comment of response.data) {
-            scanned++;
+            scanned;
             if (comment.body?.includes(marker)) {
                 console.log(`Found existing reminder comment (scanned ${scanned} comments).`);
                 return true;
             }
+        }
+
+        if (scanned >= MAX_COMMENTS) {
+            console.log(`Reached scan limit (${MAX_COMMENTS} comments) — assuming no duplicate.`);
+            return false;
         }
     }
 
@@ -104,12 +110,18 @@ module.exports = async function ({ github, context }) {
     console.log(`Processing PR #${prNumber} in ${owner}/${repo}`);
 
     // Fetch PR details
-    console.log("Fetching PR details...");
-    const { data: pr } = await github.rest.pulls.get({
-        owner,
-        repo,
-        pull_number: prNumber,
-    });
+    let pr;
+    try {
+        console.log("Fetching PR details...");
+        ({ data: pr } = await github.rest.pulls.get({
+            owner,
+            repo,
+            pull_number: prNumber,
+        }));
+    } catch (err) {
+        console.log(`Failed to fetch PR #${prNumber} in ${owner}/${repo}: ${err.message}`);
+        return;
+    }
 
     console.log(`PR state → draft=${pr.draft}, author=${pr.user.login}, type=${pr.user?.type}`);
 
@@ -181,12 +193,22 @@ module.exports = async function ({ github, context }) {
         return;
     }
 
-    await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: prNumber,
-        body: buildReminderComment(pr.user.login),
-    });
+    try {
+        await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: prNumber,
+            body: buildReminderComment(pr.user.login),
+        });
+
+    console.log(`Reminder successfully posted on PR #${prNumber}`);
+    } catch (error) {
+        // Permission handling
+        console.log("Failed to create reminder comment.");
+        console.log(`PR #${prNumber} in ${owner}/${repo}`);
+        console.log(`Error status: ${error.status}`);
+        console.log(`Error message: ${error.message}`);
+    }
 
     console.log(`Reminder successfully posted on PR #${prNumber}`);
 };
