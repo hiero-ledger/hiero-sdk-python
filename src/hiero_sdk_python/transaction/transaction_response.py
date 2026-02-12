@@ -6,9 +6,17 @@ Represents the response from a transaction submitted to the Hedera network.
 Provides methods to retrieve the receipt and access core transaction details.
 """
 from typing import Optional, Union
+from typing import TYPE_CHECKING
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.transaction.transaction_record import TransactionRecord
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.transaction.transaction import Transaction
+
 # pylint: disable=too-few-public-methods
 
 class TransactionResponse:
@@ -20,11 +28,11 @@ class TransactionResponse:
         """
         Initialize a new TransactionResponse instance with default values.
         """
-        self.transaction_id = TransactionId()
+        self.transaction_id: TransactionId = TransactionId()
         self.node_id: AccountId = AccountId()
         self.hash: bytes = bytes()
         self.validate_status: bool = False
-        self.transaction = None
+        self.transaction: Optional["Transaction"] = None
     
     def get_receipt_query(self):
         """
@@ -40,7 +48,7 @@ class TransactionResponse:
             .set_node_account_id(self.node_id)
         )
     
-    def get_receipt(self, client: "Client", timeout: Optional[Union[int, float]] = None):
+    def get_receipt(self, client: "Client", timeout: Optional[Union[int, float]] = None) -> "TransactionReceipt":
         """
         Retrieves the receipt for this transaction from the network.
 
@@ -69,7 +77,7 @@ class TransactionResponse:
             .set_node_account_ids([self.node_id])
         )
     
-    def get_record(self, client: "Client", timeout: Optional[Union[int, float]] = None):
+    def get_record(self, client: "Client", timeout: Optional[Union[int, float]] = None) -> "TransactionRecord":
         """
         Retrieve the transaction record from the Hedera network.
 
