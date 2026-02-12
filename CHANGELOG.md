@@ -25,6 +25,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
 - Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
 - Improve `keccak256` docstring formatting for better readability and consistency (#1624)
+- Added `wait_for_receipt` parameter for `Transaction.execute()` to supports optional receipt waiting, and `get_receipt_query`, `get_record_query` and `get_record` to `TransactionResponse`.
 
 ### Examples
 - Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)
@@ -219,7 +220,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `grpc_deadline` support for transaction and query execution.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
 - Added `__eq__` and `__hash__` functions for Key
-- Added `wait_for_receipt` parameter for `Transaction.execute()` to supports optional receipt waiting.
 
 ### Documentation
 - Added `docs/workflows/02-architecture.md`: explains the orchestration (YAML) vs. business logic (JS) separation pattern for GitHub workflows (#1742)
