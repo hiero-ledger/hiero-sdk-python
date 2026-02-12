@@ -257,27 +257,7 @@ class Transaction(_Executable):
         Raises:
             ValueError: If transaction_id or node_account_id are not set.
         """
-        if self._transaction_body_bytes:
-            return self
-        
-        if self.transaction_id is None:
-            raise ValueError("Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id().")
-        
-        if self.node_account_id is None and len(self.node_account_ids) == 0:
-            raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids.")
-        
-        # Populate node_account_ids for backward compatibility
-        if self.node_account_id:
-            self.set_node_account_id(self.node_account_id)
-            self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
-            return self
-
-        # Build the transaction body for the single node
-        for node_account_id in self.node_account_ids:
-            self.node_account_id = node_account_id
-            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
-        
-        return self
+        return self.freeze_with(None)
 
     def freeze_with(self, client):
         """
@@ -295,6 +275,18 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             return self
         
+        # Check transaction_id and node id to be set when using freeze()
+        if client is None:
+            if self.transaction_id is None:
+                raise ValueError(
+                    "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
+                )
+        
+            if self.node_account_id is None and len(self.node_account_ids) == 0:
+                raise ValueError(
+                    "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
+                )
+
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
         
