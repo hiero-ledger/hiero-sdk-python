@@ -25,16 +25,6 @@ def request_missing_fields():
         "id": 1
     }
 
-@pytest.fixture
-def jsonrpc_notification():
-    """Returns a JSON-RPC notification (valid request without id).
-    Notifications do not expect a response, per JSON-RPC 2.0 spec.
-    """
-    return {
-        "jsonrpc": "2.0",
-        "method": "notify",
-        "params": {},
-    }
 
 @pytest.fixture
 def request_with_string_id():
