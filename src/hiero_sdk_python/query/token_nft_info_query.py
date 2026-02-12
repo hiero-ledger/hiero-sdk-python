@@ -99,7 +99,7 @@ class TokenNftInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TokenNftInfo: The token nft info from the network

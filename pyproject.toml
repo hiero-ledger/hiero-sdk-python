@@ -41,7 +41,7 @@ eth = [
     "rlp>=4.0.1,<5",
 ]
 
-tck = ["flask>=3.0.0"]
+tck = ["flask>=3.0.0,<4"]
 
 [dependency-groups]
 dev = [
@@ -100,6 +100,7 @@ ignore = [
     "D212",     # disable "summary on same line"
     "E501",     # line length -> formatter
     "B008",     # function calls in argument defaults 
+    "S101",     # Allow assert statements in tests
 ]
 
 [tool.ruff.format]
