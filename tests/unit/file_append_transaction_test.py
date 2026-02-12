@@ -3,6 +3,7 @@ import pytest
 
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2, transaction_receipt_pb2, transaction_response_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -11,6 +12,9 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.transaction.transaction_response import TransactionResponse
+from tests.unit.mock_server import mock_hedera_servers
 
 
 def test_constructor_with_parameters():
@@ -138,7 +142,7 @@ def test_multi_chunk_execution():
         assert receipt == mock_receipt
 
         # Should have called execute 3 times (once per chunk)
-        assert Transaction.execute.call_count == 1
+        assert Transaction.execute.call_count == 3
 
 
 def test_build_transaction_body_missing_file_id():
@@ -168,3 +172,122 @@ def test_build_scheduled_body():
     # Verify fields in the schedulable body
     assert schedulable_body.fileAppend.fileID == file_id._to_proto()
     assert schedulable_body.fileAppend.contents == contents[:100]  # First chunk
+
+
+
+def test_file_append_tx_execute_without_wait_for_receipt(file_id):
+    """Test should return TransactionResponse when wait_for_receipt=False."""
+    content = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    response_sequence = [tx_response]  # No receipt
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents(content)
+            .freeze_with(client)
+        )
+
+        response = tx.execute(client, wait_for_receipt=False)
+
+        assert isinstance(response, TransactionResponse)
+
+
+def test_file_append_tx_execute_with_wait_for_receipt(file_id):
+    """Test should return TransactionReceipt when wait_for_receipt=True."""
+    content = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents(content)
+            .freeze_with(client)
+        )
+
+        response = tx.execute(client, wait_for_receipt=True)
+
+        assert isinstance(response, TransactionReceipt)
+
+
+
+def test_file_append_tx_execute_all_without_wait_for_receipt(file_id):
+    """Test should return list of TransactionResponse when wait_for_receipt=False."""
+    content = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    response_sequence = [tx_response]  # No receipt
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents(content)
+            .freeze_with(client)
+        )
+
+        responses = tx.execute_all(client, wait_for_receipt=False)
+
+        assert isinstance(responses, list)
+        assert isinstance(responses[0], TransactionResponse)
+
+
+def test_file_append_tx_execute_all_with_wait_for_receipt(file_id):
+    """Test should return list of TransactionReceipt when wait_for_receipt=True."""
+    content = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents(content)
+            .freeze_with(client)
+        )
+
+        responses = tx.execute_all(client, wait_for_receipt=True)
+
+        assert isinstance(responses, list)
+        assert isinstance(responses[0], TransactionReceipt)
+

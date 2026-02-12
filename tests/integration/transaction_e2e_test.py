@@ -1,7 +1,10 @@
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
+from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import (
     TransactionGetReceiptQuery,
 )
@@ -161,3 +164,73 @@ def test_get_record_vs_query_returns_same_record(env):
 
     assert record_via_response.transaction_id == record_via_query.transaction_id
     assert record_via_response.transaction_hash == record_via_query.transaction_hash
+
+@pytest.mark.integration
+def test_chuck_tx_returns_responses_without_wait_for_receipt(env):
+    """Test chunck transaction return only response when execute without wait for receipt."""
+    topic_receipt = TopicCreateTransaction(memo="Python SDK topic").execute(env.client)
+    assert topic_receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed: {ResponseCode(topic_receipt.status).name}"
+    )
+
+    topic_id = topic_receipt.topic_id
+    message = "A" * (1024 * 14) # message with (1024 * 14) bytes ie 14 chunks
+
+    # Create a chuck transaction
+    message_tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_message(message)
+        .freeze_with(env.client)
+    )
+
+    message_responses = message_tx.execute_all(env.client, wait_for_receipt=False)
+    
+    assert len(message_responses) == 14
+    assert isinstance(message_responses[0], TransactionResponse)
+    assert message_responses[0].transaction is message_tx
+    assert message_responses[0].validate_status is True
+
+    # Verify topic_message receipt (i.e reach consensus)
+    for response in message_responses:
+        message_receipt = response.get_receipt(env.client)
+        assert message_receipt.status == ResponseCode.SUCCESS
+
+    # Validates all chucks has been send
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 14
+
+
+
+@pytest.mark.integration
+def test_chuck_tx_returns_receipts_with_wait_for_receipt(env):
+    """Test chunck transaction return only receipts when execute with wait for receipt."""
+    topic_receipt = TopicCreateTransaction(memo="Python SDK topic").execute(env.client)
+    assert topic_receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed: {ResponseCode(topic_receipt.status).name}"
+    )
+
+    topic_id = topic_receipt.topic_id
+    message = "A" * (1024 * 14) # message with (1024 * 14) bytes ie 14 chunks
+
+    # Create a chuck transaction
+    message_tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_message(message)
+        .freeze_with(env.client)
+    )
+
+    message_receipt = message_tx.execute_all(env.client, wait_for_receipt=True)
+    
+    assert len(message_receipt) == 14
+    assert isinstance(message_receipt[0], TransactionReceipt)
+
+    # Verify topic_message receipt status
+    for receipt in message_receipt:
+        assert receipt.status == ResponseCode.SUCCESS
+
+    # Validates all chucks has been send
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 14
+
