@@ -62,12 +62,12 @@ def main():
         print(f"Transaction submitted with ID: {response.transaction_id}")
 
         # Retrieve receipt and record after submission
-        print("\n1.Getting Transaction Receipt using Transaction Response...")
+        print("\n1. Getting Transaction Receipt using Transaction Response...")
         receipt = response.get_receipt(client)
         print_transaction_receipt(receipt)
         
         
-        print("\n2.Getting Transaction Record using Transaction Response...")
+        print("\n2. Getting Transaction Record using Transaction Response...")
         record = response.get_record(client)
         print_transaction_record(record)
 
