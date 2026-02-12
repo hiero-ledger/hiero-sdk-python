@@ -1,8 +1,12 @@
 """Build a flexible registry-based method routing system that can dispatch 
 requests to handlers and transform exceptions into JSON-RPC errors."""
 from typing import Any, Dict, Optional, Union, Callable
-from tck.errors import INTERNAL_ERROR, INVALID_PARAMS, METHOD_NOT_FOUND, HIERO_ERROR, INVALID_REQUEST
-from tck.protocol import build_json_rpc_error_response, JsonRpcError
+from tck.errors import (INTERNAL_ERROR,
+                        INVALID_PARAMS,
+                        METHOD_NOT_FOUND,
+                        HIERO_ERROR,
+                        JsonRpcError)
+from tck.protocol import build_json_rpc_error_response
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError, MaxAttemptsError
 
 
@@ -52,14 +56,14 @@ def safe_dispatch(method_name: str,
         return dispatch(method_name, params, session_id)
     except JsonRpcError as e:
         return build_json_rpc_error_response(e, request_id)
-    except Exception as e: # COULD BE REMOVED LATER as dispatch() properly handles all exceptions
+    except Exception as e: # Defensive fallback for any uncaught exceptions
         error = JsonRpcError(INTERNAL_ERROR, 'Internal error', str(e))
         return build_json_rpc_error_response(error, request_id)
 
 def validate_request_params(params: Any, required_fields: Dict[str, type]) -> None:
     """Validate that required fields are present in params with correct types."""
     if not isinstance(params, dict):
-        raise JsonRpcError(INVALID_REQUEST, 'Invalid Request')
+        raise JsonRpcError(INVALID_PARAMS, 'Invalid params: expected object')
 
     for field, field_type in required_fields.items():
         if field not in params or not isinstance(params[field], field_type):

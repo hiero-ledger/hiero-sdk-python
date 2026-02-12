@@ -35,8 +35,8 @@ def _create_custom_network_client(network_config: Dict[str, Any]) -> Client:
         JsonRpcError: If nodes configuration is invalid
     """
     nodes = network_config.get('nodes')
-    if not isinstance(nodes, list) or not all(isinstance(node, str) for node in nodes):
-        raise JsonRpcError(INVALID_PARAMS, 'Invalid params: nodes must be a list of strings')
+    if not isinstance(nodes, list) or len(nodes) == 0 or not all(isinstance(node, str) for node in nodes):
+        raise JsonRpcError(INVALID_PARAMS, 'Invalid params: nodes must be a non-empty list of strings')
     
     node_objects = _create_node_objects(nodes)
     network = Network(nodes=node_objects)
@@ -46,7 +46,7 @@ def _create_custom_network_client(network_config: Dict[str, Any]) -> Client:
 def _create_client(network_param: Optional[Any]) -> Client:
     """Create and return the appropriate Client based on network parameter.
     Args:
-        network_param: Network specification (None for testnet, 'mainnet', or custom dict)
+        network_param: Network specification (None/'testnet' for testnet, 'mainnet', or custom dict)
         
     Returns:
         Configured Client instance
@@ -54,7 +54,7 @@ def _create_client(network_param: Optional[Any]) -> Client:
     Raises:
         JsonRpcError: If network specification is invalid
     """
-    if network_param is None:
+    if network_param is None or network_param == 'testnet':
         return Client.for_testnet()
 
     if network_param == 'mainnet':
@@ -74,13 +74,18 @@ def _parse_operator_credentials(params: Dict[str, Any]) -> tuple[AccountId, Priv
         
     Returns:
         Tuple of (AccountId, PrivateKey)
+    Raises:
+        JsonRpcError: If credentials cannot be parsed
     """
     operator_account_id_str = params['operatorAccountId']
     operator_private_key_str = params['operatorPrivateKey']
-    
-    operator_account_id = AccountId.from_string(operator_account_id_str)
-    operator_private_key = PrivateKey.from_string(operator_private_key_str)
-    
+
+    try:
+        operator_account_id = AccountId.from_string(operator_account_id_str)
+        operator_private_key = PrivateKey.from_string(operator_private_key_str)
+    except Exception as e:
+        raise JsonRpcError(INVALID_PARAMS, f'Invalid params: invalid operatorAccountId/operatorPrivateKey format - {str(e)}') from e
+
     return operator_account_id, operator_private_key
 
 
@@ -111,6 +116,7 @@ def setup_handler(params: Dict[str, Any], session_id: Optional[str] = None) -> D
 def reset_handler(params: Dict[str, Any], session_id: Optional[str] = None) -> Dict[str, Any]:
     """Reset handler to close connections and clear client state."""
     target_session_id = params.get('sessionId') or session_id
-    if target_session_id is not None:
-        remove_client(target_session_id)
+    if target_session_id is None:
+        target_session_id = "default"
+    remove_client(target_session_id)
     return {"status": "reset completed"}

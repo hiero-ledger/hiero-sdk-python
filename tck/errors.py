@@ -10,7 +10,7 @@ HIERO_ERROR = -32001
 
 class JsonRpcError(Exception):
     """Class representing a JSON-RPC error."""
-    def __init__(self, code, message, data=None):
+    def __init__(self, code: int, message: str, data=None) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
@@ -30,29 +30,29 @@ class JsonRpcError(Exception):
     @classmethod
     def create_parse_error(cls, data=None) -> "JsonRpcError":
         """Create a Parse Error JSON-RPC error."""
-        return JsonRpcError(PARSE_ERROR, "Parse error", data)
+        return cls(PARSE_ERROR, "Parse error", data)
     
     @classmethod
     def create_invalid_request_error(cls, data=None) -> "JsonRpcError":
         """Create an Invalid Request JSON-RPC error."""
-        return JsonRpcError(INVALID_REQUEST, "Invalid Request", data)
+        return cls(INVALID_REQUEST, "Invalid Request", data)
     
     @classmethod
     def create_method_not_found_error(cls, data=None) -> "JsonRpcError":
         """Create a Method Not Found JSON-RPC error."""
-        return JsonRpcError(METHOD_NOT_FOUND, "Method not found", data)
+        return cls(METHOD_NOT_FOUND, "Method not found", data)
     
     @classmethod
     def create_invalid_params_error(cls, data=None) -> "JsonRpcError":
         """Create an Invalid Params JSON-RPC error."""
-        return JsonRpcError(INVALID_PARAMS, "Invalid params", data)
+        return cls(INVALID_PARAMS, "Invalid params", data)
     
     @classmethod
     def create_internal_error(cls, data=None) -> "JsonRpcError":
         """Create an Internal Error JSON-RPC error."""
-        return JsonRpcError(INTERNAL_ERROR, "Internal error", data)
+        return cls(INTERNAL_ERROR, "Internal error", data)
     
     @classmethod
     def create_hiero_error(cls, data=None) -> "JsonRpcError":
         """Create a Hiero-specific JSON-RPC error."""
-        return JsonRpcError(HIERO_ERROR, "Hiero error", data)
+        return cls(HIERO_ERROR, "Hiero error", data)
