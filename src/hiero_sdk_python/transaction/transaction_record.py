@@ -92,17 +92,7 @@ class TransactionRecord:
     duplicates: list['TransactionRecord'] = field(default_factory=list)
 
     def __repr__(self) -> str:
-        """Returns a human-readable string representation of the TransactionRecord.
-        
-        This method constructs a detailed string containing all significant fields of the 
-        transaction record including transaction ID, hash, memo, fees, status, transfers,
-        PRNG results, and newly exposed metadata (consensus timestamps, custom fees, etc.).
-        For the receipt status, it attempts to resolve the numeric status to a 
-        human-readable ResponseCode name.
-        
-        Returns:
-            str: A string representation showing all significant fields of the TransactionRecord.
-        """
+        """Returns a human-readable string representation of the TransactionRecord."""
         status = None
         if self.receipt:
             try:
@@ -111,44 +101,61 @@ class TransactionRecord:
             except (ValueError, AttributeError):
                 status = self.receipt.status
 
-        # Build list of parts to include
         parts = [
             f"transaction_id='{self.transaction_id}'",
-            f"transaction_hash={self.transaction_hash}",
-            f"transaction_memo='{self.transaction_memo}'",
+            f"transaction_hash={self.transaction_hash!r}",
+            f"transaction_memo={self.transaction_memo!r}",
             f"transaction_fee={self.transaction_fee}",
             f"receipt_status='{status}'",
         ]
 
-        # Core transfer fields (keep existing style)
+        # Core transfers (full dict repr - usually small)
         parts.append(f"transfers={dict(self.transfers)}")
         parts.append(f"token_transfers={dict(self.token_transfers)}")
-        parts.append(f"nft_transfers={dict(self.nft_transfers)}")
-        parts.append(f"new_pending_airdrops={list(self.new_pending_airdrops)}")
+        parts.append(f"nft_transfers={ {k: len(v) for k, v in self.nft_transfers.items()} }")  # count for NFTs is fine
 
-        # Contract & PRNG (existing)
+        parts.append(f"new_pending_airdrops={self.new_pending_airdrops!r}")
+
+        # Contract & PRNG
         parts.append(f"call_result={self.call_result}")
         parts.append(f"contract_create_result={self.contract_create_result}")
         parts.append(f"prng_number={self.prng_number}")
-        parts.append(f"prng_bytes={self.prng_bytes}")
+        parts.append(f"prng_bytes={self.prng_bytes!r}")
 
-        # New fields – always shown (None is explicit for consistency)
+        # Timestamps & schedule
         parts.append(f"consensus_timestamp={self.consensus_timestamp}")
         parts.append(f"parent_consensus_timestamp={self.parent_consensus_timestamp}")
         parts.append(f"schedule_ref={self.schedule_ref}")
-        parts.append(f"assessed_custom_fees={len(self.assessed_custom_fees)} items")
-        parts.append(f"automatic_token_associations={len(self.automatic_token_associations)} items")
+
+        # Complex repeated fields with preview
+        if self.assessed_custom_fees:
+            preview = ", ".join(str(f) for f in self.assessed_custom_fees[:2])
+            extra = f", ... ({len(self.assessed_custom_fees)-2} more)" if len(self.assessed_custom_fees) > 2 else ""
+            parts.append(f"assessed_custom_fees=[{preview}{extra}]")
+        else:
+            parts.append("assessed_custom_fees=[]")
+
+        if self.automatic_token_associations:
+            preview = ", ".join(str(a) for a in self.automatic_token_associations[:2])
+            extra = f", ... ({len(self.automatic_token_associations)-2} more)" if len(self.automatic_token_associations) > 2 else ""
+            parts.append(f"automatic_token_associations=[{preview}{extra}]")
+        else:
+            parts.append("automatic_token_associations=[]")
+
+        if self.paid_staking_rewards:
+            preview = ", ".join(f"({a}, {amt})" for a, amt in self.paid_staking_rewards[:2])
+            extra = f", ... ({len(self.paid_staking_rewards)-2} more)" if len(self.paid_staking_rewards) > 2 else ""
+            parts.append(f"paid_staking_rewards=[{preview}{extra}]")
+        else:
+            parts.append("paid_staking_rewards=[]")
+
         parts.append(f"alias={self.alias!r}")
         parts.append(f"ethereum_hash={self.ethereum_hash!r}")
         parts.append(f"evm_address={self.evm_address!r}")
-        parts.append(f"paid_staking_rewards={len(self.paid_staking_rewards)} items")
-
-        # Duplicates count (existing)
         parts.append(f"duplicates_count={len(self.duplicates)}")
 
-        # Join everything
         return f"TransactionRecord({', '.join(parts)})"
-
+        
     @classmethod
     def _from_proto(
         cls,
@@ -416,9 +423,8 @@ class TransactionRecord:
             )
 
         if self.automatic_token_associations:
-            record_proto.automatic_token_associations.extend(
-                assoc._to_proto() for assoc in self.automatic_token_associations
-            )
+            for assoc in self.automatic_token_associations:
+                record_proto.automatic_token_associations.append(assoc._to_proto())
 
         if self.alias is not None:
             record_proto.alias = self.alias

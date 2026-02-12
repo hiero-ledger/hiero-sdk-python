@@ -29,6 +29,7 @@ def sample_account_id() -> AccountId:
 # ────────────────────────────────────────────────────────────────
 
 def test_default_initialization():
+    """Test default initialization with None values and immutability."""
     assoc = TokenAssociation()
     assert assoc.token_id is None
     assert assoc.account_id is None
@@ -41,6 +42,7 @@ def test_default_initialization():
         assoc.account_id = AccountId(0, 0, 5678)
 
 def test_initialization_with_values(sample_token_id, sample_account_id):
+    """Test initialization with both token_id and account_id provided."""
     assoc = TokenAssociation(
         token_id=sample_token_id,
         account_id=sample_account_id,
@@ -50,6 +52,7 @@ def test_initialization_with_values(sample_token_id, sample_account_id):
 
 
 def test_initialization_partial(sample_token_id, sample_account_id):
+    """Test partial initialization (only token or only account)."""
     assoc = TokenAssociation(token_id=sample_token_id)
     assert assoc.token_id == sample_token_id
     assert assoc.account_id is None
@@ -64,6 +67,7 @@ def test_initialization_partial(sample_token_id, sample_account_id):
 # ────────────────────────────────────────────────────────────────
 
 def test_from_proto_full(sample_token_id, sample_account_id):
+    """Test _from_proto with complete proto message."""
     proto = TokenAssociationProto()
     proto.token_id.shardNum = sample_token_id.shard
     proto.token_id.realmNum = sample_token_id.realm
@@ -79,6 +83,7 @@ def test_from_proto_full(sample_token_id, sample_account_id):
 
 
 def test_from_proto_missing_token_id(sample_account_id):
+    """Test _from_proto when token_id is missing in proto."""
     proto = TokenAssociationProto()
     proto.account_id.shardNum = sample_account_id.shard
     proto.account_id.realmNum = sample_account_id.realm
@@ -91,6 +96,7 @@ def test_from_proto_missing_token_id(sample_account_id):
 
 
 def test_from_proto_missing_account_id(sample_token_id):
+    """Test _from_proto when account_id is missing in proto."""
     proto = TokenAssociationProto()
     proto.token_id.shardNum = sample_token_id.shard
     proto.token_id.realmNum = sample_token_id.realm
@@ -103,6 +109,7 @@ def test_from_proto_missing_account_id(sample_token_id):
 
 
 def test_from_proto_empty():
+    """Test _from_proto with empty proto message."""
     proto = TokenAssociationProto()
     assoc = TokenAssociation._from_proto(proto)
     assert assoc.token_id is None
@@ -114,6 +121,7 @@ def test_from_proto_empty():
 # ────────────────────────────────────────────────────────────────
 
 def test_to_proto_full(sample_token_id, sample_account_id):
+    """Test _to_proto with both fields present."""
     assoc = TokenAssociation(
         token_id=sample_token_id,
         account_id=sample_account_id,
@@ -128,6 +136,7 @@ def test_to_proto_full(sample_token_id, sample_account_id):
 
 
 def test_to_proto_partial(sample_token_id):
+    """Test _to_proto when only token_id is set."""
     assoc = TokenAssociation(token_id=sample_token_id)
     proto = assoc._to_proto()
 
@@ -137,6 +146,7 @@ def test_to_proto_partial(sample_token_id):
 
 
 def test_to_proto_empty():
+    """Test _to_proto with no fields set."""
     assoc = TokenAssociation()
     proto = assoc._to_proto()
 
@@ -149,6 +159,7 @@ def test_to_proto_empty():
 # ────────────────────────────────────────────────────────────────
 
 def test_round_trip_full(sample_token_id, sample_account_id):
+    """Test full round-trip: object → proto → object."""
     original = TokenAssociation(
         token_id=sample_token_id,
         account_id=sample_account_id,
@@ -161,6 +172,7 @@ def test_round_trip_full(sample_token_id, sample_account_id):
 
 
 def test_round_trip_empty():
+    """Test round-trip with empty object."""
     original = TokenAssociation()
     proto = original._to_proto()
     reconstructed = TokenAssociation._from_proto(proto)
@@ -170,6 +182,7 @@ def test_round_trip_empty():
 
 
 def test_round_trip_partial_token_only(sample_token_id):
+    """Test round-trip with only token_id set."""
     original = TokenAssociation(token_id=sample_token_id)
     proto = original._to_proto()
     reconstructed = TokenAssociation._from_proto(proto)
@@ -179,6 +192,7 @@ def test_round_trip_partial_token_only(sample_token_id):
 
 
 def test_round_trip_partial_account_only(sample_account_id):
+    """Test round-trip with only account_id set."""
     original = TokenAssociation(account_id=sample_account_id)
     proto = original._to_proto()
     reconstructed = TokenAssociation._from_proto(proto)
@@ -192,6 +206,7 @@ def test_round_trip_partial_account_only(sample_account_id):
 # ────────────────────────────────────────────────────────────────
 
 def test_str_and_repr(sample_token_id, sample_account_id):
+    """Test __str__ and __repr__ output contains relevant information."""
     assoc = TokenAssociation(
         token_id=sample_token_id,
         account_id=sample_account_id,
