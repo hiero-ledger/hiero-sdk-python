@@ -26,7 +26,7 @@ def build_transaction():
 
 
 def print_transaction_record(record):
-    """Print the transaction record"""
+    """Print the transaction record."""
     print(f"Transaction ID: {record.transaction_id}")
     print(f"Transaction Fee: {record.transaction_fee}")
     print(f"Transaction Hash: {record.transaction_hash.hex()}")
@@ -35,6 +35,7 @@ def print_transaction_record(record):
 
 
 def print_transaction_receipt(receipt):
+    """Print the transaction receipt."""
     if receipt.status != ResponseCode.SUCCESS:
         raise RuntimeError(f"Receipt Query failed with status: {ResponseCode(receipt.status).name}")
     
@@ -46,7 +47,7 @@ def main():
     """
     1. Initialize a client from environment variables (operator required in env).
     2. Build an AccountCreateTransaction.
-    3. Execute the transaction asynchronously (without waiting for receipt).
+    3. Execute the transaction (without waiting for receipt).
     4. Retrieve the receipt and record after execution.
     """
     try:
