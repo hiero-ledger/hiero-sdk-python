@@ -147,20 +147,10 @@ def fetch_topic_info(client, topic_id):
 def main():
     """Create a topic and submit a large multi-chunk message to it."""
     client = setup_client()
-    # topic_id = create_topic(client)
-    # fetch_topic_info(client, topic_id)
-    # submit_topic_message_transaction(client, topic_id)
-    # fetch_topic_info(client, topic_id)
-    tx = (
-            TopicMessageSubmitTransaction()
-            .set_topic_id(TopicId.from_string("0.0.7895219"))
-            .set_message(BIG_CONTENT)
-            .freeze_with(client)
-    )
-
-    print(tx.get_size())
-    print(tx.get_body_size())
-    print(tx.get_body_size_all_chunks())
+    topic_id = create_topic(client)
+    fetch_topic_info(client, topic_id)
+    submit_topic_message_transaction(client, topic_id)
+    fetch_topic_info(client, topic_id)
 
 
 if __name__ == "__main__":
