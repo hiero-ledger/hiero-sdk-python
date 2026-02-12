@@ -343,6 +343,11 @@ class TopicMessageSubmitTransaction(Transaction):
     
     def get_body_size_all_chunks(self) -> List[int]:
         """
+        Returns an array of body sizes for transactions with multiple chunks.
+
+        Returns:
+            List[int]: An array of body sizes, where each element represents the 
+                size in bytes of a chunk's transaction body
         """
         self._require_frozen()
         sizes = []
