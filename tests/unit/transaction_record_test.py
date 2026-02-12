@@ -97,6 +97,18 @@ def test_transaction_record_default_initialization():
     assert len(record.duplicates) == 0
     assert record.duplicates == []
 
+    # New field existence checks (protect public API surface)
+    assert hasattr(record, 'consensus_timestamp'), "Should have consensus_timestamp attribute"
+    assert hasattr(record, 'parent_consensus_timestamp'), "Should have parent_consensus_timestamp attribute"
+    assert hasattr(record, 'schedule_ref'), "Should have schedule_ref attribute"
+    assert hasattr(record, 'assessed_custom_fees'), "Should have assessed_custom_fees attribute"
+    assert hasattr(record, 'automatic_token_associations'), "Should have automatic_token_associations attribute"
+    assert hasattr(record, 'alias'), "Should have alias attribute"
+    assert hasattr(record, 'ethereum_hash'), "Should have ethereum_hash attribute"
+    assert hasattr(record, 'evm_address'), "Should have evm_address attribute"
+    assert hasattr(record, 'paid_staking_rewards'), "Should have paid_staking_rewards attribute"
+    assert hasattr(record, 'contract_create_result'), "Should have contract_create_result attribute"
+
 def test_from_proto(proto_transaction_record, transaction_id):
     """Test the from_proto method of the TransactionRecord class"""
     record = TransactionRecord._from_proto(proto_transaction_record, transaction_id)
@@ -301,7 +313,7 @@ def test_repr_method(transaction_id):
     assert "TransactionRecord(" in repr_default
     assert "transaction_id='None'" in repr_default
     assert "transaction_hash=None" in repr_default
-    assert "transaction_memo='None'" in repr_default
+    assert "transaction_memo=None" in repr_default
     assert "transaction_fee=None" in repr_default
     assert "receipt_status='None'" in repr_default
     assert "token_transfers={}" in repr_default
@@ -499,6 +511,7 @@ def test_transaction_record_default_new_fields():
 # ────────────────────────────────────────────────────────────────
 
 def test_from_proto_with_consensus_timestamp(transaction_id):
+    """Test parsing consensus timestamp from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.consensusTimestamp.seconds = 1730000000
     proto.consensusTimestamp.nanos = 123456789
@@ -509,6 +522,7 @@ def test_from_proto_with_consensus_timestamp(transaction_id):
 
 
 def test_from_proto_with_parent_consensus_timestamp(transaction_id):
+    """Test parsing parent consensus timestamp from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.parent_consensus_timestamp.seconds = 1730000001
 
@@ -518,6 +532,7 @@ def test_from_proto_with_parent_consensus_timestamp(transaction_id):
 
 
 def test_from_proto_with_schedule_ref(transaction_id):
+    """Test parsing schedule reference from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.scheduleRef.shardNum = 0
     proto.scheduleRef.realmNum = 0
@@ -530,6 +545,7 @@ def test_from_proto_with_schedule_ref(transaction_id):
 
 
 def test_from_proto_with_assessed_custom_fees(sample_account_id, sample_token_id, transaction_id):
+    """Test parsing assessed custom fees from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     fee = proto.assessed_custom_fees.add()
     fee.amount = 500_000_000
@@ -545,6 +561,7 @@ def test_from_proto_with_assessed_custom_fees(sample_account_id, sample_token_id
 
 
 def test_from_proto_with_automatic_token_associations(sample_token_id, sample_account_id,transaction_id):
+    """Test parsing automatic token associations from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     assoc = proto.automatic_token_associations.add()
     assoc.token_id.CopyFrom(sample_token_id._to_proto())
@@ -558,6 +575,7 @@ def test_from_proto_with_automatic_token_associations(sample_token_id, sample_ac
 
 
 def test_from_proto_with_alias(transaction_id):
+    """Test parsing alias from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.alias = b"test-alias-bytes"
 
@@ -566,6 +584,7 @@ def test_from_proto_with_alias(transaction_id):
 
 
 def test_from_proto_with_ethereum_hash(transaction_id):
+    """Test parsing ethereum_hash from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.ethereum_hash = b"\xAA" * 32
 
@@ -574,6 +593,7 @@ def test_from_proto_with_ethereum_hash(transaction_id):
 
 
 def test_from_proto_with_evm_address(transaction_id):
+    """Test parsing evm_address from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.evm_address = b"\xBB" * 20
 
@@ -582,6 +602,7 @@ def test_from_proto_with_evm_address(transaction_id):
 
 
 def test_from_proto_with_paid_staking_rewards(transaction_id):
+    """Test parsing paid staking rewards from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     r = proto.paid_staking_rewards.add()
     r.accountID.accountNum = 1111
@@ -593,6 +614,7 @@ def test_from_proto_with_paid_staking_rewards(transaction_id):
 
 
 def test_from_proto_with_contract_create_result(transaction_id):
+    """Test parsing contract create result from proto."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.contractCreateResult.contractID.contractNum = 9999
 
@@ -751,10 +773,9 @@ def test_repr_shows_new_fields_when_set(transaction_id):
     assert "alias=" in r
     assert "ethereum_hash=" in r
     assert "evm_address=" in r
-    assert "paid_staking_rewards=1 items" in r
-    assert "assessed_custom_fees=1 items" in r
-    assert "automatic_token_associations=1 items" in r
-
+    assert "paid_staking_rewards=[" in r
+    assert "assessed_custom_fees=[" in r
+    assert "automatic_token_associations=[" in r
 
 def test_repr_falls_back_on_invalid_receipt_status(transaction_id):
     """Verify that __repr__ falls back to raw status code when ResponseCode lookup fails"""

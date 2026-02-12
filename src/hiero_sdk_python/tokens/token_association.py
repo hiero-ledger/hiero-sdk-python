@@ -28,33 +28,8 @@ class TokenAssociation:
         token_id: The identifier of the token being associated.
         account_id: The identifier of the account receiving the association.
 
-    Examples:
-        Creating a simple association:
-        >>> from hiero_sdk_python.tokens.token_id import TokenId
-        >>> from hiero_sdk_python.account.account_id import AccountId
-        >>> assoc = TokenAssociation(
-        ...     token_id=TokenId.from_string("0.0.1234"),
-        ...     account_id=AccountId.from_string("0.0.5678")
-        ... )
-        >>> str(assoc)
-        'TokenAssociation(token_id=0.0.1234, account_id=0.0.5678)'
-
-        Immutability (frozen=True):
-        >>> assoc.token_id = TokenId.from_string("0.0.9999")
-        Traceback (most recent call last):
-            ...
-        dataclasses.FrozenInstanceError: cannot assign to field 'token_id'
-
-        Round-trip via protobuf:
-        >>> proto = assoc._to_proto()
-        >>> restored = TokenAssociation._from_proto(proto)
-        >>> restored == assoc
-        True
-
-        >>> # Typical usage in TransactionRecord context:
-        >>> # record = client.get_transaction_record(...)
-        >>> # for assoc in record.automatic_token_associations:
-        >>> #     print(f"Auto-associated {assoc.token_id} to {assoc.account_id}")
+    See usage examples in:
+        examples/tokens/token_association.py
     """
 
     token_id: Optional[TokenId] = None
