@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- 
+- Added `wait_for_receipt` parameter for `Transaction.execute()` to supports optional receipt waiting, and `get_receipt_query`, `get_record_query` and `get_record` to `TransactionResponse`.
 
 ### Examples
 
@@ -169,7 +169,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `grpc_deadline` support for transaction and query execution.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
 - Added `__eq__` and `__hash__` functions for Key
-- Added `wait_for_receipt` parameter for `Transaction.execute()` to supports optional receipt waiting.
 
 ### Documentation
 - Added `docs/workflows/02-architecture.md`: explains the orchestration (YAML) vs. business logic (JS) separation pattern for GitHub workflows (#1742)
