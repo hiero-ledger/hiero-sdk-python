@@ -254,7 +254,6 @@ class TransactionRecord:
         elif entropy_case == "prng_bytes":
             prng_bytes = proto.prng_bytes
 
-        proto.automatic_token_associations
         return cls(
             transaction_id=tx_id,
             transaction_hash=proto.transactionHash,
