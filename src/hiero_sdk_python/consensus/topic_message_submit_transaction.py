@@ -345,13 +345,10 @@ class TopicMessageSubmitTransaction(Transaction):
         super().sign(private_key)
         return self
     
-    def get_body_size_all_chunks(self) -> List[int]:
+    @property
+    def body_size_all_chunks(self) -> List[int]:
         """
         Returns an array of body sizes for transactions with multiple chunks.
-
-        Returns:
-            List[int]: An array of body sizes, where each element represents the 
-                size in bytes of a chunk's transaction body
         """
         self._require_frozen()
         sizes = []
@@ -359,7 +356,7 @@ class TopicMessageSubmitTransaction(Transaction):
         original_index = self._current_index
         for transaction_id in self._transaction_ids:
             self.transaction_id = transaction_id
-            sizes.append(self.get_body_size())
+            sizes.append(self.body_size)
         
         self._current_index = original_index
         return sizes

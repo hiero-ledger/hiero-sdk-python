@@ -142,7 +142,7 @@ def test_multi_chunk_execution():
         assert receipt == mock_receipt
 
         # Should have called execute 3 times (once per chunk)
-        assert Transaction.execute.call_count == 1
+        assert Transaction.execute.call_count == 3
 
 
 def test_build_transaction_body_missing_file_id():

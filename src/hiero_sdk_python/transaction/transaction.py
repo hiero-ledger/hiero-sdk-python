@@ -873,12 +873,14 @@ class Transaction(_Executable):
         self.sign(client.operator_private_key)
         return self
     
-    def get_size(self) -> int:
+    @property
+    def size(self) -> int:
         """Returns the total transaction size in bytes after protobuf encoding"""
         self._require_frozen()
         return self._make_request().ByteSize()
     
-    def get_body_size(self) -> int:
+    @property
+    def body_size(self) -> int:
         """Returns just the transaction body size in bytes after encoding"""
         self._require_frozen()
         return self.build_transaction_body().ByteSize()
