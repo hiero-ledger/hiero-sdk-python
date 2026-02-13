@@ -323,12 +323,12 @@ def test_file_append_chuck_transaction_can_execute_with_manual_freeze(env):
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
     assert file_contents == b""
 
-    content = "A" * (4) # content with (1024 * 14) bytes ie 14 chunks
+    content = "A" * (4000) # content with (1024 * 14) bytes ie 14 chunks
 
     tx = (
         FileAppendTransaction()
         .set_file_id(file_id)
-        .set_chunk_size(1)
+        .set_chunk_size(1024)
         .set_contents(content)
         .freeze_with(env.client)
     )
