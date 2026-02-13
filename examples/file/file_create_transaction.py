@@ -11,12 +11,12 @@ from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 
 def setup_client():
-     """Initialize and set up the client with operator account."""
-     client = Client.from_env()
-     print(f"Network: {client.network.network}")
-     print(f"Client set up with operator id {client.operator_account_id}")
+    """Initialize and set up the client with operator account."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
 
-     return client
+    return client
 
 
 def file_create():
