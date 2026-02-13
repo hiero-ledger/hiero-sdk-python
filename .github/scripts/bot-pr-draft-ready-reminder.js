@@ -42,7 +42,7 @@ async function commentExists({ github, owner, repo, issueNumber, marker }) {
         }
     )) {
         for (const comment of response.data) {
-            scanned;
+            scanned++;
             if (comment.body?.includes(marker)) {
                 console.log(`Found existing reminder comment (scanned ${scanned} comments).`);
                 return true;
@@ -209,6 +209,4 @@ module.exports = async function ({ github, context }) {
         console.log(`Error status: ${error.status}`);
         console.log(`Error message: ${error.message}`);
     }
-
-    console.log(`Reminder successfully posted on PR #${prNumber}`);
 };
