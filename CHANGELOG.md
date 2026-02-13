@@ -15,6 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 
 ### Tests
+- Implement TCK JSON-RPC server with request handling and error management
 
 ### .github
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
