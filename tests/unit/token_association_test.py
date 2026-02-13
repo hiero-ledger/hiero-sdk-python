@@ -31,8 +31,8 @@ def sample_account_id() -> AccountId:
 def test_default_initialization():
     """Test default initialization with None values and immutability."""
     assoc = TokenAssociation()
-    assert assoc.token_id is None
-    assert assoc.account_id is None
+    assert assoc.token_id is None      # ruff: noqa S101
+    assert assoc.account_id is None    # ruff: noqa S101
     
     # Immutability checks
     with pytest.raises(FrozenInstanceError):
@@ -47,8 +47,8 @@ def test_initialization_with_values(sample_token_id, sample_account_id):
         token_id=sample_token_id,
         account_id=sample_account_id,
     )
-    assert assoc.token_id == sample_token_id
-    assert assoc.account_id == sample_account_id
+    assert assoc.token_id is sample_token_id
+    assert assoc.account_id is sample_account_id
 
 
 def test_initialization_partial(sample_token_id, sample_account_id):
