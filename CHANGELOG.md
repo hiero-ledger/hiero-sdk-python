@@ -19,7 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### .github
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
 - Reverted PR #1739 checking assignment counts
-
+- chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
 
 ## [0.2.0] - 2026-11-02
 
@@ -281,7 +281,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Changed `TransactionResponse.get_receipt()` so now pins receipt queries to the submitting node via `set_node_account_ids()` ([#1686](https://github.com/hiero-ledger/hiero-sdk-python/issues/1686))
 - chore: clarify wording in the bot-assignment-check.sh (#1748)
 - Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
-- chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
 
 ### Fixed
 - Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
