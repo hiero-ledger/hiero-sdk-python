@@ -27,7 +27,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 # Use TYPE_CHECKING to avoid circular import errors
 if TYPE_CHECKING:
     from hiero_sdk_python.client import Client
-    from hiero_sdk_python.key import PrivateKey
+    from hiero_sdk_python.keys import PrivateKey
     from hiero_sdk_python.channels import _Channel
     from hiero_sdk_python.executable import _Method
     from hiero_sdk_python.transaction_receipt import TransactionReceipt
@@ -358,8 +358,8 @@ class FileAppendTransaction(Transaction):
             response = super().execute(client, timeout)
             responses.append(response)
 
-            # Return the first response (as per JavaScript implementation)
-            return responses[0] if responses else None
+        # Return the first response (as per JavaScript implementation)
+        return responses[0] if responses else None
 
     def sign(self, private_key: "PrivateKey") -> FileAppendTransaction:
         """
