@@ -1,8 +1,11 @@
 from unittest.mock import patch, MagicMock
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2, transaction_receipt_pb2, transaction_response_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -11,6 +14,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from tests.unit.mock_server import mock_hedera_servers
 
 
 def test_constructor_with_parameters():
@@ -168,3 +172,97 @@ def test_build_scheduled_body():
     # Verify fields in the schedulable body
     assert schedulable_body.fileAppend.fileID == file_id._to_proto()
     assert schedulable_body.fileAppend.contents == contents[:100]  # First chunk
+
+
+
+def test_file_append_chunk_transaction_with_freeze(file_id):
+    """Test file append chunk tx should generate the transaction_ids and body_bytes when freeze()."""
+    content = "A"*4000
+
+    tx = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_chunk_size(1024)
+        .set_contents(content)
+        .set_transaction_id(TransactionId.generate(AccountId(0,0,100)))
+        .set_node_account_id(AccountId(0,0,100))
+        .freeze()
+    )
+
+    tx_ids = tx._transaction_ids
+    
+    assert tx_ids is not None
+    assert len(tx_ids) == 4
+
+    assert tx._transaction_body_bytes, "Transaction body bytes must not be empty"
+
+
+def test_file_append_chunk_transaction_with_freeze_throw_erros(file_id):
+    """Test file append chuck tx should throw error on freeze() if transaction id or node ids are not set."""
+    content = "A"*4000
+
+    # Missing node account id
+    with pytest.raises(
+        ValueError,
+        match="Node account ID must be set before freezing"
+    ):
+        (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents(content)
+            .set_transaction_id(TransactionId.generate(AccountId(0,0,100)))
+            .freeze()
+        )
+    
+    # Missing transaction id
+    with pytest.raises(
+        ValueError,
+        match="Transaction ID must be set before freezing"
+    ):
+        (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents(content)
+            .set_node_account_id(AccountId(0,0,100))
+            .freeze()
+        )
+
+def test_file_append_chunck_tx_can_execute_using_freeze(file_id):
+    """Test file append chuck transaction can execute using freeze()."""
+    content = "A" * 4000
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents(content)
+            .set_transaction_id(TransactionId.generate(AccountId(0,0,100)))
+            .set_node_account_id(AccountId(0,0,3))
+            .freeze()
+        )
+
+        try:
+            tx.sign(PrivateKey.generate())
+            receipt = tx.execute(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+
+        # Verify the receipt contains the expected values
+        assert receipt.status == ResponseCode.SUCCESS

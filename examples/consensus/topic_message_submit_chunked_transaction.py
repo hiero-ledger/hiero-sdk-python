@@ -20,7 +20,6 @@ from hiero_sdk_python import (
     TopicInfoQuery,
     TopicMessageSubmitTransaction,
 )
-from hiero_sdk_python.consensus.topic_id import TopicId
 
 BIG_CONTENT = """
 
