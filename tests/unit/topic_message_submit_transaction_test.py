@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (

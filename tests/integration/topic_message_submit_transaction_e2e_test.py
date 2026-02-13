@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import (
@@ -19,6 +20,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 def create_topic(client, admin_key=None, submit_key=None, custom_fees=None):
     """Helper transaction for creating a topic."""
@@ -293,5 +295,39 @@ def test_integration_topic_message_submit_transaction_fails_if_required_chunk_gr
         ValueError, match="Message requires 4 chunks but max_chunks=2. Increase limit with set_max_chunks()."
     ):
         message_transaction.execute(env.client)
+
+    delete_topic(env.client, topic_id)
+
+
+
+@pytest.mark.integration
+def test_topic_message_submit_transaction_can_submit_a_large_message_manual_freeze(env):
+    """Test topic message submit transaction can submit large message with manual freeze."""
+    topic_id = create_topic(
+        client=env.client,
+        admin_key=env.operator_key
+    )
+
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 0
+
+    message = "A" * (1024 * 14) # message with (1024 * 14) bytes ie 14 chunks
+
+    message_tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_message(message)
+        .set_transaction_id(TransactionId.generate(env.client.operator_account_id))
+        .set_node_account_id(AccountId(0,0,3))
+        .freeze()
+    )
+
+    message_tx.sign(env.client.operator_private_key)
+    message_receipt = message_tx.execute(env.client)
+    
+    assert message_receipt.status == ResponseCode.SUCCESS
+
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 14
 
     delete_topic(env.client, topic_id)
