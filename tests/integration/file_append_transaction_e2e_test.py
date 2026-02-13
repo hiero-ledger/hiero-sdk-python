@@ -1,6 +1,7 @@
 import pytest
 from pytest import mark
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
@@ -8,6 +9,7 @@ from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.integration.utils import env, IntegrationTestEnv
 
 # Generate big contents for chunking tests - similar to JavaScript bigContents
@@ -304,3 +306,39 @@ def test_integration_file_append_transaction_method_chaining(env):
     
     append_receipt = append_tx.execute(env.client)
     assert append_receipt.status == ResponseCode.SUCCESS 
+
+@pytest.mark.integration
+def test_file_append_chuck_transaction_can_execute_with_manual_freeze(env):
+    """Test file append transaction can execute  with manual freeze."""
+    create_receipt = (
+        FileCreateTransaction()
+        .set_keys(env.client.operator_private_key.public_key())
+        .set_contents(b"")
+        .execute(env.client)
+    )
+
+    assert create_receipt.status == ResponseCode.SUCCESS
+    file_id = create_receipt.file_id
+
+    file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
+    assert file_contents == b""
+
+    content = "A" * (4) # content with (1024 * 14) bytes ie 14 chunks
+
+    tx = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_chunk_size(1)
+        .set_contents(content)
+        .freeze_with(env.client)
+    )
+
+    # tx.sign(env.client.operator_private_key)
+
+    print(tx.get_required_chunks())
+    receipt = tx.execute(env.client)
+    
+    assert receipt.status == ResponseCode.SUCCESS
+
+    file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
+    assert file_contents == bytes(content, "utf-8")
