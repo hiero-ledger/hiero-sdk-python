@@ -46,7 +46,7 @@ def test_same_size_for_identical_transactions(transaction_id, account_id):
     .freeze()
   )
 
-  assert tx1.get_size() == tx2.get_size()
+  assert tx1.size == tx2.size
 
 
 def test_signed_tx_have_larger_size(transaction_id, account_id):
@@ -72,7 +72,7 @@ def test_signed_tx_have_larger_size(transaction_id, account_id):
     .freeze()
   )
 
-  assert tx1.get_size() > tx2.get_size()
+  assert tx1.size > tx2.size
 
 
 def test_tx_with_larger_content_should_have_larger_tx_body(transaction_id, account_id):
@@ -93,7 +93,7 @@ def test_tx_with_larger_content_should_have_larger_tx_body(transaction_id, accou
     .freeze()
   )
 
-  assert tx1.get_body_size() < tx2.get_body_size()
+  assert tx1.body_size < tx2.body_size
     
 def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, account_id):
   """Test transaction with without optional fields should have smaller transaction body."""
@@ -117,7 +117,7 @@ def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, 
     .freeze()
   )
 
-  tx1.get_body_size() < tx2.get_body_size()
+  tx1.body_size < tx2.body_size
 
 def test_chunk_tx_should_return_list_of_body_sizes(file_id, account_id, transaction_id):
   """Test should return array of body sizes for multi-chunk transaction."""
@@ -134,7 +134,7 @@ def test_chunk_tx_should_return_list_of_body_sizes(file_id, account_id, transact
     .freeze()
   )
 
-  sizes = tx.get_body_size_all_chunks()
+  sizes = tx.body_size_all_chunks
   assert isinstance(sizes, list)
   assert len(sizes) == 3
 
@@ -151,7 +151,7 @@ def test_single_chunk_tx_return_list_of_len_one(file_id, account_id, transaction
     .freeze()
   )
 
-  sizes = tx.get_body_size_all_chunks()
+  sizes = tx.body_size_all_chunks
   assert isinstance(sizes, list)
   assert len(sizes) == 1
 
@@ -166,7 +166,7 @@ def test_tx_with_no_content_should_return_single_body_chunk(file_id, account_id,
     .freeze()
   )
 
-  sizes = tx.get_body_size_all_chunks()
+  sizes = tx.body_size_all_chunks
   assert isinstance(sizes, list)
   assert len(sizes) == 1
 
@@ -184,7 +184,7 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
     .freeze()
   )
 
-  large_size = large_tx.get_size()
+  large_size = large_tx.size
 
 
   small_content = "a" * 512
@@ -198,7 +198,7 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
     .freeze()
   )
 
-  small_size = small_tx.get_size()
+  small_size = small_tx.size
 
   # Since large content is 2KB and chunk size is 1KB, this should create 2 chunks
   # Size should be greater than single chunk size
