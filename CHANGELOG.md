@@ -12,12 +12,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Examples
 
 ### Docs
+- Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 
 ### Tests
 
 ### .github
 - Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
-
+- Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
+- Reverted PR #1739 checking assignment counts
 
 ## [0.2.0] - 2026-11-02
 
@@ -171,6 +173,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `__eq__` and `__hash__` functions for Key
 
 ### Documentation
+- Added `docs/workflows/02-architecture.md`: explains the orchestration (YAML) vs. business logic (JS) separation pattern for GitHub workflows (#1742)
 - Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
@@ -282,7 +285,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 - Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
 - Corrected broken documentation links in SDK developer training files.(#1707)
-- Fixed assignment limit check to only count issues (not PRs) towards the maximum 2 concurrent assignments, allowing users to be assigned to PRs without affecting their issue assignment capacity. (#1717)
 - Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).

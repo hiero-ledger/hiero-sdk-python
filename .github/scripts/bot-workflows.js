@@ -112,12 +112,6 @@ const REPO = process.env.REPO || process.env.GITHUB_REPOSITORY || '';
 let DRY_RUN = normaliseDryRun(process.env.DRY_RUN || '1');
 let PR_NUMBER = process.env.PR_NUMBER || '';
 
-// Validate workflow name contains only safe characters
-if (FAILED_WORKFLOW_NAME && !/^[\w\s\-\.]+$/.test(FAILED_WORKFLOW_NAME)) {
-  console.error(`ERROR: FAILED_WORKFLOW_NAME contains invalid characters: ${FAILED_WORKFLOW_NAME}`);
-  process.exit(1);
-}
-
 // Set GH_TOKEN environment variable for gh CLI
 if (GH_TOKEN) {
   process.env.GH_TOKEN = GH_TOKEN;
