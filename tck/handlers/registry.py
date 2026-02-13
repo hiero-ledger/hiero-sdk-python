@@ -1,11 +1,9 @@
 """Build a flexible registry-based method routing system that can dispatch 
 requests to handlers and transform exceptions into JSON-RPC errors."""
 from typing import Any, Dict, Optional, Union, Callable
-from tck.errors import (INTERNAL_ERROR,
-                        INVALID_PARAMS,
-                        METHOD_NOT_FOUND,
-                        HIERO_ERROR,
-                        JsonRpcError)
+from tck.errors import (
+    JsonRpcError
+)
 from tck.protocol import build_json_rpc_error_response
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError, MaxAttemptsError
 
@@ -35,7 +33,7 @@ def dispatch(method_name: str, params: Any, session_id: Optional[str]) -> Any:
     handler = get_handler(method_name)
     
     if handler is None:
-        raise JsonRpcError(METHOD_NOT_FOUND, f'Method not found: {method_name}')
+        raise JsonRpcError.method_not_found_error(message=f'Method not found: {method_name}')
     try:
         if session_id is not None:
             return handler(params, session_id)
@@ -43,9 +41,9 @@ def dispatch(method_name: str, params: Any, session_id: Optional[str]) -> Any:
     except JsonRpcError:
         raise
     except (PrecheckError, ReceiptStatusError, MaxAttemptsError) as e:
-        raise JsonRpcError(HIERO_ERROR, 'Hiero error', str(e)) from e
+        raise JsonRpcError.hiero_error(data=str(e)) from e
     except Exception as e:
-        raise JsonRpcError(INTERNAL_ERROR, 'Internal error', str(e)) from e
+        raise JsonRpcError.internal_error(data=str(e)) from e
 
 def safe_dispatch(method_name: str,
                   params: Any,
@@ -57,15 +55,15 @@ def safe_dispatch(method_name: str,
     except JsonRpcError as e:
         return build_json_rpc_error_response(e, request_id)
     except Exception as e: # Defensive fallback for any uncaught exceptions
-        error = JsonRpcError(INTERNAL_ERROR, 'Internal error', str(e))
+        error = JsonRpcError.internal_error(data=str(e))
         return build_json_rpc_error_response(error, request_id)
 
 def validate_request_params(params: Any, required_fields: Dict[str, type]) -> None:
     """Validate that required fields are present in params with correct types."""
     if not isinstance(params, dict):
-        raise JsonRpcError(INVALID_PARAMS, 'Invalid params: expected object')
+        raise JsonRpcError.invalid_params_error(message='Invalid params: expected object')
 
     for field, field_type in required_fields.items():
         if field not in params or not isinstance(params[field], field_type):
-            raise JsonRpcError(INVALID_PARAMS, f'Invalid params: missing or incorrect type for {field}')
+            raise JsonRpcError.invalid_params_error(message=f'Invalid params: missing or incorrect type for {field}')
 

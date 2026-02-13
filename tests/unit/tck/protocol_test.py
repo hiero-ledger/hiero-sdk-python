@@ -44,7 +44,7 @@ def test_response_formatting_success():
 
 def test_response_formatting_error():
     """Test formatting of an error JSON-RPC response."""
-    error = JsonRpcError(INVALID_REQUEST, "Invalid Request")
+    error = JsonRpcError.invalid_request_error()
     resp = build_json_rpc_error_response(error, 1)
     if resp["jsonrpc"] != "2.0":
         raise AssertionError("Expected jsonrpc version 2.0 in error response")

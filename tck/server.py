@@ -3,7 +3,7 @@ import os
 from dataclasses import dataclass, field
 import logging
 from flask import Flask, request
-from tck.errors import PARSE_ERROR, JsonRpcError
+from tck.errors import JsonRpcError
 from tck.handlers import safe_dispatch
 from tck.protocol import build_json_rpc_error_response, build_json_rpc_success_response, parse_json_rpc_request
 
@@ -29,13 +29,13 @@ logger = logging.getLogger(__name__)
 def json_rpc_endpoint():
     """JSON-RPC 2.0 endpoint to handle requests."""
     if request.mimetype != 'application/json':
-        error = JsonRpcError(PARSE_ERROR, 'Parse error: Content-Type must be application/json')
+        error = JsonRpcError.parse_error(message='Parse error: Content-Type must be application/json')
         return build_json_rpc_error_response(error, None)
     try:
         request_json = request.get_json(force=True)
     except Exception:
         # Malformed JSON - return parse error
-        error = JsonRpcError(PARSE_ERROR, 'Parse error')
+        error = JsonRpcError.parse_error()
         return build_json_rpc_error_response(error, None)
     
     # Parse and validate the JSON-RPC request

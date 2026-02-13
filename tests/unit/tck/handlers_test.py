@@ -131,7 +131,7 @@ class TestDispatch:
         """Test that dispatch re-raises JsonRpcError exceptions."""
         @register_handler("error_method")
         def error_handler(params):
-            raise JsonRpcError(INVALID_PARAMS, "Invalid params")
+            raise JsonRpcError.invalid_params_error()
 
         with pytest.raises(JsonRpcError) as excinfo:
             dispatch("error_method", {}, None)
@@ -215,7 +215,7 @@ class TestSafeDispatch:
         """Test that safe_dispatch returns error response for JsonRpcError."""
         @register_handler("json_error_method")
         def error_handler(_params):
-            raise JsonRpcError(INVALID_PARAMS, "Bad params", "field_name")
+            raise JsonRpcError.invalid_params_error(data="field_name")
 
         response = safe_dispatch("json_error_method", {}, None, 42)
 
@@ -223,7 +223,7 @@ class TestSafeDispatch:
             raise AssertionError("Expected error in response")
         if response["error"]["code"] != INVALID_PARAMS:
             raise AssertionError("Expected INVALID_PARAMS error code")
-        if response["error"]["message"] != "Bad params":
+        if response["error"]["message"] != "Invalid params":
             raise AssertionError("Expected Bad params message")
         if response["error"]["data"] != "field_name":
             raise AssertionError("Expected error data to match")

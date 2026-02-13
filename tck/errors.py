@@ -28,31 +28,61 @@ class JsonRpcError(Exception):
 
     
     @classmethod
-    def create_parse_error(cls, data=None) -> "JsonRpcError":
-        """Create a Parse Error JSON-RPC error."""
-        return cls(PARSE_ERROR, "Parse error", data)
+    def parse_error(cls, data=None, message: str = "Parse error") -> "JsonRpcError":
+        """Create a Parse Error JSON-RPC error.
+        
+        Args:
+            data: Optional error details
+            message: Optional custom error message (defaults to 'Parse error')
+        """
+        return cls(PARSE_ERROR, message, data)
     
     @classmethod
-    def create_invalid_request_error(cls, data=None) -> "JsonRpcError":
-        """Create an Invalid Request JSON-RPC error."""
-        return cls(INVALID_REQUEST, "Invalid Request", data)
+    def invalid_request_error(cls, data=None, message: str = "Invalid Request") -> "JsonRpcError":
+        """Create an Invalid Request JSON-RPC error.
+        
+        Args:
+            data: Optional error details
+            message: Optional custom error message (defaults to 'Invalid Request')
+        """
+        return cls(INVALID_REQUEST, message, data)
     
     @classmethod
-    def create_method_not_found_error(cls, data=None) -> "JsonRpcError":
-        """Create a Method Not Found JSON-RPC error."""
-        return cls(METHOD_NOT_FOUND, "Method not found", data)
+    def method_not_found_error(cls, data=None, message: str = "Method not found") -> "JsonRpcError":
+        """Create a Method Not Found JSON-RPC error.
+        
+        Args:
+            data: Optional error details
+            message: Optional custom error message (defaults to 'Method not found')
+        """
+        return cls(METHOD_NOT_FOUND, message, data)
     
     @classmethod
-    def create_invalid_params_error(cls, data=None) -> "JsonRpcError":
-        """Create an Invalid Params JSON-RPC error."""
-        return cls(INVALID_PARAMS, "Invalid params", data)
+    def invalid_params_error(cls, data=None, message: str = "Invalid params") -> "JsonRpcError":
+        """Create an Invalid Params JSON-RPC error.
+        
+        Args:
+            data: Optional error details
+            message: Optional custom error message (defaults to 'Invalid params')
+        """
+        return cls(INVALID_PARAMS, message, data)
     
     @classmethod
-    def create_internal_error(cls, data=None) -> "JsonRpcError":
-        """Create an Internal Error JSON-RPC error."""
-        return cls(INTERNAL_ERROR, "Internal error", data)
+    def internal_error(cls, data=None, message: str = "Internal error") -> "JsonRpcError":
+        """Create an Internal Error JSON-RPC error.
+        
+        Args:
+            data: Optional error details
+            message: Optional custom error message (defaults to 'Internal error')
+        """
+        return cls(INTERNAL_ERROR, message, data)
     
     @classmethod
-    def create_hiero_error(cls, data=None) -> "JsonRpcError":
-        """Create a Hiero-specific JSON-RPC error."""
-        return cls(HIERO_ERROR, "Hiero error", data)
+    def hiero_error(cls, data=None, message: str = "Hiero error") -> "JsonRpcError":
+        """Create a Hiero-specific JSON-RPC error.
+        
+        Args:
+            data: Optional error details
+            message: Optional custom error message (defaults to 'Hiero error')
+        """
+        return cls(HIERO_ERROR, message, data)

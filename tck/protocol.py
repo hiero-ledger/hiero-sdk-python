@@ -1,6 +1,6 @@
 import json
 from typing import Any, Dict, Optional, Union
-from tck.errors import JsonRpcError, PARSE_ERROR, INVALID_REQUEST
+from tck.errors import JsonRpcError
 
 
 def _normalize_request_input(request_in: Any) -> Union[Dict[str, Any], JsonRpcError]:
@@ -15,12 +15,12 @@ def _normalize_request_input(request_in: Any) -> Union[Dict[str, Any], JsonRpcEr
         try:
             return json.loads(request_in)
         except json.JSONDecodeError:
-            return JsonRpcError(PARSE_ERROR, 'Parse error')
+            return JsonRpcError.parse_error()
 
     if isinstance(request_in, dict):
         return request_in
 
-    return JsonRpcError(INVALID_REQUEST, 'Invalid Request')
+    return JsonRpcError.invalid_request_error()
 
 
 def _validate_json_rpc_structure(request: Dict[str, Any]) -> Optional[JsonRpcError]:
@@ -32,21 +32,21 @@ def _validate_json_rpc_structure(request: Dict[str, Any]) -> Optional[JsonRpcErr
         JsonRpcError if validation fails, None if valid
     """
     if not isinstance(request, dict):
-        return JsonRpcError(INVALID_REQUEST, 'Invalid Request')
+        return JsonRpcError.invalid_request_error()
 
     if request.get('jsonrpc') != '2.0':
-        return JsonRpcError(INVALID_REQUEST, 'Invalid Request')
+        return JsonRpcError.invalid_request_error()
 
     if 'id' not in request:
-        return JsonRpcError(INVALID_REQUEST, 'Invalid Request')
+        return JsonRpcError.invalid_request_error()
 
     method = request.get('method')
     if not isinstance(method, str):
-        return JsonRpcError(INVALID_REQUEST, 'Invalid Request')
+        return JsonRpcError.invalid_request_error()
 
     params = request.get('params', {})
     if not (isinstance(params, (dict, list)) or params is None):
-        return JsonRpcError(INVALID_REQUEST, 'Invalid Request')
+        return JsonRpcError.invalid_request_error()
 
     return None
 

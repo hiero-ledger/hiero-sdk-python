@@ -1,10 +1,9 @@
-from tck.handlers.registry import register_handler, validate_request_params
-from hiero_sdk_python import Client, AccountId, PrivateKey, Network
-from hiero_sdk_python.node import _Node
-from tck.client_manager import store_client, remove_client
-from tck.errors import INVALID_PARAMS
-from tck.errors import JsonRpcError
 from typing import Any, Dict, Optional, List
+from hiero_sdk_python.node import _Node
+from hiero_sdk_python import Client, AccountId, PrivateKey, Network
+from tck.handlers.registry import register_handler, validate_request_params
+from tck.client_manager import store_client, remove_client
+from tck.errors import JsonRpcError
 
 
 def _create_node_objects(node_addresses: List[str]) -> List[_Node]:
@@ -36,7 +35,7 @@ def _create_custom_network_client(network_config: Dict[str, Any]) -> Client:
     """
     nodes = network_config.get('nodes')
     if not isinstance(nodes, list) or len(nodes) == 0 or not all(isinstance(node, str) for node in nodes):
-        raise JsonRpcError(INVALID_PARAMS, 'Invalid params: nodes must be a non-empty list of strings')
+        raise JsonRpcError.invalid_params_error(message='Invalid params: nodes must be a non-empty list of strings')
     
     node_objects = _create_node_objects(nodes)
     network = Network(nodes=node_objects)
@@ -63,7 +62,7 @@ def _create_client(network_param: Optional[Any]) -> Client:
     if isinstance(network_param, dict) and 'nodes' in network_param:
         return _create_custom_network_client(network_param)
 
-    raise JsonRpcError(INVALID_PARAMS, 'Invalid params: unknown network specification')
+    raise JsonRpcError.invalid_params_error(message='Invalid params: unknown network specification')
 
 
 def _parse_operator_credentials(params: Dict[str, Any]) -> tuple[AccountId, PrivateKey]:
@@ -84,7 +83,7 @@ def _parse_operator_credentials(params: Dict[str, Any]) -> tuple[AccountId, Priv
         operator_account_id = AccountId.from_string(operator_account_id_str)
         operator_private_key = PrivateKey.from_string(operator_private_key_str)
     except Exception as e:
-        raise JsonRpcError(INVALID_PARAMS, f'Invalid params: invalid operatorAccountId/operatorPrivateKey format - {str(e)}') from e
+        raise JsonRpcError.invalid_params_error(message=f'Invalid params: invalid operatorAccountId/operatorPrivateKey format - {str(e)}') from e
 
     return operator_account_id, operator_private_key
 
