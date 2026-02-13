@@ -201,7 +201,7 @@ module.exports = async function ({ github, context }) {
             body: buildReminderComment(pr.user.login),
         });
 
-    console.log(`Reminder successfully posted on PR #${prNumber}`);
+        console.log(`Reminder successfully posted on PR #${prNumber}`);
     } catch (error) {
         // Permission handling
         console.log("Failed to create reminder comment.");
