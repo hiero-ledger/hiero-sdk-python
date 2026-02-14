@@ -47,11 +47,10 @@ async function commentExists({ github, owner, repo, issueNumber, marker }) {
                 console.log(`Found existing reminder comment (scanned ${scanned} comments).`);
                 return true;
             }
-        }
-
-        if (scanned >= MAX_COMMENTS) {
-            console.log(`Reached scan limit (${MAX_COMMENTS} comments) — assuming no duplicate.`);
-            return false;
+            if (scanned >= MAX_COMMENTS) {
+                console.log(`Reached scan limit (${MAX_COMMENTS} comments) — assuming no duplicate.`);
+                return false;
+            }
         }
     }
 
