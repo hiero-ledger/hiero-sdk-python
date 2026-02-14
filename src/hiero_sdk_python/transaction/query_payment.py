@@ -21,7 +21,7 @@ def build_query_payment_transaction(
     tx.add_hbar_transfer(payer_account_id, -amount.to_tinybars())
     tx.add_hbar_transfer(node_account_id, amount.to_tinybars())
 
-    tx.transaction_fee = 100_000_000 
+    tx.transaction_fee = 200_000_000  # 2 Hbar default fee (matches JS SDK)
     tx.node_account_id = node_account_id
     tx.transaction_id = TransactionId.generate(payer_account_id)
 
