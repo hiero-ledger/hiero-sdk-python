@@ -44,7 +44,7 @@ eth = [
 [dependency-groups]
 dev = [
     "grpcio-tools>=1.76.0,<2",
-    "pytest>=8.3.4,<9",
+    "pytest>=8.3.4,<10",
     "pytest-cov>=7.0.0,<8",
 ]
 
