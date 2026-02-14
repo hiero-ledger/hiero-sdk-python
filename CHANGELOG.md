@@ -15,11 +15,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 
 ### Tests
+- Format `tests/unit/endpoint_test.py` using black. (`#1792`)
 
 ### .github
 - Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
 - Reverted PR #1739 checking assignment counts
+- chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
 
 ## [0.2.0] - 2026-11-02
 
