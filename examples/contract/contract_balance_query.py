@@ -1,5 +1,7 @@
 """
-Contract Balance Query Example
+
+
+Contract Balance Query Example.
 
 This script demonstrates how to:
 1. Set up a client connection to the Hedera network
@@ -11,9 +13,8 @@ Run with:
   uv run -m examples.contract.contract_balance_query
   python -m examples.contract.contract_balance_query
 """
-
-import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
@@ -22,11 +23,10 @@ from hiero_sdk_python import (
     CryptoGetAccountBalanceQuery,
     Hbar,
 )
-
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.response_code import ResponseCode
 
 from .contracts import SIMPLE_CONTRACT_BYTECODE
-from hiero_sdk_python.response_code import ResponseCode
 
 load_dotenv()
 
