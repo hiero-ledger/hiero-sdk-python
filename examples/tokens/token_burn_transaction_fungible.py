@@ -1,22 +1,19 @@
 """
+
+Example demonstrating token burn transaction fungible.
+
 uv run examples/tokens/token_burn_transaction_fungible.py
 python examples/tokens/token_burn_transaction_fungible.py
-
 """
-
 import sys
 
-from hiero_sdk_python import (
-    Client
-)
-from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python import Client
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
-
-
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
@@ -27,7 +24,7 @@ def setup_client():
 
 
 def create_fungible_token(client, operator_id, operator_key):
-    """Create a fungible token"""
+    """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleFT")
@@ -56,7 +53,7 @@ def create_fungible_token(client, operator_id, operator_key):
 
 
 def get_token_info(client, token_id):
-    """Get token info for the token"""
+    """Get token info for the token."""
     token_info = TokenInfoQuery().set_token_id(token_id).execute(client)
 
     print(f"Token supply: {token_info.total_supply}")
@@ -65,11 +62,12 @@ def get_token_info(client, token_id):
 def token_burn_fungible():
     """
     Demonstrates the fungible token burn functionality by:
+
     1. Setting up client with operator account
     2. Creating a fungible token with the operator account as owner
     3. Getting initial token supply
     4. Burning 50 tokens from the total supply
-    5. Getting final token supply to verify burn
+    5. Getting final token supply to verify burn.
     """
     client = setup_client()
     operator_id = client.operator_account_id

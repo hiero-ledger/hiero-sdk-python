@@ -1,24 +1,26 @@
 """
+
+
 Example: Using CustomFeeLimit with a revenue-generating topic.
 
 - Creates a topic that charges a fixed custom fee per message.
 - Submits a message with a CustomFeeLimit specifying how much the payer is
   willing to pay in custom fees for that message.
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
+    CustomFixedFee,
     Hbar,
     Network,
+    PrivateKey,
     TopicCreateTransaction,
     TopicMessageSubmitTransaction,
-    CustomFixedFee,
 )
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 

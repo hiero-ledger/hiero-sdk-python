@@ -1,4 +1,7 @@
 """
+
+Example demonstrating token create transaction token fee schedule key.
+
 uv run examples/tokens/token_create_transaction_token_fee_schedule_key.py
 
 Example: Demonstrating the fee_schedule_key in Token Creation
@@ -13,23 +16,22 @@ It creates two fungible tokens:
 
 Then, it attempts to update the custom fees for both tokens to demonstrate the difference.
 """
-
 import sys
 
 from hiero_sdk_python import Client, PrivateKey
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
-    TokenParams,
     TokenKeys,
+    TokenParams,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import (
     TokenFeeScheduleUpdateTransaction,
 )
-from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.tokens.token_type import TokenType
 
 # Load environment variables
 

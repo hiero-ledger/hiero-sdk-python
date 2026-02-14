@@ -1,26 +1,26 @@
 """
+
+Example demonstrating token update nfts transaction nfts.
+
 uv run examples/tokens/token_update_transaction_nfts.py
 python examples/tokens/token_update_transaction_nfts.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
     PrivateKey,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_update_nfts_transaction import (
     TokenUpdateNftsTransaction,
 )
-from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
-
 
 
 def setup_client():
@@ -30,7 +30,7 @@ def setup_client():
     return client
 
 def create_nft(client, operator_id, operator_key, metadata_key):
-    """Create a non-fungible token"""
+    """Create a non-fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
@@ -61,7 +61,7 @@ def create_nft(client, operator_id, operator_key, metadata_key):
 
 
 def mint_nfts(client, nft_token_id, metadata_list):
-    """Mint a non-fungible token"""
+    """Mint a non-fungible token."""
     receipt = (
         TokenMintTransaction()
         .set_token_id(nft_token_id)
@@ -81,16 +81,15 @@ def mint_nfts(client, nft_token_id, metadata_list):
 
 
 def get_nft_info(client, nft_id):
-    """Get information about an NFT"""
-    info = TokenNftInfoQuery().set_nft_id(nft_id).execute(client)
+    """Get information about an NFT."""
+    return TokenNftInfoQuery().set_nft_id(nft_id).execute(client)
 
-    return info
 
 
 def update_nft_metadata(
     client, nft_token_id, serial_numbers, new_metadata, metadata_private_key
 ):
-    """Update metadata for NFTs in a collection"""
+    """Update metadata for NFTs in a collection."""
     receipt = (
         TokenUpdateNftsTransaction()
         .set_token_id(nft_token_id)
@@ -115,14 +114,14 @@ def update_nft_metadata(
 def token_update_nfts():
     """
     Demonstrates the NFT token update functionality by:
+
     1. Setting up client with operator account
     2. Creating a non-fungible token with metadata key
     3. Minting two NFTs with initial metadata
     4. Checking the current NFT info
     5. Updating metadata for the first NFT
-    6. Verifying the updated NFT metadata
+    6. Verifying the updated NFT metadata.
     """
-
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

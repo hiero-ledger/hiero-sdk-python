@@ -1,4 +1,5 @@
-"""Example: Create an account using a separate ECDSA key for the EVM alias.
+"""
+Example: Create an account using a separate ECDSA key for the EVM alias.
 
 This demonstrates:
 - Using a "main" key for the account
@@ -40,7 +41,9 @@ def setup_client() -> Client:
 
 
 def generate_main_and_alias_keys() -> tuple[PrivateKey, PrivateKey]:
-    """Generate the main account key and a separate ECDSA alias key.
+    """
+
+    Generate the main account key and a separate ECDSA alias key.
 
     Returns:
         tuple: (main_private_key, alias_private_key)
@@ -71,7 +74,9 @@ def generate_main_and_alias_keys() -> tuple[PrivateKey, PrivateKey]:
 def create_account_with_ecdsa_alias(
     client: Client, main_private_key: PrivateKey, alias_private_key: PrivateKey
 ) -> AccountId:
-    """Create an account with a separate ECDSA key as the EVM alias.
+    """
+
+    Create an account with a separate ECDSA key as the EVM alias.
 
     This uses `set_key_with_alias` to map the main key to the alias key.
     The transaction requires signatures from both the alias key (to authorize
@@ -113,7 +118,9 @@ def create_account_with_ecdsa_alias(
 
 
 def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
-    """Fetch account information from the network.
+    """
+
+    Fetch account information from the network.
 
     Args:
         client: The Hedera client.
@@ -128,7 +135,9 @@ def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
 
 
 def print_account_summary(account_info: AccountInfo) -> None:
-    """Print a summary of the account information.
+    """
+
+    Print a summary of the account information.
 
     Args:
         account_info: The account info object to display.

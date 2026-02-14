@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating node deletion on the network.
 
 NOTE: This is a privileged transaction that can only be executed on solo but not on local-node.
@@ -15,7 +17,6 @@ Setup options:
 1. GitHub repository with full setup instructions: https://github.com/hiero-ledger/solo
 2. Official documentation with step-by-step guide: https://solo.hiero.org/v0.43.0/docs/step-by-step-guide/
 """
-
 import sys
 
 from dotenv import load_dotenv
@@ -38,7 +39,7 @@ GOSSIP_CERTIFICATE = "3082052830820310a003020102020101300d06092a864886f70d01010c
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     load_dotenv()
     network = Network(network="solo")
     client = Client(network)
@@ -109,9 +110,10 @@ def create_node(client):
 def node_delete():
     """
     Demonstrates node deletion functionality by:
+
     1. Setting up client with operator account
     2. Creating a new node on the network
-    3. Deleting the node
+    3. Deleting the node.
     """
     # Set up client with operator account
     client = setup_client()
