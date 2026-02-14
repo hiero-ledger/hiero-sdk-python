@@ -105,11 +105,70 @@ on:
     *   Wait for the scheduled workflow to run (e.g., the 5-minute cron you set up) or manually trigger it via the Actions tab.
 4.  **Verify:** Check if the bot posted a comment on the issue and removed you from the assignee list.
 
+### Example 3: Testing the 'discussion' Label Feature in Inactivity Bot
+**Goal:** Verify the bot skips PRs with the 'discussion' label and unassigns PRs without it.
+
+**Setup:**
+1.  **Enable Issues in your fork:**
+    *   Go to Settings → Features
+    *   Check "Issues"
+    *   Click Save
+
+2.  **Create the 'discussion' label:**
+    *   Go to Issues → Labels
+    *   Click "New label"
+    *   Name: `discussion`
+    *   Description: `This PR/issue is open for discussion`
+    *   Color: choose any (e.g., `#d4c5f9`)
+    *   Click "Create label"
+
+3.  **Modify timeout for testing:**
+    *   In `.github/workflows/bot-inactivity-unassign.yml`, change `DAYS: 21` to `DAYS: 0.007` (10 minutes)
+    *   Merge this to your fork's `main`
+
+**Test Scenario 1 - PR without 'discussion' label (should unassign):**
+1.  Create a test issue in your fork and assign yourself
+2.  Create a PR linked to the issue:
+    ```bash
+    git checkout -b test-pr-without-label
+    echo "test" >> test-file.txt
+    git add test-file.txt
+    git commit -m "Test: fixes #ISSUE_NUMBER"
+    git push origin test-pr-without-label
+    ```
+3.  Create the PR on GitHub (mention "fixes #ISSUE_NUMBER" in description)
+4.  Wait 10 minutes
+5.  Manually trigger the bot:
+    *   Go to Actions → bot-inactivity-unassign → Run workflow
+    *   Set "dry-run mode" to **false**
+    *   Click "Run workflow"
+6.  **Expected:** Bot closes PR, unassigns you, posts comment
+
+**Test Scenario 2 - PR with 'discussion' label (should NOT unassign):**
+1.  Create another test issue and assign yourself
+2.  Create a new PR:
+    ```bash
+    git checkout -b test-pr-with-label
+    echo "test2" >> test-file2.txt
+    git add test-file2.txt
+    git commit -m "Test: fixes #ISSUE_NUMBER"
+    git push origin test-pr-with-label
+    ```
+3.  Create the PR on GitHub
+4.  **Add the 'discussion' label** to this PR
+5.  Wait 10 minutes
+6.  Manually trigger the bot
+7.  **Expected:** PR stays open, you remain assigned, bot logs `[SKIP] PR #X has 'discussion' label, keeping open`
+
+**View logs:**
+*   Go to Actions → click the workflow run → expand "Run inactivity bot" step
+*   Look for skip messages in the logs
+
 ## Cleanup
 
 Once you have verified the functionality works as expected:
 
 1.  Delete your test branches (`test/trigger-bot`, etc.).
 2.  Close any dummy Pull Requests and Issues in your fork.
-3.  **Revert the timescale changes** in your feature branch (e.g., change `DAYS=0` back to `DAYS=21`, remove the `*/5` cron).
+3.  **Revert the timescale changes** in your feature branch (e.g., change `DAYS=0.007` back to `DAYS=21`, remove the `*/5` cron).
 4.  Create a final Pull Request from your clean feature branch to the official upstream repository.

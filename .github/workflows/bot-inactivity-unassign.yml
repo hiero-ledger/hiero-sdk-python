@@ -33,7 +33,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          DAYS: 21
+          DAYS: 0.007  # 10 minutes for testing (change to 21 for production)
           # Behaviour:
           # - schedule: DRY_RUN = 0 (real actions)
           # - workflow_dispatch: DRY_RUN derived from the "dry_run" input
