@@ -167,7 +167,7 @@ module.exports = async function ({ github, context }) {
 
         console.log(`reviewDecision = ${reviewDecision}`);
     } catch (err) {
-        console.log("Failed to fetch reviewDecision — skipping reminder.");
+        console.log(`Failed to fetch reviewDecision for PR #${prNumber} in ${owner}/${repo} — skipping reminder.`);
         console.log(`Error: ${err.message}`);
         return;
     }
@@ -179,19 +179,25 @@ module.exports = async function ({ github, context }) {
     }
 
     // Prevent duplicate comments
-    const alreadyCommented = await commentExists({
-        github,
-        owner,
-        repo,
-        issueNumber: prNumber,
-        marker: COMMENT_MARKER,
-    });
-
+    let alreadyCommented = false;
+    try {
+        alreadyCommented = await commentExists({
+            github,
+            owner,
+            repo,
+            issueNumber: prNumber,
+            marker: COMMENT_MARKER,
+        });
+    } catch (err) {
+        console.log(`Failed to check existing comments on PR #${prNumber} in ${owner}/${repo}: ${err.message}`);
+        console.log("Skipping reminder to avoid potential duplicate.");
+        return;
+    }
+    
     if (alreadyCommented) {
         console.log("Reminder already exists — skipping.");
         return;
     }
-
     try {
         await github.rest.issues.createComment({
             owner,
