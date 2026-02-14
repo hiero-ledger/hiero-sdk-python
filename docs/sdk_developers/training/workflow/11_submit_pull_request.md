@@ -49,7 +49,7 @@ We have several workflows that check:
 
 If they are failing and you require help, you can:
 - Contact us on discord (docs/discord.md)
-- Attend the Python SDK Office Hours using the [LFDT Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+- Attend the Python SDK Office Hours using the [LFDT Calendar](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
 - Ask for help on the pull request
 
 All checks should be green before requesting review.
