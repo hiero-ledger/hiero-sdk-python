@@ -502,7 +502,7 @@ def test_transaction_record_default_new_fields():
     assert record.alias is None
     assert record.ethereum_hash is None
     assert record.evm_address is None
-    assert record.paid_staking_rewards == []
+    assert len(record.paid_staking_rewards) == 0
     assert record.contract_create_result is None
 
 
