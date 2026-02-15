@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   verify-commits:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
 
     # =========================================================================
     # CONFIGURATION - All customizable values are defined here as env vars

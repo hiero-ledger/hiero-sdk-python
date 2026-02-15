@@ -23,6 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
 - Reverted PR #1739 checking assignment counts
 - chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
+- ci: update all workflows to use self-hosted runners (`hl-sdk-py-lin-md`) (`#1480`)
 
 ## [0.2.0] - 2026-11-02
 

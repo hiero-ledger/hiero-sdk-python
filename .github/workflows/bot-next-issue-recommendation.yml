@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   recommend-next-issue:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     if: github.event.pull_request.merged == true
     
     steps:
