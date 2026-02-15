@@ -181,6 +181,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
+- Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
 
 ### Changed
 - Reduced linting errors in `examples/` directory by 80% (952 → 185) by fixing docstring formatting, import ordering, and applying auto-fixes (#1768)
