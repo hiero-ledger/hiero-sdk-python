@@ -1,4 +1,7 @@
 """
+
+Example: Account Id.
+
 uv run examples/account/account_id.py
 python examples/account/account_id.py
 
@@ -8,7 +11,6 @@ This example demonstrates various ways to use the AccountId class:
 3. Comparing AccountId instances
 4. Creating an AccountId with a public key alias
 """
-
 from hiero_sdk_python import AccountId, PrivateKey
 
 
@@ -111,9 +113,7 @@ def create_account_id_with_alias():
 
 
 def main():
-    """
-    Main function that runs all AccountId examples.
-    """
+    """Main function that runs all AccountId examples."""
     print("=" * 60)
     print("AccountId Examples")
     print("=" * 60)

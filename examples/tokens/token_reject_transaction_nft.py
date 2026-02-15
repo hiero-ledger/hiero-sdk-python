@@ -1,9 +1,10 @@
 """
+
+Example demonstrating token reject transaction nft.
+
 uv run examples/tokens/token_reject_transaction_nft.py
 python examples/tokens/token_reject_transaction_nft.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
@@ -12,7 +13,6 @@ from hiero_sdk_python import (
     TransferTransaction,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -24,6 +24,8 @@ from hiero_sdk_python.tokens.token_associate_transaction import (
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
+
 
 def setup_client():
     client = Client.from_env()
@@ -32,7 +34,7 @@ def setup_client():
     return client
 
 def create_test_account(client):
-    """Create a new account for testing"""
+    """Create a new account for testing."""
     # Generate private key for new account
     new_account_private_key = PrivateKey.generate_ed25519()
     new_account_public_key = new_account_private_key.public_key()
@@ -60,7 +62,7 @@ def create_test_account(client):
 
 
 def create_nft(client, treasury_id, treasury_private_key):
-    """Create a non-fungible token"""
+    """Create a non-fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
@@ -94,7 +96,7 @@ def create_nft(client, treasury_id, treasury_private_key):
 
 
 def mint_nfts(client, nft_token_id, metadata_list, treasury_private_key):
-    """Mint a non-fungible token"""
+    """Mint a non-fungible token."""
     receipt = (
         TokenMintTransaction()
         .set_token_id(nft_token_id)
@@ -118,7 +120,7 @@ def mint_nfts(client, nft_token_id, metadata_list, treasury_private_key):
 
 
 def associate_token(client, receiver_id, nft_token_id, receiver_private_key):
-    """Associate token with an account"""
+    """Associate token with an account."""
     # Associate the token_id with the new account
     receipt = (
         TokenAssociateTransaction()
@@ -139,7 +141,7 @@ def associate_token(client, receiver_id, nft_token_id, receiver_private_key):
 
 
 def transfer_nfts(client, treasury_id, treasury_private_key, receiver_id, nft_ids):
-    """Transfer NFTs to the receiver account so we can later reject them"""
+    """Transfer NFTs to the receiver account so we can later reject them."""
     # Transfer NFTs to the receiver account
     receipt = (
         TransferTransaction()
@@ -159,7 +161,7 @@ def transfer_nfts(client, treasury_id, treasury_private_key, receiver_id, nft_id
 
 
 def get_nft_balances(client, treasury_id, receiver_id, nft_token_id):
-    """Get NFT balances for both accounts"""
+    """Get NFT balances for both accounts."""
     token_balance = (
         CryptoGetAccountBalanceQuery().set_account_id(treasury_id).execute(client)
     )
@@ -178,13 +180,14 @@ def get_nft_balances(client, treasury_id, receiver_id, nft_token_id):
 def token_reject_nft():
     """
     Demonstrates the NFT token reject functionality by:
+
     1. Creating a new treasury account
     2. Creating a new receiver account
     3. Creating a non-fungible token
     4. Minting two NFTs
     5. Associating the NFT with the receiver account
     6. Transferring the NFTs to the receiver account
-    7. Rejecting the NFTs from the receiver account
+    7. Rejecting the NFTs from the receiver account.
     """
     client = setup_client()
     # Create treasury/sender account that will create and send tokens

@@ -13,11 +13,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Docs
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
+- chore: update office hours and community calls to use direct links (`#1804`)
 
 ### Tests
 - Format `tests/unit/endpoint_test.py` using black. (`#1792`)
 
 ### .github
+- Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
 - Reverted PR #1739 checking assignment counts
 - chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
@@ -180,6 +182,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+- Reduced linting errors in `examples/` directory by 80% (952 → 185) by fixing docstring formatting, import ordering, and applying auto-fixes (#1768)
 - Improved bot message formatting in LinkBot to display issue linking format as a code block for better clarity (#1762)
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
 - Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)

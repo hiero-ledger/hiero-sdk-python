@@ -1,4 +1,7 @@
 """
+
+Example: Account Id Populate From Mirror.
+
 uv run examples/account/account_id_populate_from_mirror.py
 python examples/account/account_id_populate_from_mirror.py
 
@@ -10,31 +13,29 @@ using mirror node lookups:
 3. Populate account number (num) from mirror node
 4. Populate EVM address from mirror node
 """
-
 import sys
 import time
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
-    TransferTransaction,
+    Client,
     Hbar,
+    PrivateKey,
     TransactionGetReceiptQuery,
+    TransferTransaction,
 )
 
 
 def generate_evm_address():
-    """
-    Generates a new ECDSA key pair and returns its EVM address.
-    """
+    """Generates a new ECDSA key pair and returns its EVM address."""
     private_key = PrivateKey.generate_ecdsa()
     return private_key.public_key().to_evm_address()
 
 
 def auto_create_account(client, evm_address):
     """
-    Triggers auto account creation by transferring HBAR
+    Triggers auto account creation by transferring HBAR.
+
     to an EVM address.
     """
     print("\nAuto Account Creation...")
@@ -69,9 +70,7 @@ def auto_create_account(client, evm_address):
 
 
 def populate_account_num_example(client, evm_address, created_account_id):
-    """
-    Demonstrates populating AccountId.num from the mirror node.
-    """
+    """Demonstrates populating AccountId.num from the mirror node."""
     print("\nExample 1: Populate Account Number from Mirror Node...")
 
     mirror_account_id = AccountId.from_evm_address(evm_address, 0, 0)
@@ -100,9 +99,7 @@ def populate_account_num_example(client, evm_address, created_account_id):
 
 
 def populate_evm_address_example(client, created_account_id, evm_address):
-    """
-    Demonstrates populating AccountId.evm_address from the mirror node.
-    """
+    """Demonstrates populating AccountId.evm_address from the mirror node."""
     print("\nExample 2: Populate EVM Address from Mirror Node")
 
     print(f"Before populate: evm_address = {created_account_id.evm_address}")

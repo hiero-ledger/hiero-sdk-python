@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """
+
+
 Example demonstrating how to handle PrecheckError in the Hiero SDK.
 
 run:
 uv run examples/errors/precheck_error.py
 python examples/errors/precheck_error.py
 """
-
+from hiero_sdk_python import AccountId, Client, TransferTransaction
 from hiero_sdk_python.exceptions import PrecheckError
-from hiero_sdk_python import (
-    Client,
-    TransferTransaction,
-    AccountId
-)
+
 
 def main() -> None:
     # Initialize the client

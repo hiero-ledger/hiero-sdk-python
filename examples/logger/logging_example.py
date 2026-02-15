@@ -1,5 +1,7 @@
 """
-Logging Example - Demonstrates logging functionality in the Hiero SDK
+
+
+Logging Example - Demonstrates logging functionality in the Hiero SDK.
 
 This example shows how to:
 - Set up a client with custom logging
@@ -10,18 +12,18 @@ Usage:
     uv run examples/logger/logging_example.py
     python examples/logger/logging_example.py
 """
-
 import os
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
     AccountCreateTransaction,
-    Network,
+    AccountId,
+    Client,
     Logger,
     LogLevel,
+    Network,
+    PrivateKey,
 )
 
 load_dotenv()
@@ -84,7 +86,7 @@ def create_key():
     # Generate new key to use with new account
     new_key = PrivateKey.generate()
 
-    print(f"Generated new key pair:")
+    print("Generated new key pair:")
     print(f"  Private key: {new_key.to_string()}")
     print(f"  Public key: {new_key.public_key().to_string()}")
 

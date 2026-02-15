@@ -1,24 +1,27 @@
 """
+
+
 Example demonstrating account delete functionality.
+
 Run:
 uv run examples/account/account_delete_transaction.py
 python examples/account/account_delete_transaction.py
 
 """
-
 import sys
+
 from hiero_sdk_python import (
+    AccountCreateTransaction,
+    AccountDeleteTransaction,
     Client,
     Hbar,
     PrivateKey,
-    AccountCreateTransaction,
-    AccountDeleteTransaction,
     ResponseCode,
 )
 
 
 def create_account(client):
-    """Create a test account"""
+    """Create a test account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -47,9 +50,10 @@ def create_account(client):
 def account_delete():
     """
     Demonstrates account delete functionality by:
+
     1. Setting up client with operator account
     2. Creating an account
-    3. Deleting the account
+    3. Deleting the account.
     """
     client = Client.from_env()
 

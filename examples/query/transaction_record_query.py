@@ -1,15 +1,16 @@
 """
+
+Example demonstrating transaction record query.
+
 uv run examples/query/transaction_record_query.py
 python examples/query/transaction_record_query.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
-    PrivateKey,
     Hbar,
+    PrivateKey,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
@@ -24,7 +25,7 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     try:
         client = Client.from_env()
         operator_id = client.operator_account_id
@@ -38,7 +39,7 @@ def setup_client():
 
 
 def create_account_transaction(client):
-    """Create a new account to get a transaction ID for record query"""
+    """Create a new account to get a transaction ID for record query."""
     # Generate a new key pair for the account
     new_account_key = PrivateKey.generate_ed25519()
 
@@ -67,7 +68,7 @@ def create_account_transaction(client):
 
 
 def create_fungible_token(client: "Client", account_id, account_private_key):
-    """Create a fungible token"""
+    """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleFT")
@@ -96,7 +97,7 @@ def create_fungible_token(client: "Client", account_id, account_private_key):
 
 
 def associate_token(client, token_id, receiver_id, receiver_private_key):
-    """Associate token with an account"""
+    """Associate token with an account."""
     # Associate the token_id with the new account
     receipt = (
         TokenAssociateTransaction()
@@ -119,7 +120,7 @@ def associate_token(client, token_id, receiver_id, receiver_private_key):
 def transfer_tokens(
     client, treasury_id, treasury_private_key, receiver_id, token_id, amount=10
 ):
-    """Transfer tokens to the receiver account so we can later reject them"""
+    """Transfer tokens to the receiver account so we can later reject them."""
     # Transfer tokens to the receiver account
     receipt = (
         TransferTransaction()
@@ -141,14 +142,14 @@ def transfer_tokens(
 
 
 def print_transaction_record(record):
-    """Print the transaction record"""
+    """Print the transaction record."""
     print(f"Transaction ID: {record.transaction_id}")
     print(f"Transaction Fee: {record.transaction_fee}")
     print(f"Transaction Hash: {record.transaction_hash.hex()}")
     print(f"Transaction Memo: {record.transaction_memo}")
     print(f"Transaction Account ID: {record.receipt.account_id}")
 
-    print(f"\nTransfers made in the transaction:")
+    print("\nTransfers made in the transaction:")
     for account_id, amount in record.transfers.items():
         print(f"  Account: {account_id}, Amount: {amount}")
 
@@ -156,11 +157,12 @@ def print_transaction_record(record):
 def query_record():
     """
     Demonstrates the transaction record query functionality by performing the following steps:
+
     1. Creating a new account transaction to get a transaction ID
     2. Querying and displaying the transaction record for account creation
     3. Creating a fungible token and associating it with the new account
     4. Transferring tokens from operator to new account
-    5. Querying and displaying the transaction record for token transfer
+    5. Querying and displaying the transaction record for token transfer.
     """
     client, operator_id, operator_key = setup_client()
 
@@ -185,7 +187,7 @@ def query_record():
     print("Transaction record for token transfer:")
     print_transaction_record(transfer_record)
 
-    print(f"\nToken Transfer Record:")
+    print("\nToken Transfer Record:")
     for token_id, transfers in transfer_record.token_transfers.items():
         print(f"  Token ID: {token_id}")
         for account_id, amount in transfers.items():
