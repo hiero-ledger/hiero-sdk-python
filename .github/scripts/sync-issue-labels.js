@@ -1,15 +1,14 @@
-const CLOSING_REFERENCE_REGEX =
-  /\b(?:fix(?:es|ed)?|close(?:s|d)?|resolve(?:s|d)?)\s*:?\s*((?:#\d+)(?:\s*(?:,|and)\s*#\d+)*)/gi;
-
 function isBotLogin(login = "") {
   return /\[bot\]$/i.test(login) || /dependabot/i.test(login);
 }
 
 function extractLinkedIssueNumbers(prBody = "") {
+  const closingReferenceRegex =
+    /\b(?:fix(?:es|ed)?|close(?:s|d)?|resolve(?:s|d)?)\s*:?\s*((?:#\d+)(?:\s*(?:,|and)\s*#\d+)*)/gi;
   const numbers = new Set();
   let referenceMatch;
 
-  while ((referenceMatch = CLOSING_REFERENCE_REGEX.exec(prBody)) !== null) {
+  while ((referenceMatch = closingReferenceRegex.exec(prBody)) !== null) {
     const referencesText = referenceMatch[1] || "";
     const issueMatches = referencesText.matchAll(/#(\d+)/g);
 
@@ -62,7 +61,12 @@ module.exports = async ({ github, context }) => {
     `[sync-issue-labels] Processing PR #${prNumber} in ${context.repo.owner}/${context.repo.repo} (dry_run=${isDryRun}).`
   );
 
-  const prData = await getPullRequestData({ github, context, prNumber });
+  let prData;
+  try {
+    prData = await getPullRequestData({ github, context, prNumber });
+  } catch (error) {
+    throw new Error(`[sync-issue-labels] Failed to fetch PR #${prNumber}: ${error?.message || error}`);
+  }
   const prAuthor = prData?.user?.login || "";
 
   if (isBotLogin(prAuthor)) {
@@ -102,7 +106,9 @@ module.exports = async ({ github, context }) => {
         }`
       );
 
-      issueLabelNames.forEach((label) => labelsFromIssues.add(label));
+      for (const label of issueLabelNames) {
+        labelsFromIssues.add(label);
+      }
     } catch (error) {
       if (error?.status === 404) {
         console.log(`[sync-issue-labels] Linked issue #${issueNumber} not found. Skipping.`);
@@ -140,12 +146,18 @@ module.exports = async ({ github, context }) => {
     return;
   }
 
-  await github.rest.issues.addLabels({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    issue_number: prNumber,
-    labels: labelsToAdd,
-  });
+  try {
+    await github.rest.issues.addLabels({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: prNumber,
+      labels: labelsToAdd,
+    });
 
-  console.log(`[sync-issue-labels] Added labels to PR #${prNumber}: ${labelsToAdd.join(", ")}`);
+    console.log(`[sync-issue-labels] Added labels to PR #${prNumber}: ${labelsToAdd.join(", ")}`);
+  } catch (error) {
+    throw new Error(
+      `[sync-issue-labels] Failed to add labels to PR #${prNumber}: ${error?.message || error}`
+    );
+  }
 };
