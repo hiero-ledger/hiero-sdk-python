@@ -282,44 +282,37 @@ class FileAppendTransaction(Transaction):
         if self._transaction_body_bytes:
             return self
 
-        
         if self.transaction_id is None:
+            if client is None:
+                raise ValueError(
+                    "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
+                )
+
             self.transaction_id = client.generate_transaction_id()
 
         # Generate transaction IDs for all chunks
-        self._transaction_ids = []
-        base_timestamp = self.transaction_id.valid_start
+        if not self._transaction_ids:
+            base_timestamp = self.transaction_id.valid_start
 
-        for i in range(self.get_required_chunks()):
-            if i == 0:
-                # First chunk uses the original transaction ID
-                chunk_transaction_id = self.transaction_id
-            else:
-                # Subsequent chunks get incremented timestamps
-                # Add i nanoseconds to space out chunks
-                chunk_valid_start = timestamp_pb2.Timestamp(
-                    seconds=base_timestamp.seconds,
-                    nanos=base_timestamp.nanos + i
-                )
-                chunk_transaction_id = TransactionId(
-                    account_id=self.transaction_id.account_id,
-                    valid_start=chunk_valid_start
-                )
-            self._transaction_ids.append(chunk_transaction_id)
+            for i in range(self.get_required_chunks()):
+                if i == 0:
+                    # First chunk uses the original transaction ID
+                    chunk_transaction_id = self.transaction_id
+                else:
+                    # Subsequent chunks get incremented timestamps
+                    # Add i nanoseconds to space out chunks
+                    chunk_valid_start = timestamp_pb2.Timestamp(
+                        seconds=base_timestamp.seconds,
+                        nanos=base_timestamp.nanos + i
+                    )
+                    chunk_transaction_id = TransactionId(
+                        account_id=self.transaction_id.account_id,
+                        valid_start=chunk_valid_start
+                    )
 
-        # We iterate through every node in the client's network
-        # For each node, set the node_account_id and build the transaction body
-        # This allows the transaction to be submitted to any node in the network
-        for node in client.network.nodes:
-            self.node_account_id = node._account_id
-            transaction_body = self.build_transaction_body()
-            self._transaction_body_bytes[node._account_id] = transaction_body.SerializeToString()
+                self._transaction_ids.append(chunk_transaction_id)
 
-        # Set the node account id to the current node in the network
-        self.node_account_id = client.network.current_node._account_id
-
-        return self
-
+        return super().freeze_with(client)
 
     def execute(self, client: "Client", timeout: Optional[Union[int, float]] = None) -> Any:
         """
@@ -365,8 +358,8 @@ class FileAppendTransaction(Transaction):
             response = super().execute(client, timeout)
             responses.append(response)
 
-            # Return the first response (as per JavaScript implementation)
-            return responses[0] if responses else None
+        # Return the first response (as per JavaScript implementation)
+        return responses[0] if responses else None
 
     def sign(self, private_key: "PrivateKey") -> FileAppendTransaction:
         """
@@ -387,3 +380,20 @@ class FileAppendTransaction(Transaction):
         # Call the parent sign method for the current transaction
         super().sign(private_key)
         return self
+    
+    @property
+    def body_size_all_chunks(self) -> List[int]:
+        """
+        Returns an array of body sizes for transactions with multiple chunks.
+        """
+        self._require_frozen()
+        sizes = []
+
+        original_index = self._current_chunk_index
+        for transaction_id in self._transaction_ids:
+            self.transaction_id = transaction_id
+            sizes.append(self.body_size)
+        
+        self._current_chunk_index = original_index
+        return sizes
+    

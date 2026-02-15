@@ -4,7 +4,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import (
     response_header_pb2, 
     response_pb2,
@@ -17,6 +19,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -254,6 +257,97 @@ def test_topic_message_submit_transaction_with_large_message(topic_id):
         )
 
         try:
+            receipt = tx.execute(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+
+        # Verify the receipt contains the expected values
+        assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_topic_message_chunk_submit_transaction_with_freeze(topic_id):
+    """Test message submit tx should generate the transaction_ids and body_bytes when freeze()"""
+    message = "A"*4000
+
+    tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_message(message)
+        .set_transaction_id(TransactionId.generate(AccountId(0,0,100)))
+        .set_node_account_id(AccountId(0,0,100))
+        .freeze()
+    )
+
+    tx_ids = tx._transaction_ids
+    
+    assert tx_ids is not None
+    assert len(tx_ids) == 4
+
+    assert tx._transaction_body_bytes, "Transaction body bytes must not be empty"
+
+def test_topic_message_chunk_submit_transaction_with_freeze_throw_erros(topic_id):
+    """Test message submit tx should throw error on freeze() if transaction id or node ids are not set"""
+    message = "A"*4000
+
+    # Missing node account id
+    with pytest.raises(
+        ValueError,
+        match="Node account ID must be set before freezing"
+    ):
+        (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .set_transaction_id(TransactionId.generate(AccountId(0,0,100)))
+            .freeze()
+        )
+    
+    # Missing transaction id
+    with pytest.raises(
+        ValueError,
+        match="Transaction ID must be set before freezing"
+    ):
+        (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .set_node_account_id(AccountId(0,0,100))
+            .freeze()
+        )
+
+def test_topic_message_submit_chunck_tx_can_execute_using_freeze(topic_id):
+    """Test topic message submit transaction can execute using freeze()"""
+    message = "A" * 4000
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .set_transaction_id(TransactionId.generate(AccountId(0,0,100)))
+            .set_node_account_id(AccountId(0,0,3))
+            .freeze()
+        )
+
+        try:
+            tx.sign(PrivateKey.generate())
             receipt = tx.execute(client)
         except Exception as e:
             pytest.fail(f"Should not raise exception, but raised: {e}")
