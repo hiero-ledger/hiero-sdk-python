@@ -9,6 +9,8 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.hapi.services.crypto_get_info_pb2 import CryptoGetInfoResponse
+from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo as StakingInfoProto
+from hiero_sdk_python.staking_info import StakingInfo
 
 pytestmark = pytest.mark.unit
 
@@ -210,3 +212,155 @@ def test_str_and_repr(account_info):
     assert "account_id=AccountId(shard=0, realm=0, num=100" in info_repr
     assert "contract_account_id='0.0.100'" in info_repr
     assert "account_memo='Test account memo'" in info_repr
+
+
+def test_from_proto_with_staking_info():
+    """Test from_proto with staking account info"""
+    public_key = PrivateKey.generate_ed25519().public_key()
+    proto = CryptoGetInfoResponse.AccountInfo(
+        accountID=AccountId(0, 0, 100)._to_proto(),
+        key=public_key._to_proto(),
+        balance=5000000,
+        staking_info=StakingInfoProto(
+            staked_account_id=AccountId(0, 0, 500)._to_proto(),
+            decline_reward=True,
+        ),
+    )
+    
+    account_info = AccountInfo._from_proto(proto)
+    
+    assert account_info.staking_info is not None
+    assert account_info.staking_info.staked_account_id == AccountId(0, 0, 500)
+    assert account_info.staking_info.decline_reward is True
+
+
+def test_from_proto_with_staked_node_id():
+    """Test from_proto with staked_node_id"""
+    public_key = PrivateKey.generate_ed25519().public_key()
+    proto = CryptoGetInfoResponse.AccountInfo(
+        accountID=AccountId(0, 0, 100)._to_proto(),
+        key=public_key._to_proto(),
+        balance=5000000,
+        staking_info=StakingInfoProto(
+            staked_node_id=3,
+            decline_reward=False,
+        ),
+    )
+    
+    account_info = AccountInfo._from_proto(proto)
+    
+    assert account_info.staking_info is not None
+    assert account_info.staking_info.staked_node_id == 3
+    assert account_info.staking_info.decline_reward is False
+
+
+def test_from_proto_with_no_staking_info():
+    """Test from_proto without staking info"""
+    public_key = PrivateKey.generate_ed25519().public_key()
+    proto = CryptoGetInfoResponse.AccountInfo(
+        accountID=AccountId(0, 0, 100)._to_proto(),
+        key=public_key._to_proto(),
+        balance=5000000,
+    )
+    
+    account_info = AccountInfo._from_proto(proto)
+    
+    assert account_info.staking_info is None
+
+
+def test_to_proto_with_staking_info():
+    """Test to_proto with staking info"""
+    account_info = AccountInfo(
+        account_id=AccountId(0, 0, 100),
+        balance=Hbar.from_tinybars(5000000),
+        staking_info=StakingInfo(
+            staked_account_id=AccountId(0, 0, 500),
+            decline_reward=True,
+        ),
+    )
+    
+    proto = account_info._to_proto()
+    
+    assert proto.HasField('staking_info')
+    assert proto.staking_info.HasField('staked_account_id')
+    assert proto.staking_info.staked_account_id == AccountId(0, 0, 500)._to_proto()
+    assert proto.staking_info.decline_reward is True
+
+
+def test_to_proto_with_staked_node_id():
+    """Test to_proto with staked_node_id"""
+    account_info = AccountInfo(
+        account_id=AccountId(0, 0, 100),
+        balance=Hbar.from_tinybars(5000000),
+        staking_info=StakingInfo(
+            staked_node_id=5,
+            decline_reward=False,
+        ),
+    )
+    
+    proto = account_info._to_proto()
+    
+    assert proto.HasField('staking_info')
+    assert proto.staking_info.staked_node_id == 5
+    assert proto.staking_info.decline_reward is False
+
+
+def test_proto_conversion_staking_node_round_trip():
+    """Test proto conversion round trip with staked_node_id"""
+    account_info = AccountInfo(
+        account_id=AccountId(0, 0, 100),
+        key=PrivateKey.generate_ed25519().public_key(),
+        balance=Hbar.from_tinybars(5000000),
+        staking_info=StakingInfo(
+            staked_node_id=7,
+            decline_reward=False,
+        ),
+    )
+    
+    converted = AccountInfo._from_proto(account_info._to_proto())
+    
+    assert converted.account_id == account_info.account_id
+    assert converted.balance.to_tinybars() == account_info.balance.to_tinybars()
+    assert converted.staking_info.staked_account_id is None
+    assert converted.staking_info.staked_node_id == 7
+    assert converted.staking_info.decline_reward is False
+
+
+def test_proto_conversion_staking_account_round_trip():
+    """Test proto conversion round trip with staked_account_id"""
+    account_info = AccountInfo(
+        account_id=AccountId(0, 0, 100),
+        key=PrivateKey.generate_ed25519().public_key(),
+        balance=Hbar.from_tinybars(5000000),
+        staking_info=StakingInfo(
+            staked_account_id=AccountId(0, 0, 600),
+            decline_reward=True,
+        ),
+    )
+    
+    converted = AccountInfo._from_proto(account_info._to_proto())
+    
+    assert converted.account_id == account_info.account_id
+    assert converted.balance.to_tinybars() == account_info.balance.to_tinybars()
+    assert converted.staking_info.staked_account_id == AccountId(0, 0, 600)
+    assert converted.staking_info.staked_node_id is None
+    assert converted.staking_info.decline_reward is True
+
+
+def test_proto_conversion_with_staked_node_zero():
+    """Test proto conversion with staked_node_id set to 0"""
+    account_info = AccountInfo(
+        account_id=AccountId(0, 0, 100),
+        key=PrivateKey.generate_ed25519().public_key(),
+        balance=Hbar.from_tinybars(5000000),
+        staking_info=StakingInfo(
+            staked_node_id=0,
+            decline_reward=True,
+        ),
+    )
+    
+    converted = AccountInfo._from_proto(account_info._to_proto())
+    
+    assert converted.staking_info is not None
+    assert converted.staking_info.staked_node_id == 0
+    assert converted.staking_info.decline_reward is True

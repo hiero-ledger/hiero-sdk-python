@@ -11,8 +11,8 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo
 from hiero_sdk_python.hapi.services.contract_get_info_pb2 import ContractGetInfoResponse
+from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 
@@ -39,9 +39,7 @@ class ContractInfo:
         max_automatic_token_associations (Optional[int]):
             The maximum number of token associations that can be automatically renewed
         token_relationships (list[TokenRelationship]): The token relationships of the contract
-        staked_account_id (Optional[AccountId]): The account to which this contract is staked
-        staked_node_id (Optional[int]): The node to which this contract is staked
-        decline_staking_reward (Optional[bool]): Whether this contract declines staking rewards
+        staking_info (Optional[StakingInfo]): The staking information for this contract
     """
 
     contract_id: Optional[ContractId] = None
@@ -58,9 +56,7 @@ class ContractInfo:
     ledger_id: Optional[bytes] = None
     max_automatic_token_associations: Optional[int] = None
     token_relationships: list[TokenRelationship] = field(default_factory=list)
-    staked_account_id: Optional[AccountId] = None
-    staked_node_id: Optional[int] = None
-    decline_staking_reward: Optional[bool] = None
+    staking_info: Optional[StakingInfo] = None
 
     @classmethod
     def _from_proto(cls, proto: ContractGetInfoResponse.ContractInfo) -> "ContractInfo":
@@ -106,21 +102,12 @@ class ContractInfo:
                 TokenRelationship._from_proto(relationship)
                 for relationship in proto.tokenRelationships
             ],
+            staking_info=(
+                StakingInfo._from_proto(proto.staking_info)
+                if proto.HasField('staking_info')
+                else None
+            ),
         )
-
-        # Extract staking info if present
-        staking_info = proto.staking_info if proto.HasField('staking_info') else None
-
-        if staking_info:
-            contract_info.staked_account_id = (
-                AccountId._from_proto(staking_info.staked_account_id)
-                if staking_info.HasField('staked_account_id') else None
-            )
-            contract_info.staked_node_id = (
-                staking_info.staked_node_id
-                if staking_info.HasField('staked_node_id') else None
-            )
-            contract_info.decline_staking_reward = staking_info.decline_reward
 
         return contract_info
 
@@ -156,11 +143,7 @@ class ContractInfo:
                 else None
             ),
             max_automatic_token_associations=self.max_automatic_token_associations,
-            staking_info=StakingInfo(
-                staked_account_id=self.staked_account_id._to_proto() if self.staked_account_id else None,
-                staked_node_id=self.staked_node_id if self.staked_node_id else None,
-                decline_reward=self.decline_staking_reward
-            ),
+            staking_info=self.staking_info._to_proto() if self.staking_info else None,
         )
 
     def __repr__(self) -> str:
@@ -213,9 +196,7 @@ class ContractInfo:
             f"  token_relationships={token_relationships_str},\n"
             f"  ledger_id={ledger_id_display},\n"
             f"  max_automatic_token_associations={self.max_automatic_token_associations},\n"
-            f"  staked_account_id={self.staked_account_id},\n"
-            f"  staked_node_id={self.staked_node_id},\n"
-            f"  decline_staking_reward={self.decline_staking_reward}\n"
+            f"  staking_info={self.staking_info}\n"
             ")"
         )
 
