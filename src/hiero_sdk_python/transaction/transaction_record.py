@@ -87,7 +87,9 @@ class TransactionRecord:
     alias: Optional[bytes] = None
     ethereum_hash: Optional[bytes] = None
     evm_address: Optional[bytes] = None
-    paid_staking_rewards: list[tuple[AccountId, int]] = field(default_factory=list)
+    paid_staking_rewards: defaultdict[AccountId, int] = field(
+        default_factory=lambda: defaultdict(int)
+    )
     contract_create_result: Optional[ContractFunctionResult] = None
     duplicates: list['TransactionRecord'] = field(default_factory=list)
 
