@@ -9,7 +9,9 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_info import ContractInfo
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo as StakingInfoProto
 from hiero_sdk_python.hapi.services.contract_get_info_pb2 import ContractGetInfoResponse
+from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -76,6 +78,10 @@ def contract_info(token_relationship):
         ledger_id=b"test_ledger_id",
         max_automatic_token_associations=10,
         token_relationships=[token_relationship],
+        staking_info=StakingInfo(
+            staked_account_id=AccountId(0, 0, 500),
+            decline_reward=False,
+        ),
     )
 
 
@@ -99,6 +105,10 @@ def proto_contract_info(token_relationship):
         ledger_id=b"test_ledger_id",
         max_automatic_token_associations=10,
         tokenRelationships=[token_relationship._to_proto()],
+        staking_info=StakingInfoProto(
+            staked_account_id=AccountId(0, 0, 500)._to_proto(),
+            decline_reward=False,
+        ),
     )
     return proto
 
@@ -120,6 +130,9 @@ def test_contract_info_initialization(contract_info):
     assert contract_info.max_automatic_token_associations == 10
     assert len(contract_info.token_relationships) == 1
     assert contract_info.token_relationships[0].token_id == TokenId(0, 0, 500)
+    assert contract_info.staking_info.staked_account_id == AccountId(0, 0, 500)
+    assert contract_info.staking_info.staked_node_id is None
+    assert contract_info.staking_info.decline_reward is False
 
 
 def test_contract_info_default_initialization():
@@ -139,6 +152,7 @@ def test_contract_info_default_initialization():
     assert contract_info.ledger_id is None
     assert contract_info.max_automatic_token_associations is None
     assert not contract_info.token_relationships
+    assert contract_info.staking_info is None
 
 
 def test_from_proto(proto_contract_info):
@@ -160,6 +174,10 @@ def test_from_proto(proto_contract_info):
     assert contract_info.max_automatic_token_associations == 10
     assert len(contract_info.token_relationships) == 1
     assert contract_info.token_relationships[0].token_id == TokenId(0, 0, 500)
+    assert contract_info.staking_info is not None
+    assert contract_info.staking_info.staked_account_id == AccountId(0, 0, 500)
+    assert contract_info.staking_info.staked_node_id is None
+    assert contract_info.staking_info.decline_reward is False
 
 
 def test_from_proto_with_empty_token_relationships():
@@ -272,6 +290,9 @@ def test_proto_conversion_full_object(contract_info):
         == contract_info.max_automatic_token_associations
     )
     assert len(converted.token_relationships) == len(contract_info.token_relationships)
+    assert converted.staking_info.staked_account_id == contract_info.staking_info.staked_account_id
+    assert converted.staking_info.staked_node_id == contract_info.staking_info.staked_node_id
+    assert converted.staking_info.decline_reward == contract_info.staking_info.decline_reward
 
 
 def test_proto_conversion_multiple_token_relationships(multiple_token_relationships):
@@ -307,3 +328,126 @@ def test_proto_conversion_minimal_fields():
     assert converted.balance == contract_info.balance
     assert converted.admin_key is None
     assert not converted.token_relationships
+
+
+def test_from_proto_with_no_staking_info():
+    """Test from_proto with no staking info"""
+    public_key = PrivateKey.generate_ed25519().public_key()
+    proto = ContractGetInfoResponse.ContractInfo(
+        contractID=ContractId(0, 0, 200)._to_proto(),
+        accountID=AccountId(0, 0, 300)._to_proto(),
+        contractAccountID="0.0.300",
+        adminKey=public_key._to_proto(),
+        storage=1024,
+        balance=5000000,
+    )
+    
+    contract_info = ContractInfo._from_proto(proto)
+    
+    assert contract_info.contract_id == ContractId(0, 0, 200)
+    assert contract_info.staking_info is None
+
+
+def test_from_proto_with_staked_node_id():
+    """Test from_proto with staked_node_id (staked to node)"""
+    public_key = PrivateKey.generate_ed25519().public_key()
+    proto = ContractGetInfoResponse.ContractInfo(
+        contractID=ContractId(0, 0, 200)._to_proto(),
+        accountID=AccountId(0, 0, 300)._to_proto(),
+        storage=1024,
+        balance=5000000,
+        staking_info=StakingInfoProto(
+            staked_node_id=3,
+            decline_reward=True,
+        ),
+    )
+    
+    contract_info = ContractInfo._from_proto(proto)
+    
+    assert contract_info.staking_info is not None
+    assert contract_info.staking_info.staked_account_id is None
+    assert contract_info.staking_info.staked_node_id == 3
+    assert contract_info.staking_info.decline_reward is True
+
+
+def test_to_proto_with_staked_account_id(token_relationship):
+    """Test to_proto with staked_account_id"""
+    contract_info = ContractInfo(
+        contract_id=ContractId(0, 0, 200),
+        account_id=AccountId(0, 0, 300),
+        balance=5000000,
+        staking_info=StakingInfo(
+            staked_account_id=AccountId(0, 0, 500),
+            decline_reward=False,
+        ),
+    )
+    
+    proto = contract_info._to_proto()
+    
+    assert proto.HasField('staking_info')
+    assert proto.staking_info.HasField('staked_account_id')
+    assert proto.staking_info.staked_account_id == AccountId(0, 0, 500)._to_proto()
+    assert proto.staking_info.decline_reward is False
+
+
+def test_to_proto_with_staked_node_id():
+    """Test to_proto with staked_node_id"""
+    contract_info = ContractInfo(
+        contract_id=ContractId(0, 0, 200),
+        account_id=AccountId(0, 0, 300),
+        balance=5000000,
+        staking_info=StakingInfo(
+            staked_node_id=5,
+            decline_reward=True,
+        ),
+    )
+    
+    proto = contract_info._to_proto()
+    
+    assert proto.HasField('staking_info')
+    assert proto.staking_info.staked_node_id == 5
+    assert proto.staking_info.decline_reward is True
+
+
+def test_proto_conversion_staking_node_round_trip():
+    """Test proto conversion round trip with staked_node_id"""
+    contract_info = ContractInfo(
+        contract_id=ContractId(0, 0, 200),
+        account_id=AccountId(0, 0, 300),
+        balance=5000000,
+        staking_info=StakingInfo(
+            staked_node_id=7,
+            decline_reward=False,
+        ),
+    )
+    
+    converted = ContractInfo._from_proto(contract_info._to_proto())
+    
+    assert converted.contract_id == contract_info.contract_id
+    assert converted.account_id == contract_info.account_id
+    assert converted.balance == contract_info.balance
+    assert converted.staking_info.staked_account_id is None
+    assert converted.staking_info.staked_node_id == 7
+    assert converted.staking_info.decline_reward is False
+
+
+def test_proto_conversion_staking_account_round_trip():
+    """Test proto conversion round trip with staked_account_id"""
+    contract_info = ContractInfo(
+        contract_id=ContractId(0, 0, 200),
+        account_id=AccountId(0, 0, 300),
+        balance=5000000,
+        staking_info=StakingInfo(
+            staked_account_id=AccountId(0, 0, 600),
+            decline_reward=True,
+        ),
+    )
+    
+    converted = ContractInfo._from_proto(contract_info._to_proto())
+    
+    assert converted.contract_id == contract_info.contract_id
+    assert converted.account_id == contract_info.account_id
+    assert converted.balance == contract_info.balance
+    assert converted.staking_info.staked_account_id == AccountId(0, 0, 600)
+    assert converted.staking_info.staked_node_id is None
+    assert converted.staking_info.decline_reward is True
