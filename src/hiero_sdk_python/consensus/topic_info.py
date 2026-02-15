@@ -6,7 +6,7 @@ It handles constructing the object from a protobuf message, formatting
 optional fields, and providing a readable string representation of the
 topic state.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -138,9 +138,12 @@ class TopicInfo:
         Returns:
             str: A nicely formatted string representation of the topic.
         """
-        exp_dt: Optional[datetime] = None
+        exp_dt: Optional[str] = None
         if self.expiration_time and hasattr(self.expiration_time, "seconds"):
-            exp_dt = datetime.fromtimestamp(self.expiration_time.seconds)
+            utc_dt = datetime.fromtimestamp(
+                self.expiration_time.seconds, tz=timezone.utc
+            )
+            exp_dt = utc_dt.strftime("%Y-%m-%d %H:%M:%S")
 
         running_hash_str: Optional[str] = f"0x{self.running_hash.hex()}" if self.running_hash else "None"
        
