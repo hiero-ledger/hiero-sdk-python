@@ -11,6 +11,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Examples
 
+### Added
+- Add staking_info fields (`staked_account_id`, `staked_node_id`, `decline_staking_reward`) to ContractInfo class to expose staking metadata from protobuf. (#1365)
+
 ### Docs
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 - chore: update office hours and community calls to use direct links (`#1804`)
@@ -52,7 +55,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
-- Add staking_info fields (`staked_account_id`, `staked_node_id`, `decline_staking_reward`) to ContractInfo class to expose staking metadata from protobuf. (#1365)
 - Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
 - Added foundational guide for GitHub Workflows (#1741)
 - Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
