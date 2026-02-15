@@ -1,4 +1,7 @@
 """
+
+Example demonstrating topic delete transaction.
+
 uv run examples/consensus/topic_delete_transaction.py
 python examples/consensus/topic_delete_transaction.py
 
@@ -6,19 +9,19 @@ Refactored to be more modular:
 - topic_delete_transaction() performs the create+delete transaction steps
 - main() orchestrates setup and calls helper functions
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
-    TopicDeleteTransaction,
+    Client,
     Network,
-    TopicCreateTransaction,
+    PrivateKey,
     ResponseCode,
+    TopicCreateTransaction,
+    TopicDeleteTransaction,
 )
 
 load_dotenv()
@@ -26,7 +29,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     print(f"🌐 Connecting to Hedera {network_name}...")
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
@@ -50,7 +53,7 @@ def setup_client():
 
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -73,6 +76,7 @@ def create_topic(client, operator_key):
 def topic_delete_transaction(client, operator_key, topic_id):
     """
     Perform the topic delete transaction for the given topic_id.
+
     Separated so it can be called independently in tests or other scripts.
     """
     print("\nSTEP 2: Deleting Topic...")
@@ -94,7 +98,7 @@ def topic_delete_transaction(client, operator_key, topic_id):
 
 
 def main():
-    """Orchestrator — runs the example start-to-finish"""
+    """Orchestrator — runs the example start-to-finish."""
     # Config Client
     client, _, operator_key = setup_client()
 

@@ -1,23 +1,20 @@
 """
+
+Example demonstrating token burn transaction nft.
+
 uv run examples/tokens/token_burn_transaction_nft.py
 python examples/tokens/token_burn_transaction_nft.py
-
 """
-
 import sys
 
-from hiero_sdk_python import (
-    Client
-)
-from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python import Client
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-
-
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
@@ -28,7 +25,7 @@ def setup_client():
 
 
 def create_nft(client, operator_id, operator_key):
-    """Create a non-fungible token"""
+    """Create a non-fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
@@ -57,7 +54,7 @@ def create_nft(client, operator_id, operator_key):
 
 
 def mint_nfts(client, nft_token_id, metadata_list):
-    """Mint a non-fungible token"""
+    """Mint a non-fungible token."""
     receipt = (
         TokenMintTransaction()
         .set_token_id(nft_token_id)
@@ -75,7 +72,7 @@ def mint_nfts(client, nft_token_id, metadata_list):
 
 
 def get_token_info(client, token_id):
-    """Get token info for the token"""
+    """Get token info for the token."""
     token_info = TokenInfoQuery().set_token_id(token_id).execute(client)
 
     print(f"Token supply: {token_info.total_supply}")
@@ -84,12 +81,13 @@ def get_token_info(client, token_id):
 def token_burn_nft():
     """
     Demonstrates the NFT burn functionality by:
+
     1. Setting up client with operator account
     2. Creating an NFT collection with the operator account as owner
     3. Minting multiple NFTs with metadata
     4. Getting initial token supply
     5. Burning specific NFTs by serial number
-    6. Getting final token supply to verify burn
+    6. Getting final token supply to verify burn.
     """
     client = setup_client()
     operator_id = client.operator_account_id

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-File Append Example
+File Append Example.
 
 This example demonstrates how to append content to an existing file on the network.
 It shows both single-chunk and multi-chunk append operations.
@@ -9,20 +9,21 @@ Run with:
 uv run examples/file_append_transaction.py
 python examples/file_append_transaction.py
 """
-import sys
 import os
+import sys
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
 from hiero_sdk_python import (
+    AccountId,
     Client,
+    FileAppendTransaction,
+    FileCreateTransaction,
     Network,
     PrivateKey,
-    FileCreateTransaction,
-    AccountId,
-    FileAppendTransaction,
     ResponseCode,
 )
 
@@ -30,7 +31,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -45,7 +46,7 @@ def setup_client():
 
 
 def create_file(client, file_private_key):
-    """Create a file with initial content"""
+    """Create a file with initial content."""
     print("Creating file with initial content...")
     create_receipt = (
         FileCreateTransaction()
@@ -70,7 +71,7 @@ def create_file(client, file_private_key):
 
 
 def append_file_single(client, file_id, file_private_key):
-    """Append content to the file (single chunk)"""
+    """Append content to the file (single chunk)."""
     print("\nAppending content to file (single chunk)...")
     append_receipt = (
         FileAppendTransaction()
@@ -91,7 +92,7 @@ def append_file_single(client, file_id, file_private_key):
 
 
 def append_file_large(client, file_id, file_private_key):
-    """Append large content to the file (multi-chunk)"""
+    """Append large content to the file (multi-chunk)."""
     print("\nAppending large content (multi-chunk)...")
     large_content = b"Large content that will be split into multiple chunks. " * 100
 
@@ -121,9 +122,10 @@ def append_file_large(client, file_id, file_private_key):
 def main():
     """
     Demonstrates appending content to a file on the network by:
+
     1. Setting up client with operator account
     2. Creating a file with initial content
-    3. Appending additional content to the file
+    3. Appending additional content to the file.
     """
     client = setup_client()
 

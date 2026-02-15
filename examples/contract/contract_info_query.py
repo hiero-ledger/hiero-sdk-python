@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating contract info query on the network.
 
 This module shows how to query a contract info on the network by:
@@ -16,8 +18,8 @@ Usage:
     python -m examples.contract.contract_info_query
 
 """
-
 import sys
+
 from hiero_sdk_python import Client, Duration
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
@@ -32,7 +34,7 @@ from .contracts import SIMPLE_CONTRACT_BYTECODE
 
 
 def create_contract_file(client):
-    """Create a file containing the simple contract bytecode"""
+    """Create a file containing the simple contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -52,7 +54,7 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id):
-    """Create a contract using the file"""
+    """Create a contract using the file."""
     receipt = (
         ContractCreateTransaction()
         .set_admin_key(client.operator_private_key.public_key())
@@ -81,10 +83,11 @@ def create_contract(client, file_id):
 def query_contract_info():
     """
     Demonstrates querying a contract info by:
+
     1. Setting up client with operator account
     2. Creating a file containing contract bytecode
     3. Creating a contract using the file
-    4. Querying the contract info
+    4. Querying the contract info.
     """
     client = Client.from_env()
     print(f"Operator: {client.operator_account_id}")
