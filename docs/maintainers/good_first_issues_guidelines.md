@@ -206,4 +206,4 @@ Such issues are better labeled as **Beginner Issues**.
 - [DCO Signing Guide](../sdk_developers/signing.md)  
 - [Changelog Entry Guide](../sdk_developers/changelog_entry.md)  
 - [Discord Community](../discord.md)  
-- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581)

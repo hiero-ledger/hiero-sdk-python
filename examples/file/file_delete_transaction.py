@@ -1,11 +1,13 @@
 """
+
+
 This example demonstrates how to delete a file using the Python SDK.
+
 Run with:
 uv run examples/file_delete_transaction.py
 python examples/file_delete_transaction.py
 
 """
-
 import os
 import sys
 
@@ -24,7 +26,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -38,8 +40,7 @@ def setup_client():
 
 
 def create_file(client: Client):
-    """Create a test file and return its ID along with the private key"""
-
+    """Create a test file and return its ID along with the private key."""
     file_private_key = PrivateKey.generate_ed25519()
 
     receipt = (
@@ -63,7 +64,7 @@ def create_file(client: Client):
 
 
 def query_file_info(client: Client, file_id: FileId):
-    """Query file info and display the results"""
+    """Query file info and display the results."""
     info = FileInfoQuery().set_file_id(file_id).execute(client)
 
     print(info)
@@ -72,10 +73,11 @@ def query_file_info(client: Client, file_id: FileId):
 def file_delete():
     """
     Demonstrates the complete file lifecycle by:
+
     1. Creating a file
     2. Querying file info (before deletion)
     3. Deleting the file
-    4. Querying file info (after deletion)
+    4. Querying file info (after deletion).
     """
     # Setup client
     client = setup_client()

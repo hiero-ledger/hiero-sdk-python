@@ -1,25 +1,26 @@
 """
+
+Example demonstrating token nft info query.
+
 uv run examples/query/token_nft_info_query.py
 python examples/query/token_nft_info_query.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     try:
         client = Client.from_env()
         operator_id = client.operator_account_id
@@ -33,7 +34,7 @@ def setup_client():
 
 
 def create_nft(client, operator_id, operator_key):
-    """Create a non-fungible token"""
+    """Create a non-fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
@@ -63,7 +64,7 @@ def create_nft(client, operator_id, operator_key):
 
 
 def mint_nft(client, nft_token_id):
-    """Mint a non-fungible token"""
+    """Mint a non-fungible token."""
     receipt = (
         TokenMintTransaction()
         .set_token_id(nft_token_id)
@@ -83,9 +84,10 @@ def mint_nft(client, nft_token_id):
 def query_nft_info():
     """
     Demonstrates the nft info query functionality by:
+
     1. Creating a nft
     2. Minting a nft
-    3. Querying the nft info
+    3. Querying the nft info.
     """
     client, operator_id, operator_key = setup_client()
     token_id = create_nft(client, operator_id, operator_key)

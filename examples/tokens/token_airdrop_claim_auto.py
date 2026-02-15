@@ -1,5 +1,7 @@
 """
-Hedera Token Airdrop Example Script
+
+
+Hedera Token Airdrop Example Script.
 
 This script demonstrates an end-to-end example for an account to
 automatically (no user action required) claim a set of airdrops.
@@ -20,31 +22,30 @@ Run this script using:
 uv run examples/tokens/token_airdrop_claim_auto.py
 python examples/tokens/token_airdrop_claim_auto.py
 """
-
 # pylint: disable=import-error,
 # pylint: disable=too-many-arguments,
 # pylint: disable=too-many-positional-arguments,
 # pylint: disable=protected-access,
 # pylint: disable=broad-exception-caught
 
-import sys
-from typing import Iterable
+from collections.abc import Iterable
+
 from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
     AccountCreateTransaction,
-    TokenCreateTransaction,
-    TokenMintTransaction,
-    TokenAirdropTransaction,
-    TokenType,
-    SupplyType,
-    NftId,
+    AccountId,
+    Client,
     CryptoGetAccountBalanceQuery,
-    ResponseCode,
     Hbar,
+    NftId,
+    PrivateKey,
+    ResponseCode,
+    SupplyType,
+    TokenAirdropTransaction,
+    TokenCreateTransaction,
     TokenId,
+    TokenMintTransaction,
     TokenNftInfoQuery,
+    TokenType,
 )
 
 

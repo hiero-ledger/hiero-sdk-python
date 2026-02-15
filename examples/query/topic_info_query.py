@@ -1,19 +1,21 @@
 """
+
+Example demonstrating topic info query.
+
 uv run examples/query/topic_info_query.py
 python examples/query/topic_info_query.py
-
 """
-
 import sys
+
 from hiero_sdk_python import (
     Client,
-    TopicInfoQuery,
     TopicCreateTransaction,
+    TopicInfoQuery,
 )
 
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -34,9 +36,7 @@ def create_topic(client, operator_key):
 
 
 def query_topic_info():
-    """
-    A full example that create a topic and query topic info for that topic.
-    """
+    """A full example that create a topic and query topic info for that topic."""
     # Config Client
     client = Client.from_env()
     print(f"Operator: {client.operator_account_id}")

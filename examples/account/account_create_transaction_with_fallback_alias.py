@@ -1,4 +1,6 @@
-"""Example: Create an account where the EVM alias is derived from the main ECDSA key.
+"""
+
+Example: Create an account where the EVM alias is derived from the main ECDSA key.
 
 This demonstrates:
 - Passing only an ECDSA PrivateKey to `set_key_with_alias`
@@ -8,7 +10,6 @@ Usage:
     uv run examples/account/account_create_transaction_with_fallback_alias.py
     python examples/account/account_create_transaction_with_fallback_alias.py
 """
-
 import sys
 
 from dotenv import load_dotenv

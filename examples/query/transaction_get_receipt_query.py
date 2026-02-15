@@ -1,24 +1,25 @@
 """
+
+Example demonstrating transaction get receipt query.
+
 uv run examples/query/transaction_get_receipt_query.py
 python examples/query/transaction_get_receipt_query.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
-    TransferTransaction,
-    Hbar,
-    TransactionGetReceiptQuery,
-    ResponseCode,
     AccountCreateTransaction,
+    Client,
+    Hbar,
+    PrivateKey,
+    ResponseCode,
+    TransactionGetReceiptQuery,
+    TransferTransaction,
 )
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     try:
         client = Client.from_env()
         operator_id = client.operator_account_id
@@ -32,7 +33,7 @@ def setup_client():
 
 
 def create_account(client, operator_key):
-    """Create a new recipient account"""
+    """Create a new recipient account."""
     print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
@@ -53,7 +54,6 @@ def create_account(client, operator_key):
 
 def _print_receipt_children(queried_receipt):
     """Pretty-print receipt status and any child receipts."""
-
     children = queried_receipt.children
 
     if not children:
@@ -71,7 +71,6 @@ def _print_receipt_children(queried_receipt):
 
 def _print_receipt_duplicates(queried_receipt):
     """Pretty-print receipt status and any duplicate receipts."""
-
     duplicates = queried_receipt.duplicates
 
     if not duplicates:
@@ -90,6 +89,7 @@ def _print_receipt_duplicates(queried_receipt):
 def query_receipt():
     """
     A full example that include account creation, Hbar transfer, and receipt querying.
+
     Demonstrates include_child_receipts support (SDK API: set_include_children).
     """
     # Config Client

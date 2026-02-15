@@ -1,21 +1,23 @@
 """
+
+Example demonstrating topic update transaction.
+
 uv run examples/consensus/topic_update_transaction.py
 python examples/consensus/topic_update_transaction.py
-
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
-    TopicUpdateTransaction,
+    Client,
     Network,
-    TopicCreateTransaction,
+    PrivateKey,
     ResponseCode,
+    TopicCreateTransaction,
+    TopicUpdateTransaction,
 )
 
 load_dotenv()
@@ -23,7 +25,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -41,7 +43,7 @@ def setup_client():
 
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -62,7 +64,7 @@ def create_topic(client, operator_key):
 
 
 def update_topic(new_memo):
-    """A example to create a topic and then update it"""
+    """A example to create a topic and then update it."""
     # Config Client
     client, _, operator_key = setup_client()
 
