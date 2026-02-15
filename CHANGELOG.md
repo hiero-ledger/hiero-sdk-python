@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- fix: increase query payment transaction max fee from 1 to 2 Hbar to match JS SDK and fix intermittent `INSUFFICIENT_TX_FEE` failures (`#1317`)
+- fix: increase query payment transaction max fee from 1 to 2 Hbar and fix intermittent `INSUFFICIENT_TX_FEE` failures (`#1317`)
 
 ### Examples
 
