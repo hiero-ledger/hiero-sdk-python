@@ -1031,13 +1031,13 @@ reviews:
         ---------------------------------------------------------
         These are firm expectations for every workflow:
 
-        - All third-party actions should be pinned to full commit SHAs,
+        - All third-party actions must be pinned to full commit SHAs,
           consistent with other workflows in this repository.
-        - `permissions:` should be explicitly declared and scoped to the
+        - `permissions:` must be explicitly declared and scoped to the
           minimum needed. Flag over-permissioned or under-permissioned
           workflows, and any reliance on broad default permissions.
-        - Workflows should behave safely when executed from forks.
-        - Workflows should not modify repository source code outside
+        - Workflows must behave safely when executed from forks.
+        - Workflows must not modify repository source code outside
           `.github/`.
 
         ---------------------------------------------------------
@@ -1092,12 +1092,15 @@ reviews:
         not always necessary.
 
         When reviewing, consider:
-        - Does this workflow genuinely benefit from a dry-run mode?
-          Simple read-only or validation workflows typically do not.
+        - Prefer dry-run for workflows that deploy, publish, release,
+          or mutate significant external state.
+        - Dry-run is usually unnecessary for read-only, validation,
+          or status-check workflows.
         - If dry-run is implemented, it should be controlled via
           `workflow_dispatch` inputs and clearly logged when active.
-        - The YAML should orchestrate dry-run behavior (skipping
-          mutation steps), not the script.
+        - Prefer orchestrating dry-run behavior in the workflow YAML
+          (skipping mutation steps) when practical, while also
+          supporting script-level DRY_RUN flags as defense-in-depth.
 
         Do not flag missing dry-run support as a blocker unless the
         workflow performs significant external mutations where safe
@@ -1147,6 +1150,15 @@ reviews:
         - Do not propose major refactors unless correctness or
           security is affected.
 
+        ---------------------------------------------------------
+        BLOCKERS vs SUGGESTIONS
+        ---------------------------------------------------------
+        - Block approval only for security issues, correctness
+          problems, or violations of the firm expectations above.
+        - Style, maintainability, and quality improvements should
+          be non-blocking suggestions.
+        - When in doubt, suggest — don't block.
+
     # ============================================================
     # SHELL SCRIPTS
     # ============================================================
@@ -1160,6 +1172,8 @@ reviews:
         - Scripts should use `set -euo pipefail` to fail fast on errors.
         - Required environment variables should be validated early.
         - Variables should be defensively quoted.
+        - Flag uses of `eval`, `bash -c`, backticks, or `$(...)`
+          with user-controlled or untrusted content.
 
         Good practices to encourage:
         - Validate untrusted input before use.
