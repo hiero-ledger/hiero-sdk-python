@@ -28,6 +28,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Reverted PR #1739 checking assignment counts
 - chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
 - Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
+- ci: update all workflows to use self-hosted runners (`hl-sdk-py-lin-md`) (`#1480`)
 
 ## [0.2.0] - 2026-11-02
 

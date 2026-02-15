@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   remind_inactive_prs:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     env:
       DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
 

@@ -14,7 +14,7 @@ on:
 jobs:
   working-command:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/working'))
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     permissions:
       issues: write
       contents: read

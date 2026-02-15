@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   min-deps:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
 
     strategy:
       fail-fast: false
