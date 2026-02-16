@@ -6,6 +6,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+
+- Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
+
 ### Src
 - 
 
