@@ -122,6 +122,7 @@ def test_tx_without_optional_fields_should_have_smaller_tx_body(
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
         .set_node_account_id(account_id)
+        .set_alias(PrivateKey.generate_ecdsa().public_key().to_evm_address())
         .set_transaction_valid_duration(10)
         .freeze()
     )
@@ -212,9 +213,8 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
 
     small_size = small_tx.size
 
-    # Since large content is 2KB and chunk size is 1KB, this should create 2 chunks
     # Size should be greater than single chunk size
-    large_size > 1024
+    assert large_size > 1024
 
-    # The larger chunked transaction should be bigger than the small single-chunk transaction
-    large_size > small_size
+    # The larger chunked transaction should be bigger than the single-chunk transaction
+    assert large_size > small_size
