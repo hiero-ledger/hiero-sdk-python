@@ -145,7 +145,9 @@ class TransactionRecord:
             parts.append("automatic_token_associations=[]")
 
         if self.paid_staking_rewards:
-            preview = ", ".join(f"({a}, {amt})" for a, amt in self.paid_staking_rewards[:2])
+            items = list(self.paid_staking_rewards.items())
+            preview = ", ".join(f"({a}, {amt})" for a, amt in items[:2])
+
             extra = f", ... ({len(self.paid_staking_rewards)-2} more)" if len(self.paid_staking_rewards) > 2 else ""
             parts.append(f"paid_staking_rewards=[{preview}{extra}]")
         else:
@@ -229,13 +231,10 @@ class TransactionRecord:
         ethereum_hash = proto.ethereum_hash or None
         evm_address = proto.evm_address or None
         
-        paid_staking_rewards = [
-            (
-                AccountId._from_proto(r.accountID),
-                r.amount
-            )
-            for r in proto.paid_staking_rewards
-        ]
+        paid_staking_rewards = defaultdict(int)
+        for r in proto.paid_staking_rewards:
+            account_id = AccountId._from_proto(r.accountID)
+            paid_staking_rewards[account_id] += r.amount
 
         contract_create_result = (
             ContractFunctionResult._from_proto(proto.contractCreateResult)
@@ -437,7 +436,7 @@ class TransactionRecord:
         if self.evm_address is not None:
             record_proto.evm_address = self.evm_address
 
-        for account_id, amount in self.paid_staking_rewards:
+        for account_id, amount in self.paid_staking_rewards.items():
             r = record_proto.paid_staking_rewards.add()
             r.accountID.CopyFrom(account_id._to_proto())
             r.amount = amount

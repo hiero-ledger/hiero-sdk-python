@@ -610,7 +610,7 @@ def test_from_proto_with_paid_staking_rewards(transaction_id):
 
     record = TransactionRecord._from_proto(proto, transaction_id=transaction_id)
     assert len(record.paid_staking_rewards) == 1
-    assert record.paid_staking_rewards[0] == (AccountId(0, 0, 1111), 200_000_000)
+    assert record.paid_staking_rewards[AccountId(0, 0, 1111)] == 200_000_000
 
 
 def test_from_proto_with_contract_create_result(transaction_id):
@@ -744,6 +744,8 @@ def test_to_proto_raises_when_both_call_and_create_result_set(transaction_id):
 
 def test_repr_shows_new_fields_when_set(transaction_id):
     """Check that __repr__ includes new fields when they are populated"""
+    paid_rewards = defaultdict(int)
+    paid_rewards[AccountId(0, 0, 8008)] = 5_000_000
     record = TransactionRecord(
         transaction_id=transaction_id,
         consensus_timestamp=Timestamp(seconds=1730000000, nanos=123456789),
@@ -752,7 +754,7 @@ def test_repr_shows_new_fields_when_set(transaction_id):
         alias=b"alias\x01\x02",
         ethereum_hash=b"\x00" * 32,
         evm_address=b"\x12\x34\x56\x78" * 5,  # 20 bytes
-        paid_staking_rewards=[(AccountId(0, 0, 8008), 5_000_000)],
+        paid_staking_rewards=paid_rewards,
         assessed_custom_fees=[
         AssessedCustomFee(
         amount=4200000,
