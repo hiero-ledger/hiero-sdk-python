@@ -52,7 +52,7 @@ assignments_count() {
       --jq '.[] 
            | select(.pull_request == null)
            | select([.labels[].name] | index("mentor-duty") | not)
-           | .number' | wc -l
+           | .number' | grep -c . || true
   else
     # For non-triage users, count all open assignments
     gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number --jq 'length'
