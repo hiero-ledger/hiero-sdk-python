@@ -44,15 +44,14 @@ assignments_count() {
   if [[ "$permission" == "triage" ]]; then
     echo "Triage user detected — excluding mentor-duty issues from count." >&2
     # For triage users, exclude issues with 'mentor-duty' label
-    gh api "repos/${REPO}/issues" \
-      --paginate \
-      -f assignee="${ASSIGNEE}" \
-      -f state=open \
-      -f per_page=100 \
-      --jq '.[] 
-           | select(.pull_request == null)
-           | select([.labels[].name] | index("mentor-duty") | not)
-           | .number' | grep -c . || true
+     gh api "repos/${REPO}/issues?per_page=100&page=1" \
+       -f assignee="${ASSIGNEE}" \
+       -f state=open \
+
+       --jq '.[] 
+            | select(.pull_request == null)
+            | select(any(.labels[]; .name == "mentor-duty") | not)
+            | .number' | grep -c . || true
   else
     # For non-triage users, count all open assignments
     gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number --jq 'length'
