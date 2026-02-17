@@ -1,33 +1,35 @@
 # uv run examples/query/account_balance_query_2.py
 # python examples/query/account_balance_query_2.py
 
-"""Example: Use CryptoGetAccountBalanceQuery to retrieve an account's
-HBAR and token balances, including minting NFTs to the account."""
+"""
 
+Example: Use CryptoGetAccountBalanceQuery to retrieve an account's.
+
+HBAR and token balances, including minting NFTs to the account.
+"""
 import os
 import sys
 
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
-    TokenCreateTransaction,
     AccountCreateTransaction,
+    AccountId,
+    Client,
     Hbar,
+    PrivateKey,
     ResponseCode,
+    TokenCreateTransaction,
     TokenInfoQuery,
-    TokenType,
     TokenMintTransaction,
-    AccountId, 
+    TokenType,
 )
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.tokens.token_id import TokenId
-
 
 key_type = os.getenv("KEY_TYPE", "ecdsa")
 
 
 def setup_client():
-    """Setup Client"""
+    """Setup Client."""
     try:
         client = Client.from_env()
         print(f"Client set up with operator id {client.operator_account_id}")
@@ -38,7 +40,7 @@ def setup_client():
 
 
 def create_account(client, name, initial_balance=Hbar(10)):
-    """Create a test account with initial balance"""
+    """Create a test account with initial balance."""
     account_private_key = PrivateKey.generate(key_type)
     account_public_key = account_private_key.public_key()
 
@@ -96,7 +98,7 @@ def create_and_mint_token(treasury_account_id, treasury_account_key, client):
 
 
 def get_account_balance(client: Client, account_id: AccountId):
-    """Get account balance using CryptoGetAccountBalanceQuery"""
+    """Get account balance using CryptoGetAccountBalanceQuery."""
     print(f"Retrieving account balance for account id: {account_id}  ...")
     try:
         # Use CryptoGetAccountBalanceQuery to get the account balance
@@ -117,7 +119,7 @@ def get_account_balance(client: Client, account_id: AccountId):
 def compare_token_balances(
     client, treasury_id: AccountId, receiver_id: AccountId, token_id: TokenId
 ):
-    """Compare token balances between two accounts"""
+    """Compare token balances between two accounts."""
     print(
         f"\n🔎 Comparing token balances for Token ID {token_id} "
         f"between accounts {treasury_id} and {receiver_id}..."
@@ -134,11 +136,14 @@ def compare_token_balances(
 
 
 def main():
-    """Main function to run the account balance query example
+    """
+
+    Main function to run the account balance query example.
+
     1-Create test account with intial balance
     2- Create NFT collection with test account as treasury
     3- Mint NFTs to the test account
-    4- Retrieve and display account balances including token balances
+    4- Retrieve and display account balances including token balances.
 
     """
     client = setup_client()

@@ -1,27 +1,29 @@
 """
-Demonstrate Manually freezing using secondary client, serializing, deserializing, signing,
+
+
+Demonstrate Manually freezing using secondary client, serializing, deserializing, signing,.
+
 and executing a Hedera transaction using hiero_sdk_python.
 
 uv run examples/transaction/transaction_freeze_secondary_client.py
 python examples/transaction/transaction_freeze_secondary_client.py 
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
+    AccountCreateTransaction,
     AccountId,
-    PrivateKey,
-    TopicCreateTransaction,
-    TransactionId,
     Client,
     Network,
+    PrivateKey,
+    ResponseCode,
+    TopicCreateTransaction,
     Transaction,
-    AccountCreateTransaction,
-    ResponseCode
+    TransactionId,
 )
-
 
 load_dotenv()
 
@@ -31,9 +33,7 @@ OPERATOR_KEY = os.getenv("OPERATOR_KEY")
 
 
 def setup_client():
-    """
-    Initialize and return the primary Hedera client using operator credentials.
-    """
+    """Initialize and return the primary Hedera client using operator credentials."""
     if not OPERATOR_ID or not OPERATOR_KEY:
         raise RuntimeError("OPERATOR_ID or OPERATOR_KEY not set in .env")
 
@@ -54,9 +54,7 @@ def setup_client():
     return client
 
 def create_secondary_client(executor_client):
-    """
-    Create a secondary account and client.
-    """
+    """Create a secondary account and client."""
     private_key = PrivateKey.generate()
 
     receipt = (
@@ -77,7 +75,8 @@ def create_secondary_client(executor_client):
 
 def build_unsigned_bytes(executor_client, secondary_client):
     """
-    Build a TopicCreateTransaction, manually freeze it using a secondary client,
+    Build a TopicCreateTransaction, manually freeze it using a secondary client,.
+
     and return the serialized unsigned transaction bytes.
     """
     tx_id = TransactionId.generate(executor_client.operator_account_id)
@@ -98,7 +97,8 @@ def build_unsigned_bytes(executor_client, secondary_client):
 
 def sign_and_execute(unsigned_bytes, executor_client):
     """
-    Deserialize a transaction from bytes, sign it using the executor client,
+    Deserialize a transaction from bytes, sign it using the executor client,.
+
     and execute it on the Hedera network.
     """
     try:
@@ -122,6 +122,7 @@ def sign_and_execute(unsigned_bytes, executor_client):
 def main():
     """
     1. Setup an executor client.
+
     2. Created secondary client used to manually freeze a transaction.
     3. Create a Transaction and explicitly:
         - Set the TransactionId

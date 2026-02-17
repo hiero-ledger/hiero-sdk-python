@@ -1,21 +1,18 @@
 """
+
+Example demonstrating token pause transaction.
+
 uv run examples/tokens/token_pause_transaction.py
 python examples/tokens/token_pause_transaction.py
-
 """
-
-import sys
-
-from hiero_sdk_python import Client, PrivateKey
+from hiero_sdk_python import Client
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
-from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
-
-
+from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
@@ -26,6 +23,7 @@ def setup_client():
 
 def assert_success(receipt, action: str):
     """
+
     Verify that a transaction or query succeeded, else raise.
 
     Args:
@@ -42,7 +40,7 @@ def assert_success(receipt, action: str):
 
 
 def create_token(client, operator_id, admin_key, pause_key):
-    """Create a fungible token"""
+    """Create a fungible token."""
     # Create fungible token
     create_token_transaction = (
         TokenCreateTransaction()
@@ -70,7 +68,7 @@ def create_token(client, operator_id, admin_key, pause_key):
 
 
 def pause_token(client, token_id, pause_key):
-    """Pause token"""
+    """Pause token."""
     # Note: This requires the pause key that was specified during token creation
     pause_transaction = (
         TokenPauseTransaction()
@@ -86,15 +84,13 @@ def pause_token(client, token_id, pause_key):
 
 
 def check_pause_status(client, token_id):
-    """
-    Query and print the current paused/unpaused status of a token.
-    """
+    """Query and print the current paused/unpaused status of a token."""
     info = TokenInfoQuery().set_token_id(token_id).execute(client)
     print(f"Token status is now: {info.pause_status.name}")
 
 
 def delete_token(client, token_id, admin_key):
-    """Delete token"""
+    """Delete token."""
     # Note: This requires the admin key that was specified during token creation
     delete_transaction = (
         TokenDeleteTransaction()
@@ -112,10 +108,11 @@ def delete_token(client, token_id, admin_key):
 def token_pause():
     """
     Demonstrates the token pause functionality by:
+
       1. Creating a fungible token with pause and delete capability
       2. Pausing the token
       3. Verifying pause status
-      4. Attempting (and failing) to delete the paused token because it is paused
+      4. Attempting (and failing) to delete the paused token because it is paused.
     """
     client = setup_client()
     operator_id = client.operator_account_id

@@ -1,25 +1,26 @@
 """
+
+Example demonstrating payment query.
+
 uv run examples/query/payment_query.py
 python examples/query/payment_query.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     try:
         client = Client.from_env()
         operator_id = client.operator_account_id
@@ -33,8 +34,7 @@ def setup_client():
 
 
 def create_fungible_token(client, operator_id, operator_key):
-    """Create a fungible token"""
-
+    """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleFT")
@@ -84,7 +84,7 @@ def demonstrate_zero_cost_balance_query(client, account_id):
     # Execute the query (should work without payment)
     print("\nExecuting query without payment...")
     result = query_no_payment.execute(client)
-    print(f"Query executed successfully!")
+    print("Query executed successfully!")
     print(f"    Account balance (only hbars): {result.hbars}")
 
     # Case 2: Payment set - should return the set payment amount
@@ -103,7 +103,7 @@ def demonstrate_zero_cost_balance_query(client, account_id):
     # Execute the query (should work with custom payment)
     print("\nExecuting query with custom payment...")
     result = query_with_payment.execute(client)
-    print(f"Query executed successfully!")
+    print("Query executed successfully!")
     print(f"    Account balance (only hbars): {result.hbars}")
 
 
@@ -130,7 +130,7 @@ def demonstrate_payment_required_queries(client, token_id):
     # Execute the query (should work with network-determined cost)
     print("\nExecuting query with network-determined cost...")
     result = query_no_payment.execute(client)
-    print(f"Query executed successfully!")
+    print("Query executed successfully!")
     print(f"    Token info: {result}")
 
     # Case 2: Payment set - should return the set payment amount
@@ -147,7 +147,7 @@ def demonstrate_payment_required_queries(client, token_id):
     # Execute the query (should work with custom payment)
     print("\nExecuting query with custom payment...")
     result = query_with_payment.execute(client)
-    print(f"Query executed successfully!")
+    print("Query executed successfully!")
     print(f"    Token info: {result}")
 
     # Case 3: Compare network cost vs custom payment
@@ -159,11 +159,12 @@ def demonstrate_payment_required_queries(client, token_id):
 def query_payment():
     """
     Demonstrates the query payment by:
+
     1. Setting up client with operator account
     2. Creating a fungible token with the operator account as owner
     3. Demonstrating queries that don't require payment (CryptoGetAccountBalanceQuery)
     4. Demonstrating queries that do require payment (TokenInfoQuery)
-    5. Comparing network-determined cost vs custom payment amount
+    5. Comparing network-determined cost vs custom payment amount.
     """
     client, operator_id, operator_key = setup_client()
     token_id = create_fungible_token(client, operator_id, operator_key)

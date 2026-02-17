@@ -1,4 +1,6 @@
 """
+
+
 Example: Approving an HBAR allowance and transferring HBAR using it.
 
 Why:
@@ -28,7 +30,6 @@ Notes:
     Hedera allowance documentation. This example focuses solely on HBAR
     allowances and does not demonstrate revoking allowances or token/NFT usage.
 """
-
 import os
 import sys
 
@@ -144,10 +145,11 @@ def transfer_hbar_with_allowance(
 def main():
     """
     Demonstrates hbar allowance functionality by:
+
     1. Setting up client with operator account
     2. Creating spender and receiver accounts
     3. Approving hbar allowance for spender
-    4. Transferring hbars using the allowance
+    4. Transferring hbars using the allowance.
     """
     client = setup_client()
 
