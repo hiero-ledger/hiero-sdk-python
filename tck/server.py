@@ -55,7 +55,7 @@ def json_rpc_endpoint():
     response = safe_dispatch(method_name, params, session_id, request_id)
 
     # If the response is already an error response, return it directly
-    if isinstance(response, dict) and 'error' in response:
+    if isinstance(response, dict) and 'jsonrpc' in response and 'error' in response:
         return response
 
     # Build and return the success response
