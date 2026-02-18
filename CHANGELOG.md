@@ -6,6 +6,32 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+
+- Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
+
+### Src
+- 
+
+### Examples
+
+### Docs
+- Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
+- chore: update office hours and community calls to use direct links (`#1804`)
+
+### Tests
+- Format `tests/unit/endpoint_test.py` using black. (`#1792`)
+
+### .github
+- Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
+- Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
+- Reverted PR #1739 checking assignment counts
+- chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
+- Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
+- Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
+
+## [0.2.0] - 2026-11-02
+
 ### Tests
 - Format `tests/unit/crypto_utils_test.py` with black for code style consistency (#1524)
 - Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
@@ -33,6 +59,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+- Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
+- Added foundational guide for GitHub Workflows (#1741)
+- Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
 - Added new members to the mentor roster. (#1693)
 - Added support for the `includeDuplicates` flag in `TransactionRecordQuery` and `duplicates` field in `TransactionRecord` (#1635)
 - Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
@@ -150,12 +179,17 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 - Added `grpc_deadline` support for transaction and query execution.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
+- Added `__eq__` and `__hash__` functions for Key
 
 ### Documentation
+- Added `docs/workflows/02-architecture.md`: explains the orchestration (YAML) vs. business logic (JS) separation pattern for GitHub workflows (#1742)
+- Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+- Reduced linting errors in `examples/` directory by 80% (952 → 185) by fixing docstring formatting, import ordering, and applying auto-fixes (#1768)
+- Improved bot message formatting in LinkBot to display issue linking format as a code block for better clarity (#1762)
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
 - Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)
 - Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
@@ -254,10 +288,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
 - chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
+- Changed `TransactionResponse.get_receipt()` so now pins receipt queries to the submitting node via `set_node_account_ids()` ([#1686](https://github.com/hiero-ledger/hiero-sdk-python/issues/1686))
+- chore: clarify wording in the bot-assignment-check.sh (#1748)
+- Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
 
 ### Fixed
+- Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
 - Corrected broken documentation links in SDK developer training files.(#1707)
-- Fixed assignment limit check to only count issues (not PRs) towards the maximum 2 concurrent assignments, allowing users to be assigned to PRs without affecting their issue assignment capacity. (#1717)
 - Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
@@ -297,6 +334,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
 - Refactor spam list update logic and remove unused pull request creation step `.github/scripts/update-spam-list.js` `.github/workflows/cron-update-spam-list.yml`.
 - Ensure all Query sub-class `execute()` function to correctly propagate the optional `timeout` parameter.
+- Refactor assignment time retrieval and open PR check to use GraphQL API instead of REST API `.github/scripts/bot-issue-reminder-no-pr.sh` (#1746)
 
 ### Removed
 
