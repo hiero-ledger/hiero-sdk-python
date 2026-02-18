@@ -139,8 +139,11 @@ class TopicMessageQuery:
         def run_stream():
             nonlocal last_received_timestamp, received_count
             attempt = 0
-            
+
             while attempt < self._max_attempts and not subscription_handle.is_cancelled():
+                # Clear pending chunks on reconnection to avoid duplicates
+                # because we resume from the last COMPLETE message timestamp.
+                pending_chunks.clear()
                 try:
                     # If we have received a message, resume from the next nanosecond
                     if last_received_timestamp:

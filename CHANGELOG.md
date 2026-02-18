@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Added `set_start_time`, `set_end_time`, `set_limit`, and `set_chunking_enabled` methods to `TopicMessageQuery`. (#1820)
 - Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
 
 ### Src
@@ -28,6 +29,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Reverted PR #1739 checking assignment counts
 - chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
 - Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
+
+### Fixed
+
+- Improved `TopicMessageQuery` reliability with reconnection logic and resumption support using consensus timestamps; fixed potential duplicate message issue by clearing pending chunks on reconnection. (#1820)
 
 ## [0.2.0] - 2026-11-02
 
