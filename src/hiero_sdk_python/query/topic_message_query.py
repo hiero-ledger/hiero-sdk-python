@@ -1,5 +1,6 @@
 import time
 import threading
+import logging
 from datetime import datetime
 from typing import Optional, Callable, Union, Dict, List
 
@@ -10,6 +11,10 @@ from hiero_sdk_python.consensus.topic_message import TopicMessage
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.utils.subscription_handle import SubscriptionHandle
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.timestamp import Timestamp
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 
 class TopicMessageQuery:
@@ -31,7 +36,7 @@ class TopicMessageQuery:
         """
         Initializes a TopicMessageQuery.
         """
-        self._topic_id: Optional[TopicId] = self._parse_topic_id(topic_id) if topic_id else None
+        self._topic_id: Optional[basic_types_pb2.TopicID] = self._parse_topic_id(topic_id) if topic_id else None
         self._start_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(start_time) if start_time else None
         self._end_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(end_time) if end_time else None
         self._limit: Optional[int] = limit
@@ -73,9 +78,7 @@ class TopicMessageQuery:
 
     def _parse_timestamp(self, dt: datetime) -> timestamp_pb2.Timestamp:
         """Converts a datetime object to a protobuf Timestamp."""
-        seconds = int(dt.timestamp())
-        nanos = int((dt.timestamp() - seconds) * 1e9)
-        return timestamp_pb2.Timestamp(seconds=seconds, nanos=nanos)
+        return Timestamp.from_date(dt)._to_protobuf()
 
     def set_topic_id(self, topic_id: Union[str, TopicId]) -> "TopicMessageQuery":
         """Sets the topic ID for the query."""
@@ -120,58 +123,122 @@ class TopicMessageQuery:
             request.consensusStartTime.CopyFrom(self._start_time)
         if self._end_time:
             request.consensusEndTime.CopyFrom(self._end_time)
-        if self._limit is not None:
+        # Fix: only set limit if it's > 0. In Hedera, 0 is often used as 'no limit' in SDKs,
+        # but the protobuf treats 0 as 0.
+        if self._limit:
             request.limit = self._limit
 
         subscription_handle = SubscriptionHandle()
+        
+        # Track state for resumption
+        last_received_timestamp: Optional[timestamp_pb2.Timestamp] = None
+        received_count: int = 0
 
         pending_chunks: Dict[str, List[mirror_proto.ConsensusTopicResponse]] = {}
 
         def run_stream():
+            nonlocal last_received_timestamp, received_count
             attempt = 0
+            
             while attempt < self._max_attempts and not subscription_handle.is_cancelled():
                 try:
+                    # If we have received a message, resume from the next nanosecond
+                    if last_received_timestamp:
+                        resume_timestamp = Timestamp._from_protobuf(last_received_timestamp).plus_nanos(1)
+                        request.consensusStartTime.CopyFrom(resume_timestamp._to_protobuf())
+                    
+                    # If we have a limit, adjust it for the remaining messages
+                    if self._limit and received_count < self._limit:
+                        request.limit = self._limit - received_count
+                    elif self._limit and received_count >= self._limit:
+                        # We hit the limit, stop.
+                        if self._completion_handler:
+                            self._completion_handler()
+                        return
+
+                    logger.debug(f"Subscribing to topic {self._topic_id.shardNum}.{self._topic_id.realmNum}.{self._topic_id.topicNum} "
+                                 f"(Attempt {attempt + 1}, StartTime: {request.consensusStartTime.seconds}.{request.consensusStartTime.nanos})")
+                    
                     message_stream = client.mirror_stub.subscribeTopic(request)
 
                     for response in message_stream:
                         if subscription_handle.is_cancelled():
+                            logger.debug("Subscription cancelled, closing stream.")
                             return
 
+                        # Process message
                         if (not self._chunking_enabled
                                 or not response.HasField("chunkInfo")
                                 or response.chunkInfo.total <= 1):
                             msg_obj = TopicMessage.of_single(response)
                             on_message(msg_obj)
+                            
+                            # Update resumption state
+                            last_received_timestamp = response.consensusTimestamp
+                            received_count += 1
+                            attempt = 0 # Reset attempts on successful message
+                            
+                            if self._limit and received_count >= self._limit:
+                                logger.debug(f"Reached message limit ({self._limit}), closing subscription.")
+                                if self._completion_handler:
+                                    self._completion_handler()
+                                return
                             continue
 
+                        # Handle chunking
                         initial_tx_id = TransactionId._from_proto(response.chunkInfo.initialTransactionID)
-
                         if initial_tx_id not in pending_chunks:
                             pending_chunks[initial_tx_id] = []
-
                         pending_chunks[initial_tx_id].append(response)
 
                         if len(pending_chunks[initial_tx_id]) == response.chunkInfo.total:
                             chunk_list = pending_chunks.pop(initial_tx_id)
-
                             msg_obj = TopicMessage.of_many(chunk_list)
                             on_message(msg_obj)
+                            
+                            # Update resumption state using the last chunk's timestamp
+                            last_received_timestamp = response.consensusTimestamp
+                            received_count += 1
+                            attempt = 0 # Reset attempts on successful message
+                            
+                            if self._limit and received_count >= self._limit:
+                                if self._completion_handler:
+                                    self._completion_handler()
+                                return
 
-                    if self._completion_handler:
-                        self._completion_handler()
-                    return
+                    # Stream finished gracefully (e.g., reached end_time or connection reset)
+                    if self._limit and received_count >= self._limit:
+                         if self._completion_handler:
+                             self._completion_handler()
+                         return
+                    
+                    if self._end_time:
+                         # If we have an end time, we check if we reached it
+                         # But mirror node usually handles this by closing the stream.
+                         if self._completion_handler:
+                             self._completion_handler()
+                         return
+
+                    # Intermittent connection drop, try to reconnect
+                    logger.warning("Mirror node subscription stream closed. Attempting to reconnect...")
+                    attempt += 1
 
                 except Exception as e:
                     if subscription_handle.is_cancelled():
                         return
 
                     attempt += 1
+                    logger.error(f"Subscription error (Attempt {attempt}): {e}")
+                    
                     if attempt >= self._max_attempts:
                         if on_error:
                             on_error(e)
                         return
 
+                # Backoff before retry
+                if attempt > 0:
                     delay = min(0.5 * (2 ** (attempt - 1)), self._max_backoff)
+                    logger.debug(f"Retrying in {delay} seconds...")
                     time.sleep(delay)
 
         thread = threading.Thread(target=run_stream, daemon=True)
