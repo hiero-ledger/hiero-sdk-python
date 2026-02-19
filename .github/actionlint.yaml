@@ -1,0 +1,3 @@
+self-hosted-runner:
+  labels:
+    - hl-sdk-py-lin-md

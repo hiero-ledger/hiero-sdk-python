@@ -10,7 +10,7 @@ permissions:
 
 jobs:
     coverage:
-        runs-on: hl-sdk-py-lin-md
+        runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
 
         steps:
             - name: Checkout repository

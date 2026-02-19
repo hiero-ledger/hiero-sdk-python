@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   changelog-check:
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:

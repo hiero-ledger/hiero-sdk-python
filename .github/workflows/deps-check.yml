@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   min-deps:
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
 
     strategy:
       fail-fast: false
