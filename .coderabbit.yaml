@@ -1022,10 +1022,6 @@ reviews:
         engineer. Your goal is to nudge contributors toward higher-quality,
         maintainable workflows — not to impose a rigid checklist.
 
-        A good workflow is small, focused, and easy to understand.
-        If a workflow feels clever, overly generic, or hard to follow,
-        that is worth flagging.
-
         ---------------------------------------------------------
         SECURITY ESSENTIALS
         ---------------------------------------------------------
@@ -1036,127 +1032,73 @@ reviews:
         - `permissions:` must be explicitly declared and scoped to the
           minimum needed. Flag over-permissioned or under-permissioned
           workflows, and any reliance on broad default permissions.
+        - Workflows must not request `contents: write` unless strictly
+          required.
         - Workflows must behave safely when executed from forks.
-        - Workflows must not modify repository source code outside
-          `.github/`.
-
-        ---------------------------------------------------------
-        INPUT SAFETY
-        ---------------------------------------------------------
-        Treat all GitHub event data as potentially untrusted input:
-        issue titles, bodies, comments, labels, usernames, branch names.
-
-        - Prefer strict allowlists or exact string matches over
-          free-form input handling.
-        - Free-form user input should not flow directly into shell
+        - Treat all GitHub event data as potentially untrusted input:
+          issue titles, bodies, comments, labels, usernames, branch
+          names. Prefer strict allowlists or exact string matches.
+          Free-form user input must not flow directly into shell
           commands, `gh` CLI arguments, or Node.js exec/spawn calls.
-        - Flag uses of `eval`, `bash -c`, backticks, or `$(...)`
-          with user-controlled content.
 
         ---------------------------------------------------------
-        CLARITY & PURPOSE
+        CLARITY & CODE ORGANIZATION
         ---------------------------------------------------------
         Each workflow should have a single, clearly defined objective.
+        YAML should orchestrate execution — not implement business
+        logic.
 
-        - A top-level comment explaining the workflow's purpose is
-          helpful, especially for non-obvious automation.
-        - Workflow titles should be descriptive, follow the repository's
-          existing naming conventions, and relate clearly to any
-          companion script filenames.
-        - Flag workflows that try to be generic "frameworks", include
-          speculative or future-facing logic, or perform actions
-          unrelated to their stated goal.
-        - Over-abstraction and excess flexibility are maintenance risks.
-
-        ---------------------------------------------------------
-        CODE ORGANIZATION
-        ---------------------------------------------------------
-        YAML should primarily orchestrate execution — not implement
-        business logic.
-
-        - Non-trivial logic is best placed in dedicated scripts under
-          `.github/scripts/` (`.sh` or `.js`), keeping the workflow
-          YAML focused on orchestration.
-        - Workflow filenames and their companion scripts should share
-          clear, matching names for discoverability.
-        - Prefer environment variables and top-level constants over
-          hardcoded values scattered through the YAML.
+        - Non-trivial logic belongs in dedicated scripts under
+          `.github/scripts/`, keeping the workflow YAML focused on
+          orchestration.
+        - Environment variables should be defined in the YAML and
+          passed to scripts, not hardcoded inside scripts.
         - Flag large `run: |` blocks, inline loops or conditionals,
           and API calls embedded directly in YAML steps.
 
         ---------------------------------------------------------
-        DRY-RUN SUPPORT
+        DRY-RUN
         ---------------------------------------------------------
-        Dry-run can be valuable for workflows that mutate GitHub state
-        (posting comments, assigning users, editing labels), but it is
-        not always necessary.
-
-        When reviewing, consider:
-        - Prefer dry-run for workflows that deploy, publish, release,
-          or mutate significant external state.
-        - Dry-run is usually unnecessary for read-only, validation,
-          or status-check workflows.
-        - If dry-run is implemented, it should be controlled via
-          `workflow_dispatch` inputs and clearly logged when active.
-        - Prefer orchestrating dry-run behavior in the workflow YAML
-          (skipping mutation steps) when practical, while also
-          supporting script-level DRY_RUN flags as defense-in-depth.
-
-        Do not flag missing dry-run support as a blocker unless the
-        workflow performs significant external mutations where safe
-        testing would clearly benefit.
+        If used, dry-run should be clear, well-logged, and default
+        to true on `workflow_dispatch`. It should have a reasonable
+        use case and be easy to maintain. Do not flag missing dry-run
+        as a blocker.
 
         ---------------------------------------------------------
         OPERATIONAL QUALITY
         ---------------------------------------------------------
-        Good logging and error handling improve auditability:
-
-        - Workflows should log key decisions: what was checked,
-          what was skipped, what action was taken.
-        - Avoid silent successes or silent skips — a brief log
-          line explaining "skipped because X" is valuable.
+        - Log key decisions and early exits — avoid silent skips.
         - Avoid raw payload dumps and any secret or token leakage.
-        - Where helpful, include context in logs: workflow name,
-          issue/PR number, triggering actor.
-
-        Concurrency and idempotency:
-        - Workflows that mutate state should consider using a
-          concurrency group to prevent race conditions.
-        - Duplicate prevention patterns (marker-based comments,
-          check-before-create for labels) are good practice.
+        - Workflows that mutate state should use concurrency groups
+          and duplicate prevention patterns (marker-based comments,
+          check-before-create for labels).
         - Assume workflows may run multiple times or be retried.
 
         ---------------------------------------------------------
         API DISCIPLINE
         ---------------------------------------------------------
-        GitHub API usage should be intentional and efficient:
-
         - Prefer reusing data already in the event payload over
           making additional API calls.
         - Prefer aggregated queries and server-side filtering over
           per-entity loops and client-side iteration.
-        - Pagination should have reasonable upper bounds when used.
-        - Flag repeated API calls inside loops or unbounded
-          pagination patterns.
+        - Pagination should have reasonable upper bounds.
 
         ---------------------------------------------------------
         REVIEW SCOPE
         ---------------------------------------------------------
-        - Focus feedback on the PR's stated scope. Do not block PRs
-          for issues outside their stated goal.
-        - If you notice real improvements outside scope, aggregate
-          them into a single follow-up suggestion rather than
-          inline blocking comments.
+        - Focus feedback on the PR's stated scope.
+        - Flag out-of-scope issues as irrelevant and suggest opening
+          a separate PR — do not block for them.
         - Do not propose major refactors unless correctness or
           security is affected.
 
         ---------------------------------------------------------
         BLOCKERS vs SUGGESTIONS
         ---------------------------------------------------------
-        - Block approval only for security issues, correctness
-          problems, or violations of the firm expectations above.
-        - Style, maintainability, and quality improvements should
-          be non-blocking suggestions.
+        - Block only for security, correctness, or firm expectation
+          violations.
+        - Style and maintainability improvements should be
+          non-blocking suggestions.
         - When in doubt, suggest — don't block.
 
     # ============================================================
@@ -1164,56 +1106,40 @@ reviews:
     # ============================================================
     - path: ".github/scripts/**/*.sh"
       instructions: |
-        Review shell scripts as production-grade automation that will
-        run unattended in CI. Scripts should be small, focused, and
-        easy to read.
+        Review shell scripts as production-grade CI automation.
 
         Firm expectations:
-        - Scripts should use `set -euo pipefail` to fail fast on errors.
-        - Required environment variables should be validated early.
-        - Variables should be defensively quoted.
-        - Flag uses of `eval`, `bash -c`, backticks, or `$(...)`
-          with user-controlled or untrusted content.
+        - Use `set -euo pipefail` to fail fast on errors.
+        - Environment variables should be passed from the YAML,
+          validated early, and defensively quoted.
+        - No `eval`, `bash -c`, backticks, or `$(...)` with untrusted content.
 
-        Good practices to encourage:
-        - Validate untrusted input before use.
-        - Keep loops bounded and pagination capped.
-        - Log key decisions and early exits so CI output is
-          understandable when something goes wrong.
-        - If the script mutates external state (posts comments,
-          assigns users, edits labels), consider supporting a
-          dry-run mode — but only where it genuinely adds value.
-        - Keep scripts purpose-built and readable. Flag overly
-          generic helper scripts that try to do too much.
+        Good practices:
+        - Log key decisions and early exits.
+        - Keep scripts purpose-built — flag overly generic helpers.
 
     # ============================================================
     # JAVASCRIPT SCRIPTS
     # ============================================================
     - path: ".github/scripts/**/*.js"
       instructions: |
-        Review JavaScript scripts as long-lived automation code that
-        runs in GitHub Actions. Scripts should be focused, readable,
-        and purpose-built.
+        Review JavaScript scripts as production-grade CI automation.
 
         Firm expectations:
         - Validate `context.payload` fields before use.
         - Do not trust free-form text from issues, PRs, or comments.
-        - Dynamic code execution (`eval`, `new Function`) is
-          prohibited.
-        - Prefer `execFile` over `child_process.exec` if spawning
-          processes is needed.
+        - No `eval`, `new Function`, or dynamic code execution.
+        - Use top-level constants for configuration — avoid
+          hardcoded values scattered through the script.
+        - Environment variables should be passed from the workflow
+          YAML, not hardcoded in the script.
 
-        Good practices to encourage:
-        - Wrap async operations in try/catch with contextual error
-          messages that help diagnose failures in CI logs.
-        - Avoid redundant API calls — reuse data already available
-          in the event context.
-        - Use marker-based patterns (e.g., hidden HTML comments) to
-          prevent duplicate comments or actions.
-        - Handle permission failures gracefully rather than assuming
-          write access.
-        - Keep scripts focused on a single task. Flag scripts that
-          try to handle too many responsibilities.
+        Good practices:
+        - Wrap async operations in try/catch with contextual errors.
+        - Reuse event context data instead of making redundant API
+          calls.
+        - Use marker-based patterns to prevent duplicate actions.
+        - Handle permission failures gracefully.
 
     - path: "src/hiero_sdk_python/query/**/*.py"
       instructions: *query_review_instructions
