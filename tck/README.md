@@ -56,25 +56,6 @@ pip install -e ".[tck]"
 - **Content-Type**: `application/json`
 - **Default URL**: `http://localhost:8544`
 
-## Testing the Server
-
-Once the server is running, you can test it in another terminal with a simple curl command:
-
-```bash
-curl -X POST http://localhost:8544 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "setup",
-    "params": {
-      "operatorAccountId": "0.0.1234",
-      "operatorPrivateKey": "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137",
-      "nodeIp": "127.0.0.1",
-      "nodeAccountId": "0.0.3"
-    },
-    "id": 1
-  }'
-```
 
 ## Error Handling
 
