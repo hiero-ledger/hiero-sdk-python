@@ -48,7 +48,7 @@ test.
 ### ✅ Good: Logic in a script
 
 ```yaml
-- uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+- uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
   with:
     script: |
       const script = require('./.github/scripts/bot-assign.js');
@@ -106,7 +106,7 @@ Secrets are the most sensitive part of any workflow. Follow these rules strictly
 | :--- | :--- |
 | **Never log secrets** | Even partial logging can expose tokens |
 | **Never transform secrets** | String operations on secrets can leak them via error messages |
-| **Never pass secrets unless required** | Minimise the blast radius of a compromise |
+| **Never pass secrets unless required** | Minimize the blast radius of a compromise |
 | **Use `${{ secrets.NAME }}`** | Always reference secrets through GitHub's secrets mechanism |
 
 ### ❌ Bad
@@ -121,9 +121,10 @@ Secrets are the most sensitive part of any workflow. Follow these rules strictly
 ### ✅ Good
 
 ```yaml
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-- run: gh api /repos/...  # gh CLI reads GITHUB_TOKEN from env
+steps:
+  - run: gh api /repos/...  # gh CLI reads GITHUB_TOKEN from env
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ---
@@ -252,7 +253,7 @@ core.setFailed('System failure: ' + error.message);
 ```
 
 **Never exit without logging the exit reason.** Every `return` should have a
-corresponding log line so unexpected behaviour can be debugged.
+corresponding log line so unexpected behavior can be debugged.
 
 ---
 
@@ -328,6 +329,27 @@ issues), confirm:
 - Correct state (labels, assignees)
 - Not already done (idempotency)
 
+### Avoid `pull_request_target` with Untrusted Code
+
+`pull_request_target` runs with **write permissions on the base repository**, even
+for PRs from forks. Never check out or execute code from the fork branch inside
+a `pull_request_target` workflow — this allows a contributor to run arbitrary
+code with your repository's write token.
+
+```yaml
+# ❌ Dangerous — executes fork code with write token
+on: pull_request_target
+steps:
+  - uses: actions/checkout@...
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}  # attacker-controlled
+  - run: npm install && npm test  # runs attacker code
+```
+
+If you must use `pull_request_target` (e.g., to post comments on fork PRs),
+keep the workflow free of any checkout or execution of PR code, and scope
+permissions to the minimum required.
+
 ---
 
 ## 9. Concurrency
@@ -355,7 +377,7 @@ of testing in PRs**.
 
 ### Fork Testing (Strongly Recommended)
 
-Use your personal fork to validate behaviour safely. You can trigger events, create
+Use your personal fork to validate behavior safely. You can trigger events, create
 test issues, simulate comments, and inspect logs without risk to the main repository.
 
 See [testing_forks.md](../sdk_developers/training/testing_forks.md) for the full
@@ -379,13 +401,13 @@ to log instead of execute.
 on:
   workflow_dispatch:
     inputs:
-      dry-run:
+      dry_run:
         description: 'Run in dry-run mode'
         type: boolean
         default: true
 
 env:
-  DRY_RUN: ${{ inputs.dry-run }}
+  DRY_RUN: ${{ github.event.inputs.dry_run }}
 ```
 
 **Script:**
@@ -408,11 +430,11 @@ If dry-run is used, it should be:
 
 ### Local Testing
 
-Large parts of behaviour can be validated locally without pushing commits:
+Large parts of behavior can be validated locally without pushing commits:
 
 1. Simulate the GitHub event payload (or extract from a real event)
 2. Call your script directly and observe output
-3. Verify decision making, formatting, and branching
+3. Verify decision-making, formatting, and branching
 
 **What local testing cannot prove:**
 
@@ -420,7 +442,7 @@ Large parts of behaviour can be validated locally without pushing commits:
 | :--- | :--- |
 | GitHub permissions | ✅ |
 | Actual API authorization | ✅ |
-| Concurrency behaviour | ✅ |
+| Concurrency behavior | ✅ |
 | Runner environment | ✅ |
 
 ---
