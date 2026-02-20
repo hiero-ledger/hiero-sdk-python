@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- GitHub Actions workflow to review pull requests labeled with `GFI` and `Beginner`. (`#1721`)
 - Added CodeRabbit review instructions for the transaction module in `.coderabbit.yaml` (#1696)
 - Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
 

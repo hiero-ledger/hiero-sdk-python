@@ -1,0 +1,31 @@
+name: Request triage review on beginner PRs
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  request-triage:
+    if: ${{ github.event.label && (github.event.label.name == 'Good First Issue' || github.event.label.name == 'Beginner') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request review from triage team
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const team_reviewers = ['triage'];
+            await github.rest.pulls.requestReviewers({
+              owner,
+              repo,
+              pull_number: prNumber,
+              team_reviewers,
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
