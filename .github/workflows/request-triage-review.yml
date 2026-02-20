@@ -1,8 +1,19 @@
 name: Request triage review on beginner PRs
 
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled]
+
+  workflow_dispatch:
+      inputs:
+        dry_run:
+          description: 'Dry run mode (no actual review requests will be made)'
+          required: false
+          default: 'true'
+
+  concurrency:
+    group: request-triage-${{ github.event.pull_request.number }}
+    cancel-in-progress: false
 
 permissions:
   contents: read
@@ -20,12 +31,25 @@ jobs:
             const prNumber = context.payload.pull_request.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const team_reviewers = ['triage'];
+            const reviewer = 'coderabbit';
+
+            // Check whether the user is already requested to avoid duplicates
+            const existing = await github.rest.pulls.listRequestedReviewers({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
+            const requestedUsers = (existing.data.users || []).map(u => u.login);
+            if (requestedUsers.includes(reviewer)) {
+              console.log(`User ${reviewer} already requested for PR #${prNumber}`);
+              return;
+            }
+
             await github.rest.pulls.requestReviewers({
               owner,
               repo,
               pull_number: prNumber,
-              team_reviewers,
+              reviewers: [reviewer],
             });
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
