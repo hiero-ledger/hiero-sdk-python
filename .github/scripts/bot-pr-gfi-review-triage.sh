@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple script to request a reviewer for a PR when invoked from GitHub Actions.
-# Expects: GITHUB_EVENT_PATH and GITHUB_REPOSITORY to be set by Actions and
-# a valid GITHUB_TOKEN in the environment.
+# Comment-based triage request script for PRs.
+# Aligns with issue #1721: post a comment to request triage reviewers
+# instead of assigning reviewers. Uses a triage list file or env var.
+# Safety: defaults to dry-run mode unless DRY_RUN is explicitly set to 'false'.
 
 if [ -z "${GITHUB_EVENT_PATH:-}" ] || [ -z "${GITHUB_REPOSITORY:-}" ]; then
   echo "This script is intended to run inside GitHub Actions (needs GITHUB_EVENT_PATH and GITHUB_REPOSITORY)."
@@ -18,7 +19,6 @@ fi
 
 OWNER=${GITHUB_REPOSITORY%%/*}
 REPO=${GITHUB_REPOSITORY##*/}
-REVIEWER="coderabbit"
 TOKEN="${GITHUB_TOKEN:-}"
 
 if [ -z "$TOKEN" ]; then
@@ -26,24 +26,56 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-echo "Checking existing requested reviewers for PR #$PR_NUMBER in $OWNER/$REPO"
-existing=$(curl -sS -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/$OWNER/$REPO/pulls/$PR_NUMBER/requested_reviewers")
-
-if echo "$existing" | jq -e --arg r "$REVIEWER" '.users[]?.login == $r' >/dev/null 2>&1; then
-  echo "User $REVIEWER already requested for PR #$PR_NUMBER"
-  exit 0
+# Dry-run guard: default to true to avoid accidental state changes.
+DRY_RUN=${DRY_RUN:-true}
+DRY_RUN_LC=$(echo "$DRY_RUN" | tr '[:upper:]' '[:lower:]')
+is_dry_run=true
+if [ "$DRY_RUN_LC" = "false" ] || [ "$DRY_RUN_LC" = "0" ] || [ "$DRY_RUN_LC" = "no" ]; then
+  is_dry_run=false
 fi
 
-echo "Requesting reviewer $REVIEWER for PR #$PR_NUMBER"
-resp=$(curl -sS -X POST -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
-  -d "{\"reviewers\":[\"$REVIEWER\"]}" \
-  "https://api.github.com/repos/$OWNER/$REPO/pulls/$PR_NUMBER/requested_reviewers")
+# Determine triage reviewers: prefer file in repo, fallback to TRIAGE_REVIEWERS env var
+TRIAGE_FILE=".github/triage-reviewers.txt"
+if [ -f "$TRIAGE_FILE" ]; then
+  TRIAGE_LIST=$(tr '\n' ' ' < "$TRIAGE_FILE" | xargs)
+else
+  TRIAGE_LIST="${TRIAGE_REVIEWERS:-}"
+fi
 
-if echo "$resp" | jq -e '.errors? // empty' >/dev/null 2>&1; then
-  echo "Request API returned an error: $resp"
+if [ -z "$TRIAGE_LIST" ]; then
+  echo "No triage reviewers configured. Provide .github/triage-reviewers.txt or TRIAGE_REVIEWERS env var."
   exit 1
 fi
 
-echo "Requested $REVIEWER for PR #$PR_NUMBER successfully"
+# Prepare mentions: accept comma or space separated values
+mentions=$(echo "$TRIAGE_LIST" | sed -E 's/,/ /g')
+
+MARKER='<!-- triage-request -->'
+BODY_TEXT="${MARKER}\nRequesting triage review from: $mentions"
+
+echo "PR #$PR_NUMBER in $OWNER/$REPO — triage mentions: $mentions"
+
+# Idempotency: check existing comments for our marker
+comments=$(curl -fS -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$OWNER/$REPO/issues/$PR_NUMBER/comments")
+
+if echo "$comments" | jq -r '.[].body' | grep -Fq "$MARKER"; then
+  echo "Triage comment already present; skipping."
+  exit 0
+fi
+
+if [ "$is_dry_run" = true ]; then
+  echo "DRY RUN: would post comment to PR #$PR_NUMBER with body:" 
+  echo "---"
+  echo -e "$BODY_TEXT"
+  echo "---"
+  exit 0
+fi
+
+echo "Posting triage request comment to PR #$PR_NUMBER"
+resp=$(curl -fS -X POST -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" -H "User-Agent: hiero-sdk-bot" \
+  -d "{\"body\": $(jq -n --arg b "$BODY_TEXT" '$b')}" \
+  "https://api.github.com/repos/$OWNER/$REPO/issues/$PR_NUMBER/comments")
+
+echo "Comment posted successfully"
 exit 0

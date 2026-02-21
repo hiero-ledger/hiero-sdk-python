@@ -25,9 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - name: Request review from triage team
-        run: bash .github/scripts/bot-pr-gfi-review-triage.sh
+      - name: Make script executable
+        run: chmod +x .github/scripts/bot-pr-gfi-review-triage.sh
+
+      - name: Request triage by comment
+        run: .github/scripts/bot-pr-gfi-review-triage.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
