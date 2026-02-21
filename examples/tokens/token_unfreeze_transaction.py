@@ -1,23 +1,26 @@
 """
-Creates a freezeable token, freezes it for the treasury account,
+
+
+Creates a freezeable token, freezes it for the treasury account,.
+
 and then unfreezes it.
 uv run examples/tokens/token_unfreeze_transaction.py
 python examples/tokens/token_unfreeze_transaction.py
 
 """
-
 import os
 import sys
 
 from hiero_sdk_python import (
     Client,
     PrivateKey,
+    ResponseCode,
     TokenCreateTransaction,
     TokenFreezeTransaction,
     TokenUnfreezeTransaction,
     TransferTransaction,
-    ResponseCode,
 )
+
 
 def setup_client():
     client = Client.from_env()
@@ -26,7 +29,7 @@ def setup_client():
     return client
 
 def generate_freeze_key():
-    """Generate a Freeze Key on the fly"""
+    """Generate a Freeze Key on the fly."""
     print("\nSTEP 1: Generating a new freeze key...")
     freeze_key = PrivateKey.generate(os.getenv("KEY_TYPE", "ed25519"))
     print("✅ Freeze key generated.")
@@ -34,8 +37,7 @@ def generate_freeze_key():
 
 
 def create_freezable_token(client):
-    """Create a token with the freeze key"""
-
+    """Create a token with the freeze key."""
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key
 
@@ -64,7 +66,7 @@ def create_freezable_token(client):
 
 
 def freeze_token(token_id, client, operator_id, freeze_key):
-    """Freeze the token for the operator account"""
+    """Freeze the token for the operator account."""
     print(f"\nSTEP 3: Freezing token {token_id} for operator account {operator_id}...")
     try:
         receipt = (
@@ -84,7 +86,7 @@ def freeze_token(token_id, client, operator_id, freeze_key):
 
 
 def unfreeze_token(token_id, client, operator_id, freeze_key, operator_key):
-    """Unfreeze the token for the operator account"""
+    """Unfreeze the token for the operator account."""
     # Step 1: Unfreeze the token for the operator account
     print(
         f"\nSTEP 4: Unfreezing token {token_id} for operator account {operator_id}..."
@@ -124,7 +126,10 @@ def unfreeze_token(token_id, client, operator_id, freeze_key, operator_key):
 
 
 def main():
-    """Unfreeze the token for the operator account.
+    """
+
+    Unfreeze the token for the operator account.
+
     1. Freeze the token for the operator account (calls freeze_token()).
     2. Unfreeze the token for the operator account using TokenUnfreezeTransaction.
     3. Attempt a test transfer of 1 unit of the token to self to verify unfreeze.

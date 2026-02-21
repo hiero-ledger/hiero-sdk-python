@@ -1,26 +1,31 @@
 """
+
+Example demonstrating topic message submit chunked transaction.
+
 uv run examples/consensus/topic_message_submit_chunked.py
 python examples/consensus/topic_message_submit_chunked.py
-
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
-    TopicMessageSubmitTransaction,
-    TopicCreateTransaction,
+    PrivateKey,
     ResponseCode,
+    TopicCreateTransaction,
     TopicInfoQuery,
+    TopicMessageSubmitTransaction,
 )
 
 BIG_CONTENT = """
+
+
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur aliquam augue sem, ut mattis dui laoreet a. Curabitur consequat est euismod, scelerisque metus et, tristique dui. Nulla commodo mauris ut faucibus ultricies. Quisque venenatis nisl nec augue tempus, at efficitur elit eleifend. Duis pharetra felis metus, sed dapibus urna vehicula id. Duis non venenatis turpis, sit amet ornare orci. Donec non interdum quam. Sed finibus nunc et risus finibus, non sagittis lorem cursus. Proin pellentesque tempor aliquam. Sed congue nisl in enim bibendum, condimentum vehicula nisi feugiat.
+
 Suspendisse non sodales arcu. Suspendisse sodales, lorem ac mollis blandit, ipsum neque porttitor nulla, et sodales arcu ante fermentum tellus. Integer sagittis dolor sed augue fringilla accumsan. Cras vitae finibus arcu, sit amet varius dolor. Etiam id finibus dolor, vitae luctus velit. Proin efficitur augue nec pharetra accumsan. Aliquam lobortis nisl diam, vel fermentum purus finibus id. Etiam at finibus orci, et tincidunt turpis. Aliquam imperdiet congue lacus vel facilisis. Phasellus id magna vitae enim dapibus vestibulum vitae quis augue. Morbi eu consequat enim. Maecenas neque nulla, pulvinar sit amet consequat sed, tempor sed magna. Mauris lacinia sem feugiat faucibus aliquet. Etiam congue non turpis at commodo. Nulla facilisi.
 Nunc velit turpis, cursus ornare fringilla eu, lacinia posuere leo. Mauris rutrum ultricies dui et suscipit. Curabitur in euismod ligula. Curabitur vitae faucibus orci. Phasellus volutpat vestibulum diam sit amet vestibulum. In vel purus leo. Nulla condimentum lectus vestibulum lectus faucibus, id lobortis eros consequat. Proin mollis libero elit, vel aliquet nisi imperdiet et. Morbi ornare est velit, in vehicula nunc malesuada quis. Donec vehicula convallis interdum.
 Integer pellentesque in nibh vitae aliquet. Ut at justo id libero dignissim hendrerit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Praesent quis ornare lectus. Nam malesuada non diam quis cursus. Phasellus a libero ligula. Suspendisse ligula elit, congue et nisi sit amet, cursus euismod dolor. Morbi aliquam, nulla a posuere pellentesque, diam massa ornare risus, nec eleifend neque eros et elit.
@@ -44,14 +49,11 @@ Suspendisse venenatis rhoncus ligula ultrices condimentum. In id laoreet eros. S
 In consequat, nisi iaculis laoreet elementum, massa mauris varius nisi, et porta nisi velit at urna. Maecenas sit amet aliquet eros, a rhoncus nisl. Maecenas convallis enim nunc. Morbi purus nisl, aliquam ac tincidunt sed, mattis in augue. Quisque et elementum quam, vitae maximus orci. Suspendisse hendrerit risus nec vehicula placerat. Nulla et lectus nunc. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
 Etiam ut sodales ex. Nulla luctus, magna eu scelerisque sagittis, nibh quam consectetur neque, non rutrum dolor metus nec ex. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Sed egestas augue elit, sollicitudin accumsan massa lobortis ac. Curabitur placerat, dolor a aliquam maximus, velit ipsum laoreet ligula, id ullamcorper lacus nibh eget nisl. Donec eget lacus venenatis enim consequat auctor vel in.
 """
-
 load_dotenv()
 
 
 def setup_client():
-    """
-    Set up and configure a Hedera client for testnet operations.
-    """
+    """Set up and configure a Hedera client for testnet operations."""
     network_name = os.getenv("NETWORK", "testnet").lower()
 
     print(f"Connecting to Hedera {network_name} network!")
@@ -72,9 +74,7 @@ def setup_client():
 
 
 def create_topic(client):
-    """
-    Create a new topic.
-    """
+    """Create a new topic."""
     print("\nCreating a Topic...")
     try:
         topic_receipt = (
@@ -93,9 +93,7 @@ def create_topic(client):
 
 
 def submit_topic_message_transaction(client, topic_id):
-    """
-    Submit a chunked message to the specified topic.
-    """
+    """Submit a chunked message to the specified topic."""
     print("\nSubmitting large message...")
     try:
         message_receipt = (
@@ -115,7 +113,7 @@ def submit_topic_message_transaction(client, topic_id):
         print(
             f"Message submitted (status={ResponseCode(message_receipt.status)}, txId={message_receipt.transaction_id})"
         )
-        print(f"Message size:", len(BIG_CONTENT), "bytes")
+        print("Message size:", len(BIG_CONTENT), "bytes")
         print(
             f"Message Content: {(BIG_CONTENT[:140] + '...') if len(BIG_CONTENT) > 140 else BIG_CONTENT}"
         )
@@ -126,9 +124,7 @@ def submit_topic_message_transaction(client, topic_id):
 
 
 def fetch_topic_info(client, topic_id):
-    """
-    Fetch and print topic info.
-    """
+    """Fetch and print topic info."""
     print("\nFetching topic info...")
 
     try:
@@ -148,9 +144,7 @@ def fetch_topic_info(client, topic_id):
 
 
 def main():
-    """
-    Create a topic and submit a large multi-chunk message to it.
-    """
+    """Create a topic and submit a large multi-chunk message to it."""
     client = setup_client()
     topic_id = create_topic(client)
     fetch_topic_info(client, topic_id)

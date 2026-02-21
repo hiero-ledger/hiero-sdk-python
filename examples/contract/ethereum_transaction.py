@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating Ethereum transaction execution on the network.
 
 This module shows how to execute a contract using Ethereum transaction by:
@@ -16,7 +18,6 @@ Usage:
     # Run from the project root directory
     python -m examples.contract.ethereum_transaction
 """
-
 import os
 import sys
 
@@ -47,7 +48,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -62,6 +63,7 @@ def setup_client():
 
 def create_alias_account(client):
     """
+
     Create an alias account for the ECDSA key by transferring HBAR to it.
 
     This creates a "hollow" account controlled by the generated ECDSA key.
@@ -98,7 +100,7 @@ def create_alias_account(client):
 
 
 def create_contract_file(client):
-    """Create a file containing the stateful contract bytecode"""
+    """Create a file containing the stateful contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -118,8 +120,8 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id):
-    """Create a contract using the file with constructor parameters"""
-    initial_message = "Initial message from constructor".encode("utf-8")
+    """Create a contract using the file with constructor parameters."""
+    initial_message = b"Initial message from constructor"
     constructor_params = ContractFunctionParameters().add_bytes32(initial_message)
     receipt = (
         ContractCreateTransaction()
@@ -144,7 +146,7 @@ def create_contract(client, file_id):
 
 
 def get_contract_message(client, contract_id):
-    """Get the message from the contract"""
+    """Get the message from the contract."""
     # Query the contract function to verify that the message was set
     query = (
         ContractCallQuery()
@@ -227,13 +229,14 @@ def create_ethereum_transaction_data(contract_id, new_message, alias_private_key
 def execute_ethereum_transaction():
     """
     Demonstrates executing a contract using Ethereum transaction by:
+
     1. Setting up client with operator account
     2. Creating an alias account for ECDSA key
     3. Creating a file containing contract bytecode
     4. Creating a contract using the file
     5. Getting the current message from the contract
     6. Executing the contract via Ethereum transaction to update the message
-    7. Verifying the contract state was updated
+    7. Verifying the contract state was updated.
     """
     client = setup_client()
 
@@ -248,8 +251,8 @@ def execute_ethereum_transaction():
     initial_message = get_contract_message(client, contract_id)
     print(f"\nInitial contract message: '{initial_message}'")
 
-    # Prepare a new message to set in the contract (le than 32 bytes)
-    new_message = "Updated message via Eth tx!".encode("utf-8")[:32]
+    # Prepare a new message to set in the contract (less than 32 bytes)
+    new_message = b"Updated message via Eth tx!"[:32]
     new_message_string = new_message.decode("utf-8")  # For display
 
     print(f"\nPreparing Ethereum transaction to set message: '{new_message_string}'")

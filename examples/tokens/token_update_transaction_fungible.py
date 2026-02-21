@@ -1,21 +1,23 @@
 """
+
+Example demonstrating token update transaction fungible.
+
 uv run examples/tokens/token_update_transaction_fungible.py
 python examples/tokens/token_update_transaction_fungible.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
     PrivateKey,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
+
 
 def setup_client():
     client = Client.from_env()
@@ -25,7 +27,7 @@ def setup_client():
 
 def create_fungible_token(client, operator_id, operator_key, metadata_key):
     """
-    Create a fungible token
+    Create a fungible token.
 
     If we want to update metadata later using TokenUpdateTransaction:
     1. Set a metadata_key and sign the update transaction with it, or
@@ -66,10 +68,9 @@ def create_fungible_token(client, operator_id, operator_key, metadata_key):
 
 
 def get_token_info(client, token_id):
-    """Get information about a fungible token"""
-    info = TokenInfoQuery().set_token_id(token_id).execute(client)
+    """Get information about a fungible token."""
+    return TokenInfoQuery().set_token_id(token_id).execute(client)
 
-    return info
 
 
 def update_token_data(
@@ -80,7 +81,7 @@ def update_token_data(
     update_token_symbol,
     update_token_memo,
 ):
-    """Update metadata for a fungible token"""
+    """Update metadata for a fungible token."""
     receipt = (
         TokenUpdateTransaction()
         .set_token_id(token_id)
@@ -97,17 +98,18 @@ def update_token_data(
         )
         sys.exit(1)
 
-    print(f"Successfully updated token data")
+    print("Successfully updated token data")
 
 
 def token_update_fungible():
     """
     Demonstrates the fungible token update functionality by:
+
     1. Setting up client with operator account
     2. Creating a fungible token with metadata key
     3. Checking the current token info
     4. Updating the token's metadata, name, symbol and memo
-    5. Verifying the updated token info
+    5. Verifying the updated token info.
     """
     client = setup_client()
     operator_id = client.operator_account_id

@@ -1,4 +1,6 @@
 """
+
+
 Demonstrates behavior when submitting duplicate transactions and querying records.
 
 Key points shown:
@@ -10,16 +12,16 @@ Key points shown:
 
 Do NOT expect to see non-empty duplicates in this example — that's intentional.
 """
-
 import sys
 import time
+
 from hiero_sdk_python import Client
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.exceptions import PrecheckError
 
 
 def main():

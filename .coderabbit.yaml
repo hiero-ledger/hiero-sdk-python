@@ -277,6 +277,296 @@ reviews:
     - Payment-safe
     - Execution-consistent
     - Strictly aligned with Hedera query semantics
+  
+  # TRANSACTION REVIEW INSTRUCTIONS - CORE FOUNDATION (MOST CRITICAL MODULE)
+  transaction_review_instructions: &transaction_review_instructions |
+    You are acting as a senior maintainer and security architect reviewing the **core transaction module** in the hiero-sdk-python project.
+
+    Changes to this module affect **all 50+ transaction implementations** across the entire SDK.
+
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when behavior, safety, immutability, or network compatibility is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/transaction/
+    - Interaction with _Executable base class and all transaction subclasses
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — BASE CLASS CONTRACT INTEGRITY (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    The Transaction base class (which inherits from _Executable) defines the contract for the entire SDK.
+
+    Verify:
+    - Abstract methods remain unchanged: build_transaction_body(), build_scheduled_body(), _get_method()
+    - Inheritance hierarchy (_Executable → Transaction → subclass) is never broken
+    - Any change to public methods (freeze, freeze_with, sign, execute, to_bytes, from_bytes, etc.) includes backwards-compatibility analysis
+
+    Flag as high-risk: signature changes or removal of lifecycle guards that would ripple to every transaction subclass.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — TRANSACTION LIFECYCLE SAFETY (CRITICAL)
+    ----------------------------------------------------------
+    The freeze-sign-execute pattern with immutability guards is non-negotiable.
+
+    MUST verify:
+    - Every setter calls self._require_not_frozen()
+    - sign(), execute(), to_bytes(), _to_proto(), etc. call self._require_frozen()
+    - No code path allows mutation after freeze
+    - freeze_with(client) correctly populates _transaction_body_bytes for every node (including batch_key special case node 0.0.0)
+    - freeze() vs freeze_with() distinction is preserved
+
+    Any bypass of these guards = critical security issue.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — MULTI-NODE BODY & SIGNATURE MANAGEMENT (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Node failover and multi-signature support depend on these exact patterns.
+
+    Verify:
+    - _transaction_body_bytes: dict[AccountId, bytes] maintains one entry per node AccountId
+    - _signature_map keys off the exact body bytes (not node), enabling correct signature lookup on failover
+    - Both Ed25519 and ECDSA paths in sign() are preserved and consistent
+    - Signature accumulation works for multi-sig and batch_key scenarios
+
+    Any change that could break node failover or signature lookup must be flagged.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — PROTOBUF SERIALIZATION INTEGRITY (CRITICAL)
+    ----------------------------------------------------------
+    Round-trip safety and type mapping are mandatory.
+
+    Verify:
+    - to_bytes() + from_bytes() produce identical, executable objects
+    - _get_transaction_class() type map remains complete (especially atomic_batch and all 30+ types)
+    - Proper handling of SignedTransaction → bodyBytes → TransactionBody
+    - Subclass _from_protobuf / _to_proto implementations stay aligned with Hedera protobufs
+    - TransactionId, Receipt, Record parsing (defaultdicts, HasField guards, children/duplicates) is untouched unless intentional
+
+    Missing type-map entry or broken round-trip = critical omission.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — VALIDATION & ERROR HANDLING
+    ----------------------------------------------------------
+    Validation must be early, deterministic, and occur before any network call.
+
+    Verify:
+    - TypeError/ValueError raised correctly in all setters and helpers
+    - _should_retry() retryable status codes are not altered casually
+    - Proper use of PrecheckError, ReceiptStatusError, MaxAttemptsError
+    - BatchTransaction._verify_inner_transaction enforces all constraints
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — BATCH TRANSACTION CONSTRAINT GUIDELINES (SECURITY CRITICAL)
+    ----------------------------------------------------------
+    BatchTransaction is the atomic safety boundary.
+
+    Verify:
+    - _verify_inner_transaction rejects FreezeTransaction and nested BatchTransaction
+    - Inner transactions must be frozen + have batch_key set
+    - build_scheduled_body() always raises ValueError
+    - Protobuf packing of inner signedTransactionBytes and atomic_batch field is preserved
+    - batchify() / set_batch_key() flow does not bypass lifecycle
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — TEST EXPECTATIONS FOR TRANSACTION CHANGES
+    ----------------------------------------------------------
+    Changes require strong coverage:
+
+    - Unit tests for any new/modified validation, lifecycle, or serialization logic
+    - Full freeze → sign → execute (and freeze_with) lifecycle tests
+    - Serialization round-trip tests (to_bytes ↔ from_bytes)
+    - Integration/mock-server tests covering retry, node failover, error states, and BatchTransaction
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Propose large refactors unless they directly improve safety or correctness
+    - Review transaction usage outside this module
+    - Comment on style/linting unless it affects critical logic
+    - Suggest changes to token/query/schedule/contract modules (they inherit the base)
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure the core Transaction system remains:
+    - Secure & immutable by design
+    - Failover-safe (multi-node bodies + signatures)
+    - Serialization-correct with complete type mapping
+    - Extremely safe for batching
+    - 100% backwards compatible
+
+  # SCHEDULE REVIEW INSTRUCTIONS
+  schedule_review_instructions: &schedule_review_instructions |
+    You are acting as a senior maintainer reviewing schedule-related code
+    in the hiero-sdk-python project.
+
+    This includes:
+    - Schedule transaction classes (ScheduleCreateTransaction, ScheduleSignTransaction, ScheduleDeleteTransaction)
+    - Schedule query (ScheduleInfoQuery)
+    - Schedule data models (ScheduleId, ScheduleInfo)
+    - ScheduleCreateParams dataclass
+
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - HIGH SENSITIVITY items require elevated scrutiny — even small changes here can break user code or introduce subtle regressions.
+    - Only recommend fixes when behavior, safety, API stability, or spec compliance is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/schedule/
+    - Their interaction with shared SDK base classes (Transaction, Query)
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Public API contracts for ScheduleId, ScheduleInfo, and all schedule transaction classes are user-facing and considered stable.
+
+    The following MUST remain unchanged unless explicitly justified with migration path:
+    - Setter method signatures (set_*, build_*) and fluent chaining behavior
+    - Constructor signatures and defaults
+    - Public property/attribute names
+    - Exception types and messages for invalid states
+
+    ScheduleCreateParams dataclass field changes (adding/removing/renaming):
+    - Require deprecation warnings if removing or changing behavior
+    - Must preserve existing initialization patterns
+
+    Flag any change that alters public method signatures, return types, defaults, or exception behavior.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — TRANSACTION BASE CLASS CONTRACT
+    ----------------------------------------------------------
+    All schedule transaction classes MUST extend Transaction and follow its contract:
+
+    Required implementations:
+    - _build_proto_body()
+    - build_transaction_body()
+    - build_scheduled_body() — MUST raise ValueError for all schedule tx types
+    - _get_method(channel) — correct service stub (createSchedule / signSchedule / deleteSchedule)
+
+    All setter methods MUST:
+    - Call self._require_not_frozen() before any mutation
+    - Return self for fluent method chaining
+
+    Default transaction fee MUST be Hbar(5).to_tinybars()
+
+    Subclasses MUST NOT:
+    - Override execution/retry/backoff logic
+    - Bypass lifecycle hooks
+    - Manage gRPC deadlines manually
+
+    Flag deviations only if they change observable behavior.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — ANTI-NESTING CONSTRAINT (CRITICAL)
+    ----------------------------------------------------------
+    The anti-nesting rule is a fundamental safety constraint:
+
+    - build_scheduled_body() MUST raise ValueError("Cannot schedule a Schedule...Transaction")
+      in ScheduleCreateTransaction, ScheduleDeleteTransaction, and ScheduleSignTransaction
+    - This prevents recursive scheduling — schedule transactions cannot themselves be scheduled
+
+    Any change that:
+    - Removes or weakens this raise
+    - Implements a working build_scheduled_body() for schedule tx types
+    is a critical defect — flag immediately and strongly.
+
+    Unit tests MUST verify the anti-nesting constraint raises ValueError for all three schedule transaction types.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — SIGNATURE SEMANTICS (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Signature roles MUST be clearly distinguished and preserved:
+
+    - Payer signature: Only pays schedule creation fees; does NOT count toward execution
+      unless the payer key is also required by the inner transaction
+    - Admin key signature: Only required for delete/modify operations; NOT required for execution
+    - Inner transaction signatures: Collected via ScheduleSignTransaction; trigger execution when threshold met
+
+    ScheduleInfo.signers MUST contain only inner transaction signers (not payer or admin unless they overlap)
+
+    Documentation and comments MUST clearly distinguish these roles — flag any confusion or incorrect statements.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — SCHEDULE EXECUTION SEMANTICS
+    ----------------------------------------------------------
+    Execution timing rules MUST be preserved:
+
+    - wait_for_expiry=True: Forces execution to wait until expiration_time, even if all signatures collected early
+    - wait_for_expiry=False or None: Executes immediately once all required signatures received
+
+    Key points:
+    - expiration_time has network-enforced constraints (client should validate future-dated but not rely solely on it)
+    - Edge cases to check: expired schedules, signatures added after execution attempt, timing conflicts
+
+    Flag any change that alters wait_for_expiry propagation or execution triggering logic.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — PROTOBUF ALIGNMENT
+    ----------------------------------------------------------
+    Serialization/deserialization MUST be faithful to Hedera protobuf definitions.
+
+    All relevant classes MUST implement:
+    - _to_proto()
+    - _from_proto() (or equivalent classmethod)
+
+    Verify:
+    - Field mapping exact (wait_for_expiry, adminKey, payerAccountID, scheduledTransactionBody, etc.)
+    - Null-safe conversions using _from_proto_field() / _convert_to_proto() helpers
+    - Underscore prefix convention for serialization methods preserved
+    - Round-trip integrity (create → info query → fields match)
+
+    Flag any field loss, incorrect defaults, or divergence from protobuf spec.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — VALIDATION & ERROR BEHAVIOR
+    ----------------------------------------------------------
+    Validation MUST be early, deterministic, and user-friendly:
+
+    - Required fields raise descriptive ValueError (e.g. "Missing required ScheduleID")
+    - ScheduleId.from_string() validates format shard.realm.schedule (exactly three integers)
+    - Checksum validation uses shared entity_id_helper utilities
+    - Error messages include context about what was invalid
+
+    Avoid:
+    - Deferred failures
+    - Generic messages
+    - Silent acceptance of invalid state
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — TEST & EXAMPLE EXPECTATIONS
+    ----------------------------------------------------------
+    Expected coverage:
+    - Unit tests for all public methods, constructors, protobuf conversions, and edge cases
+    - Integration tests for network interactions, execution triggering, and error scenarios
+    - Tests MUST verify anti-nesting constraint raises ValueError for all schedule tx types
+    - Examples MUST demonstrate proper multi-signature workflows
+    - Examples MUST document signature semantics (payer vs admin vs inner txn roles)
+
+    Missing critical coverage (especially anti-nesting, wait_for_expiry paths) should be flagged.
+
+    ----------------------------------------------------------
+    EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Flag style, lint, formatting, or cosmetic changes
+    - Propose refactors unless correctness/safety/API stability impacted
+    - Suggest unrelated features or broad cleanups
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure schedule code is:
+    - Backward-compatible
+    - Anti-nesting & execution semantics correct
+    - Signature roles clearly separated
+    - Protobuf-aligned
+    - Validation-safe
+    - Deterministic and protective of users
 
   # CONTRACT REVIEW INSTRUCTIONS
   contract_review_instructions: &contract_review_instructions |
@@ -507,6 +797,11 @@ reviews:
         - Has no precedence bugs that weaken protection
     - path: "src/hiero_sdk_python/tokens/**/*.py"
       instructions: *token_review_instructions
+    - path: "src/hiero_sdk_python/transaction/**/*.py"
+      instructions: *transaction_review_instructions
+    - path: "src/hiero_sdk_python/schedule/**/*.py"
+      instructions: *schedule_review_instructions
+
     # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
     - path: "examples/**/*"
       instructions: |

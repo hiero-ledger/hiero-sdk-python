@@ -1,12 +1,24 @@
 """
+
+
 Run with:
+
 uv run examples/file_create_transaction.py
 python examples/file_create_transaction.py
 
 """
 
 import sys
-from hiero_sdk_python import Client, PrivateKey
+import os
+
+from dotenv import load_dotenv
+
+from hiero_sdk_python import (
+    AccountId,
+    Client,
+    Network,
+    PrivateKey,
+)
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 
@@ -22,9 +34,10 @@ def setup_client():
 def file_create():
     """
     Demonstrates creating a file on the network by:
+
     1. Setting up client with operator account
     2. Creating a file with a private key
-    3. Creating a new file
+    3. Creating a new file.
     """
     client = setup_client()
 

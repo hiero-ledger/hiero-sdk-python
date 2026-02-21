@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating contract creation with constructor parameters on the network.
 
 This module shows how to create a stateful smart contract by:
@@ -15,7 +17,6 @@ Usage:
     uv run -m examples.contract.contract_create_transaction_no_constructor_parameters
 
 """
-
 import os
 import sys
 
@@ -41,7 +42,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -55,7 +56,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the stateful contract bytecode"""
+    """Create a file containing the stateful contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -77,9 +78,10 @@ def create_contract_file(client):
 def contract_create_constructor():
     """
     Demonstrates creating a stateful contract with constructor parameters by:
+
     1. Setting up client with operator account
     2. Creating a file containing stateful contract bytecode
-    3. Creating a contract using the file with constructor parameters
+    3. Creating a contract using the file with constructor parameters.
     """
     client = setup_client()
 
@@ -92,7 +94,7 @@ def contract_create_constructor():
     # 2. Pass those bytes to add_bytes32() to properly format for the contract
     # NOTE: If message exceeds 32 bytes, it will raise an error.
     # If message is less than 32 bytes, it will be padded with zeros.
-    initial_message = "Initial message from constructor".encode("utf-8")
+    initial_message = b"Initial message from constructor"
 
     # Create ContractFunctionParameters object and add the bytes32 parameter
     # This will be passed to setConstructorParameters() when creating the contract

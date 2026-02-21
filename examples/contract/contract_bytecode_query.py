@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating contract bytecode query on the network.
 
 This module shows how to query a contract bytecode on the network by:
@@ -16,7 +18,6 @@ Usage:
     python -m examples.contract.contract_bytecode_query
 
 """
-
 import os
 import sys
 
@@ -40,7 +41,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -54,7 +55,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the simple contract bytecode"""
+    """Create a file containing the simple contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -74,7 +75,7 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id):
-    """Create a contract using the file"""
+    """Create a contract using the file."""
     receipt = (
         ContractCreateTransaction()
         .set_admin_key(client.operator_private_key.public_key())
@@ -99,10 +100,11 @@ def create_contract(client, file_id):
 def query_contract_bytecode():
     """
     Demonstrates querying a contract bytecode by:
+
     1. Setting up client with operator account
     2. Creating a file containing contract bytecode
     3. Creating a contract using the file
-    4. Querying the contract bytecode
+    4. Querying the contract bytecode.
     """
     client = setup_client()
 

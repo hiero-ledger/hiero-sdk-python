@@ -1,21 +1,23 @@
 """
+
+Example demonstrating token update transaction nft.
+
 uv run examples/tokens/token_update_transaction_nft.py
 python examples/tokens/token_update_transaction_nft.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
     PrivateKey,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
+
 
 def setup_client():
     client = Client.from_env()
@@ -25,7 +27,7 @@ def setup_client():
 
 def create_nft(client, operator_id, operator_key, metadata_key):
     """
-    Create a non-fungible token
+    Create a non-fungible token.
 
     If we want to update metadata later using TokenUpdateTransaction:
     1. Set a metadata_key and sign the update transaction with it, or
@@ -64,10 +66,9 @@ def create_nft(client, operator_id, operator_key, metadata_key):
 
 
 def get_nft_info(client, nft_token_id):
-    """Get information about an NFT"""
-    info = TokenInfoQuery().set_token_id(nft_token_id).execute(client)
+    """Get information about an NFT."""
+    return TokenInfoQuery().set_token_id(nft_token_id).execute(client)
 
-    return info
 
 
 def update_nft_data(
@@ -78,7 +79,7 @@ def update_nft_data(
     update_token_symbol,
     update_token_memo,
 ):
-    """Update data for an NFT"""
+    """Update data for an NFT."""
     receipt = (
         TokenUpdateTransaction()
         .set_token_id(nft_token_id)
@@ -95,19 +96,19 @@ def update_nft_data(
         )
         sys.exit(1)
 
-    print(f"Successfully updated NFT data")
+    print("Successfully updated NFT data")
 
 
 def token_update_nft():
     """
     Demonstrates the NFT token update functionality by:
+
     1. Setting up client with operator account
     2. Creating a non-fungible token with metadata key
     3. Checking the current NFT info
     4. Updating the token's metadata, name, symbol and memo
-    5. Verifying the updated NFT info
+    5. Verifying the updated NFT info.
     """
-
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key
