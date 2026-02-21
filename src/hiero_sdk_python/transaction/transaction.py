@@ -14,6 +14,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (Transaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
@@ -329,7 +330,12 @@ class Transaction(_Executable):
         return self
         
 
-    def execute(self, client, timeout: Optional[Union[int, float]] = None):
+    def execute(
+        self, 
+        client: "Client", 
+        timeout: Optional[Union[int, float]] = None, 
+        wait_for_receipt: Optional[bool] = True
+    ) -> Union["TransactionReceipt", "TransactionResponse"]:
         """
         Executes the transaction on the Hedera network using the provided client.
 
@@ -337,10 +343,13 @@ class Transaction(_Executable):
 
         Args:
             client (Client): The client instance to use for execution.
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            wait_for_receipt (Optional[bool]): Whether to wait for consensus and return the receipt.
+                If False, the method returns a TransactionResponse immediately after submission.
 
         Returns:
-            TransactionReceipt: The receipt of the transaction.
+            TransactionReceipt: If wait_for_receipt is True (default)
+            TransactionResponse: If wait_for_receipt is False
 
         Raises:
             PrecheckError: If the transaction/query fails with a non-retryable error
@@ -367,7 +376,10 @@ class Transaction(_Executable):
         response.transaction = self
         response.transaction_id = self.transaction_id
 
-        return response.get_receipt(client)
+        if wait_for_receipt:
+            return response.get_receipt(client, timeout=timeout)
+        
+        return response
 
     def is_signed_by(self, public_key):
         """
