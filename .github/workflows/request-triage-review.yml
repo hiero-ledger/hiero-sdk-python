@@ -11,7 +11,7 @@ on:
           required: false
           default: 'true'
 
-  concurrency:
+concurrency:
     group: request-triage-${{ github.event.pull_request.number }}
     cancel-in-progress: false
 
@@ -24,32 +24,10 @@ jobs:
     if: ${{ github.event.label && (github.event.label.name == 'Good First Issue' || github.event.label.name == 'Beginner') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Request review from triage team
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const reviewer = 'coderabbit';
-
-            // Check whether the user is already requested to avoid duplicates
-            const existing = await github.rest.pulls.listRequestedReviewers({
-              owner,
-              repo,
-              pull_number: prNumber,
-            });
-            const requestedUsers = (existing.data.users || []).map(u => u.login);
-            if (requestedUsers.includes(reviewer)) {
-              console.log(`User ${reviewer} already requested for PR #${prNumber}`);
-              return;
-            }
-
-            await github.rest.pulls.requestReviewers({
-              owner,
-              repo,
-              pull_number: prNumber,
-              reviewers: [reviewer],
-            });
+        run: bash .github/scripts/bot-pr-gfi-review-triage.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
