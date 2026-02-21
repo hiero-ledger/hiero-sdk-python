@@ -243,7 +243,7 @@ class Query(_Executable):
         transaction_body = transaction_pb2.TransactionBody(
             transactionID=transaction_id._to_proto(),
             nodeAccountID=node_account_id._to_proto(),
-            transactionFee=100_000_000,  # 1 Hbar default fee
+            transactionFee=200_000_000,  # 2 Hbar default fee
             transactionValidDuration=duration_pb2.Duration(seconds=120),
             cryptoTransfer=crypto_transfer_pb2.CryptoTransferTransactionBody(
                 transfers=basic_types_pb2.TransferList(accountAmounts=account_amounts)
