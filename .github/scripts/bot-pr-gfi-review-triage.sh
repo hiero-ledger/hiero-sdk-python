@@ -77,5 +77,12 @@ resp=$(curl -fS -X POST -H "Authorization: Bearer $TOKEN" -H "Accept: applicatio
   -d "{\"body\": $(jq -n --arg b "$BODY_TEXT" '$b')}" \
   "https://api.github.com/repos/$OWNER/$REPO/issues/$PR_NUMBER/comments")
 
-echo "Comment posted successfully"
+# Use the response to avoid unused-variable warnings from static analyzers.
+comment_id=$(echo "$resp" | jq -r '.id // empty')
+if [ -n "$comment_id" ]; then
+  echo "Comment posted successfully (id: $comment_id)"
+else
+  # If the response didn't include an id, show the raw response for debugging.
+  echo "Comment posted; response: $resp"
+fi
 exit 0
