@@ -16,6 +16,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Examples
 
+- Refactored contract_delete_transaction example to use Client.from_env. (#1823)
+
 ### Docs
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 - chore: update office hours and community calls to use direct links (`#1804`)
