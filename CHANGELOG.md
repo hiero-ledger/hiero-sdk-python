@@ -19,6 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Docs
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 - chore: update office hours and community calls to use direct links (`#1804`)
+- docs: fix relative link to MAINTAINERS.md in bug.md (#1666)
 
 ### Tests
 - Format `tests/unit/endpoint_test.py` using black. (`#1792`)
