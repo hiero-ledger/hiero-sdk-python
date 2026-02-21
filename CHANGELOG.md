@@ -16,6 +16,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Examples
 
+### Added
+- Add staking_info fields (`staked_account_id`, `staked_node_id`, `decline_staking_reward`) to ContractInfo class to expose staking metadata from protobuf. (#1365)
+
 ### Docs
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 - chore: update office hours and community calls to use direct links (`#1804`)
