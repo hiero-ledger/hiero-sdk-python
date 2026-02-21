@@ -1,6 +1,15 @@
+# Workflow to check PR titles follow conventional commit format
+# and provide automated guidance when titles are invalid
+
 name: 'PR Formatting'
+
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run without posting comments'
+        type: boolean
+        default: true
   pull_request_target:
     types:
       - opened
@@ -29,6 +38,8 @@ jobs:
     permissions:
       checks: write
       statuses: write
+      pull-requests: write
+      contents: read
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -39,3 +50,32 @@ jobs:
         uses: step-security/conventional-pr-title-action@cb1c5657ccf4c42f5c0a6c0708cb8251b960d902 # v3.2.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout repository
+        if: failure()
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Comment on PR with title guidance
+        if: failure()
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/bot-conventional-pr-title.js');
+
+            if (!context.payload.pull_request) {
+              console.log('[Bot] No pull_request in context, skipping');
+              return;
+            }
+
+            const isDryRun = context.eventName === 'workflow_dispatch'
+              ? (context.payload.inputs?.dry_run === 'true')
+              : false;
+
+            await script.run({
+              github: github,
+              context: context,
+              prNumber: context.payload.pull_request.number,
+              prTitle: context.payload.pull_request.title,
+              dryRun: isDryRun
+            });
