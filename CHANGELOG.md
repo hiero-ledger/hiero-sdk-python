@@ -12,7 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
 
 ### Src
-- 
+- Added unit test and __repr__ for NftId class(#1627).
 
 ### Examples
 
@@ -61,6 +61,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+
 - Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
 - Added foundational guide for GitHub Workflows (#1741)
 - Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
