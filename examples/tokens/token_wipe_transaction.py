@@ -1,18 +1,17 @@
 """
+
+Example demonstrating token wipe transaction.
+
 uv run examples/tokens/token_wipe_transaction.py
 python examples/tokens/token_wipe_transaction.py
 """
-
-import os
 import sys
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
     PrivateKey,
-    Network,
-    TransferTransaction,
     TokenAssociateTransaction,
+    TransferTransaction,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.hbar import Hbar
@@ -22,6 +21,7 @@ from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransact
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 
+
 def setup_client():
     client = Client.from_env()
     print(f"Network: {client.network.network}")
@@ -29,7 +29,7 @@ def setup_client():
     return client
 
 def create_test_account(client):
-    """Create a new account for testing"""
+    """Create a new account for testing."""
     # Generate private key for new account
     new_account_private_key = PrivateKey.generate()
     new_account_public_key = new_account_private_key.public_key()
@@ -59,7 +59,7 @@ def create_test_account(client):
 
 
 def create_token(client, operator_id, operator_key):
-    """Create a fungible token"""
+    """Create a fungible token."""
     # Create fungible token
     # Note: The wipe key is required to perform token wipe operations
     transaction = (
@@ -94,7 +94,7 @@ def create_token(client, operator_id, operator_key):
 
 
 def associate_token(client, account_id, token_id, account_private_key):
-    """Associate a token with an account"""
+    """Associate a token with an account."""
     # Associate the token with the new account
     # Note: Accounts must be associated with tokens before they can receive them
     associate_transaction = (
@@ -117,7 +117,7 @@ def associate_token(client, account_id, token_id, account_private_key):
 
 
 def transfer_tokens(client, token_id, operator_id, account_id, amount):
-    """Transfer tokens from operator to the specified account"""
+    """Transfer tokens from operator to the specified account."""
     # Transfer tokens to the new account
     # Note: Negative amount for sender, positive for receiver
     transfer_transaction = (
@@ -138,7 +138,7 @@ def transfer_tokens(client, token_id, operator_id, account_id, amount):
 
 
 def wipe_tokens(client, token_id, account_id, amount):
-    """Wipe tokens from the specified account"""
+    """Wipe tokens from the specified account."""
     # Wipe the tokens from the account
     # Note: This requires the wipe key that was specified during token creation
     transaction = (
@@ -161,13 +161,13 @@ def wipe_tokens(client, token_id, account_id, amount):
 def token_wipe():
     """
     Demonstrates the token wipe functionality by:
+
     1. Creating a new account
     2. Creating a fungible token with wipe capability
     3. Associating the token with the new account
     4. Transferring tokens to the new account
-    5. Wiping the tokens from the account
+    5. Wiping the tokens from the account.
     """
-
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

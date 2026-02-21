@@ -1,5 +1,7 @@
 """
-Worked Example: Hedera Protobuf Round Trip
+
+
+Worked Example: Hedera Protobuf Round Trip.
 
 This script demonstrates constructing, serializing, and deserializing
 Hedera protobuf messages without connecting to the network. It shows:
@@ -11,9 +13,9 @@ Hedera protobuf messages without connecting to the network. It shows:
 This example accompanies the ProtoBuff Training documentation.
 """
 from hiero_sdk_python.hapi.services import (
-    query_pb2,
-    crypto_get_info_pb2,
     basic_types_pb2,
+    crypto_get_info_pb2,
+    query_pb2,
     response_pb2,
 )
 

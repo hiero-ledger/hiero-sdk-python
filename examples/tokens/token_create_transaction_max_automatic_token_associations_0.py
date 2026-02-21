@@ -1,5 +1,8 @@
 """
+
+
 Example: demonstrate how max_automatic_token_associations=0 behaves.
+
 The script walks through:
 1. Creating a fungible token on Hedera testnet (default network).
 2. Creating an account whose max automatic associations is zero.
@@ -7,11 +10,9 @@ The script walks through:
 4. Associating the token for that account.
 5. Transferring again, this time succeeding.
 Run with:
-    uv run examples/tokens/token_create_transaction_max_automatic_token_associations_0
+    uv run examples/tokens/token_create_transaction_max_automatic_token_associations_0.
 """
-
 import sys
-from typing import Tuple
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
@@ -28,7 +29,6 @@ from hiero_sdk_python import (
 )
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-
 
 TOKENS_TO_TRANSFER = 10
 
@@ -67,7 +67,7 @@ def create_demo_token(
 
 def create_max_account(
     client: Client, operator_key: PrivateKey
-) -> Tuple[AccountId, PrivateKey]:
+) -> tuple[AccountId, PrivateKey]:
     """Create an account whose max automatic associations equals zero."""
     print(
         "\nSTEP 2: Creating account 'max' with max automatic associations set to 0..."
@@ -178,7 +178,9 @@ def _response_code_name(status) -> str:
 
 
 def _as_response_code(value) -> ResponseCode:
-    """Ensure we always treat codes as ResponseCode enums.
+    """
+
+    Ensure we always treat codes as ResponseCode enums.
 
     Some transactions return raw integer codes rather than ResponseCode enums,
     so we normalize before accessing `.name`.

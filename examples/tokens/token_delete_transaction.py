@@ -7,11 +7,10 @@ import sys
 from hiero_sdk_python import (
     Client,
     PrivateKey,
+    ResponseCode,
     TokenCreateTransaction,
     TokenDeleteTransaction,
-    ResponseCode,
 )
-
 
 
 def setup_client():
@@ -21,10 +20,12 @@ def setup_client():
     return client
 
 def generate_admin_key():
-    """Generate a new admin key within the script:
-    This key will be used to create the token with admin privileges
     """
 
+    Generate a new admin key within the script:
+
+    This key will be used to create the token with admin privileges.
+    """
     print("\nGenerating a new admin key for the token...")
     admin_key = PrivateKey.generate(os.getenv("KEY_TYPE", "ed25519"))
     print("Admin key generated successfully.")
@@ -32,7 +33,7 @@ def generate_admin_key():
 
 
 def create_new_token(client, admin_key):
-    """Create the Token"""
+    """Create the Token."""
     token_id_to_delete = None
 
     try:
@@ -67,10 +68,7 @@ def create_new_token(client, admin_key):
 
 
 def delete_token(admin_key, token_id_to_delete, client):
-    """
-    Delete the Token we just created
-    """
-
+    """Delete the Token we just created."""
     try:
         print(f"\nSTEP 2: Deleting token {token_id_to_delete}...")
         delete_tx = (
@@ -99,6 +97,7 @@ def delete_token(admin_key, token_id_to_delete, client):
 def main():
     """
     1. Call create_new_token() to create a new token and get its admin key, token ID, client, and operator key.
+
     2. Build a TokenDeleteTransaction using the token ID.
     3. Freeze the transaction with the client.
     4. Sign the transaction with both the operator key and the admin key.

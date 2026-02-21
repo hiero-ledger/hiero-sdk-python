@@ -1,5 +1,6 @@
-"""
-TLS Query Balance Example
+r"""
+
+TLS Query Balance Example.
 
 Demonstrates how to connect to the Hedera network with TLS enabled.
 
@@ -13,16 +14,16 @@ Optional:
 Run with:
   uv run examples/tls_query_balance.py
 """
-
 import os
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     CryptoGetAccountBalanceQuery,
+    Network,
+    PrivateKey,
 )
 
 

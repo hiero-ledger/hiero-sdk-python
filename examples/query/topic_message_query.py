@@ -1,9 +1,10 @@
 """
+
+Example demonstrating topic message query.
+
 uv run examples/query/topic_message_query.py
 python examples/query/topic_message_query.py
-
 """
-
 import sys
 import time
 from datetime import datetime, timezone
@@ -16,7 +17,7 @@ from hiero_sdk_python import (
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     try:
         client = Client.from_env()
         operator_id = client.operator_account_id
@@ -30,7 +31,7 @@ def setup_client():
 
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -51,9 +52,7 @@ def create_topic(client, operator_key):
 
 
 def query_topic_messages():
-    """
-    A full example that creates a topic and perform query topic messages.
-    """
+    """A full example that creates a topic and perform query topic messages."""
     # Config Client
     client, _, operator_key = setup_client()
 
