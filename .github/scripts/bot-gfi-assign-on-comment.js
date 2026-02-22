@@ -11,6 +11,7 @@ const UNASSIGNED_GFI_SEARCH_URL =
     'https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee';
 
 const SPAM_LIST_PATH = '.github/spam-list.txt';
+const MENTOR_DUTY_LABEL = process.env.MENTOR_DUTY_LABEL || 'mentor-duty';
 
 /// --------------------
 /// NEW HELPERS (LIMIT ENFORCEMENT)
@@ -28,6 +29,18 @@ function isSpamUser(username) {
 }
 
 async function getOpenAssignments({ github, owner, repo, username }) {
+    let permission = 'read';
+    try {
+        const permissionResp = await github.rest.repos.getCollaboratorPermissionLevel({
+            owner,
+            repo,
+            username,
+        });
+        permission = permissionResp.data.permission;
+    } catch (error) {
+        console.log(`[gfi-assign] Failed to get permission level for ${username}: ${error.message}. Defaulting to 'read'.`);
+    }
+
     const issues = await github.paginate(
         github.rest.issues.listForRepo,
         {
@@ -38,7 +51,18 @@ async function getOpenAssignments({ github, owner, repo, username }) {
             per_page: 100,
         }
     );
-    return issues.length;
+
+    return issues.filter(issue => {
+        const isPR = !!issue.pull_request;
+        if (isPR) return false;
+
+        const labels = issue.labels?.map(l => l.name) || [];
+        if (permission === 'triage' && labels.includes(MENTOR_DUTY_LABEL)) {
+            return false;
+        }
+
+        return true;
+    }).length;
 }
 
 /// HELPERS FOR ASSIGNING ///
@@ -248,7 +272,7 @@ module.exports = async ({ github, context }) => {
                     username,
                 });
 
-                if (isTeamMember) {          
+                if (isTeamMember) {
                     console.log('[gfi-assign] Skip reminder: commenter is collaborator');
                     return;
                 }
@@ -403,7 +427,7 @@ module.exports = async ({ github, context }) => {
         if (mentorAssignmentSucceeded) {
             try {
                 const { triggerCodeRabbitPlan, hasExistingCodeRabbitPlan } = require('./coderabbit_plan_trigger.js');
-                
+
                 // Check if CodeRabbit plan already exists to avoid duplicate comments
                 const planExists = await hasExistingCodeRabbitPlan(github, owner, repo, issueNumber);
                 if (planExists) {

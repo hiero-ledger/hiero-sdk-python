@@ -53,6 +53,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### .github
 - Added triage members max assignment is protected from being a mentor in `.github/scripts/bot-assignment-check.sh`. (#1718)
 - Added automated bot to comment on PRs with invalid conventional commit titles, providing guidance on fixing the title format (#1705)
+- Added mentor assignment and 'mentor-duty' label to Good First Issue mentor workflow (`#1719`)
+- Changed assignment counting to exclude PRs and mentor-duty issues for triage members (`#1719`)
 - Revert PythonBot workflow to restore previous stable behavior. (#1825)
 - Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
