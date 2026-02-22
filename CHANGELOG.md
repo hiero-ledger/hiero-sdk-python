@@ -23,6 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed Test Improvements header formatting in Good First Issue guidelines by adding missing space before parenthetical and removing stray bold marker (#1829)
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 - chore: update office hours and community calls to use direct links (`#1804`)
+- Fixed broken `MAINTAINERS.md` relative link in `docs/sdk_developers/bug.md` by using the repository-root GitHub URL. (#1666)
 
 ### Tests
 - Format `tests/unit/endpoint_test.py` using black. (`#1792`)
