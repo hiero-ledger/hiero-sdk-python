@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -13,10 +13,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Src
 - Exposed all missing fields from `TransactionRecord` protobuf (#1636)
+- Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
+- 
 
 ### Examples
 
+- Refactored contract_delete_transaction example to use Client.from_env. (#1823)
+
 ### Docs
+- Fixed Test Improvements header formatting in Good First Issue guidelines by adding missing space before parenthetical and removing stray bold marker (#1829)
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 - chore: update office hours and community calls to use direct links (`#1804`)
 
@@ -30,6 +35,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Reverted PR #1739 checking assignment counts
 - chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
 - Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
+- Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
 
 ## [0.2.0] - 2026-11-02
 
