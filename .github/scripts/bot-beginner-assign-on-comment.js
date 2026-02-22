@@ -59,6 +59,7 @@ const SPAM_LIST_PATH = ".github/spam-list.txt";
 const REQUIRED_GFI_COUNT = 1;
 const GFI_LABEL = 'Good First Issue';
 const BEGINNER_GUARD_MARKER = '<!-- beginner-gfi-guard -->';
+const MENTOR_DUTY_LABEL = process.env.MENTOR_DUTY_LABEL || 'mentor-duty';
 
 function isSafeSearchToken(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
@@ -160,6 +161,18 @@ module.exports = async ({ github, context }) => {
     }
 
     async function getOpenAssignments(username) {
+      let permission = 'read';
+      try {
+        const permissionResp = await github.rest.repos.getCollaboratorPermissionLevel({
+          owner: repo.owner.login,
+          repo: repo.name,
+          username,
+        });
+        permission = permissionResp.data.permission;
+      } catch (error) {
+        console.log(`[Beginner Bot] Failed to get permission level for ${username}: ${error.message}. Defaulting to 'read'.`);
+      }
+
       const issues = await github.paginate(
         github.rest.issues.listForRepo,
         {
@@ -170,7 +183,18 @@ module.exports = async ({ github, context }) => {
           per_page: 100,
         }
       );
-      return issues.length;
+
+      return issues.filter(issue => {
+        const isPR = !!issue.pull_request;
+        if (isPR) return false;
+
+        const labels = issue.labels?.map(l => l.name) || [];
+        if (permission === 'triage' && labels.includes(MENTOR_DUTY_LABEL)) {
+          return false;
+        }
+
+        return true;
+      }).length;
     }
 
     const commenter = comment.user.login;
@@ -193,7 +217,7 @@ module.exports = async ({ github, context }) => {
         commenter
       );
 
-      console.log("[Beginner Bot] Completed GFI count:",{
+      console.log("[Beginner Bot] Completed GFI count:", {
         commenter,
         completedGfiCount,
       })
@@ -227,12 +251,12 @@ module.exports = async ({ github, context }) => {
         );
 
         if (!guardAlreadyPosted) {
-          try{
+          try {
             await github.rest.issues.createComment({
-            owner: repo.owner.login,
-            repo: repo.name,
-            issue_number: issue.number,
-            body: `${BEGINNER_GUARD_MARKER}
+              owner: repo.owner.login,
+              repo: repo.name,
+              issue_number: issue.number,
+              body: `${BEGINNER_GUARD_MARKER}
 👋 Hi @${commenter}! Thanks for your interest in contributing 💡
 
 Before taking on a **beginner** issue, we ask contributors to complete at least one **Good First Issue** to get familiar with the workflow.
@@ -240,10 +264,10 @@ Before taking on a **beginner** issue, we ask contributors to complete at least 
 👉 [Find a Good First Issue here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22+no%3Aassignee)
 
 Please try a GFI first, then come back — we’ll be happy to assign this! 😊`,
-          });
-          console.log("[Beginner Bot] GFI guard comment posted.");
-          } catch(error){
-            console.error("[Beginner Bot] Failed to post GFI guard comment:",{
+            });
+            console.log("[Beginner Bot] GFI guard comment posted.");
+          } catch (error) {
+            console.error("[Beginner Bot] Failed to post GFI guard comment:", {
               issue: issue.number,
               commenter,
               message: error.message,
@@ -252,10 +276,10 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
         }
         return;
       }
-      
+
       // --- ASSIGNMENT LOGIC ---
       if (issue.assignees && issue.assignees.length > 0) {
-        try{
+        try {
           const currentAssignee = issue.assignees[0]?.login ?? "another contributor";
           await github.rest.issues.createComment({
             owner: repo.owner.login,
