@@ -4,6 +4,7 @@ const path = require('path');
 const COMMENT_MARKER = process.env.COMMENT_MARKER || '<!-- Mentor Assignment Bot -->';
 const MENTOR_TEAM_ALIAS = process.env.MENTOR_TEAM_ALIAS || '@hiero-ledger/hiero-sdk-python-triage';
 const SUPPORT_TEAM_ALIAS = process.env.SUPPORT_TEAM_ALIAS || '@hiero-ledger/hiero-sdk-good-first-issue-support';
+const MENTOR_DUTY_LABEL = process.env.MENTOR_DUTY_LABEL || 'mentor-duty';
 const DEFAULT_ROSTER_FILE = '.github/mentor_roster.json';
 
 function loadMentorRoster() {
@@ -207,7 +208,49 @@ module.exports = async ({ github, context, assignee: passedAssignee }) => {
 
     console.log(`Assigning mentor @${mentor} to mentee @${mentee} for issue #${issue.number}.`);
 
+    const isDryRun = process.env.DRY_RUN === 'true';
+
+    // 1. Add mentor-duty label
+    if (isDryRun) {
+      console.log(`[DRY RUN] Would add label '${MENTOR_DUTY_LABEL}' to issue #${issue.number}.`);
+    } else {
+      try {
+        await github.rest.issues.addLabels({
+          owner,
+          repo,
+          issue_number: issue.number,
+          labels: [MENTOR_DUTY_LABEL],
+        });
+        console.log(`Added label '${MENTOR_DUTY_LABEL}' to issue #${issue.number}.`);
+      } catch (error) {
+        console.log(`Failed to add label '${MENTOR_DUTY_LABEL}': ${error.message || error}`);
+      }
+    }
+
+    // 2. Assign mentor to issue
+    if (isDryRun) {
+      console.log(`[DRY RUN] Would assign @${mentor} to issue #${issue.number}.`);
+    } else {
+      try {
+        await github.rest.issues.addAssignees({
+          owner,
+          repo,
+          issue_number: issue.number,
+          assignees: [mentor],
+        });
+        console.log(`Assigned @${mentor} to issue #${issue.number}.`);
+      } catch (error) {
+        console.log(`Failed to assign mentor @${mentor}: ${error.message || error}`);
+      }
+    }
+
+    // 3. Post mentor assignment comment
     const comment = buildComment({ mentee, mentor, owner, repo });
+
+    if (isDryRun) {
+      console.log(`[DRY RUN] Would post mentor assignment comment on issue #${issue.number}.`);
+      return;
+    }
 
     try {
       await github.rest.issues.createComment({
