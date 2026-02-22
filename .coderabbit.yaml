@@ -670,6 +670,139 @@ reviews:
     - Protobuf-aligned with Hedera/Hiero
     - Gas/value safe
     - Deterministic and user-protective
+  
+  # NODES REVIEW INSTRUCTIONS — PRIVILEGED NODE LIFECYCLE OPERATIONS
+  node_review_instructions: &node_review_instructions |
+    You are acting as a senior maintainer and security architect reviewing the nodes module
+    in the hiero-sdk-python project.
+
+    This module handles privileged administrative operations for network node lifecycle management
+    (create, update, delete). These operations are restricted to network operators and require
+    special permissions (e.g., account 0.0.2 on solo network).
+
+    The module contains three transaction classes — NodeCreateTransaction, NodeUpdateTransaction,
+    NodeDeleteTransaction — that all inherit from the Transaction base class.
+
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when they impact security, correctness, reliability, or public API stability.
+
+    Scope is STRICTLY LIMITED to:
+    - src/hiero_sdk_python/nodes/**
+    - src/hiero_sdk_python/node.py
+    - src/hiero_sdk_python/managed_node_address.py
+    - src/hiero_sdk_python/address_book/**
+    - Direct interactions with the Transaction base class and AddressBookService
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — PRIVILEGED OPERATIONS (CRITICAL)
+    ----------------------------------------------------------
+    All node transactions are administrative operations, not available to regular users.
+
+    Verify:
+    - Privilege documentation is clear in docstrings and examples
+    - Any change that might expose these operations includes appropriate warnings
+    - Tests and examples clearly document network/permission requirements
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — TRANSACTION LIFECYCLE COMPLIANCE
+    ----------------------------------------------------------
+    Verify strict adherence to the freeze-sign-execute pattern used across the SDK.
+
+    Verify:
+    - All setters call self._require_not_frozen()
+    - All setters return self for fluent method chaining
+    - freeze_with → sign → execute flow is preserved
+    - NodeCreateTransaction and NodeUpdateTransaction require admin key signing
+    - NodeDeleteTransaction has different signing semantics
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — CERTIFICATE HANDLING (SECURITY CRITICAL)
+    ----------------------------------------------------------
+    Certificate handling is security critical.
+
+    Verify:
+    - gossip_ca_certificate is bytes (DER-encoded x509 certificate)
+    - grpc_certificate_hash is the SHA-384 hash of the gRPC TLS certificate
+    - No acceptance of arbitrary certificate data without size/format validation
+    - Certificate format conversion (hex string → bytes.fromhex()) is correct
+    - Examples correctly show hex-to-bytes conversion
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — ENDPOINT CONFIGURATION
+    ----------------------------------------------------------
+    Verify correct handling of endpoint types and validation.
+
+    Verify:
+    - Distinction between gossip_endpoints (node-to-node), service_endpoints (client-to-node),
+      and grpc_web_proxy_endpoint
+    - Endpoint objects have required properties (domain_name or address + port)
+    - Port normalization behavior (0 or 50111 → 50211 in protobuf conversion)
+    - Empty endpoint lists are handled appropriately
+    - Integration with address_book.endpoint.Endpoint class is correct
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — ADMIN KEY SEMANTICS (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Admin key handling follows HIP-869 rules.
+
+    Verify:
+    - Admin key changes in NodeUpdateTransaction often require dual signatures (old + new key)
+    - NodeCreateTransaction and NodeUpdateTransaction must be signed with the admin key
+    - NodeDeleteTransaction does not require admin key signature
+    - Lost admin key scenario (delete + recreate) is handled correctly
+    - Proper PublicKey generation and extraction patterns
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — NODE ID & INPUT VALIDATION
+    ----------------------------------------------------------
+    Verify robust validation and clear error handling.
+
+    Verify:
+    - node_id (integer) is required in NodeDeleteTransaction (raises ValueError if missing)
+    - node_id is the integer identifier returned from NodeCreate
+    - Clear distinction between node_id (int) and account_id (AccountId object)
+    - Validation logic uses clear, actionable error messages
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — PROTOBUF ALIGNMENT
+    ----------------------------------------------------------
+    Verify perfect alignment with official Hiero protobufs.
+
+    Verify:
+    - Field mapping matches NodeCreateTransactionBody / NodeUpdateTransactionBody / NodeDeleteTransactionBody
+    - NodeUpdateTransaction correctly uses protobuf wrapper types (StringValue, BytesValue, BoolValue)
+    - _build_proto_body(), build_transaction_body(), build_scheduled_body() maintain consistency
+    - Integration with AddressBookService gRPC methods (createNode, updateNode, deleteNode) is correct
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — BACKWARDS COMPATIBILITY & CLIENT INTEGRATION
+    ----------------------------------------------------------
+    These APIs are public-facing.
+
+    Verify:
+    - No breaking changes to existing usage patterns
+    - Client node configuration and transaction patterns remain unchanged
+
+    ----------------------------------------------------------
+    EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Review style, formatting, or linting issues (handled by other tools)
+    - Propose refactors unless they impact correctness, safety, or security
+    - Review unrelated SDK components outside the nodes module
+    - Suggest generic improvements beyond the PR’s stated objectives
+    - Validate network-level privilege enforcement (delegated to Hedera consensus)
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure the nodes module is:
+    - Secure (especially certificates and admin keys)
+    - Protocol-correct
+    - Backwards-compatible
+    - Clearly documented for its privileged nature
 
   # ============================================================
   # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
@@ -1199,6 +1332,16 @@ reviews:
 
     - path: "src/hiero_sdk_python/contract/**"
       instructions: *contract_review_instructions
+
+    # Nodes module — Privileged administrative node lifecycle operations (new anchor)
+    - path: "src/hiero_sdk_python/nodes/**"
+      instructions: *node_review_instructions
+    - path: "src/hiero_sdk_python/node.py"
+      instructions: *node_review_instructions
+    - path: "src/hiero_sdk_python/managed_node_address.py"
+      instructions: *node_review_instructions
+    - path: "src/hiero_sdk_python/address_book/**"
+      instructions: *node_review_instructions
 
 chat:
   art: false # Don't draw ASCII art (false)
