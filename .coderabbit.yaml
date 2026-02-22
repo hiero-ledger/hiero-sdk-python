@@ -671,6 +671,122 @@ reviews:
     - Gas/value safe
     - Deterministic and user-protective
 
+  # FILE REVIEW INSTRUCTIONS
+  file_review_instructions: &file_review_instructions |
+    You are acting as a senior maintainer reviewing file service-related code
+    in the hiero-sdk-python project.
+    
+    This includes:
+    - File transactions (FileCreateTransaction, FileUpdateTransaction, FileAppendTransaction, FileDeleteTransaction)
+    - File query (FileContentsQuery, FileInfoQuery)
+    - File data models (FileId, FileInfo)
+
+    NOTE:
+    - Review focus levels (including labels like "HIGH SENSITIVITY") indicate where to apply extra scrutiny.
+    - They do NOT map to production incident severity or operational urgency.
+    - Only recommend fixes when behavior, safety, backwards compatibility, or chunking semantics are impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/file/
+    - Their interaction with shared SDK base classes (Transaction, Query)
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Public API contracts for FileId, FileInfo, and file transactions are user-facing.
+    
+    Verify that:
+    - Setter method signatures (e.g., set_contents, set_file_memo) stay backward compatible.
+    - Method chaining (returning self) is preserved.
+    - FileId constructors and string representations don't break existing use cases.
+    
+    If breaking changes are necessary, they must be explicit and deprecation warnings should be added.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — CHUNKING SEMANTICS (HIGH VERIFICATION)
+    ----------------------------------------------------------
+    Specific to FileAppendTransaction, which natively handles chunking.
+    
+    Verify that:
+    - freeze_with() correctly generates sequential TransactionIds for each chunk.
+    - valid_start timestamps for each chunk are spaced out correctly (e.g., incremented by at least 1 nanosecond).
+    - execute() handles signing and executing each chunk sequentially.
+    - Validation bounds for max_chunks and chunk_size are strictly enforced.
+
+    Flag any change that modifies the multi-chunk loop or skips timestamp incrementation.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — MEMO HANDLING
+    ----------------------------------------------------------
+    Nuanced memo distinction across the file module:
+    
+    Verify that:
+    - The distinction between file_memo (the metadata attribute of the file) and transaction_memo (the note on the transaction itself) is respected.
+    - FileCreateTransaction handles file_memo as a native string.
+    - FileUpdateTransaction correctly wraps its memo in Google's StringValue protobuf wrapper to distinguish between an absent unchanged state and an explicit clearing of the memo.
+
+    Flag if file_memo string values are mishandled or swapped with transaction_memo.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — TRANSACTION BASE CLASS CONTRACT
+    ----------------------------------------------------------
+    All file transaction classes MUST inherit from Transaction.
+    
+    Required implementations:
+    - _build_proto_body()
+    - build_transaction_body()
+    - build_scheduled_body()
+    - _get_method(channel)
+
+    Verify that:
+    - All setters call self._require_not_frozen() before mutation.
+    - Chunk payload slicing in build_transaction_body() accurately extracts the current chunk before signing and execution.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — PROTOBUF ALIGNMENT
+    ----------------------------------------------------------
+    Serialization and deserialization MUST map directly to Hedera protobufs.
+    
+    Verify that:
+    - fileCreate, fileUpdate, fileAppend, and fileDelete fields map exactly to their respective protobuf bodies.
+    - Null-safe conversions are handling optional properties safely.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — TEST EXPECTATIONS
+    ----------------------------------------------------------
+    Good to check:
+    - Robust unit and integration tests exist for chunking limits and bounds.
+    - Examples accurately depict native chunking over manual looping.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — VALIDATION & ERROR BEHAVIOR
+    ----------------------------------------------------------
+    Required validations must not be deferred to the node.
+
+    Verify that:
+    - Null-checking is aggressively performed (e.g., FileId existence before queries or delete operations).
+    - Client-side size and bounds validations correctly raise deterministic exceptions prior to network execution.
+    - File keys are strictly required for creation and update commands.
+    - Silent no-ops or ignored input states are flagged.
+
+    ----------------------------------------------------------
+    EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Propose refactors unless they directly improve safety, chunking correctness, or API stability.
+    - Suggest sweeping style or naming changes unless they are actively misleading.
+    - Flag logic outside of the file module.
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure the file service code is:
+    - Backward-compatible
+    - Chunking-safe and deterministically executed
+    - Accurately aligned with protobuf definitions
+    - Validating inputs consistently
+
   # ============================================================
   # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
   # ============================================================
@@ -1197,8 +1313,14 @@ reviews:
     - path: "src/hiero_sdk_python/contract/**/*_query.py"
       instructions: *query_review_instructions
 
+    - path: "src/hiero_sdk_python/file/**/*_query.py"
+      instructions: *query_review_instructions
+
     - path: "src/hiero_sdk_python/contract/**"
       instructions: *contract_review_instructions
+
+    - path: "src/hiero_sdk_python/file/**/*.py"
+      instructions: *file_review_instructions
 
 chat:
   art: false # Don't draw ASCII art (false)
