@@ -17,7 +17,7 @@ from hiero_sdk_python.utils.entity_id_helper import (
     format_to_string_with_checksum
 )
 
-@dataclass(frozen=True, eq=True, init=True, repr=True)
+@dataclass(frozen=True, eq=True, init=True, repr=False)
 class TokenId:
     """Represents an immutable Hedera token identifier (shard, realm, num).
 
@@ -170,6 +170,14 @@ class TokenId:
             str: The token ID string in 'shard.realm.num' format.
         """
         return format_to_string(self.shard, self.realm, self.num)
+
+    def __repr__(self) -> str:
+        """Returns a detailed representation of the TokenId suitable for debugging.
+
+        Returns:
+            str: A string in constructor format 'TokenId(shard=X, realm=Y, num=Z)'.
+        """
+        return f"TokenId(shard={self.shard}, realm={self.realm}, num={self.num})"
 
     def __hash__(self) -> int:
         """Generates a hash based on the shard, realm, and num.
