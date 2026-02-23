@@ -277,6 +277,296 @@ reviews:
     - Payment-safe
     - Execution-consistent
     - Strictly aligned with Hedera query semantics
+  
+  # TRANSACTION REVIEW INSTRUCTIONS - CORE FOUNDATION (MOST CRITICAL MODULE)
+  transaction_review_instructions: &transaction_review_instructions |
+    You are acting as a senior maintainer and security architect reviewing the **core transaction module** in the hiero-sdk-python project.
+
+    Changes to this module affect **all 50+ transaction implementations** across the entire SDK.
+
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when behavior, safety, immutability, or network compatibility is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/transaction/
+    - Interaction with _Executable base class and all transaction subclasses
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — BASE CLASS CONTRACT INTEGRITY (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    The Transaction base class (which inherits from _Executable) defines the contract for the entire SDK.
+
+    Verify:
+    - Abstract methods remain unchanged: build_transaction_body(), build_scheduled_body(), _get_method()
+    - Inheritance hierarchy (_Executable → Transaction → subclass) is never broken
+    - Any change to public methods (freeze, freeze_with, sign, execute, to_bytes, from_bytes, etc.) includes backwards-compatibility analysis
+
+    Flag as high-risk: signature changes or removal of lifecycle guards that would ripple to every transaction subclass.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — TRANSACTION LIFECYCLE SAFETY (CRITICAL)
+    ----------------------------------------------------------
+    The freeze-sign-execute pattern with immutability guards is non-negotiable.
+
+    MUST verify:
+    - Every setter calls self._require_not_frozen()
+    - sign(), execute(), to_bytes(), _to_proto(), etc. call self._require_frozen()
+    - No code path allows mutation after freeze
+    - freeze_with(client) correctly populates _transaction_body_bytes for every node (including batch_key special case node 0.0.0)
+    - freeze() vs freeze_with() distinction is preserved
+
+    Any bypass of these guards = critical security issue.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — MULTI-NODE BODY & SIGNATURE MANAGEMENT (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Node failover and multi-signature support depend on these exact patterns.
+
+    Verify:
+    - _transaction_body_bytes: dict[AccountId, bytes] maintains one entry per node AccountId
+    - _signature_map keys off the exact body bytes (not node), enabling correct signature lookup on failover
+    - Both Ed25519 and ECDSA paths in sign() are preserved and consistent
+    - Signature accumulation works for multi-sig and batch_key scenarios
+
+    Any change that could break node failover or signature lookup must be flagged.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — PROTOBUF SERIALIZATION INTEGRITY (CRITICAL)
+    ----------------------------------------------------------
+    Round-trip safety and type mapping are mandatory.
+
+    Verify:
+    - to_bytes() + from_bytes() produce identical, executable objects
+    - _get_transaction_class() type map remains complete (especially atomic_batch and all 30+ types)
+    - Proper handling of SignedTransaction → bodyBytes → TransactionBody
+    - Subclass _from_protobuf / _to_proto implementations stay aligned with Hedera protobufs
+    - TransactionId, Receipt, Record parsing (defaultdicts, HasField guards, children/duplicates) is untouched unless intentional
+
+    Missing type-map entry or broken round-trip = critical omission.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — VALIDATION & ERROR HANDLING
+    ----------------------------------------------------------
+    Validation must be early, deterministic, and occur before any network call.
+
+    Verify:
+    - TypeError/ValueError raised correctly in all setters and helpers
+    - _should_retry() retryable status codes are not altered casually
+    - Proper use of PrecheckError, ReceiptStatusError, MaxAttemptsError
+    - BatchTransaction._verify_inner_transaction enforces all constraints
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — BATCH TRANSACTION CONSTRAINT GUIDELINES (SECURITY CRITICAL)
+    ----------------------------------------------------------
+    BatchTransaction is the atomic safety boundary.
+
+    Verify:
+    - _verify_inner_transaction rejects FreezeTransaction and nested BatchTransaction
+    - Inner transactions must be frozen + have batch_key set
+    - build_scheduled_body() always raises ValueError
+    - Protobuf packing of inner signedTransactionBytes and atomic_batch field is preserved
+    - batchify() / set_batch_key() flow does not bypass lifecycle
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — TEST EXPECTATIONS FOR TRANSACTION CHANGES
+    ----------------------------------------------------------
+    Changes require strong coverage:
+
+    - Unit tests for any new/modified validation, lifecycle, or serialization logic
+    - Full freeze → sign → execute (and freeze_with) lifecycle tests
+    - Serialization round-trip tests (to_bytes ↔ from_bytes)
+    - Integration/mock-server tests covering retry, node failover, error states, and BatchTransaction
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Propose large refactors unless they directly improve safety or correctness
+    - Review transaction usage outside this module
+    - Comment on style/linting unless it affects critical logic
+    - Suggest changes to token/query/schedule/contract modules (they inherit the base)
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure the core Transaction system remains:
+    - Secure & immutable by design
+    - Failover-safe (multi-node bodies + signatures)
+    - Serialization-correct with complete type mapping
+    - Extremely safe for batching
+    - 100% backwards compatible
+
+  # SCHEDULE REVIEW INSTRUCTIONS
+  schedule_review_instructions: &schedule_review_instructions |
+    You are acting as a senior maintainer reviewing schedule-related code
+    in the hiero-sdk-python project.
+
+    This includes:
+    - Schedule transaction classes (ScheduleCreateTransaction, ScheduleSignTransaction, ScheduleDeleteTransaction)
+    - Schedule query (ScheduleInfoQuery)
+    - Schedule data models (ScheduleId, ScheduleInfo)
+    - ScheduleCreateParams dataclass
+
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - HIGH SENSITIVITY items require elevated scrutiny — even small changes here can break user code or introduce subtle regressions.
+    - Only recommend fixes when behavior, safety, API stability, or spec compliance is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/schedule/
+    - Their interaction with shared SDK base classes (Transaction, Query)
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Public API contracts for ScheduleId, ScheduleInfo, and all schedule transaction classes are user-facing and considered stable.
+
+    The following MUST remain unchanged unless explicitly justified with migration path:
+    - Setter method signatures (set_*, build_*) and fluent chaining behavior
+    - Constructor signatures and defaults
+    - Public property/attribute names
+    - Exception types and messages for invalid states
+
+    ScheduleCreateParams dataclass field changes (adding/removing/renaming):
+    - Require deprecation warnings if removing or changing behavior
+    - Must preserve existing initialization patterns
+
+    Flag any change that alters public method signatures, return types, defaults, or exception behavior.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — TRANSACTION BASE CLASS CONTRACT
+    ----------------------------------------------------------
+    All schedule transaction classes MUST extend Transaction and follow its contract:
+
+    Required implementations:
+    - _build_proto_body()
+    - build_transaction_body()
+    - build_scheduled_body() — MUST raise ValueError for all schedule tx types
+    - _get_method(channel) — correct service stub (createSchedule / signSchedule / deleteSchedule)
+
+    All setter methods MUST:
+    - Call self._require_not_frozen() before any mutation
+    - Return self for fluent method chaining
+
+    Default transaction fee MUST be Hbar(5).to_tinybars()
+
+    Subclasses MUST NOT:
+    - Override execution/retry/backoff logic
+    - Bypass lifecycle hooks
+    - Manage gRPC deadlines manually
+
+    Flag deviations only if they change observable behavior.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — ANTI-NESTING CONSTRAINT (CRITICAL)
+    ----------------------------------------------------------
+    The anti-nesting rule is a fundamental safety constraint:
+
+    - build_scheduled_body() MUST raise ValueError("Cannot schedule a Schedule...Transaction")
+      in ScheduleCreateTransaction, ScheduleDeleteTransaction, and ScheduleSignTransaction
+    - This prevents recursive scheduling — schedule transactions cannot themselves be scheduled
+
+    Any change that:
+    - Removes or weakens this raise
+    - Implements a working build_scheduled_body() for schedule tx types
+    is a critical defect — flag immediately and strongly.
+
+    Unit tests MUST verify the anti-nesting constraint raises ValueError for all three schedule transaction types.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — SIGNATURE SEMANTICS (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Signature roles MUST be clearly distinguished and preserved:
+
+    - Payer signature: Only pays schedule creation fees; does NOT count toward execution
+      unless the payer key is also required by the inner transaction
+    - Admin key signature: Only required for delete/modify operations; NOT required for execution
+    - Inner transaction signatures: Collected via ScheduleSignTransaction; trigger execution when threshold met
+
+    ScheduleInfo.signers MUST contain only inner transaction signers (not payer or admin unless they overlap)
+
+    Documentation and comments MUST clearly distinguish these roles — flag any confusion or incorrect statements.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — SCHEDULE EXECUTION SEMANTICS
+    ----------------------------------------------------------
+    Execution timing rules MUST be preserved:
+
+    - wait_for_expiry=True: Forces execution to wait until expiration_time, even if all signatures collected early
+    - wait_for_expiry=False or None: Executes immediately once all required signatures received
+
+    Key points:
+    - expiration_time has network-enforced constraints (client should validate future-dated but not rely solely on it)
+    - Edge cases to check: expired schedules, signatures added after execution attempt, timing conflicts
+
+    Flag any change that alters wait_for_expiry propagation or execution triggering logic.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — PROTOBUF ALIGNMENT
+    ----------------------------------------------------------
+    Serialization/deserialization MUST be faithful to Hedera protobuf definitions.
+
+    All relevant classes MUST implement:
+    - _to_proto()
+    - _from_proto() (or equivalent classmethod)
+
+    Verify:
+    - Field mapping exact (wait_for_expiry, adminKey, payerAccountID, scheduledTransactionBody, etc.)
+    - Null-safe conversions using _from_proto_field() / _convert_to_proto() helpers
+    - Underscore prefix convention for serialization methods preserved
+    - Round-trip integrity (create → info query → fields match)
+
+    Flag any field loss, incorrect defaults, or divergence from protobuf spec.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — VALIDATION & ERROR BEHAVIOR
+    ----------------------------------------------------------
+    Validation MUST be early, deterministic, and user-friendly:
+
+    - Required fields raise descriptive ValueError (e.g. "Missing required ScheduleID")
+    - ScheduleId.from_string() validates format shard.realm.schedule (exactly three integers)
+    - Checksum validation uses shared entity_id_helper utilities
+    - Error messages include context about what was invalid
+
+    Avoid:
+    - Deferred failures
+    - Generic messages
+    - Silent acceptance of invalid state
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — TEST & EXAMPLE EXPECTATIONS
+    ----------------------------------------------------------
+    Expected coverage:
+    - Unit tests for all public methods, constructors, protobuf conversions, and edge cases
+    - Integration tests for network interactions, execution triggering, and error scenarios
+    - Tests MUST verify anti-nesting constraint raises ValueError for all schedule tx types
+    - Examples MUST demonstrate proper multi-signature workflows
+    - Examples MUST document signature semantics (payer vs admin vs inner txn roles)
+
+    Missing critical coverage (especially anti-nesting, wait_for_expiry paths) should be flagged.
+
+    ----------------------------------------------------------
+    EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Flag style, lint, formatting, or cosmetic changes
+    - Propose refactors unless correctness/safety/API stability impacted
+    - Suggest unrelated features or broad cleanups
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure schedule code is:
+    - Backward-compatible
+    - Anti-nesting & execution semantics correct
+    - Signature roles clearly separated
+    - Protobuf-aligned
+    - Validation-safe
+    - Deterministic and protective of users
 
   # CONTRACT REVIEW INSTRUCTIONS
   contract_review_instructions: &contract_review_instructions |
@@ -507,6 +797,11 @@ reviews:
         - Has no precedence bugs that weaken protection
     - path: "src/hiero_sdk_python/tokens/**/*.py"
       instructions: *token_review_instructions
+    - path: "src/hiero_sdk_python/transaction/**/*.py"
+      instructions: *transaction_review_instructions
+    - path: "src/hiero_sdk_python/schedule/**/*.py"
+      instructions: *schedule_review_instructions
+
     # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
     - path: "examples/**/*"
       instructions: |
@@ -723,178 +1018,128 @@ reviews:
     # --- CUSTOM INSTRUCTIONS FOR .GITHUB DIRECTORY ---
     - path: ".github/workflows/**/*"
       instructions: |
-        Review workflows as security-sensitive infrastructure.
-
-        A good workflow is small, focused, and boring.
-        If a workflow is clever, generic, or overly flexible, it is a risk.
-
-        ---------------------------------------------------------
-        PRIORITY 0 — ABSOLUTE REQUIREMENTS 
-        ---------------------------------------------------------
-        - All third-party actions MUST be pinned to full commit SHAs, similar to other workflows.
-        - `permissions:` MUST be explicitly declared and minimally scoped.
-        - Workflows MUST behave safely when executed from forks.
-        - YAML MUST orchestrate steps, not implement business logic.
-        - Any workflow that mutates GitHub state MUST support dry-run mode.
-        - Dry-run behavior must be explicit and visible in logs.
-        - Workflows MUST NOT modify repository source code outside `.github/`.
+        You are reviewing GitHub Actions workflows as a thoughtful senior
+        engineer. Your goal is to nudge contributors toward higher-quality,
+        maintainable workflows — not to impose a rigid checklist.
 
         ---------------------------------------------------------
-        PRIORITY 1 — SCOPE, FOCUS & RESTRAINT
+        SECURITY ESSENTIALS
         ---------------------------------------------------------
-        - The title of each workflow must be relevant, match similar naming schemes, and match its script filename.
-        - Each workflow MUST have a single, clearly defined objective and SHOULD document this in a top-level comment.
-        - Flag workflows that:
-          - Attempt to be generic “frameworks”
-          - Include speculative or future-facing logic
-          - Perform actions unrelated to the stated goal
-        - Over-abstraction and excess flexibility are maintenance risks.
+        These are firm expectations for every workflow:
+
+        - All third-party actions must be pinned to full commit SHAs,
+          consistent with other workflows in this repository.
+        - `permissions:` must be explicitly declared and scoped to the
+          minimum needed. Flag over-permissioned or under-permissioned
+          workflows, and any reliance on broad default permissions.
+        - Workflows must not request `contents: write` unless strictly
+          required.
+        - Workflows must behave safely when executed from forks.
+        - Treat all GitHub event data as potentially untrusted input:
+          issue titles, bodies, comments, labels, usernames, branch
+          names. Prefer strict allowlists or exact string matches.
+          Free-form user input must not flow directly into shell
+          commands, `gh` CLI arguments, or Node.js exec/spawn calls.
 
         ---------------------------------------------------------
-        PRIORITY 2 — INPUT HARDENING
+        CLARITY & CODE ORGANIZATION
         ---------------------------------------------------------
-        - Treat ALL GitHub event data as potentially hostile input, including:
-          - issue titles, bodies, and comments
-          - labels, usernames, branch names
-        - Free-form user input MUST NOT be passed directly into:
-          - shell commands
-          - gh CLI arguments
-          - Node.js exec / spawn calls
-        - Require strict allowlists or exact string matches.
-        - Flag any use of:
-          - eval or bash -c
-          - backticks or $(...) with user-controlled input
+        Each workflow should have a single, clearly defined objective.
+        YAML should orchestrate execution — not implement business
+        logic.
+
+        - Non-trivial logic belongs in dedicated scripts under
+          `.github/scripts/`, keeping the workflow YAML focused on
+          orchestration.
+        - Environment variables should be defined in the YAML and
+          passed to scripts, not hardcoded inside scripts.
+        - Flag large `run: |` blocks, inline loops or conditionals,
+          and API calls embedded directly in YAML steps.
 
         ---------------------------------------------------------
-        PRIORITY 3 — DRY-RUN & SAFE OPERATION
+        DRY-RUN
         ---------------------------------------------------------
-        - Workflows that mutate state MUST expose:
-          workflow_dispatch:
-            inputs:
-              dry_run:
-                default: "true"
-        - When dry_run=true, workflows MUST:
-          - Log dry mode is active
-          - Function on dry run: never post, comment, label, assign or edit
-          - Be easy to expand in the future
-          - Exit successfully
+        If used, dry-run should be clear, well-logged, and default
+        to true on `workflow_dispatch`. It should have a reasonable
+        use case and be easy to maintain. Do not flag missing dry-run
+        as a blocker.
 
         ---------------------------------------------------------
-        PRIORITY 4 — SCRIPT EXTRACTION & CODE TRIM
+        OPERATIONAL QUALITY
         ---------------------------------------------------------
-        - YAML should orchestrate execution only.
-        - All non-trivial logic MUST live in:
-          - `.github/scripts/*.sh`
-          - `.github/scripts/*.js`
-        - Workflow filenames and their primary scripts SHOULD share a clear, matching name.
-        - Scripts MUST remain:
-          - Purpose-built
-          - Trim and readable
-          - Easy to maintain
-        - Flag:
-          - Large `run: |` blocks
-          - Inline loops, conditionals, or API calls in YAML
-          - Overly generic helper scripts for narrow tasks
+        - Log key decisions and early exits — avoid silent skips.
+        - Avoid raw payload dumps and any secret or token leakage.
+        - Workflows that mutate state should use concurrency groups
+          and duplicate prevention patterns (marker-based comments,
+          check-before-create for labels).
+        - Assume workflows may run multiple times or be retried.
 
         ---------------------------------------------------------
-        PRIORITY 5 — API EFFICIENCY & DISCIPLINE
+        API DISCIPLINE
         ---------------------------------------------------------
-        - GitHub API usage must be intentional and minimal.
-        - Prefer:
-          - Aggregated queries over per-entity loops
-          - Server-side filtering over client-side iteration
-          - Reusing data already present in the event payload
-        - Pagination MUST:
-          - Be considered and justified
-          - Enforce hard upper bounds
-        - Flag:
-          - Repeated API calls inside loops
-          - Unbounded pagination
-          - Fetching data already available in context
+        - Prefer reusing data already in the event payload over
+          making additional API calls.
+        - Prefer aggregated queries and server-side filtering over
+          per-entity loops and client-side iteration.
+        - Pagination should have reasonable upper bounds.
 
         ---------------------------------------------------------
-        PRIORITY 6 — CONCURRENCY & IDEMPOTENCY
+        REVIEW SCOPE
         ---------------------------------------------------------
-        - Workflows that mutate state MUST:
-          - Define a deterministic concurrency group
-          - Be safe under retries and parallel execution
-        - Duplicate prevention is REQUIRED:
-          - Marker-based comment detection
-          - Check-before-create logic for labels and assignments
-        - Assume workflows may:
-          - Run multiple times
-          - Be retried automatically
-          - Execute concurrently with other automations
-        - Workflows should avoid logic that duplicates or causes conflicts.
+        - Focus feedback on the PR's stated scope.
+        - Flag out-of-scope issues as irrelevant and suggest opening
+          a separate PR — do not block for them.
+        - Do not propose major refactors unless correctness or
+          security is affected.
 
         ---------------------------------------------------------
-        PRIORITY 7 — PERMISSION CORRECTNESS
+        BLOCKERS vs SUGGESTIONS
         ---------------------------------------------------------
-        - Requested permissions MUST exactly match behavior.
-        - Explicitly validate common cases:
-          - issues: write → comments, labels, assignments
-          - contents: read → repository checkout
-          - pull-requests: write → PR mutations
-        - Flag:
-          - Over-permissioned workflows
-          - Under-permissioned workflows that would fail at runtime
-          - Reliance on default permissions
-
-        ---------------------------------------------------------
-        PRIORITY 8 — LOGGING & OPERABILITY
-        ---------------------------------------------------------
-        - Logs should include, where applicable:
-          - repository
-          - workflow name
-          - issue or PR number
-          - triggering actor
-          - dry-run status
-          - decisions made (performed vs skipped)
-        - Avoid:
-          - Silent success or silent skips
-          - Raw payload dumps
-          - Any secret or token leakage
+        - Block only for security, correctness, or firm expectation
+          violations.
+        - Style and maintainability improvements should be
+          non-blocking suggestions.
+        - When in doubt, suggest — don't block.
 
     # ============================================================
     # SHELL SCRIPTS
     # ============================================================
     - path: ".github/scripts/**/*.sh"
       instructions: |
-        Treat shell scripts as production-grade automation.
+        Review shell scripts as production-grade CI automation.
 
-        Scripts should be small, focused, and explicit.
-        Avoid “do-everything” or overly generic scripts.
+        Firm expectations:
+        - Use `set -euo pipefail` to fail fast on errors.
+        - Environment variables should be passed from the YAML,
+          validated early, and defensively quoted.
+        - No `eval`, `bash -c`, backticks, or `$(...)` with untrusted content.
 
-        - MUST use: `set -euo pipefail`
-        - MUST validate all required environment variables
-        - MUST defensively quote variables
-        - MUST validate all untrusted input
-        - MUST have bounded loops and pagination
-        - MUST support dry-run mode if state is mutated
-        - MUST log key decisions and early exits
+        Good practices:
+        - Log key decisions and early exits.
+        - Keep scripts purpose-built — flag overly generic helpers.
 
     # ============================================================
     # JAVASCRIPT SCRIPTS
     # ============================================================
     - path: ".github/scripts/**/*.js"
       instructions: |
-        Review JavaScript scripts as long-lived automation code.
+        Review JavaScript scripts as production-grade CI automation.
 
-        Scripts must remain:
-        - Focused
-        - Readable
-        - Purpose-built
+        Firm expectations:
+        - Validate `context.payload` fields before use.
+        - Do not trust free-form text from issues, PRs, or comments.
+        - No `eval`, `new Function`, or dynamic code execution.
+        - Use top-level constants for configuration — avoid
+          hardcoded values scattered through the script.
+        - Environment variables should be passed from the workflow
+          YAML, not hardcoded in the script.
 
-        - All `context.payload` fields MUST be validated
-        - Free-form text MUST NOT be trusted
-        - Dynamic code execution is prohibited
-        - Avoid `child_process.exec`; prefer `execFile` if needed
-        - All async operations MUST be wrapped in try/catch
-        - Errors MUST include contextual metadata
-        - Duplicate API calls MUST be avoided
-        - Marker-based deduplication is required
-        - Scripts MUST NOT assume write access
-        - Permission failures MUST be handled gracefully
+        Good practices:
+        - Wrap async operations in try/catch with contextual errors.
+        - Reuse event context data instead of making redundant API
+          calls.
+        - Use marker-based patterns to prevent duplicate actions.
+        - Handle permission failures gracefully.
 
     - path: "src/hiero_sdk_python/query/**/*.py"
       instructions: *query_review_instructions
