@@ -1,23 +1,25 @@
 """
+
+Example demonstrating token unpause transaction.
+
 uv run examples/tokens/token_unpause_transaction.py
 python examples/tokens/token_unpause_transaction.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
+    Client,
     PrivateKey,
     ResponseCode,
-    TokenId,
-    TokenType,
     TokenCreateTransaction,
-    TokenUnpauseTransaction,
-    TokenPauseTransaction,
+    TokenId,
     TokenInfoQuery,
+    TokenPauseTransaction,
+    TokenType,
+    TokenUnpauseTransaction,
 )
+
 
 def setup_client():
     client = Client.from_env()
@@ -30,7 +32,7 @@ def create_token(
     operator_id: AccountId,
     pause_key: PrivateKey,
 ):
-    """Create a fungible token"""
+    """Create a fungible token."""
     print("\nCreating a token...")
 
     try:
@@ -58,7 +60,7 @@ def create_token(
 
 
 def pause_token(client: Client, token_id: TokenId, pause_key: PrivateKey):
-    """Pause token"""
+    """Pause token."""
     print("\nAttempting to pause the token...")
 
     try:

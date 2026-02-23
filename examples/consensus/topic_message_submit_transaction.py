@@ -1,21 +1,23 @@
 """
+
+Example demonstrating topic message submit transaction.
+
 uv run examples/consensus/topic_message_submit_transaction.py
 python examples/consensus/topic_message_submit_transaction.py
-
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
-    TopicMessageSubmitTransaction,
-    TopicCreateTransaction,
+    PrivateKey,
     ResponseCode,
+    TopicCreateTransaction,
+    TopicMessageSubmitTransaction,
 )
 
 load_dotenv()
@@ -23,7 +25,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -41,7 +43,7 @@ def setup_client():
 
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -62,7 +64,7 @@ def create_topic(client, operator_key):
 
 
 def submit_topic_message_transaction(client, topic_id, message, operator_key):
-    """Submit a message to the specified topic"""
+    """Submit a message to the specified topic."""
     print("\nSTEP 2: Submitting message...")
     transaction = (
         TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
@@ -84,9 +86,7 @@ def submit_topic_message_transaction(client, topic_id, message, operator_key):
 
 
 def main():
-    """
-    A example to create a topic and then submit a message to it.
-    """
+    """A example to create a topic and then submit a message to it."""
     message = "Hello, Hiero!"
 
     # Config Client

@@ -1,4 +1,5 @@
 """
+
 Account Creation Example.
 
 This module demonstrates how to create a new Hedera account using the Hiero Python SDK.
@@ -29,17 +30,17 @@ Environment Variables:
 """
 
 import sys
+
 from hiero_sdk_python import (
+    AccountCreateTransaction,
     Client,
     PrivateKey,
-    AccountCreateTransaction,
     ResponseCode,
 )
 
 
 def create_new_account(client: Client) -> None:
-    """
-    Create a new Hedera account with generated keys and initial balance.
+    """Create a new Hedera account with generated keys and initial balance.
 
     This function generates a new Ed25519 key pair, creates an account creation
     transaction, signs it with the operator key, and executes it on the network.

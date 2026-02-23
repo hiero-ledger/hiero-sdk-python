@@ -1,4 +1,6 @@
 """
+
+
 This example demonstrates the admin key privileges for token management using Hiero SDK Python.
 
 It shows:
@@ -15,22 +17,19 @@ Usage:
 uv run examples/tokens/token_create_transaction_admin_key.py
 python examples/tokens/token_create_transaction_admin_key.py
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
     PrivateKey,
     TokenCreateTransaction,
-    TokenUpdateTransaction,
     TokenDeleteTransaction,
     TokenInfoQuery,
+    TokenUpdateTransaction,
 )
-
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
-
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
@@ -50,6 +49,7 @@ def generate_admin_key():
 def create_token_with_admin_key(client, operator_id, operator_key, admin_key):
     """
     Create a fungible token with only an admin key.
+
     The admin key grants privileges to update token properties and delete the token.
     """
     print("\nCreating a fungible token with admin key...")
@@ -105,6 +105,7 @@ def demonstrate_admin_update_memo(client, token_id, admin_key):
 def demonstrate_failed_supply_key_addition(client, token_id, admin_key):
     """
     Demonstrate that admin key cannot add a new supply key if none was present during creation.
+
     This shows the limitation of admin key privileges.
     """
     print(f"\nAttempting to add supply key to {token_id} (this should fail)...")
@@ -129,9 +130,8 @@ def demonstrate_failed_supply_key_addition(client, token_id, admin_key):
                 "   Admin key cannot authorize adding keys that were not present during token creation."
             )
             return True  # Expected failure
-        else:
-            print("⚠️  Unexpectedly succeeded - this shouldn't happen")
-            return False
+        print("⚠️  Unexpectedly succeeded - this shouldn't happen")
+        return False
     except Exception as e:
         print(f"❌ As expected, adding supply key failed with exception: {e}")
         return True
@@ -140,6 +140,7 @@ def demonstrate_failed_supply_key_addition(client, token_id, admin_key):
 def demonstrate_admin_key_update(client, token_id, admin_key, operator_key):
     """
     Demonstrate updating the admin key itself using current admin key authorization.
+
     This shows admin key can change itself.
     """
     print(f"\nUpdating admin key for {token_id} to operator key...")
@@ -167,6 +168,7 @@ def demonstrate_admin_key_update(client, token_id, admin_key, operator_key):
 def demonstrate_token_deletion(client, token_id, operator_key):
     """
     Demonstrate deleting the token using admin key (now operator key).
+
     Note: Since we updated admin key to operator_key, we use that.
     """
     print(f"\nDeleting token {token_id} using admin key...")
@@ -206,13 +208,13 @@ def get_token_info(client, token_id):
 def main():
     """
     Main function demonstrating admin key capabilities:
+
     1. Create token with admin key
     2. Update token memo (admin privilege)
     3. Attempt to add supply key (should fail)
     4. Update admin key itself
-    5. Delete token (admin privilege)
+    5. Delete token (admin privilege).
     """
-
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

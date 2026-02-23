@@ -1,20 +1,23 @@
 """
+
+Example demonstrating token mint transaction fungible.
+
 uv run examples/tokens/token_mint_transaction_fungible.py
 python examples/tokens/token_mint_transaction_fungible.py
 Creates a mintable fungible token and then mints additional supply.
 """
-
 import os
 import sys
 
 from hiero_sdk_python import (
     Client,
     PrivateKey,
-    TokenCreateTransaction,
-    TokenMintTransaction,
-    TokenInfoQuery,
     ResponseCode,
+    TokenCreateTransaction,
+    TokenInfoQuery,
+    TokenMintTransaction,
 )
+
 
 def setup_client():
     client = Client.from_env()
@@ -33,9 +36,9 @@ def generate_supply_key():
 def create_new_token(client):
     """
     Create a fungible token that can have its supply changed (minted or burned).
+
     This requires setting a supply key, which is a special key that authorizes supply changes.
     """
-
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key
 
@@ -77,12 +80,11 @@ def create_new_token(client):
 
 def token_mint_fungible(client, token_id, supply_key):
     """
-    Mint more of a fungible token
+    Mint more of a fungible token.
 
     The token must have a supply key set during creation, which authorizes future minting or burning.
     Only the holder of the supply key can perform these actions.
     """
-
     mint_amount = 5000  # This is 50.00 tokens because decimals is 2
     print(f"\nSTEP 3: Minting {mint_amount} more tokens for {token_id}...")
 
@@ -115,12 +117,12 @@ def token_mint_fungible(client, token_id, supply_key):
 
 def main():
     """
-    1. Create a new token with a supply key so its supply can be changed later
+    1. Create a new token with a supply key so its supply can be changed later.
+
     2. Confirm the token's total supply before minting
     3. Mint more tokens by submitting a TokenMintTransaction (signed by the supply key)
-    4. Confirm the token's total supply after minting
+    4. Confirm the token's total supply after minting.
     """
-
     client = setup_client()
     token_id, supply_key = create_new_token(client)
     token_mint_fungible(client, token_id, supply_key)

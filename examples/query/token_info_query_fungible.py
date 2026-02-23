@@ -1,22 +1,24 @@
 """
+
+Example demonstrating token info query fungible.
+
 uv run examples/query/token_info_query_fungible.py
 python examples/query/token_info_query_fungible.py
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     try:
         client = Client.from_env()
         operator_id = client.operator_account_id
@@ -30,7 +32,7 @@ def setup_client():
 
 
 def create_fungible_token(client, operator_id, operator_key):
-    """Create a fungible token"""
+    """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleFT")
@@ -64,9 +66,10 @@ def create_fungible_token(client, operator_id, operator_key):
 def query_token_info():
     """
     Demonstrates the token info query functionality by:
+
     1. Creating a fungible token
     2. Querying the token's information using TokenInfoQuery
-    3. Printing the token details of the TokenInfo object
+    3. Printing the token details of the TokenInfo object.
     """
     client, operator_id, operator_key = setup_client()
     token_id = create_fungible_token(client, operator_id, operator_key)

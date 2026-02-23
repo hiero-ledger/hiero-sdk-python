@@ -1,4 +1,6 @@
 """
+
+
 Example: Create an account without using any alias.
 
 This demonstrates:
@@ -9,21 +11,20 @@ Usage:
 - uv run python examples/account/account_create_transaction_without_alias.py
 - python examples/account/account_create_transaction_without_alias.py
 """
-
-from typing import Tuple
 import sys
 
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
-    PublicKey,
     AccountCreateTransaction,
-    AccountInfoQuery,
     AccountId,
     AccountInfo,
+    AccountInfoQuery,
+    Client,
     Hbar,
+    PrivateKey,
+    PublicKey,
     ResponseCode,
 )
+
 
 def setup_client() -> Client:
     """Setup Client."""
@@ -32,7 +33,7 @@ def setup_client() -> Client:
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
-def generate_account_key() -> Tuple[PrivateKey, PublicKey]:
+def generate_account_key() -> tuple[PrivateKey, PublicKey]:
     """Generate a key pair for the account."""
     print("\nSTEP 1: Generating a key pair for the account (no alias)...")
     account_private_key = PrivateKey.generate()
@@ -73,12 +74,11 @@ def create_account_without_alias(client: Client, account_public_key: PublicKey, 
 
 def fetch_account_info(client: Client, account_id: AccountId) -> AccountInfo:
     """Fetch account information."""
-    account_info = (
+    return (
         AccountInfoQuery()
         .set_account_id(account_id)
         .execute(client)
     )
-    return account_info
 
 def main() -> None:
     """Main entry point."""

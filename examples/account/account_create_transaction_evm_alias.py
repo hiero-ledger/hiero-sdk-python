@@ -1,4 +1,6 @@
-"""Example: Create an account using an EVM-style alias (evm_address).
+"""
+
+Example: Create an account using an EVM-style alias (evm_address).
 
 This example demonstrates:
 1. Generating an ECDSA key pair (required for EVM compatibility).
@@ -10,7 +12,6 @@ Usage:
     uv run examples/account/account_create_transaction_evm_alias.py
     python examples/account/account_create_transaction_evm_alias.py
 """
-
 import sys
 
 from dotenv import load_dotenv
@@ -43,7 +44,9 @@ def setup_client() -> Client:
 
 
 def generate_alias_key() -> tuple[PrivateKey, PublicKey, EvmAddress]:
-    """Generate a new ECDSA key pair and derive its EVM-style alias address.
+    """
+
+    Generate a new ECDSA key pair and derive its EVM-style alias address.
 
     EVM aliases on Hedera must be derived from an ECDSA (secp256k1) key pair.
     The EVM address is the last 20 bytes of the keccak256 hash of the public key.
@@ -74,7 +77,9 @@ def generate_alias_key() -> tuple[PrivateKey, PublicKey, EvmAddress]:
 def create_account_with_alias(
     client: Client, private_key: PrivateKey, public_key: PublicKey, evm_address: EvmAddress
 ) -> AccountId:
-    """Create a new Hedera account using the provided EVM-style alias.
+    """
+
+    Create a new Hedera account using the provided EVM-style alias.
 
     Important: When creating an account with an alias, the transaction must be
     signed by the private key corresponding to that alias. This proves ownership

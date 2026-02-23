@@ -1,9 +1,11 @@
 """
+
+
 Example demonstrating account records query on the network.
+
 uv run examples/account/account_records_query.py
 python examples/account/account_records_query.py
 """
-
 import os
 import sys
 
@@ -27,7 +29,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -41,7 +43,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create a test account"""
+    """Create a test account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -67,7 +69,7 @@ def create_account(client):
 
 
 def format_single_record(record, idx):
-    """Format a single account record"""
+    """Format a single account record."""
     lines = []
     lines.append(f"\nRecord #{idx}")
     lines.append("-" * 80)
@@ -94,7 +96,7 @@ def format_single_record(record, idx):
 
     transfers = getattr(record, "transfers", None)
     if transfers:
-        lines.append(f"  Transfers:")
+        lines.append("  Transfers:")
         for account_id, amount_in_tinybar in transfers.items():
             amount_hbar = amount_in_tinybar / 100_000_000  # Convert tinybar to hbar
             lines.append(f"    {account_id}: {amount_hbar:+.8f} ℏ")
@@ -104,7 +106,7 @@ def format_single_record(record, idx):
 
 
 def format_account_records(records):
-    """Format account records for readable display"""
+    """Format account records for readable display."""
     if not records:
         return "No records found"
 
@@ -120,11 +122,12 @@ def format_account_records(records):
 def query_account_records():
     """
     Demonstrates the account record query functionality by:
+
     1. Setting up client with operator account
     2. Creating a new account and setting it as the operator
     3. Querying account records and displaying basic information
     4. Performing a transfer transaction
-    5. Querying account records again to see updated transaction history
+    5. Querying account records again to see updated transaction history.
     """
     client = setup_client()
 

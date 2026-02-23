@@ -1,4 +1,6 @@
 """
+
+
 This example should demonstrate:
 
 1. How to manually create TopicMessageChunk objects with mock data.
@@ -11,8 +13,7 @@ uv run examples/consensus/topic_message.py
 python examples/consensus/topic_message.py
 
 """
-
-from hiero_sdk_python.consensus.topic_message import TopicMessage, TopicMessageChunk
+from hiero_sdk_python.consensus.topic_message import TopicMessage
 
 
 class MockTimestamp:
@@ -89,7 +90,8 @@ def mock_consensus_response(
     has_tx_id: bool = False,
 ) -> MockResponse:
     """
-    Creates a lightweight mock of a ConsensusTopicResponse
+    Creates a lightweight mock of a ConsensusTopicResponse.
+
     that satisfies the interface required by TopicMessage.
     """
     timestamp = MockTimestamp(1736539200 + seq, 123456000 + seq)
@@ -176,6 +178,7 @@ def demonstrate_transaction_id():
 def main():
     """
     Runs all demonstrations for TopicMessage and TopicMessageChunk.
+
     This example is self-contained and does not connect to the network.
     """
     print("Running TopicMessage examples...")

@@ -1,4 +1,6 @@
 """
+
+
 Example: Approving an NFT allowance and transferring the NFT using it.
 
 Why:
@@ -26,25 +28,25 @@ High-Level Steps:
 Usage:
     uv run examples/account/account_allowance_approve_transaction_nft.py
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
-    Hbar,
-    ResponseCode,
-    TokenCreateTransaction,
-    TokenType,
-    SupplyType,
-    TokenMintTransaction,
-    NftId,
-    TokenAssociateTransaction,
     AccountAllowanceApproveTransaction,
+    AccountId,
+    Client,
+    Hbar,
+    Network,
+    NftId,
+    PrivateKey,
+    ResponseCode,
+    SupplyType,
+    TokenAssociateTransaction,
+    TokenCreateTransaction,
+    TokenMintTransaction,
+    TokenType,
     TransferTransaction,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -55,7 +57,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     if os.getenv("OPERATOR_ID") is None or os.getenv("OPERATOR_KEY") is None:
         print("Environment variables OPERATOR_ID and OPERATOR_KEY must be set")
         sys.exit(1)
@@ -100,7 +102,6 @@ def create_account(client, memo="Test Account"):
 
 def create_nft_token(client, owner_id, owner_key):
     """Create a new non-fungible token (NFT) with the owner as treasury."""
-
     tx = (
         TokenCreateTransaction()
         .set_token_name("ApproveTest NFT")

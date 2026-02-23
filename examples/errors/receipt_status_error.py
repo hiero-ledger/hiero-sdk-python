@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """
+
+
 Example demonstrating how to handle ReceiptStatusError in the Hiero SDK.
 
 run:
 uv run examples/errors/receipt_status_error.py
 python examples/errors/receipt_status_error.py
 """
-from hiero_sdk_python import (
-    Client,
-    ResponseCode,
-    TokenAssociateTransaction,
-    TokenId
-)
+from hiero_sdk_python import Client, ResponseCode, TokenAssociateTransaction, TokenId
 from hiero_sdk_python.exceptions import ReceiptStatusError
+
 
 def main() -> None:
     client = Client.from_env()

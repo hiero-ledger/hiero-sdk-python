@@ -1,10 +1,11 @@
 """
+
+Example demonstrating file update transaction.
+
 Run:
 uv run examples/file_update_transaction.py
 python examples/file_update_transaction.py
-
 """
-
 import os
 import sys
 
@@ -22,7 +23,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -36,7 +37,7 @@ def setup_client():
 
 
 def create_file(client):
-    """Create a test file"""
+    """Create a test file."""
     file_private_key = PrivateKey.generate_ed25519()
 
     receipt = (
@@ -68,11 +69,12 @@ def query_file_info(client, file_id):
 def file_update():
     """
     Demonstrates querying file info by:
+
     1. Setting up client with operator account
     2. Creating a test file
     3. Querying the file info
     4. Updating the file info
-    5. Querying the file info again
+    5. Querying the file info again.
     """
     client = setup_client()
 

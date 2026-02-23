@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """
+
+
 Example demonstrating how to handle MaxAttemptsError in the Hiero SDK.
 
 run:
 uv run examples/errors/max_attempts_error.py
 python examples/errors/max_attempts_error.py
 """
-
 from hiero_sdk_python import (
     Client,
     TransactionGetReceiptQuery,
     TransactionId,
 )
 from hiero_sdk_python.exceptions import MaxAttemptsError
+
 
 def main() -> None:
     # Initialize the client

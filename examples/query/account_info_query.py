@@ -1,32 +1,33 @@
 """
+
+Example demonstrating account info query.
+
 uv run examples/query/account_info_query.py
 python examples/query/account_info_query.py
-
 """
-
 import sys
 
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
     AccountCreateTransaction,
-    ResponseCode,
+    Client,
     Hbar,
+    PrivateKey,
+    ResponseCode,
 )
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
-from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
+from hiero_sdk_python.tokens.nft_id import NftId
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_associate_transaction import (
     TokenAssociateTransaction,
 )
+from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
-from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-from hiero_sdk_python.tokens.nft_id import NftId
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     try:
         client = Client.from_env()
         operator_id = client.operator_account_id
@@ -40,7 +41,7 @@ def setup_client():
 
 
 def create_test_account(client, operator_key):
-    """Create a new test account for demonstration"""
+    """Create a new test account for demonstration."""
     new_account_private_key = PrivateKey.generate_ed25519()
     new_account_public_key = new_account_private_key.public_key()
 
@@ -67,7 +68,7 @@ def create_test_account(client, operator_key):
 
 
 def create_fungible_token(client, operator_id, operator_key):
-    """Create a fungible token for association with test account"""
+    """Create a fungible token for association with test account."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("FungibleToken")
@@ -95,7 +96,7 @@ def create_fungible_token(client, operator_id, operator_key):
 
 
 def create_nft(client, account_id, account_private_key):
-    """Create a non-fungible token"""
+    """Create a non-fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
@@ -127,7 +128,7 @@ def create_nft(client, account_id, account_private_key):
 
 
 def mint_nft(client, nft_token_id, account_private_key):
-    """Mint a non-fungible token"""
+    """Mint a non-fungible token."""
     receipt = (
         TokenMintTransaction()
         .set_token_id(nft_token_id)
@@ -147,7 +148,7 @@ def mint_nft(client, nft_token_id, account_private_key):
 
 
 def associate_token_with_account(client, token_id, account_id, account_key):
-    """Associate the token with the test account"""
+    """Associate the token with the test account."""
     receipt = (
         TokenAssociateTransaction()
         .set_account_id(account_id)
@@ -167,7 +168,7 @@ def associate_token_with_account(client, token_id, account_id, account_key):
 
 
 def grant_kyc_for_token(client, account_id, token_id):
-    """Grant KYC for the token to the account"""
+    """Grant KYC for the token to the account."""
     receipt = (
         TokenGrantKycTransaction()
         .set_account_id(account_id)
@@ -183,7 +184,7 @@ def grant_kyc_for_token(client, account_id, token_id):
 
 
 def display_account_info(info):
-    """Display basic account information"""
+    """Display basic account information."""
     print(f"\nAccount ID: {info.account_id}")
     print(f"Contract Account ID: {info.contract_account_id}")
     print(f"Account Balance: {info.balance}")
@@ -201,7 +202,7 @@ def display_account_info(info):
 
 
 def display_token_relationships(info):
-    """Display token relationships information"""
+    """Display token relationships information."""
     print(
         f"\nToken Relationships ({len(info.token_relationships)} total) for account {info.account_id}:"
     )
@@ -222,6 +223,7 @@ def display_token_relationships(info):
 def query_account_info():
     """
     Demonstrates the account info query functionality by:
+
     1. Setting up client with operator account
     2. Creating a new account
     3. Querying account info and displaying account information
@@ -230,7 +232,7 @@ def query_account_info():
     6. Granting KYC to the new account for the token
     7. Querying account info again to see updated KYC status
     8. Creating an NFT token with the new account as treasury and minting one NFT
-    9. Querying final account info to see complete token relationships and NFT ownership
+    9. Querying final account info to see complete token relationships and NFT ownership.
     """
     client, operator_id, operator_key = setup_client()
 

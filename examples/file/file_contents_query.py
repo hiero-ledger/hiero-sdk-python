@@ -1,9 +1,11 @@
 """
+
+
 This example demonstrates how to query file contents using the Python SDK.
+
 uv run examples/file/file_contents_query.py
 python examples/file/file_contents_query.py
 """
-
 import os
 import sys
 
@@ -20,7 +22,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -34,7 +36,7 @@ def setup_client():
 
 
 def create_file(client: Client):
-    """Create a test file"""
+    """Create a test file."""
     file_private_key = PrivateKey.generate_ed25519()
 
     receipt = (
@@ -62,9 +64,10 @@ def create_file(client: Client):
 def query_file_contents():
     """
     Demonstrates querying file contents by:
+
     1. Setting up client with operator account
     2. Creating a test file
-    3. Querying the file contents
+    3. Querying the file contents.
     """
     client = setup_client()
 

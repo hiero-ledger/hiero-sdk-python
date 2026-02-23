@@ -29,8 +29,19 @@ def keccak256(data: bytes) -> bytes:
 
 def compress_point_unchecked(x: int, y: int) -> bytes:
     """
-    Compress an (x, y) for secp256k1 (or similar). 33 bytes: [0x02 or 0x03] + x(32).
-    sign bit of y => 0x03 if odd, 0x02 if even
+    Compress an elliptic curve point to SEC1 compressed format.
+
+    Converts an (x, y) coordinate pair for secp256k1 into a 33-byte
+    compressed representation: [prefix byte] + [x coordinate as 32 bytes].
+
+    The prefix byte is 0x02 if y is even, or 0x03 if y is odd.
+
+    Args:
+        x: The x coordinate of the elliptic curve point.
+        y: The y coordinate of the elliptic curve point.
+
+    Returns:
+        bytes: A 33-byte compressed point representation.
     """
     prefix = 0x02 | (y & 1) 
     return bytes([prefix]) + x.to_bytes(32, "big")

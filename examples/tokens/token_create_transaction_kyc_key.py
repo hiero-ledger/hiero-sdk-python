@@ -1,5 +1,7 @@
 """
-Token KYC Key Demonstration
+
+
+Token KYC Key Demonstration.
 
 This script demonstrates how to work with KYC (Know Your Customer) keys on Hedera tokens:
 1. Creating a token WITHOUT a KYC key and attempting KYC operations (fails)
@@ -19,19 +21,18 @@ Run with:
   python examples/tokens/token_create_transaction_kyc_key.py
 
 """
-
-
 import sys
 import time
 
 from hiero_sdk_python import (
     Client,
-    PrivateKey,
     Hbar,
+    PrivateKey,
     ResponseCode,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenType
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_associate_transaction import (
     TokenAssociateTransaction,
@@ -42,9 +43,6 @@ from hiero_sdk_python.tokens.token_revoke_kyc_transaction import (
     TokenRevokeKycTransaction,
 )
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-
-
 
 
 def setup_client():
@@ -95,6 +93,7 @@ def create_account(client, operator_key, initial_balance=Hbar(2)):
 def create_token_without_kyc_key(client, operator_id, operator_key):
     """
     Demonstrate creating a token WITHOUT a KYC key.
+
     This shows that KYC operations will fail for this token.
 
     Returns:
@@ -140,6 +139,7 @@ def create_token_without_kyc_key(client, operator_id, operator_key):
 def attempt_kyc_without_key(client, token_id, account_id, operator_key):
     """
     Attempt to grant KYC on a token that has no KYC key.
+
     This should fail with an appropriate error.
 
     This demonstrates why having a KYC key is essential for KYC operations.
@@ -163,12 +163,11 @@ def attempt_kyc_without_key(client, token_id, account_id, operator_key):
             print(f" KYC grant failed as expected with status: {status_name}")
             print(f"   Reason: Token {token_id} has no KYC key defined\n")
             return False
-        elif receipt.status != ResponseCode.SUCCESS:
+        if receipt.status != ResponseCode.SUCCESS:
             print(f" KYC grant failed with unexpected status: {status_name}\n")
             return False
-        else:
-            print(f"  Unexpected success! Status: {status_name}\n")
-            return True
+        print(f"  Unexpected success! Status: {status_name}\n")
+        return True
     except Exception as e:
         print(f" Error attempting KYC grant: {e}\n")
         return False
@@ -177,6 +176,7 @@ def attempt_kyc_without_key(client, token_id, account_id, operator_key):
 def create_token_with_kyc_key(client, operator_id, operator_key, kyc_private_key):
     """
     Create a token WITH a KYC key.
+
     This demonstrates the proper way to create a token that requires KYC.
 
     Returns:
@@ -223,6 +223,7 @@ def create_token_with_kyc_key(client, operator_id, operator_key, kyc_private_key
 def associate_token_to_account(client, token_id, account_id, account_private_key):
     """
     Associate a token with an account.
+
     This is required before the account can receive or hold the token.
     """
     try:
@@ -253,6 +254,7 @@ def attempt_transfer_without_kyc(
 ):
     """
     Attempt to transfer tokens to an account that has not been granted KYC.
+
     Depending on token configuration, this may fail.
 
     Returns:
@@ -286,21 +288,20 @@ def attempt_transfer_without_kyc(
 
         if receipt.status != ResponseCode.SUCCESS:
             print(f" Transfer failed with status: {status_name}")
-            print(f"   Reason: Account may require KYC before receiving tokens\n")
+            print("   Reason: Account may require KYC before receiving tokens\n")
             return False
-        else:
-            print(f" Transfer succeeded with status: {status_name}")
-            # Check balance after transfer
-            balance_after = (
-                CryptoGetAccountBalanceQuery(account_id=recipient_id)
-                .execute(client)
-                .token_balances
-            )
-            recipient_balance_after = balance_after.get(token_id, 0)
-            print(
-                f"Recipient's token balance after transfer: {recipient_balance_after}\n"
-            )
-            return True
+        print(f" Transfer succeeded with status: {status_name}")
+        # Check balance after transfer
+        balance_after = (
+            CryptoGetAccountBalanceQuery(account_id=recipient_id)
+            .execute(client)
+            .token_balances
+        )
+        recipient_balance_after = balance_after.get(token_id, 0)
+        print(
+            f"Recipient's token balance after transfer: {recipient_balance_after}\n"
+        )
+        return True
     except Exception as e:
         print(f" Error during transfer attempt: {e}\n")
         return False
@@ -309,6 +310,7 @@ def attempt_transfer_without_kyc(
 def grant_kyc_to_account(client, token_id, account_id, kyc_private_key):
     """
     Grant KYC to an account for a specific token.
+
     This allows the account to interact with the token (transfer, receive, etc).
     """
     print("\n" + "=" * 70)
@@ -338,6 +340,7 @@ def grant_kyc_to_account(client, token_id, account_id, kyc_private_key):
 def transfer_token_after_kyc(client, token_id, operator_id, recipient_id, operator_key):
     """
     Transfer tokens to an account that HAS been granted KYC.
+
     This should succeed.
     """
     print("\n" + "=" * 70)
@@ -388,6 +391,7 @@ def transfer_token_after_kyc(client, token_id, operator_id, recipient_id, operat
 def revoke_kyc_from_account(client, token_id, account_id, kyc_private_key):
     """
     Revoke KYC from an account (optional bonus demonstration).
+
     This prevents the account from further interacting with the token.
     """
     print("\n" + "=" * 70)
@@ -411,7 +415,7 @@ def revoke_kyc_from_account(client, token_id, account_id, kyc_private_key):
             return False
 
         print(f" KYC revoked for account {account_id} on token {token_id}")
-        print(f"   The account can no longer transfer or receive this token\n")
+        print("   The account can no longer transfer or receive this token\n")
         return True
     except Exception as e:
         print(f" Error revoking KYC: {e}\n")
@@ -421,10 +425,11 @@ def revoke_kyc_from_account(client, token_id, account_id, kyc_private_key):
 def main():
     """
     Main workflow demonstrating KYC key functionality:
+
     1. Create a token without KYC key and show KYC operations fail
     2. Create a token with KYC key
     3. Demonstrate successful KYC operations
-    4. Show how KYC affects token transfers
+    4. Show how KYC affects token transfers.
     """
     try:
         # Setup
@@ -437,7 +442,7 @@ def main():
         print("Generating KYC key for demonstration")
         print("=" * 70)
         kyc_private_key = PrivateKey.generate("ed25519")
-        print(f" KYC key generated\n")
+        print(" KYC key generated\n")
 
         # ===== PART 1: Token WITHOUT KYC Key =====
         token_without_kyc = create_token_without_kyc_key(
@@ -468,7 +473,7 @@ def main():
         )
 
         # Try to transfer without KYC (may fail)
-        transfer_without_kyc_result = attempt_transfer_without_kyc(
+        attempt_transfer_without_kyc(
             client, token_with_kyc, operator_id, test_account_2, operator_key
         )
 
@@ -491,16 +496,16 @@ def main():
         print("SUMMARY: KYC Key Demonstration Complete")
         print("=" * 70)
         print(f" Token without KYC key: {token_without_kyc}")
-        print(f"   - KYC operations fail on this token (no KYC key defined)")
+        print("   - KYC operations fail on this token (no KYC key defined)")
         print(f"\n Token with KYC key: {token_with_kyc}")
-        print(f"   - KYC can be granted/revoked using the KYC key")
-        print(f"   - Accounts must have KYC before interacting with the token")
-        print(f"\n Key Takeaways:")
-        print(f"   1. KYC keys are essential for token-level KYC control")
-        print(f"   2. Without a KYC key, KYC operations cannot be performed")
-        print(f"   3. KYC keys must sign any KYC grant/revoke transaction")
-        print(f"   4. Previously granted KYC persists even if the key is removed")
-        print(f"   5. KYC is independent of other keys (freeze key, admin key, etc)")
+        print("   - KYC can be granted/revoked using the KYC key")
+        print("   - Accounts must have KYC before interacting with the token")
+        print("\n Key Takeaways:")
+        print("   1. KYC keys are essential for token-level KYC control")
+        print("   2. Without a KYC key, KYC operations cannot be performed")
+        print("   3. KYC keys must sign any KYC grant/revoke transaction")
+        print("   4. Previously granted KYC persists even if the key is removed")
+        print("   5. KYC is independent of other keys (freeze key, admin key, etc)")
         print("=" * 70)
 
     except Exception as e:

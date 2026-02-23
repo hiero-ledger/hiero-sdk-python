@@ -1,4 +1,6 @@
 """
+
+
 This example demonstrates the Purpose of the Supply Key for token management using Hiero SDK Python.
 
 It shows:
@@ -14,21 +16,18 @@ Required environment variables:
 Usage:
 uv run examples/tokens/token_create_transaction_supply_key.py
 """
-
 import sys
 
 from hiero_sdk_python import (
     Client,
     PrivateKey,
     TokenCreateTransaction,
-    TokenMintTransaction,
     TokenInfoQuery,
+    TokenMintTransaction,
 )
-
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
-
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
@@ -40,6 +39,7 @@ def setup_client():
 def create_token_no_supply_key(client, operator_id, operator_key):
     """
     Create a FUNGIBLE token WITHOUT a supply key.
+
     We use Fungible because creating an NFT without a supply key is forbidden
     (it would result in a permanently 0-supply, useless token).
     """
@@ -79,6 +79,7 @@ def create_token_no_supply_key(client, operator_id, operator_key):
 def demonstrate_mint_fail(client, token_id):
     """
     Attempt to mint more tokens when no supply key exists.
+
     This is expected to FAIL.
     """
     print(f"Attempting to mint more to {token_id} (Expected to FAIL)...")
@@ -104,9 +105,7 @@ def demonstrate_mint_fail(client, token_id):
 
 
 def create_token_with_supply_key(client, operator_id, operator_key):
-    """
-    Create a Non-Fungible token (NFT) WITH a supply key.
-    """
+    """Create a Non-Fungible token (NFT) WITH a supply key."""
     print("\n--- Scenario 2: Token WITH Supply Key ---")
 
     # Generate a specific supply key
@@ -151,6 +150,7 @@ def create_token_with_supply_key(client, operator_id, operator_key):
 def demonstrate_mint_success(client, token_id, supply_key):
     """
     Mint a token using the valid supply key.
+
     For NFTs, minting involve setting metadata for each unique serial number been created.
     """
     print(f"Attempting to mint NFT to {token_id} using Supply Key...")
@@ -184,9 +184,7 @@ def verify_token_info(client, token_id):
 
 
 def main():
-    """
-    Main execution flow.
-    """
+    """Main execution flow."""
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

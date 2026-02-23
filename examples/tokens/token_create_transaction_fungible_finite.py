@@ -1,4 +1,6 @@
 """
+
+
 This is a simple example of how to create a finite fungible token using setting methods.
 
 It:
@@ -20,13 +22,14 @@ python examples/tokens/token_create_transaction_fungible_finite.py
 """
 import os
 import sys
+
 from hiero_sdk_python import (
     Client,
     PrivateKey,
     TokenCreateTransaction,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def parse_optional_key(key_str):

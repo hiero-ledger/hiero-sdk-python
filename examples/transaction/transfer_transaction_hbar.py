@@ -1,10 +1,11 @@
-"""Example of transferring HBAR using the Hiero Python SDK.
+"""
+
+Example of transferring HBAR using the Hiero Python SDK.
 
 Usage:
     uv run examples/transaction/transfer_transaction_hbar.py
     python examples/transaction/transfer_transaction_hbar.py
 """
-
 import os
 import sys
 
@@ -115,7 +116,9 @@ def get_balance(client, account_id, when=""):
 
 
 def main():
-    """Run a full example to create a new recipient account and transfer hbar to that account.
+    """
+
+    Run a full example to create a new recipient account and transfer hbar to that account.
 
     Steps:
     1. Setup client with operator credentials.

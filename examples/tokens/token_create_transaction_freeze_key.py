@@ -1,4 +1,7 @@
 """
+
+Example demonstrating token create transaction freeze key.
+
 uv run examples/tokens/token_create_transaction_freeze_key.py
 python examples/tokens/token_create_transaction_freeze_key.py
 
@@ -8,10 +11,8 @@ Demonstrates how the Hedera freeze key works by walking through:
    and verifying how transfers behave while frozen
 3. (Bonus) Showing that tokens created with freezeDefault=True start accounts frozen
 """
-
 import sys
 from dataclasses import dataclass
-from typing import Tuple
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
@@ -210,6 +211,7 @@ def attempt_transfer(
 ):
     """
     Try to transfer tokens from the treasury to a recipient and log the result.
+
     Returns True when the transfer succeeds, False otherwise.
     """
     print(f"\n➡️  Attempting transfer ({note}) ...")
@@ -280,9 +282,7 @@ def demonstrate_freeze_default_flow(
     operator_key: PrivateKey,
     freeze_key: PrivateKey,
 ):
-    """
-    Bonus: Show that freezeDefault=True starts new accounts frozen until explicitly unfrozen.
-    """
+    """Bonus: Show that freezeDefault=True starts new accounts frozen until explicitly unfrozen."""
     print("\nBONUS 🌟 Demonstrating freezeDefault=True behavior...")
     token_id = create_token_with_freeze_key(
         client,

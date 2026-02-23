@@ -6,6 +6,8 @@
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
 
+>**Python compatibility:** 
+> The SDK supports Python ≥ 3.10 and is tested on Python 3.10–3.14. Newer Python versions may work but have not yet been validated.
 
 ## Quick Start
 
@@ -112,7 +114,7 @@ uv run pytest
 
 - **Blog**: [Hiero Blog](https://hiero.org/blog/)
 - **Videos**: [LFDT YouTube Channel](https://www.youtube.com/@lfdecentralizedtrust/videos)
-- **Community Calls**: [Hiero Calendar](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week) (Wednesdays, 2pm UTC)
+- **Community Calls**: [Hiero Calendar](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581) (Wednesdays, 2pm UTC)
 
 ---
 

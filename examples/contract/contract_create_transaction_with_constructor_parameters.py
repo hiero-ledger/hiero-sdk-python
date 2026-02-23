@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating contract creation on the network.
 
 This module shows how to create a smart contract by:
@@ -14,7 +16,6 @@ Usage:
     uv run -m examples.contract.contract_create_transaction_with_constructor_parameters
     python -m examples.contract.contract_create_transaction_with_constructor_parameters
 """
-
 import os
 import sys
 
@@ -37,7 +38,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -51,7 +52,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the contract bytecode"""
+    """Create a file containing the contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -73,9 +74,10 @@ def create_contract_file(client):
 def contract_create():
     """
     Demonstrates creating a contract on the network by:
+
     1. Setting up client with operator account
     2. Creating a file containing contract bytecode
-    3. Creating a contract using the file
+    3. Creating a contract using the file.
     """
     client = setup_client()
 

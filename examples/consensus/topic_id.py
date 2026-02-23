@@ -1,8 +1,13 @@
-"""uv run examples/consensus/topic_id.py"""
+"""
 
-from hiero_sdk_python.consensus.topic_id import TopicId
+Example: Topic Id.
+
+uv run examples/consensus/topic_id.py.
+"""
+
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.consensus.topic_id import TopicId
 
 
 def create_topic_id() -> TopicId:

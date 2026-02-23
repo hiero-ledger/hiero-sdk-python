@@ -1,4 +1,6 @@
 """
+
+
 Complete network and client setup example with detailed logging.
 
 This example demonstrates the internal steps of setting up a client
@@ -9,11 +11,11 @@ Usage:
     uv run examples/client/client.py
     python examples/client/client.py
 """
-
 import os
+
 from dotenv import load_dotenv
 
-from hiero_sdk_python import Client, Network, AccountId, PrivateKey
+from hiero_sdk_python import AccountId, Client, Network, PrivateKey
 
 load_dotenv()
 
@@ -61,7 +63,7 @@ def setup_operator(client):
 def display_client_configuration(client):
     """Display client configuration details."""
     print("\n=== Client Configuration ===")
-    print(f"Client is ready to use!")
+    print("Client is ready to use!")
     print(f"Max retry attempts: {client.max_attempts}")
 
     nodes = client.get_node_account_ids()
@@ -74,7 +76,7 @@ def display_available_nodes(client):
     nodes = client.get_node_account_ids()
 
     # showing first 5 Nodes
-    for i, node_id in enumerate(nodes[:5]):
+    for _i, node_id in enumerate(nodes[:5]):
         print(f"  - Node: {node_id}")
 
     if len(nodes) > 5:

@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating contract execute on the network.
 
 This module shows how to execute a contract on the network by:
@@ -15,7 +17,6 @@ Usage:
     uv run -m examples.contract.contract_execute_transaction
     python -m examples.contract.contract_execute_transaction
 """
-
 import os
 import sys
 
@@ -45,7 +46,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -59,7 +60,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the stateful contract bytecode"""
+    """Create a file containing the stateful contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -79,8 +80,8 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id):
-    """Create a contract using the file with constructor parameters"""
-    initial_message = "This is the initial message!".encode("utf-8")
+    """Create a contract using the file with constructor parameters."""
+    initial_message = b"This is the initial message!"
     constructor_params = ContractFunctionParameters().add_bytes32(initial_message)
     receipt = (
         ContractCreateTransaction()
@@ -105,7 +106,7 @@ def create_contract(client, file_id):
 
 
 def get_contract_message(client, contract_id):
-    """Get the message from the contract"""
+    """Get the message from the contract."""
     # Query the contract function to verify that the message was set
     query = (
         ContractCallQuery()
@@ -127,12 +128,13 @@ def get_contract_message(client, contract_id):
 def execute_contract():
     """
     Demonstrates executing a contract by:
+
     1. Setting up client with operator account
     2. Creating a file containing stateful contract bytecode
     3. Creating a contract using the file with constructor parameters
     4. Getting the current message from the contract
     5. Executing a contract function to set the new message
-    6. Querying the contract function to verify that the message was set
+    6. Querying the contract function to verify that the message was set.
     """
     client = setup_client()
 

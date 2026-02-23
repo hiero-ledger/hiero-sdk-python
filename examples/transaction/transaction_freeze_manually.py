@@ -1,5 +1,8 @@
 """
-Demonstrates how to manually freeze, serialize, deserialize, 
+
+
+Demonstrates how to manually freeze, serialize, deserialize,.
+
 sign, and execute a transaction using hiero_sdk_python.
 
 uv run examples/transaction/transaction_freeze_manually.py
@@ -7,17 +10,18 @@ python examples/transaction/transaction_freeze_manually.py
 """
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountId,
-    PrivateKey,
-    TopicCreateTransaction,
-    TransactionId,
     Client,
     Network,
+    PrivateKey,
+    ResponseCode,
+    TopicCreateTransaction,
     Transaction,
-    ResponseCode
+    TransactionId,
 )
 
 load_dotenv()
@@ -28,9 +32,7 @@ OPERATOR_KEY = os.getenv("OPERATOR_KEY")
 NODE_ACCOUNT_ID = AccountId.from_string("0.0.3")
 
 def setup_client():
-    """
-    Initialize and return a Hedera Client using operator credentials.
-    """
+    """Initialize and return a Hedera Client using operator credentials."""
     if not OPERATOR_ID or not OPERATOR_KEY:
         raise RuntimeError("OPERATOR_ID or OPERATOR_KEY not set in .env")
 
@@ -51,9 +53,7 @@ def setup_client():
     return client
 
 def build_unsigned_tx(executor_client):
-    """
-    Build a Transaction, manually freeze it for a specific node, and return serialized unsigned bytes.
-    """
+    """Build a Transaction, manually freeze it for a specific node, and return serialized unsigned bytes."""
     tx_id = TransactionId.generate(executor_client.operator_account_id)
 
     tx = (
@@ -72,9 +72,7 @@ def build_unsigned_tx(executor_client):
     return tx.to_bytes()
 
 def sign_and_execute(unsigned_bytes, executor_client):
-    """
-    Deserialize, sign, and execute a transaction.
-    """
+    """Deserialize, sign, and execute a transaction."""
     try:
         # Deserialize
         tx = Transaction.from_bytes(unsigned_bytes)
@@ -98,6 +96,7 @@ def sign_and_execute(unsigned_bytes, executor_client):
 def main():
     """
     1. Set up a client.
+
     2. Create a Transaction and explicitly:
         - Set the TransactionId
         - Set the NodeAccountId (e.g. 0.0.3)

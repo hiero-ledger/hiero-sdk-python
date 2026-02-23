@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating contract creation on the network.
 
 This module shows how to create a smart contract by:
@@ -14,7 +16,6 @@ Usage:
     python -m examples.contract.contract_create_transaction_with_bytecode
 
 """
-
 import os
 import sys
 
@@ -36,7 +37,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -52,8 +53,9 @@ def setup_client():
 def contract_create_with_bytecode():
     """
     Demonstrates creating a contract on the network by:
+
     1. Setting up client with operator account
-    2. Creating a contract using the bytecode
+    2. Creating a contract using the bytecode.
     """
     client = setup_client()
 

@@ -1,10 +1,12 @@
 """
+
+
 Example demonstrating account update functionality.
+
 run with:
 uv run examples/account/account_update_transaction.py
 python examples/account/account_update_transaction.py
 """
-
 import datetime
 import os
 import sys
@@ -24,7 +26,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -38,7 +40,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create a test account"""
+    """Create a test account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -65,7 +67,7 @@ def create_account(client):
 
 
 def query_account_info(client, account_id):
-    """Query and display account information"""
+    """Query and display account information."""
     info = AccountInfoQuery(account_id).execute(client)
 
     print(f"Account ID: {info.account_id}")
@@ -80,11 +82,12 @@ def query_account_info(client, account_id):
 def account_update():
     """
     Demonstrates account update functionality by:
+
     1. Setting up client with operator account
     2. Creating a test account
     3. Querying the account info
     4. Updating the account properties
-    5. Querying the account info again
+    5. Querying the account info again.
     """
     client = setup_client()
 
