@@ -1,0 +1,48 @@
+==============================================
+  Bot Inactivity Unassign - Test Suite
+==============================================
+
+Test environment created at: /var/folders/79/p2cw1n9j43vcx9vdvprxvzn40000gn/T/tmp.LQzFWxmjfI
+
+Test 1: PR with 'discussion' label should not be closed
+==========================================================
+[0;32m✓ PASS[0m: PR with discussion label detected
+[0;32m✓ PASS[0m: PR with discussion label was NOT closed
+
+Test 2: Stale PR without 'discussion' label should be closed
+==============================================================
+[0;32m✓ PASS[0m: PR without discussion label detected
+
+Test 3: Verify jq filter correctly identifies 'discussion' label
+==================================================================
+[0;32m✓ PASS[0m: jq filter finds 'discussion' label
+[0;32m✓ PASS[0m: jq filter returns empty for missing 'discussion' label
+
+Test 4: Closed PRs should be skipped
+======================================
+[0;32m✓ PASS[0m: Closed PR correctly identified
+
+Test 5: Active PR (recent commits) should not be closed
+=========================================================
+[0;32m✓ PASS[0m: Active PR has commit data
+[0;32m✓ PASS[0m: Active PR commit timestamp retrieved
+
+Test 6: Verify correct log messages are generated
+===================================================
+[0;32m✓ PASS[0m: Correct log message for discussion label
+
+Test 7: PR with multiple labels including 'discussion'
+========================================================
+[0;32m✓ PASS[0m: Discussion label found among multiple labels
+
+Test 8: Label matching is case-sensitive
+==========================================
+[0;32m✓ PASS[0m: Case-sensitive matching (Discussion != discussion)
+
+==============================================
+  Test Summary
+==============================================
+Total tests run:    11
+[0;32mTests passed:       11[0m
+[0;32mAll tests passed![0m
+Test environment cleaned up
