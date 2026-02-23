@@ -1,14 +1,6 @@
 name: PythonBot - Workflow Failure Notifier
 on:  
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Run in dry-run mode (no PR comment posting)'
-        type: boolean
-        default: true
-      failed_run_id:
-        description: 'Failed workflow run ID for testing (optional)'
-        required: false
   workflow_run:
     workflows:
       - "PR Formatting"
@@ -19,41 +11,61 @@ on:
       - completed
 permissions:
   contents: read
-  pull-requests: read
-  issues: write
+  pull-requests: write
 concurrency:
-  group: "workflow-failure-${{ github.event.workflow_run.head_branch || github.run_id }}"
+  group: "workflow-failure-${{ github.event.workflow_run.head_branch }}"
   cancel-in-progress: true
 jobs:
   notify-pr:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
-    env:
-      # Behaviour:
-      # - workflow_run: DRY_RUN = 0 (real actions)
-      # - workflow_dispatch: DRY_RUN derived from the "dry_run" input
-      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.dry_run == 'true' && '1' || '0') || '0' }}
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
-        with:
-          node-version: '20'
-          
-      - name: Notify PR of workflow failure
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.failed_run_id != ''
+      - name: Get associated PR number
+        id: get-pr
         env:
-          FAILED_WORKFLOW_NAME: ${{ github.event.workflow_run.name || 'Manual Test Run' }}
-          FAILED_RUN_ID: ${{ github.event.inputs.failed_run_id || github.event.workflow_run.id }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          DRY_RUN: ${{ env.DRY_RUN }}
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
-        run: node .github/scripts/bot-workflows.js
+        run: |
+          # Get branch from the workflow run
+          HEAD_BRANCH=$(gh run view ${{ github.event.workflow_run.id }} \
+            --repo ${{ github.repository }} \
+            --json headBranch --jq '.headBranch')
+          
+          # Find the PR number for this branch (only open PRs)
+          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --state open --head "$HEAD_BRANCH" --json number --jq '.[0].number')
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+      
+      - name: Comment on PR
+        if: env.PR_NUMBER != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          COMMENT=$(cat <<EOF
+          Hi, this is WorkflowBot. 
+          Your pull request cannot be merged as it is not passing all our workflow checks. 
+          Please click on each check to review the logs and resolve issues so all checks pass.
+          To help you:
+          - [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+          - [Changelog guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+          - [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
+          - [Rebase guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
+          - [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md)
+          - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+          - [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+          Thank you for contributing!
+          From the Hiero Python SDK Team
+          EOF
+          )
+          EXISTING_COMMENT=$(gh pr view "$PR_NUMBER" --repo "$REPO" --comments \
+            --json comments --jq ".comments[] | select(.body == \"${COMMENT//\"/\\\"}\") | .id")
+
+          if [ -z "$EXISTING_COMMENT" ]; then
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$COMMENT"
+          else
+            echo "Comment already exists, skipping."
+          fi
