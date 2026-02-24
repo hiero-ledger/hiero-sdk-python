@@ -14,15 +14,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added advanced code review prompts for the `src/hiero_sdk_python/file` module in `.coderabbit.yaml` to guide reviewers in verifying proper `FileAppendTransaction` chunking constraints and nuances in memo handling for `FileUpdateTransaction` according to Hiero SDK best practices. (#1697)
 
 ### Src
+
 - Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
-- 
+-
 
 ### Examples
+
 - Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)
 
 - Refactored contract_delete_transaction example to use Client.from_env. (#1823)
 
 ### Docs
+
 - Added Python compatibility badge to README for improved visibility of supported versions (#1830)
 - Fixed Test Improvements header formatting in Good First Issue guidelines by adding missing space before parenthetical and removing stray bold marker (#1829)
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
@@ -31,9 +34,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed broken `MAINTAINERS.md` relative link in `docs/sdk_developers/bug.md` by using the repository-root GitHub URL. (#1666)
 
 ### Tests
+
 - Format `tests/unit/endpoint_test.py` using black. (`#1792`)
 
 ### .github
+
 - Added triage members max assignment is protected from being a mentor in `.github/scripts/bot-assignment-check.sh`. (#1718)
 - Revert PythonBot workflow to restore previous stable behavior. (#1825)
 - Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
@@ -43,10 +48,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
 - Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
 - Updated CodeRabbit workflow and script review instructions to nudge higher-quality patterns without imposing rigid rules (`#1799`)
+- Added hiero-sdk-js to the next issue bot recommendation (`#1847`)
 
 ## [0.2.0] - 2026-11-02
 
 ### Tests
+
 - Format `tests/unit/crypto_utils_test.py` with black for code style consistency (#1524)
 - Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
 
@@ -69,10 +76,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format tests/unit/network_tls_test.py with black for code style consistency (#1543)
 - Formatted `ethereum_transaction_test.py` using Black.
 - Formatted client_test.py using Black.
-- Format tests/unit/query*.py using black (#1547)
+- Format tests/unit/query\*.py using black (#1547)
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+
 - Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
 - Added foundational guide for GitHub Workflows (#1741)
 - Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
@@ -80,7 +88,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added support for the `includeDuplicates` flag in `TransactionRecordQuery` and `duplicates` field in `TransactionRecord` (#1635)
 - Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
 - Added `AssessedCustomFee` domain model to represent assessed custom fees. (`#1637`)
-- Add __repr__ method for ContractId class to improve debugging (#1714)
+- Add **repr** method for ContractId class to improve debugging (#1714)
 - Added Protobuf Training guide to enhance developer understanding of proto serialization
   and deserialization (#1645)
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
@@ -196,12 +204,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `__eq__` and `__hash__` functions for Key
 
 ### Documentation
+
 - Added `docs/workflows/02-architecture.md`: explains the orchestration (YAML) vs. business logic (JS) separation pattern for GitHub workflows (#1742)
 - Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+
 - Reduced linting errors in `examples/` directory by 80% (952 → 185) by fixing docstring formatting, import ordering, and applying auto-fixes (#1768)
 - Improved bot message formatting in LinkBot to display issue linking format as a code block for better clarity (#1762)
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
@@ -306,8 +316,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: clarify wording in the bot-assignment-check.sh (#1748)
 - Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
 
-   
 ### Fixed
+
 - Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
 - Corrected broken documentation links in SDK developer training files.(#1707)
 - Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
@@ -477,6 +487,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
+
 - chore: renamed examples to match src where possible
 - Moved examples/ to be inside subfiles to match src structure
 - changed example script workflow to run on new subdirectory structure
@@ -919,6 +930,5 @@ contract_call_local_pb2.ContractLoginfo -> contract_types_pb2.ContractLoginfo
 ### Removed
 
 - N/A
-
 
 # [0.1.0] - 2025-02-19

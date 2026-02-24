@@ -3,6 +3,7 @@ const SUPPORTED_GFI_REPOS = [
   'hiero-sdk-swift',
   'hiero-sdk-python',
   'hiero-website',
+  'hiero-sdk-js',
 ];
 
 module.exports = async ({ github, context, core }) => {
