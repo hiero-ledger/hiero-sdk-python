@@ -17,10 +17,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - 
 
 ### Examples
+- Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)
 
 - Refactored contract_delete_transaction example to use Client.from_env. (#1823)
 
 ### Docs
+- Added Python compatibility badge to README for improved visibility of supported versions (#1830)
 - Fixed Test Improvements header formatting in Good First Issue guidelines by adding missing space before parenthetical and removing stray bold marker (#1829)
 - Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
 - chore: update office hours and community calls to use direct links (`#1804`)
@@ -30,6 +32,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/endpoint_test.py` using black. (`#1792`)
 
 ### .github
+- Added triage members max assignment is protected from being a mentor in `.github/scripts/bot-assignment-check.sh`. (#1718)
 - Revert PythonBot workflow to restore previous stable behavior. (#1825)
 - Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
@@ -301,6 +304,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: clarify wording in the bot-assignment-check.sh (#1748)
 - Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
 
+   
 ### Fixed
 - Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
 - Corrected broken documentation links in SDK developer training files.(#1707)
