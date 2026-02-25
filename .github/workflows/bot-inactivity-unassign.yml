@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
       - name: Harden the runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b
         with:
           egress-policy: audit
 
