@@ -1,0 +1,273 @@
+name: PR Protobuf Diff CodeRabbit Trigger
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  protobuf-diff-review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    concurrency:
+      group: protobuf-coderabbit-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.11"
+
+      - name: Install protobuf generation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "grpcio-tools>=1.76.0,<2"
+
+      - name: Build protobuf output snapshots and diff
+        id: protobuf_diff
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          ROOT="$RUNNER_TEMP/protobuf-review"
+          BASE_WORKTREE="$ROOT/base-worktree"
+          BASE_OUT="$ROOT/base-hapi"
+          HEAD_OUT="$ROOT/head-hapi"
+          BASE_PROTOS="$ROOT/base-protos"
+          HEAD_PROTOS="$ROOT/head-protos"
+          DIFF_FILE="$ROOT/protobuf.diff"
+          FILES_FILE="$ROOT/protobuf-files.txt"
+          PR_CHANGED_FILE="$ROOT/pr-changed-files.txt"
+          TARGET_FILES="$ROOT/protobuf-target-files.txt"
+          SCOPED_FILES="$ROOT/protobuf-files.scoped.txt"
+          SCOPED_DIFF="$ROOT/protobuf.scoped.diff"
+
+          rm -rf "$ROOT"
+          mkdir -p "$ROOT"
+
+          cleanup() {
+            git worktree remove --force "$BASE_WORKTREE" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          git worktree add --detach "$BASE_WORKTREE" "$BASE_SHA"
+
+          python generate_proto.py \
+            --protos-dir "$HEAD_PROTOS" \
+            --services-output "$HEAD_OUT" \
+            --mirror-output "$HEAD_OUT"
+
+          python "$BASE_WORKTREE/generate_proto.py" \
+            --protos-dir "$BASE_PROTOS" \
+            --services-output "$BASE_OUT" \
+            --mirror-output "$BASE_OUT"
+
+          git --no-pager diff --no-index --name-only "$BASE_OUT" "$HEAD_OUT" > "$FILES_FILE" || true
+          git --no-pager diff --no-index --src-prefix=base/ --dst-prefix=head/ "$BASE_OUT" "$HEAD_OUT" > "$DIFF_FILE" || true
+          git --no-pager diff --name-only "$BASE_SHA" "$HEAD_SHA" > "$PR_CHANGED_FILE"
+
+          awk -v base_prefix="$BASE_OUT/" -v head_prefix="$HEAD_OUT/" '
+            {
+              gsub(base_prefix, "", $0)
+              gsub(head_prefix, "", $0)
+              if (length($0) > 0) print $0
+            }
+          ' "$FILES_FILE" > "${FILES_FILE}.normalized"
+          mv "${FILES_FILE}.normalized" "$FILES_FILE"
+
+          awk -v base_prefix="$BASE_OUT/" -v head_prefix="$HEAD_OUT/" '
+            {
+              gsub(base_prefix, "", $0)
+              gsub(head_prefix, "", $0)
+              print $0
+            }
+          ' "$DIFF_FILE" > "${DIFF_FILE}.normalized"
+          mv "${DIFF_FILE}.normalized" "$DIFF_FILE"
+
+          PR_CHANGED_FILE="$PR_CHANGED_FILE" TARGET_FILES="$TARGET_FILES" python - <<'PY'
+          import ast
+          import os
+          import re
+          from pathlib import Path
+
+          changed_file = Path(os.environ["PR_CHANGED_FILE"])
+          target_file = Path(os.environ["TARGET_FILES"])
+          repo_root = Path(".").resolve()
+
+          changed_paths = [line.strip() for line in changed_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+          targets = set()
+
+          def add_pb_module(parts):
+              if not parts:
+                  return
+              last = parts[-1]
+              if last.endswith("_pb2"):
+                  rel = "/".join(parts[:-1] + [f"{last}.py"])
+                  targets.add(rel)
+                  targets.add("/".join(parts[:-1] + [f"{last}.pyi"]))
+              elif last.endswith("_pb2_grpc"):
+                  targets.add("/".join(parts[:-1] + [f"{last}.py"]))
+
+          def add_hapi_module(module_name):
+              parts = module_name.split(".")
+              if "hapi" not in parts:
+                  return
+              idx = parts.index("hapi")
+              add_pb_module(parts[idx + 1 :])
+
+          def add_proto_rel_path(proto_rel):
+              rel_no_suffix = proto_rel[:-6] if proto_rel.endswith(".proto") else proto_rel
+              targets.add(f"{rel_no_suffix}_pb2.py")
+              targets.add(f"{rel_no_suffix}_pb2_grpc.py")
+              targets.add(f"{rel_no_suffix}_pb2.pyi")
+
+          for path_str in changed_paths:
+              path = Path(path_str)
+              if path_str.startswith(".protos/") and path.suffix == ".proto":
+                  rel = Path(path_str).relative_to(".protos").as_posix()
+                  add_proto_rel_path(rel)
+
+              if path_str.startswith("src/hiero_sdk_python/hapi/"):
+                  rel = Path(path_str).relative_to("src/hiero_sdk_python/hapi").as_posix()
+                  if rel.endswith((".py", ".pyi")):
+                      targets.add(rel)
+
+              if path.suffix != ".py":
+                  continue
+
+              abs_path = repo_root / path
+              if not abs_path.exists():
+                  continue
+
+              try:
+                  content = abs_path.read_text(encoding="utf-8")
+                  tree = ast.parse(content)
+              except Exception:
+                  continue
+
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      for alias in node.names:
+                          add_hapi_module(alias.name)
+                  elif isinstance(node, ast.ImportFrom):
+                      module = node.module or ""
+                      if module:
+                          add_hapi_module(module)
+                          parts = module.split(".")
+                          if "hapi" in parts:
+                              idx = parts.index("hapi")
+                              prefix = parts[idx + 1 :]
+                              for alias in node.names:
+                                  if alias.name != "*":
+                                      add_pb_module(prefix + [alias.name])
+
+              for match in re.finditer(r"\bhapi\.([A-Za-z0-9_\.]+_(?:pb2|pb2_grpc))\b", content):
+                  add_pb_module(match.group(1).split("."))
+
+          target_file.write_text("".join(f"{item}\n" for item in sorted(targets)), encoding="utf-8")
+          PY
+
+          scope_mode="full"
+          scope_reason="no reliable scoped protobuf mapping found"
+          force_full_scope="false"
+
+          if grep -Eq '^(generate_proto.py|pyproject.toml)$' "$PR_CHANGED_FILE"; then
+            force_full_scope="true"
+            scope_reason="generator or dependency manifest changed; full protobuf scope required"
+          fi
+
+          if [[ "$force_full_scope" != "true" && -s "$TARGET_FILES" ]]; then
+            grep -Fx -f "$TARGET_FILES" "$FILES_FILE" > "$SCOPED_FILES" || true
+
+            if [[ -s "$SCOPED_FILES" ]]; then
+              : > "$SCOPED_DIFF"
+              while IFS= read -r rel_path; do
+                [[ -z "$rel_path" ]] && continue
+                git --no-pager diff --no-index --src-prefix=base/ --dst-prefix=head/ \
+                  "$BASE_OUT/$rel_path" "$HEAD_OUT/$rel_path" >> "$SCOPED_DIFF" || true
+              done < "$SCOPED_FILES"
+
+              if [[ -s "$SCOPED_DIFF" ]]; then
+                mv "$SCOPED_FILES" "$FILES_FILE"
+                mv "$SCOPED_DIFF" "$DIFF_FILE"
+                scope_mode="targeted"
+                scope_reason="scoped to protobuf modules associated with changed files"
+              fi
+            else
+              scope_reason="derived scoped protobuf targets did not match generated diff; using full scope"
+            fi
+          fi
+
+          if [[ -s "$DIFF_FILE" ]]; then
+            echo "diff_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "diff_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          changed_file_count="$(grep -c . "$FILES_FILE" || true)"
+
+          echo "changed_file_count=$changed_file_count" >> "$GITHUB_OUTPUT"
+          echo "diff_file=$DIFF_FILE" >> "$GITHUB_OUTPUT"
+          echo "files_file=$FILES_FILE" >> "$GITHUB_OUTPUT"
+          echo "scope_mode=$scope_mode" >> "$GITHUB_OUTPUT"
+          echo "scope_reason=$scope_reason" >> "$GITHUB_OUTPUT"
+
+      - name: Add protobuf diff summary
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ steps.protobuf_diff.outputs.diff_exists }}" != "true" ]]; then
+            echo "No generated protobuf differences between base and head commits." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "Generated protobuf differences detected." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Base commit: \`${{ github.event.pull_request.base.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Head commit: \`${{ github.event.pull_request.head.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Changed generated files: ${{ steps.protobuf_diff.outputs.changed_file_count }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Scope mode: \`${{ steps.protobuf_diff.outputs.scope_mode }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Scope detail: ${{ steps.protobuf_diff.outputs.scope_reason }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "First changed generated files:" >> "$GITHUB_STEP_SUMMARY"
+
+          head -n 30 "${{ steps.protobuf_diff.outputs.files_file }}" | while IFS= read -r file; do
+            [[ -n "$file" ]] && echo "- \`$file\`" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Trigger CodeRabbit full review with protobuf diff context
+        if: >
+          steps.protobuf_diff.outputs.diff_exists == 'true' &&
+          github.event.pull_request.head.repo.fork == false
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PROTOBUF_DIFF_PATH: ${{ steps.protobuf_diff.outputs.diff_file }}
+          PROTOBUF_FILES_PATH: ${{ steps.protobuf_diff.outputs.files_file }}
+          PROTOBUF_SCOPE_MODE: ${{ steps.protobuf_diff.outputs.scope_mode }}
+          PROTOBUF_SCOPE_REASON: ${{ steps.protobuf_diff.outputs.scope_reason }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/pr-protobuf-coderabbit-review.js');
+            await script({ github, context });
