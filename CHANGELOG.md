@@ -22,7 +22,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+<<<<<<< HEAD
 - Added unit test and __repr__ for NftId class(#1627).
+=======
+- Exposed all missing fields from `TransactionRecord` protobuf (#1636)
+>>>>>>> bc9bbdb (address all mentioned issues on TransactionRecord)
 - Added CodeRabbit review instructions for the nodes module in `.coderabbit.yaml` (#1699)
 - Added CodeRabbit review instructions for the transaction module in `.coderabbit.yaml` (#1696)
 - Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
@@ -39,8 +43,23 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add `staking_info` field to `ContractInfo` class to expose staking metadata using the `StakingInfo` wrapper. (#1365)
 - Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
 - Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
+<<<<<<< HEAD
 - Improve `keccak256` docstring formatting for better readability and consistency (#1624)
+<<<<<<< HEAD
 - Added `wait_for_receipt` parameter for `Transaction.execute()` to support optional receipt waiting, and `get_receipt_query`, `get_record_query` and `get_record` to `TransactionResponse`.
+=======
+=======
+=======
+- 
+<<<<<<< HEAD
+=======
+- Exposed all missing fields from `TransactionRecord` protobuf (#1636)
+>>>>>>> 09b9903 (update CHANGELOG.md)
+>>>>>>> d27a39c (update CHANGELOG.md)
+=======
+>>>>>>> 01010a1 (address all mentioned issues on TransactionRecord)
+>>>>>>> bc9bbdb (address all mentioned issues on TransactionRecord)
+>>>>>>> 58e71aa (address all mentioned issues on TransactionRecord)
 
 ### Examples
 - Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)
@@ -114,7 +133,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
-- Exposed all missing fields from `TransactionRecord` protobuf (#1636)
 - Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
 - Added foundational guide for GitHub Workflows (#1741)
 - Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)

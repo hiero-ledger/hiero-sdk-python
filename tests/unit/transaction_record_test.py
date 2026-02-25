@@ -344,14 +344,14 @@ def test_repr_method(transaction_id):
     record_full = TransactionRecord(
         transaction_id=transaction_id,
         transaction_hash=b'\x01\x02\x03\x04',
-        transaction_memo="Test memo",
+        transaction_memo="Test transaction_memo",
         transaction_fee=100000,
         receipt=receipt,
     )
     repr_full = repr(record_full)
     assert f"transaction_id='{transaction_id}'" in repr_full
     assert "transaction_hash=b'\\x01\\x02\\x03\\x04'" in repr_full
-    assert "transaction_memo='Test memo'" in repr_full
+    assert "transaction_memo='Test transaction_memo'" in repr_full
     assert "transaction_fee=100000" in repr_full
     assert "receipt_status='SUCCESS'" in repr_full
     assert "duplicates_count=0" in repr_full
