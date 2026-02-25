@@ -931,6 +931,260 @@ reviews:
     - Accurately aligned with protobuf definitions
     - Validating inputs consistently
 
+  # ACCOUNT REVIEW INSTRUCTIONS
+  account_review_instructions: &account_review_instructions |
+    You are acting as a senior maintainer reviewing account-related code
+    in the hiero-sdk-python project.
+
+    This includes:
+    - Account transaction classes (AccountCreateTransaction, AccountUpdateTransaction,
+      AccountDeleteTransaction, AccountAllowanceApproveTransaction,
+      AccountAllowanceDeleteTransaction)
+    - Account queries (AccountRecordsQuery)
+    - Account data models (AccountId, AccountInfo, AccountBalance)
+
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when behavior, safety, API stability, or spec compliance
+      is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - Changes under src/hiero_sdk_python/account/
+    - Their interaction with shared SDK base classes (Transaction, Query)
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    (CONTRACTUAL / HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    Account APIs are public and user-facing.
+
+    The following MUST remain stable:
+    - Public class names, method names, and signatures
+    - Constructor and setter defaults
+    - Fluent setter chaining semantics (all setters MUST return self)
+    - Exception types and messages for invalid states
+
+    Known deprecation to preserve:
+    - AccountCreateTransaction.set_key() is deprecated in favor of set_key_without_alias()
+      and set_key_with_alias(). Callers of set_key() MUST still receive a DeprecationWarning
+      issued via warnings.warn(..., DeprecationWarning) — do not remove or silence it.
+    - Any new deprecation MUST use the same warnings.warn(..., DeprecationWarning) pattern.
+
+    Flag any change that:
+    - Removes or alters a deprecated method before a migration cycle is complete
+    - Changes default values or silent behaviors (e.g., declining_staking_reward defaults False)
+    - Renames or removes public attributes or setters
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — KEY ALIAS DUALITY (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    AccountCreateTransaction supports three distinct key-and-alias patterns:
+
+    - set_key_without_alias(key): sets key, clears any existing alias.
+    - set_key_with_alias(key, ecdsa_key=None): sets key, derives EVM alias from
+      ecdsa_key (if provided) or from key (must be ECDSA-capable; PrivateKey is
+      unwrapped to .public_key()).
+    - set_alias(alias): sets an EVM alias independently of the key.
+
+    Verify:
+    - set_key_without_alias() MUST clear self.alias = None
+    - set_key_with_alias() MUST derive alias via key.to_evm_address()
+    - PrivateKey inputs MUST be unwrapped to PublicKey before calling .to_evm_address()
+    - set_alias() MUST validate that the string form is exactly 20 bytes (40 hex chars)
+      after stripping the optional "0x" prefix; reject shorter/longer strings clearly
+    - alias bytes MUST be passed via alias_bytes not as raw EvmAddress object in proto body
+    - Ed25519 keys do NOT support EVM address derivation — flag if reviewer sees this path
+
+    Flag:
+    - Any change that silently allows a mix of alias=None and key_with_alias pattern
+    - Any change to alias length validation or the 0x-prefix stripping logic
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — STAKING ONEOF SENTINEL VALUES (CRITICAL)
+    ----------------------------------------------------------
+    Staking uses a protobuf oneOf (staked_account_id vs staked_node_id). Clearing one
+    field MUST set the correct network-understood sentinel, and MUST clear the other.
+
+    REQUIRED BEHAVIOUR:
+    - set_staked_account_id(None) → delegates to clear_staked_account_id() which sets
+      staked_account_id = AccountId(0, 0, 0) (the sentinel) and staked_node_id = None
+    - set_staked_node_id(None) → delegates to clear_staked_node_id() which sets
+      staked_node_id = -1 (the sentinel) and staked_account_id = None
+    - Setting a non-None value MUST clear the other field (oneOf exclusivity)
+
+    Verify:
+    - Both clear methods correctly communicate the sentinel to the protobuf body
+    - The proto body build code correctly distinguishes a cleared sentinel from "unset"
+    - max_automatic_token_associations: validate >= -1 (−1 = unlimited, 0 = none,
+      positive = explicit limit); raise ValueError for values < −1
+
+    Flag:
+    - Any change that allows both staked_account_id and staked_node_id to be non-None
+      simultaneously after a setter call
+    - Any change that treats the sentinel AccountId(0, 0, 0) as a normal account
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — ACCOUNTID IDENTITY FORMS (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    AccountId supports three mutually exclusive identity forms:
+
+    1. Numeric:      shard.realm.num (e.g., 0.0.12345)
+    2. Public key alias: alias bytes derived from a public key (bytes, 32–34 bytes)
+    3. EVM alias:    20-byte EVM address (stored in self.evm_address)
+
+    Parsing rules:
+    - from_string("shard.realm.num") → numeric form
+    - from_string("shard.realm.alias") with hex alias → alias or EVM form
+    - from_evm_address(addr, shard, realm) → EVM alias form with num=0
+    - _from_proto(AccountID) → inspect alias bytes length:
+        20 bytes → EvmAddress → set evm_address, keep num=0
+        32–34 bytes → public key alias → not yet materialized
+        empty alias → numeric form only
+
+    Verify:
+    - populate_account_num(client) correctly calls the mirror-node API and updates num
+    - populate_evm_address(client) correctly calls the mirror-node API and updates evm_address
+    - _to_proto() correctly serializes alias bytes when an alias is present
+    - HasField("accountID") alone is sufficient to determine presence — do NOT add
+      num != 0 guards that would reject alias-based accounts (see issue #1849)
+
+    Flag:
+    - Any num != 0 guard applied to accountID fields in TransactionReceipt or AccountInfo
+    - Any confusion between evm_address and alias bytes in proto serialization
+    - Missing or incorrect alias-length branching in _from_proto
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — ALLOWANCE TRANSACTION SEMANTICS (HIGH SENSITIVITY)
+    ----------------------------------------------------------
+    AccountAllowanceApproveTransaction manages three independent allowance collections.
+
+    Deduplication rules (REQUIRED):
+    - approve_token_nft_allowance() and approve_token_nft_allowance_with_delegating_spender():
+      If an existing entry matches (token_id + spender_account_id), append the serial_number
+      to the existing list rather than creating a duplicate entry.
+    - approve_token_nft_allowance_all_serials(): If an existing entry matches, update
+      serial_numbers = [] and approved_for_all = True on that entry.
+    - delete_token_nft_allowance_all_serials(): Appends a revocation sentinel; does NOT
+      remove from the allowance list — it creates a TokenNftAllowance with approved_for_all=False.
+
+    Verify:
+    - Zero-amount HBAR or token allowance REMOVES the spender's allowance on-network;
+      this is an intentional pattern and should be documented, not considered a bug.
+    - Owner field may be None in add_all_token_nft_approval — implies the transaction
+      payer owns the tokens; this is valid and MUST be preserved.
+    - NFT deduplication logic correctly checks token_id equality and spender_account_id
+      equality before appending or creating a new entry.
+
+    Flag:
+    - Any change that skips deduplication and creates duplicate NFT allowance entries
+    - Any change that converts zero-amount to a no-op or raises an error
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — PROTO WRAPPER NULLABILITY (MEDIUM SENSITIVITY)
+    ----------------------------------------------------------
+    AccountUpdateTransaction uses Google protobuf wrapper types to distinguish
+    "field unchanged" from "field explicitly set to a value" (including zero/false).
+
+    Required wrappers:
+    - account_memo → StringValue(value=...) when non-None; omit when None
+    - receiver_signature_required → BoolValue(value=...) when non-None; omit when None
+    - max_automatic_token_associations → Int32Value(value=...) when non-None; omit when None
+    - decline_staking_reward → BoolValue(value=...) when non-None; omit when None
+    - key → unwrapped proto key via _to_proto(); omit when None
+
+    Verify:
+    - None fields are correctly omitted from the protobuf body (not sent as zero/false)
+    - Wrapper types are NOT used in AccountCreateTransaction (uses plain proto fields)
+    - No accidental omission of a wrapper causes silent field resets on update
+
+    Flag:
+    - Any field that should use a wrapper but passes a raw value (risks silent false/0 reset)
+    - Any field that incorrectly uses a wrapper in AccountCreateTransaction
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — TRANSACTION LIFECYCLE COMPLIANCE
+    ----------------------------------------------------------
+    All account transaction classes MUST inherit from Transaction and follow its contract.
+
+    REQUIRED STRUCTURE:
+    - super().__init__() called in __init__()
+    - All setters MUST call self._require_not_frozen() before any mutation
+    - All setters MUST return self for fluent chaining
+    - Must implement: _build_proto_body(), build_transaction_body(), _get_method()
+    - build_scheduled_body() must be implemented and correct
+    - _get_method() MUST reference the correct Hedera crypto service stub:
+        createAccount, updateAccount, deleteAccount, approveAllowances, deleteAllowances
+    - AccountDeleteTransaction REQUIRES both account_id (target) and transfer_account_id
+      before building the proto body — raise ValueError if either is missing
+
+    Subclasses MUST NOT:
+    - Override execution, retry, or backoff logic
+    - Manage gRPC deadlines manually
+    - Bypass Transaction lifecycle hooks
+
+    Default transaction fees:
+    - AccountCreateTransaction: Hbar(3).to_tinybars()
+    - AccountAllowanceApproveTransaction: Hbar(1).to_tinybars()
+
+    Flag deviations that change observable behavior.
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — ACCOUNTINFO & ACCOUNTBALANCE DESERIALIZATION
+    ----------------------------------------------------------
+    AccountInfo._from_proto() must faithfully round-trip all fields.
+
+    Verify:
+    - staking_info is processed only when proto.HasField('staking_info') is True
+    - staked_account_id is parsed only when staking_info.HasField('staked_account_id')
+    - staked_node_id is parsed only when staking_info.HasField('staked_node_id')
+    - decline_reward maps to decline_staking_reward (field name differs from proto)
+    - proxy_received: deprecated Hedera field; deserialization should not raise errors
+    - max_automatic_token_associations: map directly from proto without defaults
+    - token_relationships list: each entry must be converted via TokenRelationship._from_proto()
+    - AccountBalance should correctly represent HBAR value in Hbar wrapping tinybars
+
+    Flag:
+    - Missing HasField guards on oneOf staking fields (could cause incorrect None vs 0)
+    - Silent omission of any proto field during serialization or deserialization
+    - Inconsistencies between _from_proto() and _to_proto() round-trip fidelity
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 9 — TEST & EXAMPLE EXPECTATIONS
+    ----------------------------------------------------------
+    Good to check whether:
+    - Unit tests cover all setter paths including freeze guard and fluent return value
+    - Unit tests cover key alias duality (set_key_with_alias, set_key_without_alias,
+      set_alias with both EvmAddress and str inputs and invalid inputs)
+    - Unit tests cover staking oneOf and sentinel values
+    - Unit tests cover allowance deduplication logic
+    - Unit tests cover proto wrapper nullability gaps
+    - Integration tests cover auto-account creation via EVM transfer and child receipt
+      account_id access
+    - Examples use correct transaction lifecycle: construct → freeze_with → sign → execute
+
+    Missing coverage for the domain-specific concerns above should be flagged clearly.
+
+    ----------------------------------------------------------
+    EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Propose refactors unless they directly improve safety, correctness, or API stability
+    - Review components outside of src/hiero_sdk_python/account/
+    - Suggest generic improvements unrelated to the PR's stated scope
+    - Comment on formatting or linting issues
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure account code is:
+    - Backward-compatible with stable key and staking APIs
+    - Key-alias-correct (no mixed alias state, correct EVM derivation)
+    - Protobuf-aligned with Hedera account protobufs
+    - Staking-oneOf-safe (sentinels correct, mutual exclusivity enforced)
+    - Allowance-deduplicated and spec-compliant
+    - Deterministic, validated, and user-protective
+
   # ============================================================
   # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
   # ============================================================
@@ -1424,6 +1678,10 @@ reviews:
       instructions: *node_review_instructions
     - path: "src/hiero_sdk_python/file/**/*.py"
       instructions: *file_review_instructions
+
+    # Account module — core account lifecycle, allowances, identity, and staking
+    - path: "src/hiero_sdk_python/account/**/*.py"
+      instructions: *account_review_instructions
 
 chat:
   art: false # Don't draw ASCII art (false)
