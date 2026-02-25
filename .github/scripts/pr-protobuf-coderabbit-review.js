@@ -66,7 +66,8 @@ async function hasExistingTriggerComment(github, owner, repo, issueNumber, marke
           return true;
         }
         if (scanned >= MAX_COMMENTS_TO_SCAN) {
-          return false;
+          // Scan is intentionally bounded. Prefer fail-closed to avoid duplicate trigger comments.
+          return true;
         }
       }
     }
@@ -78,7 +79,8 @@ async function hasExistingTriggerComment(github, owner, repo, issueNumber, marke
       repo,
       issueNumber,
     });
-    return false;
+    // On API errors, fail-closed to avoid posting duplicate trigger comments.
+    return true;
   }
 
   return false;

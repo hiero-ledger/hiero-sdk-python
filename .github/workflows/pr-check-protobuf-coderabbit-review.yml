@@ -26,6 +26,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -201,8 +202,24 @@ jobs:
               : > "$SCOPED_DIFF"
               while IFS= read -r rel_path; do
                 [[ -z "$rel_path" ]] && continue
+
+                base_file="$BASE_OUT/$rel_path"
+                head_file="$HEAD_OUT/$rel_path"
+
+                if [[ ! -e "$base_file" && ! -e "$head_file" ]]; then
+                  continue
+                fi
+
+                if [[ ! -e "$base_file" ]]; then
+                  base_file="/dev/null"
+                fi
+                if [[ ! -e "$head_file" ]]; then
+                  head_file="/dev/null"
+                fi
+
                 git --no-pager diff --no-index --src-prefix=base/ --dst-prefix=head/ \
-                  "$BASE_OUT/$rel_path" "$HEAD_OUT/$rel_path" >> "$SCOPED_DIFF" || true
+                  --label "base/$rel_path" --label "head/$rel_path" \
+                  "$base_file" "$head_file" >> "$SCOPED_DIFF" || true
               done < "$SCOPED_FILES"
 
               if [[ -s "$SCOPED_DIFF" ]]; then
