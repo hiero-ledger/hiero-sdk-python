@@ -92,10 +92,7 @@ class TransactionReceipt:
         Returns:
             AccountId or None: The AccountId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("accountID")
-            and self._receipt_proto.accountID.accountNum != 0
-        ):
+        if self._receipt_proto.HasField("accountID"):
             return AccountId._from_proto(self._receipt_proto.accountID)
         return None
 
