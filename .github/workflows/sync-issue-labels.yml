@@ -16,18 +16,18 @@ on:
         default: true
 
 permissions:
-  pull-requests: write
+  pull-requests: read
   issues: read
   contents: read
 
 jobs:
-  sync-issue-labels:
+  compute-labels:
     runs-on: ubuntu-latest
-
-    concurrency:
-      group: sync-issue-labels-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
-      cancel-in-progress: true
-
+    outputs:
+      has_labels: ${{ steps.compute.outputs.has_labels }}
+      labels: ${{ steps.compute.outputs.labels }}
+      pr_number: ${{ steps.compute.outputs.pr_number }}
+      dry_run: ${{ steps.compute.outputs.dry_run }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -39,13 +39,53 @@ jobs:
         with:
           ref: main
 
-      - name: Sync linked issue labels to PR
+      - name: Compute linked issue labels
+        id: compute
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
+          result-encoding: json
           script: |
             const script = require('./.github/scripts/sync-issue-labels.js');
-            await script({ github, context, core });
+            const result = await script({ github, context });
+            const labels = result?.labels || [];
+            const hasLabels = labels.length > 0;
+            console.log('Computed labels:', JSON.stringify({ hasLabels, labels, pr_number: process.env.PR_NUMBER, dry_run: process.env.DRY_RUN }));
+            return {
+              has_labels: hasLabels,
+              labels: labels,
+              pr_number: process.env.PR_NUMBER,
+              dry_run: process.env.DRY_RUN
+            };
+
+      - name: Upload labels artifact
+        if: steps.compute.outputs.has_labels == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f436390c0e # v4.6.2
+        with:
+          name: pr-labels
+          path: labels.json
+          retention-days: 1
+
+  trigger-add-labels:
+    needs: compute-labels
+    if: needs.compute-labels.outputs.has_labels == 'true' && needs.compute-labels.outputs.dry_run != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download labels artifact
+        uses: actions/download-artifact@ea165f8d65b6e75b540449e92b4886f436390c0e # v4.6.2
+        with:
+          name: pr-labels
+
+      - name: Read labels
+        id: read
+        run: |
+          echo "labels=$(cat labels.json)" >> $GITHUB_OUTPUT
+
+      - name: Add labels to PR
+        uses: dblock/github-actions-ecosystem-add-labels@4e5ec2f3a319f5c22b8e6f45d6438fd1b3c9317a # v1.0.0
+        with:
+          labels: ${{ fromJson(steps.read.outputs.labels) }}
+          pr_number: ${{ needs.compute-labels.outputs.pr_number }}
