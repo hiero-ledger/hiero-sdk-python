@@ -343,8 +343,7 @@ class FileAppendTransaction(Transaction):
             TransactionResponse: If wait_for_receipt is False
         """
         # Return the first response (as per JavaScript implementation)
-        responses = self.execute_all(client, timeout, wait_for_receipt)
-        return responses[0] if responses else None
+        return self.execute_all(client, timeout, wait_for_receipt)[0]
         
     def execute_all(
         self,

@@ -1,6 +1,7 @@
 from unittest.mock import patch, MagicMock
 import pytest
 
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2, transaction_receipt_pb2, transaction_response_pb2
@@ -291,3 +292,39 @@ def test_file_append_tx_execute_all_with_wait_for_receipt(file_id):
         assert isinstance(responses, list)
         assert isinstance(responses[0], TransactionReceipt)
 
+def test_file_append_tx_execute_throw_error_when_transaction_fails(file_id):
+    """Test execute tx should throw error if transaction fails."""
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.INSUFFICIENT_TX_FEE
+    )
+
+    response_sequence = [tx_response]
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents("Hello Hiero")
+            .freeze_with(client)
+        )
+
+        with pytest.raises(PrecheckError, match="Transaction failed precheck"):
+          tx.execute(client)
+
+
+def test_file_append_tx_execute_all_throw_error_when_transaction_fails(file_id):
+    """Test execute_all tx should throw error if transaction fails."""
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.INSUFFICIENT_TX_FEE
+    )
+
+    response_sequence = [tx_response]
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            FileAppendTransaction()
+            .set_file_id(file_id)
+            .set_contents("Hello Hiero")
+            .freeze_with(client)
+        )
+
+        with pytest.raises(PrecheckError, match="Transaction failed precheck"):
+          tx.execute_all(client)
