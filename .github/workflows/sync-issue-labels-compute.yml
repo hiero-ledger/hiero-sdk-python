@@ -1,0 +1,71 @@
+name: Compute Linked Issue Labels
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to sync labels for"
+        required: true
+        type: number
+      dry_run:
+        description: "Dry run (log only, do not apply labels)"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  pull-requests: read
+  issues: read
+  contents: read
+
+jobs:
+  compute-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: main
+
+      - name: Compute linked issue labels
+        id: compute
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          result-encoding: json
+          script: |
+            const script = require('./.github/scripts/sync-issue-labels.js');
+            const result = await script({ github, context });
+            const labels = result?.labels || [];
+            const hasLabels = labels.length > 0;
+            console.log('Computed labels:', JSON.stringify({ hasLabels, labels, pr_number: process.env.PR_NUMBER, dry_run: process.env.DRY_RUN }));
+            return {
+              has_labels: hasLabels,
+              labels: labels,
+              pr_number: process.env.PR_NUMBER,
+              dry_run: process.env.DRY_RUN
+            };
+
+      - name: Upload labels as artifact
+        if: steps.compute.outputs.has_labels == 'true'
+        run: |
+          echo '${{ steps.compute.outputs.labels }}' > labels.json
+        shell: bash
+
+      - name: Upload labels artifact
+        if: steps.compute.outputs.has_labels == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f436390c0e # v4.6.2
+        with:
+          name: pr-labels-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          path: labels.json
+          retention-days: 1
