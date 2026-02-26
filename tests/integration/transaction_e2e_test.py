@@ -26,7 +26,7 @@ def create_transaction():
 
 
 @pytest.mark.integration
-def test_execute_waits_for_receipt_receipt(env):
+def test_execute_waits_for_receipt(env):
     """Test execute return TransactionReceipt when wait_for_receipt is True (default)."""
     tx = create_transaction()
     # Default value for wait_for_receipt = True
@@ -166,8 +166,8 @@ def test_get_record_vs_query_returns_same_record(env):
     assert record_via_response.transaction_hash == record_via_query.transaction_hash
 
 @pytest.mark.integration
-def test_chuck_tx_returns_responses_without_wait_for_receipt(env):
-    """Test chunck transaction return only response when execute without wait for receipt."""
+def test_chunk_tx_returns_responses_without_wait_for_receipt(env):
+    """Test chunk transaction return only response when execute without wait for receipt."""
     topic_receipt = TopicCreateTransaction(memo="Python SDK topic").execute(env.client)
     assert topic_receipt.status == ResponseCode.SUCCESS, (
         f"Topic creation failed: {ResponseCode(topic_receipt.status).name}"
@@ -176,7 +176,7 @@ def test_chuck_tx_returns_responses_without_wait_for_receipt(env):
     topic_id = topic_receipt.topic_id
     message = "A" * (1024 * 14) # message with (1024 * 14) bytes ie 14 chunks
 
-    # Create a chuck transaction
+    # Create a chunk transaction
     message_tx = (
         TopicMessageSubmitTransaction()
         .set_topic_id(topic_id)
@@ -196,15 +196,15 @@ def test_chuck_tx_returns_responses_without_wait_for_receipt(env):
         message_receipt = response.get_receipt(env.client)
         assert message_receipt.status == ResponseCode.SUCCESS
 
-    # Validates all chucks has been send
+    # Validates all chunks has been send
     info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
     assert info.sequence_number == 14
 
 
 
 @pytest.mark.integration
-def test_chuck_tx_returns_receipts_with_wait_for_receipt(env):
-    """Test chunck transaction return only receipts when execute with wait for receipt."""
+def test_chunk_tx_returns_receipts_with_wait_for_receipt(env):
+    """Test chunk transaction return only receipts when execute with wait for receipt."""
     topic_receipt = TopicCreateTransaction(memo="Python SDK topic").execute(env.client)
     assert topic_receipt.status == ResponseCode.SUCCESS, (
         f"Topic creation failed: {ResponseCode(topic_receipt.status).name}"
@@ -213,7 +213,7 @@ def test_chuck_tx_returns_receipts_with_wait_for_receipt(env):
     topic_id = topic_receipt.topic_id
     message = "A" * (1024 * 14) # message with (1024 * 14) bytes ie 14 chunks
 
-    # Create a chuck transaction
+    # Create a chunk transaction
     message_tx = (
         TopicMessageSubmitTransaction()
         .set_topic_id(topic_id)
@@ -230,7 +230,7 @@ def test_chuck_tx_returns_receipts_with_wait_for_receipt(env):
     for receipt in message_receipt:
         assert receipt.status == ResponseCode.SUCCESS
 
-    # Validates all chucks has been send
+    # Validates all chunks has been send
     info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
     assert info.sequence_number == 14
 

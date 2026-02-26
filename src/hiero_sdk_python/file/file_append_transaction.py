@@ -334,7 +334,7 @@ class FileAppendTransaction(Transaction):
         
         Args:
             client: The client to execute the transaction with.
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (Optional[bool]): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
             
@@ -351,7 +351,7 @@ class FileAppendTransaction(Transaction):
         client: "Client",
         timeout: Optional[Union[int, float]] = None,
         wait_for_receipt: Optional[bool] = True
-    ) -> Union["TransactionReceipt", "TransactionResponse"]:
+    ) -> Union[List["TransactionReceipt"], List["TransactionResponse"]]:
         """
         Executes the file append transaction.
         
@@ -359,7 +359,7 @@ class FileAppendTransaction(Transaction):
         
         Args:
             client: The client to execute the transaction with.
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (Optional[bool]): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
             

@@ -113,7 +113,9 @@ def test_get_record_executes_and_returns_record(transaction_response):
     ]
 
     with mock_hedera_servers(record_response) as client:
-        record = transaction_response.get_record(client)
+        result = transaction_response.get_record(client)
 
-        assert isinstance(record, TransactionRecord)
-        assert record.receipt.status == ResponseCode.SUCCESS
+        assert isinstance(result, TransactionRecord)
+        assert result.receipt.status == ResponseCode.SUCCESS
+        assert result.transaction_fee == record.transactionFee
+        assert result.transaction_memo == record.memo

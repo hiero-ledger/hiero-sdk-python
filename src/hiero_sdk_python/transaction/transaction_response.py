@@ -79,7 +79,7 @@ class TransactionResponse:
     
     def get_record(self, client: "Client", timeout: Optional[Union[int, float]] = None) -> "TransactionRecord":
         """
-        Retrieve the transaction record from the Hedera network.
+        Retrieve the transaction record from the network.
 
         Args:
             client (Client): The client instance used to execute the query.
