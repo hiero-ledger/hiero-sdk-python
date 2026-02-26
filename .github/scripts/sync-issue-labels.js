@@ -116,9 +116,11 @@ async function collectLabelsFromLinkedIssues({ github, owner, repo, linkedIssueN
 }
 
 // Computes which labels should be added to the PR (missing from PR but present in issues).
+// Returns both labelsToAdd and prLabelNames for logging purposes.
 function computeLabelsToAdd(prData, labelsFromIssues) {
   const prLabelNames = new Set(normalizeLabelNames(prData?.labels || []));
-  return [...labelsFromIssues].filter((label) => !prLabelNames.has(label));
+  const labelsToAdd = [...labelsFromIssues].filter((label) => !prLabelNames.has(label));
+  return { labelsToAdd, prLabelNames };
 }
 
 // Adds labels to the pull request via GitHub API.
@@ -134,7 +136,7 @@ async function addLabelsToPullRequest({ github, owner, repo, prNumber, labelsToA
 }
 
 // Main entry point: syncs labels from linked issues to the PR.
-module.exports = async ({ github, context }) => {
+module.exports = async ({ github, context, core }) => {
   const { prNumber, isDryRun, owner, repo } = resolveExecutionContext(context);
 
   if (!prNumber) {
@@ -176,8 +178,7 @@ module.exports = async ({ github, context }) => {
     return;
   }
 
-  const labelsToAdd = computeLabelsToAdd(prData, labelsFromIssues);
-  const prLabelNames = new Set(normalizeLabelNames(prData?.labels || []));
+  const { labelsToAdd, prLabelNames } = computeLabelsToAdd(prData, labelsFromIssues);
 
   console.log(
     `[sync-issue-labels] Existing PR labels: ${
