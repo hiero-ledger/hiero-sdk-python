@@ -159,7 +159,7 @@ module.exports = async ({ github, context, core }) => {
 
   if (skipResult.skip) {
     console.log(`[sync-issue-labels] ${skipResult.reason}`);
-    return;
+    return { labels: [] };
   }
 
   console.log(
@@ -175,7 +175,7 @@ module.exports = async ({ github, context, core }) => {
 
   if (!labelsFromIssues.size) {
     console.log("[sync-issue-labels] No labels found on linked issues. Nothing to sync.");
-    return;
+    return { labels: [] };
   }
 
   const { labelsToAdd, prLabelNames } = computeLabelsToAdd(prData, labelsFromIssues);
@@ -191,12 +191,12 @@ module.exports = async ({ github, context, core }) => {
 
   if (!labelsToAdd.length) {
     console.log("[sync-issue-labels] PR already contains all labels from linked issues.");
-    return;
+    return { labels: [] };
   }
 
   if (isDryRun) {
     console.log(`[sync-issue-labels] DRY_RUN enabled; would add labels: ${labelsToAdd.join(", ")}`);
-    return;
+    return { labels: labelsToAdd };
   }
 
   try {
@@ -206,4 +206,6 @@ module.exports = async ({ github, context, core }) => {
       `[sync-issue-labels] Failed to add labels to PR #${prNumber}: ${error?.message || error}`
     );
   }
+
+  return { labels: labelsToAdd };
 };
