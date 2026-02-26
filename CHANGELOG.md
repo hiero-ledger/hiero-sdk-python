@@ -1,10 +1,63 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
+### Added
+
+- Added CodeRabbit review instructions for the nodes module in `.coderabbit.yaml` (#1699)
+- Added CodeRabbit review instructions for the transaction module in `.coderabbit.yaml` (#1696)
+- Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
+- Added advanced code review prompts for the `src/hiero_sdk_python/file` module in `.coderabbit.yaml` to guide reviewers in verifying proper `FileAppendTransaction` chunking constraints and nuances in memo handling for `FileUpdateTransaction` according to Hiero SDK best practices. (#1697)
+- Added workflow and bot script to automatically sync labels from linked issues to pull requests. (#1716)
+
+### Fixed
+
+- Fixed duplication in GitHub bot next issue recommendations by parsing actual issue descriptions instead of blind truncation (#1658)
+
+### Src
+- Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
+- 
+
+### Examples
+- Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)
+
+- Refactored contract_delete_transaction example to use Client.from_env. (#1823)
+
+### Docs
+
+- docs: Improving formatting will make the pull request process clearer. (`#1858`)
+- Added Python compatibility badge to README for improved visibility of supported versions (#1830)
+- Fixed Test Improvements header formatting in Good First Issue guidelines by adding missing space before parenthetical and removing stray bold marker (#1829)
+- Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
+- chore: update office hours and community calls to use direct links (`#1804`)
+- docs: create workflow best practices guide (`docs/workflows/03-workflow-best-practices.md`) (`#1743`)
+- Fixed broken `MAINTAINERS.md` relative link in `docs/sdk_developers/bug.md` by using the repository-root GitHub URL. (#1666)
+- docs(setup): specify unit tests for local setup verification. (#1856)
+
+
+
+### Tests
+- Format `tests/unit/endpoint_test.py` using black. (`#1792`)
+- Implement TCK JSON-RPC server with request handling and error management
+
+### .github
+- Added triage members max assignment is protected from being a mentor in `.github/scripts/bot-assignment-check.sh`. (#1718)
+- Revert PythonBot workflow to restore previous stable behavior. (#1825)
+- Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
+- Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
+- Reverted PR #1739 checking assignment counts
+- chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
+- Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
+- Added workflow and bot script to automatically sync labels from linked issues to pull requests. (#1716)
+- Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
+- Updated CodeRabbit workflow and script review instructions to nudge higher-quality patterns without imposing rigid rules (`#1799`)
+- Added hiero-sdk-js to the next issue recommendation bot (`#1847`)
+
+## [0.2.0] - 2026-11-02
 
 ### Tests
 - Format `tests/unit/crypto_utils_test.py` with black for code style consistency (#1524)
@@ -33,6 +86,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+- Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
 - Added foundational guide for GitHub Workflows (#1741)
 - Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
 - Added new members to the mentor roster. (#1693)
@@ -152,18 +206,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
 - Added `grpc_deadline` support for transaction and query execution.
 - Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
-- Added `__eq__` and `__hash__` functions for Keys.
+- Added `__eq__` and `__hash__` functions for Key
 
 ### Documentation
+- Added `docs/workflows/02-architecture.md`: explains the orchestration (YAML) vs. business logic (JS) separation pattern for GitHub workflows (#1742)
 - Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
 - Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
+- Reduced linting errors in `examples/` directory by 80% (952 → 185) by fixing docstring formatting, import ordering, and applying auto-fixes (#1768)
 - Improved bot message formatting in LinkBot to display issue linking format as a code block for better clarity (#1762)
 - Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
 - Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)
-- Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
 - Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
 - Added missing return type `src/hiero_sdk_python/utils/entity_id_helper.py`. (#1622)
 - Update `verify_freeze()` to treat only ACCOUNT_FROZEN_FOR_TOKEN as a successful freeze verification (#1515)
@@ -260,13 +315,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
 - chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
+- Changed `TransactionResponse.get_receipt()` so now pins receipt queries to the submitting node via `set_node_account_ids()` ([#1686](https://github.com/hiero-ledger/hiero-sdk-python/issues/1686))
 - chore: clarify wording in the bot-assignment-check.sh (#1748)
 - Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
 
-
+   
 ### Fixed
+- Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
 - Corrected broken documentation links in SDK developer training files.(#1707)
-- Fixed assignment limit check to only count issues (not PRs) towards the maximum 2 concurrent assignments, allowing users to be assigned to PRs without affecting their issue assignment capacity. (#1717)
 - Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
