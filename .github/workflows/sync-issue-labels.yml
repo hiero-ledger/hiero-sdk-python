@@ -16,8 +16,8 @@ on:
         default: true
 
 permissions:
-  pull-requests: read
-  issues: write
+  pull-requests: write
+  issues: read
   contents: read
 
 jobs:
