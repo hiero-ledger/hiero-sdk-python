@@ -41,6 +41,8 @@ eth = [
     "rlp>=4.0.1,<5",
 ]
 
+tck = ["flask>=3.0.0,<4"]
+
 [dependency-groups]
 dev = [
     "grpcio-tools>=1.76.0,<2",
