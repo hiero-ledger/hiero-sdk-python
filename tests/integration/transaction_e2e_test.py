@@ -2,6 +2,7 @@ import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
+from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
@@ -200,6 +201,7 @@ def test_chunk_tx_returns_responses_without_wait_for_receipt(env):
     info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
     assert info.sequence_number == 14
 
+    TopicDeleteTransaction().set_topic_id(topic_id).execute(env.client)
 
 
 @pytest.mark.integration
@@ -233,4 +235,6 @@ def test_chunk_tx_returns_receipts_with_wait_for_receipt(env):
     # Validates all chunks has been send
     info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
     assert info.sequence_number == 14
+
+    TopicDeleteTransaction().set_topic_id(topic_id).execute(env.client)
 
