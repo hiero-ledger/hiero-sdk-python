@@ -2,8 +2,9 @@
 This module implements the TransactionRecord class which represents a complete record
 of a transaction executed on the Hiero network. It serves as a comprehensive data
 structure that captures all aspects of a transaction's execution and its effects.
+
 The module provides functionality to:
-- Store and access detailed transaction metadata (ID, hash, transaction_memo, fees)
+- Store and access detailed transaction metadata (ID, hash, memo, fees)
 - Track various types of asset transfers:
   * HBAR cryptocurrency transfers between accounts
   * Fungible token transfers with amounts
@@ -12,10 +13,11 @@ The module provides functionality to:
 - Process airdrop records for token distributions
 - Manage pseudo-random number generation (PRNG) outputs
 - Convert between Hiero's internal representation and protobuf messages
+
 """
+
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import DefaultDict, List, Optional, Tuple
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
@@ -35,155 +37,149 @@ from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 class TransactionRecord:
     """
     Represents a record of a completed transaction on the Hiero network.
-    This class captures comprehensive information about a transaction's execution,
-    including metadata, HBAR and token transfers, contract results, staking rewards,
-    custom fees, pending airdrops, PRNG outputs, and scheduling information.
+    This class combines detailed information about the a transaction including the
+    transaction ID, receipt, token and NFT transfers, fees & other
+    metadata such as pseudo-random number generation(PRNG) results and 
+    pending airdrop records.
 
     Attributes:
-        transaction_id: The unique identifier of the transaction.
-        transaction_hash: The raw SHA-384 hash of the signed transaction bytes.
-        transaction_memo: Optional text transaction_memo attached to the transaction.
-        transaction_fee: Total network fee charged (in tinybars).
-        receipt: Summary of transaction outcome (status, account & file IDs created, etc.).
-        call_result: Result of a ContractCall transaction (if applicable).
-        contract_create_result: Result of a ContractCreate transaction (if applicable).
-        token_transfers: Fungible token movements (token → account → amount).
-        nft_transfers: Non-fungible token (NFT) movements (token → list of serial transfers).
-        transfers: HBAR / account balance changes (account → net amount in tinybars).
-        new_pending_airdrops: A list of pending token airdrops.
-        prng_number: 32-bit pseudo-random number (if PRNG service was used).
-        prng_bytes: Variable-length pseudo-random bytes (if PRNG service was used).
-        consensus_timestamp: A consensus timestamp. (This SHALL be null if the transaction did not reach consensus yet.)
-        parent_consensus_timestamp: A consensus timestamp for a child record. (This SHALL be the consensus timestamp of a user transaction that spawned an internal child transaction.)
-        schedule_ref: A schedule reference. (The reference to a schedule ID for the schedule that initiated this transaction, if this transaction record represents a scheduled transaction.)
-        assessed_custom_fees: A list of all custom fees that were assessed during a CryptoTransfer. (These SHALL be paid if the transaction status resolved to SUCCESS.)
-        automatic_token_associations: Token associations automatically created.
-        alias: EVM-style alias bytes (usually for account creation via ECDSA key).
-        ethereum_hash: 32-byte hash used in Ethereum-compatible transaction format.
-        evm_address: 20-byte EVM-compatible address (if created or referenced).
-        paid_staking_rewards: A list of staking rewards paid. (This SHALL be a list of accounts with the corresponding staking rewards paid as a result of this transaction.)
+        transaction_id (Optional[TransactionId]):         The unique identifier of the transaction.
+        transaction_hash (Optional[bytes]):               The raw hash of the transaction as recorded on-chain.
+        transaction_memo (Optional[str]):                 A text memo associated with the transaction.
+        transaction_fee (Optional[int]):                  The total network fee (in tinybars) charged for the transaction.
+        receipt (Optional[TransactionReceipt]):           The receipt summarizing the outcome and status of the transaction.
+        call_result (Optional[ContractFunctionResult]):   The result of a contract call if the transaction was a smart contract execution.
+        token_transfers (defaultdict[TokenId, defaultdict[AccountId, int]]): 
+                                                          A mapping of token IDs to account-level transfer amounts. 
+                                                          Represents fungible token movements within the transaction.                                        
+        nft_transfers (defaultdict[TokenId, list[TokenNftTransfer]]): 
+                                                          A mapping of token IDs to lists of NFT transfers for that token.
+        transfers (defaultdict[AccountId, int]):          A mapping of account IDs to hbar transfer amounts (positive for credit, negative for debit).
+        new_pending_airdrops (list[PendingAirdropRecord]):A list of new airdrop records created by this transaction.
+            
+        prng_number (Optional[int]):                      A pseudo-random integer generated by the network (if applicable).
+        prng_bytes (Optional[bytes]):                     A pseudo-random byte array generated by the network (if applicable).
+        duplicates (list[TransactionRecord]):             A list of duplicate transaction records returned when queried
+                                                          with include_duplicates=True. Empty by default.
+        consensus_timestamp (Timestamp | None):           The consensus timestamp of the transaction.
+        schedule_ref (ScheduleId | None):                 Reference to the schedule that triggered this transaction (if scheduled).
+        assessed_custom_fees (list[AssessedCustomFee]):   Custom fees assessed during the transaction.
+        automatic_token_associations (list[TokenAssociation]):Token associations automatically created during the transaction.
+        parent_consensus_timestamp (Timestamp | None):    The consensus timestamp of the parent transaction (for child transactions).
+        alias (bytes | None):                             The alias of a newly created account (if applicable).
+        ethereum_hash (bytes | None):                     The Ethereum hash for EVM-compatible transactions.
+        paid_staking_rewards (list[tuple[AccountId, int]]):Staking rewards paid out during this transaction.
+        evm_address (bytes | None):                       The EVM address derived from the account.
+        contract_create_result (ContractFunctionResult | None):The result of a contract creation if applicable.
     """
-    transaction_id: Optional[TransactionId] = None
-    transaction_hash: Optional[bytes] = None
-    transaction_memo: Optional[str] = None
-    transaction_fee: Optional[int] = None
-    receipt: Optional[TransactionReceipt] = None
-    call_result: Optional[ContractFunctionResult] = None
-    contract_create_result: Optional[ContractFunctionResult] = None
-    token_transfers: DefaultDict[
-        TokenId, DefaultDict[AccountId, int]
-    ] = field(default_factory=lambda: defaultdict(lambda: defaultdict(int)))
-    nft_transfers: DefaultDict[
-        TokenId, List[TokenNftTransfer]
-    ] = field(default_factory=lambda: defaultdict(list))
-    transfers: DefaultDict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
-    new_pending_airdrops: List[PendingAirdropRecord] = field(default_factory=list)
-    prng_number: Optional[int] = None
-    prng_bytes: Optional[bytes] = None
-    consensus_timestamp: Optional[Timestamp] = None
-    parent_consensus_timestamp: Optional[Timestamp] = None
-    schedule_ref: Optional[ScheduleId] = None
-    assessed_custom_fees: List[AssessedCustomFee] = field(default_factory=list)
-    automatic_token_associations: List[TokenAssociation] = field(default_factory=list)
-    alias: Optional[bytes] = None
-    ethereum_hash: Optional[bytes] = None
-    evm_address: Optional[bytes] = None
-    paid_staking_rewards: List[Tuple[AccountId, int]] = field(default_factory=list)
-    duplicates: List['TransactionRecord'] = field(default_factory=list)
 
+    transaction_id: TransactionId | None = None
+    transaction_hash: bytes | None = None
+    transaction_memo: str | None = None
+    transaction_fee: int | None = None
+    receipt: TransactionReceipt | None = None
+    call_result: ContractFunctionResult | None = None
+
+    token_transfers: defaultdict[TokenId, defaultdict[AccountId, int]] = field(default_factory=lambda: defaultdict(lambda: defaultdict(int)))
+    nft_transfers: defaultdict[TokenId, list[TokenNftTransfer]] = field(default_factory=lambda: defaultdict(list[TokenNftTransfer]))
+    transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
+    new_pending_airdrops: list[PendingAirdropRecord] = field(default_factory=list)
+
+    prng_number: int | None = None
+    prng_bytes: bytes | None = None
+    duplicates: list['TransactionRecord'] = field(default_factory=list)
+    consensus_timestamp: Timestamp | None = None
+    schedule_ref: ScheduleId | None = None
+    assessed_custom_fees: list[AssessedCustomFee] = field(default_factory=list)
+    automatic_token_associations: list[TokenAssociation] = field(default_factory=list)
+    parent_consensus_timestamp: Timestamp | None = None
+    alias: bytes | None = None
+    ethereum_hash: bytes | None = None
+    paid_staking_rewards: list[tuple[AccountId, int]] = field(default_factory=list)
+    evm_address: bytes | None = None
+    contract_create_result: ContractFunctionResult | None = None
+    
     def __repr__(self) -> str:
-        """Returns a human-readable string representation of the TransactionRecord."""
+        """Returns a human-readable string representation of the TransactionRecord.
+        
+        This method constructs a detailed string containing all significant fields of the 
+        transaction record including transaction ID, hash, memo, fees, status, transfers,
+        and PRNG results. For the receipt status, it attempts to resolve the numeric status
+        to a human-readable ResponseCode name.
+        
+        Returns:
+            str: A string representation showing all significant fields of the TransactionRecord.
+        """
         status = None
         if self.receipt:
             try:
                 from hiero_sdk_python.response_code import ResponseCode
+
                 status = ResponseCode(self.receipt.status).name
             except (ValueError, AttributeError):
                 status = self.receipt.status
-        # Previews for readability
-        token_preview = {t: dict(v) for t, v in self.token_transfers.items()}
-        nft_counts = {t: len(v) for t, v in self.nft_transfers.items()}
-        parts = [
-            f"transaction_id='{self.transaction_id}'",
-            f"transaction_hash={self.transaction_hash!r}",
-            f"transaction_memo={self.transaction_memo!r}",
-            f"transaction_fee={self.transaction_fee}",
-            f"receipt_status='{status}'",
-            f"transfers={dict(self.transfers)}",
-            f"token_transfers={token_preview}",
-            f"nft_transfers={nft_counts}",
-            f"new_pending_airdrops={self.new_pending_airdrops!r}",
-            f"call_result={self.call_result}",
-            f"contract_create_result={self.contract_create_result}",
-            f"prng_number={self.prng_number}",
-            f"prng_bytes={self.prng_bytes!r}",
-            f"consensus_timestamp={self.consensus_timestamp}",
-            f"parent_consensus_timestamp={self.parent_consensus_timestamp}",
-            f"schedule_ref={self.schedule_ref}",
-        ]
-        # Complex repeated fields with preview
-        if self.assessed_custom_fees:
-            preview = ", ".join(str(f) for f in self.assessed_custom_fees[:2])
-            extra = f", ... ({len(self.assessed_custom_fees)-2} more)" if len(self.assessed_custom_fees) > 2 else ""
-            parts.append(f"assessed_custom_fees=[{preview}{extra}]")
-        else:
-            parts.append("assessed_custom_fees=[]")
-        if self.automatic_token_associations:
-            preview = ", ".join(str(a) for a in self.automatic_token_associations[:2])
-            extra = f", ... ({len(self.automatic_token_associations)-2} more)" if len(self.automatic_token_associations) > 2 else ""
-            parts.append(f"automatic_token_associations=[{preview}{extra}]")
-        else:
-            parts.append("automatic_token_associations=[]")
-        if self.paid_staking_rewards:
-            preview = ", ".join(f"({a}, {amt})" for a, amt in self.paid_staking_rewards[:2])
-            extra = f", ... ({len(self.paid_staking_rewards)-2} more)" if len(self.paid_staking_rewards) > 2 else ""
-            parts.append(f"paid_staking_rewards=[{preview}{extra}]")
-        else:
-            parts.append("paid_staking_rewards=[]")
-        parts.extend([
-            f"alias={self.alias!r}",
-            f"ethereum_hash={self.ethereum_hash!r}",
-            f"evm_address={self.evm_address!r}",
-            f"duplicates_count={len(self.duplicates)}",
-        ])
-        return f"TransactionRecord({', '.join(parts)})"
+        return (f"TransactionRecord(transaction_id='{self.transaction_id}', "
+                f"transaction_hash={self.transaction_hash}, "
+                f"transaction_memo='{self.transaction_memo}', "
+                f"transaction_fee={self.transaction_fee}, "
+                f"receipt_status='{status}', "
+                f"token_transfers={dict(self.token_transfers)}, "
+                f"nft_transfers={dict(self.nft_transfers)}, "
+                f"transfers={dict(self.transfers)}, "
+                f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
+                f"call_result={self.call_result}, "
+                f"prng_number={self.prng_number}, "
+                f"prng_bytes={self.prng_bytes}, "
+                f"duplicates_count={len(self.duplicates)}, "
+                f"consensus_timestamp={self.consensus_timestamp}, "
+                f"parent_consensus_timestamp={self.parent_consensus_timestamp}, "
+                f"schedule_ref={self.schedule_ref}, "
+                f"assessed_custom_fees={self.assessed_custom_fees}, "
+                f"automatic_token_associations={self.automatic_token_associations}, "
+                f"alias={self.alias}, "
+                f"ethereum_hash={self.ethereum_hash}, "
+                f"evm_address={self.evm_address}, "
+                f"paid_staking_rewards={self.paid_staking_rewards}, "
+                f"contract_create_result={self.contract_create_result})")
 
     @classmethod
     def _from_proto(
         cls,
         proto: transaction_record_pb2.TransactionRecord,
-        transaction_id: Optional[TransactionId] = None,
-        duplicates: Optional[List['TransactionRecord']] = None,
+        transaction_id: TransactionId | None = None,
+        duplicates: list['TransactionRecord'] | None = None,
     ) -> 'TransactionRecord':
-        """Creates a TransactionRecord instance from a protobuf transaction record."""
+        """Creates a TransactionRecord instance from a protobuf transaction record.
+
+        This method performs complex data aggregation from the protobuf message,
+        including:
+        - Basic transaction metadata (hash, memo, fees)
+        - Token transfers (both fungible and non-fungible)
+        - Account balance transfers
+        - Contract execution results
+        - Airdrop records
+        - PRNG (pseudo-random number generation) results
+        The method maps all nested transfer data from the raw protobuf message into
+        the structured format used by the TransactionRecord class & organizing them
+
+        into appropriate defaultdict collections for efficient access.
+
+        Args:
+            proto: The raw protobuf transaction record containing all transaction data.
+            transaction_id: The transaction ID to associate with this record (required).
+            duplicates: Optional list of duplicate transaction records to attach.
+                        Defaults to an empty list.
+
+        Returns:
+            TransactionRecord: A new instance containing all processed and structured data.
+        """
         tx_id = cls._resolve_transaction_id(proto, transaction_id)
         duplicates = duplicates or []
 
         token_transfers, nft_transfers = cls._parse_token_transfers(proto)
         transfers = cls._parse_hbar_transfers(proto)
         new_pending_airdrops = cls._parse_pending_airdrops(proto)
-
-        # Handle 'body' oneof
-        call_result: Optional[ContractFunctionResult] = None
-        contract_create_result: Optional[ContractFunctionResult] = None
-        body_case = proto.WhichOneof("body")
-        if body_case == "contractCallResult":
-            call_result = ContractFunctionResult._from_proto(proto.contractCallResult)
-        elif body_case == "contractCreateResult":
-            contract_create_result = ContractFunctionResult._from_proto(proto.contractCreateResult)
-
-        # Handle 'entropy' oneof — matches ALL existing test expectations
-        prng_bytes: Optional[bytes] = None
-        prng_number: Optional[int] = None
-        entropy_case = proto.WhichOneof("entropy")
-        if entropy_case == "prng_bytes":
-            prng_bytes = proto.prng_bytes
-            prng_number = 0
-        elif entropy_case == "prng_number":
-            prng_number = proto.prng_number
-            prng_bytes = b""
-        # else: both remain None (default case)
-
+        call_result = cls._parse_contract_call_result(proto)
         consensus_timestamp = (
             Timestamp._from_protobuf(proto.consensusTimestamp)
             if proto.HasField("consensusTimestamp") else None
@@ -202,71 +198,75 @@ class TransactionRecord:
         automatic_token_associations = [
             TokenAssociation._from_proto(assoc) for assoc in proto.automatic_token_associations
         ]
-        alias = proto.alias or None
-        ethereum_hash = proto.ethereum_hash or None
-        evm_address = proto.evm_address or None
         paid_staking_rewards = [
             (AccountId._from_proto(r.accountID), r.amount)
             for r in proto.paid_staking_rewards
         ]
-        receipt = TransactionReceipt._from_proto(proto.receipt, tx_id)
+        contract_create_result = (
+            ContractFunctionResult._from_proto(proto.contractCreateResult)
+            if proto.HasField("contractCreateResult") else None
+        )
+        alias = proto.alias if proto.alias else None
+        ethereum_hash = proto.ethereum_hash if proto.ethereum_hash else None
+        evm_address = proto.evm_address if proto.evm_address else None
 
         return cls(
             transaction_id=tx_id,
-            transaction_hash=proto.transactionHash or None,
-            transaction_memo=proto.memo or None,
+            transaction_hash=proto.transactionHash,
+            transaction_memo=proto.memo,
             transaction_fee=proto.transactionFee,
-            receipt=receipt,
-            call_result=call_result,
-            contract_create_result=contract_create_result,
+            receipt=TransactionReceipt._from_proto(proto.receipt, tx_id),
             token_transfers=token_transfers,
             nft_transfers=nft_transfers,
             transfers=transfers,
             new_pending_airdrops=new_pending_airdrops,
-            prng_number=prng_number,
-            prng_bytes=prng_bytes,
+            call_result=call_result,
+            prng_number=proto.prng_number,
+            prng_bytes=proto.prng_bytes,
+            duplicates=duplicates,
             consensus_timestamp=consensus_timestamp,
-            parent_consensus_timestamp=parent_consensus_timestamp,
             schedule_ref=schedule_ref,
             assessed_custom_fees=assessed_custom_fees,
             automatic_token_associations=automatic_token_associations,
+            parent_consensus_timestamp=parent_consensus_timestamp,
             alias=alias,
             ethereum_hash=ethereum_hash,
-            evm_address=evm_address,
             paid_staking_rewards=paid_staking_rewards,
-            duplicates=duplicates,
+            evm_address=evm_address,
+            contract_create_result=contract_create_result,
         )
 
     @staticmethod
     def _resolve_transaction_id(
         proto: transaction_record_pb2.TransactionRecord,
-        transaction_id: Optional[TransactionId],
+        transaction_id: TransactionId | None,
     ) -> TransactionId:
+        """Resolves the transaction ID from proto or raises error if not available."""
         if proto.HasField("transactionID"):
             return TransactionId._from_proto(proto.transactionID)
+    
         if transaction_id is not None:
             return transaction_id
+    
         raise ValueError("transaction_id is required when proto.transactionID is not present")
 
     @staticmethod
     def _parse_token_transfers(
         proto: transaction_record_pb2.TransactionRecord,
-    ) -> tuple[
-        DefaultDict[TokenId, DefaultDict[AccountId, int]],
-        DefaultDict[TokenId, List[TokenNftTransfer]],
-    ]:
-        token_transfers: DefaultDict[TokenId, DefaultDict[AccountId, int]] = defaultdict(lambda: defaultdict(int))
-        nft_transfers: DefaultDict[TokenId, List[TokenNftTransfer]] = defaultdict(list)
+    ) -> tuple[dict, dict]:
+        """Parses fungible and non-fungible token transfers from proto."""
+        token_transfers = defaultdict(lambda: defaultdict(int))
+        nft_transfers = defaultdict(list)
 
         for ttl in proto.tokenTransferLists:
             token_id = TokenId._from_proto(ttl.token)
 
-            # Fungible
+            # Fungible token transfers
             for transfer in ttl.transfers:
                 account_id = AccountId._from_proto(transfer.accountID)
-                token_transfers[token_id][account_id] += transfer.amount
+                token_transfers[token_id][account_id] = transfer.amount
 
-            # NFT — this matches what your TokenNftTransfer._from_proto expects
+            # Non-fungible (NFT) transfers
             nft_transfers[token_id].extend(
                 TokenNftTransfer._from_proto(ttl)
             )
@@ -276,8 +276,9 @@ class TransactionRecord:
     @staticmethod
     def _parse_hbar_transfers(
         proto: transaction_record_pb2.TransactionRecord,
-    ) -> DefaultDict[AccountId, int]:
-        transfers: DefaultDict[AccountId, int] = defaultdict(int)
+    ) -> dict:
+        """Parses HBAR transfers from proto."""
+        transfers = defaultdict(int)
         for transfer in proto.transferList.accountAmounts:
             account_id = AccountId._from_proto(transfer.accountID)
             transfers[account_id] += transfer.amount
@@ -286,82 +287,111 @@ class TransactionRecord:
     @staticmethod
     def _parse_pending_airdrops(
         proto: transaction_record_pb2.TransactionRecord,
-    ) -> List[PendingAirdropRecord]:
+    ) -> list:
+        """Parses pending airdrop records from proto."""
         return [
             PendingAirdropRecord._from_proto(pending)
             for pending in proto.new_pending_airdrops
         ]
 
+    @staticmethod
+    def _parse_contract_call_result(
+        proto: transaction_record_pb2.TransactionRecord,
+    ) -> ContractFunctionResult | None:
+        """Parses contract call result from proto if present."""
+        if proto.HasField("contractCallResult"):
+            return ContractFunctionResult._from_proto(proto.contractCallResult)
+        return None
+
     def _to_proto(self) -> transaction_record_pb2.TransactionRecord:
-        """Converts the TransactionRecord instance to its protobuf representation."""
+        """Converts the TransactionRecord instance to its protobuf representation.
+
+        Note: The 'duplicates' field is intentionally **not** serialized.
+        Duplicate records are only present in query responses and are never
+        included when sending TransactionRecord messages to the network.
+        
+        This method serializes all components of the transaction record into a protobuf message,
+        including:
+        - Basic transaction metadata (hash, memo, fees)
+        - Token transfers (both fungible and non-fungible)
+        - Account balance transfers
+        - Contract execution results
+        - Airdrop records
+        - PRNG (pseudo-random number generation) results
+
+        The method performs a deep conversion of all nested objects (token transfers,
+        NFT transfers, account transfers, and pending airdrops) to their respective
+        protobuf representations.
+
+        Returns:
+            transaction_record_pb2.TransactionRecord: A protobuf message containing
+            all the transaction record data in a format suitable for network transmission
+            or storage.
+        """
         if self.call_result is not None and self.contract_create_result is not None:
             raise ValueError("call_result and contract_create_result are mutually exclusive")
-        if self.prng_number is not None and self.prng_bytes is not None:
-            raise ValueError("prng_number and prng_bytes are mutually exclusive")
-
+        
         record_proto = transaction_record_pb2.TransactionRecord(
-            transactionHash=self.transaction_hash or b"",
-            memo=self.transaction_memo or "",
-            transactionFee=self.transaction_fee or 0,
+            transactionHash=self.transaction_hash,
+            memo=self.transaction_memo,
+            transactionFee=self.transaction_fee,
             receipt=self.receipt._to_proto() if self.receipt else None,
+            contractCallResult=(
+                self.call_result._to_proto() if self.call_result else None
+            ),
+            prng_number=self.prng_number,
+            prng_bytes=self.prng_bytes,
+            alias=self.alias,
+            ethereum_hash=self.ethereum_hash,
+            evm_address=self.evm_address,
+            consensusTimestamp=(
+                self.consensus_timestamp._to_protobuf()
+                if self.consensus_timestamp is not None else None
+            ),
+            parent_consensus_timestamp=(
+                self.parent_consensus_timestamp._to_protobuf()
+                if self.parent_consensus_timestamp is not None else None
+            ),
+            scheduleRef=(
+                self.schedule_ref._to_proto() if self.schedule_ref is not None else None
+            ),
+            contractCreateResult=(
+                self.contract_create_result._to_proto()
+                if self.contract_create_result is not None else None
+            ),
         )
-
-        # body oneof
-        if self.call_result is not None:
-            record_proto.contractCallResult.CopyFrom(self.call_result._to_proto())
-        elif self.contract_create_result is not None:
-            record_proto.contractCreateResult.CopyFrom(self.contract_create_result._to_proto())
-
-        # entropy oneof
-        if self.prng_number is not None:
-            record_proto.prng_number = self.prng_number
-        elif self.prng_bytes is not None:
-            record_proto.prng_bytes = self.prng_bytes
 
         if self.transaction_id is not None:
             record_proto.transactionID.CopyFrom(self.transaction_id._to_proto())
 
-        # Token transfers (one TokenTransferList per token)
-        all_token_ids = set(self.token_transfers.keys()) | set(self.nft_transfers.keys())
-        for token_id in all_token_ids:
-            ttl = record_proto.tokenTransferLists.add()
-            ttl.token.CopyFrom(token_id._to_proto())
-            if token_id in self.token_transfers:
-                for account_id, amount in self.token_transfers[token_id].items():
-                    transfer = ttl.transfers.add()
-                    transfer.accountID.CopyFrom(account_id._to_proto())
-                    transfer.amount = amount
-            if token_id in self.nft_transfers:
-                for nft_transfer in self.nft_transfers[token_id]:
-                    ttl.nftTransfers.append(nft_transfer._to_proto())
+        for token_id, account_transfers in self.token_transfers.items():
+            token_transfer_list = record_proto.tokenTransferLists.add()
+            token_transfer_list.token.CopyFrom(token_id._to_proto())
+            for account_id, amount in account_transfers.items():
+                transfer = token_transfer_list.transfers.add()
+                transfer.accountID.CopyFrom(account_id._to_proto())
+                transfer.amount = amount
 
-        # HBAR transfers
+        for token_id, nft_transfers in self.nft_transfers.items():
+            token_transfer_list = record_proto.tokenTransferLists.add()
+            token_transfer_list.token.CopyFrom(token_id._to_proto())
+            for nft_transfer in nft_transfers:
+                token_transfer_list.nftTransfers.append(nft_transfer._to_proto())
+
         for account_id, amount in self.transfers.items():
             transfer = record_proto.transferList.accountAmounts.add()
             transfer.accountID.CopyFrom(account_id._to_proto())
             transfer.amount = amount
 
-        # Pending airdrops
         for pending_airdrop in self.new_pending_airdrops:
             record_proto.new_pending_airdrops.add().CopyFrom(pending_airdrop._to_proto())
 
-        if self.consensus_timestamp is not None:
-            record_proto.consensusTimestamp.CopyFrom(self.consensus_timestamp._to_protobuf())
-        if self.parent_consensus_timestamp is not None:
-            record_proto.parent_consensus_timestamp.CopyFrom(self.parent_consensus_timestamp._to_protobuf())
-        if self.schedule_ref is not None:
-            record_proto.scheduleRef.CopyFrom(self.schedule_ref._to_proto())
-        if self.assessed_custom_fees:
-            record_proto.assessed_custom_fees.extend(fee._to_proto() for fee in self.assessed_custom_fees)
-        if self.automatic_token_associations:
-            for assoc in self.automatic_token_associations:
-                record_proto.automatic_token_associations.append(assoc._to_proto())
-        if self.alias is not None:
-            record_proto.alias = self.alias
-        if self.ethereum_hash is not None:
-            record_proto.ethereum_hash = self.ethereum_hash
-        if self.evm_address is not None:
-            record_proto.evm_address = self.evm_address
+        for fee in self.assessed_custom_fees:
+            record_proto.assessed_custom_fees.add().CopyFrom(fee._to_proto())
+
+        for assoc in self.automatic_token_associations:
+            record_proto.automatic_token_associations.add().CopyFrom(assoc._to_proto())
+
         for account_id, amount in self.paid_staking_rewards:
             r = record_proto.paid_staking_rewards.add()
             r.accountID.CopyFrom(account_id._to_proto())

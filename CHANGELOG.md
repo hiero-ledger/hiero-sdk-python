@@ -43,7 +43,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed duplication in GitHub bot next issue recommendations by parsing actual issue descriptions instead of blind truncation (#1658)
 
 ### Src
+<<<<<<< HEAD
 - Add `staking_info` field to `ContractInfo` class to expose staking metadata using the `StakingInfo` wrapper. (#1365)
+=======
+<<<<<<< HEAD
+>>>>>>> 835864e (add missing TransactionRecord fields from proto (minimal change only))
 - Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
 <<<<<<< HEAD
 =======
@@ -76,7 +80,15 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
 >>>>>>> 99ca8df (update integration memo assertions)
 >>>>>>> 5329e34 (update integration memo assertions)
+<<<<<<< HEAD
 >>>>>>> dbc33e2 (update integration memo assertions)
+=======
+=======
+- Exposed all missing fields from `TransactionRecord` protobuf (#1636)
+- Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
+- Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
+>>>>>>> 0a7e3e8 (add missing TransactionRecord fields from proto (minimal change only))
+>>>>>>> 835864e (add missing TransactionRecord fields from proto (minimal change only))
 
 ### Examples
 - Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)

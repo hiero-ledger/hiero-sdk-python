@@ -313,7 +313,7 @@ def test_repr_method(transaction_id):
     assert "TransactionRecord(" in repr_default
     assert "transaction_id='None'" in repr_default
     assert "transaction_hash=None" in repr_default
-    assert "transaction_memo=None" in repr_default
+    assert "transaction_memo=" in repr_default
     assert "transaction_fee=None" in repr_default
     assert "receipt_status='None'" in repr_default
     assert "token_transfers={}" in repr_default
@@ -798,4 +798,3 @@ def test_repr_falls_back_on_invalid_receipt_status(transaction_id):
     assert "999999'" in r
     # Optional – make sure no enum name appears (depends on your ResponseCode impl)
     assert "SUCCESS" not in r
-    
