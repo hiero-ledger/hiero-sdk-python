@@ -14,7 +14,7 @@ license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10, <4"
 dependencies = [
-    "protobuf>=4.21.12,<7",
+    "protobuf>=4.21.12,<8",
     "grpcio>=1.76.0,<2",
     "cryptography>=44.0.1,<47",
     "requests>=2.31.0,<3",
