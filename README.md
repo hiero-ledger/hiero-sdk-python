@@ -80,7 +80,7 @@ print(f"Balance: {balance.hbars} HBAR")
 - [Hedera Documentation](https://docs.hedera.com/)
 - [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs)
 - [Get Testnet Account](https://portal.hedera.com/) - Free testnet credentials
-- [Hedera Testnet Guide](https://docs.hedera.com/guides/testnet)
+- [Hedera Testnet Guide](https://docs.hedera.com/hedera/networks/testnet)
 
 ### Other SDKs
 
