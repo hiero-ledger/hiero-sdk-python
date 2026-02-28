@@ -4,6 +4,10 @@ language: "en-US" # USA English
 # It should not state additional information like: related issues, PRs, suggest reviewers
 # It should not continue a casual conversation with users that reply to it
 
+knowledge_base: # Enable knowledge base access for up-to-date information
+  web_search: # Enable web search for up-to-date information
+    enabled: true
+
 # Only documents non-default options:
 reviews:
   profile: "assertive" # Assertive profile yields more feedback, that may be considered nitpicky.
@@ -1055,6 +1059,114 @@ reviews:
         - Correctly matches repository paths
         - Enforces intended review governance
         - Has no precedence bugs that weaken protection
+    # PROTOBUF INSTRUCTIONS
+    - path: "src/hiero_sdk_python/**/*.py"
+      instructions: |
+        ## Protobuf Schema Alignment Review
+    
+        ### Step 1 — Detect protobuf imports
+    
+        Scan the file for all imports matching this pattern:
+          `from hiero_sdk_python.hapi.<path> import <module>_pb2`
+    
+        For each import found, skip `_grpc` stubs (those end in `_pb2_grpc`) — only
+        process `_pb2` message modules.
+    
+        ### Step 2 — Construct the canonical schema URL
+    
+        For each `_pb2` import:
+        1. Extract the path segment after `hapi`
+           (e.g. `services` from `hiero_sdk_python.hapi.services`)
+        2. Extract the module name before `_pb2`
+           (e.g. `transaction_record` from `transaction_record_pb2`)
+        3. Build the canonical URL:
+           `https://github.com/hashgraph/hedera-protobufs/blob/v0.66.0/<path>/<module>.proto`
+    
+        **Example:**
+        ```
+        Import:  from hiero_sdk_python.hapi.services import transaction_record_pb2
+        Schema:  https://github.com/hashgraph/hedera-protobufs/blob/v0.66.0/services/transaction_record.proto
+        ```
+    
+        ### Step 3 — Compare the SDK class against the proto schema
+    
+        For each SDK class that calls `_from_proto` or `_to_proto` using messages from
+        the detected proto module, verify the following:
+    
+        #### 3a. Field coverage
+        - Every non-deprecated proto field SHOULD have a corresponding SDK attribute.
+        - Flag any proto field that is present in the schema but missing from the SDK
+          class (either as a dataclass field or handled in `_from_proto`).
+        - Flag any SDK attribute that references a proto field name that does not exist
+          in the schema.
+    
+        #### 3b. Field name mapping
+        - Proto field names use `snake_case` (e.g. `ethereum_hash`) or `camelCase`
+          (e.g. `transactionHash`, `consensusTimestamp`). Verify that `_from_proto`
+          accesses the correct proto field name, not a renamed/misspelled version.
+        - Verify `_to_proto` sets the correct proto field name.
+    
+        #### 3c. Field type alignment
+        Check that each SDK field type correctly represents the proto type:
+    
+        | Proto type             | Expected SDK type                            |
+        |------------------------|----------------------------------------------|
+        | `string`               | `str \| None` or `str`                       |
+        | `bytes`                | `bytes \| None` or `bytes`                   |
+        | `bool`                 | `bool`                                       |
+        | `int32`, `uint32`      | `int`                                        |
+        | `int64`, `uint64`, `sint64` | `int`                                   |
+        | `MessageType`          | corresponding SDK wrapper class or `None`    |
+        | `repeated MessageType` | `list[SdkType]`                              |
+        | `repeated scalar`      | `list[scalar]`                               |
+    
+        #### 3d. `oneof` field handling
+        - Identify all `oneof` blocks in the proto schema for the message.
+        - Verify that `_to_proto` does NOT set more than one field from the same
+          `oneof` block simultaneously. If it does, a `ValueError` guard MUST be
+          present before setting those fields.
+        - Verify that `_from_proto` uses `proto.HasField(...)` (not attribute access)
+          to detect which branch of a `oneof` is populated.
+        - Common `oneof` groups to watch for in `TransactionRecord`:
+          - `oneof body { contractCallResult, contractCreateResult }` (fields 7, 8)
+          - `oneof entropy { prng_bytes, prng_number }` (fields 19, 20)
+    
+        #### 3e. Bytes field normalization
+        - Proto `bytes` fields default to `b""` (empty bytes) when unset, not `None`.
+        - If the SDK models the field as `bytes | None`, verify that `_from_proto`
+          uses `proto.<field> or None` to normalize empty bytes to `None`.
+        - Conversely, if `_to_proto` sets a bytes field, verify it guards against
+          setting `None` (which would cause a protobuf type error).
+    
+        #### 3f. `_from_proto` / `_to_proto` symmetry
+        - Every field parsed in `_from_proto` SHOULD also be serialized in `_to_proto`,
+          and vice versa, unless the field is intentionally read-only (e.g. server-set
+          fields that clients never send).
+        - Flag any asymmetry that is not accompanied by a code comment explaining why.
+    
+        #### 3g. Repeated field default values
+        - SDK attributes representing proto `repeated` fields MUST default to an empty
+          list (`field(default_factory=list)`), never `None`.
+        - Flag any `repeated` field that defaults to `None`.
+    
+        #### 3h. Type annotation consistency
+        - The codebase uses `X | None` union syntax (Python 3.10+). Flag any use of
+          `Optional[X]` from `typing` in newly added or modified code, as it is
+          inconsistent with the established style.
+    
+        ### Step 4 — Report format
+    
+        For each issue found, report:
+        - **File and line**: where the issue occurs
+        - **Proto field**: the canonical proto field name and number from the schema
+        - **Issue type**: one of — Missing field | Wrong field name | Wrong type |
+          oneof violation | Bytes not normalized | Asymmetric round-trip |
+          Wrong default | Style inconsistency
+        - **Description**: concise explanation of the discrepancy
+        - **Suggested fix**: the corrected code snippet
+    
+        If no issues are found for a file, state:
+          All mapped proto fields align with the schema at `<URL>`.
     - path: "src/hiero_sdk_python/tokens/**/*.py"
       instructions: *token_review_instructions
     - path: "src/hiero_sdk_python/transaction/**/*.py"
@@ -1424,6 +1536,147 @@ reviews:
       instructions: *node_review_instructions
     - path: "src/hiero_sdk_python/file/**/*.py"
       instructions: *file_review_instructions
+    - path: "src/hiero_sdk_python/consensus/**/*.py"
+      instructions: |
+        You are reviewing Python files in the `src/hiero_sdk_python/consensus/` directory.
+        These files implement consensus-related transactions and queries for the Hiero SDK.
+
+        > Note: Protobuf schema alignment (field names, types, oneof, bytes normalization,
+        > repeated defaults, and canonical `.proto` URL derivation) is already enforced by
+        > the global `src/hiero_sdk_python/**/*.py` instruction. Do NOT re-run those checks
+        > here — focus exclusively on the consensus-domain concerns below.
+
+        ---
+
+        ## Review priorities (highest → lowest)
+
+        ### 1) Protobuf correctness (must-not-break)
+        - Validate field names, field types, and (if visible/known) field numbers +
+          repeated/optional semantics.
+        - Flag any divergence as **BLOCKER**.
+
+        ### 2) Serialization / wire-format integrity
+        - Ensure `to_proto` / `from_proto` (or equivalent) set the correct oneof
+          branches and do not drop fields.
+        - Confirm byte/string encoding, timestamps/durations, and `TransactionID` /
+          `TopicID` mapping are correct.
+        - Treat silent coercions, defaulting, or ignored exceptions as **BLOCKER** if
+          they could change what is signed or sent.
+        - **Memo-overwrite trap**: any field whose Python default is `""` or `0` instead
+          of `None` and is later guarded by `if field is not None` will *always* serialize
+          — even when the caller never set it — silently overwriting the on-chain value.
+          Verify every optional update field defaults to `None`, not a falsy sentinel.
+          Flag as **BLOCKER** if the unintended overwrite affects keys, expiry, or memo.
+
+        ### 3) Signing / transaction body construction
+        - Verify the class builds the transaction/query body exactly once and uses the
+          correct protobuf message type.
+        - Ensure required fields are enforced before freezing/signing (if the SDK has a
+          freeze step).
+        - Missing required fields or signing the wrong body type is **BLOCKER**.
+
+        #### 3a) Multi-chunk TransactionID safety (`TopicMessageSubmitTransaction`)
+        When reviewing chunked message submission, verify all of the following:
+
+        **Nanos-overflow guard**
+        - In `freeze_with()`, the expression `base_timestamp.nanos + i` MUST be checked
+          for overflow. Protobuf `Timestamp.nanos` is bounded to `[0, 999_999_999]`.
+          If `nanos + num_chunks > 999_999_999` the value wraps or is rejected by the
+          node. An overflow guard MUST carry seconds over:
+          ```python
+          total_nanos = base_timestamp.nanos + i
+          chunk_valid_start = timestamp_pb2.Timestamp(
+              seconds=base_timestamp.seconds + total_nanos // 1_000_000_000,
+              nanos=total_nanos % 1_000_000_000
+          )
+          ```
+          Flag the absence of this guard as **BLOCKER**.
+
+        **`_initial_transaction_id` null-safety**
+        - `_build_proto_body()` calls `self._initial_transaction_id._to_proto()` when
+          `_total_chunks > 1`. If `freeze_with()` was never called (e.g. the caller
+          invokes `build_transaction_body()` directly on a multi-chunk message),
+          `_initial_transaction_id` is `None` and this raises `AttributeError` at
+          serialization time. An explicit `if self._initial_transaction_id is None`
+          guard with a descriptive `ValueError` MUST be present.
+          Flag as **BLOCKER**.
+
+        **Chunk signing consistency**
+        - In `execute()`, each chunk clears `_transaction_body_bytes` and
+          `_signature_map` then re-signs with every key in `_signing_keys`. Verify
+          that the re-sign loop uses the *stored* signing keys and not the operator
+          key only, so submit-key-protected topics are signed correctly for every chunk.
+          Flag any chunk that may be sent unsigned or with an incomplete signature set
+          as **BLOCKER**.
+
+        ### 4) Topic ID handling & validation
+        - Validate `TopicId` parsing, checksum/network validation (if applicable), and
+          conversion to protobuf.
+        - Check `from_string` for the bare `except Exception` catch: it loses the
+          original exception type; the re-raised `ValueError` should chain with `from e`
+          (already present) — verify the chaining is not accidentally removed.
+        - Incorrect network scoping/checksum behavior is **MAJOR** (or **BLOCKER** if
+          it can misroute funds/requests).
+        - **Frozen-dataclass checksum mutation**: `topic_id.py` uses
+          `object.__setattr__(topic_id, "checksum", checksum)` to bypass `frozen=True`.
+          Verify this is the only site where the frozen contract is broken, and that no
+          other attribute is mutated this way.
+
+        ### 5) Fees, limits, and defaults
+
+        #### 5a) Mutable default arguments in `__init__`
+        - Flag any mutable object used directly as a default parameter value in a method
+          signature. This is a Python anti-pattern because the object is shared across
+          all instances constructed without that argument.
+        - **Known instance**: `TopicUpdateTransaction.__init__` declares
+          `auto_renew_period: Optional[Duration] = Duration(7890000)`.
+          The fix is to default to `None` and assign in the body:
+          ```python
+          def __init__(self, ..., auto_renew_period: Optional[Duration] = None, ...):
+              ...
+              self.auto_renew_period = auto_renew_period if auto_renew_period is not None \
+                  else Duration(7890000)
+          ```
+          Flag as **MAJOR** (shared mutable state across instances; mutating one
+          instance's default would silently affect others).
+        - Apply the same check to any `list` or `dict` default arguments.
+
+        #### 5b) Cross-class `transaction_fee` consistency
+        - Verify that the hardcoded `transaction_fee` defaults are intentional and
+          consistent across all sibling classes in this directory.
+        - Flag the **missing override** in `TopicMessageSubmitTransaction` as **MAJOR**
+          if the base-class default is not appropriate for message submission, or add a
+          comment confirming the base-class value is intentional.
+        - Flag any value that deviates from the table above without a comment as **MAJOR**.
+
+        #### 5c) General fee/limit logic
+        - Confirm any fee/max payment logic is consistent and does not allow unintended
+          "free" execution.
+        - Suspicious defaults or overflow/underflow issues are **MAJOR**.
+
+        ### 6) Errors & API ergonomics
+        - Errors should be actionable and consistent; avoid swallowing RPC/precheck errors.
+        - Ambiguous exceptions or inconsistent return types are **MINOR** / **MAJOR**
+          depending on impact.
+        - **`execute()` return-type consistency**: `TopicMessageSubmitTransaction.execute()`
+          returns `responses[0] if responses else None`. The `None` branch is unreachable
+          in practice (the loop always runs at least once for `num_chunks >= 2`) but
+          it makes the declared return type `TransactionReceipt | None`, which is
+          inconsistent with the single-chunk path. Flag as **MINOR**.
+
+        ### 7) Tests / examples (regression protection)
+        - Prefer tests that assert on produced protobufs (fields set, oneofs, ids).
+        - Cover: valid submit, missing topic id, empty message, large message boundary (if enforced), invalid checksum/network.
+        - Missing critical tests is **MAJOR** (or **MINOR** if coverage exists elsewhere).
+
+        ---
+
+        ## Severity labels
+        Use exactly these labels in all findings:
+        - **BLOCKER** — must be fixed before merge; wire-format, signing, or data-loss risk
+        - **MAJOR** — should be fixed; correctness or significant usability issue
+        - **MINOR** — should be fixed; low-risk correctness or ergonomics issue
+        - **NIT** — optional; style, naming, or documentation only
 
 chat:
   art: false # Don't draw ASCII art (false)

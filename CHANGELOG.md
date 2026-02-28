@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -12,6 +12,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added CodeRabbit review instructions for the transaction module in `.coderabbit.yaml` (#1696)
 - Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
 - Added advanced code review prompts for the `src/hiero_sdk_python/file` module in `.coderabbit.yaml` to guide reviewers in verifying proper `FileAppendTransaction` chunking constraints and nuances in memo handling for `FileUpdateTransaction` according to Hiero SDK best practices. (#1697)
+- Added CodeRabbit review instructions for consensus module `src/hiero_sdk_python/consensus/` with critical focus on protobuf alignment `.coderabbit.yaml`.
+
 
 ### Fixed
 
@@ -37,6 +39,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed broken `MAINTAINERS.md` relative link in `docs/sdk_developers/bug.md` by using the repository-root GitHub URL. (#1666)
 - docs(setup): specify unit tests for local setup verification. (#1856)
 - docs: Clarify issues need to be assigned in template files. (#1884)
+- doc: Fix testnet link in README.md. (#1879)
 
 
 
@@ -46,6 +49,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### .github
 - Added triage members max assignment is protected from being a mentor in `.github/scripts/bot-assignment-check.sh`. (#1718)
+- Added automated bot to comment on PRs with invalid conventional commit titles, providing guidance on fixing the title format (#1705)
 - Revert PythonBot workflow to restore previous stable behavior. (#1825)
 - Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
