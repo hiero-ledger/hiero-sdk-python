@@ -83,11 +83,15 @@ class InvalidContractValueCase:
 
 
 def _load_hypothesis_profile() -> None:
+    """
+    Following https://docs.github.com/en/actions/reference/workflows-and-actions/variables
+    CI variable is always  set to True in github actions.
+    """
     settings.register_profile(
         "ci",
         settings(
             derandomize=True,
-            max_examples=200,
+            max_examples=300,
             deadline=750,
             suppress_health_check=[HealthCheck.too_slow],
         ),
@@ -96,7 +100,7 @@ def _load_hypothesis_profile() -> None:
         "local",
         settings(
             derandomize=False,
-            max_examples=600,
+            max_examples=1000,
             deadline=None,
         ),
     )
@@ -106,7 +110,7 @@ def _load_hypothesis_profile() -> None:
         settings.load_profile(requested)
         return
 
-    settings.load_profile("ci" if os.getenv("CI") else "local")
+    settings.load_profile("ci" if os.getenv("CI") else "local") #  https://docs.github.com/en/actions/reference/workflows-and-actions/variables
 
 
 def _sized_hex(byte_length: int) -> SearchStrategy[str]:
