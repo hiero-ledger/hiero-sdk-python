@@ -22,6 +22,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed duplication in GitHub bot next issue recommendations by parsing actual issue descriptions instead of blind truncation (#1658)
 
 ### Src
+- Add `staking_info` field to `ContractInfo` class to expose staking metadata using the `StakingInfo` wrapper. (#1365)
 - Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
 - Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
 - Improve `keccak256` docstring formatting for better readability and consistency (#1624)
@@ -32,7 +33,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored contract_delete_transaction example to use Client.from_env. (#1823)
 
 ### Added
-- Add staking_info fields (`staked_account_id`, `staked_node_id`, `decline_staking_reward`) to ContractInfo class to expose staking metadata from protobuf. (#1365)
 
 ### Docs
 

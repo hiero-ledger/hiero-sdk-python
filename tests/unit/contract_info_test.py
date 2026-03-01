@@ -350,7 +350,6 @@ def test_from_proto_with_no_staking_info():
 
 def test_from_proto_with_staked_node_id():
     """Test from_proto with staked_node_id (staked to node)"""
-    public_key = PrivateKey.generate_ed25519().public_key()
     proto = ContractGetInfoResponse.ContractInfo(
         contractID=ContractId(0, 0, 200)._to_proto(),
         accountID=AccountId(0, 0, 300)._to_proto(),
@@ -370,7 +369,7 @@ def test_from_proto_with_staked_node_id():
     assert contract_info.staking_info.decline_reward is True
 
 
-def test_to_proto_with_staked_account_id(token_relationship):
+def test_to_proto_with_staked_account_id():
     """Test to_proto with staked_account_id"""
     contract_info = ContractInfo(
         contract_id=ContractId(0, 0, 200),
@@ -428,6 +427,7 @@ def test_proto_conversion_staking_node_round_trip():
     assert converted.balance == contract_info.balance
     assert converted.staking_info.staked_account_id is None
     assert converted.staking_info.staked_node_id == 7
+    assert isinstance(converted.staking_info.staked_node_id, int)
     assert converted.staking_info.decline_reward is False
 
 
@@ -449,5 +449,43 @@ def test_proto_conversion_staking_account_round_trip():
     assert converted.account_id == contract_info.account_id
     assert converted.balance == contract_info.balance
     assert converted.staking_info.staked_account_id == AccountId(0, 0, 600)
+    assert isinstance(converted.staking_info.staked_account_id, AccountId)
     assert converted.staking_info.staked_node_id is None
     assert converted.staking_info.decline_reward is True
+
+
+def test_proto_conversion_with_staked_node_zero():
+    """Test proto conversion with staked_node_id set to 0 (valid edge case)"""
+    contract_info = ContractInfo(
+        contract_id=ContractId(0, 0, 200),
+        account_id=AccountId(0, 0, 300),
+        balance=5000000,
+        staking_info=StakingInfo(
+            staked_node_id=0,
+            decline_reward=True,
+        ),
+    )
+    
+    converted = ContractInfo._from_proto(contract_info._to_proto())
+    
+    assert converted.staking_info is not None
+    assert converted.staking_info.staked_node_id == 0
+    assert isinstance(converted.staking_info.staked_node_id, int)
+    assert converted.staking_info.decline_reward is True
+
+
+def test_proto_conversion_no_staking_info_round_trip():
+    """Test proto conversion round trip with no staking info (None should stay None)"""
+    contract_info = ContractInfo(
+        contract_id=ContractId(0, 0, 200),
+        account_id=AccountId(0, 0, 300),
+        balance=5000000,
+        staking_info=None,
+    )
+    
+    converted = ContractInfo._from_proto(contract_info._to_proto())
+    
+    assert converted.contract_id == contract_info.contract_id
+    assert converted.account_id == contract_info.account_id
+    assert converted.balance == contract_info.balance
+    assert converted.staking_info is None
