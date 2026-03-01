@@ -2,7 +2,7 @@
 
 // dryRun env var: any case-insensitive 'true' value will enable dry-run
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
-const hoursBeforeClose = parseInt(process.env.HOURS_BEFORE_CLOSE || '12', 24);
+const hoursBeforeClose = parseInt(process.env.HOURS_BEFORE_CLOSE || '12', 10);
 const requireAuthorAssigned = (process.env.REQUIRE_AUTHOR_ASSIGNED || 'true').toLowerCase() === 'true';
 
 const getHoursOpen = (pr) =>
