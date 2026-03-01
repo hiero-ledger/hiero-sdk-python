@@ -60,6 +60,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added hiero-sdk-js to the next issue recommendation bot (`#1847`)
 - feat(bot): warn PR authors that unlinked PRs will be closed (#1886)
 - updated spam list users (`#1894`)
+- trigger spam list updates every hour (`#1864`)
 
 ## [0.2.0] - 2026-11-02
 

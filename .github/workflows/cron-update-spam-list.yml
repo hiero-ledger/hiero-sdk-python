@@ -2,13 +2,13 @@ name: Cron Update Spam List
 
 on:
   schedule:
-    - cron: '0 0 1 * *'  # At 00:00 on day-of-month 1 (monthly)
+    - cron: "0 * * * *" # Every hour at minute 0
   workflow_dispatch:
     inputs:
       dry_run:
         description: 'If true, do not post comments (dry run). Accepts "true" or "false". Default true for manual runs.'
         required: false
-        default: 'true'
+        default: "true"
 
 permissions:
   contents: read
