@@ -48,6 +48,7 @@ dev = [
     "grpcio-tools>=1.76.0,<2",
     "pytest>=8.3.4,<9",
     "pytest-cov>=7.0.0,<8",
+    "hypothesis>=6.0"
 ]
 
 lint = [

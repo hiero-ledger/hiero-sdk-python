@@ -31,6 +31,9 @@ src/hiero_sdk_python/hapi
 # Pytest
 .pytest_cache
 
+# Hypothesis state
+.hypotesis
+
 # Lock files
 uv.lock
 pdm.lock
