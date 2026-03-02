@@ -1,9 +1,7 @@
 name: Add Linked Issue Labels to PR
 
 on:
-  workflow_run:
-    workflows: ["Compute Linked Issue Labels"]
-    types: [completed]
+  workflow_dispatch:
 
 permissions:
   actions: read
