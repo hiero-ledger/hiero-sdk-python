@@ -58,6 +58,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
 - Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
 - Updated CodeRabbit workflow and script review instructions to nudge higher-quality patterns without imposing rigid rules (`#1799`)
+- Added `--resolution=lowest-direct` flag to `uv run` commands in deps-check.yml to prevent lockfile mismatch warnings (#1882)
 - Added hiero-sdk-js to the next issue recommendation bot (`#1847`)
 - feat(bot): warn PR authors that unlinked PRs will be closed (#1886)
 - updated spam list users (`#1894`)
