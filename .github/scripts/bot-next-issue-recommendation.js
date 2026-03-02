@@ -126,7 +126,7 @@ async function searchIssues(github, core, owner, repo, label) {
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback}) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback }) {
   const marker = '<!-- next-issue-bot-marker -->';
 
   // Build comment content
@@ -151,14 +151,8 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     recommendedIssues.slice(0, 5).forEach((issue, index) => {
       comment += `${index + 1}. [${sanitizeTitle(issue.title)}](${issue.html_url})\n`;
       if (issue.body && issue.body.length > 0) {
-        // Sanitize: strip HTML, normalize whitespace, escape markdown links
-        const sanitized = issue.body
-          .replace(/<[^>]*>/g, '') // Remove HTML tags
-          .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // Remove markdown links, keep text
-          .replace(/\s+/g, ' ') // Normalize whitespace
-          .trim();
-        const description = sanitized.substring(0, 150);
-        comment += `   ${description}${sanitized.length > 150 ? '...' : ''}\n\n`;
+        const description = extractIssueDescription(issue.body);
+        comment += `   ${description}\n\n`;
       } else {
         comment += `   *No description available*\n\n`;
       }
@@ -224,3 +218,49 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     core.setFailed(`Error posting comment: ${error.message}`);
   }
 }
+function extractIssueDescription(body) {
+  if (!body) return '*No description available*';
+
+  // Guard against massive inputs blocking the regex event loop
+  const safeBody = body.length > 50000 ? body.substring(0, 50000) : body;
+
+  // Try to find the specific description section first
+  const sectionRegex = /^##*\s*👾\s*(Description of the issue|Issue description)[^\r\n]*\r?\n([\s\S]*?)(?=^#|$(?![\s\S]))/im;
+  const match = safeBody.match(sectionRegex);
+
+  let targetText = safeBody;
+  if (match) {
+    if (match[2] && match[2].trim()) {
+      targetText = match[2];
+    } else {
+      return '*No description available*';
+    }
+  }
+
+  // Sanitize: strip HTML, normalize whitespace, escape markdown formatting (links, emphasis, bold)
+  const sanitized = targetText
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // Remove markdown links, keep text
+    .replace(/(\*\*|__)(.*?)\1/g, '$2') // Remove bold
+    .replace(/(\*|_)(.*?)\1/g, '$2') // Remove italics
+    .replace(/(`{1,3})(.*?)\1/g, '$2') // Remove inline code and codeblocks
+    .replace(/#{1,6}\s?/g, '') // Remove headings
+    .replace(/>/g, '') // Remove blockquotes
+    .replace(/\|/g, '') // Remove table pipes
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
+
+  // If we couldn't find a meaningful description, return a default
+  if (!sanitized) {
+    return '*No description available*';
+  }
+
+  // Truncate to 150 characters
+  if (sanitized.length > 150) {
+    return sanitized.substring(0, 150) + '...';
+  }
+
+  return sanitized;
+}
+
+module.exports.extractIssueDescription = extractIssueDescription;

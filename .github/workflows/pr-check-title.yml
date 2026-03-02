@@ -36,6 +36,37 @@ jobs:
           egress-policy: audit
 
       - name: Check PR Title
+        id: check-title
+        continue-on-error: true
         uses: step-security/conventional-pr-title-action@cb1c5657ccf4c42f5c0a6c0708cb8251b960d902 # v3.2.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout repository
+        if: steps.check-title.outcome == 'failure'
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Comment on PR with title guidance
+        if: steps.check-title.outcome == 'failure'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/bot-conventional-pr-title.js');
+
+            if (!context.payload.pull_request) {
+              console.log('[Bot] No pull_request in context, skipping');
+              return;
+            }
+
+            const isDryRun = context.eventName === 'workflow_dispatch'
+              ? (context.payload.inputs?.dry_run === 'true')
+              : false;
+
+            await script.run({
+              github: github,
+              context: context,
+              prNumber: context.payload.pull_request.number,
+              prTitle: context.payload.pull_request.title,
+              dryRun: isDryRun
+            });
