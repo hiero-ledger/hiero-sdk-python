@@ -2,7 +2,9 @@ name: Add Linked Issue Labels to PR
 
 on:
   workflow_dispatch:
-
+defaults:
+  run:
+    shell: bash
 permissions:
   actions: read
   pull-requests: write
