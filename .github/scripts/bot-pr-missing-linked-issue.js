@@ -1,7 +1,4 @@
 const LINKBOT_MISSING_ISSUE_MARKER = '<!-- LinkBot Missing Issue -->';
-const LINKBOT_UNASSIGNED_ISSUE_MARKER = '<!-- LinkBot Unassigned Linked Issue -->';
-
-const requireAuthorAssigned = (process.env.REQUIRE_AUTHOR_ASSIGNED || 'true').toLowerCase() === 'true';
 
 async function getLinkedOpenIssues(github, owner, repo, prNumber) {
   const query = `
@@ -12,11 +9,6 @@ async function getLinkedOpenIssues(github, owner, repo, prNumber) {
             nodes {
               number
               state
-              assignees(first: 100) {
-                nodes {
-                  login
-                }
-              }
             }
           }
         }
@@ -32,12 +24,6 @@ async function getLinkedOpenIssues(github, owner, repo, prNumber) {
     console.error(`Failed to fetch linked issues for PR #${prNumber}:`, error.message);
     return null;
   }
-}
-
-function isAuthorAssignedToAnyIssue(issues, authorLogin) {
-  return issues.some(issue =>
-    (issue.assignees?.nodes || []).some(assignee => assignee.login === authorLogin)
-  );
 }
 
 module.exports = async ({ github, context }) => {
@@ -82,10 +68,6 @@ module.exports = async ({ github, context }) => {
 
     const alreadyCommentedMissingIssue = comments.data.some(comment =>
       comment.body?.includes(LINKBOT_MISSING_ISSUE_MARKER)
-    );
-
-    const alreadyCommentedUnassignedIssue = comments.data.some(comment =>
-      comment.body?.includes(LINKBOT_UNASSIGNED_ISSUE_MARKER)
     );
 
     const linkedIssues = await getLinkedOpenIssues(github, context.repo.owner, context.repo.repo, prNumber);
@@ -137,46 +119,8 @@ module.exports = async ({ github, context }) => {
         });
         console.log('LinkBot comment posted successfully');
       }
-    } else if (requireAuthorAssigned && !isAuthorAssignedToAnyIssue(linkedIssues, authorLogin)) {
-      if (alreadyCommentedUnassignedIssue) {
-        console.log('LinkBot unassigned-issue reminder already posted on this PR');
-        return;
-      }
-
-      const safeAuthor = authorLogin ?? 'there';
-      const linkedIssueList = linkedIssues.map(issue => `#${issue.number}`).join(', ');
-      const commentBody = [`${LINKBOT_UNASSIGNED_ISSUE_MARKER}` +
-        `Hi @${safeAuthor}, this is **LinkBot** 👋`,
-        ``,
-        `🚨 **This pull request is linked to issue(s), but you are not assigned to any of them.**`,
-        `If this remains unchanged, this pull request will be automatically closed.`,
-        ``,
-        `Linked issue(s): ${linkedIssueList}`,
-        ``,
-        `Please get assigned to one of the linked issues and keep the link in this PR description.`,
-        `Comment \`/assign\` on the issue to request assignment (works for all issue types).`,
-        `Note: assignment for intermediate/advanced issues is not automatic.`,
-        ``,
-        ``,
-        `Thanks!`
-      ].join('\n');
-
-      if (isDryRun) {
-        console.log('DRY RUN: Would post the following unassigned-issue comment:');
-        console.log('---');
-        console.log(commentBody);
-        console.log('---');
-      } else {
-        await github.rest.issues.createComment({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          issue_number: prNumber,
-          body: commentBody,
-        });
-        console.log('LinkBot unassigned-issue comment posted successfully');
-      }
     } else {
-      console.log('PR has valid linked issue assignment - no comment needed');
+      console.log('PR has linked issue - no comment needed');
     }
   } catch (error) {
     console.error('Error processing PR:', error);
