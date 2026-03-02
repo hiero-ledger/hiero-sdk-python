@@ -42,7 +42,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
           DRY_RUN: '${{ inputs.dry-run-enabled }}'
           REQUESTED_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run || 'true' }}
-          IS_FORK_PR: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name || 'false' }}
+          IS_FORK_PR: ${{ github.event.workflow_dispatch.repository.fork || github.event.pull_request.head.repo.fork }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           result-encoding: json
