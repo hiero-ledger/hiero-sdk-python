@@ -935,6 +935,175 @@ reviews:
     - Accurately aligned with protobuf definitions
     - Validating inputs consistently
 
+  # CRYPTO REVIEW INSTRUCTIONS
+  crypto_review_instructions: &crypto_review_instructions |
+    You are acting as a senior maintainer reviewing cryptography-related code
+    in the hiero-sdk-python project.
+
+    This includes:
+    - PrivateKey (Ed25519 and ECDSA(secp256k1))
+    - PublicKey (Ed25519 and ECDSA(secp256k1))
+    - EvmAddress
+  
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when correctness, safety, determinism,
+      cryptographic soundness, or API stability is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - src/hiero_sdk_python/crypto/*.py
+    - Their interaction with shared SDK utilities
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    ----------------------------------------------------------
+    Crypto APIs are public and security-sensitive.
+
+    The following MUST remain stable:
+    - Public class names
+    - Method names and signatures
+    - Return types
+    - Key serialization formats (raw, DER, hex)
+    - Signature formats (raw r||s for ECDSA)
+
+    Flag any change that:
+    - Alters method signatures or return types
+    - Changes serialization output format
+    - Changes signature encoding behavior
+    - Modifies equality or hashing semantics
+
+    If a breaking change is unavoidable:
+    - Require explicit deprecation warnings
+    - Require unit tests covering old vs new behavior
+    - Require inline documentation explaining migration impact
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — CRYPTOGRAPHIC CORRECTNESS
+    ----------------------------------------------------------
+    Verify correctness of:
+    - Ed25519 key handling
+    - ECDSA (secp256k1) key handling
+    - Compressed vs uncompressed public keys
+    - DER parsing and generation
+    - Raw 64-byte (r||s) signature handling
+    - keccak256 hashing usage
+    - EVM address derivation (rightmost 20 bytes of Keccak-256)
+
+    Confirm that:
+    - No incorrect hash function combinations are used
+    - Prehashed signing/verification is used correctly
+    - Signature malleability risks are addressed or intentional
+    - No ambiguous key interpretation occurs silently
+    - Invalid key lengths fail deterministically
+
+    Flag:
+    - Any incorrect hash algorithm pairing
+    - Any improper DER normalization
+    - Any silent fallback logic
+    - Any potential signature malleability issue
+    - Any inconsistent signature verification logic
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — KEY AMBIGUITY & TYPE SAFETY
+    ----------------------------------------------------------
+    32-byte inputs can represent:
+    - Ed25519 private keys
+    - ECDSA (secp256k1) private scalars
+
+    Verify that:
+    - Ambiguity is handled explicitly
+    - No silent reinterpretation occurs
+    - Explicit algorithm intent is preserved
+    - Warnings or safeguards are meaningful and consistent
+
+    PublicKey and PrivateKey MUST:
+    - Never silently switch algorithms
+    - Never infer algorithm incorrectly from length alone
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — SERIALIZATION & DETERMINISM
+    ----------------------------------------------------------
+    Verify that:
+    - Raw bytes serialization is stable
+    - DER serialization is canonical
+    - Hex encoding is lowercase and deterministic
+    - Equality (__eq__) matches cryptographic identity
+    - __hash__ is correct and deterministic
+    - No runtime errors occur in hashing
+
+    Flag:
+    - Incorrect hash implementations
+    - NameErrors or undefined variables
+    - Non-deterministic serialization behavior
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — EVM ADDRESS INTEGRITY
+    ----------------------------------------------------------
+    EvmAddress MUST:
+    - Be exactly 20 bytes
+    - Be derived correctly from Keccak-256
+    - Reject invalid hex strings
+    - Avoid silent truncation or padding
+
+    Verify:
+    - from_string validation correctness
+    - to_string format consistency
+    - Equality and hashing correctness
+
+    Flag:
+    - Incorrect length checks
+    - Unsafe parsing
+    - Broken __hash__ implementations
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — VALIDATION & ERROR BEHAVIOR
+    ----------------------------------------------------------
+    All validation must:
+    - Fail early
+    - Raise deterministic exceptions
+    - Avoid ambiguous error messages
+    - Avoid leaking sensitive key material in errors
+
+    Ensure:
+    - Private keys are never exposed in __repr__
+    - Error messages do not contain raw key material
+    - TypeErrors and ValueErrors are consistent
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — IMPORT SAFETY
+    ----------------------------------------------------------
+    STRICT IMPORT RULES:
+    - All imports MUST exist in src/hiero_sdk_python/
+    - Do NOT assume helpers exist
+    - Do NOT infer utilities from other SDKs
+    - Validate keccak256 implementation source
+
+    Flag immediately:
+    - Undefined names
+    - Copy-paste artifacts
+    - Incorrect external crypto assumptions
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Suggest refactors unless security or correctness is impacted
+    - Recommend stylistic or formatting-only changes
+    - Propose performance optimizations without correctness impact
+    - Review unrelated SDK components
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure crypto code is:
+    - Cryptographically correct
+    - Deterministic
+    - Non-ambiguous
+    - Backward-compatible
+    - Safe against misuse
+    - Free from silent cryptographic errors
+
   # ============================================================
   # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
   # ============================================================
@@ -1677,6 +1846,9 @@ reviews:
         - **MAJOR** — should be fixed; correctness or significant usability issue
         - **MINOR** — should be fixed; low-risk correctness or ergonomics issue
         - **NIT** — optional; style, naming, or documentation only
+
+    - path: "src/hiero_sdk_python/crypto/**/*.py"
+      instructions: *crypto_review_instructions
 
 chat:
   art: false # Don't draw ASCII art (false)
