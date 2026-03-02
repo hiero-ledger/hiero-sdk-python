@@ -26,7 +26,6 @@ defaults:
     shell: bash
 permissions:
   actions: read
-  pull-requests: write
   issues: write
 
 jobs:
