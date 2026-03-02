@@ -63,6 +63,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - updated spam list users (`#1894`)
 - trigger spam list updates every hour (`#1864`)
 - close unlinked pull requests after 12 hours rather than 3 days (`#1863`)
+- feat(bot): enforce linked issue assignment check for PR authors (`#1889`)
 
 ## [0.2.0] - 2026-11-02
 
