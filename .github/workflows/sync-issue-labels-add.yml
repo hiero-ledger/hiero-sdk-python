@@ -2,6 +2,25 @@ name: Add Linked Issue Labels to PR
 
 on:
   workflow_dispatch:
+    inputs:
+      upstream_run_id:
+        description: "Upstream compute workflow run ID"
+        required: true
+        type: string
+      pr_number:
+        description: "Pull request number"
+        required: true
+        type: string
+      dry_run:
+        description: "Dry run flag"
+        required: false
+        type: string
+        default: "true"
+      is_fork_pr:
+        description: "Fork PR flag"
+        required: false
+        type: string
+        default: "false"
 defaults:
   run:
     shell: bash
@@ -25,7 +44,7 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: artifacts
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ github.event.inputs.upstream_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Read labels payload
@@ -37,9 +56,9 @@ jobs:
             echo "labels=[]" >> "$GITHUB_OUTPUT"
             echo "labels_count=0" >> "$GITHUB_OUTPUT"
             echo "labels_multiline=" >> "$GITHUB_OUTPUT"
-            echo "pr_number=0" >> "$GITHUB_OUTPUT"
-            echo "is_fork_pr=true" >> "$GITHUB_OUTPUT"
-            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+            echo "pr_number=${{ github.event.inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+            echo "is_fork_pr=${{ github.event.inputs.is_fork_pr }}" >> "$GITHUB_OUTPUT"
+            echo "dry_run=${{ github.event.inputs.dry_run }}" >> "$GITHUB_OUTPUT"
             echo "source_event=workflow_dispatch" >> "$GITHUB_OUTPUT"
             exit 0
           fi
