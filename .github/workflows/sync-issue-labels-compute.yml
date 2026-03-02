@@ -89,3 +89,11 @@ jobs:
           path: labels.json
           retention-days: 1
 
+     - name: "Trigger Add Linked Issue Labels to PR"
+        uses: step-security/workflow-dispatch@b4c1dc0afa074d0b4f0e653d3b80d4b2798599aa # v1.2.7
+        with:
+          workflow: .github/workflows/sync-issue-labels-add.yml
+          repo: hiero-ledger/hiero-sdk-python # ensure we are executing in the hiero-ledger org
+          ref: ${{ github.ref }}
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
