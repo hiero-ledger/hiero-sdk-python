@@ -284,7 +284,7 @@ body:
       description: Provide a contribution workflow suitable for new contributors.
       value: |
         #### ✅ Get ready
-        - [ ] **Claim the issue:**  comment `/assign`: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md)
+        - [ ] **Claim the issue:**  comment `/assign`: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/04_assigning_issues.md). Pull requests created without being assigned will be automatically closed.
 
         - [ ] **Double check the Issue and AI plan:** carefully re-read the issue description and the CodeRabbit AI plan
 
@@ -310,7 +310,7 @@ body:
 
         - [ ] **Complete the PR description:**  briefly describe your changes, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
-        - [ ] **Link the Issue:**  link the issue the PR solves in the PR description, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how_to_link_issues.md)
+        - [ ] **Link the Issue:**  link the issue the PR solves in the PR description, [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how_to_link_issues.md). Pull requests created without a linked issue will be automatically closed.
 
         - [ ] **Submit the pull request:**  click `**Create pull request**` 🎉
 
