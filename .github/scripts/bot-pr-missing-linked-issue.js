@@ -1,4 +1,30 @@
-const LINKBOT_MARKER = '<!-- LinkBot Missing Issue -->';
+const LINKBOT_MISSING_ISSUE_MARKER = '<!-- LinkBot Missing Issue -->';
+
+async function getLinkedOpenIssues(github, owner, repo, prNumber) {
+  const query = `
+    query($owner: String!, $repo: String!, $prNumber: Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $prNumber) {
+          closingIssuesReferences(first: 100) {
+            nodes {
+              number
+              state
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const result = await github.graphql(query, { owner, repo, prNumber });
+    const issues = result.repository.pullRequest.closingIssuesReferences.nodes || [];
+    return issues.filter(issue => issue.state === 'OPEN');
+  } catch (error) {
+    console.error(`Failed to fetch linked issues for PR #${prNumber}:`, error.message);
+    return null;
+  }
+}
 
 module.exports = async ({ github, context }) => {
   let prNumber;
@@ -34,27 +60,30 @@ module.exports = async ({ github, context }) => {
       return;
     }
 
-    const body = prData.body || "";
-    const regex = /\b(Fixes|Closes|Resolves)\s*:?\s*(#\d+)(\s*,\s*#\d+)*/i;
-
     const comments = await github.rest.issues.listComments({
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: prNumber,
     });
 
-    const alreadyCommented = comments.data.some(comment =>
-      comment.body?.includes(LINKBOT_MARKER)
+    const alreadyCommentedMissingIssue = comments.data.some(comment =>
+      comment.body?.includes(LINKBOT_MISSING_ISSUE_MARKER)
     );
 
-    if (alreadyCommented) {
-      console.log('LinkBot already commented on this PR');
+    const linkedIssues = await getLinkedOpenIssues(github, context.repo.owner, context.repo.repo, prNumber);
+    if (linkedIssues === null) {
+      console.log('Could not determine linked issues. Skipping comment for safety.');
       return;
     }
 
-    if (!regex.test(body)) {
+    if (linkedIssues.length === 0) {
+      if (alreadyCommentedMissingIssue) {
+        console.log('LinkBot missing-issue reminder already posted on this PR');
+        return;
+      }
+
       const safeAuthor = authorLogin ?? 'there';
-      const commentBody = [`${LINKBOT_MARKER}` +
+      const commentBody = [`${LINKBOT_MISSING_ISSUE_MARKER}` +
         `Hi @${safeAuthor}, this is **LinkBot** 👋`,
         ``,
         `Linking pull requests to issues helps us significantly with reviewing pull requests and keeping the repository healthy.`,

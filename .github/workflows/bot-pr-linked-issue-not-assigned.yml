@@ -1,7 +1,7 @@
-# This workflow checks PRs for missing linked issues and posts reminder comments when needed.
+# This workflow checks PRs with linked issues and posts a reminder comment if the PR author is not assigned.
 # Uses pull_request_target to enable write permissions for fork PRs while checking out
 # only the base branch code (ref: main) to avoid executing untrusted fork code.
-name: PR Missing Linked Issue Reminder
+name: PR Linked Issue Not Assigned Reminder
 
 on:
   pull_request_target:
@@ -24,11 +24,11 @@ permissions:
   issues: write
 
 jobs:
-  check-linked-issue:
+  check-linked-issue-assignment:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: bot-pr-missing-linked-issue-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+      group: bot-pr-linked-issue-not-assigned-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
       cancel-in-progress: true
 
     steps:
@@ -42,7 +42,7 @@ jobs:
         with:
           ref: main
 
-      - name: Check PR for missing linked issue
+      - name: Check PR linked issue author assignment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
@@ -50,5 +50,5 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
-            const script = require('./.github/scripts/bot-pr-missing-linked-issue.js');
+            const script = require('./.github/scripts/bot-pr-linked-issue-not-assigned.js');
             await script({ github, context });
