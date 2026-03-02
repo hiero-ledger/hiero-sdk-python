@@ -1,4 +1,4 @@
-﻿# Changelog
+﻿﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -7,7 +7,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- 
+
+- Exposed all missing fields from `TransactionRecord` protobuf (#1636) 
 
 ### Examples
 
@@ -22,14 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 - Added unit test and __repr__ for NftId class(#1627).
-=======
-- Exposed all missing fields from `TransactionRecord` protobuf (#1636)
->>>>>>> bc9bbdb (address all mentioned issues on TransactionRecord)
-=======
->>>>>>> 5329e34 (update integration memo assertions)
 - Added CodeRabbit review instructions for the nodes module in `.coderabbit.yaml` (#1699)
 - Added CodeRabbit review instructions for the transaction module in `.coderabbit.yaml` (#1696)
 - Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
@@ -43,52 +37,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed duplication in GitHub bot next issue recommendations by parsing actual issue descriptions instead of blind truncation (#1658)
 
 ### Src
-<<<<<<< HEAD
 - Add `staking_info` field to `ContractInfo` class to expose staking metadata using the `StakingInfo` wrapper. (#1365)
-=======
-<<<<<<< HEAD
->>>>>>> 835864e (add missing TransactionRecord fields from proto (minimal change only))
 - Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 5329e34 (update integration memo assertions)
 - Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
-<<<<<<< HEAD
 - Improve `keccak256` docstring formatting for better readability and consistency (#1624)
-<<<<<<< HEAD
 - Added `wait_for_receipt` parameter for `Transaction.execute()` to support optional receipt waiting, and `get_receipt_query`, `get_record_query` and `get_record` to `TransactionResponse`.
-=======
-=======
-=======
-- 
-<<<<<<< HEAD
-=======
-- Exposed all missing fields from `TransactionRecord` protobuf (#1636)
->>>>>>> 09b9903 (update CHANGELOG.md)
->>>>>>> d27a39c (update CHANGELOG.md)
-=======
->>>>>>> 01010a1 (address all mentioned issues on TransactionRecord)
-<<<<<<< HEAD
->>>>>>> bc9bbdb (address all mentioned issues on TransactionRecord)
-<<<<<<< HEAD
->>>>>>> 58e71aa (address all mentioned issues on TransactionRecord)
-=======
-=======
-=======
-- Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
->>>>>>> 99ca8df (update integration memo assertions)
->>>>>>> 5329e34 (update integration memo assertions)
-<<<<<<< HEAD
->>>>>>> dbc33e2 (update integration memo assertions)
-=======
-=======
-- Exposed all missing fields from `TransactionRecord` protobuf (#1636)
-- Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
-- Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
->>>>>>> 0a7e3e8 (add missing TransactionRecord fields from proto (minimal change only))
->>>>>>> 835864e (add missing TransactionRecord fields from proto (minimal change only))
 
 ### Examples
 - Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)

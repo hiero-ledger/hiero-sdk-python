@@ -212,11 +212,11 @@ def test_str_and_repr(sample_token_id, sample_account_id):
         account_id=sample_account_id,
     )
 
-    s = str(assoc)
-    r = repr(assoc)
+    s_str = str(assoc)
+    r_repr = repr(assoc)
 
-    assert "TokenAssociation" in s
-    assert str(sample_token_id) in s
-    assert str(sample_account_id) in s
+    assert "TokenAssociation" in s_str
+    assert str(sample_token_id) in s_str
+    assert str(sample_account_id) in s_str
 
-    assert s == r  # since __repr__ delegates to __str__
+    assert s_str == r_repr  # since __repr__ delegates to __str__

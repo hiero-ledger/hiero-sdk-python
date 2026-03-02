@@ -46,7 +46,7 @@ def test_transaction_record_query_can_execute():
         assert record.transaction_fee > 0, "Transaction fee should be greater than zero"
         assert (
             record.transaction_memo in (None, "")
-        ), "Transaction memo should be empty/None by default"
+        ), "Transaction memo should be empty by default"
         assert (
             record.transaction_hash is not None
         ), "Transaction hash should not be None"

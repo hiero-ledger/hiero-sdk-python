@@ -1,4 +1,3 @@
-# examples/tokens/token_association.py
 """
 Simple demonstration of TokenAssociation objects.
 

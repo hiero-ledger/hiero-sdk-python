@@ -795,6 +795,6 @@ def test_repr_falls_back_on_invalid_receipt_status(transaction_id):
     r = repr(record)
 
     # Should use numeric fallback instead of raising or showing enum name
-    assert "999999'" in r
-    # Optional – make sure no enum name appears (depends on your ResponseCode impl)
-    assert "SUCCESS" not in r
+    assert "receipt_status='999999'" in r, "repr must show raw unknown receipt status code"
+    assert "SUCCESS" not in r, "repr should not map unknown status to enum labels"
+   
