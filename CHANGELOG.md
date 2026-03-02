@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -78,6 +78,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
 - Added advanced code review prompts for the `src/hiero_sdk_python/file` module in `.coderabbit.yaml` to guide reviewers in verifying proper `FileAppendTransaction` chunking constraints and nuances in memo handling for `FileUpdateTransaction` according to Hiero SDK best practices. (#1697)
 - Added CodeRabbit review instructions for consensus module `src/hiero_sdk_python/consensus/` with critical focus on protobuf alignment `.coderabbit.yaml`.
+
 - Added CodeRabbit prompt to review the `src/hiero_sdk_python/crypto` module.
 - Added `.codacy.yml` configuration to exclude the `tests/` directory from Bandit `assert` analysis.
 
@@ -107,7 +108,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: create workflow best practices guide (`docs/workflows/03-workflow-best-practices.md`) (`#1743`)
 - Fixed broken `MAINTAINERS.md` relative link in `docs/sdk_developers/bug.md` by using the repository-root GitHub URL. (#1666)
 - docs(setup): specify unit tests for local setup verification. (#1856)
-- docs: Clarify issues need to be assigned in template files. (#1884)
 - doc: Fix testnet link in README.md. (#1879)
 
 
@@ -128,6 +128,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
 - Updated CodeRabbit workflow and script review instructions to nudge higher-quality patterns without imposing rigid rules (`#1799`)
 - Added hiero-sdk-js to the next issue recommendation bot (`#1847`)
+- Added workflow and bot script to automatically sync labels from linked issues to pull requests. (#1716)
 - feat(bot): warn PR authors that unlinked PRs will be closed (#1886)
 - updated spam list users (`#1894`)
 - trigger spam list updates every hour (`#1864`)
