@@ -9,7 +9,7 @@ on:
         description: "PR number to sync labels for"
         required: true
         type: number
-      dry_run:
+      dry-run-enabled:
         description: "Dry run (log only, do not apply labels)"
         required: false
         type: boolean
