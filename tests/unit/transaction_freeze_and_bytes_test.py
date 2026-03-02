@@ -378,7 +378,7 @@ def test_from_bytes_preserves_all_common_fields():
     transaction.transaction_id = TransactionId.generate(operator_id)
     transaction.node_account_id = node_id
     transaction.transaction_fee = 5_000_000  # Custom fee
-    transaction.transaction_valid_duration = 180  # 3 minutes
+    assert transaction.set_transaction_valid_duration(180) is transaction  # 3 minutes - using setter
     transaction.generate_record = True
 
     transaction.freeze()

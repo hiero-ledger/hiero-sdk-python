@@ -97,7 +97,7 @@ The following are good fits for Good First Issues **when the solution is explici
 > ⚠️ In most cases, changes to `src` functionality are **not** Good First Issues.  
 > This category applies only when the change is **purely mechanical and fully specified**.
 
-### Suitable for Good First Issues (rare, explicit cases only):**
+### Suitable for Good First Issues (rare, explicit cases only):
 - Very small, explicitly described edits to existing code  
 - Changes that do not require understanding how the code is used elsewhere  
 
@@ -145,7 +145,7 @@ Documentation tasks must be **explicitly scoped and instruction-driven**.
 
 > ⚠️ Most test-related work is better suited for **Beginner or Intermediate Issues**.
 
-### Suitable for Good First Issues(rare, explicit cases only):**
+### Suitable for Good First Issues (rare, explicit cases only):
 - Adding a clearly specified assertion to an existing test  
 - Small mechanical edits with no test-design decisions  
 
@@ -206,4 +206,4 @@ Such issues are better labeled as **Beginner Issues**.
 - [DCO Signing Guide](../sdk_developers/signing.md)  
 - [Changelog Entry Guide](../sdk_developers/changelog_entry.md)  
 - [Discord Community](../discord.md)  
-- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+- [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581)

@@ -1,12 +1,17 @@
 """
+
+Example demonstrating topic create transaction.
+
 uv run examples/consensus/topic_create_transaction.py
 python examples/consensus/topic_create_transaction.py
 """
-from hiero_sdk_python import Client, TopicCreateTransaction, ResponseCode, PrivateKey
+from hiero_sdk_python import Client, PrivateKey, ResponseCode, TopicCreateTransaction
+
 
 def setup_client():
     """
     Sets up and configures the Hiero client.
+
     Reads OPERATOR_ID and OPERATOR_KEY from environment variables via Client.from_env().
     """
     client = Client.from_env()
@@ -15,9 +20,7 @@ def setup_client():
     return client, client.operator_private_key
 
 def create_topic(client: Client, operator_key: PrivateKey):
-    """
-    Builds, signs, and executes a new topic creation transaction.
-    """
+    """Builds, signs, and executes a new topic creation transaction."""
     transaction = (
         TopicCreateTransaction(
             memo="Python SDK created topic", admin_key=operator_key.public_key()
@@ -39,9 +42,7 @@ def create_topic(client: Client, operator_key: PrivateKey):
         raise SystemExit(1)
 
 def main():
-    """
-    Main workflow to set up the client and create a new topic.
-    """
+    """Main workflow to set up the client and create a new topic."""
     client, operator_key = setup_client()
     create_topic(client, operator_key)
 

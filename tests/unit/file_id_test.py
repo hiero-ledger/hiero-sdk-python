@@ -45,6 +45,18 @@ def test_str_representation_default():
     assert str(file_id) == "0.0.0"
 
 
+def test_repr_representation():
+    """Test repr representation of FileId."""
+    file_id = FileId(0, 0, 150)
+    assert repr(file_id) == "FileId(shard=0, realm=0, file=150)"
+
+
+def test_repr_representation_custom_values():
+    """Test repr representation of FileId with custom values."""
+    file_id = FileId(shard=1, realm=2, file=3)
+    assert repr(file_id) == "FileId(shard=1, realm=2, file=3)"
+
+
 def test_from_string_valid():
     """Test creating FileId from valid string format."""
     file_id = FileId.from_string("1.2.3")

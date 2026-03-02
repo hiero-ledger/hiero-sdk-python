@@ -1,22 +1,23 @@
 """
+
+Example demonstrating transfer transaction nft.
+
 uv run examples/transaction/transfer_transaction_nft.py
 python examples/transaction/transfer_transaction_nft.py
-
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
     AccountId,
-    PrivateKey,
+    Client,
     Network,
+    PrivateKey,
     TransferTransaction,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
@@ -26,13 +27,14 @@ from hiero_sdk_python.tokens.token_associate_transaction import (
 )
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     # Initialize network and client
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
@@ -48,7 +50,7 @@ def setup_client():
 
 
 def create_test_account(client):
-    """Create a new account for testing"""
+    """Create a new account for testing."""
     # Generate private key for new account
     new_account_private_key = PrivateKey.generate()
     new_account_public_key = new_account_private_key.public_key()
@@ -78,7 +80,7 @@ def create_test_account(client):
 
 
 def create_nft(client, operator_id, operator_key):
-    """Create a non-fungible token"""
+    """Create a non-fungible token."""
     transaction = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
@@ -110,7 +112,7 @@ def create_nft(client, operator_id, operator_key):
 
 
 def mint_nft(client, nft_token_id, operator_key):
-    """Mint a non-fungible token"""
+    """Mint a non-fungible token."""
     transaction = (
         TokenMintTransaction()
         .set_token_id(nft_token_id)
@@ -130,7 +132,7 @@ def mint_nft(client, nft_token_id, operator_key):
 
 
 def associate_nft(client, account_id, token_id, account_private_key):
-    """Associate a non-fungible token with an account"""
+    """Associate a non-fungible token with an account."""
     # Associate the token_id with the new account
     associate_transaction = (
         TokenAssociateTransaction()
@@ -152,7 +154,7 @@ def associate_nft(client, account_id, token_id, account_private_key):
 
 
 def transfer_nft_token(client, nft_id, sender_id, receiver_id):
-    """Transfer the NFT from the sender to the receiver account"""
+    """Transfer the NFT from the sender to the receiver account."""
     # Transfer nft to the new account
     transfer_transaction = (
         TransferTransaction()
@@ -173,11 +175,12 @@ def transfer_nft_token(client, nft_id, sender_id, receiver_id):
 def main():
     """
     Demonstrates the nft transfer functionality by:
+
     1. Creating a new account
     2. Creating a nft
     3. Minting a nft
     4. Associating the nft with the new account
-    5. Transferring the nft to the new account
+    5. Transferring the nft to the new account.
     """
     client, operator_id, operator_key = setup_client()
     account_id, new_account_private_key = create_test_account(client)

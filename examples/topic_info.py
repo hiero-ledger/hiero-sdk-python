@@ -1,5 +1,7 @@
 """
-**INTERNAL DEVELOPER REFERENCE**
+
+
+**INTERNAL DEVELOPER REFERENCE**.
 
 This example is primarily for internal SDK developers and contributors.
 
@@ -23,9 +25,8 @@ Run with:
     uv run examples/topic_info.py
     python examples/topic_info.py
 """
-
-from hiero_sdk_python.consensus.topic_info import TopicInfo
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_info import TopicInfo
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services import consensus_topic_info_pb2
@@ -89,7 +90,7 @@ def mock_ledger_id() -> bytes:
 
 def build_mock_topic_info() -> TopicInfo:
     """Manually construct a TopicInfo instance with mock data."""
-    topic_info = TopicInfo(
+    return TopicInfo(
         memo="Example topic memo",
         running_hash=mock_running_hash(),
         sequence_number=42,
@@ -103,7 +104,6 @@ def build_mock_topic_info() -> TopicInfo:
         fee_exempt_keys=None,
         custom_fees=[mock_custom_fee()],
     )
-    return topic_info
 
 
 def build_topic_info_from_proto() -> TopicInfo:
@@ -120,8 +120,7 @@ def build_topic_info_from_proto() -> TopicInfo:
     proto.ledger_id = mock_ledger_id()
     proto.custom_fees.append(mock_custom_fee()._to_topic_fee_proto())
 
-    topic_info = TopicInfo._from_proto(proto)
-    return topic_info
+    return TopicInfo._from_proto(proto)
 
 
 def print_topic_info(topic: TopicInfo) -> None:

@@ -1,9 +1,11 @@
 """
+
+
 Example demonstrating schedule deletion on the network.
+
 uv run examples/schedule/schedule_delete_transaction.py
 python examples/schedule/schedule_delete_transaction.py
 """
-
 import datetime
 import os
 import sys
@@ -30,7 +32,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -44,7 +46,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create a test account"""
+    """Create a test account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -71,7 +73,7 @@ def create_account(client):
 
 
 def create_schedule(client, account_id, account_private_key):
-    """Create a scheduled transaction"""
+    """Create a scheduled transaction."""
     # Amount to transfer in tinybars
     amount = Hbar(1).to_tinybars()
 
@@ -118,10 +120,11 @@ def create_schedule(client, account_id, account_private_key):
 def schedule_delete():
     """
     Demonstrates schedule deletion functionality by:
+
     1. Setting up client with operator account
     2. Creating a test account
     3. Creating a scheduled transaction
-    4. Deleting the scheduled transaction
+    4. Deleting the scheduled transaction.
     """
     client = setup_client()
 

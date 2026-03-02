@@ -2,7 +2,7 @@
 Query to get the contents of a file on the network.
 """
 
-from typing import Optional
+from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -96,7 +96,7 @@ class FileContentsQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.file.getFileContent)
 
-    def execute(self, client: Client) -> str:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> str:
         """
         Executes the file contents query.
 
@@ -108,6 +108,7 @@ class FileContentsQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             str: The contents of the file from the network
@@ -118,7 +119,7 @@ class FileContentsQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return response.fileGetContents.fileContents.contents
 

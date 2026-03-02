@@ -1,6 +1,4 @@
-"""
-Example demonstrating hbar allowance approval, deletion, and failure after deletion.
-"""
+"""Example demonstrating hbar allowance approval, deletion, and failure after deletion."""
 
 import os
 import sys
@@ -144,6 +142,7 @@ def transfer_hbar_without_allowance(
 ):
     """
     Attempt to transfer hbars after allowance has been deleted.
+
     This should fail with SPENDER_DOES_NOT_HAVE_ALLOWANCE.
     """
     print("Trying to transfer hbars without allowance...")
@@ -175,12 +174,13 @@ def transfer_hbar_without_allowance(
 def main():
     """
     Demonstrates hbar allowance functionality by:
+
     1. Setting up client with operator account
     2. Creating spender and receiver accounts
     3. Approving hbar allowance for spender
     4. Transferring hbars using the allowance
     5. Deleting allowance
-    6. Attempting to transfer again and seeing it fails
+    6. Attempting to transfer again and seeing it fails.
     """
     client = setup_client()
 

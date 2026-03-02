@@ -1,4 +1,6 @@
 """
+
+
 This example creates an infinite fungible token using Hiero SDK Python.
 
 It:
@@ -14,15 +16,14 @@ Usage:
 uv run examples/tokens/token_create_transaction_fungible_infinite.py
 python examples/tokens/token_create_transaction_fungible_infinite.py
 """
-
-
 import sys
+
 from hiero_sdk_python import (
     Client,
     PrivateKey,
+    SupplyType,
     TokenCreateTransaction,
     TokenType,
-    SupplyType,
 )
 
 
@@ -44,7 +45,7 @@ def generate_keys():
 def build_transaction(client, operator_id, admin_key, supply_key):
     """Build and freeze the infinite fungible token creation transaction."""
     print("\nBuilding transaction to create an infinite fungible token...")
-    transaction = (
+    return (
         TokenCreateTransaction()
         .set_token_name("Infinite Fungible Token")
         .set_token_symbol("IFT")
@@ -57,7 +58,6 @@ def build_transaction(client, operator_id, admin_key, supply_key):
         .set_supply_key(supply_key)
         .freeze_with(client)
     )
-    return transaction
 
 
 def execute_transaction(transaction, client, operator_key, admin_key, supply_key):
@@ -84,7 +84,6 @@ def execute_transaction(transaction, client, operator_key, admin_key, supply_key
 
 def create_token_fungible_infinite():
     """Main function to create an infinite fungible token."""
-
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

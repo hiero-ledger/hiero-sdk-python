@@ -1,10 +1,11 @@
-"""Example of transferring tinybars using legacy integer and modern Hbar object approaches.
+"""
+
+Example of transferring tinybars using legacy integer and modern Hbar object approaches.
 
 Usage:
     uv run examples/transaction/transfer_transaction_tinybar.py
     python examples/transaction/transfer_transaction_tinybar.py
 """
-
 import os
 import sys
 
@@ -139,7 +140,9 @@ def get_balance(client, account_id, when=""):
 
 
 def main():
-    """Run example showing both integer and object-based tinybar transfers.
+    """
+
+    Run example showing both integer and object-based tinybar transfers.
 
     Steps:
     1. Setup client.

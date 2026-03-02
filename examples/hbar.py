@@ -1,16 +1,16 @@
 """
+
+Example: Hbar.
+
 uv run examples/hbar.py
 python examples/hbar.py
 """
-
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.hbar_unit import HbarUnit
 
 
 def demonstrate_factory_methods():
-    """
-    Demonstrates creating Hbar values using the convenient factory methods.
-    """
+    """Demonstrates creating Hbar values using the convenient factory methods."""
     print("\n=== Creating Hbar Using Factory Methods ===")
 
     # Creates an Hbar object representing 1 Gigabar (1,000,000,000 ℏ)
@@ -53,9 +53,7 @@ def create_hbar_using_constructor():
 
 
 def create_hbar_using_of():
-    """
-    Demonstrates creating Hbar using the of() method with explicit units.
-    """
+    """Demonstrates creating Hbar using the of() method with explicit units."""
     print("\n=== Creating Hbar Using of() Method ===")
 
     # Treated as 5 ℏ
@@ -71,9 +69,7 @@ def create_hbar_using_of():
 
 
 def create_hbar_from_tinybars():
-    """
-    Demonstrates using from_tinybars() to create Hbar values directly.
-    """
+    """Demonstrates using from_tinybars() to create Hbar values directly."""
     print("\n=== Creating from Tinybars ===")
 
     # Treated as tinyhbars
@@ -110,9 +106,7 @@ def parse_hbar_from_string():
 
 
 def demonstrate_conversion_methods():
-    """
-    Demonstrates usage of to(), to_tinybars(), and to_hbars().
-    """
+    """Demonstrates usage of to(), to_tinybars(), and to_hbars()."""
     print("\n=== Converting Hbar Values ===")
 
     h = Hbar(10)  # 10 ℏ
@@ -125,9 +119,7 @@ def demonstrate_conversion_methods():
 
 
 def demonstrate_negation():
-    """
-    Demonstrates use of negated() method.
-    """
+    """Demonstrates use of negated() method."""
     print("\n=== Negating Hbar Values ===")
 
     h = Hbar(15)
@@ -140,9 +132,7 @@ def demonstrate_negation():
 
 
 def demonstrate_constants():
-    """
-    Demonstrates using ZERO, MAX, and MIN constants.
-    """
+    """Demonstrates using ZERO, MAX, and MIN constants."""
     print("\n=== Using Constants ===")
 
     # A constant value of zero hbars

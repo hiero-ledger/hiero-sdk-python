@@ -6,9 +6,72 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+
+- Added CodeRabbit review instructions for the nodes module in `.coderabbit.yaml` (#1699)
+- Added CodeRabbit review instructions for the transaction module in `.coderabbit.yaml` (#1696)
+- Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
+- Added advanced code review prompts for the `src/hiero_sdk_python/file` module in `.coderabbit.yaml` to guide reviewers in verifying proper `FileAppendTransaction` chunking constraints and nuances in memo handling for `FileUpdateTransaction` according to Hiero SDK best practices. (#1697)
+- Added CodeRabbit review instructions for consensus module `src/hiero_sdk_python/consensus/` with critical focus on protobuf alignment `.coderabbit.yaml`.
+- Added CodeRabbit prompt to review the `src/hiero_sdk_python/crypto` module.
+
+### Fixed
+
+- Fixed duplication in GitHub bot next issue recommendations by parsing actual issue descriptions instead of blind truncation (#1658)
+
+### Src
+- Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
+- Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
+
+### Examples
+- Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)
+
+- Refactored contract_delete_transaction example to use Client.from_env. (#1823)
+
+### Docs
+
+- docs: Improving formatting will make the pull request process clearer. (`#1858`)
+- Added Python compatibility badge to README for improved visibility of supported versions (#1830)
+- Fixed Test Improvements header formatting in Good First Issue guidelines by adding missing space before parenthetical and removing stray bold marker (#1829)
+- Improved Google-style docstring for `compress_point_unchecked` in `crypto_utils.py`. (#1625)
+- chore: update office hours and community calls to use direct links (`#1804`)
+- docs: create workflow best practices guide (`docs/workflows/03-workflow-best-practices.md`) (`#1743`)
+- Fixed broken `MAINTAINERS.md` relative link in `docs/sdk_developers/bug.md` by using the repository-root GitHub URL. (#1666)
+- docs(setup): specify unit tests for local setup verification. (#1856)
+- docs: Clarify issues need to be assigned in template files. (#1884)
+- doc: Fix testnet link in README.md. (#1879)
+
 
 
 ### Tests
+- Format `tests/unit/endpoint_test.py` using black. (`#1792`)
+- Implement TCK JSON-RPC server with request handling and error management
+
+### .github
+- Added triage members max assignment is protected from being a mentor in `.github/scripts/bot-assignment-check.sh`. (#1718)
+- Added automated bot to comment on PRs with invalid conventional commit titles, providing guidance on fixing the title format (#1705)
+- Revert PythonBot workflow to restore previous stable behavior. (#1825)
+- Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
+- Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
+- Reverted PR #1739 checking assignment counts
+- chore: update step-security/harden-runner from 2.14.1 to 2.14.2 in a workflow
+- Redesigned beginner issue template with readiness self-check, exploration-based task structure, compact workflow reference, and common pitfalls guidance to improve completion rates (#1651)
+- Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
+- Updated CodeRabbit workflow and script review instructions to nudge higher-quality patterns without imposing rigid rules (`#1799`)
+- Added hiero-sdk-js to the next issue recommendation bot (`#1847`)
+- feat(bot): warn PR authors that unlinked PRs will be closed (#1886)
+- updated spam list users (`#1894`)
+- trigger spam list updates every hour (`#1864`)
+- close unlinked pull requests after 12 hours rather than 3 days (`#1863`)
+
+## [0.2.0] - 2026-11-02
+
+### Tests
+- Format `tests/unit/crypto_utils_test.py` with black for code style consistency (#1524)
+- Standardize formatting of `tests/unit/entity_id_helper_test.py` using Black for consistent code style across the test suite (#1527)
+
+- Added tests for ProtoBuf Training Example Implementation
+- Formatted `tests/unit/get_receipt_query_test.py` with black for code style consistency. (#1537)
 - format black `tests/unit/hbar*.py`.(#1538)
 - Formatted `tests/unit/conftest.py` with black for code style consistency. (#1522)
 - format `black tests/unit/nft_id_test.py` with Black.(#1544)
@@ -27,8 +90,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Formatted `ethereum_transaction_test.py` using Black.
 - Formatted client_test.py using Black.
 - Format tests/unit/query*.py using black (#1547)
+- Format `tests/unit/custom_fee_test.py` with black for code style consistency. (#1525)
 
 ### Added
+- Implement custom `__repr__` method for `FileId` class that returns constructor-style representation for improved debugging experience (#1628)
+- Added foundational guide for GitHub Workflows (#1741)
+- Contract-specific CodeRabbit review instructions in `.coderabbit.yaml` for improved automated PR feedback on ABI, gas, ContractId, and protobuf safety. (#1695)
+- Added new members to the mentor roster. (#1693)
+- Added support for the `includeDuplicates` flag in `TransactionRecordQuery` and `duplicates` field in `TransactionRecord` (#1635)
+- Added logging in bot-gfi-assign-on-comment.js to prevent silent skips. (`#1668`)
+- Added `AssessedCustomFee` domain model to represent assessed custom fees. (`#1637`)
+- Add __repr__ method for ContractId class to improve debugging (#1714)
+- Added Protobuf Training guide to enhance developer understanding of proto serialization
+  and deserialization (#1645)
 - Add `__repr__()` method to `TopicId` class for improved debugging with constructor-style representation (#1629)
 - Added guide for resolving CHANGELOG.md conflicts using GitHub's web editor (`#1591`)
 - Added Windows setup guide for SDK developers (`docs/sdk_developers/training/setup/setup_windows.md`) with PowerShell installation instructions. (#1570)
@@ -75,6 +149,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `.github/workflows/bot-pr-auto-draft-on-changes.yml` to automatically convert PRs to draft and notify authors when reviewers request changes.
 - Add beginner issue template
 - Add relevant examples to the beginner issue template
+- Add Github CODEOWNERS
 - Modularized `transfer_transaction_fungible` example by introducing `account_balance_query()` & `transfer_transaction()`.Renamed `transfer_tokens()` → `main()`
 - Phase 2 of the inactivity-unassign bot: Automatically detects stale open pull requests (no commit activity for 21+ days), comments with a helpful InactivityBot message, closes the stale PR, and unassigns the contributor from the linked issue.
 - Added `__str__()` to CustomFixedFee and updated examples and tests accordingly.
@@ -134,15 +209,28 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added first-class support for EVM address aliases in `AccountId`, including parsing, serialization, Mirror Node population helpers.
 - Add automated bot to recommend next issues to contributors after their first PR merge (#1380)
 - Added dry-run support and refactored `.github/workflows/bot-workflows.yml` to use dedicated script `.github/scripts/bot-workflows.js` for improved maintainability and testability. (`#1288`)
+- Added MirrorNode based population for `ContractId`, including parsing and serialization support.
 - Added `/working` command to reset the inactivity timer on issues and PRs. ([#1552](https://github.com/hiero-ledger/hiero-sdk-python/issues/1552))
-
-### Changed
+- Added `grpc_deadline` support for transaction and query execution.
+- Type hints to exception classes (`PrecheckError`, `MaxAttemptsError`, `ReceiptStatusError`) constructors and string methods.
+- Added `__eq__` and `__hash__` functions for Key
 
 ### Documentation
+- Added `docs/workflows/02-architecture.md`: explains the orchestration (YAML) vs. business logic (JS) separation pattern for GitHub workflows (#1742)
+- Fix relative links in `testing.md`, clean up `CONTRIBUTING.md` TOC, and normalize test file naming and paths (`#1706`)
 - Added comprehensive docstring to `compress_with_cryptography` function (#1626)
+- Replaced the docstring in `entity_id_helper.py` with one that is correct. (#1623)
 
 ### Changed
 - Improve `keccak256` docstring formatting for better readability and consistency (#1624)
+- Reduced linting errors in `examples/` directory by 80% (952 → 185) by fixing docstring formatting, import ordering, and applying auto-fixes (#1768)
+- Improved bot message formatting in LinkBot to display issue linking format as a code block for better clarity (#1762)
+- Refactored `setup_client()` in all `examples/query/` files to use `Client.from_env()` for simplified client initialization (#1449)
+- Improve the changelog check by posting informative PR comments when entries are missing or placed under a released version. (#1683)
+- Updated return of to_bytes function in `src/hiero_sdk_python/transaction/transaction.py`. (#1631)
+- Added missing return type `src/hiero_sdk_python/utils/entity_id_helper.py`. (#1622)
+- Update `verify_freeze()` to treat only ACCOUNT_FROZEN_FOR_TOKEN as a successful freeze verification (#1515)
+- Updated team.md with new triage, committers and maintainer (#1692)
 - Removed outdated "Common Issues" section from CONTRIBUTING.md that referenced non-existent docs/common_issues.md (`#1665`)
 - Hide the commit verification bot marker in pull request comments.
 - Added missing type hints to sign method in Transaction class (#1630)
@@ -232,11 +320,18 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Update changelog workflow to trigger automatically on pull requests instead of manual dispatch (#1567)
 - Formatted key-related unit test files (`key_utils_test.py`, `test_key_format.py`, `test_key_list.py`) using the black formatter
 - Add return type hint to `ContractId.__str__`. (#1654)
-
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
+- chore: update MAINTAINERS.md to include new maintainer Manish Dait and sort maintainers by GitHub ID. (#1691)
+- Changed `TransactionResponse.get_receipt()` so now pins receipt queries to the submitting node via `set_node_account_ids()` ([#1686](https://github.com/hiero-ledger/hiero-sdk-python/issues/1686))
+- chore: clarify wording in the bot-assignment-check.sh (#1748)
+- Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
 
+   
 ### Fixed
+- Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
+- Corrected broken documentation links in SDK developer training files.(#1707)
+- Updated Good First Issue recommendations to supported Hiero repositories. (#1689)
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
 - Ensured that the GFI assignment bot skips posting `/assign` reminders for repository collaborators to avoid unnecessary notifications.(#1568).
 - Reduced notification spam by skipping the entire advanced qualification job for non-advanced issues and irrelevant events (#1517)
@@ -273,6 +368,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed incorrect run instructions and broaden error handling in `token_dissociate_transaction.py` example to improve usability for new users (#1468)
 - Update `.github/scripts/bot-advanced-check.sh` to unassign unqualified users.
 - Fixed broken project structure link in `CONTRIBUTING.md` (#1664)
+- Refactor spam list update logic and remove unused pull request creation step `.github/scripts/update-spam-list.js` `.github/workflows/cron-update-spam-list.yml`.
+- Ensure all Query sub-class `execute()` function to correctly propagate the optional `timeout` parameter.
+- Refactor assignment time retrieval and open PR check to use GraphQL API instead of REST API `.github/scripts/bot-issue-reminder-no-pr.sh` (#1746)
 
 ### Removed
 
@@ -400,7 +498,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: Add `docs/sdk_developers/project_structure.md` to explain repository layout and import paths.
 
 ### Changed
-
 - chore: renamed examples to match src where possible
 - Moved examples/ to be inside subfiles to match src structure
 - changed example script workflow to run on new subdirectory structure

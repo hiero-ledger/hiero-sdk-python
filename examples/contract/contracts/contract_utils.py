@@ -1,5 +1,8 @@
 """
+
+
 This module provides utilities for loading and managing smart contract bytecode.
+
 It contains bytecode constants for contracts and configuration constants for deployment.
 
 File Structure:
@@ -25,7 +28,6 @@ Notes:
     - Each contract's bytecode is loaded into a constant (e.g. SIMPLE_CONTRACT_BYTECODE)
     - The _load_contract_bytecode() utility handles loading and validation
 """
-
 from pathlib import Path
 
 

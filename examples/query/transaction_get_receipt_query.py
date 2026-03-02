@@ -1,49 +1,39 @@
 """
+
+Example demonstrating transaction get receipt query.
+
 uv run examples/query/transaction_get_receipt_query.py
 python examples/query/transaction_get_receipt_query.py
-
 """
-
-import os
 import sys
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
-    Client,
-    AccountId,
-    PrivateKey,
-    TransferTransaction,
-    Hbar,
-    TransactionGetReceiptQuery,
-    ResponseCode,
     AccountCreateTransaction,
+    Client,
+    Hbar,
+    PrivateKey,
+    ResponseCode,
+    TransactionGetReceiptQuery,
+    TransferTransaction,
 )
-
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
+    """Initialize and set up the client with operator account."""
     try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
+        client = Client.from_env()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
         print(f"Client set up with operator id {client.operator_account_id}")
 
         return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
+    except ValueError as e:
+        print(f"Error setting up client: {e}")
         sys.exit(1)
 
 
 def create_account(client, operator_key):
-    """Create a new recipient account"""
+    """Create a new recipient account."""
     print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
@@ -64,7 +54,6 @@ def create_account(client, operator_key):
 
 def _print_receipt_children(queried_receipt):
     """Pretty-print receipt status and any child receipts."""
-
     children = queried_receipt.children
 
     if not children:
@@ -82,7 +71,6 @@ def _print_receipt_children(queried_receipt):
 
 def _print_receipt_duplicates(queried_receipt):
     """Pretty-print receipt status and any duplicate receipts."""
-
     duplicates = queried_receipt.duplicates
 
     if not duplicates:
@@ -101,6 +89,7 @@ def _print_receipt_duplicates(queried_receipt):
 def query_receipt():
     """
     A full example that include account creation, Hbar transfer, and receipt querying.
+
     Demonstrates include_child_receipts support (SDK API: set_include_children).
     """
     # Config Client

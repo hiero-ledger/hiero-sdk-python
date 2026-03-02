@@ -1,24 +1,26 @@
 """
+
+Example demonstrating transfer transaction fungible.
+
 uv run examples/transaction/transfer_transaction_fungible.py
 python examples/transaction/transfer_transaction_fungible.py
-
 """
-
 import os
 import sys
+
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
-    TransferTransaction,
     AccountCreateTransaction,
-    Hbar,
-    TokenCreateTransaction,
+    AccountId,
+    Client,
     CryptoGetAccountBalanceQuery,
+    Hbar,
+    Network,
+    PrivateKey,
     TokenAssociateTransaction,
+    TokenCreateTransaction,
+    TransferTransaction,
 )
 
 load_dotenv()
@@ -29,7 +31,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 #  CLIENT SETUP
 # --------------------------
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -50,7 +52,7 @@ def setup_client():
 #  ACCOUNT CREATION
 # --------------------------
 def create_account(client, operator_key):
-    """Create a new recipient account"""
+    """Create a new recipient account."""
     print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
@@ -154,8 +156,9 @@ def transfer_transaction(client, operator_id, operator_key, recipient_id, token_
 # --------------------------
 def main():
     """
-    A full example to create a new recipent account, a fungible token, and
-    transfer the token to that account
+    A full example to create a new recipient account, a fungible token, and.
+
+    transfer the token to that account.
     """
     # Config Client
     client, operator_id, operator_key = setup_client()

@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating contract deletion on the network.
 
 This module shows how to delete a smart contract by:
@@ -19,12 +21,12 @@ Usage:
     python -m examples.contract.contract_delete_transaction
 """
 
-import os
 import sys
 
-from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+
+from hiero_sdk_python import Client
+
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -40,27 +42,20 @@ from hiero_sdk_python.response_code import ResponseCode
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
 
-load_dotenv()
-
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """
+    Set up and configure the client by loading OPERATOR_ID and OPERATOR_KEY with Client.from_env().
+    """
+    client = Client.from_env()
+    print(f"Connecting to Hedera {client.network.network} network!")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
 def create_contract_file(client):
-    """Create a file containing the contract bytecode"""
+    """Create a file containing the contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -80,7 +75,7 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id, initial_balance):
-    """Create a contract using the file"""
+    """Create a contract using the file."""
     receipt = (
         ContractCreateTransaction()
         .set_admin_key(client.operator_private_key.public_key())
@@ -106,13 +101,14 @@ def create_contract(client, file_id, initial_balance):
 def contract_delete():
     """
     Demonstrates deleting a contract on the network by:
+
     1. Setting up client with operator account
     2. Creating a file containing contract bytecode
     3. Creating two contracts: one with balance, one for transfer
     4. Deleting the contract and transferring the hbars to a transfer contract
     5. Checking if the contract is deleted and the transfer contract has the hbars
     6. Deleting the transfer contract and transferring the hbars to the operator account
-    7. Checking if the transfer contract is deleted
+    7. Checking if the transfer contract is deleted.
     """
     client = setup_client()
 

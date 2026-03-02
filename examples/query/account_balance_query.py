@@ -1,5 +1,7 @@
 """
-Query Balance Example
+
+
+Query Balance Example.
 
 This script demonstrates how to:
 1. Set up a client connection to the Hedera network
@@ -12,26 +14,18 @@ Run with:
   python examples/query/account_balance_query.py
 
 """
-
-import os
 import sys
 import time
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
-    Client,
-    AccountId,
-    PrivateKey,
     AccountCreateTransaction,
-    TransferTransaction,
+    Client,
     CryptoGetAccountBalanceQuery,
-    ResponseCode,
     Hbar,
+    PrivateKey,
+    ResponseCode,
+    TransferTransaction,
 )
-
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
@@ -39,30 +33,21 @@ def setup_client():
     Initialize and configure the Hiero SDK client with operator credentials.
 
     Returns:
-        Client: Configured client ready for transactions and queries.
+        tuple: (client, operator_id, operator_key) - Configured client and operator credentials.
 
     Raises:
         ValueError: If OPERATOR_ID or OPERATOR_KEY environment variables are not set.
     """
+    try:
+        client = Client.from_env()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
 
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id_str = os.getenv("OPERATOR_ID")
-    operator_key_str = os.getenv("OPERATOR_KEY")
-
-    if not operator_id_str or not operator_key_str:
-        raise ValueError(
-            "OPERATOR_ID and OPERATOR_KEY environment variables must be set"
-        )
-
-    operator_id = AccountId.from_string(operator_id_str)
-    operator_key = PrivateKey.from_string(operator_key_str)
-    client.set_operator(operator_id, operator_key)
-
-    print(f"Client set up with operator id {client.operator_account_id}")
-    return client, operator_id, operator_key
+        print(f"Client set up with operator id {client.operator_account_id}")
+        return client, operator_id, operator_key
+    except ValueError as e:
+        print(f"Error setting up client: {e}")
+        sys.exit(1)
 
 
 def create_account(client, operator_key, initial_balance=Hbar(10)):
@@ -93,7 +78,7 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
     receipt = transaction.execute(client)
     new_account_id = receipt.account_id
 
-    print(f"✓ Account created successfully")
+    print("✓ Account created successfully")
     print(f"  Account ID: {new_account_id}")
     print(
         f"  Initial balance: {initial_balance.to_hbars()} hbars ({initial_balance.to_tinybars()} tinybars)\n"
@@ -160,9 +145,7 @@ def transfer_hbars(client, operator_id, operator_key, recipient_id, amount):
 
 
 def main():
-    """
-    Main workflow: Set up client, create account, query balance, and transfer HBAR.
-    """
+    """Main workflow: Set up client, create account, query balance, and transfer HBAR."""
     try:
         #  Initialize client with operator credentials
         client, operator_id, operator_key = setup_client()

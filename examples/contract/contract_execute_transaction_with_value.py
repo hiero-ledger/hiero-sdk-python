@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating contract execute with HBAR value transfer on the network.
 
 This module shows how to execute a contract on the network by:
@@ -39,7 +41,6 @@ Note:
     - A receive() function for plain HBAR transfers
     - A setMessageAndPay() function that accepts HBAR while updating a message
 """
-
 import os
 import sys
 
@@ -70,7 +71,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -84,7 +85,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the stateful contract bytecode"""
+    """Create a file containing the stateful contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -104,8 +105,8 @@ def create_contract_file(client):
 
 
 def create_contract(client, file_id):
-    """Create a contract using the file with constructor parameters"""
-    initial_message = "Initial message from constructor".encode("utf-8")
+    """Create a contract using the file with constructor parameters."""
+    initial_message = b"Initial message from constructor"
     constructor_params = ContractFunctionParameters().add_bytes32(initial_message)
     receipt = (
         ContractCreateTransaction()
@@ -132,11 +133,12 @@ def create_contract(client, file_id):
 def execute_contract_with_value():
     """
     Demonstrates executing a contract with HBAR value transfer by:
+
     1. Setting up client with operator account
     2. Creating a file containing stateful contract bytecode
     3. Creating a contract using the file
     4. Executing a contract with HBAR value transfer
-    5. Querying the contract info to verify the balance
+    5. Querying the contract info to verify the balance.
 
     The set_payable_amount() method sends HBAR from the transaction signer to the contract.
     The contract must have either a receive() function declared as `receive() external payable`

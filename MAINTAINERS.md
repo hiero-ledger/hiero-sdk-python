@@ -1,6 +1,6 @@
 # Maintainers
 
-The general handling of Maintainer rights and all groups in this GitHub org is done in the https://github.com/hiero-ledger/governance repository.
+The general handling of Maintainer rights and all groups in this GitHub org is done in the <https://github.com/hiero-ledger/governance> repository.
 
 ## Maintainer Scopes, GitHub Roles and GitHub Teams
 
@@ -18,10 +18,10 @@ Maintainers are assigned the following scopes in this repository:
 
 | Name           | GitHub ID     | Scope | LFID | Discord ID     | Email | Company Affiliation |
 | -------------- | ------------- | ----- | ---- | -------------- | ----- | ------------------- |
-| Nadine Loepfe  | nadineloepfe  |       |      | nadine_90669   |       | Hashgraph           |
 | Sophie Bulloch | exploreriii   |       |      | explorer3      |       |                     |
+| Manish Dait    | manishdait    |       |      | manish24       |       |                     |
+| Nadine Loepfe  | nadineloepfe  |       |      | nadine_90669   |       | Hashgraph           |
 | Richard Bair   | rbair23       |       |      | rbair          |       | Hashgraph           |
-
 
 ## Emeritus Maintainers
 

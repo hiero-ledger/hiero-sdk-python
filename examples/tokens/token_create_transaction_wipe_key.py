@@ -1,4 +1,6 @@
 """
+
+
 This example demonstrates the Wipe Key privileges for token management using Hiero SDK Python.
 
 It shows:
@@ -17,27 +19,23 @@ Required environment variables:
 Usage:
 uv run examples/tokens/token_create_transaction_wipe_key.py
 """
-
 import sys
 
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
-    TokenCreateTransaction,
-    TokenWipeTransaction,
-    TokenAssociateTransaction,
-    TransferTransaction,
     AccountCreateTransaction,
-    TokenInfoQuery,
-    TokenMintTransaction,
+    Client,
     Hbar,
     NftId,  # <--- FIX 1: Added NftId import
+    PrivateKey,
+    TokenAssociateTransaction,
+    TokenCreateTransaction,
+    TokenInfoQuery,
+    TokenMintTransaction,
+    TokenWipeTransaction,
+    TransferTransaction,
 )
-
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.tokens.supply_type import SupplyType
-
 
 
 def setup_client():
@@ -47,9 +45,7 @@ def setup_client():
     return client
 
 def create_recipient_account(client):
-    """
-    Helper: Create a new account to hold tokens(wiped ones)
-    """
+    """Helper: Create a new account to hold tokens(wiped ones)."""
     private_key = PrivateKey.generate_ed25519()
     tx = (
         AccountCreateTransaction()
@@ -68,8 +64,7 @@ def create_recipient_account(client):
 
 
 def associate_and_transfer(client, token_id, recipient_id, recipient_key, amount):
-    """Helper: Associate token to recipient and transfer tokens to them"""
-
+    """Helper: Associate token to recipient and transfer tokens to them."""
     associate_tx = (
         TokenAssociateTransaction()
         .set_account_id(recipient_id)
@@ -217,7 +212,7 @@ def demonstrate_wipe_success(client, token_id, target_account_id, wipe_key):
         print(f"❌ Wipe failed with status: {ResponseCode(receipt.status).name}")
         return False
 
-    print(f"✅ Wipe Successful!")
+    print("✅ Wipe Successful!")
     return True
 
 
@@ -230,6 +225,7 @@ def verify_supply(client, token_id):
 def demonstrate_nft_wipe_scenario(client, operator_id, operator_key, user_id, user_key):
     """
     Scenario 3: Create an NFT, Mint it, Transfer it, and then Wipe it.
+
     This demonstrates that Wipe Key works for NON_FUNGIBLE_UNIQUE tokens as well.
     """
     print("\n--- Scenario 3: NFT Wipe with Wipe Key ---")
@@ -280,16 +276,24 @@ def demonstrate_nft_wipe_scenario(client, operator_id, operator_key, user_id, us
         .add_token_id(nft_token_id)
         .freeze_with(client)
         .sign(user_key)
-    ).execute(client)
+    )
+    associate_receipt = associate_tx.execute(client)
+    if associate_receipt.status != ResponseCode.SUCCESS:
+        print(f"❌ Association failed: {ResponseCode(associate_receipt.status).name}")
+        return
+    print("✅ Token associated.")
 
     # Transfer
-    # FIX 2: Use NftId(token_id, serial_number)
     transfer_tx = (
         TransferTransaction()
         .add_nft_transfer(NftId(nft_token_id, serial_number), operator_id, user_id)
-        .execute(client)
+        .freeze_with(client)
     )
-    print(f"✅ Transfer complete.")
+    transfer_receipt = transfer_tx.execute(client)
+    if transfer_receipt.status != ResponseCode.SUCCESS:
+        print(f"❌ Transfer failed: {ResponseCode(transfer_receipt.status).name}")
+        return
+    print("✅ Transfer complete.")
 
     # 4. Wipe the NFT from the User
     print(f"Attempting to WIPE NFT #{serial_number} from user {user_id}...")
@@ -316,13 +320,13 @@ def demonstrate_nft_wipe_scenario(client, operator_id, operator_key, user_id, us
 def main():
     """
     Main execution flow:
+
     1. Setup Client
     2. Create a recipient account
     3. Scenario 1: Fail to wipe without key (Fungible)
     4. Scenario 2: Successfully wipe with key (Fungible)
-    5. Scenario 3: Successfully wipe with key (NFT)
+    5. Scenario 3: Successfully wipe with key (NFT).
     """
-
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

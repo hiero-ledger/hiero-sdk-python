@@ -410,13 +410,13 @@ balance = query.execute(client)
 
 The SDK includes several production-ready query implementations that demonstrate best practices for extending `Query`. Contributors are encouraged to review these examples when implementing new queries:
 
-- [`account_balance_query.py`](../../examples/query/account_balance_query.py) — Simple query with minimal configuration
-- [`account_info_query.py`](../../examples/query/account_info_query.py) — Paid query with structured response
-- [`token_info_query.py`](../../examples/query/token_info_query_fungible.py) — Fungible token metadata
-- [`token_nft_info_query.py`](../../examples/query/token_nft_info_query.py) — NFT token metadata
-- [`topic_info_query.py`](../../examples/query/topic_info_query.py) — Streaming-style topic message retrieval
-- [`transaction_get_receipt_query.py`](../../examples/query/transaction_get_receipt_query.py) — Transaction receipt lookup
-- [`transaction_record_query.py`](../../examples/query/transaction_record_query.py) — Transaction record retrieval
+- [`account_balance_query.py`](../../../examples/query/account_balance_query.py) — Simple query with minimal configuration
+- [`account_info_query.py`](../../../examples/query/account_info_query.py) — Paid query with structured response
+- [`token_info_query.py`](../../../examples/query/token_info_query_fungible.py) — Fungible token metadata
+- [`token_nft_info_query.py`](../../../examples/query/token_nft_info_query.py) — NFT token metadata
+- [`topic_info_query.py`](../../../examples/query/topic_info_query.py) — Streaming-style topic message retrieval
+- [`transaction_get_receipt_query.py`](../../../examples/query/transaction_get_receipt_query.py) — Transaction receipt lookup
+- [`transaction_record_query.py`](../../../examples/query/transaction_record_query.py) — Transaction record retrieval
 
 These examples illustrate consistent usage of `_make_request()`, `_get_query_response()`, and `_get_method()` without duplicating execution or payment logic.
 

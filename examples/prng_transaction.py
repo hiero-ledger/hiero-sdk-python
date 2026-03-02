@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating PRNG (Pseudo-Random Number Generator) transaction functionality.
 
 The PRNG transaction is a transaction that generates a pseudo-random number.
@@ -6,7 +8,6 @@ The PRNG transaction is a transaction that generates a pseudo-random number.
 You can set the range for the PRNG transaction to generate a pseudo-random number within a range.
 If no range is set, the PRNG transaction will generate a 48 byte unsigned pseudo-random number.
 """
-
 import os
 import sys
 
@@ -23,7 +24,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -37,7 +38,7 @@ def setup_client():
 
 
 def prng_with_range(client, range_value):
-    """Generate a pseudo-random number within a specified range"""
+    """Generate a pseudo-random number within a specified range."""
     receipt = PrngTransaction().set_range(range_value).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -54,7 +55,7 @@ def prng_with_range(client, range_value):
 
 
 def prng_without_range(client):
-    """Generate pseudo-random bytes without specifying a range"""
+    """Generate pseudo-random bytes without specifying a range."""
     receipt = PrngTransaction().execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -73,9 +74,10 @@ def prng_without_range(client):
 def prng_transaction():
     """
     Demonstrates PRNG transaction functionality by:
+
     1. Setting up client with operator account
     2. Generating a random number within a range
-    3. Generating random bytes without a range
+    3. Generating random bytes without a range.
     """
     client = setup_client()
 

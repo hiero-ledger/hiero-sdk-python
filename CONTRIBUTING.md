@@ -10,9 +10,7 @@ Thank you for your interest in contributing to the Hiero Python SDK!
   - [Feature Requests](#-feature-requests)
   - [Blog Posts](#-blog-posts)
 - [Developer Resources](#developer-resources)
-- [Community & Support](#community--support)
 - [Cheatsheet](#cheatsheet)
-- [Common Issues](#common-issues)
 
 ---
 

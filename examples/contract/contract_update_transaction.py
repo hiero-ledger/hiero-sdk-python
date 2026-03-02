@@ -1,4 +1,6 @@
 """
+
+
 Example demonstrating comprehensive contract update operations on the network.
 
 This module shows how to update an existing smart contract using ALL available setters:
@@ -14,7 +16,6 @@ Usage:
     uv run -m examples.contract.contract_update_transaction
     python -m examples.contract.contract_update_transaction
 """
-
 import datetime
 import os
 import sys
@@ -44,7 +45,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -58,7 +59,7 @@ def setup_client():
 
 
 def create_contract_file(client):
-    """Create a file containing the contract bytecode"""
+    """Create a file containing the contract bytecode."""
     file_receipt = (
         FileCreateTransaction()
         .set_keys(client.operator_private_key.public_key())
@@ -78,7 +79,7 @@ def create_contract_file(client):
 
 
 def create_initial_contract(client, file_id):
-    """Create the initial contract that we'll update later"""
+    """Create the initial contract that we'll update later."""
     receipt = (
         ContractCreateTransaction()
         .set_bytecode_file_id(file_id)
@@ -101,11 +102,12 @@ def create_initial_contract(client, file_id):
 def contract_update():
     """
     Demonstrates updating a contract with ALL available setters by:
+
     1. Setting up client with operator account
     2. Creating files containing contract bytecode
     3. Creating an initial contract
     4. Updating the contract using all available setters
-    5. Querying the contract info
+    5. Querying the contract info.
     """
     client = setup_client()
 

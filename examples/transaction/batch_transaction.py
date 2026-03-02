@@ -1,5 +1,8 @@
 """
-uv run examples/transaction/batch_transaction.py
+
+Example demonstrating batch transaction.
+
+uv run examples/transaction/batch_transaction.py.
 """
 
 import os
@@ -8,18 +11,18 @@ import sys
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
+    AccountCreateTransaction,
     AccountId,
+    BatchTransaction,
     Client,
+    CryptoGetAccountBalanceQuery,
     Network,
     PrivateKey,
-    AccountCreateTransaction,
-    CryptoGetAccountBalanceQuery,
     ResponseCode,
     TokenCreateTransaction,
     TokenFreezeTransaction,
     TokenType,
     TokenUnfreezeTransaction,
-    BatchTransaction,
     TransferTransaction,
 )
 
@@ -37,9 +40,7 @@ def get_balance(client, account_id, token_id):
 
 
 def setup_client():
-    """
-    Set up and configure a Hedera client for testnet operations.
-    """
+    """Set up and configure a Hedera client for testnet operations."""
     network_name = os.getenv("NETWORK", "testnet").lower()
 
     print(f"Connecting to Hedera {network_name} network!")
@@ -60,9 +61,7 @@ def setup_client():
 
 
 def create_account(client):
-    """
-    Create a new recipient account.
-    """
+    """Create a new recipient account."""
     print("\nCreating new recipient account...")
     try:
         key = PrivateKey.generate()
@@ -86,9 +85,7 @@ def create_account(client):
 
 
 def create_fungible_token(client, freeze_key):
-    """
-    Create a fungible token with freeze_key.
-    """
+    """Create a fungible token with freeze_key."""
     print("\nCreating fungible token...")
     try:
         tx = (
@@ -115,9 +112,7 @@ def create_fungible_token(client, freeze_key):
 
 
 def freeze_token(client, account_id, token_id, freeze_key):
-    """
-    Freeze token for an account.
-    """
+    """Freeze token for an account."""
     print(f"\nFreezing token for account {account_id}")
     try:
         tx = (
@@ -141,9 +136,7 @@ def freeze_token(client, account_id, token_id, freeze_key):
 
 
 def transfer_token(client, sender, recipient, token_id):
-    """
-    Perform a token trasfer transaction.
-    """
+    """Perform a token transfer transaction."""
     print(f"\nTransferring token {token_id} from {sender} → {recipient}")
     try:
         tx = (
@@ -152,18 +145,15 @@ def transfer_token(client, sender, recipient, token_id):
             .add_token_transfer(token_id=token_id, account_id=recipient, amount=1)
         )
 
-        receipt = tx.execute(client)
+        return tx.execute(client)
 
-        return receipt
     except Exception as e:
         print(f"Error transfering token: {e}")
         sys.exit(1)
 
 
 def perform_batch_tx(client, sender, recipient, token_id, freeze_key):
-    """
-    Perform a batch transaction using PrivateKey as batch_key.
-    """
+    """Perform a batch transaction using PrivateKey as batch_key."""
     print(
         "\nPerforming batch transaction with PrivateKey (unfreeze → transfer → freeze)..."
     )
@@ -209,6 +199,7 @@ def perform_batch_tx(client, sender, recipient, token_id, freeze_key):
 def perform_batch_tx_with_public_key(client, sender, recipient, token_id, freeze_key):
     """
     Perform a batch transaction using PublicKey as batch_key.
+
     Demonstrates that batch_key can accept both PrivateKey and PublicKey.
     """
     print(

@@ -1,23 +1,22 @@
 # uv run examples/tokens/token_dissociate_transaction.py
 # python examples/tokens/token_dissociate_transaction.py
-"""
-A full example that creates an account, two tokens, associates them, and finally dissociates them.
-"""
+"""A full example that creates an account, two tokens, associates them, and finally dissociates them."""
 import os
 import sys
 
 from hiero_sdk_python import (
-    Client,
-    PrivateKey,
-    Hbar,
     AccountCreateTransaction,
-    TokenCreateTransaction,
+    AccountInfoQuery,
+    Client,
+    Hbar,
+    PrivateKey,
+    ResponseCode,
     TokenAssociateTransaction,
+    TokenCreateTransaction,
     TokenDissociateTransaction,
     TokenType,
-    AccountInfoQuery,
-    ResponseCode,
 )
+
 
 def setup_client():
     client = Client.from_env()
@@ -29,7 +28,7 @@ def setup_client():
 
 
 def create_new_account(client, operator_id, operator_key):
-    """Create a new account to associate/dissociate with tokens"""
+    """Create a new account to associate/dissociate with tokens."""
     print("\nSTEP 1: Creating a new account...")
     recipient_key = PrivateKey.generate(os.getenv("KEY_TYPE", "ed25519"))
 
@@ -103,7 +102,6 @@ def token_associate(
     Note: Tokens must be associated with an account before they can be used or dissociated.
     Association is a prerequisite for holding, transferring, or later dissociating tokens.
     """
-
     print(
         f"\nSTEP 3: Associating NFT and fungible tokens with account {recipient_id}..."
     )
@@ -155,7 +153,6 @@ def token_dissociate(
     - For security or privacy reasons
     - To comply with business or regulatory requirements
     """
-
     print(
         f"\nSTEP 4: Dissociating NFT and fungible tokens from account {recipient_id}..."
     )
@@ -179,13 +176,13 @@ def token_dissociate(
 
 def main():
     """
-    1-create new account
+    1-create new account.
+
     2-create two tokens
     3-associate the tokens with the new account
     4-dissociate the tokens from the new account
-    5-verify dissociation
+    5-verify dissociation.
     """
-
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

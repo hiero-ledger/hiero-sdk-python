@@ -1,17 +1,21 @@
 """
-Example file: Working with an Ed25519 PublicKey using the PublicKey class
+
+
+Example file: Working with an Ed25519 PublicKey using the PublicKey class.
+
 uv run examples/crypto/public_key_ed25519.py
 python examples/crypto/public_key_ed25519.py
 """
-
-from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
 from hiero_sdk_python.crypto.public_key import PublicKey
 
 
 def example_load_ed25519_from_raw() -> None:
     """
     Demonstrate creating a PublicKey object from a 32-byte Ed25519 public key.
+
     Please ensure to pass a public key not a private key.
     """
     # Ed25519 public key bytes are always 32 bytes.
@@ -31,7 +35,8 @@ def example_load_ed25519_from_raw() -> None:
 
 def example_load_ed25519_from_hex() -> None:
     """
-    Demonstrate creating a PublicKey object from a 32-byte hex string
+    Demonstrate creating a PublicKey object from a 32-byte hex string.
+
     representing an Ed25519 public key.
     """
     # Must be 64 hex characters e.g.
@@ -43,9 +48,7 @@ def example_load_ed25519_from_hex() -> None:
 
 
 def example_verify_ed25519_signature() -> None:
-    """
-    Demonstrate verifying an Ed25519 signature.
-    """
+    """Demonstrate verifying an Ed25519 signature."""
     # Ed25519 is "EdDSA over Curve25519".
     # Key pair:
     private_key = ed25519.Ed25519PrivateKey.generate()

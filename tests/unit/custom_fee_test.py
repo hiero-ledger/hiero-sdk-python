@@ -10,8 +10,8 @@ from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
 
-
 pytestmark = pytest.mark.unit
+
 
 def test_custom_fixed_fee_proto_round_trip():
     """Ensure CustomFixedFee protobuf serialization and deserialization behave correctly."""
@@ -30,6 +30,7 @@ def test_custom_fixed_fee_proto_round_trip():
     assert new_fee.denominating_token_id == TokenId(0, 0, 123)
     assert new_fee.fee_collector_account_id == AccountId(0, 0, 456)
     assert new_fee.all_collectors_are_exempt is True
+
 
 def test_custom_fixed_fee_str():
     """Test the string representation of CustomFixedFee."""
@@ -108,6 +109,7 @@ def test_custom_fractional_fee_str():
     assert "0.0.789" in kv["Fee Collector Account Id"]
     assert kv["All Collectors Are Exempt"] in ("False", "false")
 
+
 def test_custom_fractional_fee():
     fee = CustomFractionalFee(
         numerator=1,
@@ -120,7 +122,9 @@ def test_custom_fractional_fee():
     )
 
     proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomFractionalFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
+    new_fee = CustomFractionalFee._from_proto(
+        proto
+    )  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomFractionalFee)
     assert new_fee.numerator == 1
@@ -130,6 +134,7 @@ def test_custom_fractional_fee():
     assert new_fee.assessment_method == FeeAssessmentMethod.EXCLUSIVE
     assert new_fee.fee_collector_account_id == AccountId(0, 0, 456)
     assert new_fee.all_collectors_are_exempt is False
+
 
 def test_custom_royalty_fee():
     fallback_fee = CustomFixedFee(
@@ -145,7 +150,9 @@ def test_custom_royalty_fee():
     )
 
     proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomRoyaltyFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
+    new_fee = CustomRoyaltyFee._from_proto(
+        proto
+    )  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomRoyaltyFee)
     assert new_fee.numerator == 5
@@ -156,18 +163,20 @@ def test_custom_royalty_fee():
     assert new_fee.fallback_fee.amount == 50
     assert new_fee.fallback_fee.denominating_token_id == TokenId(0, 0, 789)
 
+
 @pytest.mark.parametrize(
-        "custom_royalty_fee, expected_str",
-        [
-            (
-                CustomRoyaltyFee(
-                   numerator=3,
-                   denominator=20,
-                   fallback_fee=None,
-                   fee_collector_account_id=None,
-                   all_collectors_are_exempt=True,
-                ),
-                "\n".join([
+    "custom_royalty_fee, expected_str",
+    [
+        (
+            CustomRoyaltyFee(
+                numerator=3,
+                denominator=20,
+                fallback_fee=None,
+                fee_collector_account_id=None,
+                all_collectors_are_exempt=True,
+            ),
+            "\n".join(
+                [
                     "CustomRoyaltyFee:",
                     "   Numerator = 3",
                     "   Denominator = 20",
@@ -175,20 +184,22 @@ def test_custom_royalty_fee():
                     "   Fallback Fee Denominating Token ID = None",
                     "   Fee Collector Account ID = None",
                     "   All Collectors Are Exempt = True",
-                ])
+                ]
             ),
-            (
-                CustomRoyaltyFee(
-                    numerator=7,
-                    denominator=100,
-                    fallback_fee=CustomFixedFee(
-                        amount=30,
-                        denominating_token_id=TokenId(0, 0, 123),
-                    ),
-                    fee_collector_account_id=AccountId(0, 0, 456),
-                    all_collectors_are_exempt=False,
+        ),
+        (
+            CustomRoyaltyFee(
+                numerator=7,
+                denominator=100,
+                fallback_fee=CustomFixedFee(
+                    amount=30,
+                    denominating_token_id=TokenId(0, 0, 123),
                 ),
-                "\n".join([
+                fee_collector_account_id=AccountId(0, 0, 456),
+                all_collectors_are_exempt=False,
+            ),
+            "\n".join(
+                [
                     "CustomRoyaltyFee:",
                     "   Numerator = 7",
                     "   Denominator = 100",
@@ -196,18 +207,23 @@ def test_custom_royalty_fee():
                     "   Fallback Fee Denominating Token ID = 0.0.123",
                     "   Fee Collector Account ID = 0.0.456",
                     "   All Collectors Are Exempt = False",
-                ])
-            )
-        ]
+                ]
+            ),
+        ),
+    ],
 )
-def test_custom_royalty_fee_str(custom_royalty_fee: CustomRoyaltyFee, expected_str: str):
+def test_custom_royalty_fee_str(
+    custom_royalty_fee: CustomRoyaltyFee, expected_str: str
+):
     """Test the string representation of CustomRoyaltyFee."""
     fee_str = str(custom_royalty_fee)
     assert fee_str == expected_str
 
+
 class DummyCustomFee(CustomFee):
     def _to_proto(self):
         return "dummy-proto"
+
 
 def test_custom_fee_init_and_setters():
     fee = DummyCustomFee()
@@ -221,6 +237,7 @@ def test_custom_fee_init_and_setters():
     fee.set_all_collectors_are_exempt(True)
     assert fee.all_collectors_are_exempt is True
 
+
 def test_custom_fee_equality():
     fee1 = DummyCustomFee()
     fee2 = DummyCustomFee()
@@ -228,6 +245,7 @@ def test_custom_fee_equality():
 
     fee1.set_all_collectors_are_exempt(True)
     assert fee1 != fee2
+
 
 def test_custom_fee_get_fee_collector_account_id_protobuf():
     fee = DummyCustomFee()
@@ -237,6 +255,7 @@ def test_custom_fee_get_fee_collector_account_id_protobuf():
     mock_account._to_proto.return_value = "proto-account"
     fee.set_fee_collector_account_id(mock_account)
     assert fee._get_fee_collector_account_id_protobuf() == "proto-account"
+
 
 def test_custom_fee_validate_checksums():
     fee = DummyCustomFee()
@@ -249,26 +268,29 @@ def test_custom_fee_validate_checksums():
     fee._validate_checksums(client)
     mock_account.validate_checksum.assert_called_once_with(client)
 
+
 def test_custom_fee_from_proto_unrecognized():
     class FakeProto:
         def WhichOneof(self, name):
             return "unknown_fee"
+
     with pytest.raises(ValueError):
         CustomFee._from_proto(FakeProto())
+
 
 def test_set_amount_in_tinybars_deprecation():
     """Test that set_amount_in_tinybars shows deprecation warning."""
     fee = CustomFixedFee()
-    
+
     # Test that deprecation warning is raised
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         fee.set_amount_in_tinybars(100)
-        
+
         assert len(w) == 1
         assert issubclass(w[0].category, DeprecationWarning)
         assert "set_amount_in_tinybars() is deprecated" in str(w[0].message)
-    
+
     # Verify the method still works correctly
     assert fee.amount == 100
     assert fee.denominating_token_id is None

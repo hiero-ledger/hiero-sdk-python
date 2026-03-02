@@ -1,9 +1,11 @@
 """
+
+
 Example demonstrating account schedule creation.
+
 uv run examples/schedule/schedule_create_transaction.py
 python examples/schedule/schedule_create_transaction.py
 """
-
 import datetime
 import os
 import sys
@@ -25,7 +27,7 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
+    """Initialize and set up the client with operator account."""
     network = Network(network_name)
     print(f"Connecting to Hedera {network_name} network!")
     client = Client(network)
@@ -39,7 +41,7 @@ def setup_client():
 
 
 def create_account(client):
-    """Create a test account"""
+    """Create a test account."""
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
@@ -66,13 +68,13 @@ def create_account(client):
 
 
 def account_balance(client, account_id):
-    """Get the balance of an account"""
+    """Get the balance of an account."""
     balance = CryptoGetAccountBalanceQuery(account_id).execute(client)
     print(f"Account balance: {balance.hbars} hbars")
 
 
 def schedule_transfer_transaction(client, account_id):
-    """Schedule a transfer transaction"""
+    """Schedule a transfer transaction."""
     # Amount to transfer in tinybars
     amount = Hbar(1).to_tinybars()
     # Create a transfer transaction
@@ -82,19 +84,19 @@ def schedule_transfer_transaction(client, account_id):
         .add_hbar_transfer(client.operator_account_id, amount)
     )
     # Convert the transfer transaction into a scheduled transaction
-    schedule_tx = transfer_tx.schedule()
-    return schedule_tx
+    return transfer_tx.schedule()
 
 
 def schedule_account_create():
     """
     Demonstrates account schedule functionality by:
+
     1. Setting up client with operator account
     2. Creating a test account
     3. Scheduling a transfer transaction to move HBAR from the test account to the operator account
     4. Signing and executing the scheduled transaction
     5. Checking the account balance before and after the scheduled transaction
-    6. Querying the transaction record to check if it was executed
+    6. Querying the transaction record to check if it was executed.
     """
     client = setup_client()
 

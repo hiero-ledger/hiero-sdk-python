@@ -1,0 +1,36 @@
+# This workflow reminds draft PR authors to mark ready for review after pushing changes
+
+name: PR Draft Ready Reminder Bot
+on:
+  pull_request_target:
+    types: [synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  draft-ready-reminder:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: draft-ready-reminder-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: main
+
+      - name: Run draft-ready reminder bot
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+              const script = require('./.github/scripts/bot-pr-draft-ready-reminder.js');
+              await script({ github, context });

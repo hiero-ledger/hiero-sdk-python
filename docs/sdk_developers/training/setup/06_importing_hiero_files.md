@@ -71,6 +71,6 @@ print(f"🎉 Created new token on the Hedera network with ID: {token_id}")
 ## Extra Support
 It takes time to be familiar with where everything is located to import correctly. 
 
-- For reference, look at the [examples](examples/) 
-- For an explanation of the project structure read [project_structure.md](docs/sdk_developers/training/setup/project_structure.md).
-- Set up [Pylance](docs/sdk_developers/pylance.md) to help you spot errors in your import locations
+- For reference, look at the [examples](../../../../examples)
+- For an explanation of the project structure read [project_structure.md](project_structure.md)
+- Set up [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) to help you spot errors in your import locations

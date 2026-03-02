@@ -1,4 +1,6 @@
 """
+
+
 This example creates a finite NFT using Hiero SDK Python.
 
 It:
@@ -14,17 +16,15 @@ Usage:
 uv run examples/tokens/token_create_transaction_nft_finite
 python examples/tokens/token_create_transaction_nft_finite
 """
-
 import sys
+
 from hiero_sdk_python import (
     Client,
     PrivateKey,
+    SupplyType,
     TokenCreateTransaction,
     TokenType,
-    SupplyType,
 )
-
-
 
 
 def setup_client():
@@ -45,7 +45,7 @@ def generate_keys():
 def build_transaction(client, operator_id, admin_key, supply_key):
     """Build and freeze the finite NFT creation transaction."""
     print("\nBuilding transaction to create a finite NFT...")
-    transaction = (
+    return (
         TokenCreateTransaction()
         .set_token_name("Finite NFT")
         .set_token_symbol("FNFT")
@@ -58,7 +58,6 @@ def build_transaction(client, operator_id, admin_key, supply_key):
         .set_supply_key(supply_key)
         .freeze_with(client)
     )
-    return transaction
 
 
 def execute_transaction(transaction, client, operator_key, admin_key, supply_key):

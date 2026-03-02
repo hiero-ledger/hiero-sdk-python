@@ -35,8 +35,26 @@ issue_has_gfi() {
   [[ "$has" == "true" ]]
 }
 
+# Count open assignments for a user
+# For triage users (mentors), excludes issues with 'mentor-duty' label
+# This allows mentors to be assigned to mentorship issues without consuming their assignment limit
 assignments_count() {
-  gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number --jq 'length'
+  local permission="${1:-none}"
+  
+  if [[ "$permission" == "triage" ]]; then
+    echo "Triage user detected — excluding mentor-duty issues from count." >&2
+    # For triage users, exclude issues with 'mentor-duty' label
+     gh api "repos/${REPO}/issues?per_page=100&page=1" \
+       -f assignee="${ASSIGNEE}" \
+       -f state=open \
+       --jq '.[] 
+            | select(.pull_request == null)
+            | select(any(.labels[]; .name == "mentor-duty") | not)
+            | .number' | grep -c . || echo 0
+  else
+    # For non-triage users, count all open assignments
+    gh issue list --repo "${REPO}" --assignee "${ASSIGNEE}" --state open --limit 100 --json number --jq 'length'
+  fi
 }
 
 remove_assignee() {
@@ -80,7 +98,7 @@ Your account currently has limited assignment privileges with a maximum of **1 o
 You currently have $count open issue(s) assigned.  Please complete and merge your existing assignment before requesting a new one.
 
 **Current Restrictions:**
-- Maximum 1 open assignment at a time
+- Maximum 1 open issue assignment at a time
 - Can only be assigned to 'Good First Issue' labeled issues
 
 **How to have restrictions lifted:**
@@ -118,7 +136,7 @@ if is_spam_user; then
   echo "User is in spam list.  Applying restricted assignment rules."
 fi
 
-COUNT="$(assignments_count)"
+COUNT="$(assignments_count "$PERMISSION")"
 
 # Apply assignment rules
 if [[ "$SPAM" == "true" ]]; then

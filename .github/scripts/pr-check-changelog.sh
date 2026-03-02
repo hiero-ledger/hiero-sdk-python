@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -euo pipefail
 # ==============================================================================
 # Executes When:
 #   - Run by GitHub Actions workflow: .github/workflows/pr-check-changelog.yml
@@ -61,6 +61,7 @@
 #
 # Dependencies:
 #   - git (must be able to fetch upstream)
+#   - jq (required for PR context parsing)
 #   - grep, sed (standard Linux utilities)
 #   - CHANGELOG.md (file must exist in the root directory)
 #
@@ -76,6 +77,32 @@
 
 CHANGELOG="CHANGELOG.md"
 
+# Ensure jq is available (required for PR context + comments)
+command -v jq >/dev/null || {
+    echo "❌ jq is required but not installed"
+    exit 1
+}
+
+# Validate required environment variables
+: "${GITHUB_EVENT_PATH:?GITHUB_EVENT_PATH is not set}"
+: "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is not set}"
+
+# PR Number
+PR_NUMBER=$(jq -r '.pull_request.number // empty' "$GITHUB_EVENT_PATH")
+if [[ -n "$PR_NUMBER" ]] && ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+    echo "❌ Invalid PR_NUMBER: $PR_NUMBER"
+    exit 1
+fi
+
+# GITHUB_TOKEN is only required for PR commenting
+if [[ -n "$PR_NUMBER" ]]; then
+    : "${GITHUB_TOKEN:?GITHUB_TOKEN is required for PR commenting but is not set}"
+fi
+
+# Marker
+MISSING_MARKER="<!-- changelog-missing-bot -->"
+WRONG_SECTION_MARKER="<!-- changelog-wrong-section-bot -->"
+
 # ANSI color codes
 RED="\033[31m"
 GREEN="\033[32m"
@@ -87,6 +114,57 @@ failed=0
 # Fetch upstream
 git remote add upstream https://github.com/${GITHUB_REPOSITORY}.git
 git fetch upstream main >/dev/null 2>&1
+
+#PR Comment
+DRY_RUN="${DRY_RUN:-false}"
+post_pr_comment() {
+    local message="$1"
+
+    # Only comment if this is a PR (not workflow_dispatch)
+    if [[ -z "$PR_NUMBER" ]]; then
+        echo "ℹ️ No PR_NUMBER set — skipping comment."
+        return
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "🔍 [DRY RUN] Would post PR comment on #${PR_NUMBER}"
+        return
+    fi
+
+    local http_code
+    http_code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github+json" \
+        "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+        -d "$(jq -n --arg body "$message" '{body: $body}')")
+
+    if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
+        echo "⚠️ Failed to post PR comment (HTTP $http_code)"
+    fi
+}
+
+comment_already_exists() {
+    local marker="$1"
+
+    if [[ -z "$PR_NUMBER" ]]; then
+        return 1
+    fi
+
+    local comments
+    comments=$(curl -s \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github+json" \
+        "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100")
+
+    if ! echo "$comments" | jq -e 'type == "array"' >/dev/null 2>&1; then
+        echo "⚠️ Failed to fetch PR comments — assuming marker absent"
+        return 1
+    fi
+
+    echo "$comments" | jq -e --arg marker "$marker" '
+        .[] | select(.body | contains($marker))
+    ' >/dev/null
+}
 
 # Get raw diff
 raw_diff=$(git diff upstream/main -- "$CHANGELOG")
@@ -119,7 +197,21 @@ done < <(echo "$raw_diff" | grep '^\-' | grep -vE '^(--- |\+\+\+ |@@ )' | sed 's
 # 2️⃣b Warn if no added entries
 if [[ ${#added_bullets[@]} -eq 0 ]]; then
     echo -e "${RED}❌ No new changelog entries detected in this PR.${RESET}"
-    echo -e "${YELLOW}⚠️ Please add an entry in [UNRELEASED] under the appropriate subheading.${RESET}"
+    echo -e "${YELLOW}⚠️ Please add an entry in [Unreleased] under the appropriate subheading.${RESET}"
+
+    if ! comment_already_exists "$MISSING_MARKER"; then
+        post_pr_comment "$MISSING_MARKER
+👋 **Changelog reminder**
+
+This PR appears to resolve an issue, but no entry was found in **CHANGELOG.md**.
+
+📌 In this repository, all resolved issues — including docs, CI, and workflow changes — are expected to include a changelog entry under **[Unreleased]**, grouped by category (e.g. *Added*, *Fixed*).
+
+If this PR should not require a changelog entry, feel free to clarify in the discussion. Thanks! 🙌"
+    else
+        echo "⚠️ Changelog bot comment already exists, skipping"
+    fi
+
     failed=1
 fi
 
@@ -133,6 +225,8 @@ current_release=""
 current_subtitle=""
 in_unreleased=0
 
+shopt -s extglob
+
 while IFS= read -r line; do
     # Track release sections
     if [[ $line =~ ^##\ \[Unreleased\] ]]; then
@@ -140,8 +234,8 @@ while IFS= read -r line; do
         in_unreleased=1
         current_subtitle=""
         continue
-    elif [[ $line =~ ^##\ \[.*\] ]]; then
-        current_release="$line"
+    elif [[ $line =~ ^#{1,2}\ \[([0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
+        current_release="${BASH_REMATCH[1]}"
         in_unreleased=0
         current_subtitle=""
         continue
@@ -151,14 +245,18 @@ while IFS= read -r line; do
     fi
 
     # Check each added bullet
+
+    normalized_line="${line%%+([[:space:]])}"
     for added in "${added_bullets[@]}"; do
-        if [[ "$line" == "$added" ]]; then
+        normalized_added="${added%%+([[:space:]])}"
+
+        if [[ "$normalized_line" == "$normalized_added" ]]; then
             if [[ "$in_unreleased" -eq 1 && -n "$current_subtitle" ]]; then
                 correctly_placed+="$added   (placed under $current_subtitle)"$'\n'
             elif [[ "$in_unreleased" -eq 1 && -z "$current_subtitle" ]]; then
                 orphan_entries+="$added   (NOT under a subtitle)"$'\n'
             elif [[ "$in_unreleased" -eq 0 ]]; then
-                wrong_release_entries+="$added   (added under released version $current_release)"$'\n'
+                wrong_release_entries+="$added   (added under released version [$current_release], expected under [Unreleased])"$'\n'
             fi
         fi
     done
@@ -174,6 +272,29 @@ fi
 if [[ -n "$wrong_release_entries" ]]; then
     echo -e "${RED}❌ Some changelog entries were added under a released version (should be in [Unreleased]):${RESET}"
     echo "$wrong_release_entries"
+
+    if ! comment_already_exists "$WRONG_SECTION_MARKER"; then
+        post_pr_comment "$WRONG_SECTION_MARKER
+⚠️ **Changelog placement issue**
+
+Thanks for adding a changelog entry! 🙌  
+However, one or more entries in this PR were added under a **released version**.
+
+📌 New changelog entries should always go under **[Unreleased]**, grouped beneath an appropriate category (e.g. *Added*, *Fixed*).
+
+Please move the following entries to **[Unreleased]**:
+
+\`\`\`
+$wrong_release_entries
+\`\`\`
+
+
+Let us know if you’re unsure where it should live — happy to help!"
+
+    else
+        echo "⚠️ Changelog bot comment already exists, skipping"
+    fi
+
     failed=1
 fi
 

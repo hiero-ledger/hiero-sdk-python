@@ -3,7 +3,7 @@ Query to get information about a schedule on the network.
 """
 
 import traceback
-from typing import Optional
+from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -91,7 +91,7 @@ class ScheduleInfoQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.schedule.getScheduleInfo)
 
-    def execute(self, client: Client) -> ScheduleInfo:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> ScheduleInfo:
         """
         Executes the schedule info query.
 
@@ -103,6 +103,7 @@ class ScheduleInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             ScheduleInfo: The schedule info from the network
@@ -113,7 +114,7 @@ class ScheduleInfoQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return ScheduleInfo._from_proto(response.scheduleGetInfo.scheduleInfo)
 

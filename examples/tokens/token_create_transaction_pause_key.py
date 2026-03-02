@@ -1,4 +1,6 @@
 """
+
+
 This example demonstrates the pause key capabilities for token management using the Hiero Python SDK.
 
 It shows:
@@ -15,24 +17,21 @@ Required environment variables:
 Usage:
 uv run examples/token_create_transaction_pause_key.py
 """
-
 import sys
 
 from hiero_sdk_python import (
+    AccountCreateTransaction,
     Client,
+    Hbar,
     PrivateKey,
     TokenCreateTransaction,
     TokenPauseTransaction,
     TokenUnpauseTransaction,
     TransferTransaction,
-    AccountCreateTransaction,
-    Hbar,
 )
-
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.supply_type import SupplyType
-
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 # -------------------------------------------------------

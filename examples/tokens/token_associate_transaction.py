@@ -1,4 +1,7 @@
 """
+
+Example demonstrating token associate transaction.
+
 uv run examples/tokens/token_associate_transaction.py
 python examples/tokens/token_associate_transaction.py
 
@@ -6,20 +9,18 @@ A modular example demonstrating token association on Hedera testnet.
 This script shows the complete workflow: client setup, account creation,
 token creation, token association, and verification.
 """
-
 import sys
 
 from hiero_sdk_python import (
+    AccountCreateTransaction,
     AccountInfoQuery,
     Client,
-    PrivateKey,
     Hbar,
-    AccountCreateTransaction,
-    TokenCreateTransaction,
-    TokenAssociateTransaction,
+    PrivateKey,
     ResponseCode,
+    TokenAssociateTransaction,
+    TokenCreateTransaction,
 )
-
 
 
 def setup_client():
@@ -140,7 +141,7 @@ def associate_token_with_account(client, token_id, account_id, account_key):
                 f"❌ Token association failed with status: {ResponseCode(receipt.status).name}"
             )
             sys.exit(1)
-        print(f"✅ Success! Token association complete.")
+        print("✅ Success! Token association complete.")
         print(f"   Account {account_id} can now hold and transfer token {token_id}")
     except Exception as e:
         print(f"❌ Error associating token with account: {e}")
@@ -152,8 +153,9 @@ def associate_two_tokens_mixed_types_with_set_token_ids(
 ):
     """
     Associate two tokens using set_token_ids() with mixed types:
+
     - first as TokenId
-    - second as string
+    - second as string.
     """
     try:
         receipt = (
@@ -188,7 +190,8 @@ def associate_two_tokens_mixed_types_with_set_token_ids(
 
 def demonstrate_invalid_set_token_ids_usage(client, account_id, account_key):
     """
-    Example 4: demonstrate that set_token_ids() rejects invalid types,
+    Example 4: demonstrate that set_token_ids() rejects invalid types,.
+
     i.e. values that are neither TokenId nor string.
     """
     print("`set_token_ids()` only accepts a list of TokenId or strings (also mixed)")
@@ -245,19 +248,19 @@ def verify_token_association(client, account_id, token_id):
         if info.token_relationships:
             for relationship in info.token_relationships:
                 if str(relationship.token_id) == str(token_id):
-                    print(f"✅ Verification Successful!")
+                    print("✅ Verification Successful!")
                     print(
                         f"   Token {token_id} is associated with account {account_id}"
                     )
                     print(f"   Balance: {relationship.balance}")
                     return True
-        print(f"❌ Verification Failed!")
+        print("❌ Verification Failed!")
         print(f"   Token {token_id} is NOT associated with account {account_id}")
         if info.token_relationships:
             associated_tokens = [str(rel.token_id) for rel in info.token_relationships]
             print(f"   Associated tokens found: {associated_tokens}")
         else:
-            print(f"   No token associations found for this account")
+            print("   No token associations found for this account")
         return False
     except Exception as e:
         print(f"❌ Error verifying token association: {e}")
@@ -311,7 +314,7 @@ def main():
     )
 
     # Step 7: Verify the token association
-    print(f"\nSTEP 7: Verifying token association...")
+    print("\nSTEP 7: Verifying token association...")
     is_associated = verify_token_association(client, account_id, token_id_0)
     is_associated = verify_token_association(client, account_id, token_id_1)
     is_associated = verify_token_association(client, account_id, token_id_2)

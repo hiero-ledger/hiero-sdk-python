@@ -3,7 +3,7 @@ Query to get the bytecode of a contract on the network.
 """
 
 import traceback
-from typing import Optional
+from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -106,7 +106,7 @@ class ContractBytecodeQuery(Query):
             transaction_func=None, query_func=channel.smart_contract.ContractGetBytecode
         )
 
-    def execute(self, client: Client) -> bytes:
+    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> bytes:
         """
         Executes the contract bytecode query.
 
@@ -118,6 +118,7 @@ class ContractBytecodeQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
 
         Returns:
             bytes: The bytecode of the contract from the network
@@ -128,7 +129,7 @@ class ContractBytecodeQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
-        response = self._execute(client)
+        response = self._execute(client, timeout)
 
         return response.contractGetBytecodeResponse.bytecode
 

@@ -1,47 +1,38 @@
 """
+
+Example demonstrating token info query nft.
+
 uv run examples/query/token_info_query_nft.py
 python examples/token_info_query_nft.py
-
 """
-
-import os
 import sys
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     Client,
-    AccountId,
-    PrivateKey,
-    Network,
 )
-from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
-
-load_dotenv()
-
-network_name = os.getenv("NETWORK", "testnet").lower()
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+    """Initialize and set up the client with operator account."""
+    try:
+        client = Client.from_env()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
+        print(f"Client set up with operator id {client.operator_account_id}")
 
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
-    print(f"Client set up with operator id {client.operator_account_id}")
-
-    return client, operator_id, operator_key
+        return client, operator_id, operator_key
+    except ValueError as e:
+        print(f"Error setting up client: {e}")
+        sys.exit(1)
 
 
 def create_nft(client, operator_id, operator_key):
-    """Create a non-fungible token"""
+    """Create a non-fungible token."""
     receipt = (
         TokenCreateTransaction()
         .set_token_name("MyExampleNFT")
@@ -73,9 +64,10 @@ def create_nft(client, operator_id, operator_key):
 def query_token_info():
     """
     Demonstrates the token info query functionality by:
-    1. Creating a NFT
+
+    1. Creating an NFT
     2. Querying the token's information using TokenInfoQuery
-    3. Printing the token details of the TokenInfo object
+    3. Printing the token details of the TokenInfo object.
     """
     client, operator_id, operator_key = setup_client()
     token_id = create_nft(client, operator_id, operator_key)

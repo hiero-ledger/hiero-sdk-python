@@ -1,19 +1,18 @@
 """
+
+
 Run with:
+
 uv run examples/tokens/custom_royalty_fee.py
 python examples/tokens/custom_royalty_fee.py
 """
-
-import sys
-
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
-from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 
@@ -47,7 +46,6 @@ def create_royalty_fee_object(client):
 
 def create_token_with_fee(client, royalty_fee):
     """Creates a token with the specified royalty fee attached."""
-
     print("\n--- Creating Token with Royalty Fee ---")
     transaction = (
         TokenCreateTransaction()
@@ -80,7 +78,6 @@ def create_token_with_fee(client, royalty_fee):
 
 def verify_token_fee(client, token_id):
     """Queries the network to verify the fee exists."""
-
     print("\n--- Verifying Fee on Network ---")
     token_info = TokenInfoQuery().set_token_id(token_id).execute(client)
     retrieved_fees = token_info.custom_fees

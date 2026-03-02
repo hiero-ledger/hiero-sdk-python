@@ -1,49 +1,37 @@
 """
+
+Example demonstrating topic message query.
+
 uv run examples/query/topic_message_query.py
 python examples/query/topic_message_query.py
-
 """
-
-import os
-import time
 import sys
+import time
 from datetime import datetime, timezone
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    Network,
     Client,
-    AccountId,
-    PrivateKey,
     TopicCreateTransaction,
     TopicMessageQuery,
 )
 
-load_dotenv()
-network_name = os.getenv("NETWORK", "testnet").lower()
-
 
 def setup_client():
-    """Initialize and set up the client with operator account"""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    network = Network(network_name)
-    client = Client(network)
-
+    """Initialize and set up the client with operator account."""
     try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
+        client = Client.from_env()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
         print(f"Client set up with operator id {client.operator_account_id}")
 
         return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
+    except ValueError as e:
+        print(f"Error setting up client: {e}")
         sys.exit(1)
 
 
 def create_topic(client, operator_key):
-    """Create a new topic"""
+    """Create a new topic."""
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
@@ -64,9 +52,7 @@ def create_topic(client, operator_key):
 
 
 def query_topic_messages():
-    """
-    A full example that creates a topic and perform query topic messages.
-    """
+    """A full example that creates a topic and perform query topic messages."""
     # Config Client
     client, _, operator_key = setup_client()
 

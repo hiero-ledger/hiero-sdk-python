@@ -1,18 +1,19 @@
 """
+
+
 Run with:
+
 uv run examples/tokens/custom_fixed_fee.py
 python examples/tokens/custom_fixed_fee.py
 """
-
 import sys
 
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 
@@ -24,12 +25,7 @@ def setup_client():
     return client
 
 def custom_fixed_fee_example():
-    """
-
-    Demonstrates how to create a token with a Custom Fixed Fee.
-
-    """
-
+    """Demonstrates how to create a token with a Custom Fixed Fee."""
     client = setup_client()
 
     print("\n--- Creating Custom Fixed Fee ---")
