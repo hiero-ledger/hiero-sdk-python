@@ -1,0 +1,9 @@
+---
+engines:
+  bandit:
+    enabled: true
+    arguments:
+      - "-s"
+      - "B101"
+    exclude_paths:
+      - tests/**
