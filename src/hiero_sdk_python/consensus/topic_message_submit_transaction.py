@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union, overload
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -284,14 +284,31 @@ class TopicMessageSubmitTransaction(Transaction):
                 self._transaction_ids.append(chunk_transaction_id)
 
         return super().freeze_with(client)
+    
+    @overload
+    def execute(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[True] = True,
+    ) -> "TransactionReceipt":
+        ...
 
+    @overload
+    def execute(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+    ) -> "TransactionResponse":
+        ...
 
     def execute(
         self,
         client: "Client",
-        timeout: Optional[Union[int, float]] = None,
-        wait_for_receipt: Optional[bool] = True
-    ) -> Union["TransactionReceipt", "TransactionResponse"]:
+        timeout: int | float | None = None,
+        wait_for_receipt: bool = True
+    ) -> TransactionReceipt | TransactionResponse:
         """
         Executes the topic message submit transaction.
         
@@ -299,8 +316,8 @@ class TopicMessageSubmitTransaction(Transaction):
         
         Args:
             client: The client to execute the transaction with.
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
-            wait_for_receipt (Optional[bool]): Whether to wait for consensus and return the receipt.
+            timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
+            wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
             
         Returns:
@@ -310,12 +327,30 @@ class TopicMessageSubmitTransaction(Transaction):
         # Return the first response as the JS SDK does
         return self.execute_all(client, timeout, wait_for_receipt)[0]
     
+    @overload
     def execute_all(
         self,
         client: "Client",
-        timeout: Optional[Union[int, float]] = None,
-        wait_for_receipt: Optional[bool] = True
-    ) -> Union[List["TransactionReceipt"], List["TransactionResponse"]]:
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[True] = True,
+    ) -> List["TransactionReceipt"]:
+        ...
+
+    @overload
+    def execute_all(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+    ) -> List["TransactionResponse"]:
+        ...
+    
+    def execute_all(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: bool = True
+    ) -> List["TransactionReceipt"] | List["TransactionResponse"]:
         """
         Executes the topic message submit transaction.
 
@@ -323,8 +358,8 @@ class TopicMessageSubmitTransaction(Transaction):
 
         Args:
             client: The client to execute the transaction with.
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
-            wait_for_receipt (Optional[bool]): Whether to wait for consensus and return the receipt.
+            timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
+            wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
             
         Returns:

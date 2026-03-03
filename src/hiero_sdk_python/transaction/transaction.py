@@ -1,5 +1,5 @@
 import hashlib
-from typing import List, Optional, Union
+from typing import Literal, Optional, overload
 
 from typing import TYPE_CHECKING
 
@@ -328,14 +328,31 @@ class Transaction(_Executable):
                 self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
 
         return self
-        
+    
+    @overload
+    def execute(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[True] = True,
+    ) -> "TransactionReceipt":
+        ...
+
+    @overload
+    def execute(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+    ) -> "TransactionResponse":
+        ...
 
     def execute(
         self, 
         client: "Client", 
-        timeout: Optional[Union[int, float]] = None, 
-        wait_for_receipt: Optional[bool] = True
-    ) -> Union["TransactionReceipt", "TransactionResponse"]:
+        timeout: int | float | None = None, 
+        wait_for_receipt: bool = True
+    ) -> TransactionReceipt | TransactionResponse:
         """
         Executes the transaction on the Hedera network using the provided client.
 
@@ -343,8 +360,8 @@ class Transaction(_Executable):
 
         Args:
             client (Client): The client instance to use for execution.
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
-            wait_for_receipt (Optional[bool]): Whether to wait for consensus and return the receipt.
+            timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
+            wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
 
         Returns:
