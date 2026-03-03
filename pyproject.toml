@@ -108,3 +108,6 @@ indent-style = "space"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.bandit]
+exclude_dirs = ["tests"]
