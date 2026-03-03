@@ -78,7 +78,7 @@ async function isNewContributor(github, owner, repo, login) {
 
   try {
     console.log(`Checking for merged PRs by ${login} in ${targetOwner}/${targetRepo}`);
-    
+
     const iterator = github.paginate.iterator(github.rest.pulls.list, {
       owner: targetOwner,
       repo: targetRepo,
@@ -95,7 +95,7 @@ async function isNewContributor(github, owner, repo, login) {
         return false;
       }
     }
-    
+
     console.log(`No merged PRs found for ${login}. Considered a new starter.`);
     return true;
   } catch (error) {
@@ -106,9 +106,9 @@ async function isNewContributor(github, owner, repo, login) {
 }
 
 function buildComment({ mentee, mentor, owner, repo }) {
-    const repoUrl = owner && repo ? `https://github.com/${owner}/${repo}` : "https://github.com/hiero-ledger/hiero-sdk-python";
+  const repoUrl = owner && repo ? `https://github.com/${owner}/${repo}` : "https://github.com/hiero-ledger/hiero-sdk-python";
 
-    return `${COMMENT_MARKER}👋 Hi @${mentee}, welcome to the Hiero Python SDK community!
+  return `${COMMENT_MARKER}👋 Hi @${mentee}, welcome to the Hiero Python SDK community!
 You've been assigned this **Good First Issue**. Your on-call mentor today from ${MENTOR_TEAM_ALIAS} is **@${mentor}**, and the **Good First Issue Support Team** is **${SUPPORT_TEAM_ALIAS}**.
 We’re here to help you get your first PR merged successfully 🚀
 
@@ -208,49 +208,34 @@ module.exports = async ({ github, context, assignee: passedAssignee }) => {
 
     console.log(`Assigning mentor @${mentor} to mentee @${mentee} for issue #${issue.number}.`);
 
-    const isDryRun = process.env.DRY_RUN === 'true';
-
     // 1. Add mentor-duty label
-    if (isDryRun) {
-      console.log(`[DRY RUN] Would add label '${MENTOR_DUTY_LABEL}' to issue #${issue.number}.`);
-    } else {
-      try {
-        await github.rest.issues.addLabels({
-          owner,
-          repo,
-          issue_number: issue.number,
-          labels: [MENTOR_DUTY_LABEL],
-        });
-        console.log(`Added label '${MENTOR_DUTY_LABEL}' to issue #${issue.number}.`);
-      } catch (error) {
-        console.log(`Failed to add label '${MENTOR_DUTY_LABEL}': ${error.message || error}`);
-      }
+    try {
+      await github.rest.issues.addLabels({
+        owner,
+        repo,
+        issue_number: issue.number,
+        labels: [MENTOR_DUTY_LABEL],
+      });
+      console.log(`Added label '${MENTOR_DUTY_LABEL}' to issue #${issue.number}.`);
+    } catch (error) {
+      console.log(`Failed to add label '${MENTOR_DUTY_LABEL}': ${error.message || error}`);
     }
 
     // 2. Assign mentor to issue
-    if (isDryRun) {
-      console.log(`[DRY RUN] Would assign @${mentor} to issue #${issue.number}.`);
-    } else {
-      try {
-        await github.rest.issues.addAssignees({
-          owner,
-          repo,
-          issue_number: issue.number,
-          assignees: [mentor],
-        });
-        console.log(`Assigned @${mentor} to issue #${issue.number}.`);
-      } catch (error) {
-        console.log(`Failed to assign mentor @${mentor}: ${error.message || error}`);
-      }
+    try {
+      await github.rest.issues.addAssignees({
+        owner,
+        repo,
+        issue_number: issue.number,
+        assignees: [mentor],
+      });
+      console.log(`Assigned @${mentor} to issue #${issue.number}.`);
+    } catch (error) {
+      console.log(`Failed to assign mentor @${mentor}: ${error.message || error}`);
     }
 
     // 3. Post mentor assignment comment
     const comment = buildComment({ mentee, mentor, owner, repo });
-
-    if (isDryRun) {
-      console.log(`[DRY RUN] Would post mentor assignment comment on issue #${issue.number}.`);
-      return;
-    }
 
     try {
       await github.rest.issues.createComment({

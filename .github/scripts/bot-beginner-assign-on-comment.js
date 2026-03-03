@@ -59,7 +59,6 @@ const SPAM_LIST_PATH = ".github/spam-list.txt";
 const REQUIRED_GFI_COUNT = 1;
 const GFI_LABEL = 'Good First Issue';
 const BEGINNER_GUARD_MARKER = '<!-- beginner-gfi-guard -->';
-const MENTOR_DUTY_LABEL = process.env.MENTOR_DUTY_LABEL || 'mentor-duty';
 
 function isSafeSearchToken(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
@@ -161,18 +160,6 @@ module.exports = async ({ github, context }) => {
     }
 
     async function getOpenAssignments(username) {
-      let permission = 'read';
-      try {
-        const permissionResp = await github.rest.repos.getCollaboratorPermissionLevel({
-          owner: repo.owner.login,
-          repo: repo.name,
-          username,
-        });
-        permission = permissionResp.data.permission;
-      } catch (error) {
-        console.log(`[Beginner Bot] Failed to get permission level for ${username}: ${error.message}. Defaulting to 'read'.`);
-      }
-
       const issues = await github.paginate(
         github.rest.issues.listForRepo,
         {
@@ -184,17 +171,8 @@ module.exports = async ({ github, context }) => {
         }
       );
 
-      return issues.filter(issue => {
-        const isPR = !!issue.pull_request;
-        if (isPR) return false;
-
-        const labels = issue.labels?.map(l => l.name) || [];
-        if (permission === 'triage' && labels.includes(MENTOR_DUTY_LABEL)) {
-          return false;
-        }
-
-        return true;
-      }).length;
+      // Only filter out PRs; mentor-duty exclusion is not needed for beginner issues
+      return issues.filter(issue => !issue.pull_request).length;
     }
 
     const commenter = comment.user.login;

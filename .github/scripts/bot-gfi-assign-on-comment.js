@@ -29,14 +29,16 @@ function isSpamUser(username) {
 }
 
 async function getOpenAssignments({ github, owner, repo, username }) {
-    let permission = 'read';
+    // GitHub maps triage→'read' in permission, so we must check role_name
+    let roleName = 'read';
     try {
         const permissionResp = await github.rest.repos.getCollaboratorPermissionLevel({
             owner,
             repo,
             username,
         });
-        permission = permissionResp.data.permission;
+        roleName = permissionResp.data.role_name;
+        console.log(`[gfi-assign] Permission lookup for ${username}: permission=${permissionResp.data.permission}, role_name=${roleName}`);
     } catch (error) {
         console.log(`[gfi-assign] Failed to get permission level for ${username}: ${error.message}. Defaulting to 'read'.`);
     }
@@ -57,7 +59,7 @@ async function getOpenAssignments({ github, owner, repo, username }) {
         if (isPR) return false;
 
         const labels = issue.labels?.map(l => l.name) || [];
-        if (permission === 'triage' && labels.includes(MENTOR_DUTY_LABEL)) {
+        if (roleName === 'triage' && labels.includes(MENTOR_DUTY_LABEL)) {
             return false;
         }
 
