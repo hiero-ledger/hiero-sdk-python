@@ -32,8 +32,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Refactored contract_delete_transaction example to use Client.from_env. (#1823)
 
-### Added
-
 ### Docs
 
 - docs: Improving formatting will make the pull request process clearer. (`#1858`)
