@@ -30,17 +30,20 @@ permissions:
 
 jobs:
   add-labels:
+    concurrency:
+      group: sync-issue-labels-pr-${{ github.event.inputs.pr_number }}
+      cancel-in-progress: false
     runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
         with:
           egress-policy: audit
 
       - name: Download labels artifact
         id: download
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           path: artifacts
           run-id: ${{ github.event.inputs.upstream_run_id }}
@@ -53,7 +56,10 @@ jobs:
           INPUT_IS_FORK_PR: ${{ github.event.inputs.is_fork_pr }}
           INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: |
-          labels_file=$(find artifacts -name labels.json | head -n 1)
+          labels_file=""
+          if [ -d artifacts ]; then
+            labels_file=$(find artifacts -name labels.json -print -quit)
+          fi
           if [ -z "$labels_file" ]; then
             echo "No labels.json artifact found. Falling back to no-op outputs."
             echo "labels=[]" >> "$GITHUB_OUTPUT"
