@@ -210,3 +210,4 @@ def test_str_and_repr(account_info):
     assert "account_id=AccountId(shard=0, realm=0, num=100" in info_repr
     assert "contract_account_id='0.0.100'" in info_repr
     assert "account_memo='Test account memo'" in info_repr
+
