@@ -15,12 +15,21 @@ function isBotAuthor(login = "") {
   return /\[bot\]$/i.test(login) || /dependabot/i.test(login);
 }
 
-function extractIssueNumbers(text) {
+function extractIssueNumbers(text, owner, repo) {
   const issueNumbers = [];
-  const issueRefRegex = /#(\d+)/g;
+  const issueRefRegex = /(?:^|[\s(,])(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?)#(\d+)\b/g;
+  const currentOwner = String(owner || "").toLowerCase();
+  const currentRepo = String(repo || "").toLowerCase();
   let match;
   while ((match = issueRefRegex.exec(text)) !== null) {
-    issueNumbers.push(Number(match[1]));
+    const refOwner = String(match[1] || "").toLowerCase();
+    const refRepo = String(match[2] || "").toLowerCase();
+    if (refOwner && refRepo) {
+      if (refOwner !== currentOwner || refRepo !== currentRepo) {
+        continue;
+      }
+    }
+    issueNumbers.push(Number(match[3]));
   }
   return issueNumbers;
 }
@@ -46,7 +55,7 @@ function hasClosingKeyword(text) {
   return false;
 }
 
-function extractLinkedIssueNumbers(prBody) {
+function extractLinkedIssueNumbers(prBody, owner, repo) {
   const numbers = new Set();
   const lines = String(prBody || "").split(/\r?\n/);
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
@@ -54,7 +63,7 @@ function extractLinkedIssueNumbers(prBody) {
     if (!hasClosingKeyword(line)) {
       continue;
     }
-    const issueNumbers = extractIssueNumbers(line);
+    const issueNumbers = extractIssueNumbers(line, owner, repo);
     for (let i = 0; i < issueNumbers.length; i += 1) {
       numbers.add(issueNumbers[i]);
     }
@@ -134,7 +143,7 @@ async function syncLabels({ github, context }) {
   console.log(`[sync] Processing PR #${prNumber} in ${owner}/${repo} (dry_run=${isDryRun}).`);
 
   const prData = await fetchPrData(github, context, prNumber);
-  const linkedIssues = extractLinkedIssueNumbers((prData && prData.body) || "");
+  const linkedIssues = extractLinkedIssueNumbers((prData && prData.body) || "", owner, repo);
 
   const skip = checkSkipConditions((prData && prData.user && prData.user.login) || "", linkedIssues);
   if (skip.skip) {
