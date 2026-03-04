@@ -17,8 +17,20 @@ SECP256K1_CURVE = ec.SECP256K1()
 
 def keccak256(data: bytes) -> bytes:
     """
-    Mirroring the Java code's `Crypto.calcKeccak256`.
+    Compute the Keccak-256 hash of the input data.
+
+    This mirrors the Java SDK's `Crypto.calcKeccak256` function.
+
+    Args:
+        data: The bytes to hash.
+
+    Returns:
+        bytes: The 32-byte Keccak-256 hash digest.
+
+    Raises:
+        RuntimeError: If pycryptodome or similar keccak library is not installed.
     """
+
     global keccak
     if keccak is None:
         raise RuntimeError("Keccak not available. Install pycryptodome or similar.")

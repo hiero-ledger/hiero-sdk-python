@@ -221,13 +221,15 @@ These are only needed if you're customizing example scripts.
 
 ### Verify Your Setup
 
-Run the test suite to ensure everything is working:
+Run the unit test suite to ensure your local setup is working:
 
 ```bash
-uv run pytest
+uv run pytest tests/unit
 ```
 
-You should see tests passing. If you encounter errors, check that:
+You should see unit tests passing. Integration tests are expected to fail locally without the required network/test environment.
+
+If you encounter errors, check that:
 - All dependencies installed correctly (`uv sync`)
 - Protocol buffers were generated (`uv run python generate_proto.py`)
 - Your `.env` file has valid credentials

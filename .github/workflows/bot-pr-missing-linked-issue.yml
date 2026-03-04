@@ -1,4 +1,4 @@
-# This workflow checks PRs for linked issues and posts a reminder comment if missing.
+# This workflow checks PRs for missing linked issues and posts reminder comments when needed.
 # Uses pull_request_target to enable write permissions for fork PRs while checking out
 # only the base branch code (ref: main) to avoid executing untrusted fork code.
 name: PR Missing Linked Issue Reminder
@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
         with:
           egress-policy: audit
 
@@ -42,7 +42,7 @@ jobs:
         with:
           ref: main
 
-      - name: Check PR body for linked issue
+      - name: Check PR for missing linked issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}

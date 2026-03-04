@@ -82,6 +82,12 @@ def test_integration_contract_info_query_can_execute(env):
     assert info.auto_renew_account_id == env.operator_id, "Auto renew account ID mismatch"
     assert info.auto_renew_period == auto_renew_period, "Auto renew period mismatch"
 
+    # Verify staking_info is populated (contracts default to no staking)
+    assert info.staking_info is not None, "staking_info should not be None"
+    assert info.staking_info.staked_account_id is None, "staked_account_id should be None by default"
+    assert info.staking_info.staked_node_id is None, "staked_node_id should be None by default"
+    assert info.staking_info.decline_reward is False, "decline_reward should be False by default"
+
 
 @pytest.mark.integration
 def test_integration_contract_info_query_get_cost(env):

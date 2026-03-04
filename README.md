@@ -3,6 +3,7 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-python/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-sdk-python)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
 [![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
 
@@ -79,7 +80,7 @@ print(f"Balance: {balance.hbars} HBAR")
 - [Hedera Documentation](https://docs.hedera.com/)
 - [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs)
 - [Get Testnet Account](https://portal.hedera.com/) - Free testnet credentials
-- [Hedera Testnet Guide](https://docs.hedera.com/guides/testnet)
+- [Hedera Testnet Guide](https://docs.hedera.com/hedera/networks/testnet)
 
 ### Other SDKs
 
