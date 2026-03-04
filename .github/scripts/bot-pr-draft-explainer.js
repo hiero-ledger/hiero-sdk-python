@@ -11,6 +11,8 @@
  */
 
 const COMMENT_MARKER = "<!-- pr-draft-explainer -->";
+const DRY_RUN = process.env.DRY_RUN === "true";
+const manualPRNumber = process.env.PR_NUMBER;
 
 /**
  * Checks if the reminder comment already exists.
@@ -89,16 +91,32 @@ Thanks again for your contribution!
  */
 
 module.exports = async ({ github, context }) => {
-    const pr = context.payload.pull_request;
+    let pr = context.payload.pull_request;
+    let prNumber = pr?.number || manualPRNumber;
     const { owner, repo } = context.repo;
 
-    if (!pr) {
-        console.log("No pull request found in payload. Exiting.");
+    if (!prNumber) {
+        console.log("No PR number found in payload or environment. Exiting.");
         return;
     }
+    if (!pr) {
+        console.log(`Fetching PR #${prNumber} (manual workflow_dispatch run)...`);
 
-    const prNumber = pr.number;
-    const authorLogin = pr.user && pr.user.login ? pr.user.login : null;
+        try {
+            const prResponse = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: prNumber,
+            });
+
+            pr = prResponse.data;
+        } catch (error) {
+            console.log(`Failed to fetch PR #${prNumber}: ${error.message}`);
+            return;
+        }
+    }
+
+    const authorLogin = pr.user?.login;
     const greetingTarget = authorLogin ? `@${authorLogin}` : "there";
 
     console.log(`PR #${prNumber} was converted to draft. Checking if explanation is needed.`);
@@ -148,6 +166,10 @@ module.exports = async ({ github, context }) => {
 
     // Post explanation comment
     try {
+        if (DRY_RUN) {
+            console.log(`[DRY RUN] Explanation comment would be posted on PR #${prNumber}.`);
+            return;
+        }
         await github.rest.issues.createComment({
             owner,
             repo,
