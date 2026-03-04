@@ -15,19 +15,28 @@ function isBotAuthor(login = "") {
   return /\[bot\]$/i.test(login) || /dependabot/i.test(login);
 }
 
+function normalizeRefPart(value) {
+  return String(value || "").toLowerCase();
+}
+
+function isSameRepoRef(refOwner, refRepo, owner, repo) {
+  if (!refOwner || !refRepo) {
+    return true;
+  }
+  return refOwner === owner && refRepo === repo;
+}
+
 function extractIssueNumbers(text, owner, repo) {
   const issueNumbers = [];
   const issueRefRegex = /(?:^|[\s(,])(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?)#(\d+)\b/g;
-  const currentOwner = String(owner || "").toLowerCase();
-  const currentRepo = String(repo || "").toLowerCase();
+  const currentOwner = normalizeRefPart(owner);
+  const currentRepo = normalizeRefPart(repo);
   let match;
   while ((match = issueRefRegex.exec(text)) !== null) {
-    const refOwner = String(match[1] || "").toLowerCase();
-    const refRepo = String(match[2] || "").toLowerCase();
-    if (refOwner && refRepo) {
-      if (refOwner !== currentOwner || refRepo !== currentRepo) {
-        continue;
-      }
+    const refOwner = normalizeRefPart(match[1]);
+    const refRepo = normalizeRefPart(match[2]);
+    if (!isSameRepoRef(refOwner, refRepo, currentOwner, currentRepo)) {
+      continue;
     }
     issueNumbers.push(Number(match[3]));
   }
