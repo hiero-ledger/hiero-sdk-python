@@ -90,8 +90,21 @@ jobs:
           echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
           echo "source_event=$source_event" >> "$GITHUB_OUTPUT"
 
+      - name: Validate labels payload
+        id: validate
+        run: |
+          if [ "$PR_NUMBER" = "0" ] || [ -z "$LABELS" ]; then
+            echo "Invalid payload: pr_number=$PR_NUMBER or labels empty. Skipping label addition."
+            echo "valid_payload=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "valid_payload=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          PR_NUMBER: ${{ steps.read.outputs.pr_number }}
+          LABELS: ${{ steps.read.outputs.labels }}
+
       - name: Add labels to PR
-        if: ${{ steps.read.outputs.is_fork_pr != 'true' && (steps.read.outputs.source_event != 'workflow_dispatch' || steps.read.outputs.dry_run != 'true') && steps.read.outputs.pr_number != '0' && steps.read.outputs.labels_count != '0' }}
+        if: ${{ steps.read.outputs.is_fork_pr != 'true' && (steps.read.outputs.source_event != 'workflow_dispatch' || steps.read.outputs.dry_run != 'true') && steps.read.outputs.pr_number != '0' && steps.read.outputs.labels_count != '0' && steps.validate.outputs.valid_payload == 'true' }}
         uses: actions-ecosystem/action-add-labels@1a9c3715c0037e96b97bb38cb4c4b56a1f1d4871 # main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

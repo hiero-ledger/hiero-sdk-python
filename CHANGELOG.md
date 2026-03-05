@@ -55,6 +55,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: Update `bot-advanced-check.yml`, `bot-gfi-assign-on-comment.yml`, `bot-intermediate-assignment.yml`, `bot-linked-issue-enforcer.yml`, `unassign-on-comment.yml`, `working-on-comment.yml` workflow runner configuration
 - Fix build failing in `publish.yml`
 - Allowed `mirror.servaxnet.com:443` in `pr-check-test.yml` Harden-Runner allowlist for stable Kind download network egress.
+- Allowed `mirror.fmt-2.serverforge.org:443` in `pr-check-test.yml` Harden-Runner allowlist for stable Kind download network egress.
 - Add automated label sync workflow to propagate labels from linked issues to pull requests (#1716)
 
 
