@@ -32,7 +32,7 @@ src/hiero_sdk_python/hapi
 .pytest_cache
 
 # Hypothesis state
-.hypotesis/
+.hypothesis/
 
 # Lock files
 uv.lock
