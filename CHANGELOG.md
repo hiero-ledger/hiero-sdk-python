@@ -70,6 +70,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - close unlinked pull requests after 12 hours rather than 3 days (`#1863`)
 - feat(bot): enforce linked issue assignment check for PR authors (`#1889`)
 - Bumped `astral-sh/setup-uv` from v7.2.1 to v7.3.1 in workflow files (#1900)
+- chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1901`)
 
 ## [0.2.0] - 2026-11-02
 
