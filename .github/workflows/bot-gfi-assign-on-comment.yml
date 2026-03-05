@@ -16,9 +16,10 @@ jobs:
 
         runs-on: ubuntu-latest
 
-        # Prevent race conditions: always wait for the first assignment request to finish processing
+        # Prevent assignment-limit races across different issues by processing
+        # one GFI assignment workflow at a time for this repository.
         concurrency:
-            group: gfi-assign-${{ github.event.issue.number }}
+            group: gfi-assign-${{ github.repository }}
             cancel-in-progress: false
 
         steps:
