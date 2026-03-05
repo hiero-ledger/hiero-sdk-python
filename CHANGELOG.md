@@ -7,6 +7,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- 
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Breaking API Changes
+
+## [0.2.1] - 2026-03-05
+
+### Added
 
 - Added unit test and __repr__ for NftId class(#1627).
 - Added CodeRabbit review instructions for the nodes module in `.coderabbit.yaml` (#1699)
