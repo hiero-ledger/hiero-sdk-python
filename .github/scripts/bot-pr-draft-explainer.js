@@ -118,7 +118,12 @@ module.exports = async ({ github, context }) => {
 
     const authorLogin = pr.user?.login;
     const greetingTarget = authorLogin ? `@${authorLogin}` : "there";
-
+    
+    if (!pr.draft) {
+    console.log(`PR #${prNumber} is not draft. Skipping.`);
+    return;
+    } 
+    
     console.log(`PR #${prNumber} was converted to draft. Checking if explanation is needed.`);
 
     // Prevent duplicate comments
