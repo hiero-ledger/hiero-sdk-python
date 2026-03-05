@@ -6,16 +6,17 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Added
+### Src
 - 
 
-### Fixed
+### Examples
 
-### Changed
+### Tests
 
-### Removed
+### Docs
 
-### Breaking API Changes
+### .github
+
 
 ## [0.2.1] - 2026-03-05
 
