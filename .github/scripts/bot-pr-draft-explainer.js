@@ -120,8 +120,8 @@ module.exports = async ({ github, context }) => {
     const greetingTarget = authorLogin ? `@${authorLogin}` : "there";
     
     if (!pr.draft) {
-    console.log(`PR #${prNumber} is not draft. Skipping.`);
-    return;
+        console.log(`PR #${prNumber} is not draft. Skipping.`);
+        return;
     } 
     
     console.log(`PR #${prNumber} was converted to draft. Checking if explanation is needed.`);
@@ -150,9 +150,10 @@ module.exports = async ({ github, context }) => {
     // Only proceed if changes were previously requested on this PR
     try {
         const reviews = await github.rest.pulls.listReviews({
-        owner,
-        repo,
-        pull_number: prNumber,
+            owner,
+            repo,
+            pull_number: prNumber,
+            per_page: 100,
         });
 
         const hasChangeRequest = reviews.data.some(
