@@ -16,7 +16,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Docs
 
 ### .github
-
+- Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
 
 ## [0.2.1] - 2026-03-05
 
@@ -70,7 +70,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added triage members max assignment is protected from being a mentor in `.github/scripts/bot-assignment-check.sh`. (#1718)
 - Added automated bot to comment on PRs with invalid conventional commit titles, providing guidance on fixing the title format (#1705)
 - Revert PythonBot workflow to restore previous stable behavior. (#1825)
-- Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
 - Added GitHub Actions workflow to remind draft PR authors to mark ready for review after pushing changes. (#1722)
 - Fixed bot workflow runtime failure caused by strict `FAILED_WORKFLOW_NAME` validation. (`#1690`)
 - Reverted PR #1739 checking assignment counts
