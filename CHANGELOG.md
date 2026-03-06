@@ -14,7 +14,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Examples
 
 ### Tests
-- Update unit and integration tests to access staking fields through the nested `staking_info` object on `AccountInfo`. (#1366)
 
 ### Docs
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
