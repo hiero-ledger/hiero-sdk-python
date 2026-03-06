@@ -16,7 +16,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Docs
 
 ### .github
-
+- archived workflows relating to PR reminders
 
 ## [0.2.1] - 2026-03-05
 
