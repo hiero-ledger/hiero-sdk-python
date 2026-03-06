@@ -1,12 +1,12 @@
-// A script to  closes pull requests without a linked issue after 3 days automatically.
+// A script to  closes pull requests without a linked issue after 12 hours automatically.
 
 // dryRun env var: any case-insensitive 'true' value will enable dry-run
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
-const daysBeforeClose = parseInt(process.env.DAYS_BEFORE_CLOSE || '3', 10);
+const hoursBeforeClose = parseInt(process.env.HOURS_BEFORE_CLOSE || '12', 10);
 const requireAuthorAssigned = (process.env.REQUIRE_AUTHOR_ASSIGNED || 'true').toLowerCase() === 'true';
 
-const getDaysOpen = (pr) =>
-  Math.floor((Date.now() - new Date(pr.created_at)) / (24 * 60 * 60 * 1000));
+const getHoursOpen = (pr) =>
+  Math.floor((Date.now() - new Date(pr.created_at)) / (60 * 60 * 1000));
 
 // Check if the PR author is a bot
 const isBotAuthor = (pr) => pr.user?.type === 'Bot';
@@ -118,9 +118,9 @@ module.exports = async ({ github, context }) => {
         continue;
       }
 
-      const days = getDaysOpen(pr);
-      if (days < daysBeforeClose) {
-        console.log(`PR #${pr.number} link: ${pr.html_url} is only ${days} days old. Skipping.`);
+      const hours = getHoursOpen(pr);
+      if (hours < hoursBeforeClose) {
+        console.log(`PR #${pr.number} link: ${pr.html_url} is only ${hours} hours old. Skipping.`);
         continue;
       }
 

@@ -15,10 +15,9 @@ def test_nft_id():
     )
 
     assert str(nftid_constructor_test) == "0.1.2/1234"
-    assert (
-        repr(nftid_constructor_test)
-        == "NftId(token_id=TokenId(shard=0, realm=1, num=2, checksum=None), serial_number=1234)"
-    )
+
+    assert repr(nftid_constructor_test) == "NftId(token_id=0.1.2, serial_number=1234)"
+
     assert nftid_constructor_test._to_proto().__eq__(
         basic_types_pb2.NftID(
             token_ID=basic_types_pb2.TokenID(shardNum=0, realmNum=1, tokenNum=2),
@@ -88,3 +87,29 @@ def test_get_nft_id_with_checksum(mock_client):
     nft_id = NftId(token_id, 1)
 
     assert nft_id.to_string_with_checksum(client) == "0.0.1-dfkxr/1"
+
+
+def test_nft_id_repr():
+    token_id = TokenId(0, 0, 123)
+    nft_id = NftId(token_id, 5)
+    result = repr(nft_id)
+    assert isinstance(result, str), "repr should return a string"
+    assert (
+        result == "NftId(token_id=0.0.123, serial_number=5)"
+    ), f"Unexpected repr: {result}"
+
+
+def test_nft_id_repr_zero_serial():
+    token_id = TokenId(0, 0, 1)
+    nft_id = NftId(token_id, 0)
+    assert (
+        repr(nft_id) == "NftId(token_id=0.0.1, serial_number=0)"
+    ), "repr should handle serial_number=0"
+
+
+def test_nft_id_repr_large_values():
+    token_id = TokenId(1, 2, 999999)
+    nft_id = NftId(token_id, 2147483647)
+    assert (
+        repr(nft_id) == "NftId(token_id=1.2.999999, serial_number=2147483647)"
+    ), "repr should handle large values"
