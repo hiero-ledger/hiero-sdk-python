@@ -2,7 +2,7 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-python/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-sdk-python)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
-[![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
@@ -24,11 +24,11 @@ pip install python-dotenv
 
 Create a `.env` file in your project root with your Hedera testnet credentials.
 
-**Full setup instructions:** [Setup Guide](docs/sdk_developers/setup.md)
+**Full setup instructions:** [Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/setup.md)
 
 **Don't have testnet credentials?** Get them free at [Hedera Portal](https://portal.hedera.com/)
 
-A sample file is provided: [.env.example](.env.example)
+A sample file is provided: [.env.example](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/.env.example)
 
 
 ### Basic Usage
@@ -59,21 +59,21 @@ print(f"Balance: {balance.hbars} HBAR")
 
 ### For SDK Users
 
-- **[Running Examples](docs/sdk_users/running_examples.md)** - Complete guide to all SDK operations with code examples
-- **[Examples Directory](examples/)** - Ready-to-run example scripts
+- **[Running Examples](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_users/running_examples.md)** - Complete guide to all SDK operations with code examples
+- **[Examples Directory](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples)** - Ready-to-run example scripts
 
 ### For SDK Developers
 
-- **[Contributing Guide](CONTRIBUTING.md)** - Start here!
-- **[Setup Guide](docs/sdk_developers/setup.md)** - First-time environment setup
-- **[Windows Setup Guide](docs/sdk_developers/training/setup/setup_windows.md)** - Step-by-step guide for Windows users
-- **[Workflow Guide](docs/sdk_developers/workflow.md)** - Day-to-day development workflow
-- **[Signing Guide](docs/sdk_developers/signing.md)** - GPG and DCO commit signing (required)
-- **[Changelog Guide](docs/sdk_developers/changelog_entry.md)** - How to write changelog entries
-- **[Rebasing Guide](docs/sdk_developers/rebasing.md)** - Keep your branch up-to-date
-- **[Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)** - Resolve conflicts
-- **[Typing Guide](docs/sdk_developers/types.md)** - Python type hints
-- **[Linting Guide](docs/sdk_developers/linting.md)** - Code quality tools
+- **[Contributing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)** - Start here!
+- **[Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/setup.md)** - First-time environment setup
+- **[Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/setup_windows.md)** - Step-by-step guide for Windows users
+- **[Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/workflow.md)** - Day-to-day development workflow
+- **[Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)** - GPG and DCO commit signing (required)
+- **[Changelog Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)** - How to write changelog entries
+- **[Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)** - Keep your branch up-to-date
+- **[Merge Conflicts Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)** - Resolve conflicts
+- **[Typing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md)** - Python type hints
+- **[Linting Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/linting.md)** - Code quality tools
 
 ### Hedera Network Resources
 
@@ -137,13 +137,13 @@ We welcome contributions! Whether you're:
 - 📝 Improving documentation
 - 💻 Writing code
 
-**Start here:** [CONTRIBUTING.md](CONTRIBUTING.md)
+**Start here:** [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
 
 ---
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE).
+This project is licensed under the [Apache License 2.0](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/LICENSE).
 
 ---
 
