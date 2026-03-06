@@ -14,6 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Tests
 
 ### Docs
+- Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 
 ### .github
 
@@ -33,7 +34,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added `.codacy.yml` configuration to exclude the `tests/` directory from Bandit `assert` analysis.
 
 ### Fixed
-- Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 - Fixed duplication in GitHub bot next issue recommendations by parsing actual issue descriptions instead of blind truncation (#1658)
 
 ### Src
