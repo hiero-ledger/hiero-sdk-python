@@ -1,4 +1,4 @@
-// Identify beginner-friendly issues and label them as Good First Issue Candidate.
+// Ask CodeRabbit to identify GFI candidates and create tracking issues.
 
 module.exports = async ({ github, context, core }) => {
   const owner = context.repo.owner;
@@ -7,65 +7,20 @@ module.exports = async ({ github, context, core }) => {
   const TARGET_LABEL = 'Good First Issue Candidate';
   const TARGET_LABEL_DESCRIPTION = 'AI-identified issue that may be suitable for new contributors. Requires maintainer review.';
   const TARGET_LABEL_COLOR = 'C2E0C6';
+  const CREATED_ISSUE_MARKER = '<!-- gfi-candidate-generated-issue -->';
   const COMMENT_MARKER = '<!-- gfi-candidate-coderabbit-review-request -->';
-  const CODERABBIT_COMMENT = `${COMMENT_MARKER}\n@coderabbitai review\n\nPlease evaluate whether this issue appears beginner-friendly for a first-time contributor. Focus on scope, clarity, dependencies, and potential hidden complexity.`;
+  const CODERABBIT_COMMENT = `${COMMENT_MARKER}\n@coderabbitai review\n\nPlease evaluate whether this issue is suitable as a Good First Issue Candidate for first-time contributors.\n\nRespond with a short verdict section using this exact format:\n- GFI_CANDIDATE: YES or NO\n- CONFIDENCE: LOW, MEDIUM, or HIGH\n- RATIONALE: one short paragraph\n\nFocus on scope size, clarity, dependencies, risk, and hidden complexity.`;
 
   const maxFromEnv = Number.parseInt(process.env.MAX_ISSUES_TO_LABEL || '5', 10);
   const MAX_LABELS_PER_RUN = Math.max(1, Math.min(50, Number.isFinite(maxFromEnv) ? maxFromEnv : 5));
   const requestCodeRabbit = String(process.env.REQUEST_CODERABBIT || 'true').toLowerCase() === 'true';
 
-  // Labels that should always block candidate labeling.
+  // Labels that should always block candidate issue creation.
   const blockedLabelSet = new Set(['blocked', 'epic', 'architecture', 'security']);
 
-  // Labels that indicate the issue is already covered by good-first triage.
+  // Labels that indicate the source issue is already covered by good-first triage.
   const alreadyHandledLabelSet = new Set(['good first issue', 'good first issue candidate']);
 
-  const beginnerKeywords = [
-    'docs',
-    'documentation',
-    'typo',
-    'readme',
-    'test',
-    'tests',
-    'unit test',
-    'integration test',
-    'minor',
-    'small',
-    'simple',
-    'cleanup',
-    'refactor',
-    'validation',
-    'error message',
-    'bug',
-    'fix',
-    'edge case',
-  ];
-
-  const nonBeginnerKeywords = [
-    'architecture',
-    'redesign',
-    'security',
-    'vulnerability',
-    'performance',
-    'latency',
-    'throughput',
-    'scalability',
-    'protocol change',
-    'consensus',
-    'cryptography',
-    'breaking change',
-    'deep domain knowledge',
-  ];
-
-  const claritySignals = [
-    /steps?\s+to\s+reproduce/i,
-    /expected\s+behavior/i,
-    /actual\s+behavior/i,
-    /acceptance\s+criteria/i,
-    /definition\s+of\s+done/i,
-    /reproduc(e|ible)/i,
-    /how\s+to\s+reproduce/i,
-  ];
 
   async function ensureLabelExists() {
     try {
@@ -90,25 +45,10 @@ module.exports = async ({ github, context, core }) => {
     return new Set((labels || []).map((l) => (l.name || '').trim().toLowerCase()));
   }
 
-  function includesAnyKeyword(text, keywords) {
-    const lower = text.toLowerCase();
-    return keywords.some((kw) => lower.includes(kw));
-  }
-
-  function hasClaritySignals(body) {
-    if (!body || body.trim().length < 80) {
-      return false;
-    }
-    return claritySignals.some((pattern) => pattern.test(body));
-  }
-
   function evaluateIssue(issue) {
     const labels = normalizeLabels(issue.labels);
-    const title = issue.title || '';
-    const body = issue.body || '';
-    const content = `${title}\n${body}`;
 
-    // Hard stops first.
+    // Hard safety gates only. Candidate suitability is decided by CodeRabbit.
     if (issue.pull_request) {
       return { eligible: false, reason: 'Not an issue' };
     }
@@ -121,59 +61,99 @@ module.exports = async ({ github, context, core }) => {
     if ([...labels].some((name) => alreadyHandledLabelSet.has(name))) {
       return { eligible: false, reason: 'Already has good-first related label' };
     }
-
-    // Soft scoring heuristic.
-    let score = 0;
-
-    if (includesAnyKeyword(content, beginnerKeywords)) {
-      score += 2;
-    }
-
-    if (hasClaritySignals(body)) {
-      score += 2;
-    }
-
-    // Scope indicators in title/body.
-    if (/\b(small|minor|localized|single file|low risk)\b/i.test(content)) {
-      score += 1;
-    }
-
-    // Prefer unblocked, unassigned, and actionable issues.
-    if (/\b(docs?|tests?|validation|error messages?|refactor|bug fix|cleanup)\b/i.test(content)) {
-      score += 1;
-    }
-
-    if (includesAnyKeyword(content, nonBeginnerKeywords)) {
-      score -= 3;
-    }
-
-    // Require at least one clarity or scoped-work signal.
-    const hasScopeOrClarity =
-      hasClaritySignals(body) || /\b(small|minor|docs?|tests?|validation|error messages?)\b/i.test(content);
-
-    if (!hasScopeOrClarity) {
-      return { eligible: false, reason: 'Insufficient clarity/scope signal', score };
-    }
-
     return {
-      eligible: score >= 2,
-      reason: score >= 2 ? 'Heuristic score meets threshold' : 'Heuristic score below threshold',
-      score,
+      eligible: true,
+      reason: 'Eligible for CodeRabbit assessment',
     };
   }
 
-  async function hasExistingCodeRabbitRequest(issueNumber) {
-    const comments = await github.paginate(github.rest.issues.listComments, {
+  function isCodeRabbitAuthor(comment) {
+    const login = comment?.user?.login || '';
+    const type = comment?.user?.type || '';
+    return /coderabbit/i.test(login) || (/bot/i.test(type) && /coderabbit/i.test(comment?.body || ''));
+  }
+
+  function extractCodeRabbitVerdict(comments) {
+    const reversed = [...comments].reverse();
+    for (const comment of reversed) {
+      if (!isCodeRabbitAuthor(comment)) {
+        continue;
+      }
+
+      const body = String(comment.body || '');
+      const normalized = body.toLowerCase();
+
+      // Prefer explicit machine-readable verdict if present.
+      const explicit = body.match(/GFI_CANDIDATE\s*:\s*(YES|NO)/i);
+      if (explicit) {
+        return {
+          hasVerdict: true,
+          isPositive: explicit[1].toUpperCase() === 'YES',
+          source: 'explicit',
+          commentId: comment.id,
+        };
+      }
+
+      // Fallback to simple phrase detection from human-readable response.
+      const positivePhrases = [
+        'beginner-friendly',
+        'good first issue candidate',
+        'suitable for first-time contributors',
+        'appropriate for new contributors',
+      ];
+      const negativePhrases = [
+        'not beginner-friendly',
+        'not suitable for first-time contributors',
+        'too complex',
+        'high complexity',
+      ];
+
+      const hasPositive = positivePhrases.some((p) => normalized.includes(p));
+      const hasNegative = negativePhrases.some((p) => normalized.includes(p));
+
+      if (hasPositive || hasNegative) {
+        return {
+          hasVerdict: true,
+          isPositive: hasPositive && !hasNegative,
+          source: 'heuristic',
+          commentId: comment.id,
+        };
+      }
+    }
+
+    return { hasVerdict: false, isPositive: false };
+  }
+
+  async function listIssueComments(issueNumber) {
+    return github.paginate(github.rest.issues.listComments, {
       owner,
       repo,
       issue_number: issueNumber,
       per_page: 100,
     });
+  }
+
+  async function hasExistingCodeRabbitRequest(issueNumber) {
+    const comments = await listIssueComments(issueNumber);
 
     return comments.some((comment) => {
       const body = comment.body || '';
       return body.includes(COMMENT_MARKER) || body.includes('@coderabbitai review');
     });
+  }
+
+  async function getCodeRabbitDecision(issueNumber) {
+    const comments = await listIssueComments(issueNumber);
+    const verdict = extractCodeRabbitVerdict(comments);
+    if (!verdict.hasVerdict) {
+      return { approved: false, reason: 'No CodeRabbit verdict found yet' };
+    }
+
+    if (!verdict.isPositive) {
+      return { approved: false, reason: 'CodeRabbit verdict is not positive for GFI candidate' };
+    }
+
+    return { approved: true, reason: `Positive CodeRabbit verdict (${verdict.source})`, verdict };
   }
 
   async function maybeRequestCodeRabbit(issueNumber) {
@@ -196,39 +176,57 @@ module.exports = async ({ github, context, core }) => {
     core.info(`Posted CodeRabbit request comment on #${issueNumber}`);
   }
 
-  async function addCandidateLabel(issueNumber) {
-    await github.rest.issues.addLabels({
+  function buildGeneratedIssueTitle(sourceIssue) {
+    return `[GFI Candidate] #${sourceIssue.number} ${sourceIssue.title}`;
+  }
+
+  function buildGeneratedIssueBody(sourceIssue, decisionReason) {
+    return [
+      CREATED_ISSUE_MARKER,
+      '',
+      `Source Issue: #${sourceIssue.number}`,
+      `Source URL: ${sourceIssue.html_url}`,
+      '',
+      'CodeRabbit identified this issue as potentially suitable for first-time contributors.',
+      `Decision: ${decisionReason}`,
+      '',
+      'Maintainer checklist:',
+      '- [ ] Confirm scope is small and localized',
+      '- [ ] Confirm acceptance criteria are clear',
+      '- [ ] Confirm no hidden blockers/dependencies',
+      '- [ ] If approved, keep this issue and update labels as needed',
+      '',
+      `Reference marker: source-issue-${sourceIssue.number}`,
+    ].join('\n');
+  }
+
+  async function hasGeneratedIssueForSource(sourceIssueNumber) {
+    const query = `repo:${owner}/${repo} is:issue is:open in:body source-issue-${sourceIssueNumber}`;
+    const { data } = await github.rest.search.issuesAndPullRequests({ q: query, per_page: 1 });
+    return (data?.items?.length || 0) > 0;
+  }
+
+  async function createCandidateIssue(sourceIssue, decisionReason) {
+    const alreadyExists = await hasGeneratedIssueForSource(sourceIssue.number);
+    if (alreadyExists) {
+      core.info(`Generated candidate issue already exists for source #${sourceIssue.number}; skipping creation.`);
+      return false;
+    }
+
+    const { data: created } = await github.rest.issues.create({
       owner,
       repo,
-      issue_number: issueNumber,
+      title: buildGeneratedIssueTitle(sourceIssue),
+      body: buildGeneratedIssueBody(sourceIssue, decisionReason),
       labels: [TARGET_LABEL],
     });
-    core.info(`Added '${TARGET_LABEL}' to #${issueNumber}`);
+
+    core.info(`Created candidate issue #${created.number} from source #${sourceIssue.number}`);
+    return true;
   }
 
   async function getOpenIssuesToEvaluate() {
-    const eventName = process.env.EVENT_NAME;
-    const eventAction = process.env.EVENT_ACTION;
-    const issueNumberRaw = process.env.EVENT_ISSUE_NUMBER;
-
-    // For issue lifecycle events, evaluate only the changed issue to reduce API load.
-    if (eventName === 'issues' && issueNumberRaw) {
-      const issueNumber = Number.parseInt(issueNumberRaw, 10);
-      if (Number.isFinite(issueNumber)) {
-        const { data: issue } = await github.rest.issues.get({
-          owner,
-          repo,
-          issue_number: issueNumber,
-        });
-        if (issue.state === 'open') {
-          core.info(`Evaluating single issue from event: #${issue.number} (${eventAction})`);
-          return [issue];
-        }
-        return [];
-      }
-    }
-
-    // For scheduled/manual runs, scan all open issues.
+    // Repository-wide scan: evaluate all open issues on every trigger.
     const issues = await github.paginate(github.rest.issues.listForRepo, {
       owner,
       repo,
@@ -246,13 +244,13 @@ module.exports = async ({ github, context, core }) => {
   await ensureLabelExists();
 
   const issues = await getOpenIssuesToEvaluate();
-  let labeledCount = 0;
+  let createdCount = 0;
   let evaluatedCount = 0;
   let skippedCount = 0;
 
   for (const issue of issues) {
-    if (labeledCount >= MAX_LABELS_PER_RUN) {
-      core.warning(`Reached max label cap (${MAX_LABELS_PER_RUN}) for this run. Stopping early.`);
+    if (createdCount >= MAX_LABELS_PER_RUN) {
+      core.warning(`Reached max candidate-issue cap (${MAX_LABELS_PER_RUN}) for this run. Stopping early.`);
       break;
     }
 
@@ -262,15 +260,25 @@ module.exports = async ({ github, context, core }) => {
       const result = evaluateIssue(issue);
       if (!result.eligible) {
         skippedCount += 1;
-        core.info(
-          `Skipped #${issue.number}: ${result.reason}${typeof result.score === 'number' ? ` (score=${result.score})` : ''}`
-        );
+        core.info(`Skipped #${issue.number}: ${result.reason}`);
         continue;
       }
 
-      await addCandidateLabel(issue.number);
+      // 1) Ensure CodeRabbit has been asked for an assessment.
       await maybeRequestCodeRabbit(issue.number);
-      labeledCount += 1;
+
+      // 2) Create candidate issue only when CodeRabbit feedback is positive.
+      const decision = await getCodeRabbitDecision(issue.number);
+      if (!decision.approved) {
+        skippedCount += 1;
+        core.info(`Skipped creating candidate issue for #${issue.number}: ${decision.reason}`);
+        continue;
+      }
+
+      const created = await createCandidateIssue(issue, decision.reason);
+      if (created) {
+        createdCount += 1;
+      }
     } catch (error) {
       // Continue scanning even if one issue fails.
       const message = error && error.message ? error.message : String(error);
@@ -279,13 +287,13 @@ module.exports = async ({ github, context, core }) => {
   }
 
   await core.summary
-    .addHeading('Good First Issue Candidate Scan Summary')
+    .addHeading('Good First Issue Candidate Repo Scan Summary')
     .addTable([
       [{ data: 'Metric', header: true }, { data: 'Value', header: true }],
       ['Evaluated issues', String(evaluatedCount)],
-      ['Labeled as candidates', String(labeledCount)],
+      ['Candidate issues created', String(createdCount)],
       ['Skipped', String(skippedCount)],
-      ['Max labels per run', String(MAX_LABELS_PER_RUN)],
+      ['Max candidate issues per run', String(MAX_LABELS_PER_RUN)],
       ['CodeRabbit requests enabled', String(requestCodeRabbit)],
     ])
     .write();

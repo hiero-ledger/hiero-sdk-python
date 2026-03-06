@@ -13,12 +13,12 @@ on:
   workflow_dispatch:
     inputs:
       request_coderabbit:
-        description: 'Post a CodeRabbit review request comment on newly-labeled candidates'
+        description: 'Post CodeRabbit review request comments during candidate scanning'
         required: true
         default: true
         type: boolean
       max_issues_to_label:
-        description: 'Safety cap for labels added in one run (start with 3-5/day)'
+        description: 'Safety cap for candidate issues created in one run (start with 3-5/day)'
         required: true
         default: '5'
         type: string
