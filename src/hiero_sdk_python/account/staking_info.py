@@ -75,17 +75,24 @@ class StakingInfo:
             decline_staking_reward=proto.decline_reward,
         )
 
+    def _set_staked_id(self, proto: StakingInfoProto) -> None:
+        """Sets the mutually exclusive staked_account_id or staked_node_id on proto."""
+        if self.staked_account_id is not None and self.staked_node_id is not None:
+            raise ValueError(
+                "Cannot set both staked_account_id and staked_node_id; "
+                "they are mutually exclusive (oneof staked_id)"
+            )
+        if self.staked_account_id is not None:
+            proto.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
+        if self.staked_node_id is not None:
+            proto.staked_node_id = self.staked_node_id
+
     def _to_proto(self) -> StakingInfoProto:
         """Converts this StakingInfo instance to its protobuf representation.
 
         Returns:
             StakingInfoProto: The protobuf StakingInfo message.
         """
-        if self.staked_account_id is not None and self.staked_node_id is not None:
-            raise ValueError(
-                "Cannot set both staked_account_id and staked_node_id; "
-                "they are mutually exclusive (oneof staked_id)"
-            )
         proto = StakingInfoProto()
 
         if self.decline_staking_reward is not None:
@@ -101,10 +108,7 @@ class StakingInfo:
             proto.pending_reward = self.pending_reward.to_tinybars()
         if self.staked_to_me is not None:
             proto.staked_to_me = self.staked_to_me.to_tinybars()
-        if self.staked_account_id is not None:
-            proto.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
-        if self.staked_node_id is not None:
-            proto.staked_node_id = self.staked_node_id
+        self._set_staked_id(proto)
 
         return proto
 
