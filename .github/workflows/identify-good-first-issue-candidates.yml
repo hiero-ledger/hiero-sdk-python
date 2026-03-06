@@ -2,19 +2,29 @@ name: Identify Good First Issue Candidates
 
 on:
   schedule:
-    - cron: "0 9 * * *"
+    # Daily scan at 09:00 UTC
+    - cron: '0 9 * * *'
   workflow_dispatch:
     inputs:
       max_issues_per_run:
-        description: "Maximum number of candidate issues to create in one run"
+        description: 'Safety cap for candidate issues created in one run (recommended: 3-5)'
         required: true
-        default: "5"
+        default: '5'
         type: string
-      base_branch:
-        description: "Base branch for CodeRabbit review"
+      min_confidence:
+        description: 'Minimum confidence required to create candidate issues'
         required: true
-        default: "main"
-        type: string
+        default: 'medium'
+        type: choice
+        options:
+          - low
+          - medium
+          - high
+      dry_run:
+        description: 'Run scan without creating issues'
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -25,61 +35,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  scan-and-create:
-    name: Scan repo with CodeRabbit CLI and create candidate issues
+  identify-candidates:
+    name: Scan Repository and Create GFI Candidate Issues
     runs-on: ubuntu-latest
 
     steps:
-      - name: Harden runner
+      - name: Harden the runner
         uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
         with:
           egress-policy: audit
 
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
 
-      - name: Install CodeRabbit CLI
-        shell: bash
-        run: |
-          curl -fsSL https://cli.coderabbit.ai/install.sh | sh
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          echo "/usr/local/bin" >> "$GITHUB_PATH"
-          coderabbit --version || cr --version || true
-
-      - name: Run CodeRabbit repo scan
-        shell: bash
-        env:
-          CODERABBIT_API_KEY: ${{ secrets.CODERABBIT_API_KEY }}
-          BASE_BRANCH: ${{ github.event.inputs.base_branch || 'main' }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "${CODERABBIT_API_KEY:-}" ]; then
-            echo "Missing CODERABBIT_API_KEY secret." >&2
-            exit 1
-          fi
-
-          # Make sure the base branch exists locally.
-          git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}" || git fetch origin "${BASE_BRANCH}"
-
-          # Create a lightweight synthetic commit with current repo state differences if needed.
-          # For scheduled scans on a clean checkout, compare current HEAD against the base branch.
-          cr --plain --base "${BASE_BRANCH}" --api-key "${CODERABBIT_API_KEY}" > coderabbit-output.txt
-
-          echo "Saved CodeRabbit output to coderabbit-output.txt"
-          wc -c coderabbit-output.txt || true
-          head -n 80 coderabbit-output.txt || true
-
-      - name: Create candidate issues from CodeRabbit findings
+      - name: Scan repo and create candidate issues
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
           MAX_ISSUES_PER_RUN: ${{ github.event.inputs.max_issues_per_run || '5' }}
+          MIN_CONFIDENCE: ${{ github.event.inputs.min_confidence || 'medium' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          RECENT_CLOSED_LOOKBACK_DAYS: '45'
+          MAX_FILES_TO_SCAN: '1800'
+          MAX_FILE_SIZE_BYTES: '240000'
         with:
           script: |
-            const fs = require("node:fs");
-            const path = require("node:path");
-            const handler = require("./.github/scripts/bot-identify-good-first-issue-candidates.js");
-            const rawOutput = fs.readFileSync(path.join(process.cwd(), "coderabbit-output.txt"), "utf8");
-            await handler({ github, context, core, rawOutput });
+            const handler = require('./.github/scripts/bot-identify-good-first-issue-candidates.js');
+            await handler({ github, context, core });
