@@ -585,6 +585,19 @@ module.exports = async ({ github, context, core }) => {
     return issues.some((issue) => String(issue.body || '').includes(marker));
   }
 
+  function candidatePriorityRank(candidate) {
+    const primary = String(candidate?.files?.[0] || '').replaceAll('\\', '/').toLowerCase();
+
+    // Explicitly keep missing-tests proposals for the end of the queue.
+    if (candidate?.rule === 'missing_tests') return 4;
+
+    if (primary.startsWith('docs/') || primary.endsWith('.md') || primary.endsWith('.rst')) return 0;
+    if (primary.startsWith('.github/')) return 1;
+    if (primary.startsWith('src/')) return 2;
+    if (primary.startsWith('tests/')) return 4;
+    return 3;
+  }
+
   async function createCandidateIssue(candidate, key, openIssues, recentClosedIssues) {
     const title = issueTitleFor(candidate);
     const body = issueBodyFor(candidate, key);
@@ -649,7 +662,17 @@ module.exports = async ({ github, context, core }) => {
   }
 
   const prioritized = [...unique.values()]
-    .sort((a, b) => b.candidate.score - a.candidate.score)
+    .sort((a, b) => {
+      const rankDelta = candidatePriorityRank(a.candidate) - candidatePriorityRank(b.candidate);
+      if (rankDelta !== 0) return rankDelta;
+
+      const scoreDelta = b.candidate.score - a.candidate.score;
+      if (scoreDelta !== 0) return scoreDelta;
+
+      const aPath = String(a.candidate.files?.[0] || '');
+      const bPath = String(b.candidate.files?.[0] || '');
+      return aPath.localeCompare(bPath);
+    })
     .slice(0, 40);
 
   let createdCount = 0;
