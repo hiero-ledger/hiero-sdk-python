@@ -81,6 +81,11 @@ class StakingInfo:
         Returns:
             StakingInfoProto: The protobuf StakingInfo message.
         """
+        if self.staked_account_id is not None and self.staked_node_id is not None:
+            raise ValueError(
+                "Cannot set both staked_account_id and staked_node_id; "
+                "they are mutually exclusive (oneof staked_id)"
+            )
         proto = StakingInfoProto()
 
         if self.decline_staking_reward is not None:
