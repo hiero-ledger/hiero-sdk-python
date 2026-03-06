@@ -16,14 +16,15 @@ jobs:
 
         runs-on: ubuntu-latest
 
-        # Prevent race conditions: always wait for the first assignment request to finish processing
+        # Prevent assignment-limit races across different issues by processing
+        # one GFI assignment workflow at a time for this repository.
         concurrency:
-            group: gfi-assign-${{ github.event.issue.number }}
+            group: gfi-assign-${{ github.repository }}
             cancel-in-progress: false
 
         steps:
             - name: Harden runner
-              uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+              uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
               with:
                   egress-policy: audit
 

@@ -6,6 +6,22 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Src
+- Implemented `__repr__` method for `TokenId` class to show cleaner constructor-style representation (#1653)
+
+
+### Examples
+
+### Tests
+
+### Docs
+
+### .github
+
+- chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
+
+## [0.2.1] - 2026-03-05
+
 ### Added
 
 - Added unit test and __repr__ for NftId class(#1627).
@@ -22,10 +38,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fixed duplication in GitHub bot next issue recommendations by parsing actual issue descriptions instead of blind truncation (#1658)
 
 ### Src
-- Implemented `__repr__` method for `TokenId` class to show cleaner constructor-style representation (#1653)
+- Add `staking_info` field to `ContractInfo` class to expose staking metadata using the `StakingInfo` wrapper. (#1365)
 - Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
 - Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
 - Improve `keccak256` docstring formatting for better readability and consistency (#1624)
+- Added `wait_for_receipt` parameter for `Transaction.execute()` to support optional receipt waiting, and `get_receipt_query`, `get_record_query` and `get_record` to `TransactionResponse`.
 
 ### Examples
 - Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)
