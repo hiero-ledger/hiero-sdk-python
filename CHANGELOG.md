@@ -14,14 +14,16 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)
 
 ### Src
+
+- Refactor `AccountInfo` to use a nested `StakingInfo` wrapper class instead of three flattened staking fields (`staked_account_id`, `staked_node_id`, `decline_staking_reward`). (#1366)
 - Updated `generated_proto.py` file to work with new proto version
 - fix: Ensure UTF-8 encoding when reading and writing proto files in `generate_proto.py` to prevent encoding issues on Windows (`#1963`)
-
 
 ### Examples
 - Updated the `examples/consensus/topic_create_transaction_revenue_generating.py` example to use `Client.from_env()` for simpler client setup. (#1964)
 
 ### Tests
+- Update unit and integration tests to access staking fields through the nested `staking_info` object on `AccountInfo`. (#1366)
 
 ### Docs
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
