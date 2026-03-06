@@ -1,7 +1,9 @@
 import pytest
+from datetime import timezone
 
 from hiero_sdk_python.account.account_info import AccountInfo
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.account.staking_info import StakingInfo
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.Duration import Duration
@@ -9,6 +11,8 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.hapi.services.crypto_get_info_pb2 import CryptoGetInfoResponse
+from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo as StakingInfoProto
+from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
 
 pytestmark = pytest.mark.unit
 
@@ -34,6 +38,13 @@ def account_info():
 @pytest.fixture
 def proto_account_info():
     public_key = PrivateKey.generate_ed25519().public_key()
+    staking_info_proto = StakingInfoProto(
+        decline_reward=True,
+        pending_reward=500,
+        staked_to_me=1000,
+    )
+    staking_info_proto.staked_account_id.CopyFrom(AccountId(0, 0, 200)._to_proto())
+    staking_info_proto.stake_period_start.CopyFrom(TimestampProto(seconds=1625097600, nanos=0))
     proto = CryptoGetInfoResponse.AccountInfo(
         accountID=AccountId(0, 0, 100)._to_proto(),
         contractAccountID="0.0.100",
@@ -48,6 +59,7 @@ def proto_account_info():
         memo="Test account memo",
         ownedNfts=5,
     )
+    proto.staking_info.CopyFrom(staking_info_proto)
     return proto
 
 
@@ -100,6 +112,13 @@ def test_from_proto(proto_account_info):
     assert account_info.token_relationships == []
     assert account_info.account_memo == "Test account memo"
     assert account_info.owned_nfts == 5
+    assert account_info.staking_info is not None
+    assert account_info.staking_info.decline_staking_reward is True
+    assert account_info.staking_info.pending_reward.to_tinybars() == 500
+    assert account_info.staking_info.staked_to_me.to_tinybars() == 1000
+    assert account_info.staking_info.staked_account_id == AccountId(0, 0, 200)
+    assert account_info.staking_info.stake_period_start is not None
+    assert account_info.staking_info.stake_period_start.tzinfo == timezone.utc
 
 
 def test_from_proto_with_token_relationships():
@@ -127,6 +146,14 @@ def test_from_proto_none_raises_error():
 
 def test_to_proto(account_info):
     """Test the to_proto method of the AccountInfo class"""
+    from datetime import datetime, timezone as tz
+    account_info.staking_info = StakingInfo(
+        pending_reward=Hbar.from_tinybars(500),
+        staked_to_me=Hbar.from_tinybars(1000),
+        stake_period_start=datetime.fromtimestamp(1625097600, tz=tz.utc),
+        staked_account_id=AccountId(0, 0, 200),
+        decline_staking_reward=True,
+    )
     proto = account_info._to_proto()
 
     assert proto.accountID == AccountId(0, 0, 100)._to_proto()
@@ -141,6 +168,12 @@ def test_to_proto(account_info):
     assert proto.tokenRelationships == []
     assert proto.memo == "Test account memo"
     assert proto.ownedNfts == 5
+    assert proto.HasField('staking_info')
+    assert proto.staking_info.decline_reward is True
+    assert proto.staking_info.pending_reward == 500
+    assert proto.staking_info.staked_to_me == 1000
+    assert proto.staking_info.HasField('staked_account_id')
+    assert proto.staking_info.staked_account_id == AccountId(0, 0, 200)._to_proto()
 
 
 def test_to_proto_with_none_values():
@@ -192,6 +225,33 @@ def test_proto_conversion(account_info):
     )
     assert converted_account_info.account_memo == account_info.account_memo
     assert converted_account_info.owned_nfts == account_info.owned_nfts
+    assert converted_account_info.staking_info == account_info.staking_info
+
+
+def test_proto_conversion_with_staking_info():
+    """Test converting AccountInfo with staking_info to proto and back preserves data"""
+    from datetime import datetime, timezone as tz
+    original = AccountInfo(
+        account_id=AccountId(0, 0, 100),
+        balance=Hbar.from_tinybars(5000000),
+        key=PrivateKey.generate_ed25519().public_key(),
+        staking_info=StakingInfo(
+            pending_reward=Hbar.from_tinybars(300),
+            staked_to_me=Hbar.from_tinybars(700),
+            stake_period_start=datetime.fromtimestamp(1625097600, tz=tz.utc),
+            staked_account_id=AccountId(0, 0, 200),
+            decline_staking_reward=True,
+        ),
+    )
+    proto = original._to_proto()
+    restored = AccountInfo._from_proto(proto)
+
+    assert restored.staking_info is not None
+    assert restored.staking_info.decline_staking_reward is True
+    assert restored.staking_info.pending_reward.to_tinybars() == 300
+    assert restored.staking_info.staked_to_me.to_tinybars() == 700
+    assert restored.staking_info.staked_account_id == AccountId(0, 0, 200)
+    assert restored.staking_info.stake_period_start is not None
 
 
 def test_str_and_repr(account_info):
