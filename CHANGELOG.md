@@ -7,7 +7,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- 
+- Implemented `__repr__` method for `TokenId` class to show cleaner constructor-style representation (#1653)
+
 
 ### Examples
 
