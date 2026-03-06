@@ -3,6 +3,7 @@
 AccountInfo class.
 """
 
+import warnings
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -186,3 +187,36 @@ class AccountInfo:
         if self.staking_info is not None:
             parts.append(f"staking_info={self.staking_info!r}")
         return f"AccountInfo({', '.join(parts)})"
+
+    @property
+    def staked_account_id(self):
+        """Deprecated: use staking_info.staked_account_id instead."""
+        warnings.warn(
+            "AccountInfo.staked_account_id is deprecated, "
+            "use AccountInfo.staking_info.staked_account_id instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.staking_info.staked_account_id if self.staking_info else None
+
+    @property
+    def staked_node_id(self):
+        """Deprecated: use staking_info.staked_node_id instead."""
+        warnings.warn(
+            "AccountInfo.staked_node_id is deprecated, "
+            "use AccountInfo.staking_info.staked_node_id instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.staking_info.staked_node_id if self.staking_info else None
+
+    @property
+    def decline_staking_reward(self):
+        """Deprecated: use staking_info.decline_staking_reward instead."""
+        warnings.warn(
+            "AccountInfo.decline_staking_reward is deprecated, "
+            "use AccountInfo.staking_info.decline_staking_reward instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.staking_info.decline_staking_reward if self.staking_info else None
