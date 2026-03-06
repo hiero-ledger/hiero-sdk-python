@@ -585,6 +585,21 @@ module.exports = async ({ github, context, core }) => {
     return issues.some((issue) => String(issue.body || '').includes(marker));
   }
 
+  function collectExistingMarkers(issues) {
+    const markers = new Set();
+    const markerRegex = /<!--\s*gfi-candidate-key:([a-f0-9]{14})\s*-->/g;
+
+    for (const issue of issues) {
+      const body = String(issue.body || '');
+      let match;
+      while ((match = markerRegex.exec(body)) !== null) {
+        markers.add(`<!-- gfi-candidate-key:${match[1]} -->`);
+      }
+    }
+
+    return markers;
+  }
+
   function candidatePriorityRank(candidate) {
     const primary = String(candidate?.files?.[0] || '').replaceAll('\\', '/').toLowerCase();
 
@@ -605,20 +620,20 @@ module.exports = async ({ github, context, core }) => {
 
     if (hasExistingMarker(marker, openIssues)) {
       core.info(`Skipping ${key}: exact marker already exists in an open issue.`);
-      return false;
+      return { created: false, reason: 'duplicate_open_marker' };
     }
     if (hasExistingMarker(marker, recentClosedIssues)) {
       core.info(`Skipping ${key}: similar candidate was closed recently.`);
-      return false;
+      return { created: false, reason: 'duplicate_recent_closed_marker' };
     }
     if (looksLikeSimilarOpenIssue(title, openIssues)) {
       core.info(`Skipping ${key}: similar open issue title already exists.`);
-      return false;
+      return { created: false, reason: 'duplicate_similar_title' };
     }
 
     if (DRY_RUN) {
       core.info(`[DRY RUN] Would create issue: ${title}`);
-      return true;
+      return { created: true, reason: 'dry_run_preview' };
     }
 
     const created = await github.rest.issues.create({
@@ -631,7 +646,7 @@ module.exports = async ({ github, context, core }) => {
 
     openIssues.push(created.data);
     core.info(`Created candidate issue #${created.data.number} for ${candidate.files[0]}`);
-    return true;
+    return { created: true, reason: 'created' };
   }
 
   await ensureLabelExists();
@@ -653,6 +668,9 @@ module.exports = async ({ github, context, core }) => {
 
   const openIssues = await getOpenIssues();
   const recentClosedIssues = await getRecentClosedCandidateIssues();
+  const existingOpenMarkers = collectExistingMarkers(openIssues);
+  const existingClosedMarkers = collectExistingMarkers(recentClosedIssues);
+  const existingMarkers = new Set([...existingOpenMarkers, ...existingClosedMarkers]);
 
   // Deduplicate and sort strongest-first.
   const unique = new Map();
@@ -662,6 +680,7 @@ module.exports = async ({ github, context, core }) => {
   }
 
   const prioritized = [...unique.values()]
+    .filter((item) => !existingMarkers.has(markerForCandidate(item.key)))
     .sort((a, b) => {
       const rankDelta = candidatePriorityRank(a.candidate) - candidatePriorityRank(b.candidate);
       if (rankDelta !== 0) return rankDelta;
@@ -673,7 +692,7 @@ module.exports = async ({ github, context, core }) => {
       const bPath = String(b.candidate.files?.[0] || '');
       return aPath.localeCompare(bPath);
     })
-    .slice(0, 40);
+    .slice(0, Math.max(80, MAX_ISSUES_PER_RUN * 40));
 
   let createdCount = 0;
   let skippedCount = 0;
@@ -696,9 +715,13 @@ module.exports = async ({ github, context, core }) => {
     }
 
     try {
-      const created = await createCandidateIssue(item.candidate, item.key, openIssues, recentClosedIssues);
-      if (created) createdCount += 1;
-      else skippedCount += 1;
+      const result = await createCandidateIssue(item.candidate, item.key, openIssues, recentClosedIssues);
+      if (result.created) {
+        createdCount += 1;
+      } else {
+        skippedCount += 1;
+        droppedByReason[result.reason] = (droppedByReason[result.reason] || 0) + 1;
+      }
     } catch (error) {
       skippedCount += 1;
       droppedByReason['create_error'] = (droppedByReason['create_error'] || 0) + 1;
