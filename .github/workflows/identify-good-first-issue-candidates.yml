@@ -23,7 +23,7 @@ on:
       dry_run:
         description: 'Run scan without creating issues'
         required: true
-        default: true
+        default: false
         type: boolean
 
 permissions:
