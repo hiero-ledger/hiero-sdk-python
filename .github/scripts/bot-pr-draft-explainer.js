@@ -156,7 +156,22 @@ module.exports = async ({ github, context }) => {
             per_page: 100,
         });
 
-        const hasChangeRequest = reviews.data.some(
+// Track the latest review from each reviewer
+const latestReviews = new Map();
+
+for (const review of reviews) {
+    const reviewer = review.user?.login;
+    if (!reviewer) continue;
+    const previous = latestReviews.get(reviewer);
+    
+    if (!previous || new Date(review.submitted_at) > new Date(previous.submitted_at)) {
+        latestReviews.set(reviewer, review);
+    }
+}
+
+const hasChangeRequest = [...latestReviews.values()].some(
+    (review) => review.state === "CHANGES_REQUESTED"
+);
             (review) => review.state === "CHANGES_REQUESTED",
         );
 
