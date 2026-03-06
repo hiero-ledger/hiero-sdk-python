@@ -512,7 +512,7 @@ module.exports = async ({ github, context, core }) => {
 
   function suggestTestPath(modulePath) {
     const fileName = path.basename(modulePath, '.py');
-    return `tests/unit/test_${fileName}.py`;
+    return `tests/unit/${fileName}_test.py`;
   }
 
   function buildMissingTestsCandidates(allFiles) {
