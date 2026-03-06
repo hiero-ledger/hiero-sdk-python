@@ -45,7 +45,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/consensus/topic_delete_transaction.py` to use Client.from_env() for simplified client initialization, removed manual setup code, and cleaned up unused imports (`os`, `AccountId`, `PrivateKey`). (`#1971`)
 
 ### Tests
-- Update unit and integration tests to access staking fields through the nested `staking_info` object on `AccountInfo`. (#1366)
 
 ### Docs
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
