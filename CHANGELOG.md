@@ -9,7 +9,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)
 
 ### Src
-- Refactor `AccountInfo` to use a nested `StakingInfo` wrapper class instead of three flattened staking fields (`staked_account_id`, `staked_node_id`, `decline_staking_reward`). (#1366)
+- Refactor `AccountInfo` to use a nested `StakingInfo` wrapper class instead of the flattened staking fields. The preferred access is now `info.staking_info.staked_account_id`, `info.staking_info.staked_node_id`, and `info.staking_info.decline_staking_reward`. The old flat accessors (`info.staked_account_id`, etc.) are still available as deprecated properties and will emit a `DeprecationWarning`. (#1366)
 
 ### Examples
 
