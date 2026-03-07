@@ -14,6 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Tests
 
 ### Docs
+- Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 
 ### .github
 
