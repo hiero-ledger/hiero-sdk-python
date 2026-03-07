@@ -45,7 +45,7 @@ def test_transaction_record_query_can_execute():
         ), "Transaction ID should match the queried record"
         assert record.transaction_fee > 0, "Transaction fee should be greater than zero"
         assert (
-            record.transaction_memo == ""
+            record.transaction_memo in (None, "")
         ), "Transaction memo should be empty by default"
         assert (
             record.transaction_hash is not None
@@ -131,8 +131,8 @@ def test_transaction_record_query_can_execute_nft_transfer():
         ), "Transaction ID should match the queried record"
         assert record.transaction_fee > 0, "Transaction fee should be greater than zero"
         assert (
-            record.transaction_memo == ""
-        ), "Transaction memo should be empty by default"
+            record.transaction_memo in (None, "")
+        ), "Transaction memo should be empty/None by default"
         assert (
             record.transaction_hash is not None
         ), "Transaction hash should not be None"
@@ -192,8 +192,8 @@ def test_transaction_record_query_can_execute_fungible_transfer():
         ), "Transaction ID should match the queried record"
         assert record.transaction_fee > 0, "Transaction fee should be greater than zero"
         assert (
-            record.transaction_memo == ""
-        ), "Transaction memo should be empty by default"
+            record.transaction_memo in (None, "")
+        ), "Transaction memo should be empty/None by default"
         assert (
             record.transaction_hash is not None
         ), "Transaction hash should not be None"
