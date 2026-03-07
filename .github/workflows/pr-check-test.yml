@@ -25,6 +25,10 @@ jobs:
         uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
         with:
           egress-policy: audit
+          allowed-endpoints: |
+            ziply.mm.fcix.net:443
+            mirror.servaxnet.com:443
+            mirror.fmt-2.serverforge.org:443
 
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1

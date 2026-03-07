@@ -17,6 +17,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 
 ### .github
+- Allowed `mirror.servaxnet.com:443` in `pr-check-test.yml` Harden-Runner allowlist for stable Kind download network egress.
+- Allowed `mirror.fmt-2.serverforge.org:443` in `pr-check-test.yml` Harden-Runner allowlist for stable Kind download network egress.
 
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
 

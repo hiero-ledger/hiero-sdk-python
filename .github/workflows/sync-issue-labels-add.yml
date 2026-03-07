@@ -1,0 +1,100 @@
+name: Add Linked Issue Labels to PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_run_id:
+        description: "Upstream compute workflow run ID"
+        required: true
+        type: string
+      pr_number:
+        description: "Pull request number"
+        required: true
+        type: string
+      dry_run:
+        description: "Dry run flag"
+        required: false
+        type: string
+        default: "true"
+      is_fork_pr:
+        description: "Fork PR flag"
+        required: false
+        type: string
+        default: "false"
+defaults:
+  run:
+    shell: bash
+permissions:
+  actions: read
+  issues: write
+
+jobs:
+  add-labels:
+    concurrency:
+      group: sync-issue-labels-pr-${{ github.event.inputs.pr_number }}
+      cancel-in-progress: false
+    runs-on: hl-sdk-py-lin-md
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+        with:
+          egress-policy: audit
+
+      - name: Download labels artifact
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          path: artifacts
+          run-id: ${{ github.event.inputs.upstream_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read labels payload
+        id: read
+        env:
+          INPUT_PR_NUMBER: ${{ github.event.inputs.pr_number }}
+          INPUT_IS_FORK_PR: ${{ github.event.inputs.is_fork_pr }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          labels_file=""
+          if [ -d artifacts ]; then
+            labels_file=$(find artifacts -name labels.json -print -quit)
+          fi
+          if [ -z "$labels_file" ]; then
+            echo "No labels.json artifact found. Falling back to no-op outputs."
+            echo "labels=[]" >> "$GITHUB_OUTPUT"
+            echo "labels_count=0" >> "$GITHUB_OUTPUT"
+            echo "labels_multiline=" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$INPUT_PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "is_fork_pr=$INPUT_IS_FORK_PR" >> "$GITHUB_OUTPUT"
+            echo "dry_run=$INPUT_DRY_RUN" >> "$GITHUB_OUTPUT"
+            echo "source_event=workflow_dispatch" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          labels=$(jq -c '.labels // []' "$labels_file")
+          pr_number=$(jq -r '.pr_number // 0' "$labels_file")
+          is_fork_pr=$(jq -r '.is_fork_pr // false' "$labels_file")
+          dry_run=$(jq -r '.dry_run // false' "$labels_file")
+          source_event=$(jq -r '.source_event // ""' "$labels_file")
+          labels_multiline=$(jq -r '.labels // [] | .[]' "$labels_file")
+          labels_count=$(echo "$labels" | jq 'length')
+          echo "labels=$labels" >> "$GITHUB_OUTPUT"
+          echo "labels_count=$labels_count" >> "$GITHUB_OUTPUT"
+          {
+            echo "labels_multiline<<EOF"
+            echo "$labels_multiline"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "is_fork_pr=$is_fork_pr" >> "$GITHUB_OUTPUT"
+          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
+          echo "source_event=$source_event" >> "$GITHUB_OUTPUT"
+
+      - name: Add labels to PR
+        if: ${{ steps.read.outputs.is_fork_pr != 'true' && (steps.read.outputs.source_event != 'workflow_dispatch' || steps.read.outputs.dry_run != 'true') && steps.read.outputs.pr_number != '0' && steps.read.outputs.labels_count != '0' }}
+        uses: actions-ecosystem/action-add-labels@1a9c3715c0037e96b97bb38cb4c4b56a1f1d4871 # main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.read.outputs.labels_multiline }}
+          number: ${{ steps.read.outputs.pr_number }}
+
