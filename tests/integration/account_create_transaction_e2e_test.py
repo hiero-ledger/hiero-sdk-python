@@ -266,7 +266,7 @@ def test_create_account_with_decline_reward(env):
 
     assert info.account_id == account_id
     assert info.staking_info.staked_account_id == env.operator_id
-    assert info.staking_info.decline_staking_reward is True
+    assert info.staking_info.decline_reward is True
 
 def test_integration_account_create_transaction_can_execute_with_private_key(env):
     """Test AccountCreateTransaction can be executed when key is a PrivateKey."""

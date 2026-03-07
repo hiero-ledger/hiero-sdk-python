@@ -1,9 +1,8 @@
 import pytest
-from datetime import timezone
 
 from hiero_sdk_python.account.account_info import AccountInfo
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.account.staking_info import StakingInfo
+from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.Duration import Duration
@@ -113,12 +112,11 @@ def test_from_proto(proto_account_info):
     assert account_info.account_memo == "Test account memo"
     assert account_info.owned_nfts == 5
     assert account_info.staking_info is not None
-    assert account_info.staking_info.decline_staking_reward is True
+    assert account_info.staking_info.decline_reward is True
     assert account_info.staking_info.pending_reward.to_tinybars() == 500
     assert account_info.staking_info.staked_to_me.to_tinybars() == 1000
     assert account_info.staking_info.staked_account_id == AccountId(0, 0, 200)
-    assert account_info.staking_info.stake_period_start is not None
-    assert account_info.staking_info.stake_period_start.tzinfo == timezone.utc
+    assert account_info.staking_info.stake_period_start == Timestamp(1625097600, 0)
 
 
 def test_from_proto_with_token_relationships():
@@ -146,13 +144,12 @@ def test_from_proto_none_raises_error():
 
 def test_to_proto(account_info):
     """Test the to_proto method of the AccountInfo class"""
-    from datetime import datetime, timezone as tz
     account_info.staking_info = StakingInfo(
         pending_reward=Hbar.from_tinybars(500),
         staked_to_me=Hbar.from_tinybars(1000),
-        stake_period_start=datetime.fromtimestamp(1625097600, tz=tz.utc),
+        stake_period_start=Timestamp(1625097600, 0),
         staked_account_id=AccountId(0, 0, 200),
-        decline_staking_reward=True,
+        decline_reward=True,
     )
     proto = account_info._to_proto()
 
@@ -230,7 +227,6 @@ def test_proto_conversion(account_info):
 
 def test_proto_conversion_with_staking_info():
     """Test converting AccountInfo with staking_info to proto and back preserves data"""
-    from datetime import datetime, timezone as tz
     original = AccountInfo(
         account_id=AccountId(0, 0, 100),
         balance=Hbar.from_tinybars(5000000),
@@ -238,20 +234,20 @@ def test_proto_conversion_with_staking_info():
         staking_info=StakingInfo(
             pending_reward=Hbar.from_tinybars(300),
             staked_to_me=Hbar.from_tinybars(700),
-            stake_period_start=datetime.fromtimestamp(1625097600, tz=tz.utc),
+            stake_period_start=Timestamp(1625097600, 0),
             staked_account_id=AccountId(0, 0, 200),
-            decline_staking_reward=True,
+            decline_reward=True,
         ),
     )
     proto = original._to_proto()
     restored = AccountInfo._from_proto(proto)
 
     assert restored.staking_info is not None
-    assert restored.staking_info.decline_staking_reward is True
+    assert restored.staking_info.decline_reward is True
     assert restored.staking_info.pending_reward.to_tinybars() == 300
     assert restored.staking_info.staked_to_me.to_tinybars() == 700
     assert restored.staking_info.staked_account_id == AccountId(0, 0, 200)
-    assert restored.staking_info.stake_period_start is not None
+    assert restored.staking_info.stake_period_start == Timestamp(1625097600, 0)
 
 
 def test_str_and_repr(account_info):
@@ -273,11 +269,11 @@ def test_str_and_repr(account_info):
 
 
 # ---------------------------------------------------------------------------
-# StakingInfo (account.staking_info) unit tests
+# StakingInfo (staking_info) unit tests
 # ---------------------------------------------------------------------------
 
 class TestStakingInfo:
-    """Unit tests for the account.staking_info.StakingInfo wrapper."""
+    """Unit tests for the staking_info.StakingInfo wrapper."""
 
     def test_from_proto_none_raises(self):
         """_from_proto(None) should raise ValueError."""
@@ -295,29 +291,27 @@ class TestStakingInfo:
 
     def test_to_proto_staked_node_id(self):
         """_to_proto should set staked_node_id on the proto."""
-        si = StakingInfo(staked_node_id=7, decline_staking_reward=False)
+        si = StakingInfo(staked_node_id=7, decline_reward=False)
         proto = si._to_proto()
         assert proto.staked_node_id == 7
         assert not proto.HasField("staked_account_id")
 
     def test_to_proto_oneof_raises(self):
-        """_to_proto should raise ValueError if both staked fields are set."""
-        si = StakingInfo(
-            staked_account_id=AccountId(0, 0, 1),
-            staked_node_id=2,
-        )
-        with pytest.raises(ValueError, match="mutually exclusive"):
-            si._to_proto()
+        """StakingInfo construction should raise ValueError if both staked fields are set."""
+        with pytest.raises(ValueError, match="Only one of"):
+            StakingInfo(
+                staked_account_id=AccountId(0, 0, 1),
+                staked_node_id=2,
+            )
 
     def test_to_proto_all_fields(self):
         """_to_proto should serialize all optional fields correctly."""
-        from datetime import datetime, timezone as tz
         si = StakingInfo(
             pending_reward=Hbar.from_tinybars(100),
             staked_to_me=Hbar.from_tinybars(200),
-            stake_period_start=datetime.fromtimestamp(1625097600, tz=tz.utc),
+            stake_period_start=Timestamp(1625097600, 0),
             staked_account_id=AccountId(0, 0, 50),
-            decline_staking_reward=True,
+            decline_reward=True,
         )
         proto = si._to_proto()
         assert proto.pending_reward == 100
@@ -336,18 +330,17 @@ class TestStakingInfo:
         assert proto.decline_reward is False
 
     def test_str_contains_set_fields(self):
-        """__str__ should include only set fields."""
-        si = StakingInfo(staked_node_id=3, decline_staking_reward=True)
+        """__str__ should include staked fields."""
+        si = StakingInfo(staked_node_id=3, decline_reward=True)
         s = str(si)
-        assert "Staked Node ID: 3" in s
-        assert "Decline Staking Reward: True" in s
-        assert "Pending Reward" not in s
+        assert "staked_node_id=3" in s
+        assert "decline_reward=True" in s
 
     def test_str_with_account_id(self):
         """__str__ should include staked_account_id when set."""
         si = StakingInfo(staked_account_id=AccountId(0, 0, 99))
         s = str(si)
-        assert "Staked Account ID" in s
+        assert "staked_account_id=" in s
 
     def test_repr(self):
         """__repr__ should include all field names."""
@@ -356,7 +349,7 @@ class TestStakingInfo:
         assert r.startswith("StakingInfo(")
         assert "staked_node_id=1" in r
         assert "pending_reward=" in r
-        assert "decline_staking_reward=" in r
+        assert "decline_reward=" in r
 
 
 # ---------------------------------------------------------------------------
@@ -369,8 +362,7 @@ class TestDeprecatedProperties:
     def _make_info(self):
         si = StakingInfo(
             staked_account_id=AccountId(0, 0, 10),
-            staked_node_id=None,
-            decline_staking_reward=True,
+            decline_reward=True,
         )
         return AccountInfo(staking_info=si)
 
