@@ -1816,7 +1816,7 @@ reviews:
         - Flag the **missing override** in `TopicMessageSubmitTransaction` as **MAJOR**
           if the base-class default is not appropriate for message submission, or add a
           comment confirming the base-class value is intentional.
-        - Flag any value that deviates from the table above without a comment as **MAJOR**.
+        - Flag any value that deviates from sibling-class defaults as **MAJOR**.
 
         #### 5c) General fee/limit logic
         - Confirm any fee/max payment logic is consistent and does not allow unintended
@@ -1849,6 +1849,104 @@ reviews:
 
     - path: "src/hiero_sdk_python/crypto/**/*.py"
       instructions: *crypto_review_instructions
+
+    - path: "src/hiero_sdk_python/account/**/*.py"
+      instructions: |
+        You are reviewing Python files in the `src/hiero_sdk_python/account/` directory.
+        These files implement account-related transactions, queries, and data types for the Hiero SDK.
+
+        > Note: Protobuf schema alignment (field names, types, oneof, bytes normalization,
+        > repeated defaults, and canonical `.proto` URL derivation) is already enforced by
+        > the global `src/hiero_sdk_python/**/*.py` instruction. Do NOT re-run those checks
+        > here — focus exclusively on the account-domain concerns below.
+
+        ---
+
+        ## Review priorities (highest → lowest)
+
+        ### 1) Protobuf correctness (must-not-break)
+        - Validate field names, field types, and field numbers +
+          repeated/optional semantics against the canonical `.proto` schema.
+        - Ensure `_to_proto` / `_from_proto` set the correct oneof branches
+          and do not drop fields.
+        - Treat silent coercions, defaulting, or ignored exceptions as
+          **BLOCKER** if they could change what is signed or sent.
+
+        ### 2) AccountId — alias / EVM address handling
+        `AccountId` has three identity modes: numeric `num`, `alias_key`,
+        and `evm_address`. Verify `_from_proto`/`_to_proto` symmetry across
+        all three. `__hash__` only covers `(shard, realm, num)` — alias-only
+        IDs with `num=0` can collide in dicts/sets. **MAJOR** if broken.
+
+        ### 3) Allowance mutation paths
+        When modifying existing `TokenNftAllowance` entries, mutation path and
+        append path must set `approved_for_all` to the same intended value.
+        `None` passed to typed arguments like `amount` must raise, not silently
+        produce zero. **MAJOR**.
+
+        ### 4) Errors & API ergonomics
+        - Errors should be actionable and consistent; avoid swallowing or
+          printing RPC/precheck errors.
+        - Ambiguous exceptions or inconsistent return types are **MINOR** /
+          **MAJOR** depending on impact.
+
+        ---
+
+        ## ARCHITECTURAL INVARIANTS (stable)
+        These describe what must always be true, regardless of code changes.
+        They are ordered by severity.
+
+        1. **Falsy-guard trap on optional integers** — Fields like
+          `staked_node_id` where `0` is a valid value must never use
+          `if field:` guards. Use `if field is not None:`. **BLOCKER**
+          if it silently drops valid data.
+
+        2. **Mutable default arguments** — Flag any mutable object
+          (`list`, `dict`, `set`, or non-frozen class instance) used as
+          a default parameter in `__init__`. Default to `None` and assign
+          in the body. **MAJOR**.
+
+          Exception: frozen/immutable types are safe as defaults and must
+          NOT be flagged. This includes `@dataclass(frozen=True)` classes
+          (e.g., `Duration`), tuples, frozensets, and primitives (int, str,
+          bool, None).
+
+        3. **Library-safe error handling** — No bare `except Exception`
+          with `print`/`traceback` in library code. Callers cannot
+          suppress stdout side effects. **MAJOR**.
+
+        ---
+
+        ## KNOWN INSTANCES (transient — remove when fixed)
+
+        _Check if these still exist before flagging. Remove from this
+        list when the underlying code is fixed._
+
+        - `AccountRecordsQuery._make_request`: bare except + print
+          → violates invariant #3
+        - `AccountId.from_string`: verify `from e` chaining not removed
+          → exception context silently lost if removed
+        - `AccountInfo._to_proto`: falsy guard on `staked_node_id`
+          → violates invariant #1
+
+        ---
+
+        ## Test expectations
+        PRs modifying account code should have tests covering:
+        - AccountId round-trip across all three identity modes
+        - `__hash__` behavior for alias-only IDs with `num=0`
+        - Invalid/None arguments raising errors, not silently defaulting
+        - `_from_proto(_to_proto(x))` field round-trip equality
+        
+        ---
+
+        ## Severity labels
+        Use exactly these labels in all findings:
+        - **BLOCKER** — must be fixed before merge; wire-format, signing, or data-loss risk
+        - **MAJOR** — should be fixed; correctness or significant usability issue
+        - **MINOR** — should be fixed; low-risk correctness or ergonomics issue
+        - **NIT** — optional; style, naming, or documentation only
+
 
 chat:
   art: false # Don't draw ASCII art (false)
