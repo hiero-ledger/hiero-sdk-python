@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.account.staking_info import StakingInfo
+from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.crypto_get_info_pb2 import CryptoGetInfoResponse
@@ -212,11 +212,11 @@ class AccountInfo:
 
     @property
     def decline_staking_reward(self):
-        """Deprecated: use staking_info.decline_staking_reward instead."""
+        """Deprecated: use staking_info.decline_reward instead."""
         warnings.warn(
             "AccountInfo.decline_staking_reward is deprecated, "
-            "use AccountInfo.staking_info.decline_staking_reward instead",
+            "use AccountInfo.staking_info.decline_reward instead",
             DeprecationWarning,
             stacklevel=2,
         )
-        return self.staking_info.decline_staking_reward if self.staking_info else None
+        return self.staking_info.decline_reward if self.staking_info else None
