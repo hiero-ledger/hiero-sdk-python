@@ -17,6 +17,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### .github
 
+- fix(deps-check): keep `uv run` at `--resolution=lowest-direct` for proto generation and min-deps unit tests (`#1919`)
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
 
 ## [0.2.1] - 2026-03-05
