@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
-- Added CodeRabbit review instructions `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
+- Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
 
 ### Changed
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)
