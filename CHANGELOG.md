@@ -5,19 +5,25 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+### Changed
+- Changed pytest version to "pytest>=8.3.4,<10" (#1917)
 
 ### Src
-- 
 
 ### Examples
 
 ### Tests
 
 ### Docs
+- Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 
 ### .github
 - Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
+- archived workflows relating to PR reminders
+- chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
+- chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-beginner-assign-on-comment workflow
+
 
 ## [0.2.1] - 2026-03-05
 
