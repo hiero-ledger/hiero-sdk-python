@@ -371,7 +371,7 @@ def test_integration_account_update_transaction_with_staking_fields(env):
     info = AccountInfoQuery(account_id).execute(env.client)
     assert info.staking_info.staked_account_id == staked_account_id, "Staked account ID should match"
     assert info.staking_info.staked_node_id is None, "Staked node ID should be cleared when staking to an account"
-    assert info.staking_info.decline_staking_reward is True, "Decline staking reward should be true"
+    assert info.staking_info.decline_reward is True, "Decline staking reward should be true"
 
 
 @pytest.mark.integration
