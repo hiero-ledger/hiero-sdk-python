@@ -21,7 +21,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
 
 ## [0.2.2] - 2026-03-07
+
 ### Tests
+
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-beginner-assign-on-comment workflow
 
 ## [0.2.1] - 2026-03-05
