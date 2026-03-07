@@ -1919,8 +1919,7 @@ reviews:
 
         ## KNOWN INSTANCES (transient — remove when fixed)
 
-        _Check if these still exist before flagging. Remove from this
-        list when the underlying code is fixed._
+        _Check if these still exist before flagging._
 
         - `AccountRecordsQuery._make_request`: bare except + print
           → violates invariant #3
@@ -1946,7 +1945,6 @@ reviews:
         - **MAJOR** — should be fixed; correctness or significant usability issue
         - **MINOR** — should be fixed; low-risk correctness or ergonomics issue
         - **NIT** — optional; style, naming, or documentation only
-
 
 chat:
   art: false # Don't draw ASCII art (false)
