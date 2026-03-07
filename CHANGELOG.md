@@ -17,7 +17,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 
 ### .github
-
+- archived workflows relating to PR reminders
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
 
 ## [0.2.1] - 2026-03-05

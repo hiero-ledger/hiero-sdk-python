@@ -4,16 +4,16 @@ on:
   push:
     branches:
       - "**"
-  pull_request: {}
-  workflow_dispatch: {}
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -52,13 +52,6 @@ jobs:
         uses: hiero-ledger/hiero-solo-action@4d42a74e8e644a2753f3bb7a2afa429305375b14 # v0.15.0
         with:
           installMirrorNode: true
-
-      - name: Set environment variables
-        run: |
-          echo "OPERATOR_ID=${{ steps.solo.outputs.accountId }}"
-          echo "OPERATOR_KEY=${{ steps.solo.outputs.privateKey }}"
-          echo "ADMIN_KEY=${{ steps.solo.outputs.privateKey }}"
-          echo "PUBLIC_KEY=${{ steps.solo.outputs.publicKey }}"
 
       - name: Install your package
         run: pip install -e .
