@@ -18,6 +18,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 
 ### .github
+- Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
 - archived workflows relating to PR reminders
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
