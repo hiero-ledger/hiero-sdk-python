@@ -20,13 +20,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Docs
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
-
 ### .github
 - archived workflows relating to PR reminders
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-beginner-assign-on-comment workflow
-
+- chore: update bot-coderabbit-plan-trigger workflow to use self-hosted runner (`#1925`)
 
 ## [0.2.1] - 2026-03-05
 
