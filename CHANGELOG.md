@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-beginner-assign-on-comment workflow
+- Require contributors to complete 1 beginner issue before they can be assigned an intermediate issue (#1939)
 
 
 ## [0.2.1] - 2026-03-05
