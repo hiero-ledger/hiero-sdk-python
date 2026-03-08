@@ -199,6 +199,28 @@ class AccountInfo:
         )
         return self.staking_info.staked_account_id if self.staking_info else None
 
+    @staked_account_id.setter
+    def staked_account_id(self, value):
+        """Deprecated setter: use staking_info.staked_account_id instead."""
+        warnings.warn(
+            "AccountInfo.staked_account_id setter is deprecated, "
+            "use AccountInfo.staking_info instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if self.staking_info is None:
+            object.__setattr__(self, 'staking_info', StakingInfo(staked_account_id=value))
+        else:
+            # Reconstruct StakingInfo with updated field, clearing staked_node_id oneof conflict
+            object.__setattr__(self, 'staking_info', StakingInfo(
+                pending_reward=self.staking_info.pending_reward,
+                staked_to_me=self.staking_info.staked_to_me,
+                stake_period_start=self.staking_info.stake_period_start,
+                staked_account_id=value,
+                staked_node_id=None,  # Clear oneof conflict
+                decline_reward=self.staking_info.decline_reward,
+            ))
+
     @property
     def staked_node_id(self):
         """Deprecated: use staking_info.staked_node_id instead."""
@@ -210,6 +232,28 @@ class AccountInfo:
         )
         return self.staking_info.staked_node_id if self.staking_info else None
 
+    @staked_node_id.setter
+    def staked_node_id(self, value):
+        """Deprecated setter: use staking_info.staked_node_id instead."""
+        warnings.warn(
+            "AccountInfo.staked_node_id setter is deprecated, "
+            "use AccountInfo.staking_info instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if self.staking_info is None:
+            object.__setattr__(self, 'staking_info', StakingInfo(staked_node_id=value))
+        else:
+            # Reconstruct StakingInfo with updated field, clearing staked_account_id oneof conflict
+            object.__setattr__(self, 'staking_info', StakingInfo(
+                pending_reward=self.staking_info.pending_reward,
+                staked_to_me=self.staking_info.staked_to_me,
+                stake_period_start=self.staking_info.stake_period_start,
+                staked_account_id=None,  # Clear oneof conflict
+                staked_node_id=value,
+                decline_reward=self.staking_info.decline_reward,
+            ))
+
     @property
     def decline_staking_reward(self):
         """Deprecated: use staking_info.decline_reward instead."""
@@ -220,3 +264,25 @@ class AccountInfo:
             stacklevel=2,
         )
         return self.staking_info.decline_reward if self.staking_info else None
+
+    @decline_staking_reward.setter
+    def decline_staking_reward(self, value):
+        """Deprecated setter: use staking_info.decline_reward instead."""
+        warnings.warn(
+            "AccountInfo.decline_staking_reward setter is deprecated, "
+            "use AccountInfo.staking_info instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if self.staking_info is None:
+            object.__setattr__(self, 'staking_info', StakingInfo(decline_reward=value))
+        else:
+            # Reconstruct StakingInfo with updated field
+            object.__setattr__(self, 'staking_info', StakingInfo(
+                pending_reward=self.staking_info.pending_reward,
+                staked_to_me=self.staking_info.staked_to_me,
+                stake_period_start=self.staking_info.stake_period_start,
+                staked_account_id=self.staking_info.staked_account_id,
+                staked_node_id=self.staking_info.staked_node_id,
+                decline_reward=value,
+            ))
