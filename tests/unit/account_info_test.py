@@ -404,3 +404,55 @@ class TestDeprecatedProperties:
             assert info.staked_node_id is None
             assert info.decline_staking_reward is None
 
+    def test_staked_account_id_setter(self):
+        import warnings
+        info = AccountInfo()
+        new_id = AccountId(0, 0, 50)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            info.staked_account_id = new_id
+        assert info.staking_info is not None
+        assert info.staking_info.staked_account_id == new_id
+        assert any(issubclass(x.category, DeprecationWarning) for x in w)
+
+    def test_staked_node_id_setter(self):
+        import warnings
+        info = AccountInfo()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            info.staked_node_id = 42
+        assert info.staking_info is not None
+        assert info.staking_info.staked_node_id == 42
+        assert any(issubclass(x.category, DeprecationWarning) for x in w)
+
+    def test_decline_staking_reward_setter(self):
+        import warnings
+        info = AccountInfo()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            info.decline_staking_reward = True
+        assert info.staking_info is not None
+        assert info.staking_info.decline_reward is True
+        assert any(issubclass(x.category, DeprecationWarning) for x in w)
+
+    def test_setters_preserve_other_staking_fields(self):
+        import warnings
+        si = StakingInfo(
+            pending_reward=Hbar.from_tinybars(100),
+            staked_to_me=Hbar.from_tinybars(200),
+            staked_account_id=AccountId(0, 0, 10),
+            decline_reward=True,
+        )
+        info = AccountInfo(staking_info=si)
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            # Setting staked_node_id clears staked_account_id due to oneof constraint
+            info.staked_node_id = 5
+        # Other non-oneof fields should be preserved
+        assert info.staking_info.pending_reward.to_tinybars() == 100
+        assert info.staking_info.staked_to_me.to_tinybars() == 200
+        assert info.staking_info.decline_reward is True
+        # Conflicting field cleared, new value set
+        assert info.staking_info.staked_account_id is None
+        assert info.staking_info.staked_node_id == 5
+
