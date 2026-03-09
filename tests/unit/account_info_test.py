@@ -465,3 +465,26 @@ class TestDeprecatedProperties:
         assert info.staking_info.staked_account_id is None
         assert info.staking_info.staked_node_id == 5
 
+    def test_constructor_legacy_kwargs_deprecated(self):
+        """Legacy staking kwargs in AccountInfo() emit DeprecationWarning but still work."""
+        import warnings
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            info = AccountInfo(staked_account_id=AccountId(0, 0, 1))
+        assert info.staking_info is not None
+        assert info.staking_info.staked_account_id == AccountId(0, 0, 1)
+        assert any(issubclass(x.category, DeprecationWarning) for x in w)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            info = AccountInfo(staked_node_id=7)
+        assert info.staking_info.staked_node_id == 7
+        assert any(issubclass(x.category, DeprecationWarning) for x in w)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            info = AccountInfo(decline_staking_reward=True)
+        assert info.staking_info.decline_reward is True
+        assert any(issubclass(x.category, DeprecationWarning) for x in w)
+

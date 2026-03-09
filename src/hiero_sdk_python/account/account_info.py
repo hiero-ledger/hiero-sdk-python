@@ -286,3 +286,47 @@ class AccountInfo:
                 staked_node_id=self.staking_info.staked_node_id,
                 decline_reward=value,
             ))
+
+
+# ---------------------------------------------------------------------------
+# Backwards-compatible constructor: accept legacy staking kwargs
+# ---------------------------------------------------------------------------
+_ACCOUNT_INFO_INIT_SENTINEL = object()
+_orig_account_info_init = AccountInfo.__init__
+
+
+def _wrapped_account_info_init(
+    self,
+    *args,
+    staked_account_id=_ACCOUNT_INFO_INIT_SENTINEL,
+    staked_node_id=_ACCOUNT_INFO_INIT_SENTINEL,
+    decline_staking_reward=_ACCOUNT_INFO_INIT_SENTINEL,
+    **kwargs,
+):
+    _orig_account_info_init(self, *args, **kwargs)
+    _legacy = [
+        k for k, v in [
+            ("staked_account_id", staked_account_id),
+            ("staked_node_id", staked_node_id),
+            ("decline_staking_reward", decline_staking_reward),
+        ]
+        if v is not _ACCOUNT_INFO_INIT_SENTINEL
+    ]
+    if _legacy:
+        warnings.warn(
+            f"Passing {', '.join(_legacy)} to AccountInfo() is deprecated; "
+            "use staking_info=StakingInfo(...) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            if staked_account_id is not _ACCOUNT_INFO_INIT_SENTINEL:
+                self.staked_account_id = staked_account_id
+            if staked_node_id is not _ACCOUNT_INFO_INIT_SENTINEL:
+                self.staked_node_id = staked_node_id
+            if decline_staking_reward is not _ACCOUNT_INFO_INIT_SENTINEL:
+                self.decline_staking_reward = decline_staking_reward
+
+
+AccountInfo.__init__ = _wrapped_account_info_init
