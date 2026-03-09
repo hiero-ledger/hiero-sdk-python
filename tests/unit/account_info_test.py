@@ -289,6 +289,15 @@ class TestStakingInfo:
         assert si.staked_node_id == 5
         assert si.staked_account_id is None
 
+    def test_from_proto_staked_node_id_zero(self):
+        """staked_node_id=0 should be preserved (valid node ID)."""
+        from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo as StakingInfoProto
+        proto = StakingInfoProto(decline_reward=False)
+        proto.staked_node_id = 0  # 0 is a valid node ID
+        si = StakingInfo._from_proto(proto)
+        assert si.staked_node_id == 0
+        assert si.staked_account_id is None
+
     def test_to_proto_staked_node_id(self):
         """_to_proto should set staked_node_id on the proto."""
         si = StakingInfo(staked_node_id=7, decline_reward=False)
