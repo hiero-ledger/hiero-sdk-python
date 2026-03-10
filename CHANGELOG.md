@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
+- Added transaction size calculation methods: `size()` method and `body_size` property to base `Transaction` class, and `body_size_all_chunks` property to `FileAppendTransaction` and `TopicMessageSubmitTransaction` for multi-chunk transactions (#1794).
 
 ### Changed
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)

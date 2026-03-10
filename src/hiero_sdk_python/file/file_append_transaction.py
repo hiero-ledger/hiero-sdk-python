@@ -438,9 +438,9 @@ class FileAppendTransaction(Transaction):
     def sign(self, private_key: "PrivateKey") -> FileAppendTransaction:
         """
         Signs the transaction using the provided private key.
-            
+
         For multi-chunk transactions, this stores the signing key for later use.
-        
+
         Args:
             private_key (PrivateKey): The private key to sign the transaction with.
 
@@ -454,3 +454,42 @@ class FileAppendTransaction(Transaction):
         # Call the parent sign method for the current transaction
         super().sign(private_key)
         return self
+
+    @property
+    def body_size_all_chunks(self) -> List[int]:
+        """
+        Returns a list containing the encoded body size of each chunk in multi-chunk transactions.
+
+        For single-chunk transactions, returns a list with one element.
+        The transaction must be frozen before calling this property.
+
+        Returns:
+            List[int]: A list of integers representing the body size of each chunk in bytes.
+
+        Raises:
+            Exception: If the transaction has not been frozen yet.
+        """
+        self._require_frozen()
+
+        chunk_sizes = []
+        required_chunks = self.get_required_chunks()
+
+        for chunk_index in range(required_chunks):
+            # Calculate chunk content size
+            if self.contents is None:
+                chunk_content_size = 0
+            else:
+                start_index = chunk_index * self.chunk_size
+                end_index = min(start_index + self.chunk_size, len(self.contents))
+                chunk_content_size = end_index - start_index
+
+            # Build a protobuf body for this chunk to get its size
+            saved_index = self._current_chunk_index
+            self._current_chunk_index = chunk_index
+
+            chunk_body = self.build_transaction_body()
+            chunk_sizes.append(len(chunk_body.SerializeToString()))
+
+            self._current_chunk_index = saved_index
+
+        return chunk_sizes

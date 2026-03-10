@@ -649,12 +649,49 @@ class Transaction(_Executable):
             Exception: If the transaction has not been frozen yet.
         """
         self._require_frozen()
-        
+
         # Get the transaction protobuf
         transaction_proto = self._to_proto()
-        
+
         # Serialize to bytes
         return transaction_proto.SerializeToString()
+
+    def size(self) -> int:
+        """
+        Returns the total size in bytes of the fully encoded transaction.
+
+        This includes the transaction body, signatures, and all protobuf overhead.
+        The transaction must be frozen before calling this method.
+
+        Returns:
+            int: The total size of the serialized transaction in bytes.
+
+        Raises:
+            Exception: If the transaction has not been frozen yet.
+        """
+        return len(self.to_bytes())
+
+    @property
+    def body_size(self) -> int:
+        """
+        Returns the size in bytes of the encoded TransactionBody only.
+
+        This excludes signatures and only includes the transaction body bytes.
+        The transaction must be frozen before calling this property.
+
+        Returns:
+            int: The size of the transaction body in bytes.
+
+        Raises:
+            Exception: If the transaction has not been frozen yet.
+        """
+        self._require_frozen()
+
+        body_bytes = self._transaction_body_bytes.get(self.node_account_id)
+        if body_bytes is None:
+            raise ValueError(f"No transaction body found for node {self.node_account_id}")
+
+        return len(body_bytes)
 
     @staticmethod
     def from_bytes(transaction_bytes: bytes):

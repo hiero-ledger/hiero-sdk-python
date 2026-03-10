@@ -181,10 +181,10 @@ class TopicMessageSubmitTransaction(Transaction):
     def _build_proto_body(self) -> consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody:
         """
         Returns the protobuf body for the topic message submit transaction.
-        
+
         Returns:
             ConsensusSubmitMessageTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If required fields (topic_id, message) are missing.
         """
@@ -207,6 +207,10 @@ class TopicMessageSubmitTransaction(Transaction):
 
         # Multi-chunk metadata
         if self._total_chunks > 1:
+            # Set initial transaction ID if not already set (for freeze() without client)
+            if self._initial_transaction_id is None:
+                self._initial_transaction_id = self.transaction_id
+
             body.chunkInfo.CopyFrom(consensus_submit_message_pb2.ConsensusMessageChunkInfo(
                 initialTransactionID=self._initial_transaction_id._to_proto(),
                 total=self._total_chunks,
@@ -398,9 +402,9 @@ class TopicMessageSubmitTransaction(Transaction):
     def sign(self, private_key: "PrivateKey"):
         """
         Signs the transaction using the provided private key.
-            
+
         For multi-chunk transactions, this stores the signing key for later use.
-        
+
         Args:
             private_key (PrivateKey): The private key to sign the transaction with.
         """
@@ -409,3 +413,42 @@ class TopicMessageSubmitTransaction(Transaction):
 
         super().sign(private_key)
         return self
+
+    @property
+    def body_size_all_chunks(self) -> List[int]:
+        """
+        Returns a list containing the encoded body size of each chunk in multi-chunk transactions.
+
+        For single-chunk transactions, returns a list with one element.
+        The transaction must be frozen before calling this property.
+
+        Returns:
+            List[int]: A list of integers representing the body size of each chunk in bytes.
+
+        Raises:
+            Exception: If the transaction has not been frozen yet.
+        """
+        self._require_frozen()
+
+        chunk_sizes = []
+        required_chunks = self.get_required_chunks()
+
+        # Ensure _initial_transaction_id is set for multi-chunk transactions
+        if required_chunks > 1 and self._initial_transaction_id is None:
+            self._initial_transaction_id = self.transaction_id
+
+        for chunk_index in range(required_chunks):
+            # Save current state
+            saved_index = self._current_index
+
+            # Temporarily set the index to build the body for this chunk
+            self._current_index = chunk_index
+
+            # Build the transaction body for this chunk
+            chunk_body = self.build_transaction_body()
+            chunk_sizes.append(len(chunk_body.SerializeToString()))
+
+            # Restore state
+            self._current_index = saved_index
+
+        return chunk_sizes
