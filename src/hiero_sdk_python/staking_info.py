@@ -3,6 +3,7 @@ StakingInfo class.
 """
 
 from dataclasses import dataclass
+from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo as StakingInfoProto
@@ -16,20 +17,20 @@ class StakingInfo:
     Represents staking-related information for an account.
 
     Attributes:
-        decline_reward (bool | None): Whether rewards are declined.
-        stake_period_start (Timestamp | None): Start of the staking period.
-        pending_reward (Hbar | None): Pending staking reward in Hbar.
-        staked_to_me (Hbar | None): Amount staked to this account in Hbar.
-        staked_account_id (AccountId | None): Account ID this account is staked to.
-        staked_node_id (int | None): Node ID this account is staked to.
+        decline_reward (Optional[bool]): Whether rewards are declined.
+        stake_period_start (Optional[Timestamp]): Start of the staking period.
+        pending_reward (Optional[Hbar]): Pending staking reward in Hbar.
+        staked_to_me (Optional[Hbar]): Amount staked to this account in Hbar.
+        staked_account_id (Optional[AccountId]): Account ID this account is staked to.
+        staked_node_id (Optional[int]): Node ID this account is staked to.
     """
 
-    decline_reward: bool | None = None
-    stake_period_start: Timestamp | None = None
-    pending_reward: Hbar | None = None
-    staked_to_me: Hbar | None = None
-    staked_account_id: AccountId | None = None
-    staked_node_id: int | None = None
+    decline_reward: Optional[bool] = None
+    stake_period_start: Optional[Timestamp] = None
+    pending_reward: Optional[Hbar] = None
+    staked_to_me: Optional[Hbar] = None
+    staked_account_id: Optional[AccountId] = None
+    staked_node_id: Optional[int] = None
 
     def __post_init__(self) -> None:
         if self.staked_account_id is not None and self.staked_node_id is not None:
