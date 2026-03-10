@@ -1,4 +1,26 @@
 #!/usr/bin/env python3
+"""
+Protobuf Generation Script
+Features:
+- Downloads Hedera protobufs for a given HAPI version from GitHub.
+- Compiles the same proto sets as the original bash script, plus auxiliary dirs:
+  * services/*.proto
+  * services/auxiliary/tss/*.proto
+  * services/auxiliary/hints/*.proto
+  * services/auxiliary/history/*.proto
+  * platform/event/*.proto
+  * mirror/*.proto
+- Preserves the directory structure in generated Python packages.
+- Optionally emits type stubs (.pyi) and applies the same import adjustments.
+- Normalizes mixed import styles into canonical, package-safe relative imports.
+- Ensures generated packages are importable on all OSes (__init__.py injection).
+- Cleans output directories safely (deduplicated) before regeneration.
+- Logging:
+  * INFO for stage summaries and rewrite totals.
+  * DEBUG for useful counts.
+  * TRACE (custom) for verbose details such as per-file rewrites and protoc args.
+Run: python generate_proto.py -vv or with trace logs: python generate_proto.py -vvv
+"""
 import logging
 import shutil
 import tarfile
