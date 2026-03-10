@@ -28,6 +28,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update bot-coderabbit-plan-trigger workflow to use self-hosted runner (`#1925`)
 - Require contributors to complete 1 beginner issue before they can be assigned an intermediate issue (#1939)
 - Expand spam list (#1933)
+- chore: add ndpvt-web to spam list (#1945)
 
 
 ## [0.2.1] - 2026-03-05
