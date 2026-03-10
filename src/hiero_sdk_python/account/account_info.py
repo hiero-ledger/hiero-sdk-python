@@ -39,7 +39,7 @@ class AccountInfo:
             associated with this account.
         account_memo (Optional[str]): The memo associated with this account.
         owned_nfts (Optional[int]): The number of NFTs owned by this account.
-        staking_info (StakingInfo | None): The staking information for this account.
+        staking_info (Optional[StakingInfo]): The staking information for this account.
     """
 
     account_id: Optional[AccountId] = None
@@ -55,7 +55,7 @@ class AccountInfo:
     account_memo: Optional[str] = None
     owned_nfts: Optional[int] = None
     max_automatic_token_associations: Optional[int] = None
-    staking_info: StakingInfo | None = None
+    staking_info: Optional[StakingInfo] = None
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
