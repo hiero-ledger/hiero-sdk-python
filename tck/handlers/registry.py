@@ -1,5 +1,7 @@
 """Build a flexible registry-based method routing system that can dispatch 
 requests to handlers and transform exceptions into JSON-RPC errors."""
+from dataclasses import asdict
+import inspect
 from typing import Any, Dict, Optional, Union, Callable
 from tck.errors import (
     JsonRpcError
@@ -28,16 +30,23 @@ def get_all_handlers() -> Dict[str, Callable]:
     return _HANDLERS.copy()
 
 
-def dispatch(method_name: str, params: Any, session_id: Optional[str]) -> Any:
+def dispatch(method_name: str, params: Any) -> Any:
     """Dispatch the request to the appropriate handler based on method_name."""
     handler = get_handler(method_name)
     
     if handler is None:
         raise JsonRpcError.method_not_found_error(message=f'Method not found: {method_name}')
+    
     try:
-        if session_id is not None:
-            return handler(params, session_id)
-        return handler(params)
+        signature = inspect.signature(handler)
+        parameters = list(signature.parameters.values())
+        param_type = parameters[0].annotation
+
+        params = param_type.from_dict(params)
+        result = handler(params)
+
+        return asdict(result)
+
     except JsonRpcError:
         raise
     except (PrecheckError, ReceiptStatusError, MaxAttemptsError) as e:
@@ -47,11 +56,10 @@ def dispatch(method_name: str, params: Any, session_id: Optional[str]) -> Any:
 
 def safe_dispatch(method_name: str,
                   params: Any,
-                  session_id: Optional[str],
                   request_id: Optional[Union[str, int]]) -> Union[Any, Dict[str, Any]]:
     """Safely dispatch the request and handle exceptions."""
     try:
-        return dispatch(method_name, params, session_id)
+        return dispatch(method_name, params)
     except JsonRpcError as e:
         return build_json_rpc_error_response(e, request_id)
     except Exception as e: # Defensive fallback for any uncaught exceptions

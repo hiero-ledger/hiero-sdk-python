@@ -44,21 +44,21 @@ def json_rpc_endpoint():
         # Use request id if available, else None per JSON-RPC 2.0 spec
         request_id = request_json.get('id') if isinstance(request_json, dict) else None
         return jsonify(build_json_rpc_error_response(parsed_request, request_id))
-
-
+    
+    print(request_json)
     method_name = parsed_request['method']
     params = parsed_request['params']
     request_id = parsed_request['id']
-    session_id = parsed_request.get('sessionId')
 
     # Safely dispatch the request to the appropriate handler
-    response = safe_dispatch(method_name, params, session_id, request_id)
+    response = safe_dispatch(method_name, params, request_id)
 
     # If the response is already an error response, return it directly
     if isinstance(response, dict) and 'jsonrpc' in response and 'error' in response:
         return jsonify(response)
 
     # Build and return the success response
+    print("Response:",build_json_rpc_success_response(response, request_id))
     return jsonify(build_json_rpc_success_response(response, request_id))
 
 def start_server(config: ServerConfig | None = None):
