@@ -3,11 +3,12 @@ name: Hiero Solo Integration & Unit Tests
 on:
   push:
     branches:
-      - "**"
+      - "main"
     paths-ignore:
       - "**/*.md"
       - "docs/**"
       - "examples/**"
+      - "tck/**"
       - ".github/**"
       - "!.github/workflows/pr-check-test.yml"
   pull_request:
@@ -15,6 +16,7 @@ on:
       - "**/*.md"
       - "docs/**"
       - "examples/**"
+      - "tck/**"
       - ".github/**"
       - "!.github/workflows/pr-check-test.yml"
   workflow_dispatch: {}
@@ -26,7 +28,7 @@ jobs:
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -39,27 +41,23 @@ jobs:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
 
       - name: Install uv
         uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
         with:
           enable-cache: true
 
-      - name: Install setuptools wheel
-        run: pip install --upgrade pip setuptools wheel
-
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
       - name: Generate Proto Files
-        run: uv run python generate_proto.py
+        run: uv run generate_proto.py
 
       - name: Run unit tests
         id: unit
@@ -88,9 +86,9 @@ jobs:
           exit 1
 
   integration-tests:
-    name: Integration Tests (Python ${{ matrix.python-version }} + Hiero Solo)
+    name: Integration Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 20
     needs:
       - unit-tests
     if: needs.unit-tests.result == 'success'
@@ -106,27 +104,23 @@ jobs:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
 
       - name: Install uv
         uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
         with:
           enable-cache: true
 
-      - name: Install setuptools wheel
-        run: pip install --upgrade pip setuptools wheel
-
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
       - name: Generate Proto Files
-        run: uv run python generate_proto.py
+        run: uv run generate_proto.py
 
       - name: Prepare Hiero Solo
         id: solo
