@@ -24,20 +24,20 @@ Run: python generate_proto.py -vv or with trace logs: python generate_proto.py -
 import logging
 import shutil
 import tarfile
+from urllib.parse import urlparse
 import urllib.request
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
 
-VERSION="v0.66.0"
+VERSION="v0.71.0"
 SOURCES = [
     {
         "name": "hedera-protobufs",
         "url": "https://github.com/hashgraph/hedera-protobufs",
         "version": VERSION,
         "strip_count": 1,
-        "modules": ("mirror",) # Fixed: tuple needs trailing comma if single element
+        "modules": ("mirror",)
     },
     {
         "name": "hiero-consensus-node",
@@ -51,6 +51,7 @@ SOURCES = [
 OUTPUT_DIR="src/hiero_sdk_python/hapi"
 CACHE_DIR=".protos"
 
+
 @dataclass
 class Config:
     name: str
@@ -59,15 +60,22 @@ class Config:
     strip_count: int 
     modules: tuple = field(default_factory=tuple)
 
+
 def setup_logging(verbosity: int) -> None:
     level = logging.WARNING
     if verbosity == 1: level = logging.INFO
     elif verbosity >= 2: level = logging.DEBUG
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
+
 def download_protos(config: Config, cache_path: Path) -> None:
     logging.info(f"Downloading {config.name} {config.version}...")
     url = f"{config.url}/archive/refs/tags/{config.version}.tar.gz"
+
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise RuntimeError(f"Refusing to download from non-https URL: {url}")
+
     try:
         with urllib.request.urlopen(url, timeout=30) as resp:
             with tarfile.open(fileobj=resp, mode="r|gz") as tar:
@@ -80,11 +88,8 @@ def download_protos(config: Config, cache_path: Path) -> None:
     except Exception as e:
         raise RuntimeError(f"Download failed for {config.name}: {e}")
 
+
 def patch_proto_imports(proto_root: Path):
-    """
-    Fixes broken legacy imports where files import 'basic_types.proto' 
-    instead of 'services/basic_types.proto'.
-    """
     logging.info("Patching proto files for consistent import paths...")
     
     # Map of common broken imports found in mirror/platform protos
@@ -113,6 +118,7 @@ def patch_proto_imports(proto_root: Path):
         if new_content != content:
             proto_file.write_text(new_content)
 
+
 def run_protoc(proto_root: Path, output_root: Path) -> None:
     from grpc_tools import protoc
     import grpc_tools
@@ -130,6 +136,7 @@ def run_protoc(proto_root: Path, output_root: Path) -> None:
     args.extend(all_protos)
     if protoc.main(args) != 0:
         raise RuntimeError("protoc failed to generate proto files")
+
 
 def fix_imports(output_root: Path):
     local_packages = {p.name for p in output_root.iterdir() if p.is_dir()}
@@ -161,6 +168,7 @@ def fix_imports(output_root: Path):
             new_lines.append(line)
         py_file.write_text("\n".join(new_lines) + "\n")
 
+
 def main():
     setup_logging(1)
     cache_path = Path(CACHE_DIR)
@@ -187,6 +195,7 @@ def main():
         if d.is_dir(): (d / "__init__.py").touch()
 
     print(f"✅ Successfully merged and generated HAPI at {out_path}")
+
 
 if __name__ == "__main__":
     main()
