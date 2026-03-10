@@ -11,6 +11,9 @@ on:
         default: "true"
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   working-command:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/working'))

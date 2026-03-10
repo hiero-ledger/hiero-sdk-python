@@ -27,6 +27,11 @@ jobs:
     # steps are skipped, job completes successfully
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
+        with:
+          egress-policy: audit
+
       - name: Filter
         id: should_run
         run: echo "value=true" >> $GITHUB_OUTPUT
