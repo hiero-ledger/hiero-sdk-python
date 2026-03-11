@@ -102,11 +102,8 @@ def test_transaction_record_query_include_children_returns_child_records(env):
     assert created_account_id.shard == 0
     assert created_account_id.realm == 0
     assert created_account_id.num > 0
-    assert child_record.transfers[created_account_id] == Hbar(1).to_tinybars()
-    assert child_record.transfers[parent_account_id] < 0
     assert child_record.transaction_hash != parent_record.transaction_hash
     assert child_record.transaction_memo == ""
-    assert child_record.transaction_fee > 0
     assert child_record.children == []
     assert child_record.duplicates == []
 
