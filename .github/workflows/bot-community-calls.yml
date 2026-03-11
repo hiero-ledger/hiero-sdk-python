@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
     office-hour-reminder:
-        runs-on: ubuntu-latest
+        runs-on: hl-sdk-py-lin-md
         steps:
             - name: Harden the runner
               uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc #2.15.1
