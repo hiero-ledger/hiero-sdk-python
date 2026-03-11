@@ -122,6 +122,7 @@ def test_transaction_record_query_execute(transaction_id):
         assert result.transaction_fee == 100000
         assert result.transaction_hash == b'\x01' * 48
         assert result.transaction_memo == "Test transaction"
+        assert result.children == []
         
 def test_transaction_record_query_execute_with_duplicates(transaction_id):
     """Test TransactionRecordQuery returns duplicates when include_duplicates=True."""
@@ -231,6 +232,7 @@ def test_make_request_constructs_correct_protobuf(mock_make_header, transaction_
     assert tgr.header == fake_header
     assert tgr.transactionID == transaction_id._to_proto()
     assert tgr.includeDuplicates is False
+    assert tgr.include_child_records is False
 
 
 @patch.object(TransactionRecordQuery, '_make_request_header')
@@ -246,6 +248,21 @@ def test_make_request_sets_include_duplicates_true(mock_make_header, transaction
     tgr = proto_query.transactionGetRecord
 
     assert tgr.includeDuplicates is True
+
+
+@patch.object(TransactionRecordQuery, '_make_request_header')
+def test_make_request_sets_include_children_true(mock_make_header, transaction_id):
+    """Verify includeDuplicates flag is correctly passed to protobuf."""
+    fake_header = query_header_pb2.QueryHeader()
+    mock_make_header.return_value = fake_header
+
+    query = TransactionRecordQuery(transaction_id=transaction_id)
+    query.set_include_children(True)
+
+    proto_query = query._make_request()
+    tgr = proto_query.transactionGetRecord
+
+    assert tgr.include_child_records is True
 
 
 def test_make_request_raises_when_no_transaction_id():
@@ -348,3 +365,137 @@ def test_set_transaction_id_raises_on_invalid_type():
     msg = str(exc.value)
     assert "transaction_id must be TransactionId or None" in msg
     assert "got list" in msg
+
+
+def test_include_children_is_false_by_default():
+    """include_children is False by default."""
+    query = TransactionRecordQuery()
+    include_children = query.include_children
+    assert include_children == False
+
+
+def test_setting_include_children_without_setter():
+    """__init__ accepts boolean include_children."""
+    query = TransactionRecordQuery(include_children=True)
+    assert query.include_children == True
+
+
+@pytest.mark.parametrize("value", ["hello from Anto :D", 123, [True], {"include_children": True}])
+def test_setting_include_children_without_setter_invalid_types(value):
+    """__init__ rejects non-boolean include_children."""
+    with pytest.raises(TypeError) as exc:
+        TransactionRecordQuery(include_children=value)
+
+
+def test_set_include_children():
+    """set_include_children() accepts boolean include_children."""
+    query = TransactionRecordQuery()
+    query.set_include_children(True)
+    include_children = query.include_children
+    assert include_children == True
+
+
+@pytest.mark.parametrize("value", ["hello from Anto :D", 123, [True], {"include_children": True}])
+def test_set_include_children_invalid_type(value):
+    """set_include_children() rejects non-boolean include_children."""
+    query = TransactionRecordQuery()
+    with pytest.raises(TypeError) as exc:
+        query.set_include_children(value)
+
+
+def test_transaction_record_query_execute_with_children(transaction_id):
+    """Test TransactionRecordQuery returns children when include_children=True."""
+    receipt = transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS)
+
+    primary_record = transaction_record_pb2.TransactionRecord(
+        receipt=receipt,
+        memo="primary",
+        transactionFee=100000,
+    )
+
+    child_record = transaction_record_pb2.TransactionRecord(
+        receipt=receipt,
+        memo="child",
+        transactionFee=50000,
+    )
+
+    response_sequences = [[
+        response_pb2.Response(
+            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2,
+                )
+            )
+        ),
+        response_pb2.Response(
+            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.ANSWER_ONLY,
+                ),
+                transactionRecord=primary_record,
+                child_transaction_records=[child_record],
+            )
+        ),
+    ]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = TransactionRecordQuery(transaction_id, include_children=True)
+        result = query.execute(client)
+
+        assert isinstance(result, TransactionRecord)
+        assert result.transaction_memo == "primary"
+        assert hasattr(result, "children")
+        assert len(result.children) == 1
+        assert result.children[0].transaction_memo == "child"
+        assert isinstance(result.children[0], TransactionRecord)
+
+
+def test_transaction_record_query_execute_without_children(transaction_id):
+    """Test TransactionRecordQuery does not expose children when include_children=False."""
+    receipt = transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS)
+
+    primary_record = transaction_record_pb2.TransactionRecord(
+        receipt=receipt,
+        memo="primary",
+        transactionFee=100000,
+    )
+
+    child_record = transaction_record_pb2.TransactionRecord(
+        receipt=receipt,
+        memo="child",
+        transactionFee=50000,
+    )
+
+    response_sequences = [[
+        response_pb2.Response(
+            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.COST_ANSWER,
+                    cost=2,
+                )
+            )
+        ),
+        response_pb2.Response(
+            transactionGetRecord=transaction_get_record_pb2.TransactionGetRecordResponse(
+                header=response_header_pb2.ResponseHeader(
+                    nodeTransactionPrecheckCode=ResponseCode.OK,
+                    responseType=ResponseType.ANSWER_ONLY,
+                ),
+                transactionRecord=primary_record,
+                child_transaction_records=[child_record],
+            )
+        ),
+    ]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = TransactionRecordQuery(transaction_id, include_children=False)
+        result = query.execute(client)
+
+        assert isinstance(result, TransactionRecord)
+        assert result.transaction_memo == "primary"
+        assert hasattr(result, "children")
+        assert result.children == []

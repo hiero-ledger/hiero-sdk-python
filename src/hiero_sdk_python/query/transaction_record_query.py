@@ -25,23 +25,35 @@ class TransactionRecordQuery(Query):
     def __init__(
         self,
         transaction_id: Optional[TransactionId] = None,
+        include_children: bool = False,
         include_duplicates: bool = False,
     ) -> None:
         """
         Initializes the TransactionRecordQuery with the provided transaction ID.
+
+        Args:
+            transaction_id (TransactionId, optional): The ID of the transaction.
+            include_children (bool): Whether to include child transaction records.
+            include_duplicates (bool): Whether to include duplicate transaction records.
         """
         super().__init__()
         if not isinstance(include_duplicates, bool):
             raise TypeError(
                 f"include_duplicates must be a bool (True or False), got {type(include_duplicates).__name__}"
             )
-        
+
         if transaction_id is not None and not isinstance(transaction_id, TransactionId):
             raise TypeError(
                 f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
             )
 
+        if not isinstance(include_children, bool):
+            raise TypeError(
+                f"include_children must be a boolean, got {type(include_children).__name__}"
+            )
+
         self.transaction_id: Optional[TransactionId] = transaction_id
+        self.include_children: bool = bool(include_children)
         self.include_duplicates: bool = bool(include_duplicates)
 
     def set_include_duplicates(
@@ -57,10 +69,12 @@ class TransactionRecordQuery(Query):
             TransactionRecordQuery: The current instance for method chaining.
         """
         if not isinstance(include_duplicates, bool):
-            raise TypeError(f"include_duplicates must be a boolean, got {type(include_duplicates).__name__}")
+            raise TypeError(
+                f"include_duplicates must be a boolean, got {type(include_duplicates).__name__}"
+            )
         self.include_duplicates = include_duplicates
         return self
-    
+
     def set_transaction_id(
         self,
         transaction_id: Optional[TransactionId],
@@ -76,13 +90,31 @@ class TransactionRecordQuery(Query):
         Returns:
             TransactionRecordQuery: This query instance for chaining.
         """
-        
+
         if transaction_id is not None and not isinstance(transaction_id, TransactionId):
             raise TypeError(
                 f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
             )
 
         self.transaction_id = transaction_id
+        return self
+
+    def set_include_children(self, include_children: bool) -> "TransactionRecordQuery":
+        """
+        Sets include_children for which to retrieve the child transaction records.
+
+        Args:
+            include_children: bool.
+
+        Returns:
+            TransactionGetRecordQuery: The current instance for method chaining.
+        """
+        if not isinstance(include_children, bool):
+            raise TypeError(
+                f"include_children must be a boolean, got {type(include_children).__name__}"
+            )
+
+        self.include_children = include_children
         return self
 
     def _make_request(self):
@@ -108,6 +140,7 @@ class TransactionRecordQuery(Query):
         transaction_get_record.header.CopyFrom(query_header)
         transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
         transaction_get_record.includeDuplicates = self.include_duplicates
+        transaction_get_record.include_child_records = self.include_children
 
         query = query_pb2.Query()
         query.transactionGetRecord.CopyFrom(transaction_get_record)
@@ -236,9 +269,13 @@ class TransactionRecordQuery(Query):
             return PrecheckError(status)
 
         receipt = response.transactionGetRecord.transactionRecord.receipt
-        
-        return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt, self.transaction_id))
-        
+
+        return ReceiptStatusError(
+            status,
+            self.transaction_id,
+            TransactionReceipt._from_proto(receipt, self.transaction_id),
+        )
+
     def execute(self, client: Client, timeout: Optional[Union[int, float]] = None):
         """
         Executes the transaction record query.
@@ -263,14 +300,24 @@ class TransactionRecordQuery(Query):
         self._before_execute(client)
         response = self._execute(client, timeout)
         primary_proto = response.transactionGetRecord.transactionRecord
+        children = []
         if self.include_duplicates:
             duplicates = self._map_record_list(
                 response.transactionGetRecord.duplicateTransactionRecords
             )
         else:
             duplicates = []
+
+        if self.include_children:
+            children = self._map_record_list(
+                response.transactionGetRecord.child_transaction_records
+            )
+
         return TransactionRecord._from_proto(
-            primary_proto, transaction_id=self.transaction_id, duplicates=duplicates
+            primary_proto,
+            transaction_id=self.transaction_id,
+            duplicates=duplicates,
+            children=children,
         )
 
     def _get_query_response(self, response: Any):

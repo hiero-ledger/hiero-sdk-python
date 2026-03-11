@@ -40,6 +40,7 @@ def transaction_record(transaction_id):
         new_pending_airdrops=[],
         prng_number=100,
         prng_bytes=None,
+        children=[],
     )
 
 @pytest.fixture
@@ -65,6 +66,7 @@ def test_transaction_record_initialization(transaction_record, transaction_id):
     assert transaction_record.receipt.status == ResponseCode.SUCCESS
     assert transaction_record.prng_number == 100
     assert transaction_record.prng_bytes is None
+    assert transaction_record.children == []
 
 
 def test_transaction_record_default_initialization():
@@ -85,6 +87,7 @@ def test_transaction_record_default_initialization():
     assert isinstance(record.duplicates, list)
     assert len(record.duplicates) == 0
     assert record.duplicates == []
+    assert record.children == []
 
 def test_from_proto(proto_transaction_record, transaction_id):
     """Test the from_proto method of the TransactionRecord class"""
@@ -300,7 +303,8 @@ def test_repr_method(transaction_id):
         "call_result=None, "
         "prng_number=None, "
         "prng_bytes=None, "
-        "duplicates_count=0)"
+        "duplicates_count=0, "
+        "children=[])"
     )
     assert repr(record_default) == expected_repr_default
     
@@ -331,7 +335,8 @@ def test_repr_method(transaction_id):
         f"call_result=None, "
         f"prng_number=None, "
         f"prng_bytes=None, "
-        f"duplicates_count=0)"
+        f"duplicates_count=0, "
+        f"children=[])"
     )
     assert repr(record_with_receipt) == expected_repr_with_receipt
 
@@ -362,7 +367,8 @@ def test_repr_method(transaction_id):
                          f"call_result=None, "
                          f"prng_number=None, "
                          f"prng_bytes=None, "
-                         f"duplicates_count=0)")
+                         f"duplicates_count=0, "
+                         f"children=[])")
     assert repr(record_full) == expected_repr_full
     # Test with transfers
     record_with_transfers = TransactionRecord(
@@ -386,7 +392,8 @@ def test_repr_method(transaction_id):
                                   f"call_result=None, "
                                   f"prng_number=None, "
                                   f"prng_bytes=None, "
-                                  f"duplicates_count=0)")
+                                  f"duplicates_count=0, "
+                                  f"children=[])")
     assert repr(record_with_transfers) == expected_repr_with_transfers
 
 def test_proto_conversion_with_call_result(transaction_id):
@@ -508,3 +515,14 @@ def test_from_proto_raises_when_no_transaction_id_available():
 
     with pytest.raises(ValueError, match=r"transaction_id is required when proto\.transactionID is not present"):
         TransactionRecord._from_proto(proto, transaction_id=None)
+
+
+def test_transaction_record_children_not_shared_between_instances():
+    """children not shared between two different instances"""
+    r1 = TransactionRecord()
+    r2 = TransactionRecord()
+
+    r1.children.append(TransactionRecord())
+
+    assert len(r1.children) == 1
+    assert len(r2.children) == 0
