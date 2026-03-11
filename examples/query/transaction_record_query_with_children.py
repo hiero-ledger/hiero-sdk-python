@@ -56,6 +56,10 @@ def print_transaction_record(record, title):
 def print_child_records(record):
     """Print all child transaction records in detail."""
     print(f"\nChild records count: {len(record.children)}")
+
+    if not record.children:
+        sys.exit(1)
+
     print_transaction_record(record.children[0], f"Child record")
 
 

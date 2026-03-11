@@ -49,7 +49,7 @@ class TransactionRecordQuery(Query):
 
         if not isinstance(include_children, bool):
             raise TypeError(
-                f"include_children must be a boolean, got {type(include_children).__name__}"
+                f"include_children must be a bool (True or False), got {type(include_children).__name__}"
             )
 
         self.transaction_id: Optional[TransactionId] = transaction_id
@@ -107,7 +107,7 @@ class TransactionRecordQuery(Query):
             include_children: bool.
 
         Returns:
-            TransactionGetRecordQuery: The current instance for method chaining.
+            TransactionRecordQuery: The current instance for method chaining.
         """
         if not isinstance(include_children, bool):
             raise TypeError(

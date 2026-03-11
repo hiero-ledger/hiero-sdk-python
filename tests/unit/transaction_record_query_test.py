@@ -252,7 +252,7 @@ def test_make_request_sets_include_duplicates_true(mock_make_header, transaction
 
 @patch.object(TransactionRecordQuery, '_make_request_header')
 def test_make_request_sets_include_children_true(mock_make_header, transaction_id):
-    """Verify includeDuplicates flag is correctly passed to protobuf."""
+    """Verify include_child_records flag is correctly passed to protobuf."""
     fake_header = query_header_pb2.QueryHeader()
     mock_make_header.return_value = fake_header
 
