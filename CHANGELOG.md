@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-- chore(ci): update bot-inactivity-unassign workflow to use hl-sdk-py-lin-md runner
+
 ### Added
 - Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
 
