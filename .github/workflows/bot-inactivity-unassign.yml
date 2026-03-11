@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   inactivity-unassign:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
 
     steps:
       - name: Checkout repository
