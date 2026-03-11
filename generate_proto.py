@@ -79,6 +79,8 @@ def download_protos(config: Config, cache_path: Path) -> None:
         raise RuntimeError(f"Refusing to download from non-https or unexpected host: {url}")
 
     try:
+        # URL scheme and host validated above
+        # nosec B310
         with urllib.request.urlopen(url, timeout=30) as resp:
             safe_extract_tar_stream(resp, config, cache_path)
     except Exception as e:
