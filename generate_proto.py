@@ -64,7 +64,9 @@ class Config:
 def setup_logging(verbosity: int) -> None:
     level = logging.WARNING
     if verbosity == 1: level = logging.INFO
-    elif verbosity >= 2: level = logging.DEBUG
+    elif verbosity == 2: level = logging.DEBUG
+    elif verbosity >= 3: level = logging.TRACE_LEVEL
+    
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
 
@@ -73,26 +75,47 @@ def download_protos(config: Config, cache_path: Path) -> None:
     url = f"{config.url}/archive/refs/tags/{config.version}.tar.gz"
 
     parsed = urlparse(url)
-    if parsed.scheme != "https":
-        raise RuntimeError(f"Refusing to download from non-https URL: {url}")
+    if parsed.scheme != "https" or parsed.netloc != "github.com":
+        raise RuntimeError(f"Refusing to download from non-https or unexpected host: {url}")
 
     try:
         with urllib.request.urlopen(url, timeout=30) as resp:
-            with tarfile.open(fileobj=resp, mode="r|gz") as tar:
-                for member in tar:
-                    parts = Path(member.name).parts
-                    if len(parts) <= config.strip_count: continue
-                    member.name = "/".join(parts[config.strip_count:])
-                    if any(member.name.startswith(p) for p in config.modules):
-                        tar.extract(member, path=cache_path)
+            safe_extract_tar_stream(resp, config, cache_path)
     except Exception as e:
         raise RuntimeError(f"Download failed for {config.name}: {e}")
+    
 
+def is_safe_tar_member(member: tarfile.TarInfo, base: Path) -> bool:
+    name = member.name
+    if not name or name.startswith("/"):
+        return False
+    # Prevent traversal like ../../etc/passwd
+    if ".." in Path(name).parts:
+        return False
+    dest = (base / name).resolve()
+    try:
+        dest.relative_to(base.resolve())
+    except ValueError:
+        return False
+    return True
+
+def safe_extract_tar_stream(resp, config: Config, cache_path: Path):
+    with tarfile.open(fileobj=resp, mode="r|gz") as tar:
+        for member in tar:
+            parts = Path(member.name).parts
+            if len(parts) <= config.strip_count: continue
+            member.name = "/".join(parts[config.strip_count:])
+            
+            if (
+                any(member.name.startswith(p) for p in config.modules) and 
+                is_safe_tar_member(member, cache_path)
+            ):
+                tar.extract(member, path=cache_path)
 
 def patch_proto_imports(proto_root: Path):
     logging.info("Patching proto files for consistent import paths...")
     
-    # Map of common broken imports found in mirror/platform protos
+    # Map of common broken imports found in mirror/platform proto
     replacements = {
         'import "basic_types.proto";': 'import "services/basic_types.proto";',
         'import "timestamp.proto";': 'import "services/timestamp.proto";',
@@ -101,7 +124,7 @@ def patch_proto_imports(proto_root: Path):
         'import "query.proto";': 'import "services/query.proto";',
         'import "transaction.proto";': 'import "services/transaction.proto";',
         'import "transaction_response.proto";': 'import "services/transaction_response.proto";',
-        # Fix for platform/event specific error
+        # platform/event specific error
         'import "event/state_signature_transaction.proto";': 'import "platform/event/state_signature_transaction.proto";',
     }
 
@@ -143,30 +166,53 @@ def fix_imports(output_root: Path):
     pattern = re.compile(r"^(?P<type>from|import)\s+(?P<path>" + "|".join(local_packages) + r")(?P<suffix>[\w\.]*)")
 
     for py_file in output_root.rglob("*.py*"):
-        if py_file.name == "__init__.py": continue
-        depth = len(py_file.relative_to(output_root).parents) - 1
-        dots = "." * (depth + 1)
-        lines = py_file.read_text().splitlines()
-        new_lines = []
+        if py_file.name == "__init__.py":
+            continue
 
-        for line in lines:
-            match = pattern.match(line)
-            if match:
-                ptype, ppath, psuffix = match.group('type'), match.group('path'), match.group('suffix')
-                full_module = ppath + psuffix
-                if ptype == "from":
-                    remainder = line.split("import", 1)[1].strip()
-                    line = f"from {dots}{full_module} import {remainder}"
-                elif ptype == "import":
-                    if " as " in line:
-                        module_parts = full_module.rsplit(".", 1)
-                        alias = line.split(" as ", 1)[1].strip()
-                        line = f"from {dots}{module_parts[0]} import {module_parts[1]} as {alias}" if len(module_parts) > 1 else f"from {dots} import {module_parts[0]} as {alias}"
-                    else:
-                        module_parts = full_module.rsplit(".", 1)
-                        line = f"from {dots}{module_parts[0]} import {module_parts[1]}" if len(module_parts) > 1 else f"from {dots} import {module_parts[0]}"
-            new_lines.append(line)
-        py_file.write_text("\n".join(new_lines) + "\n")
+        py_file.write_text("\n".join(
+            process_file_lines(py_file.read_text().splitlines(), pattern, py_file.relative_to(output_root).parents)
+        ) + "\n")
+
+
+def process_file_lines(lines, pattern, parents):
+    """Process each line in a file and fix imports if needed."""
+    depth = len(parents) - 1
+    dots = "." * (depth + 1)
+    new_lines = []
+
+    for line in lines:
+        new_lines.append(fix_line_import(line, pattern, dots))
+    return new_lines
+
+
+def fix_line_import(line, pattern, dots):
+    """Fix a single import line if it matches local packages."""
+    match = pattern.match(line)
+    if not match:
+        return line
+
+    ptype, ppath, psuffix = match.group('type'), match.group('path'), match.group('suffix')
+    full_module = ppath + psuffix
+
+    if ptype == "from":
+        remainder = line.split("import", 1)[1].strip()
+        return f"from {dots}{full_module} import {remainder}"
+
+    # handle "import X" lines
+    module_parts = full_module.rsplit(".", 1)
+    if " as " in line:
+        alias = line.split(" as ", 1)[1].strip()
+        return (
+            f"from {dots}{module_parts[0]} import {module_parts[1]} as {alias}" 
+            if len(module_parts) > 1 
+            else f"from {dots} import {module_parts[0]} as {alias}"
+        )
+    else:
+        return (
+            f"from {dots}{module_parts[0]} import {module_parts[1]}" 
+            if len(module_parts) > 1 
+            else f"from {dots} import {module_parts[0]}"
+        )
 
 
 def main():
