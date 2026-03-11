@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-- chore(ci): update bot-inactivity-unassign workflow to use hl-sdk-py-lin-md runner
+
 ### Added
 - Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
 
@@ -22,6 +22,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 - docs: Clarified AI usage in Good First Issues templates. (#1923)
 
+
 ### .github
 - archived workflows relating to PR reminders
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
@@ -32,8 +33,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expand spam list (#1933)
 - chore: add ndpvt-web to spam list (#1945)
 - chore: update bot-community-calls workflow to use self hosted runner (#1942)
-
-
+- chore(ci): update bot-inactivity-unassign workflow to use hl-sdk-py-lin-md runner
 ## [0.2.1] - 2026-03-05
 
 ### Added
