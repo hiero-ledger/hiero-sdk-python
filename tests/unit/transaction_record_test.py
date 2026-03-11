@@ -304,7 +304,7 @@ def test_repr_method(transaction_id):
         "prng_number=None, "
         "prng_bytes=None, "
         "duplicates_count=0, "
-        "children=[])"
+        "children_count=0)"
     )
     assert repr(record_default) == expected_repr_default
     
@@ -336,7 +336,7 @@ def test_repr_method(transaction_id):
         f"prng_number=None, "
         f"prng_bytes=None, "
         f"duplicates_count=0, "
-        f"children=[])"
+        f"children_count=0)"
     )
     assert repr(record_with_receipt) == expected_repr_with_receipt
 
@@ -368,7 +368,7 @@ def test_repr_method(transaction_id):
                          f"prng_number=None, "
                          f"prng_bytes=None, "
                          f"duplicates_count=0, "
-                         f"children=[])")
+                         f"children_count=0)")
     assert repr(record_full) == expected_repr_full
     # Test with transfers
     record_with_transfers = TransactionRecord(
@@ -393,7 +393,7 @@ def test_repr_method(transaction_id):
                                   f"prng_number=None, "
                                   f"prng_bytes=None, "
                                   f"duplicates_count=0, "
-                                  f"children=[])")
+                                  f"children_count=0)")
     assert repr(record_with_transfers) == expected_repr_with_transfers
 
 def test_proto_conversion_with_call_result(transaction_id):

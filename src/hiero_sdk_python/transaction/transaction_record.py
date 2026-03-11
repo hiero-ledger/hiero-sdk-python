@@ -112,7 +112,7 @@ class TransactionRecord:
                 f"prng_number={self.prng_number}, "
                 f"prng_bytes={self.prng_bytes}, "
                 f"duplicates_count={len(self.duplicates)}, "
-                f"children={self.children})")
+                f"children_count={len(self.children)})")
 
     @classmethod
     def _from_proto(
