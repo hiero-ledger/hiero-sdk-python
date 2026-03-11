@@ -21,6 +21,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Docs
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 - docs: Clarified AI usage in Good First Issues templates. (#1923)
+- docs: Moved the Windows setup guide to docs/sdk_developers/ and added missing setup sections. (`#1953`)
 
 ### .github
 - archived workflows relating to PR reminders
