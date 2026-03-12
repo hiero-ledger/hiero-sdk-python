@@ -1,6 +1,6 @@
 import pytest
 import os
-from hiero_sdk_python import Client, TransactionRecord
+from hiero_sdk_python import AccountId, Client, TransactionRecord
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -16,7 +16,27 @@ from tests.integration.utils import (
     IntegrationTestEnv,
     create_fungible_token,
     create_nft_token,
+    env,
 )
+
+
+def _submit_alias_auto_create_transfer(env: IntegrationTestEnv):
+    """Submit a transfer to an EVM alias to trigger child auto-account creation."""
+    alias_key = PrivateKey.generate_ecdsa()
+    alias_account_id = AccountId.from_evm_address(
+        alias_key.public_key().to_evm_address(), 0, 0
+    )
+
+    transaction = (
+        TransferTransaction()
+        .add_hbar_transfer(alias_account_id, Hbar(1).to_tinybars())
+        .add_hbar_transfer(env.operator_id, Hbar(-1).to_tinybars())
+    )
+    receipt = transaction.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS
+
+    return transaction.transaction_id
 
 
 @pytest.mark.integration
@@ -52,6 +72,40 @@ def test_transaction_record_query_can_execute():
         ), "Transaction hash should not be None"
     finally:
         env.close()
+
+
+@pytest.mark.integration
+def test_transaction_record_query_include_children_returns_child_records(env):
+    """Querying an alias auto-create parent record should return parsed child records."""
+    parent_transaction_id = _submit_alias_auto_create_transfer(env)
+    parent_account_id = parent_transaction_id.account_id
+
+    parent_record = (
+        TransactionRecordQuery()
+        .set_transaction_id(parent_transaction_id)
+        .set_include_children(True)
+        .execute(env.client)
+    )
+
+    assert parent_record.transaction_id == parent_transaction_id
+    assert parent_record.receipt.status == ResponseCode.SUCCESS
+    assert len(parent_record.children) > 0
+    assert parent_record.transfers[parent_account_id] < 0
+
+    child_record = parent_record.children[0]
+    created_account_id = child_record.receipt.account_id
+
+    assert isinstance(child_record, TransactionRecord)
+    assert child_record.receipt.status == ResponseCode.SUCCESS
+    assert child_record.transaction_id == parent_transaction_id
+    assert created_account_id is not None
+    assert created_account_id.shard == 0
+    assert created_account_id.realm == 0
+    assert created_account_id.num > 0
+    assert child_record.transaction_hash != parent_record.transaction_hash
+    assert child_record.transaction_memo == ""
+    assert child_record.children == []
+    assert child_record.duplicates == []
 
 
 @pytest.mark.integration
