@@ -53,15 +53,15 @@ CACHE_DIR=".protos"
 
 # Map common broken imports in mirror/platform proto
 REPLACEMENTS = {
-        'import "basic_types.proto";': 'import "services/basic_types.proto";',
-        'import "timestamp.proto";': 'import "services/timestamp.proto";',
-        'import "consensus_submit_message.proto";': 'import "services/consensus_submit_message.proto";',
-        'import "response_code.proto";': 'import "services/response_code.proto";',
-        'import "query.proto";': 'import "services/query.proto";',
-        'import "transaction.proto";': 'import "services/transaction.proto";',
-        'import "transaction_response.proto";': 'import "services/transaction_response.proto";',
-        # platform/event specific err
-        'import "event/state_signature_transaction.proto";': 'import "platform/event/state_signature_transaction.proto";',
+    'import "basic_types.proto";': 'import "services/basic_types.proto";',
+    'import "timestamp.proto";': 'import "services/timestamp.proto";',
+    'import "consensus_submit_message.proto";': 'import "services/consensus_submit_message.proto";',
+    'import "response_code.proto";': 'import "services/response_code.proto";',
+    'import "query.proto";': 'import "services/query.proto";',
+    'import "transaction.proto";': 'import "services/transaction.proto";',
+    'import "transaction_response.proto";': 'import "services/transaction_response.proto";',
+    # platform/event specific err
+    'import "event/state_signature_transaction.proto";': 'import "platform/event/state_signature_transaction.proto";',
 }
 
 
@@ -111,29 +111,32 @@ def is_safe_tar_member(member: tarfile.TarInfo, base: Path) -> bool:
         dest.relative_to(base.resolve())
     except ValueError:
         return False
-    return True
+    
+    return (member.isdir() or member.isreg())
 
 
 def safe_extract_tar_stream(resp, config: Config, cache_path: Path):
     with tarfile.open(fileobj=resp, mode="r|gz") as tar:
         for member in tar:
             parts = Path(member.name).parts
+
             if len(parts) <= config.strip_count: continue
             member.name = "/".join(parts[config.strip_count:])
             
-            if (
-                any(member.name.startswith(p) for p in config.modules) and 
-                is_safe_tar_member(member, cache_path) and 
-                (member.isdir() or member.isreg())
-            ):
-                if member.isdir():
-                    (cache_path / member.name).mkdir(parents=True, exist_ok=True)
-                    continue
-                
-                target = cache_path / member.name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                with tar.extractfile(member) as src, target.open("wb") as dst:
-                    shutil.copyfileobj(src, dst)
+            if not any(member.name.startswith(p) for p in config.modules):
+                continue
+
+            if not is_safe_tar_member(member, cache_path):
+                continue
+
+            if member.isdir():
+                (cache_path / member.name).mkdir(parents=True, exist_ok=True)
+                continue
+            
+            target = cache_path / member.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with tar.extractfile(member) as src, target.open("wb") as dst:
+                shutil.copyfileobj(src, dst)
 
 
 
