@@ -51,6 +51,19 @@ SOURCES = [
 OUTPUT_DIR="src/hiero_sdk_python/hapi"
 CACHE_DIR=".protos"
 
+# Map common broken imports in mirror/platform proto
+REPLACEMENTS = {
+        'import "basic_types.proto";': 'import "services/basic_types.proto";',
+        'import "timestamp.proto";': 'import "services/timestamp.proto";',
+        'import "consensus_submit_message.proto";': 'import "services/consensus_submit_message.proto";',
+        'import "response_code.proto";': 'import "services/response_code.proto";',
+        'import "query.proto";': 'import "services/query.proto";',
+        'import "transaction.proto";': 'import "services/transaction.proto";',
+        'import "transaction_response.proto";': 'import "services/transaction_response.proto";',
+        # platform/event specific err
+        'import "event/state_signature_transaction.proto";': 'import "platform/event/state_signature_transaction.proto";',
+}
+
 
 @dataclass
 class Config:
@@ -100,6 +113,7 @@ def is_safe_tar_member(member: tarfile.TarInfo, base: Path) -> bool:
         return False
     return True
 
+
 def safe_extract_tar_stream(resp, config: Config, cache_path: Path):
     with tarfile.open(fileobj=resp, mode="r|gz") as tar:
         for member in tar:
@@ -109,31 +123,28 @@ def safe_extract_tar_stream(resp, config: Config, cache_path: Path):
             
             if (
                 any(member.name.startswith(p) for p in config.modules) and 
-                is_safe_tar_member(member, cache_path)
+                is_safe_tar_member(member, cache_path) and 
+                (member.isdir() or member.isreg())
             ):
-                tar.extract(member, path=cache_path)
+                if member.isdir():
+                    (cache_path / member.name).mkdir(parents=True, exist_ok=True)
+                    continue
+                
+                target = cache_path / member.name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with tar.extractfile(member) as src, target.open("wb") as dst:
+                    shutil.copyfileobj(src, dst)
+
+
 
 def patch_proto_imports(proto_root: Path):
     logging.info("Patching proto files for consistent import paths...")
-    
-    # Map of common broken imports found in mirror/platform proto
-    replacements = {
-        'import "basic_types.proto";': 'import "services/basic_types.proto";',
-        'import "timestamp.proto";': 'import "services/timestamp.proto";',
-        'import "consensus_submit_message.proto";': 'import "services/consensus_submit_message.proto";',
-        'import "response_code.proto";': 'import "services/response_code.proto";',
-        'import "query.proto";': 'import "services/query.proto";',
-        'import "transaction.proto";': 'import "services/transaction.proto";',
-        'import "transaction_response.proto";': 'import "services/transaction_response.proto";',
-        # platform/event specific error
-        'import "event/state_signature_transaction.proto";': 'import "platform/event/state_signature_transaction.proto";',
-    }
 
     for proto_file in proto_root.rglob("*.proto"):
         content = proto_file.read_text()
         new_content = content
         
-        for broken, fixed in replacements.items():
+        for broken, fixed in REPLACEMENTS.items():
             new_content = new_content.replace(broken, fixed)
         
         if "platform" in proto_file.parts:
@@ -223,6 +234,7 @@ def main():
 
     if cache_path.exists(): shutil.rmtree(cache_path)
     if out_path.exists(): shutil.rmtree(out_path)
+
     cache_path.mkdir(parents=True)
     out_path.mkdir(parents=True)
 
