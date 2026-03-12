@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   coderabbit_plan_trigger:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     concurrency:
       group: coderabbit-plan-${{ github.event.issue.number }}
       cancel-in-progress: false
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
         with:
           egress-policy: audit
 

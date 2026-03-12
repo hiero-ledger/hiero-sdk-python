@@ -6,7 +6,7 @@ const EXEMPT_PERMISSION_LEVELS = (process.env.INTERMEDIATE_EXEMPT_PERMISSIONS ||
   .map((entry) => entry.trim().toLowerCase())
   .filter(Boolean);
 const DRY_RUN = /^true$/i.test(process.env.DRY_RUN || '');
-const REQUIRED_BEGINNER_ISSUE_COUNT = 0 ;
+const REQUIRED_BEGINNER_ISSUE_COUNT = 1 ;
 
 function isSafeSearchToken(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);

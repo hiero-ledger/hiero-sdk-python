@@ -12,6 +12,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.contract_get_info_pb2 import ContractGetInfoResponse
+from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 
@@ -38,6 +39,7 @@ class ContractInfo:
         max_automatic_token_associations (Optional[int]):
             The maximum number of token associations that can be automatically renewed
         token_relationships (list[TokenRelationship]): The token relationships of the contract
+        staking_info (Optional[StakingInfo]): The staking information for this contract
     """
 
     contract_id: Optional[ContractId] = None
@@ -54,6 +56,7 @@ class ContractInfo:
     ledger_id: Optional[bytes] = None
     max_automatic_token_associations: Optional[int] = None
     token_relationships: list[TokenRelationship] = field(default_factory=list)
+    staking_info: Optional[StakingInfo] = None
 
     @classmethod
     def _from_proto(cls, proto: ContractGetInfoResponse.ContractInfo) -> "ContractInfo":
@@ -69,7 +72,7 @@ class ContractInfo:
         if proto is None:
             raise ValueError("Contract info proto is None")
 
-        return cls(
+        contract_info = cls(
             contract_id=(
                 cls._from_proto_field(proto, "contractID", ContractId._from_proto)
             ),
@@ -99,7 +102,14 @@ class ContractInfo:
                 TokenRelationship._from_proto(relationship)
                 for relationship in proto.tokenRelationships
             ],
+            staking_info=(
+                StakingInfo._from_proto(proto.staking_info)
+                if proto.HasField('staking_info')
+                else None
+            ),
         )
+
+        return contract_info
 
     def _to_proto(self) -> ContractGetInfoResponse.ContractInfo:
         """
@@ -133,6 +143,7 @@ class ContractInfo:
                 else None
             ),
             max_automatic_token_associations=self.max_automatic_token_associations,
+            staking_info=self.staking_info._to_proto() if self.staking_info else None,
         )
 
     def __repr__(self) -> str:
@@ -184,7 +195,8 @@ class ContractInfo:
             f"  is_deleted={self.is_deleted},\n"
             f"  token_relationships={token_relationships_str},\n"
             f"  ledger_id={ledger_id_display},\n"
-            f"  max_automatic_token_associations={self.max_automatic_token_associations}\n"
+            f"  max_automatic_token_associations={self.max_automatic_token_associations},\n"
+            f"  staking_info={self.staking_info}\n"
             ")"
         )
 

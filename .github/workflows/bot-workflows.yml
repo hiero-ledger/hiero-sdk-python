@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
         with:
           egress-policy: audit
 
@@ -47,13 +47,13 @@ jobs:
           Your pull request cannot be merged as it is not passing all our workflow checks. 
           Please click on each check to review the logs and resolve issues so all checks pass.
           To help you:
-          - https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md
-          - https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md
-          - https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md
-          - https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md
-          - https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md
-          - https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md
-          - https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week
+          - [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
+          - [Changelog guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)
+          - [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)
+          - [Rebase guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
+          - [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md)
+          - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
+          - [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
           Thank you for contributing!
           From the Hiero Python SDK Team
           EOF
