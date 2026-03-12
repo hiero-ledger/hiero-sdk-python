@@ -8,11 +8,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
+- Add support for `include_children` to TransactionRecordQuery ([#1512](https://github.com/hiero-ledger/hiero-sdk-python/issues/1512))
 
 ### Changed
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)
 
 ### Src
+- Updated `generated_proto.py` file to work with new proto version
 
 ### Examples
 
@@ -21,9 +23,13 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Docs
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
 - docs: Clarified AI usage in Good First Issues templates. (#1923)
+- docs: Moved the Windows setup guide to docs/sdk_developers/ and added missing setup sections. (`#1953`)
+
+
 
 ### .github
 - Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
+- changed `pr-check-test` to run unit matrix first, run integration matrix only after unit success, skip docs/examples/.github-only changes, and parallelize integration tests with xdist (`#1878`)
 - archived workflows relating to PR reminders
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
 - chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
@@ -33,8 +39,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expand spam list (#1933)
 - chore: add ndpvt-web to spam list (#1945)
 - chore: update bot-community-calls workflow to use self hosted runner (#1942)
-
-
+- chore(ci): update bot-inactivity-unassign workflow to use hl-sdk-py-lin-md runner
 ## [0.2.1] - 2026-03-05
 
 ### Added

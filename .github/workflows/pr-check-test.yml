@@ -3,18 +3,32 @@ name: Hiero Solo Integration & Unit Tests
 on:
   push:
     branches:
-      - "**"
+      - "main"
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "examples/**"
+      - "tck/**"
+      - ".github/**"
+      - "!.github/workflows/pr-check-test.yml"
   pull_request:
-  workflow_dispatch:
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "examples/**"
+      - "tck/**"
+      - ".github/**"
+      - "!.github/workflows/pr-check-test.yml"
+  workflow_dispatch: {}
 
 permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  unit-tests:
+    name: Unit Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -27,25 +41,86 @@ jobs:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
 
       - name: Install uv
         uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
-
-      - name: Install setuptools wheel
-        run: pip install --upgrade pip setuptools wheel
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
       - name: Generate Proto Files
-        run: uv run python generate_proto.py
+        run: uv run generate_proto.py
+
+      - name: Run unit tests
+        id: unit
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          echo "🚀 Running unit tests..."
+          set +e
+          uv run pytest tests/unit -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_unit.log
+          pytest_exit=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$pytest_exit" >> "$GITHUB_OUTPUT"
+          if [ $pytest_exit -ne 0 ]; then
+            echo "❌ Some unit tests failed"
+            grep -E 'FAILED |ERROR ' result_unit.log || true
+          else
+            echo "✅ All unit tests passed"
+          fi
+
+      - name: Fail job if unit tests failed
+        if: steps.unit.outputs.exit_code != '0'
+        shell: bash
+        run: |
+          echo "❌ Unit tests failed. See logs above."
+          exit 1
+
+  integration-tests:
+    name: Integration Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - unit-tests
+    if: needs.unit-tests.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Generate Proto Files
+        run: uv run generate_proto.py
 
       - name: Prepare Hiero Solo
         id: solo
@@ -53,14 +128,7 @@ jobs:
         with:
           installMirrorNode: true
 
-      - name: Install your package
-        run: pip install -e .
-
-      ##############################################
-      # INTEGRATION TESTS
-      ##############################################
-
-      - name: Run all integration tests
+      - name: Run integration tests
         id: integration
         continue-on-error: true
         shell: bash
@@ -73,86 +141,64 @@ jobs:
         run: |
           set -o pipefail
           echo "🚀 Running integration tests..."
-          uv run pytest tests/integration -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_integration.log
+          set +e
+          uv run --with pytest-xdist pytest -n 2 --dist=loadfile tests/integration -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_integration.log
           pytest_exit=${PIPESTATUS[0]}
-          echo "integration_failed=$pytest_exit" >> $GITHUB_OUTPUT
-          cat result_integration.log
+          set -e
+          echo "exit_code=$pytest_exit" >> "$GITHUB_OUTPUT"
           if [ $pytest_exit -ne 0 ]; then
             echo "❌ Some integration tests failed"
-            echo "Failed tests:"
-            grep -E 'FAILED ' result_integration.log || true
+            grep -E 'FAILED |ERROR ' result_integration.log || true
           else
             echo "✅ All integration tests passed"
           fi
 
-      ##############################################
-      # UNIT TESTS
-      ##############################################
-
-      - name: Run all unit tests
-        id: unit
-        continue-on-error: true
+      - name: Fail job if integration tests failed
+        if: steps.integration.outputs.exit_code != '0'
         shell: bash
         run: |
-          set -o pipefail
-          echo "🚀 Running unit tests..."
-          uv run pytest tests/unit -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_unit.log
-          pytest_exit=${PIPESTATUS[0]}
-          echo "unit_failed=$pytest_exit" >> $GITHUB_OUTPUT
-          cat result_unit.log
-          if [ $pytest_exit -ne 0 ]; then
-            echo "❌ Some unit tests failed"
-            echo "Failed tests:"
-            grep -E 'FAILED ' result_unit.log || true
-          else
-            echo "✅ All unit tests passed"
-          fi
+          echo "❌ Integration tests failed. See logs above."
+          exit 1
 
-      ##############################################
-      # SUMMARY & FAIL CONDITIONS
-      ##############################################
+  test-summary:
+    name: Test Results Summary
+    runs-on: ubuntu-latest
+    needs:
+      - unit-tests
+      - integration-tests
+    if: always()
 
-      - name: Fail workflow if any tests failed
+    steps:
+      - name: Print summary and fail when any test job failed
         shell: bash
         run: |
-          integration_failed="${{ steps.integration.outputs.integration_failed }}"
-          unit_failed="${{ steps.unit.outputs.unit_failed }}"
+          unit_result="${{ needs.unit-tests.result }}"
+          integration_result="${{ needs.integration-tests.result }}"
 
           echo ""
           echo "==================== TEST SUMMARY ===================="
 
           any_failed=false
 
-          if [ "$integration_failed" != "0" ]; then
-            echo "❌ Integration tests FAILED"
-            echo "   → Check the integration test logs above for details."
-            if [ -f result_integration.log ]; then
-              grep -E 'FAILED ' result_integration.log || echo "   (No FAILED lines found)"
-            else
-              echo "   (Integration log not found)"
-            fi
-            any_failed=true
+          if [ "$unit_result" = "success" ]; then
+            echo "✅ Unit tests passed"
           else
-            echo "✅ Integration tests passed"
+            echo "❌ Unit tests FAILED"
+            any_failed=true
           fi
 
-          if [ "$unit_failed" != "0" ]; then
-            echo "❌ Unit tests FAILED"
-            echo "   → Check the unit test logs above for details."
-            if [ -f result_unit.log ]; then
-              grep -E 'FAILED ' result_unit.log || echo "   (No FAILED lines found)"
-            else
-              echo "   (Unit log not found)"
-            fi
-            any_failed=true
+          if [ "$integration_result" = "success" ]; then
+            echo "✅ Integration tests passed"
+          elif [ "$integration_result" = "skipped" ] && [ "$unit_result" != "success" ]; then
+            echo "⏭️ Integration tests skipped (unit tests failed first)"
           else
-            echo "✅ Unit tests passed"
+            echo "❌ Integration tests FAILED"
+            any_failed=true
           fi
 
           echo "======================================================"
           echo ""
 
-          # Final outcome
           if [ "$any_failed" = true ]; then
             echo "❌ Some tests failed. Failing workflow."
             exit 1
