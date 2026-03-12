@@ -80,8 +80,7 @@ def download_protos(config: Config, cache_path: Path) -> None:
 
     try:
         # URL scheme and host validated above
-        # nosec B310
-        with urllib.request.urlopen(url, timeout=30) as resp:
+        with urllib.request.urlopen(url, timeout=30) as resp: # nosec B310
             safe_extract_tar_stream(resp, config, cache_path)
     except Exception as e:
         raise RuntimeError(f"Download failed for {config.name}: {e}")
