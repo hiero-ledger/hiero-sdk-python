@@ -144,7 +144,7 @@ def patch_proto_imports(proto_root: Path):
     logging.info("Patching proto files for consistent import paths...")
 
     for proto_file in proto_root.rglob("*.proto"):
-        content = proto_file.read_text()
+        content = proto_file.read_text(encoding="utf-8")
         new_content = content
         
         for broken, fixed in REPLACEMENTS.items():
@@ -154,7 +154,7 @@ def patch_proto_imports(proto_root: Path):
             new_content = re.sub(r'import "event/', 'import "platform/event/', new_content)
 
         if new_content != content:
-            proto_file.write_text(new_content)
+            proto_file.write_text(new_content, encoding="utf-8")
 
 
 def run_protoc(proto_root: Path, output_root: Path) -> None:
@@ -185,9 +185,8 @@ def fix_imports(output_root: Path):
             continue
 
         py_file.write_text("\n".join(
-            process_file_lines(py_file.read_text().splitlines(), pattern, py_file.relative_to(output_root).parents)
-        ) + "\n")
-
+            process_file_lines(py_file.read_text(encoding="utf-8").splitlines(), pattern, py_file.relative_to(output_root).parents)
+        ) + "\n", encoding="utf-8")
 
 def process_file_lines(lines, pattern, parents):
     """Process each line in a file and fix imports if needed."""
