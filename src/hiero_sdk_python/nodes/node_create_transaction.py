@@ -27,6 +27,8 @@ class NodeCreateParams:
         description (str, optional): The description of the node.
         gossip_endpoints (list[Endpoint]): The gossip endpoints of the node.
         service_endpoints (list[Endpoint]): The service endpoints of the node.
+        associated_registered_nodes (list[int]):
+            Registered nodes associated with this consensus node.
         gossip_ca_certificate (bytes, optional): The gossip ca certificate of the node.
         grpc_certificate_hash (bytes, optional): The grpc certificate hash of the node.
         admin_key (PublicKey, optional): The admin key of the node.
@@ -38,6 +40,7 @@ class NodeCreateParams:
     description: str | None = None
     gossip_endpoints: list[Endpoint] = field(default_factory=list)
     service_endpoints: list[Endpoint] = field(default_factory=list)
+    associated_registered_nodes: list[int] = field(default_factory=list)
     gossip_ca_certificate: bytes | None = None
     grpc_certificate_hash: bytes | None = None
     admin_key: PublicKey | None = None
@@ -70,6 +73,7 @@ class NodeCreateTransaction(Transaction):
         self.description: str | None = node_create_params.description
         self.gossip_endpoints: list[Endpoint] = node_create_params.gossip_endpoints
         self.service_endpoints: list[Endpoint] = node_create_params.service_endpoints
+        self.associated_registered_nodes: list[int] = list(node_create_params.associated_registered_nodes)
         self.gossip_ca_certificate: bytes | None = node_create_params.gossip_ca_certificate
         self.grpc_certificate_hash: bytes | None = node_create_params.grpc_certificate_hash
         self.admin_key: PublicKey | None = node_create_params.admin_key
@@ -134,6 +138,38 @@ class NodeCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.service_endpoints = service_endpoints
+        return self
+
+    def set_associated_registered_nodes(
+        self, associated_registered_nodes: list[int] | None
+    ) -> NodeCreateTransaction:
+        """
+        Sets the registered nodes associated with this node create transaction.
+
+        Args:
+            associated_registered_nodes (List[int]):
+                The registered node IDs associated with this consensus node.
+
+        Returns:
+            NodeCreateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes = list(associated_registered_nodes or [])
+        return self
+
+    def add_associated_registered_node(self, registered_node_id: int) -> NodeCreateTransaction:
+        """
+        Adds a registered node association to this node create transaction.
+
+        Args:
+            registered_node_id (int):
+                The registered node ID to associate.
+
+        Returns:
+            NodeCreateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes.append(registered_node_id)
         return self
 
     def set_gossip_ca_certificate(self, gossip_ca_certificate: bytes | None) -> NodeCreateTransaction:
@@ -223,6 +259,7 @@ class NodeCreateTransaction(Transaction):
             description=self.description,
             gossip_endpoint=[endpoint._to_proto() for endpoint in self.gossip_endpoints or []],
             service_endpoint=[endpoint._to_proto() for endpoint in self.service_endpoints or []],
+            associated_registered_node=self.associated_registered_nodes,
             gossip_ca_certificate=self.gossip_ca_certificate,
             grpc_certificate_hash=self.grpc_certificate_hash,
             admin_key=self.admin_key._to_proto() if self.admin_key else None,

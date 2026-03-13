@@ -12,7 +12,10 @@ from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services.node_update_pb2 import NodeUpdateTransactionBody
+from hiero_sdk_python.hapi.services.node_update_pb2 import (
+    AssociatedRegisteredNodeList,
+    NodeUpdateTransactionBody,
+)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -31,6 +34,8 @@ class NodeUpdateParams:
         description (str, optional): The description of the node.
         gossip_endpoints (list[Endpoint]): The gossip endpoints of the node.
         service_endpoints (list[Endpoint]): The service endpoints of the node.
+        associated_registered_nodes (list[int] | None):
+            Registered nodes associated with this consensus node.
         gossip_ca_certificate (bytes, None): The gossip ca certificate of the node.
         grpc_certificate_hash (bytes, None): The grpc certificate hash of the node.
         admin_key (PublicKey, optional): The admin key of the node.
@@ -43,6 +48,7 @@ class NodeUpdateParams:
     description: str | None = None
     gossip_endpoints: list[Endpoint] = field(default_factory=list)
     service_endpoints: list[Endpoint] = field(default_factory=list)
+    associated_registered_nodes: list[int] | None = None
     gossip_ca_certificate: bytes | None = None
     grpc_certificate_hash: bytes | None = None
     admin_key: PublicKey | None = None
@@ -76,6 +82,11 @@ class NodeUpdateTransaction(Transaction):
         self.description: str | None = node_update_params.description
         self.gossip_endpoints: list[Endpoint] = node_update_params.gossip_endpoints
         self.service_endpoints: list[Endpoint] = node_update_params.service_endpoints
+        self.associated_registered_nodes: list[int] | None = (
+            list(node_update_params.associated_registered_nodes)
+            if node_update_params.associated_registered_nodes is not None
+            else None
+        )
         self.gossip_ca_certificate: bytes | None = node_update_params.gossip_ca_certificate
         self.grpc_certificate_hash: bytes | None = node_update_params.grpc_certificate_hash
         self.admin_key: PublicKey | None = node_update_params.admin_key
@@ -155,6 +166,54 @@ class NodeUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.service_endpoints = service_endpoints
+        return self
+
+    def set_associated_registered_nodes(
+        self, associated_registered_nodes: list[int] | None
+    ) -> NodeUpdateTransaction:
+        """
+        Sets the registered nodes associated with this node update transaction.
+
+        Args:
+            associated_registered_nodes (Optional[List[int]]):
+                The registered node IDs associated with this consensus node.
+                ``None`` leaves the existing associations unchanged.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes = (
+            list(associated_registered_nodes) if associated_registered_nodes is not None else None
+        )
+        return self
+
+    def add_associated_registered_node(self, registered_node_id: int) -> NodeUpdateTransaction:
+        """
+        Adds a registered node association to this node update transaction.
+
+        Args:
+            registered_node_id (int):
+                The registered node ID to associate.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        if self.associated_registered_nodes is None:
+            self.associated_registered_nodes = []
+        self.associated_registered_nodes.append(registered_node_id)
+        return self
+
+    def clear_associated_registered_nodes(self) -> NodeUpdateTransaction:
+        """
+        Clears the registered node associations for this node update transaction.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes = []
         return self
 
     def set_gossip_ca_certificate(self, gossip_ca_certificate: bytes | None) -> NodeUpdateTransaction:
@@ -262,6 +321,11 @@ class NodeUpdateTransaction(Transaction):
             admin_key=self._convert_to_proto(self.admin_key),
             decline_reward=(BoolValue(value=self.decline_reward) if self.decline_reward is not None else None),
             grpc_proxy_endpoint=self._convert_to_proto(self.grpc_web_proxy_endpoint),
+            associated_registered_node_list=(
+                AssociatedRegisteredNodeList(associated_registered_node=self.associated_registered_nodes)
+                if self.associated_registered_nodes is not None
+                else None
+            ),
         )
 
     def build_transaction_body(self) -> TransactionBody:
