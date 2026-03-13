@@ -28,6 +28,7 @@ def node_params():
         "description": "test node",
         "gossip_endpoints": [Endpoint(domain_name="test.com", port=50211)],
         "service_endpoints": [Endpoint(domain_name="test1.com", port=50212)],
+        "associated_registered_nodes": [11, 22],
         "gossip_ca_certificate": b"test-ca-cert",
         "grpc_certificate_hash": b"test-cert-hash",
         "decline_reward": True,
@@ -43,6 +44,7 @@ def test_constructor_with_parameters(node_params):
         description=node_params["description"],
         gossip_endpoints=node_params["gossip_endpoints"],
         service_endpoints=node_params["service_endpoints"],
+        associated_registered_nodes=node_params["associated_registered_nodes"],
         gossip_ca_certificate=node_params["gossip_ca_certificate"],
         grpc_certificate_hash=node_params["grpc_certificate_hash"],
         admin_key=node_params["admin_key"],
@@ -56,6 +58,7 @@ def test_constructor_with_parameters(node_params):
     assert node_tx.description == node_params["description"]
     assert node_tx.gossip_endpoints == node_params["gossip_endpoints"]
     assert node_tx.service_endpoints == node_params["service_endpoints"]
+    assert node_tx.associated_registered_nodes == node_params["associated_registered_nodes"]
     assert node_tx.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert node_tx.grpc_certificate_hash == node_params["grpc_certificate_hash"]
     assert node_tx.admin_key == node_params["admin_key"]
@@ -71,6 +74,7 @@ def test_constructor_default_values():
     assert node_tx.description is None
     assert node_tx.gossip_endpoints == []
     assert node_tx.service_endpoints == []
+    assert node_tx.associated_registered_nodes == []
     assert node_tx.gossip_ca_certificate is None
     assert node_tx.grpc_certificate_hash is None
     assert node_tx.admin_key is None
@@ -99,22 +103,15 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, node_par
     assert node_create.account_id == node_params["account_id"]._to_proto()
     assert node_create.description == node_params["description"]
     assert len(node_create.gossip_endpoint) == 1
-    assert (
-        node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
-    )
+    assert node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
     assert len(node_create.service_endpoint) == 1
-    assert (
-        node_create.service_endpoint[0]
-        == node_params["service_endpoints"][0]._to_proto()
-    )
+    assert node_create.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
+    assert list(node_create.associated_registered_node) == node_params["associated_registered_nodes"]
     assert node_create.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert node_create.grpc_certificate_hash == node_params["grpc_certificate_hash"]
     assert node_create.admin_key == node_params["admin_key"]._to_proto()
     assert node_create.decline_reward == node_params["decline_reward"]
-    assert (
-        node_create.grpc_proxy_endpoint
-        == node_params["grpc_web_proxy_endpoint"]._to_proto()
-    )
+    assert node_create.grpc_proxy_endpoint == node_params["grpc_web_proxy_endpoint"]._to_proto()
 
 
 def test_build_scheduled_body(node_params):
@@ -135,22 +132,15 @@ def test_build_scheduled_body(node_params):
     assert node_create.account_id == node_params["account_id"]._to_proto()
     assert node_create.description == node_params["description"]
     assert len(node_create.gossip_endpoint) == 1
-    assert (
-        node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
-    )
+    assert node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
     assert len(node_create.service_endpoint) == 1
-    assert (
-        node_create.service_endpoint[0]
-        == node_params["service_endpoints"][0]._to_proto()
-    )
+    assert node_create.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
+    assert list(node_create.associated_registered_node) == node_params["associated_registered_nodes"]
     assert node_create.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert node_create.grpc_certificate_hash == node_params["grpc_certificate_hash"]
     assert node_create.admin_key == node_params["admin_key"]._to_proto()
     assert node_create.decline_reward == node_params["decline_reward"]
-    assert (
-        node_create.grpc_proxy_endpoint
-        == node_params["grpc_web_proxy_endpoint"]._to_proto()
-    )
+    assert node_create.grpc_proxy_endpoint == node_params["grpc_web_proxy_endpoint"]._to_proto()
 
 
 def test_set_account_id(node_params):
@@ -191,6 +181,26 @@ def test_set_service_endpoints(node_params):
 
     assert node_tx.service_endpoints == node_params["service_endpoints"]
     assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_associated_registered_nodes(node_params):
+    """Test setting associated_registered_nodes using the setter method."""
+    node_tx = NodeCreateTransaction()
+
+    result = node_tx.set_associated_registered_nodes(node_params["associated_registered_nodes"])
+
+    assert node_tx.associated_registered_nodes == node_params["associated_registered_nodes"]
+    assert result is node_tx
+
+
+def test_add_associated_registered_node():
+    """Test appending an associated registered node."""
+    node_tx = NodeCreateTransaction()
+
+    result = node_tx.add_associated_registered_node(33)
+
+    assert result is node_tx
+    assert node_tx.associated_registered_nodes == [33]
 
 
 def test_set_gossip_ca_certificate(node_params):
@@ -252,6 +262,7 @@ def test_method_chaining_with_all_setters(node_params):
         .set_description(node_params["description"])
         .set_gossip_endpoints(node_params["gossip_endpoints"])
         .set_service_endpoints(node_params["service_endpoints"])
+        .set_associated_registered_nodes(node_params["associated_registered_nodes"])
         .set_gossip_ca_certificate(node_params["gossip_ca_certificate"])
         .set_grpc_certificate_hash(node_params["grpc_certificate_hash"])
         .set_admin_key(node_params["admin_key"])
@@ -264,6 +275,7 @@ def test_method_chaining_with_all_setters(node_params):
     assert node_tx.description == node_params["description"]
     assert node_tx.gossip_endpoints == node_params["gossip_endpoints"]
     assert node_tx.service_endpoints == node_params["service_endpoints"]
+    assert node_tx.associated_registered_nodes == node_params["associated_registered_nodes"]
     assert node_tx.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert node_tx.grpc_certificate_hash == node_params["grpc_certificate_hash"]
     assert node_tx.admin_key == node_params["admin_key"]
@@ -281,6 +293,10 @@ def test_set_methods_require_not_frozen(mock_client, node_params):
         ("set_description", node_params["description"]),
         ("set_gossip_endpoints", node_params["gossip_endpoints"]),
         ("set_service_endpoints", node_params["service_endpoints"]),
+        (
+            "set_associated_registered_nodes",
+            node_params["associated_registered_nodes"],
+        ),
         ("set_gossip_ca_certificate", node_params["gossip_ca_certificate"]),
         ("set_grpc_certificate_hash", node_params["grpc_certificate_hash"]),
         ("set_admin_key", node_params["admin_key"]),
@@ -289,9 +305,7 @@ def test_set_methods_require_not_frozen(mock_client, node_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(node_tx, method_name)(value)
 
 
