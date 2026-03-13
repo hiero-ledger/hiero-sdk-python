@@ -20,7 +20,7 @@ body:
       label: 🆕🐥 Newcomer Friendly
       description: Who is this issue for?
       value: |
-        This **[Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee)** is a guided, well-scoped task intended for new contributors to the Hiero Python SDK.
+        This **[Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee)** is a guided, well-scoped task intended for new human contributors to the Hiero Python SDK.
 
         #### What you’ll do
         - ✅ understand how the repository is structured
@@ -253,7 +253,7 @@ body:
 
         - [ ] **Connect** origin with upstream: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/03_staying_in_sync.md)
 
-        - [ ] **Install Packages** and protobufs: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md) (or [Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/setup_windows.md) for Windows users)
+        - [ ] **Install Packages** and protobufs: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/02_installing_hiero_python_sdk.md) (or [Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/setup_windows.md) for Windows users)
 
         - [ ] **Sync Main** pull any recent upstream changes: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)
 
@@ -378,12 +378,7 @@ body:
       label: 🤖 AI usage guidelines
       description: Guidance on using AI tools responsibly for this issue.
       value: |
-        You’re welcome to use AI tools while working on this issue.
-
-        Many contributors do — especially for:
-        - understanding unfamiliar code
-        - drafting small refactors
-        - sanity-checking approaches
+        Humans are welcome to use AI tools while working on this issue but we do not accept AI bot-authored PRs.
 
         **Use AI responsibly:**
         - review suggestions carefully

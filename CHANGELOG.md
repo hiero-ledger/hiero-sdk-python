@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -6,18 +6,39 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+- Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
+- Add support for `include_children` to TransactionRecordQuery ([#1512](https://github.com/hiero-ledger/hiero-sdk-python/issues/1512))
+
+### Changed
+- Changed pytest version to "pytest>=8.3.4,<10" (#1917)
+
 ### Src
-- 
+- Updated `generated_proto.py` file to work with new proto version
 
 ### Examples
 
 ### Tests
 
 ### Docs
+- Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
+- docs: Clarified AI usage in Good First Issues templates. (#1923)
+- docs: Moved the Windows setup guide to docs/sdk_developers/ and added missing setup sections. (`#1953`)
+
+
 
 ### .github
-
-
+- changed `pr-check-test` to run unit matrix first, run integration matrix only after unit success, skip docs/examples/.github-only changes, and parallelize integration tests with xdist (`#1878`)
+- archived workflows relating to PR reminders
+- chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
+- chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
+- chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-beginner-assign-on-comment workflow
+- chore: update bot-coderabbit-plan-trigger workflow to use self-hosted runner (`#1925`)
+- Require contributors to complete 1 beginner issue before they can be assigned an intermediate issue (#1939)
+- Expand spam list (#1933)
+- chore: add ndpvt-web to spam list (#1945)
+- chore: update bot-community-calls workflow to use self hosted runner (#1942)
+- chore(ci): update bot-inactivity-unassign workflow to use hl-sdk-py-lin-md runner
 ## [0.2.1] - 2026-03-05
 
 ### Added
