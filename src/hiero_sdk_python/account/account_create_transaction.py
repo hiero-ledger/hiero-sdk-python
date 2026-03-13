@@ -8,6 +8,7 @@ import warnings
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.evm_address import EvmAddress
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
@@ -18,7 +19,6 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = Hbar(3).to_tinybars()  # 3 Hbars
@@ -315,8 +315,6 @@ class AccountCreateTransaction(Transaction):
             ValueError: If required fields are missing.
             TypeError: If initial_balance is an invalid type.
         """
-        if not self.key:
-            raise ValueError("Key must be set before building the transaction.")
 
         if isinstance(self.initial_balance, Hbar):
             initial_balance_tinybars = self.initial_balance.to_tinybars()
@@ -325,10 +323,9 @@ class AccountCreateTransaction(Transaction):
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
 
-        proto_key = key_to_proto(self.key)
 
         proto_body = crypto_create_pb2.CryptoCreateTransactionBody(
-            key=proto_key,
+            key=self.key.to_proto_key() if self.key is not None else None,
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),

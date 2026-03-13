@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
 from hiero_sdk_python.crypto.evm_address import EvmAddress
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
@@ -26,7 +27,7 @@ EVM_ADDRESS_REGEX = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.([a-fA-F0-9]{40}$)
 
 
 @dataclass(frozen=True)
-class ContractId:
+class ContractId(Key):
     """
     Represents a unique contract ID on the Hedera network.
 
@@ -90,6 +91,9 @@ class ContractId:
             contractNum=self.contract,
             evm_address=self.evm_address,
         )
+    
+    def to_proto_key(self) -> basic_types_pb2.Key:
+        return basic_types_pb2.Key(contractID=self._to_proto())
 
     @classmethod
     def from_string(cls, contract_id_str: str) -> "ContractId":

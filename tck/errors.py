@@ -1,5 +1,11 @@
 
 """Error code constants for the TCK server."""
+from functools import wraps
+
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
+from hiero_sdk_python.response_code import ResponseCode
+
+
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
 METHOD_NOT_FOUND = -32601
@@ -86,3 +92,29 @@ class JsonRpcError(Exception):
             message: Optional custom error message (defaults to 'Hiero error')
         """
         return cls(HIERO_ERROR, message, data)
+    
+
+def handle_sdk_errors(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+
+        except JsonRpcError:
+            # already formatted error → rethrow
+            raise
+
+        except PrecheckError as e:
+            raise JsonRpcError.invalid_params_error({
+                "status": ResponseCode(e.status).name
+            })
+
+        except ReceiptStatusError as e:
+            raise JsonRpcError.invalid_params_error({
+                "status": ResponseCode(e.status).name
+            })
+
+        except Exception as e:
+            raise JsonRpcError.internal_error(str(e))
+
+    return wrapper

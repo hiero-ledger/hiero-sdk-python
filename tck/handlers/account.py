@@ -2,9 +2,11 @@
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.evm_address import EvmAddress
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from tck.errors import JsonRpcError
 from tck.handlers.registry import register_handler
 from tck.handlers.sdk import CLIENTS
 from tck.param.account import CreateAccountParams
@@ -50,24 +52,19 @@ def _build_create_account_transaction(params: CreateAccountParams) -> AccountCre
 
 @register_handler("createAccount")
 def create_account(params: CreateAccountParams) -> CreateAccountResponse:
-  print("account create")
   client = CLIENTS.get(params.sessionId)
   transaction = _build_create_account_transaction(params)
   
-  print("Transaction: ", transaction)
   if params.commonTransactionParams:
     params.commonTransactionParams.apply_common_params(transaction, client)
-
+  
   response = transaction.execute(client, wait_for_receipt=False)
+  print(response)
   receipt:TransactionReceipt = response.get_receipt(client)
 
-  print(receipt.status)
   
   account_id = "";
   if receipt.status == ResponseCode.SUCCESS:
-    print(str(receipt.account_id))
     account_id = str(receipt.account_id)
 
-  return CreateAccountResponse(account_id, ResponseCode(receipt.status).name)
-  
-
+  return CreateAccountResponse(account_id, ResponseCode(receipt.status).name)  
