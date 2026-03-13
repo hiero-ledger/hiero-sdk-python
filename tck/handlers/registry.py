@@ -4,7 +4,8 @@ from dataclasses import asdict
 import inspect
 from typing import Any, Dict, Optional, Union, Callable
 from tck.errors import (
-    JsonRpcError
+    JsonRpcError,
+    handle_sdk_errors
 )
 from tck.protocol import build_json_rpc_error_response
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError, MaxAttemptsError
@@ -17,7 +18,7 @@ def register_handler(method_name: str):
     """Register a handler function for a given method name."""
     def decorator(func: Callable) -> Callable:
         """Decorator to register a handler function for a given method name."""
-        _HANDLERS[method_name] = func
+        _HANDLERS[method_name] = handle_sdk_errors(func)
         return func
     return decorator
 

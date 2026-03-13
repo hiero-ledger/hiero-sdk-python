@@ -1,4 +1,7 @@
-class EvmAddress:
+from hiero_sdk_python.crypto.key import Key
+
+
+class EvmAddress(Key):
     """
     Represents a 20-byte EVM address derived from the rightmost 20 bytes of 
     32 byte Keccak-256 hash of an ECDSA public key.
@@ -34,6 +37,10 @@ class EvmAddress:
     def from_bytes(cls, address_bytes: "bytes") -> "EvmAddress":
         """Create an EvmAddress from raw bytes."""
         return cls(address_bytes)
+    
+
+    def to_proto_key(self):
+        raise RuntimeError("to_proto_key() not implemented for EvmAddress")
 
     def to_string(self) -> str:
         """Return the EVM address as a hex string"""

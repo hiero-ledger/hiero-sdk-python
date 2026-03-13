@@ -24,9 +24,6 @@ class CreateAccountParams(BaseTransactionParams):
     receiver_signature_required = params.get("receiverSignatureRequired")
     max_auto_association = params.get("maxAutoTokenAssociations")
 
-    print("creaing object")
-    print(parse_common_transaction_params(params))
-
     obj =  cls(
       key=params.get("key"),
       initialBalance=int(initial_balance) if initial_balance else None,
@@ -41,5 +38,4 @@ class CreateAccountParams(BaseTransactionParams):
       sessionId=parse_session_id(params),
     )
 
-    print("Object done")
     return obj

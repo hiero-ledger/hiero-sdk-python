@@ -1,5 +1,6 @@
 from enum import Enum
 
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 
@@ -21,17 +22,22 @@ class KeyType(Enum):
     
     raise ValueError(f"Unknown key type: {key_type_str}")
   
-def get_key_from_string(key_string: str) -> PublicKey | PrivateKey:
-    """
-    Parse a key string into a Key object.
-    Attempts public key DER, then private key DER, then raw bytes.
-    """
+def get_key_from_string(key_string: str) -> Key:
+    key_bytes = bytes.fromhex(key_string)
+
+    try:
+        return Key.from_bytes(key_bytes)   # protobuf key
+    except Exception:
+        pass
+
     try:
         return PublicKey.from_string_der(key_string)
     except Exception:
         pass
+
     try:
         return PrivateKey.from_string_der(key_string)
     except Exception:
         pass
-    return PublicKey._from_proto(bytes.fromhex(key_string))
+
+    raise ValueError("Invalid key string")
