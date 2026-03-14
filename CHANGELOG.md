@@ -31,6 +31,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- chore: ensure uv run uses lowest-direct resolution in deps-check workflow (#1919)
 - Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
 - changed `pr-check-test` to run unit matrix first, run integration matrix only after unit success, skip docs/examples/.github-only changes, and parallelize integration tests with xdist (`#1878`)
 - archived workflows relating to PR reminders
