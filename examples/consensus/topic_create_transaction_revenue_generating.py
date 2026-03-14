@@ -16,20 +16,15 @@ Run with:
 uv run examples/consensus/topic_create_transaction_revenue_generating.py
 python examples/consensus/topic_create_transaction_revenue_generating.py
 """
-import os
 import sys
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
-    AccountId,
     Client,
     CryptoGetAccountBalanceQuery,
     CustomFeeLimit,
     CustomFixedFee,
     Hbar,
-    Network,
     PrivateKey,
     ResponseCode,
     TokenAssociateTransaction,
