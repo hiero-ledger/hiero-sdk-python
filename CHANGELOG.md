@@ -21,6 +21,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Examples
 - Updated the `examples/consensus/topic_create_transaction_revenue_generating.py` example to use `Client.from_env()` for simpler client setup. (#1964)
 
+- Refactored `examples/consensus/topic_delete_transaction.py` to use Client.from_env() for simplified client initialization, removed manual setup code, and cleaned up unused imports (`os`, `AccountId`, `PrivateKey`). (`#1971`)
+
 ### Tests
 
 ### Docs
