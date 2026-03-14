@@ -14,9 +14,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)
 
 ### Src
+
+- Refactor `AccountInfo` to use the existing `StakingInfo` wrapper class instead of flattened staking fields. Access is now via `info.staking_info.staked_account_id`, `info.staking_info.staked_node_id`, and `info.staking_info.decline_reward`. The old flat accessors (`info.staked_account_id`, `info.staked_node_id`, `info.decline_staking_reward`) are still available as deprecated properties and will emit a `DeprecationWarning`. (#1366)
 - Updated `generated_proto.py` file to work with new proto version
 - fix: Ensure UTF-8 encoding when reading and writing proto files in `generate_proto.py` to prevent encoding issues on Windows (`#1963`)
-
 
 ### Examples
 - Updated the `examples/consensus/topic_create_transaction_revenue_generating.py` example to use `Client.from_env()` for simpler client setup. (#1964)
