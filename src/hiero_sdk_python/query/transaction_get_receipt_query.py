@@ -211,8 +211,10 @@ class TransactionGetReceiptQuery(Query):
 
         if status in retryable_statuses or status == ResponseCode.OK:
             return _ExecutionState.RETRY
-        else:
+        elif status == ResponseCode.SUCCESS:
             return _ExecutionState.FINISHED
+        else:
+            return _ExecutionState.ERROR
 
     def _map_status_error(self, response: response_pb2.Response) -> Union[PrecheckError, ReceiptStatusError]:
         """
