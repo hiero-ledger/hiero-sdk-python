@@ -3,5 +3,5 @@ from dataclasses import dataclass
 
 @dataclass
 class CreateAccountResponse:
-  accountId: str | None = None
-  status: str | None = None
+    accountId: str | None = None
+    status: str | None = None
