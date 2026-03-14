@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
+from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError, ReceiptStatusError
 from hiero_sdk_python.response_code import ResponseCode
 
 PARSE_ERROR = -32700
@@ -111,14 +111,19 @@ def handle_sdk_errors(func):
 
         except PrecheckError as e:
             print(e)
-            raise JsonRpcError.invalid_params_error(
+            raise JsonRpcError.hiero_error(
                 {"status": ResponseCode(e.status).name}
             )
 
         except ReceiptStatusError as e:
             print(e)
-            raise JsonRpcError.invalid_params_error(
+            raise JsonRpcError.hiero_error(
                 {"status": ResponseCode(e.status).name}
+            )
+        
+        except MaxAttemptsError as e:
+            raise JsonRpcError.hiero_error(
+                message= e.message
             )
 
         except Exception as e:
