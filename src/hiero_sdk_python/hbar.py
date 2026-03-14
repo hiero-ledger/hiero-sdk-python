@@ -1,4 +1,3 @@
-# Trigger CI Integration Tests
 """
 hiero_sdk_python.hbar.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
