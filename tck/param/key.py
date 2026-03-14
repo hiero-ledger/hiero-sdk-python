@@ -1,43 +1,25 @@
 from dataclasses import dataclass
 from typing import List
 
-from tck.param.base import BaseParams
-from tck.util.json_param_parser import parse_session_id
-from tck.util.key_utils import KeyType
-
-
-from dataclasses import dataclass
-from typing import List
-
-from tck.param.base import BaseParams
-from tck.util.json_param_parser import parse_session_id
 from tck.util.key_utils import KeyType
 
 
 @dataclass
-class KeyGenerationParams(BaseParams):
+class KeyGenerationParams:
     type: KeyType = None
     fromKey: str | None = None
     threshold: int | None = None
     keys: List["KeyGenerationParams"] | None = None
 
     @classmethod
-    def from_dict(cls, params: dict) -> "KeyGenerationParams":
-      key_list = params.get("keys") or []
+    def parse_json_params(cls, params: dict) -> "KeyGenerationParams":
+        key_list = params.get("keys") or []
 
-      parsed_keys = [cls.from_dict(k) for k in key_list]
-
-      kwargs = dict(
-        type=KeyType.from_string(params.get("type")) if params.get("type") else None,
-        fromKey=params.get("fromKey"),
-        threshold=params.get("threshold"),
-        keys=parsed_keys,
-      )
-
-      session_id = params.get("sessionId")
-      if session_id is not None:
-        kwargs["sessionId"] = parse_session_id(params)
-
-      result = cls(**kwargs)
-
-      return result
+        return cls(
+            type=(
+                KeyType.from_string(params.get("type")) if params.get("type") else None
+            ),
+            fromKey=params.get("fromKey"),
+            threshold=params.get("threshold"),
+            keys=[cls.parse_json_params(k) for k in key_list],
+        )

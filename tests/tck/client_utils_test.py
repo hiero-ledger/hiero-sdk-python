@@ -1,16 +1,16 @@
 """Unit tests for the client manager module."""
 from unittest.mock import MagicMock
 import pytest
-from tck.client_manager import store_client, get_client, remove_client, _clients
+from tck.util.client_utils import store_client, get_client, remove_client, _CLIENTS
 
 pytestmark = pytest.mark.unit
 
 @pytest.fixture(autouse=True)
 def clear_clients():
     """Clear the clients registry before each test."""
-    _clients.clear()
+    _CLIENTS.clear()
     yield
-    _clients.clear()
+    _CLIENTS.clear()
 
 
 class TestClientManager:

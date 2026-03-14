@@ -1,30 +1,36 @@
-"""Build a flexible registry-based method routing system that can dispatch 
+"""Build a flexible registry-based method routing system that can dispatch
 requests to handlers and transform exceptions into JSON-RPC errors."""
+
 from dataclasses import asdict
 import inspect
 from typing import Any, Dict, Optional, Union, Callable
-from tck.errors import (
-    JsonRpcError,
-    handle_sdk_errors
-)
+from tck.errors import JsonRpcError, handle_sdk_errors
 from tck.protocol import build_json_rpc_error_response
-from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError, MaxAttemptsError
-
+from hiero_sdk_python.exceptions import (
+    PrecheckError,
+    ReceiptStatusError,
+    MaxAttemptsError,
+)
 
 # A global _HANDLERS dict to store method name -> handler function mappings
 _HANDLERS: Dict[str, Callable] = {}
 
-def register_handler(method_name: str):
+
+def rpc_method(method_name: str):
     """Register a handler function for a given method name."""
+
     def decorator(func: Callable) -> Callable:
         """Decorator to register a handler function for a given method name."""
         _HANDLERS[method_name] = handle_sdk_errors(func)
         return func
+
     return decorator
+
 
 def get_handler(method_name: str) -> Optional[Callable]:
     """Retrieve a handler by method name."""
     return _HANDLERS.get(method_name)
+
 
 def get_all_handlers() -> Dict[str, Callable]:
     """Get all registered handlers."""
@@ -34,19 +40,21 @@ def get_all_handlers() -> Dict[str, Callable]:
 def dispatch(method_name: str, params: Any) -> Any:
     """Dispatch the request to the appropriate handler based on method_name."""
     handler = get_handler(method_name)
-    
+
     if handler is None:
-        raise JsonRpcError.method_not_found_error(message=f'Method not found: {method_name}')
-    
+        raise JsonRpcError.method_not_found_error(
+            message=f"Method not found: {method_name}"
+        )
+
     try:
         signature = inspect.signature(handler)
         parameters = list(signature.parameters.values())
         param_type = parameters[0].annotation
 
-        params = param_type.from_dict(params)
+        params = param_type.parse_json_params(params)
         result = handler(params)
 
-        return asdict(result)
+        return parse_result(result)
 
     except JsonRpcError:
         raise
@@ -55,24 +63,20 @@ def dispatch(method_name: str, params: Any) -> Any:
     except Exception as e:
         raise JsonRpcError.internal_error(data=str(e)) from e
 
-def safe_dispatch(method_name: str,
-                  params: Any,
-                  request_id: Optional[Union[str, int]]) -> Union[Any, Dict[str, Any]]:
+
+def safe_dispatch(
+    method_name: str, params: Any, request_id: Optional[Union[str, int]]
+) -> Union[Any, Dict[str, Any]]:
     """Safely dispatch the request and handle exceptions."""
     try:
         return dispatch(method_name, params)
     except JsonRpcError as e:
         return build_json_rpc_error_response(e, request_id)
-    except Exception as e: # Defensive fallback for any uncaught exceptions
+    except Exception as e:
         error = JsonRpcError.internal_error(data=str(e))
         return build_json_rpc_error_response(error, request_id)
 
-def validate_request_params(params: Any, required_fields: Dict[str, type]) -> None:
-    """Validate that required fields are present in params with correct types."""
-    if not isinstance(params, dict):
-        raise JsonRpcError.invalid_params_error(message='Invalid params: expected object')
 
-    for field, field_type in required_fields.items():
-        if field not in params or not isinstance(params[field], field_type):
-            raise JsonRpcError.invalid_params_error(message=f'Invalid params: missing or incorrect type for {field}')
-
+def parse_result(result: Any) -> dict:
+    """Parse the result from the methods to dict containing non none key:values"""
+    return {k: v for k, v in asdict(result).items() if v is not None}

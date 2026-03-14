@@ -45,6 +45,8 @@ class Hbar:
 
         if isinstance(amount, float) and not math.isfinite(amount):
             raise ValueError("Hbar amount must be finite")
+        if isinstance(amount, Decimal) and not amount.is_finite():
+            raise ValueError("Hbar amount must be finite")
 
         if  unit == HbarUnit.TINYBAR:
             if not isinstance(amount, int):
@@ -56,7 +58,7 @@ class Hbar:
             amount = Decimal(str(amount))
 
         tinybar = amount * Decimal(unit.tinybar)
-        if tinybar % 1 != 0:
+        if tinybar != tinybar.to_integral_value():
             raise ValueError("Fractional tinybar value not allowed")
 
         self._amount_in_tinybar = int(tinybar)
@@ -67,7 +69,7 @@ class Hbar:
 
     def to_tinybars(self) -> int:
         """Return the amount of hbars in tinybars."""
-        return int(self.to(HbarUnit.TINYBAR))
+        return self._amount_in_tinybar
 
     def to_hbars(self) -> float:
         """
