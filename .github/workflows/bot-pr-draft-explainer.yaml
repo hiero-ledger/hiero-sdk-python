@@ -1,0 +1,50 @@
+# This workflow posts a friendly explanation when a PR is moved to draft status after changes are requested
+
+name: PR Draft Explainer
+on:
+  pull_request:
+    types: [converted_to_draft]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to test"
+        required: true
+        type: number
+      dry_run:
+        description: "Run without posting comment"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  pull-requests: read
+  issues: write
+  contents: read
+
+jobs:
+  pr-draft-explainer:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pr-draft-explainer-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+      cancel-in-progress: true
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: main
+
+      - name: Run draft explainer bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
+        with:
+          script: |
+              const script = require('./.github/scripts/bot-pr-draft-explainer.js');
+              await script({ github, context });

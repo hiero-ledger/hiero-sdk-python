@@ -16,20 +16,15 @@ Run with:
 uv run examples/consensus/topic_create_transaction_revenue_generating.py
 python examples/consensus/topic_create_transaction_revenue_generating.py
 """
-import os
 import sys
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
-    AccountId,
     Client,
     CryptoGetAccountBalanceQuery,
     CustomFeeLimit,
     CustomFixedFee,
     Hbar,
-    Network,
     PrivateKey,
     ResponseCode,
     TokenAssociateTransaction,
@@ -40,24 +35,15 @@ from hiero_sdk_python import (
     TransferTransaction,
 )
 
-load_dotenv()
 
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """
+    Set up and configure the client by loading OPERATOR_ID and OPERATOR_KEY with Client.from_env().
+    """
+    client = Client.from_env()
+    print(f"Connecting to Hedera {client.network.network} network!")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
-
 
 def create_account(client, name, initial_balance=Hbar(10)):
     """Create a test account."""
