@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Add the assignment limits enforce for Good First Issue and beginner bots and show contributors their current open assignments when the limit is reached(#1724).
 - Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
 - Add support for `include_children` to TransactionRecordQuery ([#1512](https://github.com/hiero-ledger/hiero-sdk-python/issues/1512))
 

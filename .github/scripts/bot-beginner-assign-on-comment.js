@@ -170,9 +170,14 @@ module.exports = async ({ github, context }) => {
           per_page: 100,
         }
       );
-      return issues.length;
+      return issues
+      .filter(issue => !issue.pull_request)
+      .map(issue => ({
+      number: issue.number,
+      title: issue.title,
+      url: issue.html_url,
+      }));
     }
-
     const commenter = comment.user.login;
 
     // Fix 3: Validate comment body
@@ -296,7 +301,11 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
 
       // Enforce Assignment Limits
 
-      const openCount = await getOpenAssignments(commenter);
+      const assignments = await getOpenAssignments(commenter);
+      const openCount = assignments.length;
+      const assignmentList = assignments
+        .map(a => `• #${a.number} – ${a.title}\n${a.url}`)
+        .join('\n');
       const maxAllowed = 2;
 
       console.log("[Beginner Bot] Limit check:", {
@@ -307,7 +316,11 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
       });
 
       if (openCount >= maxAllowed) {
-        const message = `👋 Hi @${commenter}, you already have **2 open assignments**. Please finish one before requesting another.`;
+        const message = `👋 Hi @${commenter}, you already have **${openCount} open assignment${openCount > 1 ? 's' : ''}**:
+
+        ${assignmentList}
+
+        Please finish one before requesting another.`;
 
         try {
           await github.rest.issues.createComment({
