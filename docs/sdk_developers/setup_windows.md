@@ -25,6 +25,7 @@ Before you begin, ensure you have the following installed on your system:
 1.  **Git for Windows**: [Download and install Git](https://gitforwindows.org/).
 2.  **Python 3.10+**: [Download and install Python](https://www.python.org/downloads/windows/). Ensure "Add Python to PATH" is checked during installation.
 3.  **GitHub Account**: You will need a GitHub account to fork the repository.
+4.  **Chocolatey** (Windows 10 users): For Windows 10 users, you must install Chocolatey. [Download and install Chocolatey](https://chocolatey.org/install). Ensure Chocolatey is added to your PATH environment variable.
 
 ---
 
