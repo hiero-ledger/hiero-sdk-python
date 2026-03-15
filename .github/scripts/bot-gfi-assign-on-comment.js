@@ -38,7 +38,13 @@ async function getOpenAssignments({ github, owner, repo, username }) {
             per_page: 100,
         }
     );
-    return issues.length;
+    return issues
+      .filter(issue => !issue.pull_request)
+      .map(issue => ({
+        number: issue.number,
+        title: issue.title,
+        url: issue.html_url,
+    }));
 }
 
 /// HELPERS FOR ASSIGNING ///
@@ -328,13 +334,18 @@ module.exports = async ({ github, context }) => {
         // ENFORCE ASSIGNMENT LIMITS
         // -------------------------------
 
-        const openCount = await getOpenAssignments({
+        const assignments = await getOpenAssignments({
             github,
             owner,
             repo,
             username: requesterUsername,
         });
 
+        const openCount = assignments.length;
+        
+        const assignmentList = assignments
+            .map(a => `• #${a.number} – ${a.title}\n${a.url}`)
+            .join('\n');
         const spamUser = isSpamUser(requesterUsername);
         const maxAllowed = spamUser ? 1 : 2;
 
@@ -344,11 +355,15 @@ module.exports = async ({ github, context }) => {
             spamUser,
             maxAllowed,
         });
-
         if (openCount >= maxAllowed) {
+
             const message = spamUser
-                ? `Hi @${requesterUsername}, you are limited to **1 active issue** at a time. Please complete your current assignment before requesting another.`
-                : `Hi @${requesterUsername}, you already have **2 open assignments**. Please finish one before requesting another.`;
+            ? `Hi @${requesterUsername}, you are limited to **1 active issue** at a time. Please complete your current assignment before requesting another.`
+            : `👋 Hi @${requesterUsername}, you already have **${openCount} open assignment${openCount > 1 ? 's' : ''}**:
+
+            ${assignmentList}
+
+            Please finish one before requesting another.`;
 
             await github.rest.issues.createComment({
                 owner,
