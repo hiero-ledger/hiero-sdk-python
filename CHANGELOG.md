@@ -14,6 +14,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)
 
 ### Src
+- Expose missing `TransactionRecord` protobuf fields (#1636)
 - Updated `generated_proto.py` file to work with new proto version
 - fix: Ensure UTF-8 encoding when reading and writing proto files in `generate_proto.py` to prevent encoding issues on Windows (`#1963`)
 
