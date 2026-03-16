@@ -403,5 +403,6 @@ def test_integration_account_update_transaction_with_staked_node_id(env):
 
     if receipt.status == ResponseCode.SUCCESS:
         info = AccountInfoQuery(account_id).execute(env.client)
+        assert info.staking_info is not None, "Staking info should be set"
         assert info.staking_info.staked_node_id == 0
         assert info.staking_info.staked_account_id is None

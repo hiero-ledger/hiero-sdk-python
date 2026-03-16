@@ -265,6 +265,7 @@ def test_create_account_with_decline_reward(env):
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
     assert info.account_id == account_id
+    assert info.staking_info is not None, "Staking info should be set"
     assert info.staking_info.staked_account_id == env.operator_id
     assert info.staking_info.decline_reward is True
 
