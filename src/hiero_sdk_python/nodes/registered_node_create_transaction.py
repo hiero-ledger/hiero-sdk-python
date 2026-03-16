@@ -8,7 +8,6 @@ from hiero_sdk_python.address_book.registered_service_endpoint import (
     RegisteredServiceEndpoint,
 )
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.registered_node_create_pb2 import (
     RegisteredNodeCreateTransactionBody,
@@ -18,7 +17,12 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import (
+    Key,
+    contains_empty_key_list,
+    key_from_proto,
+    key_to_proto,
+)
 
 
 @dataclass
@@ -32,6 +36,8 @@ class RegisteredNodeCreateParams:
 
 class RegisteredNodeCreateTransaction(Transaction):
     """Create a registered node in the address book."""
+
+    MAX_DESCRIPTION_BYTES = 100
 
     def __init__(self, registered_node_create_params: RegisteredNodeCreateParams | None = None) -> None:
         """Initialize a registered node create transaction."""
@@ -71,10 +77,14 @@ class RegisteredNodeCreateTransaction(Transaction):
         """Validate the transaction fields."""
         if self.admin_key is None:
             raise ValueError("Missing required admin_key")
+        if contains_empty_key_list(self.admin_key):
+            raise ValueError("admin_key must not contain an empty KeyList.")
         if not self.service_endpoints:
             raise ValueError("At least one service endpoint is required.")
         if len(self.service_endpoints) > 50:
             raise ValueError("A maximum of 50 service endpoints is allowed.")
+        if self.description is not None and len(self.description.encode("utf-8")) > self.MAX_DESCRIPTION_BYTES:
+            raise ValueError("Description must not exceed 100 UTF-8 bytes.")
 
     def _build_proto_body(self) -> RegisteredNodeCreateTransactionBody:
         """Build the protobuf body for the registered node create transaction."""
@@ -112,9 +122,7 @@ class RegisteredNodeCreateTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("registeredNodeCreate"):
             create_body = transaction_body.registeredNodeCreate
-            transaction.admin_key = (
-                PublicKey._from_proto(create_body.admin_key) if create_body.HasField("admin_key") else None
-            )
+            transaction.admin_key = key_from_proto(create_body.admin_key) if create_body.HasField("admin_key") else None
             transaction.description = create_body.description or None
             transaction.service_endpoints = [
                 RegisteredServiceEndpoint._from_proto(endpoint_proto) for endpoint_proto in create_body.service_endpoint

@@ -9,6 +9,7 @@ from hiero_sdk_python.address_book.block_node_service_endpoint import (
     BlockNodeServiceEndpoint,
 )
 from hiero_sdk_python.address_book.registered_node import RegisteredNode
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services.state.addressbook.registered_node_pb2 import (
     RegisteredNode as RegisteredNodeProto,
@@ -19,7 +20,12 @@ pytestmark = pytest.mark.unit
 
 def test_registered_node_roundtrip():
     """Registered nodes should round-trip through protobuf."""
-    admin_key = PrivateKey.generate_ed25519().public_key()
+    admin_key = KeyList(
+        [
+            PrivateKey.generate_ed25519().public_key(),
+            PrivateKey.generate_ecdsa().public_key(),
+        ]
+    )
     endpoint = BlockNodeServiceEndpoint(
         domain_name="block.example.com",
         port=443,

@@ -10,7 +10,6 @@ from hiero_sdk_python.address_book.registered_service_endpoint import (
     RegisteredServiceEndpoint,
 )
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.registered_node_update_pb2 import (
     RegisteredNodeUpdateTransactionBody,
@@ -20,7 +19,12 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import (
+    Key,
+    contains_empty_key_list,
+    key_from_proto,
+    key_to_proto,
+)
 
 
 @dataclass
@@ -35,6 +39,8 @@ class RegisteredNodeUpdateParams:
 
 class RegisteredNodeUpdateTransaction(Transaction):
     """Update an existing registered node."""
+
+    MAX_DESCRIPTION_BYTES = 100
 
     def __init__(self, registered_node_update_params: RegisteredNodeUpdateParams | None = None) -> None:
         """Initialize a registered node update transaction."""
@@ -81,8 +87,12 @@ class RegisteredNodeUpdateTransaction(Transaction):
         """Validate the transaction fields."""
         if self.registered_node_id is None:
             raise ValueError("Missing required RegisteredNodeID")
+        if contains_empty_key_list(self.admin_key):
+            raise ValueError("admin_key must not contain an empty KeyList.")
         if len(self.service_endpoints) > 50:
             raise ValueError("A maximum of 50 service endpoints is allowed.")
+        if self.description is not None and len(self.description.encode("utf-8")) > self.MAX_DESCRIPTION_BYTES:
+            raise ValueError("Description must not exceed 100 UTF-8 bytes.")
 
     def _build_proto_body(self) -> RegisteredNodeUpdateTransactionBody:
         """Build the protobuf body for the registered node update transaction."""
@@ -122,9 +132,7 @@ class RegisteredNodeUpdateTransaction(Transaction):
         if transaction_body.HasField("registeredNodeUpdate"):
             update_body = transaction_body.registeredNodeUpdate
             transaction.registered_node_id = update_body.registered_node_id
-            transaction.admin_key = (
-                PublicKey._from_proto(update_body.admin_key) if update_body.HasField("admin_key") else None
-            )
+            transaction.admin_key = key_from_proto(update_body.admin_key) if update_body.HasField("admin_key") else None
             transaction.description = update_body.description.value if update_body.HasField("description") else None
             transaction.service_endpoints = [
                 RegisteredServiceEndpoint._from_proto(endpoint_proto) for endpoint_proto in update_body.service_endpoint

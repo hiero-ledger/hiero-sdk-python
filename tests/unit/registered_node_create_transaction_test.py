@@ -11,7 +11,9 @@ from hiero_sdk_python.address_book.block_node_service_endpoint import (
 from hiero_sdk_python.address_book.registered_service_endpoint import (
     RegisteredServiceEndpoint,
 )
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.threshold_key import ThresholdKey
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -176,6 +178,73 @@ def test_build_transaction_body_accepts_private_key_admin_key(mock_account_ids, 
     assert transaction_body.registeredNodeCreate.admin_key == admin_key.public_key()._to_proto()
 
 
+def test_build_transaction_body_accepts_key_list_admin_key(mock_account_ids, service_endpoint):
+    """Composite key lists should be accepted for admin_key."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    first_key = PrivateKey.generate_ed25519().public_key()
+    second_key = PrivateKey.generate_ecdsa().public_key()
+    admin_key = KeyList([first_key, second_key])
+    transaction = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key)
+        .add_service_endpoint(service_endpoint)
+    )
+    transaction.operator_account_id = operator_id
+    transaction.node_account_id = node_account_id
+
+    transaction_body = transaction.build_transaction_body()
+
+    assert transaction_body.registeredNodeCreate.admin_key == admin_key._to_proto()
+
+
+def test_build_transaction_body_rejects_descriptions_over_100_utf8_bytes(mock_account_ids, service_endpoint):
+    """Descriptions must be capped at 100 UTF-8 bytes."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    transaction = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(PrivateKey.generate_ed25519().public_key())
+        .set_description("é" * 51)
+        .add_service_endpoint(service_endpoint)
+    )
+    transaction.operator_account_id = operator_id
+    transaction.node_account_id = node_account_id
+
+    with pytest.raises(ValueError, match="Description must not exceed 100 UTF-8 bytes."):
+        transaction.build_transaction_body()
+
+
+def test_build_transaction_body_rejects_empty_key_list_admin_key(mock_account_ids, service_endpoint):
+    """Empty key lists should be rejected for admin_key."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    transaction = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(KeyList())
+        .add_service_endpoint(service_endpoint)
+    )
+    transaction.operator_account_id = operator_id
+    transaction.node_account_id = node_account_id
+
+    with pytest.raises(ValueError, match="admin_key must not contain an empty KeyList."):
+        transaction.build_transaction_body()
+
+
+def test_build_transaction_body_rejects_threshold_key_with_empty_child_key_list(
+    mock_account_ids, service_endpoint
+):
+    """Composite admin keys should also reject empty child key lists."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    transaction = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(ThresholdKey(threshold=1, keys=KeyList()))
+        .add_service_endpoint(service_endpoint)
+    )
+    transaction.operator_account_id = operator_id
+    transaction.node_account_id = node_account_id
+
+    with pytest.raises(ValueError, match="admin_key must not contain an empty KeyList."):
+        transaction.build_transaction_body()
+
+
 def test_from_bytes_restores_registered_node_create_transaction(mock_client, registered_node_create_params):
     """Transaction.from_bytes should restore the registered-node create type."""
     transaction = RegisteredNodeCreateTransaction(registered_node_create_params)
@@ -188,3 +257,25 @@ def test_from_bytes_restores_registered_node_create_transaction(mock_client, reg
     assert restored.admin_key == registered_node_create_params.admin_key
     assert len(restored.service_endpoints) == 1
     assert isinstance(restored.service_endpoints[0], RegisteredServiceEndpoint)
+
+
+def test_from_bytes_restores_registered_node_create_with_key_list_admin_key(mock_client, service_endpoint):
+    """Composite admin keys should round-trip through registered node create bytes."""
+    admin_key = KeyList(
+        [
+            PrivateKey.generate_ed25519().public_key(),
+            PrivateKey.generate_ecdsa().public_key(),
+        ]
+    )
+    transaction = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key)
+        .set_description("block node")
+        .add_service_endpoint(service_endpoint)
+    )
+    transaction.freeze_with(mock_client)
+
+    restored = Transaction.from_bytes(transaction.to_bytes())
+
+    assert isinstance(restored, RegisteredNodeCreateTransaction)
+    assert restored.admin_key == admin_key

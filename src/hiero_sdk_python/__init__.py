@@ -13,8 +13,10 @@ from .account.account_allowance_delete_transaction import AccountAllowanceDelete
 from .account.account_records_query import AccountRecordsQuery
 
 # Crypto
+from .crypto.key_list import KeyList
 from .crypto.private_key import PrivateKey
 from .crypto.public_key import PublicKey
+from .crypto.threshold_key import ThresholdKey
 from .crypto.evm_address import EvmAddress
 
 # Tokens
@@ -179,6 +181,8 @@ __all__ = [
     # Crypto
     "PrivateKey",
     "PublicKey",
+    "KeyList",
+    "ThresholdKey",
     "EvmAddress",
     # Tokens
     "TokenCreateTransaction",
