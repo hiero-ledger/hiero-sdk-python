@@ -473,6 +473,12 @@ class PrivateKey(Key):
             raise ValueError(f"Failed to derive ECDSA private key: {exc}") from exc
     
     def to_proto_key(self) -> basic_types_pb2.Key:
+        """
+        Convert the instance of PrivateKey to the protobuf object of Key.
+        
+        Returns:
+            basic_types_pb2.Key: The protobuf object of Key.
+        """
         return self.public_key().to_proto_key()
     
     def __eq__(self, other: object) -> bool:

@@ -344,6 +344,12 @@ class PublicKey(Key):
         return basic_types_pb2.Key(ECDSA_secp256k1=pub_bytes)
     
     def to_proto_key(self) -> basic_types_pb2.Key:
+        """
+        Convert the instance of PublicKey to the protobuf object of Key.
+        
+        Returns:
+            basic_types_pb2.Key: The protobuf object of Key.
+        """
         return self._to_proto()
 
     #

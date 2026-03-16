@@ -93,6 +93,12 @@ class ContractId(Key):
         )
     
     def to_proto_key(self) -> basic_types_pb2.Key:
+        """
+        Convert the ContractId instance to a protobuf Key object.
+
+        Returns:
+            basic_types_pb2.Key: The protobuf object of Key
+        """
         return basic_types_pb2.Key(contractID=self._to_proto())
 
     @classmethod
