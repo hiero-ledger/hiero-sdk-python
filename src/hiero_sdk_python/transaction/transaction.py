@@ -8,9 +8,9 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_pb2, transaction_contents_pb2)
+from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_pb2, transaction_contents_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -49,7 +49,7 @@ class Transaction(_Executable):
 
         self.transaction_id = None
         self.transaction_fee: int | None = None
-        self.transaction_valid_duration = 120 
+        self.transaction_valid_duration = 120
         self.generate_record = False
         self.memo = ""
         self.custom_fee_limits: list[CustomFeeLimit] = []
@@ -59,14 +59,14 @@ class Transaction(_Executable):
         # Each transaction body has the AccountId of the node it's being submitted to.
         # If these do not match `INVALID_NODE_ACCOUNT` error will occur.
         self._transaction_body_bytes: dict[AccountId, bytes] = {}
-        
+
         # Maps transaction body bytes to their associated signatures
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         # changed from int: 2_000_000 to Hbar: 0.02
         self._default_transaction_fee = Hbar(0.02)
-        self.operator_account_id = None  
+        self.operator_account_id = None
         self.batch_key: Optional[Key] = None
 
     def _make_request(self):
@@ -81,11 +81,7 @@ class Transaction(_Executable):
         """
         return self._to_proto()
 
-    def _map_response(
-            self, 
-            response, 
-            node_id, 
-            proto_request):
+    def _map_response(self, response, node_id, proto_request):
         """
         Implements the Executable._map_response method to create a TransactionResponse.
 
@@ -139,7 +135,7 @@ class Transaction(_Executable):
             ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
             ResponseCode.PLATFORM_NOT_ACTIVE,
             ResponseCode.BUSY,
-            ResponseCode.INVALID_NODE_ACCOUNT
+            ResponseCode.INVALID_NODE_ACCOUNT,
         }
 
         if status in retryable_statuses:
@@ -165,7 +161,7 @@ class Transaction(_Executable):
         """
         error_code = response.nodeTransactionPrecheckCode
         tx_id = self.transaction_id
-        
+
         return PrecheckError(error_code, tx_id)
 
     def sign(self, private_key: "PrivateKey") -> "Transaction":
@@ -183,7 +179,7 @@ class Transaction(_Executable):
         """
         # We require the transaction to be frozen before signing
         self._require_frozen()
-        
+
         # We sign the bodies for each node in case we need to switch nodes during execution.
         for body_bytes in self._transaction_body_bytes.values():
             signature = private_key.sign(body_bytes)
@@ -191,22 +187,16 @@ class Transaction(_Executable):
             public_key_bytes = private_key.public_key().to_bytes_raw()
 
             if private_key.is_ed25519():
-                sig_pair = basic_types_pb2.SignaturePair(
-                    pubKeyPrefix=public_key_bytes,
-                    ed25519=signature
-                )
+                sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ed25519=signature)
             else:
-                sig_pair = basic_types_pb2.SignaturePair(
-                    pubKeyPrefix=public_key_bytes,
-                    ECDSA_secp256k1=signature
-                )
+                sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature)
 
             # We initialize the signature map for this body_bytes if it doesn't exist yet
             self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap())
 
             # Append the signature pair to the signature map for this transaction body
             self._signature_map[body_bytes].sigPair.append(sig_pair)
-        
+
         return self
 
     def _to_proto(self):
@@ -231,14 +221,9 @@ class Transaction(_Executable):
         if sig_map is None:
             sig_map = basic_types_pb2.SignatureMap()
 
-        signed_transaction = transaction_contents_pb2.SignedTransaction(
-            bodyBytes=body_bytes,
-            sigMap=sig_map
-        )
+        signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes, sigMap=sig_map)
 
-        return transaction_pb2.Transaction(
-            signedTransactionBytes=signed_transaction.SerializeToString()
-        )
+        return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
     def freeze(self):
         """
@@ -260,13 +245,17 @@ class Transaction(_Executable):
         """
         if self._transaction_body_bytes:
             return self
-        
+
         if self.transaction_id is None:
-            raise ValueError("Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id().")
-        
+            raise ValueError(
+                "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
+            )
+
         if self.node_account_id is None and len(self.node_account_ids) == 0:
-            raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids.")
-        
+            raise ValueError(
+                "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
+            )
+
         # Populate node_account_ids for backward compatibility
         if self.node_account_id:
             self.set_node_account_id(self.node_account_id)
@@ -277,7 +266,7 @@ class Transaction(_Executable):
         for node_account_id in self.node_account_ids:
             self.node_account_id = node_account_id
             self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
-        
+
         return self
 
     def freeze_with(self, client):
@@ -295,26 +284,26 @@ class Transaction(_Executable):
         """
         if self._transaction_body_bytes:
             return self
-        
+
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
-        
+
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
 
         if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
-            self.node_account_id = AccountId(0,0,0)
-            self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
+            self.node_account_id = AccountId(0, 0, 0)
+            self._transaction_body_bytes[AccountId(0, 0, 0)] = self.build_transaction_body().SerializeToString()
             return self
-        
+
         # Single node
         if self.node_account_id:
             self.set_node_account_id(self.node_account_id)
             self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
             return self
-        
+
         # Multiple node
         if len(self.node_account_ids) > 0:
             for node_account_id in self.node_account_ids:
@@ -328,15 +317,14 @@ class Transaction(_Executable):
                 self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
 
         return self
-    
+
     @overload
     def execute(
         self,
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
-    ) -> "TransactionReceipt":
-        ...
+    ) -> "TransactionReceipt": ...
 
     @overload
     def execute(
@@ -344,14 +332,10 @@ class Transaction(_Executable):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
-    ) -> "TransactionResponse":
-        ...
+    ) -> "TransactionResponse": ...
 
     def execute(
-        self, 
-        client: "Client", 
-        timeout: int | float | None = None, 
-        wait_for_receipt: bool = True
+        self, client: "Client", timeout: int | float | None = None, wait_for_receipt: bool = True
     ) -> TransactionReceipt | TransactionResponse:
         """
         Executes the transaction on the Hedera network using the provided client.
@@ -374,6 +358,7 @@ class Transaction(_Executable):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         from hiero_sdk_python.transaction.batch_transaction import BatchTransaction
+
         if self.batch_key and not isinstance(self, (BatchTransaction)):
             raise ValueError("Cannot execute batchified transaction outside of BatchTransaction.")
 
@@ -395,7 +380,7 @@ class Transaction(_Executable):
 
         if wait_for_receipt:
             return response.get_receipt(client, timeout=timeout)
-        
+
         return response
 
     def is_signed_by(self, public_key):
@@ -409,12 +394,12 @@ class Transaction(_Executable):
             bool: True if signed by the given public key, False otherwise.
         """
         public_key_bytes = public_key.to_bytes_raw()
-        
+
         sig_map = self._signature_map.get(self._transaction_body_bytes.get(self.node_account_id))
-        
+
         if sig_map is None:
             return False
-        
+
         for sig_pair in sig_map.sigPair:
             if sig_pair.pubKeyPrefix == public_key_bytes:
                 return True
@@ -461,9 +446,9 @@ class Transaction(_Executable):
             ValueError: If required IDs are not set.
         """
         if self.transaction_id is None:
-                if self.operator_account_id is None:
-                    raise ValueError("Operator account ID is not set.")
-                self.transaction_id = TransactionId.generate(self.operator_account_id)
+            if self.operator_account_id is None:
+                raise ValueError("Operator account ID is not set.")
+            self.transaction_id = TransactionId.generate(self.operator_account_id)
 
         transaction_id_proto = self.transaction_id._to_proto()
 
@@ -649,10 +634,10 @@ class Transaction(_Executable):
             Exception: If the transaction has not been frozen yet.
         """
         self._require_frozen()
-        
+
         # Get the transaction protobuf
         transaction_proto = self._to_proto()
-        
+
         # Serialize to bytes
         return transaction_proto.SerializeToString()
 
@@ -815,11 +800,14 @@ class Transaction(_Executable):
             "nodeCreate": "hiero_sdk_python.nodes.node_create_transaction.NodeCreateTransaction",
             "nodeUpdate": "hiero_sdk_python.nodes.node_update_transaction.NodeUpdateTransaction",
             "nodeDelete": "hiero_sdk_python.nodes.node_delete_transaction.NodeDeleteTransaction",
+            "registeredNodeCreate": "hiero_sdk_python.nodes.registered_node_create_transaction.RegisteredNodeCreateTransaction",
+            "registeredNodeUpdate": "hiero_sdk_python.nodes.registered_node_update_transaction.RegisteredNodeUpdateTransaction",
+            "registeredNodeDelete": "hiero_sdk_python.nodes.registered_node_delete_transaction.RegisteredNodeDeleteTransaction",
             "utilPrng": "hiero_sdk_python.prng_transaction.PrngTransaction",
             "tokenReject": "hiero_sdk_python.tokens.token_reject_transaction.TokenRejectTransaction",
             "tokenAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction.TokenAirdropTransaction",
             "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_cancel_airdrop_transaction.TokenCancelAirdropTransaction",
-            "atomic_batch": "hiero_sdk_python.transaction.batch_transaction.BatchTransaction"
+            "atomic_batch": "hiero_sdk_python.transaction.batch_transaction.BatchTransaction",
         }
 
         class_path = transaction_type_map.get(transaction_type)
@@ -865,6 +853,7 @@ class Transaction(_Executable):
 
         if transaction_body.max_custom_fees:
             from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+
             transaction.custom_fee_limits = [
                 CustomFeeLimit._from_proto(fee) for fee in transaction_body.max_custom_fees
             ]
@@ -878,7 +867,7 @@ class Transaction(_Executable):
             transaction._signature_map[body_bytes] = sig_map
 
         return transaction
-    
+
     def set_batch_key(self, key: Key):
         """
         Set the batch key required for batch transaction.
@@ -887,12 +876,12 @@ class Transaction(_Executable):
             batch_key (Key): Key to use as batch key (accepts both PrivateKey and PublicKey).
 
         Returns:
-            Transaction: A reconstructed transaction instance of the appropriate subclass. 
+            Transaction: A reconstructed transaction instance of the appropriate subclass.
         """
         self._require_not_frozen()
         self.batch_key = key
         return self
-    
+
     def batchify(self, client: Client, batch_key: Key):
         """
         Marks the current transaction as an inner (batched) transaction.
@@ -900,7 +889,7 @@ class Transaction(_Executable):
         Args:
             client (Client): The client instance to use for setting defaults.
             batch_key (Key): Key to use as batch key (accepts both PrivateKey and PublicKey).
-        
+
         Returns:
             Transaction: A reconstructed transaction instance of the appropriate subclass.
         """

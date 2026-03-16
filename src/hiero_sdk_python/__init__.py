@@ -13,8 +13,10 @@ from .account.account_allowance_delete_transaction import AccountAllowanceDelete
 from .account.account_records_query import AccountRecordsQuery
 
 # Crypto
+from .crypto.key_list import KeyList
 from .crypto.private_key import PrivateKey
 from .crypto.public_key import PublicKey
+from .crypto.threshold_key import ThresholdKey
 from .crypto.evm_address import EvmAddress
 
 # Tokens
@@ -94,8 +96,18 @@ from .query.token_info_query import TokenInfoQuery
 from .query.account_info_query import AccountInfoQuery
 
 # Address book
+from .address_book.block_node_api import BlockNodeApi
+from .address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from .address_book.endpoint import Endpoint
+from .address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
 from .address_book.node_address import NodeAddress
+from .address_book.registered_node import RegisteredNode
+from .address_book.registered_node_address_book import RegisteredNodeAddressBook
+from .address_book.registered_node_address_book_query import (
+    RegisteredNodeAddressBookQuery,
+)
+from .address_book.registered_service_endpoint import RegisteredServiceEndpoint
+from .address_book.rpc_relay_service_endpoint import RpcRelayServiceEndpoint
 
 # Logger
 from .logger.logger import Logger
@@ -133,8 +145,11 @@ from .schedule.schedule_delete_transaction import ScheduleDeleteTransaction
 
 # Nodes
 from .nodes.node_create_transaction import NodeCreateTransaction
-from .nodes.node_update_transaction import NodeUpdateTransaction
 from .nodes.node_delete_transaction import NodeDeleteTransaction
+from .nodes.node_update_transaction import NodeUpdateTransaction
+from .nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
+from .nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
+from .nodes.registered_node_update_transaction import RegisteredNodeUpdateTransaction
 
 # PRNG
 from .prng_transaction import PrngTransaction
@@ -154,7 +169,6 @@ __all__ = [
     # Client
     "Client",
     "Network",
-
     # Account
     "AccountId",
     "AccountCreateTransaction",
@@ -164,12 +178,12 @@ __all__ = [
     "AccountAllowanceApproveTransaction",
     "AccountAllowanceDeleteTransaction",
     "AccountRecordsQuery",
-
     # Crypto
     "PrivateKey",
     "PublicKey",
+    "KeyList",
+    "ThresholdKey",
     "EvmAddress",
-
     # Tokens
     "TokenCreateTransaction",
     "TokenAssociateTransaction",
@@ -204,7 +218,6 @@ __all__ = [
     "TokenPauseTransaction",
     "TokenUnpauseTransaction",
     "AssessedCustomFee",
-
     # Transaction
     "Transaction",
     "TransferTransaction",
@@ -213,17 +226,14 @@ __all__ = [
     "TransactionResponse",
     "TransactionRecord",
     "BatchTransaction",
-
     # Response
     "ResponseCode",
-
     # Consensus
     "TopicCreateTransaction",
     "TopicMessageSubmitTransaction",
     "TopicUpdateTransaction",
     "TopicDeleteTransaction",
     "TopicId",
-
     # Queries
     "TopicInfoQuery",
     "TopicMessageQuery",
@@ -233,15 +243,20 @@ __all__ = [
     "TokenNftInfoQuery",
     "TokenInfoQuery",
     "AccountInfoQuery",
-    
     # Address book
+    "BlockNodeApi",
+    "BlockNodeServiceEndpoint",
     "Endpoint",
+    "MirrorNodeServiceEndpoint",
     "NodeAddress",
-    
+    "RegisteredNode",
+    "RegisteredNodeAddressBook",
+    "RegisteredNodeAddressBookQuery",
+    "RegisteredServiceEndpoint",
+    "RpcRelayServiceEndpoint",
     # Logger
     "Logger",
     "LogLevel",
-
     # HBAR
     "Hbar",
     "HbarUnit",
@@ -249,7 +264,6 @@ __all__ = [
     "Timestamp",
     "Duration",
     "StakingInfo",
-
     # File
     "FileCreateTransaction",
     "FileAppendTransaction",
@@ -258,7 +272,6 @@ __all__ = [
     "FileContentsQuery",
     "FileUpdateTransaction",
     "FileDeleteTransaction",
-
     # Contract
     "ContractCreateTransaction",
     "ContractCallQuery",
@@ -271,7 +284,6 @@ __all__ = [
     "ContractInfo",
     "ContractUpdateTransaction",
     "EthereumTransaction",
-
     # Schedule
     "ScheduleCreateTransaction",
     "ScheduleId",
@@ -279,22 +291,21 @@ __all__ = [
     "ScheduleInfo",
     "ScheduleSignTransaction",
     "ScheduleDeleteTransaction",
-
     # Nodes
     "NodeCreateTransaction",
-    "NodeUpdateTransaction",
     "NodeDeleteTransaction",
-
+    "NodeUpdateTransaction",
+    "RegisteredNodeCreateTransaction",
+    "RegisteredNodeDeleteTransaction",
+    "RegisteredNodeUpdateTransaction",
     # PRNG
     "PrngTransaction",
-
     # Custom Fees
     "CustomFee",
     "CustomFixedFee",
     "CustomFractionalFee",
     "CustomRoyaltyFee",
     "CustomFeeLimit",
-
     # System
     "FreezeTransaction",
     "FreezeType",

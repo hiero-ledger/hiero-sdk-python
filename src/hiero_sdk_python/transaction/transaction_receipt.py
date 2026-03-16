@@ -11,15 +11,18 @@ It wraps the underlying protobuf object and exposes key properties.
 Classes:
     - TransactionReceipt: Parses and exposes fields from a transaction receipt protobuf.
 """
+
 from typing import Optional, cast
-from hiero_sdk_python.file.file_id import FileId
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hapi.services import response_code_pb2, transaction_receipt_pb2
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.hapi.services import transaction_receipt_pb2, response_code_pb2
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.consensus.topic_id import TopicId
+
 
 class TransactionReceipt:
     """
@@ -62,10 +65,7 @@ class TransactionReceipt:
         Returns:
             TokenId or None: The TokenId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("tokenID")
-            and self._receipt_proto.tokenID.tokenNum != 0
-        ):
+        if self._receipt_proto.HasField("tokenID") and self._receipt_proto.tokenID.tokenNum != 0:
             return TokenId._from_proto(self._receipt_proto.tokenID)
         return None
 
@@ -77,10 +77,7 @@ class TransactionReceipt:
         Returns:
             TopicId or None: The TopicId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("topicID")
-            and self._receipt_proto.topicID.topicNum != 0
-        ):
+        if self._receipt_proto.HasField("topicID") and self._receipt_proto.topicID.topicNum != 0:
             return TopicId._from_proto(self._receipt_proto.topicID)
         return None
 
@@ -92,10 +89,7 @@ class TransactionReceipt:
         Returns:
             AccountId or None: The AccountId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("accountID")
-            and self._receipt_proto.accountID.accountNum != 0
-        ):
+        if self._receipt_proto.HasField("accountID") and self._receipt_proto.accountID.accountNum != 0:
             return AccountId._from_proto(self._receipt_proto.accountID)
         return None
 
@@ -114,10 +108,7 @@ class TransactionReceipt:
         """
         Returns the file ID associated with this receipt.
         """
-        if (
-            self._receipt_proto.HasField("fileID")
-            and self._receipt_proto.fileID.fileNum != 0
-        ):
+        if self._receipt_proto.HasField("fileID") and self._receipt_proto.fileID.fileNum != 0:
             return FileId._from_proto(self._receipt_proto.fileID)
         return None
 
@@ -139,10 +130,7 @@ class TransactionReceipt:
         Returns:
             ContractId or None: The ContractId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("contractID")
-            and self._receipt_proto.contractID.contractNum != 0
-        ):
+        if self._receipt_proto.HasField("contractID") and self._receipt_proto.contractID.contractNum != 0:
             return ContractId._from_proto(self._receipt_proto.contractID)
 
         return None
@@ -155,10 +143,7 @@ class TransactionReceipt:
         Returns:
             ScheduleId or None: The ScheduleId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("scheduleID")
-            and self._receipt_proto.scheduleID.scheduleNum != 0
-        ):
+        if self._receipt_proto.HasField("scheduleID") and self._receipt_proto.scheduleID.scheduleNum != 0:
             return ScheduleId._from_proto(self._receipt_proto.scheduleID)
 
         return None
@@ -187,6 +172,18 @@ class TransactionReceipt:
         return self._receipt_proto.node_id
 
     @property
+    def registered_node_id(self) -> Optional[int]:
+        """
+        Returns the registered node ID associated with this receipt.
+
+        Returns:
+            int | None: The registered node ID if present; otherwise, None.
+        """
+        if self._receipt_proto.registered_node_id == 0:
+            return None
+        return self._receipt_proto.registered_node_id
+
+    @property
     def topic_sequence_number(self) -> int:
         """
         Returns the topic sequence number associated with this receipt.
@@ -204,7 +201,7 @@ class TransactionReceipt:
         Returns:
             int: The running hash of the topic if present, otherwise None.
         """
-        if self._receipt_proto.HasField('topicRunningHash'):
+        if self._receipt_proto.HasField("topicRunningHash"):
             return self._receipt_proto.topicRunningHash
 
         return None
@@ -237,7 +234,7 @@ class TransactionReceipt:
             list[TransactionReceipt]: Duplicate receipts (empty if not requested or none exist).
         """
         return self._duplicates
-    
+
     def _set_duplicates(self, duplicates: list["TransactionReceipt"]) -> None:
         """
         Internal setter for duplicate receipts (used by receipt queries).
@@ -257,12 +254,18 @@ class TransactionReceipt:
         return self._receipt_proto
 
     @classmethod
-    def _from_proto(cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: TransactionId) -> "TransactionReceipt":
+    def _from_proto(
+        cls,
+        proto: transaction_receipt_pb2.TransactionReceipt,
+        transaction_id: TransactionId,
+    ) -> "TransactionReceipt":
         """
         Creates a TransactionReceipt instance from a protobuf TransactionReceipt object.
+
         Args:
             proto (transaction_receipt_pb2.TransactionReceipt): The protobuf TransactionReceipt object.
             transaction_id (TransactionId): The transaction ID associated with this receipt.
+
         Returns:
             TransactionReceipt: A new instance of TransactionReceipt populated with data from the protobuf object.
         """

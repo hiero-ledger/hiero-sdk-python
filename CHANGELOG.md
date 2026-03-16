@@ -15,7 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Src
 - Updated `generated_proto.py` file to work with new proto version
-- fix: Ensure UTF-8 encoding when reading and writing proto files in `generate_proto.py` to prevent encoding issues on Windows (`#1963`)
+- fix: Ensure UTF-8 encoding when reading and writing proto files in `generate_proto.py` to prevent encoding issues on Windows (`#1911`)
 
 
 ### Examples
