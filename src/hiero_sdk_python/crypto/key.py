@@ -40,6 +40,7 @@ class Key(ABC):
         from hiero_sdk_python.crypto.public_key import PublicKey
         from hiero_sdk_python.crypto.evm_address import EvmAddress
         from hiero_sdk_python.contract.contract_id import ContractId
+        from hiero_sdk_python.contract.delegate_contract_id import DelegateContractId
         from hiero_sdk_python.crypto.key_list import KeyList
 
         if not isinstance(proto, basic_types_pb2.Key):
@@ -61,7 +62,7 @@ class Key(ABC):
                 return ContractId._from_proto(proto.contractID)
 
             case "delegatable_contract_id":
-                return ContractId._from_proto(proto.delegatable_contract_id)
+                return DelegateContractId._from_proto(proto.delegatable_contract_id)
 
             case "keyList":
                 return KeyList.from_proto(proto=proto.keyList)

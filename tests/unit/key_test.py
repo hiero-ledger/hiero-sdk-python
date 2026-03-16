@@ -1,5 +1,6 @@
 import pytest
 
+from hiero_sdk_python.contract.delegate_contract_id import DelegateContractId
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -85,7 +86,7 @@ def test_from_proto_key_delegatable_contract_id():
 
     loaded = Key.from_proto_key(proto)
 
-    assert isinstance(loaded, ContractId)
+    assert isinstance(loaded, DelegateContractId)
 
 
 def test_from_proto_key_keylist():
