@@ -54,9 +54,18 @@ class RegisteredServiceEndpoint:
     def _validate_domain_name(self) -> None:
         """Validate the endpoint domain name."""
         domain_name = self.domain_name
+        self._validate_domain_name_presence(domain_name)
+        self._validate_domain_name_length_and_ascii(domain_name)
+        normalized_domain = self._normalize_domain_name(domain_name)
+        self._validate_domain_labels(normalized_domain)
+
+    def _validate_domain_name_presence(self, domain_name: str | None) -> None:
+        """Ensure the domain name is present."""
         if not domain_name:
             raise ValueError("domain_name must not be empty.")
 
+    def _validate_domain_name_length_and_ascii(self, domain_name: str) -> None:
+        """Ensure the domain name length and charset are valid."""
         if len(domain_name) > 250:
             raise ValueError("domain_name must not exceed 250 ASCII characters.")
 
@@ -65,10 +74,16 @@ class RegisteredServiceEndpoint:
         except UnicodeEncodeError as exc:
             raise ValueError("domain_name must contain only ASCII characters.") from exc
 
+    def _normalize_domain_name(self, domain_name: str) -> str:
+        """Normalize a domain name for validation."""
         normalized_domain = domain_name[:-1] if domain_name.endswith(".") else domain_name
         if not normalized_domain:
             raise ValueError("domain_name must not be empty.")
 
+        return normalized_domain
+
+    def _validate_domain_labels(self, normalized_domain: str) -> None:
+        """Validate each label in the normalized domain name."""
         labels = normalized_domain.split(".")
         if any(not label for label in labels):
             raise ValueError("domain_name must be a valid domain name.")
