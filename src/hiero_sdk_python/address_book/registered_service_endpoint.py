@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import ipaddress
+import re
 from dataclasses import dataclass
 from typing import Any
 
 from hiero_sdk_python.hapi.services.registered_service_endpoint_pb2 import (
     RegisteredServiceEndpoint as RegisteredServiceEndpointProto,
 )
+
+_DOMAIN_LABEL_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$")
 
 
 @dataclass(eq=True)
@@ -33,6 +37,45 @@ class RegisteredServiceEndpoint:
 
         if not 0 <= self.port <= 65535:
             raise ValueError("port must be between 0 and 65535.")
+
+        if self.ip_address is not None:
+            self._validate_ip_address()
+
+        if self.domain_name is not None:
+            self._validate_domain_name()
+
+    def _validate_ip_address(self) -> None:
+        """Validate the packed IP address bytes."""
+        try:
+            ipaddress.ip_address(self.ip_address)
+        except ValueError as exc:
+            raise ValueError("ip_address must be a valid packed IPv4 or IPv6 address.") from exc
+
+    def _validate_domain_name(self) -> None:
+        """Validate the endpoint domain name."""
+        domain_name = self.domain_name
+        if not domain_name:
+            raise ValueError("domain_name must not be empty.")
+
+        if len(domain_name) > 250:
+            raise ValueError("domain_name must not exceed 250 ASCII characters.")
+
+        try:
+            domain_name.encode("ascii")
+        except UnicodeEncodeError as exc:
+            raise ValueError("domain_name must contain only ASCII characters.") from exc
+
+        normalized_domain = domain_name[:-1] if domain_name.endswith(".") else domain_name
+        if not normalized_domain:
+            raise ValueError("domain_name must not be empty.")
+
+        labels = normalized_domain.split(".")
+        if any(not label for label in labels):
+            raise ValueError("domain_name must be a valid domain name.")
+
+        for label in labels:
+            if not _DOMAIN_LABEL_RE.fullmatch(label):
+                raise ValueError("domain_name must be a valid domain name.")
 
     @classmethod
     def _base_kwargs_from_proto(cls, proto: RegisteredServiceEndpointProto) -> dict[str, Any]:

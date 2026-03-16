@@ -18,13 +18,14 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 
 @dataclass
 class RegisteredNodeCreateParams:
     """Fields supported by a registered node create transaction."""
 
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     description: str | None = None
     service_endpoints: list[RegisteredServiceEndpoint] = field(default_factory=list)
 
@@ -40,7 +41,7 @@ class RegisteredNodeCreateTransaction(Transaction):
         self.description = registered_node_create_params.description
         self.service_endpoints = list(registered_node_create_params.service_endpoints)
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> RegisteredNodeCreateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> RegisteredNodeCreateTransaction:
         """Set the registered node admin key."""
         self._require_not_frozen()
         self.admin_key = admin_key
@@ -66,8 +67,10 @@ class RegisteredNodeCreateTransaction(Transaction):
         self.service_endpoints.append(service_endpoint)
         return self
 
-    def _validate_service_endpoints(self) -> None:
-        """Validate the service endpoint list."""
+    def _validate(self) -> None:
+        """Validate the transaction fields."""
+        if self.admin_key is None:
+            raise ValueError("Missing required admin_key")
         if not self.service_endpoints:
             raise ValueError("At least one service endpoint is required.")
         if len(self.service_endpoints) > 50:
@@ -75,9 +78,9 @@ class RegisteredNodeCreateTransaction(Transaction):
 
     def _build_proto_body(self) -> RegisteredNodeCreateTransactionBody:
         """Build the protobuf body for the registered node create transaction."""
-        self._validate_service_endpoints()
+        self._validate()
         return RegisteredNodeCreateTransactionBody(
-            admin_key=self.admin_key._to_proto() if self.admin_key else None,
+            admin_key=key_to_proto(self.admin_key),
             description=self.description,
             service_endpoint=[endpoint._to_proto() for endpoint in self.service_endpoints],
         )

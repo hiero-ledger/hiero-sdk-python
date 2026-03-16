@@ -20,6 +20,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 
 @dataclass
@@ -27,7 +28,7 @@ class RegisteredNodeUpdateParams:
     """Fields supported by a registered node update transaction."""
 
     registered_node_id: int | None = None
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     description: str | None = None
     service_endpoints: list[RegisteredServiceEndpoint] = field(default_factory=list)
 
@@ -50,7 +51,7 @@ class RegisteredNodeUpdateTransaction(Transaction):
         self.registered_node_id = registered_node_id
         return self
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> RegisteredNodeUpdateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> RegisteredNodeUpdateTransaction:
         """Set the registered node admin key."""
         self._require_not_frozen()
         self.admin_key = admin_key
@@ -88,7 +89,7 @@ class RegisteredNodeUpdateTransaction(Transaction):
         self._validate()
         return RegisteredNodeUpdateTransactionBody(
             registered_node_id=self.registered_node_id,
-            admin_key=self.admin_key._to_proto() if self.admin_key else None,
+            admin_key=key_to_proto(self.admin_key),
             description=(StringValue(value=self.description) if self.description is not None else None),
             service_endpoint=[endpoint._to_proto() for endpoint in self.service_endpoints],
         )

@@ -132,6 +132,29 @@ def test_build_transaction_body_rejects_more_than_50_service_endpoints(
         transaction.build_transaction_body()
 
 
+def test_build_transaction_body_accepts_private_key_admin_key(mock_account_ids):
+    """Private keys should be accepted and serialized as public keys."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    admin_key = PrivateKey.generate_ed25519()
+    endpoint = BlockNodeServiceEndpoint(
+        domain_name="block.example.com",
+        port=443,
+        endpoint_api=BlockNodeApi.STATUS,
+    )
+    transaction = (
+        RegisteredNodeUpdateTransaction()
+        .set_registered_node_id(7)
+        .set_admin_key(admin_key)
+        .add_service_endpoint(endpoint)
+    )
+    transaction.operator_account_id = operator_id
+    transaction.node_account_id = node_account_id
+
+    transaction_body = transaction.build_transaction_body()
+
+    assert transaction_body.registeredNodeUpdate.admin_key == admin_key.public_key()._to_proto()
+
+
 def test_get_method():
     """The transaction should use the registered-node update RPC."""
     transaction = RegisteredNodeUpdateTransaction()

@@ -206,6 +206,22 @@ def test_add_associated_registered_node():
     assert node_tx.associated_registered_nodes == [33]
 
 
+def test_set_associated_registered_nodes_rejects_more_than_20_entries():
+    """Associated registered nodes should enforce the proto max size."""
+    node_tx = NodeCreateTransaction()
+
+    with pytest.raises(ValueError, match="A maximum of 20 associated registered nodes is allowed."):
+        node_tx.set_associated_registered_nodes(list(range(21)))
+
+
+def test_add_associated_registered_node_rejects_more_than_20_entries():
+    """Appending should stop once the associated registered node list reaches 20."""
+    node_tx = NodeCreateTransaction().set_associated_registered_nodes(list(range(20)))
+
+    with pytest.raises(ValueError, match="A maximum of 20 associated registered nodes is allowed."):
+        node_tx.add_associated_registered_node(21)
+
+
 def test_set_gossip_ca_certificate(node_params):
     """Test setting gossip_ca_certificate using the setter method."""
     node_tx = NodeCreateTransaction()
@@ -234,6 +250,20 @@ def test_set_admin_key(node_params):
 
     assert node_tx.admin_key == node_params["admin_key"]
     assert result is node_tx  # Should return self for method chaining
+
+
+def test_build_transaction_body_accepts_private_key_admin_key(mock_account_ids, node_params):
+    """Private keys should be accepted and serialized as public keys."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    admin_key = PrivateKey.generate_ed25519()
+    node_create_params = NodeCreateParams(**(node_params | {"admin_key": admin_key}))
+    node_tx = NodeCreateTransaction(node_create_params=node_create_params)
+    node_tx.operator_account_id = operator_id
+    node_tx.node_account_id = node_account_id
+
+    transaction_body = node_tx.build_transaction_body()
+
+    assert transaction_body.nodeCreate.admin_key == admin_key.public_key()._to_proto()
 
 
 def test_set_decline_reward(node_params):
