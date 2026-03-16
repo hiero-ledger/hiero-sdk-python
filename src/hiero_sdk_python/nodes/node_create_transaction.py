@@ -8,7 +8,6 @@ from typing import List, Optional
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.node_create_pb2 import NodeCreateTransactionBody
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
@@ -16,6 +15,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 
 @dataclass
@@ -32,7 +32,7 @@ class NodeCreateParams:
             Registered nodes associated with this consensus node.
         gossip_ca_certificate (Optional[bytes]): The gossip ca certificate of the node.
         grpc_certificate_hash (Optional[bytes]): The grpc certificate hash of the node.
-        admin_key (Optional[PublicKey]): The admin key of the node.
+        admin_key (Optional[Key]): The admin key of the node.
         decline_reward (Optional[bool]): The decline reward of the node.
         grpc_web_proxy_endpoint (Optional[Endpoint]): The grpc web proxy endpoint of the node.
     """
@@ -44,12 +44,14 @@ class NodeCreateParams:
     associated_registered_nodes: List[int] = field(default_factory=list)
     gossip_ca_certificate: Optional[bytes] = None
     grpc_certificate_hash: Optional[bytes] = None
-    admin_key: Optional[PublicKey] = None
+    admin_key: Optional[Key] = None
     decline_reward: Optional[bool] = None
     grpc_web_proxy_endpoint: Optional[Endpoint] = None
 
 
 class NodeCreateTransaction(Transaction):
+    MAX_ASSOCIATED_REGISTERED_NODES = 20
+
     """
     Represents a node create transaction on the network.
 
@@ -77,7 +79,7 @@ class NodeCreateTransaction(Transaction):
         self.associated_registered_nodes: List[int] = list(node_create_params.associated_registered_nodes)
         self.gossip_ca_certificate: Optional[bytes] = node_create_params.gossip_ca_certificate
         self.grpc_certificate_hash: Optional[bytes] = node_create_params.grpc_certificate_hash
-        self.admin_key: Optional[PublicKey] = node_create_params.admin_key
+        self.admin_key: Optional[Key] = node_create_params.admin_key
         self.decline_reward: Optional[bool] = node_create_params.decline_reward
         self.grpc_web_proxy_endpoint: Optional[Endpoint] = node_create_params.grpc_web_proxy_endpoint
 
@@ -157,7 +159,9 @@ class NodeCreateTransaction(Transaction):
             NodeCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        self.associated_registered_nodes = list(associated_registered_nodes or [])
+        associated_registered_nodes_list = list(associated_registered_nodes or [])
+        self._validate_associated_registered_nodes(associated_registered_nodes_list)
+        self.associated_registered_nodes = associated_registered_nodes_list
         return self
 
     def add_associated_registered_node(self, registered_node_id: int) -> "NodeCreateTransaction":
@@ -172,6 +176,7 @@ class NodeCreateTransaction(Transaction):
             NodeCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        self._validate_associated_registered_nodes(self.associated_registered_nodes + [registered_node_id])
         self.associated_registered_nodes.append(registered_node_id)
         return self
 
@@ -205,12 +210,12 @@ class NodeCreateTransaction(Transaction):
         self.grpc_certificate_hash = grpc_certificate_hash
         return self
 
-    def set_admin_key(self, admin_key: Optional[PublicKey]) -> "NodeCreateTransaction":
+    def set_admin_key(self, admin_key: Optional[Key]) -> "NodeCreateTransaction":
         """
         Sets the admin key for this node create transaction.
 
         Args:
-            admin_key (PublicKey):
+            admin_key (Key):
                 The admin key of the node.
 
         Returns:
@@ -250,6 +255,11 @@ class NodeCreateTransaction(Transaction):
         self.grpc_web_proxy_endpoint = grpc_web_proxy_endpoint
         return self
 
+    def _validate_associated_registered_nodes(self, associated_registered_nodes: List[int]) -> None:
+        """Validate the associated registered node list."""
+        if len(associated_registered_nodes) > self.MAX_ASSOCIATED_REGISTERED_NODES:
+            raise ValueError("A maximum of 20 associated registered nodes is allowed.")
+
     def _build_proto_body(self) -> NodeCreateTransactionBody:
         """
         Returns the protobuf body for the node create transaction.
@@ -257,6 +267,7 @@ class NodeCreateTransaction(Transaction):
         Returns:
             NodeCreateTransactionBody: The protobuf body for this transaction.
         """
+        self._validate_associated_registered_nodes(self.associated_registered_nodes)
         return NodeCreateTransactionBody(
             account_id=self.account_id._to_proto() if self.account_id else None,
             description=self.description,
@@ -265,7 +276,7 @@ class NodeCreateTransaction(Transaction):
             associated_registered_node=self.associated_registered_nodes,
             gossip_ca_certificate=self.gossip_ca_certificate,
             grpc_certificate_hash=self.grpc_certificate_hash,
-            admin_key=self.admin_key._to_proto() if self.admin_key else None,
+            admin_key=key_to_proto(self.admin_key),
             decline_reward=self.decline_reward,
             grpc_proxy_endpoint=(self.grpc_web_proxy_endpoint._to_proto() if self.grpc_web_proxy_endpoint else None),
         )

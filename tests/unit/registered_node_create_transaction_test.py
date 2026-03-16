@@ -102,7 +102,11 @@ def test_add_service_endpoint(service_endpoint):
 
 def test_setters_require_not_frozen(mock_client, service_endpoint):
     """Mutating setters should fail once the transaction is frozen."""
-    transaction = RegisteredNodeCreateTransaction().add_service_endpoint(service_endpoint)
+    transaction = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(PrivateKey.generate_ed25519().public_key())
+        .add_service_endpoint(service_endpoint)
+    )
     transaction.freeze_with(mock_client)
 
     with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
@@ -124,7 +128,7 @@ def test_get_method():
 def test_build_transaction_body_requires_service_endpoint(mock_account_ids):
     """At least one service endpoint must be provided."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
-    transaction = RegisteredNodeCreateTransaction()
+    transaction = RegisteredNodeCreateTransaction().set_admin_key(PrivateKey.generate_ed25519().public_key())
     transaction.operator_account_id = operator_id
     transaction.node_account_id = node_account_id
 
@@ -132,16 +136,44 @@ def test_build_transaction_body_requires_service_endpoint(mock_account_ids):
         transaction.build_transaction_body()
 
 
+def test_build_transaction_body_requires_admin_key(mock_account_ids, service_endpoint):
+    """An admin key must be provided for registered node creation."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    transaction = RegisteredNodeCreateTransaction().add_service_endpoint(service_endpoint)
+    transaction.operator_account_id = operator_id
+    transaction.node_account_id = node_account_id
+
+    with pytest.raises(ValueError, match="Missing required admin_key"):
+        transaction.build_transaction_body()
+
+
 def test_build_transaction_body_rejects_more_than_50_service_endpoints(mock_account_ids, service_endpoint):
     """Create transactions should reject oversized endpoint lists."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
-    transaction = RegisteredNodeCreateTransaction()
+    transaction = RegisteredNodeCreateTransaction().set_admin_key(PrivateKey.generate_ed25519().public_key())
     transaction.operator_account_id = operator_id
     transaction.node_account_id = node_account_id
     transaction.set_service_endpoints([service_endpoint] * 51)
 
     with pytest.raises(ValueError, match="A maximum of 50 service endpoints is allowed."):
         transaction.build_transaction_body()
+
+
+def test_build_transaction_body_accepts_private_key_admin_key(mock_account_ids, service_endpoint):
+    """Private keys should be accepted and serialized as public keys."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    admin_key = PrivateKey.generate_ed25519()
+    transaction = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key)
+        .add_service_endpoint(service_endpoint)
+    )
+    transaction.operator_account_id = operator_id
+    transaction.node_account_id = node_account_id
+
+    transaction_body = transaction.build_transaction_body()
+
+    assert transaction_body.registeredNodeCreate.admin_key == admin_key.public_key()._to_proto()
 
 
 def test_from_bytes_restores_registered_node_create_transaction(mock_client, registered_node_create_params):
