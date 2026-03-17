@@ -327,6 +327,7 @@ class FileAppendTransaction(Transaction):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False
     ) -> "TransactionReceipt":
         ...
 
@@ -336,6 +337,7 @@ class FileAppendTransaction(Transaction):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False
     ) -> "TransactionResponse":
         ...
 
@@ -343,7 +345,8 @@ class FileAppendTransaction(Transaction):
         self,
         client: "Client",
         timeout: int | float | None = None,
-        wait_for_receipt: bool = True
+        wait_for_receipt: bool = True,
+        validate_status: bool = False
     ) -> "TransactionReceipt" | "TransactionResponse":
         """
         Executes the file append transaction.
@@ -355,13 +358,14 @@ class FileAppendTransaction(Transaction):
             timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
+            validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
             
         Returns:
             TransactionReceipt: If wait_for_receipt is True (default)
             TransactionResponse: If wait_for_receipt is False
         """
         # Return the first response (as per JavaScript implementation)
-        return self.execute_all(client, timeout, wait_for_receipt)[0]
+        return self.execute_all(client, timeout, wait_for_receipt, validate_status)[0]
         
     @overload
     def execute_all(
@@ -369,6 +373,7 @@ class FileAppendTransaction(Transaction):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False
     ) -> List["TransactionReceipt"]:
         ...
 
@@ -378,6 +383,7 @@ class FileAppendTransaction(Transaction):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False
     ) -> List["TransactionResponse"]:
         ...
     
@@ -385,7 +391,8 @@ class FileAppendTransaction(Transaction):
         self,
         client: "Client",
         timeout: int | float | None = None,
-        wait_for_receipt: bool = True
+        wait_for_receipt: bool = True,
+        validate_status: bool = False
     ) -> List["TransactionReceipt"] | List["TransactionResponse"]:
         """
         Executes the file append transaction.
@@ -397,6 +404,7 @@ class FileAppendTransaction(Transaction):
             timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
+            validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
             
         Returns:
             List[TransactionReceipt]: If wait_for_receipt is True (default)
@@ -406,7 +414,7 @@ class FileAppendTransaction(Transaction):
 
         if self.get_required_chunks() == 1:
             # Single chunk transaction
-            return [super().execute(client, timeout, wait_for_receipt)]
+            return [super().execute(client, timeout, wait_for_receipt, validate_status)]
 
         # Multi-chunk transaction - execute all chunks
         responses = []
@@ -430,7 +438,7 @@ class FileAppendTransaction(Transaction):
                 super().sign(signing_key)
 
             # Execute the chunk
-            response = super().execute(client, timeout, wait_for_receipt)
+            response = super().execute(client, timeout, wait_for_receipt, validate_status)
             responses.append(response)
 
         return responses

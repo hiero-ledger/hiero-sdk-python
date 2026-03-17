@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
-from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     response_header_pb2, 
     response_pb2,
@@ -504,3 +504,137 @@ def test_topic_message_submit_execute_all_throw_error_when_transaction_fails(top
 
         with pytest.raises(PrecheckError, match="Transaction failed precheck"):
           tx.execute_all(client)
+
+def test_topic_submit_execute_all_raises_error_with_validation(topic_id):
+    """Test execute_all raises error when validate_status is True and a chunk fails."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        with pytest.raises(ReceiptStatusError) as e:
+            tx.execute_all(client, validate_status=True)
+        
+        assert e.value.status == ResponseCode.INVALID_SIGNATURE
+
+def test_topic_submit_execute_all_returns_failed_receipt_by_default(topic_id):
+    """Test execute_all returns failing receipts normally when validation is disabled."""
+    message = "A" * 1024
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            )
+        )
+    )
+    
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+        
+        receipt = tx.execute_all(client)
+        
+        assert receipt[0].status == ResponseCode.INVALID_SIGNATURE
+
+def test_topic_submit_execute_raises_error_with_validation(topic_id):
+    """Test execute raises error for failing messages when validate_status is True."""
+    message = "A" * 1024
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] * 4
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        with pytest.raises(ReceiptStatusError) as e:
+            tx.execute(client, validate_status=True)
+        
+        assert e.value.status == ResponseCode.INVALID_SIGNATURE
+
+def test_topic_submit_execute_returns_failed_receipt_by_default(topic_id):
+    """Test execute returns the failing receipt by default when validation is disabled."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        receipt = tx.execute(client)
+        
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE

@@ -1,10 +1,13 @@
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.exceptions import ReceiptStatusError
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import (
     TransactionGetReceiptQuery,
@@ -238,3 +241,39 @@ def test_chunk_tx_returns_receipts_with_wait_for_receipt(env):
 
     TopicDeleteTransaction().set_topic_id(topic_id).execute(env.client)
 
+@pytest.mark.integration
+def test_get_receipt_returns_failed_status_by_default(env):
+    """Test receipt is returned normally on failure when validation is disabled."""
+    tx = (
+        AccountDeleteTransaction()
+        .set_transfer_account_id(env.operator_id)
+        .set_account_id(AccountId(0, 0, 0))
+    )
+    response = tx.execute(env.client, wait_for_receipt=False)
+
+    assert isinstance(response, TransactionResponse)
+    assert response.transaction is tx
+
+    receipt = response.get_receipt(env.client)
+    assert isinstance(receipt, TransactionReceipt)
+    assert receipt.transaction_id == tx.transaction_id
+    assert receipt.status == ResponseCode.INVALID_ACCOUNT_ID
+
+
+@pytest.mark.integration
+def test_get_receipt_raises_exception_on_failure_with_validation(env):
+    """Test error is raised for failing transactions when validation is enabled."""
+    tx = (
+        AccountDeleteTransaction()
+        .set_transfer_account_id(env.operator_id)
+        .set_account_id(AccountId(0, 0, 0))
+    )
+    response = tx.execute(env.client, wait_for_receipt=False)
+
+    assert isinstance(response, TransactionResponse)
+    assert response.transaction is tx
+
+    with pytest.raises(ReceiptStatusError) as e:
+        response.get_receipt(env.client, validate_status=True)
+    
+    assert e.value.status == ResponseCode.INVALID_ACCOUNT_ID

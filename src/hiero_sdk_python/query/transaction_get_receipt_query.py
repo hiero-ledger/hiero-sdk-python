@@ -29,6 +29,7 @@ class TransactionGetReceiptQuery(Query):
         transaction_id: Optional[TransactionId] = None,
         include_children: bool = False,
         include_duplicates: bool = False,
+        validate_status: bool = False
     ) -> None:
         """
         Initializes a new instance of the TransactionGetReceiptQuery class.
@@ -37,12 +38,14 @@ class TransactionGetReceiptQuery(Query):
             transaction_id (TransactionId, optional): The ID of the transaction.
             include_children (bool): Whether to include child transaction receipts.
             include_duplicates (bool): Whether to include duplicate transaction receipts.
+            validate_status: (bool):  Whether the query should automatically validate the transaction status.
         """
         super().__init__()
         self.transaction_id: Optional[TransactionId] = transaction_id
         self._frozen: bool = False
         self.include_children = include_children
         self.include_duplicates = include_duplicates
+        self.validate_status = validate_status # To keep backward compatible
 
     def _require_not_frozen(self) -> None:
         """
@@ -107,6 +110,27 @@ class TransactionGetReceiptQuery(Query):
         """
         self._require_not_frozen()
         self.include_duplicates = include_duplicates
+        return self
+    
+    def set_validate_status(self, validate_status: bool) -> "TransactionGetReceiptQuery":
+        """
+        Sets whether the query should automatically validate the transaction status.
+        
+        When set to True, the execute() method will raise a ReceiptStatusError if 
+        the transaction receipt status is anything other than SUCCESS.
+
+        Args:
+            validate_status (bool): True to enable automatic error raising on failure statuses; 
+                False to return the receipt regardless of outcome. (default False)
+        
+        Returns:
+            TransactionGetReceiptQuery: The current instance for method chaining.
+        
+        Raises:
+            ValueError: If the query is frozen and cannot be modified.
+        """
+        self._require_not_frozen()
+        self.validate_status = validate_status
         return self
 
     def freeze(self) -> "TransactionGetReceiptQuery":
@@ -211,7 +235,11 @@ class TransactionGetReceiptQuery(Query):
 
         if status in retryable_statuses or status == ResponseCode.OK:
             return _ExecutionState.RETRY
+        elif status == ResponseCode.SUCCESS:
+            return _ExecutionState.FINISHED
         else:
+            if self.validate_status:
+                return _ExecutionState.ERROR
             return _ExecutionState.FINISHED
 
     def _map_status_error(self, response: response_pb2.Response) -> Union[PrecheckError, ReceiptStatusError]:

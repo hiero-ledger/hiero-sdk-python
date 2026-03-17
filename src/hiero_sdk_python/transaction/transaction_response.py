@@ -34,9 +34,12 @@ class TransactionResponse:
         self.validate_status: bool = False
         self.transaction: Optional["Transaction"] = None
     
-    def get_receipt_query(self):
+    def get_receipt_query(self, validate_status: bool = False):
         """
         Create a receipt query for this transaction.
+
+        Args:
+            validate_status (bool, Optional): The query should automatically validate the transaction status. (default False)
 
         Returns:
             TransactionGetReceiptQuery: A configured receipt query.
@@ -46,21 +49,28 @@ class TransactionResponse:
             TransactionGetReceiptQuery()
             .set_transaction_id(self.transaction_id)
             .set_node_account_id(self.node_id)
+            .set_validate_status(validate_status)
         )
     
-    def get_receipt(self, client: "Client", timeout: Optional[Union[int, float]] = None) -> "TransactionReceipt":
+    def get_receipt(
+        self,
+        client: "Client",
+        timeout: Optional[Union[int, float]] = None,
+        validate_status: bool = False
+    ) -> "TransactionReceipt":
         """
         Retrieves the receipt for this transaction from the network.
 
         Args:
             client (Client): The client instance to use for receipt retrieval.
             timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            validate_status (bool, Optional): The query should automatically validate the transaction status. (default False)
 
         Returns:
             TransactionReceipt: The receipt from the network, containing the status
                                and any entities created by the transaction
         """
-        receipt = self.get_receipt_query().execute(client, timeout)
+        receipt = self.get_receipt_query(validate_status=validate_status).execute(client, timeout)
         return receipt
     
     def get_record_query(self):

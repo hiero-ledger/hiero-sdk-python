@@ -13,6 +13,9 @@ produce child receipts, so we only assert API correctness and stability,
 not children count > 0.
 """
 
+from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.exceptions import ReceiptStatusError
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 import pytest
 import threading
@@ -20,6 +23,7 @@ import threading
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 from tests.integration.utils import env
@@ -219,3 +223,46 @@ def test_get_receipt_query_include_duplicates_execute_e2e(env):
     assert queried.status == ResponseCode.SUCCESS
     assert isinstance(queried.duplicates, list)
     assert len(queried.duplicates) == 1
+
+@pytest.mark.integration
+def test_get_receipt_returns_failed_status_receipt_if_validate_status_false(env):
+    """Test receipt is returned despite failure when validate_status is False."""
+    tx = (
+        AccountDeleteTransaction()
+        .set_transfer_account_id(env.operator_id)
+        .set_account_id(AccountId(0, 0, 0))
+    )
+    response = tx.execute(env.client, wait_for_receipt=False)
+
+    query = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(response.transaction_id)
+        .set_validate_status(False) # Default value
+    )
+
+    receipt = query.execute(env.client)
+    assert isinstance(receipt, TransactionReceipt)
+    assert receipt.transaction_id == tx.transaction_id
+    assert receipt.status == ResponseCode.INVALID_ACCOUNT_ID
+
+
+@pytest.mark.integration
+def test_get_receipt_throws_status_error_when_validation_enabled(env):
+    """Test error is raised for failures when validate_status is True."""
+    tx = (
+        AccountDeleteTransaction()
+        .set_transfer_account_id(env.operator_id)
+        .set_account_id(AccountId(1, 0, 0))
+    )
+    response = tx.execute(env.client, wait_for_receipt=False)
+
+    query = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(response.transaction_id)
+        .set_validate_status(True)
+    )
+
+    with pytest.raises(ReceiptStatusError) as e:
+        query.execute(env.client)
+    
+    assert e.value.status == ResponseCode.INVALID_ACCOUNT_ID
