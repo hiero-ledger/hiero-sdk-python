@@ -151,45 +151,38 @@ async function getUserLevelProgress(github, core, owner, username) {
  * @returns {Promise<Array<Object>>} List of recommended issues
  */
 async function gatherCandidateIssues(
-  github, 
-  core, 
-  owner, 
-  repoName, 
-  otherRepos, 
-  completedLevel, 
-  nextLevel, 
+  github,
+  core,
+  owner,
+  repoName,
+  otherRepos,
+  completedLevel,
+  nextLevel,
   prevLevel
 ) {
-  // 1. Next level in current repo
-  if (nextLevel) {
-    const nextInRepo = await searchIssues(github, core, owner, [repoName], nextLevel);
-    if (nextInRepo.length > 0) return nextInRepo;
+  const strategies = [
+    // Next level in current repo
+    nextLevel && { repos: [repoName], level: nextLevel },
+
+    // Same level in current repo
+    { repos: [repoName], level: completedLevel },
+
+    // Next level in other repos
+    nextLevel && { repos: otherRepos, level: nextLevel },
+
+    // Same level in other repos
+    { repos: otherRepos, level: completedLevel },
+
+    // Previous level fallback (only used if no higher/same level issues found)
+    prevLevel && { repos: [repoName], level: prevLevel },
+    prevLevel && { repos: otherRepos, level: prevLevel }
+  ].filter(Boolean);
+
+  for (const { repos, level } of strategies) {
+    const issues = await searchIssues(github, core, owner, repos, level);
+    if (issues.length > 0) return issues;
   }
 
-  // 2. Same level in current repo
-  const sameInRepo = await searchIssues(github, core, owner, [repoName], completedLevel);
-  if (sameInRepo.length > 0) return sameInRepo;
-
-  // 3. Next level in other repos
-  if (nextLevel) {
-    const nextInOthers = await searchIssues(github, core, owner, otherRepos, nextLevel);
-    if (nextInOthers.length > 0) return nextInOthers;
-  }
-
-  // 4. Same level in other repos
-  const sameInOthers = await searchIssues(github, core, owner, otherRepos, completedLevel);
-  if (sameInOthers.length > 0) return sameInOthers;
-
-  // 5. Optional fallback → previous level
-  if (prevLevel) {
-    const prevInRepo = await searchIssues(github, core, owner, [repoName], prevLevel);
-    if (prevInRepo.length > 0) return prevInRepo;
-
-    const prevInOthers = await searchIssues(github, core, owner, otherRepos, prevLevel);
-    if (prevInOthers.length > 0) return prevInOthers;
-  }
-
-  // Nothing found
   return [];
 }
 
@@ -292,6 +285,7 @@ module.exports = async ({ github, context, core }) => {
     core.info(`Completed level: ${completedLevel}`);
 
     let recommendedIssues = [];
+    let usedLevel = completedLevel;
     let recommendedLabel = LEVEL_CONFIG[completedLevel].display;
     let isFallback = false;
 
@@ -359,17 +353,12 @@ module.exports = async ({ github, context, core }) => {
         )
       );
 
-      recommendedLabel =
-        LEVEL_CONFIG[detectedLevel]?.display ||
-        LEVEL_CONFIG[completedLevel].display;
+      usedLevel = detectedLevel || completedLevel;
+
+      recommendedLabel = LEVEL_CONFIG[usedLevel].display;
     }
 
-    recommendedIssues = recommendedIssues.slice(0, LIMIT);
-
-    const usedNextLevel =
-      nextLevel && recommendedLabel === LEVEL_CONFIG[nextLevel].display;
-
-    isFallback = !usedNextLevel;
+    isFallback = usedLevel === prevLevel;
 
     const completedLabelText = LEVEL_CONFIG[completedLevel].display;
 
