@@ -382,21 +382,7 @@ module.exports = async ({ github, context, core }) => {
   }
 };
 
-/**
- * Searches GitHub issues based on difficulty level and repository scope.
- *
- * Supports:
- * - multiple repositories
- * - multiple label aliases (OR-based queries)
- *
- * @param {object} github - GitHub API client
- * @param {object} core - GitHub Actions core
- * @param {string} owner - Organization name
- * @param {string[]} repos - List of repositories to search
- * @param {string} level - Difficulty level
- * @returns {Promise<Array<Object>>} List of matching issues
- */
-async function searchIssues(github, core, owner, repos, level) {
+async function searchIssues(github, core, owner, repo, label) {
   try {
 
     const labels = LEVEL_LABEL_ALIASES[level] || [level];
