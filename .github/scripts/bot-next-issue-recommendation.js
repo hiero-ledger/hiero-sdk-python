@@ -1,3 +1,7 @@
+/**
+ * Ordered list of difficulty levels from easiest → hardest.
+ * Used for progression logic.
+ */
 const LEVEL_ORDER = [
   "good first issue",
   "beginner",
@@ -5,6 +9,10 @@ const LEVEL_ORDER = [
   "advanced"
 ];
 
+/**
+ * Maps difficulty levels to possible label aliases.
+ * Supports both standard and "skill:" prefixed labels.
+ */
 const LEVEL_LABEL_ALIASES = {
   "good first issue": [
     "good first issue",
@@ -24,6 +32,11 @@ const LEVEL_LABEL_ALIASES = {
   ]
 };
 
+/**
+ * Configuration for each difficulty level.
+ * - display: human-readable label
+ * - required: minimum completed issues needed to unlock next level
+ */
 const LEVEL_CONFIG = {
   "good first issue": {
     display: "Good First Issue",
@@ -43,6 +56,15 @@ const LEVEL_CONFIG = {
   }
 };
 
+/**
+ * Fetch all supported repositories in an organization.
+ * Filters out archived repos and forks.
+ *
+ * @param {object} github - GitHub API client
+ * @param {object} core - GitHub Actions core
+ * @param {string} owner - Organization name
+ * @returns {Promise<string[]>} List of repository names
+ */
 async function getSupportedRepos(github, core, owner) {
   try {
     const repos = [];
@@ -55,19 +77,14 @@ async function getSupportedRepos(github, core, owner) {
       }
     )) {
       for (const repo of response.data) {
-
-        // ignore archived repos
-        if (repo.archived) continue;
-
-        // ignore forks
-        if (repo.fork) continue;
+        if (repo.archived) continue; // Skip archived repos
+        if (repo.fork) continue; // Skip forks
 
         repos.push(repo.name);
       }
     }
 
     core.debug(`Discovered repositories: ${repos.join(", ")}`);
-
     return repos;
 
   } catch (error) {
@@ -76,6 +93,15 @@ async function getSupportedRepos(github, core, owner) {
   }
 }
 
+/**
+ * Computes how many issues a user has completed at each difficulty level.
+ *
+ * @param {object} github
+ * @param {object} core
+ * @param {string} owner
+ * @param {string} username
+ * @returns {Promise<Object>} Progress per difficulty level
+ */
 async function getUserLevelProgress(github, core, owner, username) {
   const progress = {
     "good first issue": 0,
@@ -111,7 +137,21 @@ async function getUserLevelProgress(github, core, owner, username) {
   return progress;
 }
 
-async function gatherCandidateIssues(github, core, owner, repoName, otherRepos, completedLevel, nextLevel, prevLevel) {
+/**
+ * Collects candidate issues from multiple repositories and difficulty levels.
+ *
+ * @returns {Promise<Array<Array<Object>>>} Batched issue search results
+ */
+async function gatherCandidateIssues(
+  github, 
+  core, 
+  owner, 
+  repoName, 
+  otherRepos, 
+  completedLevel, 
+  nextLevel, 
+  prevLevel
+) {
 
   const tasks = [];
 
@@ -138,11 +178,21 @@ async function gatherCandidateIssues(github, core, owner, repoName, otherRepos, 
   return Promise.all(tasks);
 }
 
+/**
+ * Get previous difficulty level.
+ * @param {string} level
+ * @returns {string|null}
+ */
 function getPreviousLevel(level) {
   const index = LEVEL_ORDER.indexOf(level);
   return index > 0 ? LEVEL_ORDER[index - 1] : null;
 }
 
+/**
+ * Get next difficulty level.
+ * @param {string} level
+ * @returns {string|null}
+ */
 function getNextLevel(level) {
   const index = LEVEL_ORDER.indexOf(level);
   return index >= 0 && index < LEVEL_ORDER.length - 1
@@ -150,6 +200,11 @@ function getNextLevel(level) {
     : null;
 }
 
+/**
+ * Main GitHub Action entry point.
+ * Processes a PR, determines completed issue level,
+ * and posts recommended issues.
+ */
 module.exports = async ({ github, context, core }) => {
   const { payload } = context;
 
@@ -166,7 +221,7 @@ module.exports = async ({ github, context, core }) => {
 
   core.info(`Processing PR #${prNumber}`);
 
-  // Parse PR body to find linked issues
+   // Extract linked issue number(s) from PR body
   const MAX_PR_BODY_LENGTH = 50000; // Reasonable limit for PR body
   if (prBody.length > MAX_PR_BODY_LENGTH) {
     core.warning(`PR body exceeds ${MAX_PR_BODY_LENGTH} characters, truncating for parsing`);
@@ -228,6 +283,7 @@ module.exports = async ({ github, context, core }) => {
     const LIMIT = 5;
     let nextLevel = getNextLevel(completedLevel);
 
+    // Gate progression
     if (nextLevel) {
       const required = LEVEL_CONFIG[nextLevel].required;
 
@@ -238,6 +294,7 @@ module.exports = async ({ github, context, core }) => {
     }
     const prevLevel = getPreviousLevel(completedLevel);
 
+    // Fetch repos
     let allRepos = await getSupportedRepos(github, core, repoOwner);
     if (allRepos.length === 0) {
       core.warning("Using fallback repo list");
@@ -252,6 +309,7 @@ module.exports = async ({ github, context, core }) => {
 
     const otherRepos = allRepos.filter(r => r !== repoName);
 
+    // Fetch candidate issues
     const issueBatches = await gatherCandidateIssues(
       github,
       core,
@@ -263,12 +321,13 @@ module.exports = async ({ github, context, core }) => {
       prevLevel
     );
 
-    const flattened = issueBatches.flat().filter(Boolean);
+    const flattened = issueBatches.flat().filter(Boolean); // Remove undefined batches
 
     for (const candidate of flattened) {
 
       if (referencedIssues.includes(candidate.number)) continue;
 
+      // avoid duplicates
       if (!recommendedIssues.find(i => i.html_url === candidate.html_url)) {
         recommendedIssues.push(candidate);
       }
@@ -282,7 +341,7 @@ module.exports = async ({ github, context, core }) => {
 
     recommendedIssues = recommendedIssues.slice(0, LIMIT);
 
-    isFallback = !nextLevel
+    isFallback = !nextLevel;
 
     const completedLabelText = LEVEL_CONFIG[completedLevel].display;
 
