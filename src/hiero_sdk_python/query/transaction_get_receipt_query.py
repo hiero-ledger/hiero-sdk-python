@@ -38,6 +38,7 @@ class TransactionGetReceiptQuery(Query):
             transaction_id (TransactionId, optional): The ID of the transaction.
             include_children (bool): Whether to include child transaction receipts.
             include_duplicates (bool): Whether to include duplicate transaction receipts.
+            validate_status: (bool):  Whether the query should automatically validate the transaction status.
         """
         super().__init__()
         self.transaction_id: Optional[TransactionId] = transaction_id

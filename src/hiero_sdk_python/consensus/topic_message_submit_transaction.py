@@ -291,6 +291,7 @@ class TopicMessageSubmitTransaction(Transaction):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False
     ) -> "TransactionReceipt":
         ...
 
@@ -300,6 +301,7 @@ class TopicMessageSubmitTransaction(Transaction):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False
     ) -> "TransactionResponse":
         ...
 
@@ -307,7 +309,8 @@ class TopicMessageSubmitTransaction(Transaction):
         self,
         client: "Client",
         timeout: int | float | None = None,
-        wait_for_receipt: bool = True
+        wait_for_receipt: bool = True,
+        validate_status: bool = False
     ) -> TransactionReceipt | TransactionResponse:
         """
         Executes the topic message submit transaction.
@@ -319,13 +322,14 @@ class TopicMessageSubmitTransaction(Transaction):
             timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
+            validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
             
         Returns:
             TransactionReceipt: If wait_for_receipt is True (default)
             TransactionResponse: If wait_for_receipt is False
         """
         # Return the first response as the JS SDK does
-        return self.execute_all(client, timeout, wait_for_receipt)[0]
+        return self.execute_all(client, timeout, wait_for_receipt, validate_status)[0]
     
     @overload
     def execute_all(
@@ -333,6 +337,7 @@ class TopicMessageSubmitTransaction(Transaction):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False
     ) -> List["TransactionReceipt"]:
         ...
 
@@ -342,6 +347,7 @@ class TopicMessageSubmitTransaction(Transaction):
         client: "Client",
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False
     ) -> List["TransactionResponse"]:
         ...
     
@@ -349,7 +355,8 @@ class TopicMessageSubmitTransaction(Transaction):
         self,
         client: "Client",
         timeout: int | float | None = None,
-        wait_for_receipt: bool = True
+        wait_for_receipt: bool = True,
+        validate_status: bool = False
     ) -> List["TransactionReceipt"] | List["TransactionResponse"]:
         """
         Executes the topic message submit transaction.
@@ -361,6 +368,7 @@ class TopicMessageSubmitTransaction(Transaction):
             timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
+            validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
             
         Returns:
             List[TransactionReceipt]: If wait_for_receipt is True (default)
@@ -369,7 +377,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self._validate_chunking()
 
         if self.get_required_chunks() == 1:
-            return [super().execute(client, timeout, wait_for_receipt)]
+            return [super().execute(client, timeout, wait_for_receipt, validate_status)]
 
         # Multi-chunk transaction - execute all chunks
         responses = []
@@ -389,7 +397,7 @@ class TopicMessageSubmitTransaction(Transaction):
                 super().sign(signing_key)
 
             # Execute the chunk
-            response = super().execute(client, timeout, wait_for_receipt)
+            response = super().execute(client, timeout, wait_for_receipt, validate_status)
             responses.append(response)
         
         return responses
