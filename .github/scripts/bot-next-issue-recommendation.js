@@ -138,9 +138,17 @@ async function getUserLevelProgress(github, core, owner, username) {
 }
 
 /**
- * Collects candidate issues from multiple repositories and difficulty levels.
+ * Fetches candidate issues using a prioritized, sequential fallback strategy.
+ * Stops at the first non-empty result set.
  *
- * @returns {Promise<Array<Array<Object>>>} Batched issue search results
+ * Priority order:
+ * 1. Next level (current repository)
+ * 2. Same level (current repository)
+ * 3. Next level (other repositories)
+ * 4. Same level (other repositories)
+ * 5. Previous level (fallback)
+ *
+ * @returns {Promise<Array<Object>>} List of recommended issues
  */
 async function gatherCandidateIssues(
   github, 
@@ -152,30 +160,37 @@ async function gatherCandidateIssues(
   nextLevel, 
   prevLevel
 ) {
-
-  const tasks = [];
-
+  // 1. Next level in current repo
   if (nextLevel) {
-    tasks.push(searchIssues(github, core, owner, [repoName], nextLevel));
+    const nextInRepo = await searchIssues(github, core, owner, [repoName], nextLevel);
+    if (nextInRepo.length > 0) return nextInRepo;
   }
 
-  tasks.push(searchIssues(github, core, owner, [repoName], completedLevel));
+  // 2. Same level in current repo
+  const sameInRepo = await searchIssues(github, core, owner, [repoName], completedLevel);
+  if (sameInRepo.length > 0) return sameInRepo;
 
+  // 3. Next level in other repos
   if (nextLevel) {
-    tasks.push(searchIssues(github, core, owner, otherRepos, nextLevel));
+    const nextInOthers = await searchIssues(github, core, owner, otherRepos, nextLevel);
+    if (nextInOthers.length > 0) return nextInOthers;
   }
 
-  tasks.push(searchIssues(github, core, owner, otherRepos, completedLevel));
+  // 4. Same level in other repos
+  const sameInOthers = await searchIssues(github, core, owner, otherRepos, completedLevel);
+  if (sameInOthers.length > 0) return sameInOthers;
 
+  // 5. Optional fallback → previous level
   if (prevLevel) {
-    tasks.push(searchIssues(github, core, owner, [repoName], prevLevel));
+    const prevInRepo = await searchIssues(github, core, owner, [repoName], prevLevel);
+    if (prevInRepo.length > 0) return prevInRepo;
+
+    const prevInOthers = await searchIssues(github, core, owner, otherRepos, prevLevel);
+    if (prevInOthers.length > 0) return prevInOthers;
   }
 
-  if (prevLevel) {
-    tasks.push(searchIssues(github, core, owner, otherRepos, prevLevel));
-  }
-
-  return Promise.all(tasks);
+  // Nothing found
+  return [];
 }
 
 /**
@@ -235,8 +250,8 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  const referencedIssues = matches.map(m => Number(m[2]));
-  const issueNumber = referencedIssues[0];
+  const issueNumber = Number(matches[0][2]);
+  const referencedIssues = [issueNumber];
   core.info(`Found linked issue #${issueNumber}`);
 
   try {
@@ -277,7 +292,7 @@ module.exports = async ({ github, context, core }) => {
     core.info(`Completed level: ${completedLevel}`);
 
     let recommendedIssues = [];
-    let recommendedLabel = null;
+    let recommendedLabel = LEVEL_CONFIG[completedLevel].display;
     let isFallback = false;
 
     const LIMIT = 5;
@@ -310,7 +325,7 @@ module.exports = async ({ github, context, core }) => {
     const otherRepos = allRepos.filter(r => r !== repoName);
 
     // Fetch candidate issues
-    const issueBatches = await gatherCandidateIssues(
+    const candidates = await gatherCandidateIssues(
       github,
       core,
       repoOwner,
@@ -321,9 +336,7 @@ module.exports = async ({ github, context, core }) => {
       prevLevel
     );
 
-    const flattened = issueBatches.flat().filter(Boolean); // Remove undefined batches
-
-    for (const candidate of flattened) {
+    for (const candidate of candidates) {
 
       if (referencedIssues.includes(candidate.number)) continue;
 
@@ -335,13 +348,28 @@ module.exports = async ({ github, context, core }) => {
       if (recommendedIssues.length === LIMIT) break;
     }
 
-    recommendedLabel = nextLevel
-      ? LEVEL_CONFIG[nextLevel].display
-      : LEVEL_CONFIG[completedLevel].display;
+    if (recommendedIssues.length > 0) {
+      const first = recommendedIssues[0];
+
+      const labels = (first.labels || []).map(l => l.name.toLowerCase());
+
+      const detectedLevel = LEVEL_ORDER.find(level =>
+        (LEVEL_LABEL_ALIASES[level] || [level]).some(alias =>
+          labels.includes(alias)
+        )
+      );
+
+      recommendedLabel =
+        LEVEL_CONFIG[detectedLevel]?.display ||
+        LEVEL_CONFIG[completedLevel].display;
+    }
 
     recommendedIssues = recommendedIssues.slice(0, LIMIT);
 
-    isFallback = !nextLevel;
+    const usedNextLevel =
+      nextLevel && recommendedLabel === LEVEL_CONFIG[nextLevel].display;
+
+    isFallback = !usedNextLevel;
 
     const completedLabelText = LEVEL_CONFIG[completedLevel].display;
 
