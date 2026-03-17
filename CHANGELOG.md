@@ -6,6 +6,24 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Src
+
+
+### Examples
+- edit
+
+### Tests
+
+
+### Docs
+
+
+### .github
+
+
+
+## [0.2.2] - 2026-03-17
+
 ### Added
 - Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
 - Add support for `include_children` to TransactionRecordQuery ([#1512](https://github.com/hiero-ledger/hiero-sdk-python/issues/1512))
