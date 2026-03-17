@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.exceptions import MaxAttemptsError
+from hiero_sdk_python.exceptions import MaxAttemptsError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -375,3 +375,57 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_not
         assert query.include_duplicates is False
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 0
+
+def test_transaction_receipt_query_should_not_raise_receipt_error(transaction_id):
+    """Test receipt query should not raise error if the status is non success and non retryable when validate_status is false."""
+    response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            ),
+        )
+    )
+
+    response_sequences = [[response]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+            .set_validate_status(False)
+        )
+
+        receipt = query.execute(client)
+        
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE
+
+
+def test_transaction_receipt_query_should_raise_receipt_error(transaction_id):
+    """Test receipt query should raise error if the status is non success and non retryable when validate_status is true."""
+    response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            ),
+        )
+    )
+
+    response_sequences = [[response]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+            .set_validate_status(True)
+        )
+
+        with pytest.raises(ReceiptStatusError) as e:
+            query.execute(client)
+        
+        assert e.value.status == ResponseCode.INVALID_SIGNATURE

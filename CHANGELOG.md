@@ -7,10 +7,10 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
+- Fix the TransactionGetReceiptQuery to raise ReceiptStatusError for the non-retryable and non success receipt status
 
 
 ### Examples
-- edit
 
 ### Tests
 

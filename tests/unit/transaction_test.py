@@ -2,6 +2,7 @@ import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.exceptions import ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -90,3 +91,64 @@ def test_execute_without_wait_returns_transaction_response():
         assert response.transaction is tx
         assert response.node_id == tx.node_account_id
         assert response.validate_status is True
+
+def test_execute_raises_error_when_validation_enabled_and_transaction_fails():
+    """Test execute raises error for failing transactions when validate_status is True."""
+    ok_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            ),
+        )
+    )
+
+    response_sequence = [[ok_response, receipt_response]]
+
+    with mock_hedera_servers(response_sequence) as client:
+        tx = (
+            AccountCreateTransaction()
+            .set_initial_balance(1)
+            .set_key_without_alias(PrivateKey.generate())
+        )
+
+        with pytest.raises(ReceiptStatusError) as e:
+            tx.execute(client, validate_status=True)
+
+        assert e.value.status == ResponseCode.INVALID_SIGNATURE
+
+def test_execute_returns_receipt_without_error_when_validation_disabled():
+    """Test execute returns a receipt normally on failure when validate_status is False."""
+    ok_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            ),
+        )
+    )
+
+    response_sequence = [[ok_response, receipt_response]]
+
+    with mock_hedera_servers(response_sequence) as client:
+        tx = (
+            AccountCreateTransaction()
+            .set_initial_balance(1)
+            .set_key_without_alias(PrivateKey.generate())
+        )
+
+        receipt = tx.execute(client)
+
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE
