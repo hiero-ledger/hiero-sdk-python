@@ -20,7 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### .github
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
-
+- Expand and refactor next-issue-recommendation bot. (#1891)
 
 
 ## [0.2.2] - 2026-03-17

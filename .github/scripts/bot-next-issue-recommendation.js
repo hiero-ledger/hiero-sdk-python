@@ -1,20 +1,161 @@
-const SUPPORTED_GFI_REPOS = [
-  'hiero-sdk-cpp',
-  'hiero-sdk-swift',
-  'hiero-sdk-python',
-  'hiero-website',
-  'hiero-sdk-js',
+const LEVEL_ORDER = [
+  "good first issue",
+  "beginner",
+  "intermediate",
+  "advanced"
 ];
+
+const LEVEL_LABEL_ALIASES = {
+  "good first issue": [
+    "good first issue",
+    "skill: good first issue"
+  ],
+  "beginner": [
+    "beginner",
+    "skill: beginner"
+  ],
+  "intermediate": [
+    "intermediate",
+    "skill: intermediate"
+  ],
+  "advanced": [
+    "advanced",
+    "skill: advanced"
+  ]
+};
+
+const LEVEL_CONFIG = {
+  "good first issue": {
+    display: "Good First Issue",
+    required: 0
+  },
+  beginner: {
+    display: "Beginner",
+    required: 1
+  },
+  intermediate: {
+    display: "Intermediate",
+    required: 1
+  },
+  advanced: {
+    display: "Advanced",
+    required: 1
+  }
+};
+
+async function getSupportedRepos(github, core, owner) {
+  try {
+    const repos = [];
+
+    for await (const response of github.paginate.iterator(
+      github.rest.repos.listForOrg,
+      {
+        org: owner,
+        per_page: 100
+      }
+    )) {
+      for (const repo of response.data) {
+
+        // ignore archived repos
+        if (repo.archived) continue;
+
+        // ignore forks
+        if (repo.fork) continue;
+
+        repos.push(repo.name);
+      }
+    }
+
+    core.debug(`Discovered repositories: ${repos.join(", ")}`);
+
+    return repos;
+
+  } catch (error) {
+    core.warning(`Failed to fetch repositories: ${error.message}`);
+    return [];
+  }
+}
+
+async function getUserLevelProgress(github, core, owner, username) {
+  const progress = {
+    "good first issue": 0,
+    beginner: 0,
+    intermediate: 0,
+    advanced: 0
+  };
+
+  try {
+    const query = `is:pr is:merged author:${username} org:${owner}`;
+    
+    const { data } = await github.rest.search.issuesAndPullRequests({
+      q: query,
+      per_page: 50
+    });
+
+    for (const pr of data.items) {
+      const labels = (pr.labels || []).map(l => l.name.toLowerCase());
+
+      for (const level of LEVEL_ORDER) {
+        const aliases = LEVEL_LABEL_ALIASES[level] || [level];
+        if (aliases.some(a => labels.includes(a))) {
+          progress[level]++;
+          break;
+        }
+      }
+    }
+
+  } catch (error) {
+    core.warning(`Unable to compute contribution progress: ${error.message}`);
+  }
+
+  return progress;
+}
+
+async function gatherCandidateIssues(github, core, owner, repoName, otherRepos, completedLevel, nextLevel, prevLevel) {
+
+  const tasks = [];
+
+  if (nextLevel) {
+    tasks.push(searchIssues(github, core, owner, [repoName], nextLevel));
+  }
+
+  tasks.push(searchIssues(github, core, owner, [repoName], completedLevel));
+
+  if (nextLevel) {
+    tasks.push(searchIssues(github, core, owner, otherRepos, nextLevel));
+  }
+
+  tasks.push(searchIssues(github, core, owner, otherRepos, completedLevel));
+
+  if (prevLevel) {
+    tasks.push(searchIssues(github, core, owner, [repoName], prevLevel));
+  }
+
+  if (prevLevel) {
+    tasks.push(searchIssues(github, core, owner, otherRepos, prevLevel));
+  }
+
+  return Promise.all(tasks);
+}
+
+function getPreviousLevel(level) {
+  const index = LEVEL_ORDER.indexOf(level);
+  return index > 0 ? LEVEL_ORDER[index - 1] : null;
+}
+
+function getNextLevel(level) {
+  const index = LEVEL_ORDER.indexOf(level);
+  return index >= 0 && index < LEVEL_ORDER.length - 1
+    ? LEVEL_ORDER[index + 1]
+    : null;
+}
 
 module.exports = async ({ github, context, core }) => {
   const { payload } = context;
 
-  // Get PR information from automatic pull_request_target trigger
   let prNumber = payload.pull_request?.number;
   let prBody = payload.pull_request?.body || '';
 
-  // Manual workflow_dispatch is no longer supported - inputs were removed
-  // Only automatic triggers from merged PRs will work
   const repoOwner = context.repo.owner;
   const repoName = context.repo.repo;
 
@@ -39,8 +180,8 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // Get the first linked issue number
-  const issueNumber = parseInt(matches[0][2]);
+  const referencedIssues = matches.map(m => Number(m[2]));
+  const issueNumber = referencedIssues[0];
   core.info(`Found linked issue #${issueNumber}`);
 
   try {
@@ -54,79 +195,156 @@ module.exports = async ({ github, context, core }) => {
     // Normalize and check issue labels (case-insensitive)
     const labelNames = issue.labels.map(label => label.name.toLowerCase());
     const labelSet = new Set(labelNames);
-    core.info(`Issue labels: ${labelNames.join(', ')}`);
 
-    // Determine issue difficulty level
-    const difficultyLevels = {
-      beginner: labelSet.has('beginner'),
-      goodFirstIssue: labelSet.has('good first issue'),
-      intermediate: labelSet.has('intermediate'),
-      advanced: labelSet.has('advanced'),
-    };
+    core.info(`Issue labels: ${labelNames.join(", ")}`);
 
-    // Skip if intermediate or advanced
-    if (difficultyLevels.intermediate || difficultyLevels.advanced) {
-      core.info('Issue is intermediate or advanced level, skipping recommendation');
+    const completedLevel = LEVEL_ORDER.find(level => {
+      const aliases = LEVEL_LABEL_ALIASES[level] || [level];
+      return aliases.some(alias => labelSet.has(alias));
+    });
+
+    const username = context.payload.pull_request.user.login;
+
+    const userProgress = await getUserLevelProgress(
+      github,
+      core,
+      repoOwner,
+      username
+    );
+
+    core.info(`User contribution progress: ${JSON.stringify(userProgress)}`);
+
+    if (!completedLevel) {
+      core.info("Issue does not match known difficulty levels");
       return;
     }
 
-    // Only proceed for Good First Issue or beginner issues
-    if (!difficultyLevels.goodFirstIssue && !difficultyLevels.beginner) {
-      core.info('Issue is not a Good First Issue or beginner issue, skipping');
-      return;
-    }
+    core.info(`Completed level: ${completedLevel}`);
 
     let recommendedIssues = [];
     let recommendedLabel = null;
     let isFallback = false;
 
-    recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
-    recommendedLabel = 'Beginner';
+    const LIMIT = 5;
+    let nextLevel = getNextLevel(completedLevel);
 
-    if (recommendedIssues.length === 0) {
-      isFallback = true;
-      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
-      recommendedLabel = 'Good First Issue';
+    if (nextLevel) {
+      const required = LEVEL_CONFIG[nextLevel].required;
+
+      if (userProgress[completedLevel] < required) {
+        core.info(`User not eligible for ${nextLevel} yet`);
+        nextLevel = null;
+      }
+    }
+    const prevLevel = getPreviousLevel(completedLevel);
+
+    let allRepos = await getSupportedRepos(github, core, repoOwner);
+    if (allRepos.length === 0) {
+      core.warning("Using fallback repo list");
+      allRepos = [
+        "hiero-sdk-cpp",
+        "hiero-sdk-swift",
+        "hiero-sdk-python",
+        "hiero-website",
+        "hiero-sdk-js"
+      ];
     }
 
+    const otherRepos = allRepos.filter(r => r !== repoName);
 
-    // Remove the issue they just solved
-    recommendedIssues = recommendedIssues.filter(i => i.number !== issueNumber);
+    const issueBatches = await gatherCandidateIssues(
+      github,
+      core,
+      repoOwner,
+      repoName,
+      otherRepos,
+      completedLevel,
+      nextLevel,
+      prevLevel
+    );
 
-    // Generate and post comment
-    const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner';
-    const completedLabelText = completedLabel === 'Beginner' ? 'Beginner issue' : completedLabel;
+    const flattened = issueBatches.flat().filter(Boolean);
+
+    for (const candidate of flattened) {
+
+      if (referencedIssues.includes(candidate.number)) continue;
+
+      if (!recommendedIssues.find(i => i.html_url === candidate.html_url)) {
+        recommendedIssues.push(candidate);
+      }
+
+      if (recommendedIssues.length === LIMIT) break;
+    }
+
+    recommendedLabel = nextLevel
+      ? LEVEL_CONFIG[nextLevel].display
+      : LEVEL_CONFIG[completedLevel].display;
+
+    recommendedIssues = recommendedIssues.slice(0, LIMIT);
+
+    isFallback = !nextLevel
+
+    const completedLabelText = LEVEL_CONFIG[completedLevel].display;
+
     const recommendationMeta = {
       completedLabelText,
       recommendedLabel,
       isFallback,
     };
-    await generateAndPostComment(github, context, core, prNumber, recommendedIssues, recommendationMeta);
 
+    await generateAndPostComment(
+      github,
+      context,
+      core,
+      prNumber,
+      recommendedIssues,
+      recommendationMeta,
+      allRepos
+    );
   } catch (error) {
     core.setFailed(`Error processing issue #${issueNumber}: ${error.message}`);
   }
 };
 
-async function searchIssues(github, core, owner, repo, label) {
+async function searchIssues(github, core, owner, repos, level) {
   try {
-    const query = `repo:${owner}/${repo} type:issue state:open label:"${label}" no:assignee`;
-    core.info(`Searching for issues with query: ${query}`);
 
-    const { data: searchResult } = await github.rest.search.issuesAndPullRequests({
+    const labels = LEVEL_LABEL_ALIASES[level] || [level];
+
+    const labelQuery = labels
+      .map(l => `label:"${l}"`)
+      .join(" OR ");
+
+    const repoFilter = repos && repos.length > 0
+      ? repos.map(r => `repo:${owner}/${r}`).join(" OR ")
+      : `org:${owner}`;
+
+    const query = [
+      "is:issue",
+      "is:open",
+      "no:assignee",
+      `(${labelQuery})`,
+      `(${repoFilter})`
+    ].join(" ");
+
+    core.debug(`Searching issues with query: ${query}`);
+
+    const { data: result } = await github.rest.search.issuesAndPullRequests({
       q: query,
       per_page: 6,
     });
 
-    core.info(`Found ${searchResult.items.length} issues with label "${label}"`);
-    return searchResult.items;
+    core.debug(`Found ${result.items.length} issues`);
+
+    return result.items;
+
   } catch (error) {
-    core.warning(`Error searching for issues with label "${label}": ${error.message}`);
+    core.warning(`Search error: ${error.message}`);
     return [];
   }
 }
 
-async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback }) {
+async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback }, allRepos) {
   const marker = '<!-- next-issue-bot-marker -->';
 
   // Build comment content
@@ -148,10 +366,10 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       .replace(/\(/g, '\\(')
       .replace(/\)/g, '\\)');
 
-    recommendedIssues.slice(0, 5).forEach((issue, index) => {
-      comment += `${index + 1}. [${sanitizeTitle(issue.title)}](${issue.html_url})\n`;
-      if (issue.body && issue.body.length > 0) {
-        const description = extractIssueDescription(issue.body);
+    recommendedIssues.slice(0, 5).forEach((recIssue, index) => {
+      comment += `${index + 1}. [${sanitizeTitle(recIssue.title)}](${recIssue.html_url})\n`;
+      if (recIssue.body && recIssue.body.length > 0) {
+        const description = extractIssueDescription(recIssue.body);
         comment += `   ${description}\n\n`;
       } else {
         comment += `   *No description available*\n\n`;
@@ -160,7 +378,7 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
   } else {
     comment += `There are currently no open issues available at or near the ${completedLabelText} level in this repository.\n\n`;
     comment += `You can check out **Good First Issues** in other Hiero repositories:\n\n`;
-    const repoQuery = SUPPORTED_GFI_REPOS
+    const repoQuery = allRepos
       .map(repo => `repo:${context.repo.owner}/${repo}`)
       .join(' OR ');
 
