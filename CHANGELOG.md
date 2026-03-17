@@ -12,11 +12,17 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)
+- Update protobuf schema version to v0.72.0-rc.2 in `.coderabbit.yaml`
 
 ### Src
 - Updated `generated_proto.py` file to work with new proto version
+- fix: Ensure UTF-8 encoding when reading and writing proto files in `generate_proto.py` to prevent encoding issues on Windows (`#1963`)
+
 
 ### Examples
+- Updated the `examples/consensus/topic_create_transaction_revenue_generating.py` example to use `Client.from_env()` for simpler client setup. (#1964)
+
+- Refactored `examples/consensus/topic_delete_transaction.py` to use Client.from_env() for simplified client initialization, removed manual setup code, and cleaned up unused imports (`os`, `AccountId`, `PrivateKey`). (`#1971`)
 
 ### Tests
 
@@ -28,6 +34,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- chore: ensure uv run uses lowest-direct resolution in deps-check workflow (#1919)
+- Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
 - changed `pr-check-test` to run unit matrix first, run integration matrix only after unit success, skip docs/examples/.github-only changes, and parallelize integration tests with xdist (`#1878`)
 - archived workflows relating to PR reminders
 - chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
@@ -36,9 +44,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update bot-coderabbit-plan-trigger workflow to use self-hosted runner (`#1925`)
 - Require contributors to complete 1 beginner issue before they can be assigned an intermediate issue (#1939)
 - Expand spam list (#1933)
+- Expand spam list (#1972)
 - chore: add ndpvt-web to spam list (#1945)
 - chore: update bot-community-calls workflow to use self hosted runner (#1942)
 - chore(ci): update bot-inactivity-unassign workflow to use hl-sdk-py-lin-md runner
+- chore: update bot-gfi-candidate-notification workflow to use hl-sdk-py-lin-md runner (`#1966`)
 ## [0.2.1] - 2026-03-05
 
 ### Added
