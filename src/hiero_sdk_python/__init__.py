@@ -302,4 +302,8 @@ __all__ = [
     # System
     "FreezeTransaction",
     "FreezeType",
+
+    # Errors
+    "ReceiptStatusError",
+    "PrecheckError"
 ]

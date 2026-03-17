@@ -394,7 +394,7 @@ def test_execute_returns_failed_receipt_when_validation_disabled(file_id):
 
 def test_file_append_execute_all_raises_error_with_validation(file_id):
     """Test execute_all raises error when validate_status is True and a chunk fails."""
-    content = "Hello Hiero"
+    content = "A" * 1024
 
     tx_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK
@@ -411,7 +411,7 @@ def test_file_append_execute_all_raises_error_with_validation(file_id):
         )
     )
 
-    response_sequence = [tx_response, receipt_response] 
+    response_sequence = [tx_response, receipt_response] * 4
 
     with mock_hedera_servers([response_sequence]) as client:
         tx = (
@@ -428,7 +428,7 @@ def test_file_append_execute_all_raises_error_with_validation(file_id):
 
 def test_file_append_execute_all_returns_receipt_without_validation(file_id):
     """Test execute_all returns failing receipts normally when validation is disabled."""
-    content = "Hello Hiero"
+    content = "A" * 1024
 
     tx_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK
@@ -445,7 +445,7 @@ def test_file_append_execute_all_returns_receipt_without_validation(file_id):
         )
     )
 
-    response_sequence = [tx_response, receipt_response] 
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
 
     with mock_hedera_servers([response_sequence]) as client:
         tx = (

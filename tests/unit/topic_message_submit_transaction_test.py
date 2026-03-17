@@ -541,7 +541,7 @@ def test_topic_submit_execute_all_raises_error_with_validation(topic_id):
 
 def test_topic_submit_execute_all_returns_failed_receipt_by_default(topic_id):
     """Test execute_all returns failing receipts normally when validation is disabled."""
-    message = "Hello Hiero"
+    message = "A" * 1024
 
     tx_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK
@@ -557,8 +557,8 @@ def test_topic_submit_execute_all_returns_failed_receipt_by_default(topic_id):
             )
         )
     )
-
-    response_sequence = [tx_response, receipt_response] 
+    
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
 
     with mock_hedera_servers([response_sequence]) as client:
         tx = (
@@ -574,7 +574,7 @@ def test_topic_submit_execute_all_returns_failed_receipt_by_default(topic_id):
 
 def test_topic_submit_execute_raises_error_with_validation(topic_id):
     """Test execute raises error for failing messages when validate_status is True."""
-    message = "Hello Hiero"
+    message = "A" * 1024
 
     tx_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK
@@ -591,7 +591,7 @@ def test_topic_submit_execute_raises_error_with_validation(topic_id):
         )
     )
 
-    response_sequence = [tx_response, receipt_response] 
+    response_sequence = [tx_response, receipt_response] * 4
 
     with mock_hedera_servers([response_sequence]) as client:
         tx = (

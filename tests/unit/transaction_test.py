@@ -93,7 +93,7 @@ def test_execute_without_wait_returns_transaction_response():
         assert response.validate_status is True
 
 def test_execute_raises_error_when_validation_enabled_and_transaction_fails():
-    """Test execute raises error for failing transactions when validate_status is True.."""
+    """Test execute raises error for failing transactions when validate_status is True."""
     ok_response = transaction_response_pb2.TransactionResponse(
         nodeTransactionPrecheckCode=ResponseCode.OK
     )
