@@ -107,6 +107,8 @@ def handle_sdk_errors(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
+        except JsonRpcError:
+            raise
         except PrecheckError as e:
             logger.error(f"PrecheckError (status: {ResponseCode(e.status).name}, method: {func.__name__})")
             raise JsonRpcError.hiero_error(
