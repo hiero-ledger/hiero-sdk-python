@@ -6,11 +6,6 @@ import inspect
 from typing import Any, Dict, Optional, Union, Callable
 from tck.errors import JsonRpcError, handle_sdk_errors
 from tck.protocol import build_json_rpc_error_response
-from hiero_sdk_python.exceptions import (
-    PrecheckError,
-    ReceiptStatusError,
-    MaxAttemptsError,
-)
 
 # A global _HANDLERS dict to store method name -> handler function mappings
 _HANDLERS: Dict[str, Callable] = {}
@@ -58,8 +53,6 @@ def dispatch(method_name: str, params: Any) -> Any:
 
     except JsonRpcError:
         raise
-    except (PrecheckError, ReceiptStatusError, MaxAttemptsError) as e:
-        raise JsonRpcError.hiero_error(data=str(e)) from e
     except Exception as e:
         raise JsonRpcError.internal_error(data=str(e)) from e
 

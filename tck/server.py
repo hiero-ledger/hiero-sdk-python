@@ -65,13 +65,12 @@ def json_rpc_endpoint():
     params = parsed_request["params"]
     request_id = parsed_request["id"]
 
-    # Safely dispatch the request to the appropriate handler
     response = safe_dispatch(method_name, params, request_id)
 
     # If the response is already an error response, return it directly
     if isinstance(response, dict) and "jsonrpc" in response and "error" in response:
         return jsonify(response)
-
+    
     return jsonify(build_json_rpc_success_response(response, request_id))
 
 

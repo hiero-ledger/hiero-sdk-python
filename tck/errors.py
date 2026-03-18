@@ -1,17 +1,20 @@
 """Error code constants for the TCK server."""
 
 from functools import wraps
+import logging
 
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError, ReceiptStatusError
 from hiero_sdk_python.response_code import ResponseCode
 
+# These constants can be used throughout the codebase to represent specific error conditions.
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
 METHOD_NOT_FOUND = -32601
 INVALID_PARAMS = -32602
 INTERNAL_ERROR = -32603
 HIERO_ERROR = -32001
-# These constants can be used throughout the codebase to represent specific error conditions.
+
+logger = logging.getLogger(__name__)
 
 
 class JsonRpcError(Exception):
@@ -104,30 +107,26 @@ def handle_sdk_errors(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-
-        except JsonRpcError:
-            # already formatted error → rethrow
-            raise
-
         except PrecheckError as e:
-            print(e)
+            logger.error(f"PrecheckError (status: {ResponseCode(e.status).name}, method: {func.__name__})")
             raise JsonRpcError.hiero_error(
                 {"status": ResponseCode(e.status).name}
             )
 
         except ReceiptStatusError as e:
-            print(e)
+            logger.error(f"ReceiptStatusError (status: {ResponseCode(e.status).name}, method: {func.__name__})")
             raise JsonRpcError.hiero_error(
                 {"status": ResponseCode(e.status).name}
             )
         
         except MaxAttemptsError as e:
+            logger.error(f"MaxAttemptsError (method: {func.__name__})")
             raise JsonRpcError.hiero_error(
-                message= e.message
+                message= str(e)
             )
 
         except Exception as e:
-            print(e)
+            logger.error(f"Error ({str(e)})")
             raise JsonRpcError.internal_error(str(e))
 
     return wrapper
