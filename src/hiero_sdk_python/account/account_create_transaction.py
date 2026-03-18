@@ -2,6 +2,7 @@
 AccountCreateTransaction class.
 """
 
+import ctypes
 from typing import Optional, Union
 import warnings
 
@@ -325,7 +326,8 @@ class AccountCreateTransaction(Transaction):
 
         proto_body = crypto_create_pb2.CryptoCreateTransactionBody(
             key=self.key.to_proto_key() if self.key is not None else None,
-            initialBalance=initial_balance_tinybars,
+            # triggers an INVALID_INITIAL_BALANCE pre-check error instead of a local error.
+            initialBalance=ctypes.c_uint64(initial_balance_tinybars).value,
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
             memo=self.account_memo,
