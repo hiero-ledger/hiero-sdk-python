@@ -7,13 +7,12 @@ from tck.handlers.registry import rpc_method
 from tck.param.account import CreateAccountParams
 from tck.response.account import CreateAccountResponse
 from tck.util.client_utils import get_client
+from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
 
 
-def _build_create_account_transaction(
-    params: CreateAccountParams,
-) -> AccountCreateTransaction:
-    transaction = AccountCreateTransaction().set_grpc_deadline(30)
+def _build_create_account_transaction(params: CreateAccountParams) -> AccountCreateTransaction:
+    transaction = AccountCreateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
     if params.key is not None:
         transaction.set_key_without_alias(get_key_from_string(params.key))
@@ -60,7 +59,7 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
     response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     account_id = ""
     if receipt.status == ResponseCode.SUCCESS:

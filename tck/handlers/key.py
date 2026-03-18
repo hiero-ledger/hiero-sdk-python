@@ -11,7 +11,6 @@ from tck.util.key_utils import KeyType, get_key_from_string
 
 @rpc_method("generateKey")
 def generate_key(params: KeyGenerationParams) -> KeyGenerationResponse:
-    print("Ke params: ", params)
     if params.fromKey and params.type not in {
         KeyType.ED25519_PUBLIC_KEY,
         KeyType.ECDSA_SECP256K1_PUBLIC_KEY,
