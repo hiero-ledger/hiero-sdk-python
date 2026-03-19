@@ -6,22 +6,91 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Src
+- Fix the TransactionGetReceiptQuery to raise ReceiptStatusError for the non-retryable and non success receipt status
+- Refactor `AccountInfo` to use the existing `StakingInfo` wrapper class instead of flattened staking fields. Access is now via `info.staking_info.staked_account_id`, `info.staking_info.staked_node_id`, and `info.staking_info.decline_reward`. The old flat accessors (`info.staked_account_id`, `info.staked_node_id`, `info.decline_staking_reward`) are still available as deprecated properties and will emit a `DeprecationWarning`. (#1366)
+
+
+### Examples
+
+### Tests
+
+
+### Docs
+
+
+### .github
+- fix: prevent CodeRabbit from posting comments on closed issues(#1962)
+
+
+
+## [0.2.2] - 2026-03-17
+
+### Added
+- Added CodeRabbit review instructions in `.coderabbit.yaml` for account module `src/hiero_sdk_python/account/`.
+- Add support for `include_children` to TransactionRecordQuery ([#1512](https://github.com/hiero-ledger/hiero-sdk-python/issues/1512))
+
+### Changed
+- Changed pytest version to "pytest>=8.3.4,<10" (#1917)
+- Update protobuf schema version to v0.72.0-rc.2 in `.coderabbit.yaml`
+
+### Src
+- Updated `generated_proto.py` file to work with new proto version
+- fix: Ensure UTF-8 encoding when reading and writing proto files in `generate_proto.py` to prevent encoding issues on Windows (`#1963`)
+
+### Examples
+- Updated the `examples/consensus/topic_create_transaction_revenue_generating.py` example to use `Client.from_env()` for simpler client setup. (#1964)
+
+- Refactored `examples/consensus/topic_delete_transaction.py` to use Client.from_env() for simplified client initialization, removed manual setup code, and cleaned up unused imports (`os`, `AccountId`, `PrivateKey`). (`#1971`)
+
+### Tests
+
+### Docs
+- Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
+- docs: Clarified AI usage in Good First Issues templates. (#1923)
+- docs: Moved the Windows setup guide to docs/sdk_developers/ and added missing setup sections. (`#1953`)
+
+
+
+### .github
+- chore: ensure uv run uses lowest-direct resolution in deps-check workflow (#1919)
+- Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
+- changed `pr-check-test` to run unit matrix first, run integration matrix only after unit success, skip docs/examples/.github-only changes, and parallelize integration tests with xdist (`#1878`)
+- archived workflows relating to PR reminders
+- chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-assignment-check.yml workflow
+- chore: update concurrency group for GFI assignment workflow to prevent race conditions (`#1910`)
+- chore: switch workflow runner from ubuntu-latest to hl-sdk-py-lin-md for bot-beginner-assign-on-comment workflow
+- chore: update bot-coderabbit-plan-trigger workflow to use self-hosted runner (`#1925`)
+- Require contributors to complete 1 beginner issue before they can be assigned an intermediate issue (#1939)
+- Expand spam list (#1933)
+- Expand spam list (#1972)
+- chore: add ndpvt-web to spam list (#1945)
+- chore: update bot-community-calls workflow to use self hosted runner (#1942)
+- chore(ci): update bot-inactivity-unassign workflow to use hl-sdk-py-lin-md runner
+- chore: update bot-gfi-candidate-notification workflow to use hl-sdk-py-lin-md runner (`#1966`)
+## [0.2.1] - 2026-03-05
+
 ### Added
 
+- Added unit test and __repr__ for NftId class(#1627).
 - Added CodeRabbit review instructions for the nodes module in `.coderabbit.yaml` (#1699)
 - Added CodeRabbit review instructions for the transaction module in `.coderabbit.yaml` (#1696)
 - Added CodeRabbit review instructions and path mapping for the schedule module (`src/hiero_sdk_python/schedule/`) in `.coderabbit.yaml` (#1698)
 - Added advanced code review prompts for the `src/hiero_sdk_python/file` module in `.coderabbit.yaml` to guide reviewers in verifying proper `FileAppendTransaction` chunking constraints and nuances in memo handling for `FileUpdateTransaction` according to Hiero SDK best practices. (#1697)
 - Added CodeRabbit review instructions for consensus module `src/hiero_sdk_python/consensus/` with critical focus on protobuf alignment `.coderabbit.yaml`.
-
+- Added CodeRabbit prompt to review the `src/hiero_sdk_python/crypto` module.
+- Added `.codacy.yml` configuration to exclude the `tests/` directory from Bandit `assert` analysis.
 
 ### Fixed
 
 - Fixed duplication in GitHub bot next issue recommendations by parsing actual issue descriptions instead of blind truncation (#1658)
 
 ### Src
+- Add `staking_info` field to `ContractInfo` class to expose staking metadata using the `StakingInfo` wrapper. (#1365)
 - Fix `TopicInfo.__str__()` to format `expiration_time` in UTC so unit tests pass in non-UTC environments. (#1800)
 - Resolve CodeQL `reflected-XSS` warning in TCK JSON-RPC endpoint
+- Improve `keccak256` docstring formatting for better readability and consistency (#1624)
+- Added `wait_for_receipt` parameter for `Transaction.execute()` to support optional receipt waiting, and `get_receipt_query`, `get_record_query` and `get_record` to `TransactionResponse`.
 
 ### Examples
 - Refactor `examples/file/file_create_transaction.py` to remove `os`,`dotenv`,`AccountId`,`PrivateKey`,`Network` imports that are no longer needed and updated setup-client() (#1610)
@@ -38,6 +107,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs: create workflow best practices guide (`docs/workflows/03-workflow-best-practices.md`) (`#1743`)
 - Fixed broken `MAINTAINERS.md` relative link in `docs/sdk_developers/bug.md` by using the repository-root GitHub URL. (#1666)
 - docs(setup): specify unit tests for local setup verification. (#1856)
+- docs: Clarify issues need to be assigned in template files. (#1884)
 - doc: Fix testnet link in README.md. (#1879)
 
 ### Tests
@@ -57,6 +127,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added workflow documentation guide (`docs/github/04_workflow_documentation.md`) with best practices for documenting GitHub workflows and automation scripts (#1745)
 - Updated CodeRabbit workflow and script review instructions to nudge higher-quality patterns without imposing rigid rules (`#1799`)
 - Added hiero-sdk-js to the next issue recommendation bot (`#1847`)
+- feat(bot): warn PR authors that unlinked PRs will be closed (#1886)
+- updated spam list users (`#1894`)
+- trigger spam list updates every hour (`#1864`)
+- close unlinked pull requests after 12 hours rather than 3 days (`#1863`)
+- feat(bot): enforce linked issue assignment check for PR authors (`#1889`)
+- Bumped `astral-sh/setup-uv` from v7.2.1 to v7.3.1 in workflow files (#1900)
 
 ## [0.2.0] - 2026-11-02
 

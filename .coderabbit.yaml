@@ -935,6 +935,175 @@ reviews:
     - Accurately aligned with protobuf definitions
     - Validating inputs consistently
 
+  # CRYPTO REVIEW INSTRUCTIONS
+  crypto_review_instructions: &crypto_review_instructions |
+    You are acting as a senior maintainer reviewing cryptography-related code
+    in the hiero-sdk-python project.
+
+    This includes:
+    - PrivateKey (Ed25519 and ECDSA(secp256k1))
+    - PublicKey (Ed25519 and ECDSA(secp256k1))
+    - EvmAddress
+  
+    NOTE:
+    - Review focus levels indicate areas requiring careful verification.
+    - They do NOT imply severity or urgency.
+    - Only recommend fixes when correctness, safety, determinism,
+      cryptographic soundness, or API stability is impacted.
+
+    Scope is STRICTLY LIMITED to:
+    - src/hiero_sdk_python/crypto/*.py
+    - Their interaction with shared SDK utilities
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 1 — API STABILITY & BACKWARDS COMPATIBILITY
+    ----------------------------------------------------------
+    Crypto APIs are public and security-sensitive.
+
+    The following MUST remain stable:
+    - Public class names
+    - Method names and signatures
+    - Return types
+    - Key serialization formats (raw, DER, hex)
+    - Signature formats (raw r||s for ECDSA)
+
+    Flag any change that:
+    - Alters method signatures or return types
+    - Changes serialization output format
+    - Changes signature encoding behavior
+    - Modifies equality or hashing semantics
+
+    If a breaking change is unavoidable:
+    - Require explicit deprecation warnings
+    - Require unit tests covering old vs new behavior
+    - Require inline documentation explaining migration impact
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 2 — CRYPTOGRAPHIC CORRECTNESS
+    ----------------------------------------------------------
+    Verify correctness of:
+    - Ed25519 key handling
+    - ECDSA (secp256k1) key handling
+    - Compressed vs uncompressed public keys
+    - DER parsing and generation
+    - Raw 64-byte (r||s) signature handling
+    - keccak256 hashing usage
+    - EVM address derivation (rightmost 20 bytes of Keccak-256)
+
+    Confirm that:
+    - No incorrect hash function combinations are used
+    - Prehashed signing/verification is used correctly
+    - Signature malleability risks are addressed or intentional
+    - No ambiguous key interpretation occurs silently
+    - Invalid key lengths fail deterministically
+
+    Flag:
+    - Any incorrect hash algorithm pairing
+    - Any improper DER normalization
+    - Any silent fallback logic
+    - Any potential signature malleability issue
+    - Any inconsistent signature verification logic
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 3 — KEY AMBIGUITY & TYPE SAFETY
+    ----------------------------------------------------------
+    32-byte inputs can represent:
+    - Ed25519 private keys
+    - ECDSA (secp256k1) private scalars
+
+    Verify that:
+    - Ambiguity is handled explicitly
+    - No silent reinterpretation occurs
+    - Explicit algorithm intent is preserved
+    - Warnings or safeguards are meaningful and consistent
+
+    PublicKey and PrivateKey MUST:
+    - Never silently switch algorithms
+    - Never infer algorithm incorrectly from length alone
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 4 — SERIALIZATION & DETERMINISM
+    ----------------------------------------------------------
+    Verify that:
+    - Raw bytes serialization is stable
+    - DER serialization is canonical
+    - Hex encoding is lowercase and deterministic
+    - Equality (__eq__) matches cryptographic identity
+    - __hash__ is correct and deterministic
+    - No runtime errors occur in hashing
+
+    Flag:
+    - Incorrect hash implementations
+    - NameErrors or undefined variables
+    - Non-deterministic serialization behavior
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 5 — EVM ADDRESS INTEGRITY
+    ----------------------------------------------------------
+    EvmAddress MUST:
+    - Be exactly 20 bytes
+    - Be derived correctly from Keccak-256
+    - Reject invalid hex strings
+    - Avoid silent truncation or padding
+
+    Verify:
+    - from_string validation correctness
+    - to_string format consistency
+    - Equality and hashing correctness
+
+    Flag:
+    - Incorrect length checks
+    - Unsafe parsing
+    - Broken __hash__ implementations
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 6 — VALIDATION & ERROR BEHAVIOR
+    ----------------------------------------------------------
+    All validation must:
+    - Fail early
+    - Raise deterministic exceptions
+    - Avoid ambiguous error messages
+    - Avoid leaking sensitive key material in errors
+
+    Ensure:
+    - Private keys are never exposed in __repr__
+    - Error messages do not contain raw key material
+    - TypeErrors and ValueErrors are consistent
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 7 — IMPORT SAFETY
+    ----------------------------------------------------------
+    STRICT IMPORT RULES:
+    - All imports MUST exist in src/hiero_sdk_python/
+    - Do NOT assume helpers exist
+    - Do NOT infer utilities from other SDKs
+    - Validate keccak256 implementation source
+
+    Flag immediately:
+    - Undefined names
+    - Copy-paste artifacts
+    - Incorrect external crypto assumptions
+
+    ----------------------------------------------------------
+    REVIEW FOCUS 8 — EXPLICIT NON-GOALS
+    ----------------------------------------------------------
+    Do NOT:
+    - Suggest refactors unless security or correctness is impacted
+    - Recommend stylistic or formatting-only changes
+    - Propose performance optimizations without correctness impact
+    - Review unrelated SDK components
+
+    ----------------------------------------------------------
+    FINAL OBJECTIVE
+    ----------------------------------------------------------
+    Ensure crypto code is:
+    - Cryptographically correct
+    - Deterministic
+    - Non-ambiguous
+    - Backward-compatible
+    - Safe against misuse
+    - Free from silent cryptographic errors
+
   # ============================================================
   # GLOBAL REVIEW INSTRUCTIONS (APPLY TO ALL FILES)
   # ============================================================
@@ -1080,12 +1249,12 @@ reviews:
         2. Extract the module name before `_pb2`
            (e.g. `transaction_record` from `transaction_record_pb2`)
         3. Build the canonical URL:
-           `https://github.com/hashgraph/hedera-protobufs/blob/v0.66.0/<path>/<module>.proto`
+           `https://github.com/hashgraph/hedera-protobufs/blob/v0.72.0-rc.2/<path>/<module>.proto`
     
         **Example:**
         ```
         Import:  from hiero_sdk_python.hapi.services import transaction_record_pb2
-        Schema:  https://github.com/hashgraph/hedera-protobufs/blob/v0.66.0/services/transaction_record.proto
+        Schema:  https://github.com/hashgraph/hedera-protobufs/blob/v0.72.0-rc.2/services/transaction_record.proto
         ```
     
         ### Step 3 — Compare the SDK class against the proto schema
@@ -1647,7 +1816,7 @@ reviews:
         - Flag the **missing override** in `TopicMessageSubmitTransaction` as **MAJOR**
           if the base-class default is not appropriate for message submission, or add a
           comment confirming the base-class value is intentional.
-        - Flag any value that deviates from the table above without a comment as **MAJOR**.
+        - Flag any value that deviates from sibling-class defaults as **MAJOR**.
 
         #### 5c) General fee/limit logic
         - Confirm any fee/max payment logic is consistent and does not allow unintended
@@ -1669,6 +1838,105 @@ reviews:
         - Cover: valid submit, missing topic id, empty message, large message boundary (if enforced), invalid checksum/network.
         - Missing critical tests is **MAJOR** (or **MINOR** if coverage exists elsewhere).
 
+        ---
+
+        ## Severity labels
+        Use exactly these labels in all findings:
+        - **BLOCKER** — must be fixed before merge; wire-format, signing, or data-loss risk
+        - **MAJOR** — should be fixed; correctness or significant usability issue
+        - **MINOR** — should be fixed; low-risk correctness or ergonomics issue
+        - **NIT** — optional; style, naming, or documentation only
+
+    - path: "src/hiero_sdk_python/crypto/**/*.py"
+      instructions: *crypto_review_instructions
+
+    - path: "src/hiero_sdk_python/account/**/*.py"
+      instructions: |
+        You are reviewing Python files in the `src/hiero_sdk_python/account/` directory.
+        These files implement account-related transactions, queries, and data types for the Hiero SDK.
+
+        > Note: Protobuf schema alignment (field names, types, oneof, bytes normalization,
+        > repeated defaults, and canonical `.proto` URL derivation) is already enforced by
+        > the global `src/hiero_sdk_python/**/*.py` instruction. Do NOT re-run those checks
+        > here — focus exclusively on the account-domain concerns below.
+
+        ---
+
+        ## Review priorities (highest → lowest)
+
+        ### 1) Protobuf correctness (must-not-break)
+        - Validate field names, field types, and field numbers +
+          repeated/optional semantics against the canonical `.proto` schema.
+        - Ensure `_to_proto` / `_from_proto` set the correct oneof branches
+          and do not drop fields.
+        - Treat silent coercions, defaulting, or ignored exceptions as
+          **BLOCKER** if they could change what is signed or sent.
+
+        ### 2) AccountId — alias / EVM address handling
+        `AccountId` has three identity modes: numeric `num`, `alias_key`,
+        and `evm_address`. Verify `_from_proto`/`_to_proto` symmetry across
+        all three. `__hash__` only covers `(shard, realm, num)` — alias-only
+        IDs with `num=0` can collide in dicts/sets. **MAJOR** if broken.
+
+        ### 3) Allowance mutation paths
+        When modifying existing `TokenNftAllowance` entries, mutation path and
+        append path must set `approved_for_all` to the same intended value.
+        `None` passed to typed arguments like `amount` must raise, not silently
+        produce zero. **MAJOR**.
+
+        ### 4) Errors & API ergonomics
+        - Errors should be actionable and consistent; avoid swallowing or
+          printing RPC/precheck errors.
+        - Ambiguous exceptions or inconsistent return types are **MINOR** /
+          **MAJOR** depending on impact.
+
+        ---
+
+        ## ARCHITECTURAL INVARIANTS (stable)
+        These describe what must always be true, regardless of code changes.
+        They are ordered by severity.
+
+        1. **Falsy-guard trap on optional integers** — Fields like
+          `staked_node_id` where `0` is a valid value must never use
+          `if field:` guards. Use `if field is not None:`. **BLOCKER**
+          if it silently drops valid data.
+
+        2. **Mutable default arguments** — Flag any mutable object
+          (`list`, `dict`, `set`, or non-frozen class instance) used as
+          a default parameter in `__init__`. Default to `None` and assign
+          in the body. **MAJOR**.
+
+          Exception: frozen/immutable types are safe as defaults and must
+          NOT be flagged. This includes `@dataclass(frozen=True)` classes
+          (e.g., `Duration`), tuples, frozensets, and primitives (int, str,
+          bool, None).
+
+        3. **Library-safe error handling** — No bare `except Exception`
+          with `print`/`traceback` in library code. Callers cannot
+          suppress stdout side effects. **MAJOR**.
+
+        ---
+
+        ## KNOWN INSTANCES (transient — remove when fixed)
+
+        _Check if these still exist before flagging._
+
+        - `AccountRecordsQuery._make_request`: bare except + print
+          → violates invariant #3
+        - `AccountId.from_string`: verify `from e` chaining not removed
+          → exception context silently lost if removed
+        - `AccountInfo._to_proto`: falsy guard on `staked_node_id`
+          → violates invariant #1
+
+        ---
+
+        ## Test expectations
+        PRs modifying account code should have tests covering:
+        - AccountId round-trip across all three identity modes
+        - `__hash__` behavior for alias-only IDs with `num=0`
+        - Invalid/None arguments raising errors, not silently defaulting
+        - `_from_proto(_to_proto(x))` field round-trip equality
+        
         ---
 
         ## Severity labels

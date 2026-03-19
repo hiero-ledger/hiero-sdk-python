@@ -6,6 +6,7 @@ Defines NftId, a value object for representing and validating a unique
 Non-Fungible Token (NFT) identifier, including conversion to/from
 Protobuf and string serialization.
 """
+
 import re
 from dataclasses import dataclass, field
 from typing import Optional
@@ -13,14 +14,16 @@ from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
 
+
 @dataclass(frozen=True, init=False)
 class NftId:
     """
     A unique identifier for Non-Fungible Tokens (NFTs).
     The NftId has a TokenId and a serial number.
     """
-    token_id: TokenId      = field()
-    serial_number: int     = field()
+
+    token_id: TokenId = field()
+    serial_number: int = field()
 
     def __init__(
         self,
@@ -45,14 +48,20 @@ class NftId:
         if self.token_id is None:
             raise TypeError("token_id is required")
         if not isinstance(self.token_id, TokenId):
-            raise TypeError(f"token_id must be of type TokenId, got {type(self.token_id)}")
+            raise TypeError(
+                f"token_id must be of type TokenId, got {type(self.token_id)}"
+            )
         if not isinstance(self.serial_number, int):
-            raise TypeError(f"serial_number must be an integer, got {type(self.serial_number)}")
+            raise TypeError(
+                f"serial_number must be an integer, got {type(self.serial_number)}"
+            )
         if self.serial_number < 0:
             raise ValueError("serial_number must be non-negative")
 
     @classmethod
-    def _from_proto(cls, nft_id_proto: Optional[basic_types_pb2.NftID] = None) -> "NftId":
+    def _from_proto(
+        cls, nft_id_proto: Optional[basic_types_pb2.NftID] = None
+    ) -> "NftId":
         """
         :param nft_id_proto: the proto NftID object
         :return: an NftId object
@@ -90,10 +99,10 @@ class NftId:
             token_id=TokenId.from_string(token_part),
             serial_number=int(serial_part),
         )
- 
-    def to_string_with_checksum(self, client:Client) -> str:
+
+    def to_string_with_checksum(self, client: Client) -> str:
         """
-        Returns the string representation of the NftId with 
+        Returns the string representation of the NftId with
         checksum in the format 'shard.realm.num-checksum/serial'
         """
         return f"{self.token_id.to_string_with_checksum(client)}/{self.serial_number}"
@@ -103,3 +112,12 @@ class NftId:
         :return: a human-readable representation of the NftId
         """
         return f"{self.token_id}/{self.serial_number}"
+
+    def __repr__(self) -> str:
+        """
+        Returns a detailed representation of the NftId suitable for debugging.
+
+        Returns:
+            str: A string in the format 'NftId(token_id=X.X.X, serial_number=Y)'.
+        """
+        return f"NftId(token_id={self.token_id}, serial_number={self.serial_number})"

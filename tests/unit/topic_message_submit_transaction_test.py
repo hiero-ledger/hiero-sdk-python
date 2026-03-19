@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     response_header_pb2, 
     response_pb2,
@@ -17,6 +18,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -260,3 +263,378 @@ def test_topic_message_submit_transaction_with_large_message(topic_id):
 
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
+
+
+
+def test_topic_message_submit_execute_all_multi_chunk_success(topic_id):
+    """Test multi-chunk transaction should return list of receipts for each chunk."""
+    # Create a large message (just under the typical 4KB limit)
+    large_message = "A" * 4000
+
+    # Create a single node response sequence for all chunks
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    # For simplicity, assume 4 chunks are required
+    # All chunks go to the same node, so repeat the same responses for that node
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(large_message)
+            .freeze_with(client)
+        )
+
+        try:
+            receipts = tx.execute_all(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+
+        assert isinstance(receipts, list)
+        assert len(receipts) == 4
+        for receipt in receipts:
+            assert receipt.status == ResponseCode.SUCCESS
+
+
+
+def test_topic_message_submit_execute_all_single_chunk(topic_id):
+    """Test single chunk transaction should return list with one receipt."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+    
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response]
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        try:
+            receipts = tx.execute_all(client)
+        except Exception as e:
+            pytest.fail(f"Should not raise exception, but raised: {e}")
+
+        # Verify the receipt contains the expected values
+        assert isinstance(receipts, list)
+        assert len(receipts) == 1
+        for receipt in receipts:
+            assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_topic_message_submit_execute_without_wait_for_receipt(topic_id):
+    """Test should return TransactionResponse when wait_for_receipt=False."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    response_sequence = [tx_response]  # No receipt
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        response = tx.execute(client, wait_for_receipt=False)
+
+        assert isinstance(response, TransactionResponse)
+
+
+def test_topic_message_submit_execute_with_wait_for_receipt(topic_id):
+    """Test should return TransactionReceipt when wait_for_receipt=True."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        response = tx.execute(client, wait_for_receipt=True)
+
+        assert isinstance(response, TransactionReceipt)
+
+
+def test_topic_message_submit_execute_all_without_wait_for_receipt(topic_id):
+    """Test should return list of TransactionResponse when wait_for_receipt=False."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    response_sequence = [tx_response]  # No receipt
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        responses = tx.execute_all(client, wait_for_receipt=False)
+
+        assert isinstance(responses, list)
+        assert isinstance(responses[0], TransactionResponse)
+
+
+def test_topic_message_submit_execute_all_with_wait_for_receipt(topic_id):
+    """Test should return list of TransactionReceipt when wait_for_receipt=True."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        responses = tx.execute_all(client, wait_for_receipt=True)
+
+        assert isinstance(responses, list)
+        assert isinstance(responses[0], TransactionReceipt)
+
+
+def test_topic_message_submit_execute_throw_error_when_transaction_fails(topic_id):
+    """Test execute tx should throw error if transaction fails."""
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.INSUFFICIENT_TX_FEE
+    )
+
+    response_sequence = [tx_response]
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message("Hello Hiero")
+            .freeze_with(client)
+        )
+
+        with pytest.raises(PrecheckError, match="Transaction failed precheck"):
+          tx.execute(client)
+
+
+def test_topic_message_submit_execute_all_throw_error_when_transaction_fails(topic_id):
+    """Test execute_all tx should throw error if transaction fails."""
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.INSUFFICIENT_TX_FEE
+    )
+
+    response_sequence = [tx_response]
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message("Hello Hiero")
+            .freeze_with(client)
+        )
+
+        with pytest.raises(PrecheckError, match="Transaction failed precheck"):
+          tx.execute_all(client)
+
+def test_topic_submit_execute_all_raises_error_with_validation(topic_id):
+    """Test execute_all raises error when validate_status is True and a chunk fails."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        with pytest.raises(ReceiptStatusError) as e:
+            tx.execute_all(client, validate_status=True)
+        
+        assert e.value.status == ResponseCode.INVALID_SIGNATURE
+
+def test_topic_submit_execute_all_returns_failed_receipt_by_default(topic_id):
+    """Test execute_all returns failing receipts normally when validation is disabled."""
+    message = "A" * 1024
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            )
+        )
+    )
+    
+    response_sequence = [tx_response, receipt_response] * 4  # 4 chunks
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+        
+        receipt = tx.execute_all(client)
+        
+        assert receipt[0].status == ResponseCode.INVALID_SIGNATURE
+
+def test_topic_submit_execute_raises_error_with_validation(topic_id):
+    """Test execute raises error for failing messages when validate_status is True."""
+    message = "A" * 1024
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] * 4
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        with pytest.raises(ReceiptStatusError) as e:
+            tx.execute(client, validate_status=True)
+        
+        assert e.value.status == ResponseCode.INVALID_SIGNATURE
+
+def test_topic_submit_execute_returns_failed_receipt_by_default(topic_id):
+    """Test execute returns the failing receipt by default when validation is disabled."""
+    message = "Hello Hiero"
+
+    tx_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.INVALID_SIGNATURE
+            )
+        )
+    )
+
+    response_sequence = [tx_response, receipt_response] 
+
+    with mock_hedera_servers([response_sequence]) as client:
+        tx = (
+            TopicMessageSubmitTransaction()
+            .set_topic_id(topic_id)
+            .set_message(message)
+            .freeze_with(client)
+        )
+
+        receipt = tx.execute(client)
+        
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE

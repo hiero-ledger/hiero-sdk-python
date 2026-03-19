@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union, overload
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -13,6 +13,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 
 
 class TopicMessageSubmitTransaction(Transaction):
@@ -282,25 +284,100 @@ class TopicMessageSubmitTransaction(Transaction):
                 self._transaction_ids.append(chunk_transaction_id)
 
         return super().freeze_with(client)
+    
+    @overload
+    def execute(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False
+    ) -> "TransactionReceipt":
+        ...
 
+    @overload
+    def execute(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False
+    ) -> "TransactionResponse":
+        ...
 
-    def execute(self, client: "Client", timeout: Optional[Union[int, float]] = None):
+    def execute(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: bool = True,
+        validate_status: bool = False
+    ) -> TransactionReceipt | TransactionResponse:
         """
         Executes the topic message submit transaction.
         
-        For multi-chunk transactions, this method will execute all chunks sequentially.
+        For multi-chunk transactions, this method will execute all chunks sequentially and return first response.
         
         Args:
             client: The client to execute the transaction with.
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
+            wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
+                If False, the method returns a TransactionResponse immediately after submission.
+            validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
             
         Returns:
-            TransactionReceipt: The receipt from the first chunk execution.
+            TransactionReceipt: If wait_for_receipt is True (default)
+            TransactionResponse: If wait_for_receipt is False
+        """
+        # Return the first response as the JS SDK does
+        return self.execute_all(client, timeout, wait_for_receipt, validate_status)[0]
+    
+    @overload
+    def execute_all(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False
+    ) -> List["TransactionReceipt"]:
+        ...
+
+    @overload
+    def execute_all(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False
+    ) -> List["TransactionResponse"]:
+        ...
+    
+    def execute_all(
+        self,
+        client: "Client",
+        timeout: int | float | None = None,
+        wait_for_receipt: bool = True,
+        validate_status: bool = False
+    ) -> List["TransactionReceipt"] | List["TransactionResponse"]:
+        """
+        Executes the topic message submit transaction.
+
+        This method will execute all chunks sequentially and return list of all responses.
+
+        Args:
+            client: The client to execute the transaction with.
+            timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
+            wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
+                If False, the method returns a TransactionResponse immediately after submission.
+            validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
+            
+        Returns:
+            List[TransactionReceipt]: If wait_for_receipt is True (default)
+            List[TransactionResponse]: If wait_for_receipt is False
         """
         self._validate_chunking()
 
         if self.get_required_chunks() == 1:
-            return super().execute(client, timeout)
+            return [super().execute(client, timeout, wait_for_receipt, validate_status)]
 
         # Multi-chunk transaction - execute all chunks
         responses = []
@@ -320,11 +397,11 @@ class TopicMessageSubmitTransaction(Transaction):
                 super().sign(signing_key)
 
             # Execute the chunk
-            response = super().execute(client, timeout)
+            response = super().execute(client, timeout, wait_for_receipt, validate_status)
             responses.append(response)
-
-        # Return the first response as the JS SDK does
-        return responses[0] if responses else None
+        
+        return responses
+        
 
     def sign(self, private_key: "PrivateKey"):
         """

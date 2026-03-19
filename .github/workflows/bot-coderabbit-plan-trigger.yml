@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   coderabbit_plan_trigger:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     concurrency:
       group: coderabbit-plan-${{ github.event.issue.number }}
       cancel-in-progress: false
@@ -30,11 +30,12 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event.action == 'labeled' && 
+      github.event.issue.state == 'open' &&
       contains(fromJson('["beginner","intermediate","advanced","Beginner","Intermediate","Advanced"]'), github.event.label.name))
-
+  
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
         with:
           egress-policy: audit
 
