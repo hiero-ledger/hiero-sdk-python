@@ -6,9 +6,11 @@ on:
       - "main"
     paths:
       - "tck/**"
+      - "tests/tck/**"
   pull_request:
     paths:
       - "tck/**"
+      - "tests/tck/**"
   workflow_dispatch: {}
 
 permissions:
