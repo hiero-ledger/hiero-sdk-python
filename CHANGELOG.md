@@ -44,6 +44,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored `examples/consensus/topic_delete_transaction.py` to use Client.from_env() for simplified client initialization, removed manual setup code, and cleaned up unused imports (`os`, `AccountId`, `PrivateKey`). (`#1971`)
 
 ### Tests
+- Implement basic fuzz testing [#1872](https://github.com/hiero-ledger/hiero-sdk-python/issues/1872)
 
 ### Docs
 - Replaced relative documentation links in `README.md` with absolute GitHub URLs to fix broken PyPI rendering.
@@ -113,7 +114,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Tests
 - Format `tests/unit/endpoint_test.py` using black. (`#1792`)
 - Implement TCK JSON-RPC server with request handling and error management
-- Implement basic fuzz testing [#1872](https://github.com/hiero-ledger/hiero-sdk-python/issues/1872)
 
 ### .github
 - Added triage members max assignment is protected from being a mentor in `.github/scripts/bot-assignment-check.sh`. (#1718)
