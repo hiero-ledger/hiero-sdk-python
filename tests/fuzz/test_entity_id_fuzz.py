@@ -1,7 +1,3 @@
-"""Strict fuzz tests for entity ID parsing."""
-
-from __future__ import annotations
-
 import warnings
 
 import pytest
