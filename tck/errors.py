@@ -128,7 +128,7 @@ def handle_sdk_errors(func):
             )
 
         except Exception as e:
-            logger.error(f"Error ({str(e)})")
-            raise JsonRpcError.internal_error(str(e))
+            logger.exception("Unhandled error in RPC handler")
+            raise JsonRpcError.internal_error(message="Internal error")
 
     return wrapper

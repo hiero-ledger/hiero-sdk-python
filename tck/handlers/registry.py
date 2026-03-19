@@ -45,8 +45,12 @@ def dispatch(method_name: str, params: Any) -> Any:
         signature = inspect.signature(handler)
         parameters = list(signature.parameters.values())
         param_type = parameters[0].annotation
-
-        params = param_type.parse_json_params(params)
+        
+        try:
+            params = param_type.parse_json_params(params)
+        except (TypeError, ValueError) as e:
+            raise JsonRpcError.invalid_params_error(data=str(e)) from e
+        
         result = handler(params)
 
         return parse_result(result)
