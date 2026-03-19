@@ -5,8 +5,9 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from cryptography.exceptions import InvalidSignature
 from hiero_sdk_python.crypto.evm_address import EvmAddress
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
+from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.utils.crypto_utils import keccak256
 
@@ -469,7 +470,7 @@ def test_from_proto_ecdsa(ecdsa_keypair):
 
 def test_from_proto_unsupported_type():
     # Create a Key proto with an unsupported type
-    proto = Key()
+    proto = basic_types_pb2.Key()
     # Set some arbitrary bytes to a RSA_3072 as currently we do not support it
     proto.RSA_3072 = b"currently unsupported"
 
@@ -710,4 +711,38 @@ def test_equality_with_non_publickey_returns_false(ed25519_keypair, other):
     key = PublicKey(pub)
 
     assert (key == other) is False
+
+def test_to_proto_key_ecd25519():
+    """Test to_proto_key properly convert ed25519 to Key protobuf."""
+    pub_key = PrivateKey.generate_ed25519().public_key()
+    proto_key = pub_key.to_proto_key()
+
+    assert proto_key is not None
+    assert proto_key.ed25519 is not None
+    assert proto_key.ed25519 == pub_key.to_bytes_raw()
+
+def test_to_proto_key_ecdsa():
+    """Test to_proto_key properly convert ecdsa to Key protobuf."""
+    pub_key = PrivateKey.generate_ecdsa().public_key()
+    proto_key = pub_key.to_proto_key()
+
+    assert proto_key is not None
+    assert proto_key.ECDSA_secp256k1 is not None
+    assert proto_key.ECDSA_secp256k1 == pub_key.to_bytes_raw()
+
+@pytest.mark.parametrize(
+    "key",
+    [PrivateKey.generate_ed25519(), PrivateKey.generate_ecdsa()]
+)
+def test_protobuf_roundtrip(key):
+    """Test protobuf roundtrip properly convert to Key protobuf and vice versa."""
+    pub_key = key.public_key()
+
+    proto = pub_key.to_proto_key()
+    loaded = Key.from_proto_key(proto)
+
+    assert isinstance(loaded, PublicKey)
+    assert loaded.is_ed25519() == pub_key.is_ed25519()
+    assert loaded.is_ecdsa() == pub_key.is_ecdsa()
+    assert loaded.to_bytes_raw() == pub_key.to_bytes_raw()
 

@@ -2,23 +2,23 @@
 AccountCreateTransaction class.
 """
 
+import ctypes
 from typing import Optional, Union
 import warnings
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.evm_address import EvmAddress
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_pb2, basic_types_pb2
+from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = Hbar(3).to_tinybars()  # 3 Hbars
@@ -258,12 +258,12 @@ class AccountCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         if isinstance(account_id, str):
-            self.staked_account_id = AccountId.from_string(account_id)
-        elif isinstance(account_id, AccountId):
-            self.staked_account_id = account_id
-        else:
+            account_id = AccountId.from_string(account_id)
+        elif not isinstance(account_id, AccountId):
             raise TypeError("account_id must be of type str or AccountId")
-
+        
+        self.staked_account_id = account_id
+        self.staked_node_id = None
         return self
 
     def set_staked_node_id(self, node_id: int) -> "AccountCreateTransaction":
@@ -281,6 +281,7 @@ class AccountCreateTransaction(Transaction):
             raise TypeError("node_id must be of type int")
 
         self.staked_node_id = node_id
+        self.staked_account_id = None
         return self
 
     def set_decline_staking_reward(
@@ -315,8 +316,6 @@ class AccountCreateTransaction(Transaction):
             ValueError: If required fields are missing.
             TypeError: If initial_balance is an invalid type.
         """
-        if not self.key:
-            raise ValueError("Key must be set before building the transaction.")
 
         if isinstance(self.initial_balance, Hbar):
             initial_balance_tinybars = self.initial_balance.to_tinybars()
@@ -324,12 +323,15 @@ class AccountCreateTransaction(Transaction):
             initial_balance_tinybars = self.initial_balance
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
-
-        proto_key = key_to_proto(self.key)
+        
+        # Check for overflow
+        if initial_balance_tinybars >= (2**64):
+            raise OverflowError(f"Value {initial_balance_tinybars} exceeds 64-bit unsigned integer limit.")
 
         proto_body = crypto_create_pb2.CryptoCreateTransactionBody(
-            key=proto_key,
-            initialBalance=initial_balance_tinybars,
+            key=self.key.to_proto_key() if self.key is not None else None,
+            # triggers an INVALID_INITIAL_BALANCE pre-check error instead of a local error.
+            initialBalance=ctypes.c_uint64(initial_balance_tinybars).value,
             receiverSigRequired=self.receiver_signature_required,
             autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
             memo=self.account_memo,
@@ -338,9 +340,12 @@ class AccountCreateTransaction(Transaction):
             decline_reward=self.decline_staking_reward
         )
 
-        if self.staked_account_id:
+        if self.staked_node_id is not None and self.staked_account_id is not None:
+            raise ValueError("Specify either staked_node_id or staked_account_id, not both.")
+
+        if self.staked_account_id is not None:
             proto_body.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
-        elif self.staked_node_id:
+        elif self.staked_node_id is not None:
             proto_body.staked_node_id = self.staked_node_id
 
         return proto_body

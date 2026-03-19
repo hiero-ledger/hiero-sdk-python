@@ -2,6 +2,7 @@ import pytest
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -214,7 +215,7 @@ def test_create_account_with_staked_account_id(env):
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
     assert info.account_id == account_id
-    assert info.staked_account_id == env.operator_id
+    assert info.staking_info.staked_account_id == env.operator_id
 
 
 def test_create_account_with_staked_node_id(env):
@@ -265,8 +266,9 @@ def test_create_account_with_decline_reward(env):
     info = AccountInfoQuery(account_id=account_id).execute(env.client)
 
     assert info.account_id == account_id
-    assert info.staked_account_id == env.operator_id
-    assert info.decline_staking_reward is True
+    assert info.staking_info is not None, "Staking info should be set"
+    assert info.staking_info.staked_account_id == env.operator_id
+    assert info.staking_info.decline_reward is True
 
 def test_integration_account_create_transaction_can_execute_with_private_key(env):
     """Test AccountCreateTransaction can be executed when key is a PrivateKey."""
@@ -367,3 +369,18 @@ def test_proto_excludes_alias_when_not_set(env):
     assert not tx_body.cryptoCreateAccount.alias
     # Key must still be present
     assert tx_body.cryptoCreateAccount.key == account_public_key._to_proto()
+
+
+def test_create_account_with_negative_initial_balance(env):
+    """Test create_account_transaction raise precheck-error for negative initial balance"""
+    public_key = PrivateKey.generate_ed25519().public_key()
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(public_key)
+        .set_initial_balance(-1)   
+    )
+
+    with pytest.raises(PrecheckError) as e:
+        tx.execute(env.client)
+    
+    assert e.value.status == ResponseCode.INVALID_INITIAL_BALANCE

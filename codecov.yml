@@ -10,5 +10,8 @@ coverage:
         target: 92%
         threshold: 2%
 
+ignore: 
+- "tck/**"
+
 comment:
   layout: "reach, diff, flags"
