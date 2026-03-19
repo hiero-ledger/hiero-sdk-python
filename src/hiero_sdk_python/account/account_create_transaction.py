@@ -323,6 +323,10 @@ class AccountCreateTransaction(Transaction):
             initial_balance_tinybars = self.initial_balance
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
+        
+        # Check for overflow
+        if initial_balance_tinybars >= (2**64):
+            raise OverflowError(f"Value {initial_balance_tinybars} exceeds 64-bit unsigned integer limit.")
 
         proto_body = crypto_create_pb2.CryptoCreateTransactionBody(
             key=self.key.to_proto_key() if self.key is not None else None,
