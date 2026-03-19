@@ -1,0 +1,181 @@
+name: Bot - Dependabot Auto Changelog & Assignee
+
+on:
+  pull_request:
+    types: [opened]
+
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (log changes, skip writes)'
+        required: false
+        default: 'false'
+        type: boolean
+      pr_number:
+        description: 'PR number to test (optional - simulates Dependabot PR)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+concurrency:
+  group: dependabot-changelog-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  process-dependabot-pr:
+    if: >
+      (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]') ||
+      github.event_name == 'workflow_dispatch'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142  # v2.7.1 (match your repo's common pin; update if needed)
+        with:
+          egress-policy: audit
+
+      # ────────────────────────────────────────────────────────────────
+      # Manual test mode: fetch PR details if pr_number provided
+      # ────────────────────────────────────────────────────────────────
+      - name: Fetch PR details for manual testing
+        if: github.event_name == 'workflow_dispatch' && inputs.pr_number != ''
+        id: fetch-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ inputs.pr_number }}"
+          echo "Fetching details for PR #$PR_NUMBER (manual test)"
+
+          PR_DATA=$(gh pr view "$PR_NUMBER" --json title,headRefName,headRefOid,author --jq '{title,headRefName,headRefOid,author: .author.login}')
+
+          echo "title=$(jq -r .title <<< "$PR_DATA")" >> "$GITHUB_OUTPUT"
+          echo "head_ref=$(jq -r .headRefName <<< "$PR_DATA")" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$(jq -r .headRefOid <<< "$PR_DATA")" >> "$GITHUB_OUTPUT"
+          echo "actor=$(jq -r .author <<< "$PR_DATA")" >> "$GITHUB_OUTPUT"
+
+      # ────────────────────────────────────────────────────────────────
+      # Normalize PR context
+      # ────────────────────────────────────────────────────────────────
+      - name: Set effective PR context
+        id: pr-context
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.pr_number }}" ]; then
+            echo "title=${{ steps.fetch-pr.outputs.title }}" >> "$GITHUB_OUTPUT"
+            echo "head_ref=${{ steps.fetch-pr.outputs.head_ref }}" >> "$GITHUB_OUTPUT"
+            echo "head_sha=${{ steps.fetch-pr.outputs.head_sha }}" >> "$GITHUB_OUTPUT"
+            echo "actor=dependabot[bot]" >> "$GITHUB_OUTPUT"  # simulate Dependabot
+            echo "number=${{ inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "title=${{ github.event.pull_request.title }}" >> "$GITHUB_OUTPUT"
+            echo "head_ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
+            echo "head_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+            echo "actor=${{ github.actor }}" >> "$GITHUB_OUTPUT"
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ────────────────────────────────────────────────────────────────
+      # Dry-run flag 
+      # ────────────────────────────────────────────────────────────────
+      - name: Set dry-run mode
+        id: dry-run
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+            echo "Dry-run: ENABLED (no writes will occur)"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "Dry-run: DISABLED"
+          fi
+
+      # ────────────────────────────────────────────────────────────────
+      # Checkout the PR branch 
+      # ────────────────────────────────────────────────────────────────
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr-context.outputs.head_ref }}
+          fetch-depth: 0
+
+      # ────────────────────────────────────────────────────────────────
+      # Update CHANGELOG.md
+      # ────────────────────────────────────────────────────────────────
+      - name: Update CHANGELOG.md
+        id: update-changelog
+        env:
+          PR_TITLE: ${{ steps.pr-context.outputs.title }}
+          PR_NUMBER: ${{ steps.pr-context.outputs.number }}
+          BRANCH_NAME: ${{ steps.pr-context.outputs.head_ref }}
+          DRY_RUN: ${{ steps.dry-run.outputs.active }}
+        run: .github/scripts/bot-dependabot-changelog.sh
+
+      # ────────────────────────────────────────────────────────────────
+      # Commit & push changelog
+      # ────────────────────────────────────────────────────────────────
+      - name: Configure git identity
+        if: steps.dry-run.outputs.active != 'true' && steps.update-changelog.outcome == 'success'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit changelog update
+        if: steps.dry-run.outputs.active != 'true' && steps.update-changelog.outcome == 'success'
+        id: commit
+        run: |
+          git add CHANGELOG.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -s -m "chore: add changelog entry for dependabot update #${{ steps.pr-context.outputs.number }}"
+            echo "committed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push commit to PR branch
+        if: steps.dry-run.outputs.active != 'true' && steps.commit.outputs.committed == 'true'
+        run: |
+          git push origin HEAD:${{ steps.pr-context.outputs.head_ref }}
+          echo "Pushed changelog update to branch"
+
+      # ────────────────────────────────────────────────────────────────
+      # Assignee Management
+      # ────────────────────────────────────────────────────────────────
+      - name: Determine assignee
+        id: get-assignee
+        run: |
+          ASSIGNEE="${{ vars.DEPENDABOT_ASSIGNEE }}"
+          echo "assignee=$ASSIGNEE" >> "$GITHUB_OUTPUT"
+          [ -z "$ASSIGNEE" ] && echo "No assignee configured → skipping"
+
+      - name: Add assignee to PR
+        if: steps.dry-run.outputs.active != 'true' && steps.get-assignee.outputs.assignee != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          gh pr edit "${{ steps.pr-context.outputs.number }}" \
+            --add-assignee "${{ steps.get-assignee.outputs.assignee }}" || {
+              echo "Warning: Assignee step failed (non-fatal)"
+            }
+          set -e
+
+      # ────────────────────────────────────────────────────────────────
+      # Dry-run summary
+      # ────────────────────────────────────────────────────────────────
+      - name: Dry-run summary
+        if: steps.dry-run.outputs.active == 'true'
+        run: |
+          echo ""
+          echo "=== DRY-RUN SUMMARY ==="
+          echo "Mode:         ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number != '' && 'Manual test' || 'Normal' }}"
+          echo "PR:           #${{ steps.pr-context.outputs.number }}"
+          echo "Title:        ${{ steps.pr-context.outputs.title }}"
+          echo "Branch:       ${{ steps.pr-context.outputs.head_ref }}"
+          echo "Actor:        ${{ steps.pr-context.outputs.actor }}"
+          echo "Changelog:    would insert entry under appropriate section"
+          echo "Assignee:     would assign ${{ steps.get-assignee.outputs.assignee || '(not configured)' }}"
+          echo "No changes written."
