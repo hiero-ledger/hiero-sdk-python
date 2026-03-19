@@ -10,8 +10,14 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    assignees:
+      - hiero-ledger/github-maintainers
+
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    # Native fallback assignee — workflow also assigns via vars.DEPENDABOT_ASSIGNEE
+    assignees:
+      - hiero-ledger/github-maintainers

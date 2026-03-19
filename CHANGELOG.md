@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- Add workflow to auto-update Dependabot PRs with changelog and assignee (#1775)
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
 
 
