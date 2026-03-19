@@ -5,6 +5,7 @@ import re
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519, rsa
 from cryptography.hazmat.primitives import serialization
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.crypto.private_key import PrivateKey
 
@@ -542,3 +543,38 @@ def test_hash_algorithm_distinction():
 
     assert ed != ec
     assert hash(ed) != hash(ec)
+
+
+def test_to_proto_key_ecd25519():
+    """Test to_proto_key properly convert ed25519 to Key protobuf."""
+    pr_key = PrivateKey.generate_ed25519()
+    proto_key = pr_key.to_proto_key()
+
+    assert proto_key is not None
+    assert proto_key.ed25519 is not None
+    assert proto_key.ed25519 == pr_key.public_key().to_bytes_raw()
+
+def test_to_proto_key_ecdsa():
+    """Test to_proto_key properly convert ecdsa to Key protobuf."""
+    pr_key = PrivateKey.generate_ecdsa()
+    proto_key = pr_key.to_proto_key()
+
+    assert proto_key is not None
+    assert proto_key.ECDSA_secp256k1 is not None
+    assert proto_key.ECDSA_secp256k1 == pr_key.public_key().to_bytes_raw()
+
+@pytest.mark.parametrize(
+    "key",
+    [PrivateKey.generate_ed25519(), PrivateKey.generate_ecdsa()]
+)
+def test_protobuf_roundtrip(key):
+    """Test protobuf roundtrip properly convert to Key protobuf and vice versa."""
+    proto = key.to_proto_key()
+    
+    pub_key = key.public_key()
+    loaded = Key.from_proto_key(proto) # Returns public key
+
+    assert isinstance(loaded, PublicKey)
+    assert loaded.is_ed25519() == pub_key.is_ed25519()
+    assert loaded.is_ecdsa() == pub_key.is_ecdsa()
+    assert loaded.to_bytes_raw() == pub_key.to_bytes_raw()

@@ -1,4 +1,7 @@
 ---
+exclude_paths:
+  - "tck/**"
+
 engines:
   bandit:
     enabled: true
