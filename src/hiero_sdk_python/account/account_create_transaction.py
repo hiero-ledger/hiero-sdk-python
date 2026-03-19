@@ -340,7 +340,10 @@ class AccountCreateTransaction(Transaction):
             decline_reward=self.decline_staking_reward
         )
 
-        if self.staked_account_id:
+        if self.staked_node_id is not None and self.staked_account_id is not None:
+            raise ValueError("Specify either staked_node_id or staked_account_id, not both.")
+
+        if self.staked_account_id is not None:
             proto_body.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
         elif self.staked_node_id is not None:
             proto_body.staked_node_id = self.staked_node_id
