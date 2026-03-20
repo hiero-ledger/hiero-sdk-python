@@ -10,7 +10,7 @@ from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.crypto_update_pb2 import CryptoUpdateTransactionBody
@@ -30,7 +30,7 @@ class AccountUpdateParams:
 
     Attributes:
         account_id (Optional[AccountId]): The account ID to update.
-        key (Optional[PublicKey]): The new key for the account.
+        key (Optional[Key]): The new key for the account.
         auto_renew_period (Duration): The new auto-renew period.
         account_memo (Optional[str]): The new memo for the account.
         receiver_signature_required (Optional[bool]): Whether receiver signature is required.
@@ -46,7 +46,7 @@ class AccountUpdateParams:
     """
 
     account_id: Optional[AccountId] = None
-    key: Optional[PublicKey] = None
+    key: Optional[Key] = None
     auto_renew_period: Duration = AUTO_RENEW_PERIOD
     account_memo: Optional[str] = None
     receiver_signature_required: Optional[bool] = None
@@ -101,12 +101,12 @@ class AccountUpdateTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def set_key(self, key: Optional[PublicKey]) -> "AccountUpdateTransaction":
+    def set_key(self, key: Key) -> "AccountUpdateTransaction":
         """
         Sets the new account key (public key) for key rotation.
 
         Args:
-            key (Optional[PublicKey]): The new public key for the account.
+            key (Key): The new key for the account.
 
         Returns:
             AccountUpdateTransaction: This transaction instance.
@@ -307,7 +307,7 @@ class AccountUpdateTransaction(Transaction):
 
         proto_body = CryptoUpdateTransactionBody(
             accountIDToUpdate=self.account_id._to_proto(),
-            key=self.key._to_proto() if self.key else None,
+            key=self.key.to_proto_key() if self.key else None,
             memo=StringValue(value=self.account_memo) if self.account_memo is not None else None,
             autoRenewPeriod=(
                 self.auto_renew_period._to_proto() if self.auto_renew_period else None
