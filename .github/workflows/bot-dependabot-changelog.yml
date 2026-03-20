@@ -1,0 +1,47 @@
+name: Dependabot Auto Changelog & Assignee
+
+on:
+  pull_request:
+    types: [opened]
+
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry-run mode (log only, no changes)'
+        required: false
+        default: 'false'
+        type: boolean
+      pr_number:
+        description: 'PR number to process manually'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.event.inputs.pr_number && github.event.repository.default_branch || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Update CHANGELOG & assign reviewer
+        uses: actions/github-script@v7
+        env:
+          DEPENDABOT_ASSIGNEE: ${{ vars.DEPENDABOT_ASSIGNEE }}
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-dependabot-changelog.js');
+            await script({ github, context, core });
