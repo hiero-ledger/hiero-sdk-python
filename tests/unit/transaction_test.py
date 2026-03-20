@@ -3,8 +3,12 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import ReceiptStatusError
+from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
+from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -13,7 +17,9 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from tests.unit.mock_server import mock_hedera_servers
@@ -21,6 +27,23 @@ from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
 
+
+@pytest.fixture
+def file_id():
+    """Returns a file_is for test."""
+    return FileId.from_string("0.0.1")
+
+
+@pytest.fixture
+def account_id():
+    """Returns an account_id for test."""
+    return AccountId.from_string("0.0.9")
+
+
+@pytest.fixture
+def transaction_id():
+    """Returns a transaction_id for test."""
+    return TransactionId.from_string("0.0.9@1770911831.331000137")
 
 
 def test_execute_waits_for_receipt_receipt():
@@ -118,23 +141,6 @@ def test_execute_returns_receipt_without_error_when_validation_disabled():
         receipt = tx.execute(client)
 
         assert receipt.status == ResponseCode.INVALID_SIGNATURE
-@pytest.fixture
-def file_id():
-    """Returns a file_is for test."""
-    return FileId.from_string("0.0.1")
-
-
-@pytest.fixture
-def account_id():
-    """Returns an account_id for test."""
-    return AccountId.from_string("0.0.9")
-
-
-@pytest.fixture
-def transaction_id():
-    """Returns a transaction_id for test."""
-    return TransactionId.from_string("0.0.9@1770911831.331000137")
-
 
 def test_same_size_for_identical_transactions(transaction_id, account_id):
     """Test two identical transactions should have the same size."""
