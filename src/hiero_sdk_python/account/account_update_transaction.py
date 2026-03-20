@@ -101,12 +101,12 @@ class AccountUpdateTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def set_key(self, key: Key) -> "AccountUpdateTransaction":
+    def set_key(self, key: Optional[Key]) -> "AccountUpdateTransaction":
         """
-        Sets the new account key (public key) for key rotation.
+        Sets the new account key (Optional[Key]) for key rotation.
 
         Args:
-            key (Key): The new key for the account.
+            key (Optional[Key]): The new key for the account.
 
         Returns:
             AccountUpdateTransaction: This transaction instance.
