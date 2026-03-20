@@ -450,3 +450,4 @@ class TransactionRecord:
             record_proto.contractCreateResult.CopyFrom(self.contract_create_result._to_proto())
         
         return record_proto
+
