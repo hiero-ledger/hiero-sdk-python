@@ -382,6 +382,20 @@ module.exports = async ({ github, context, core }) => {
   }
 };
 
+/**
+ * Searches GitHub issues based on difficulty level and repository scope.
+ *
+ * Supports:
+ * - multiple repositories
+ * - multiple label aliases (OR-based queries)
+ *
+ * @param {object} github - GitHub API client
+ * @param {object} core - GitHub Actions core
+ * @param {string} owner - Organization name
+ * @param {string[]} repos - List of repositories to search
+ * @param {string} level - Difficulty level
+ * @returns {Promise<Array<Object>>} List of matching issues
+ */
 async function searchIssues(github, core, owner, repos, level) {
   try {
 
@@ -420,6 +434,25 @@ async function searchIssues(github, core, owner, repos, level) {
   }
 }
 
+/**
+ * Generates and posts a recommendation comment on a pull request.
+ *
+ * - Builds a formatted markdown comment with recommended issues
+ * - Avoids duplicate comments using a hidden marker
+ * - Falls back to a generic "Good First Issues" search if no recommendations are found
+ *
+ * @param {object} github - GitHub API client
+ * @param {object} context - GitHub Actions context
+ * @param {object} core - GitHub Actions core
+ * @param {number} prNumber - Pull request number
+ * @param {Array<Object>} recommendedIssues - List of recommended issues
+ * @param {object} meta - Recommendation metadata
+ * @param {string} meta.completedLabelText - Completed difficulty label
+ * @param {string} meta.recommendedLabel - Recommended difficulty label
+ * @param {boolean} meta.isFallback - Whether fallback logic was used
+ * @param {Array<string>} allRepos - List of available repositories
+ * @returns {Promise<void>}
+ */
 async function generateAndPostComment(github, context, core, prNumber, recommendedIssues, { completedLabelText, recommendedLabel, isFallback }, allRepos) {
   const marker = '<!-- next-issue-bot-marker -->';
 
@@ -512,6 +545,20 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
     core.setFailed(`Error posting comment: ${error.message}`);
   }
 }
+
+/**
+ * Extracts and sanitizes a short description from an issue body.
+ *
+ * Behavior:
+ * - Attempts to extract content from a "Description of the issue" section (if present)
+ * - Falls back to the full body if no section is found
+ * - Removes HTML, markdown formatting, and excessive whitespace
+ * - Truncates the result to 150 characters
+ * - Returns a default message if no meaningful content is found
+ *
+ * @param {string} body - Raw issue body content
+ * @returns {string} Cleaned and truncated description
+ */
 function extractIssueDescription(body) {
   if (!body) return '*No description available*';
 
