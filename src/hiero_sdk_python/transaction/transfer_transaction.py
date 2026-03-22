@@ -75,6 +75,8 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             TransferTransaction: The current instance of the transaction for chaining.
         """
         self._require_not_frozen()
+        if isinstance(account_id, str):
+            account_id = AccountId.from_string(account_id)
         if not isinstance(account_id, AccountId):
             raise TypeError("account_id must be an AccountId instance.")
         if isinstance(amount, Hbar):
