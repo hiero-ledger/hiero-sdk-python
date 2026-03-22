@@ -29,11 +29,6 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.event.pull_request.base.sha }}
-
       - name: Compute linked issue labels
         id: compute
         env:
@@ -42,22 +37,119 @@ jobs:
           DRY_RUN: 'true'
           REQUESTED_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && format('{0}', github.event.inputs['dry-run-enabled']) || 'true' }}
           IS_FORK_PR: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork || 'false' }}
+          MAX_LINKED_ISSUES: '20'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           result-encoding: json
           script: |
-            const script = require('./.github/scripts/sync-issue-labels.js');
-            const result = await script({ github, context });
-            const labels = result?.labels || [];
+            const MAX_LINKED_ISSUES = Number(process.env.MAX_LINKED_ISSUES || "20");
+
+            function extractLabels(labelData) {
+              const result = [];
+              for (const item of labelData) {
+                const name = typeof item === "string" ? item : item && item.name;
+                if (name && name.trim()) result.push(name.trim());
+              }
+              return result;
+            }
+
+            function extractLinkedIssueNumbers(prBody, owner, repo) {
+              const numbers = new Set();
+              const closingKeywords = /^(fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)\b/i;
+              const lines = String(prBody || "").split(/\r?\n/);
+              for (const line of lines) {
+                const words = line.toLowerCase().split(/[^a-z]+/);
+                if (!words.some(w => closingKeywords.test(w))) continue;
+                const regex = /(?:^|[\s(,])(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?#(\d+)\b/g;
+                let m;
+                while ((m = regex.exec(line)) !== null) {
+                  const refOwner = (m[1] || "").toLowerCase();
+                  const refRepo = (m[2] || "").toLowerCase();
+                  if (refOwner && refRepo && (refOwner !== owner.toLowerCase() || refRepo !== repo.toLowerCase())) continue;
+                  numbers.add(Number(m[3]));
+                }
+              }
+              const all = Array.from(numbers);
+              if (all.length > MAX_LINKED_ISSUES) {
+                console.log(`[sync] Limiting linked issue refs from ${all.length} to ${MAX_LINKED_ISSUES}.`);
+              }
+              return all.slice(0, MAX_LINKED_ISSUES);
+            }
+
+            const prNumber = Number(process.env.PR_NUMBER);
+            if (!prNumber) {
+              core.setOutput('has_labels', 'false');
+              core.setOutput('labels', '[]');
+              core.setOutput('pr_number', '');
+              core.setOutput('dry_run', 'true');
+              core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR || 'false'));
+              core.setOutput('source_event', context.eventName);
+              return;
+            }
+
+            const { data: prData } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber
+            });
+
+            const prAuthor = (prData.user && prData.user.login) || "";
+            if (/\[bot\]$/i.test(prAuthor) || /dependabot/i.test(prAuthor)) {
+              console.log(`[sync] Skipping bot-authored PR from ${prAuthor}.`);
+              core.setOutput('has_labels', 'false');
+              core.setOutput('labels', '[]');
+              core.setOutput('pr_number', String(prNumber));
+              core.setOutput('dry_run', 'true');
+              core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR || 'false'));
+              core.setOutput('source_event', context.eventName);
+              return;
+            }
+
+            const linkedIssues = extractLinkedIssueNumbers(prData.body || "", context.repo.owner, context.repo.repo);
+            if (!linkedIssues.length) {
+              console.log("[sync] No linked issue references found in PR body.");
+              core.setOutput('has_labels', 'false');
+              core.setOutput('labels', '[]');
+              core.setOutput('pr_number', String(prNumber));
+              core.setOutput('dry_run', 'true');
+              core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR || 'false'));
+              core.setOutput('source_event', context.eventName);
+              return;
+            }
+
+            console.log(`[sync] Linked issues: ${linkedIssues.map(n => '#' + n).join(', ')}`);
+
+            const allLabels = [];
+            for (const num of linkedIssues) {
+              try {
+                const { data } = await github.rest.issues.get({
+                  owner: context.repo.owner, repo: context.repo.repo, issue_number: num
+                });
+                if (data.pull_request) { console.log(`[sync] Skipping #${num}: is a PR reference.`); continue; }
+                const labels = extractLabels(data.labels || []);
+                console.log(`[sync] Issue #${num} labels: ${labels.length ? labels.join(', ') : '(none)'}`);
+                allLabels.push(...labels);
+              } catch (err) {
+                if (err && err.status === 404) { console.log(`[sync] Issue #${num} not found. Skipping.`); continue; }
+                throw err;
+              }
+            }
+
+            const existing = extractLabels(prData.labels || []);
+            const existingSet = new Set(existing);
+            const deduped = Array.from(new Set(allLabels));
+            const toAdd = deduped.filter(l => !existingSet.has(l));
+
+            console.log(`[sync] Existing: ${existing.length ? existing.join(', ') : '(none)'}`);
+            console.log(`[sync] To add: ${toAdd.length ? toAdd.join(', ') : '(none)'}`);
+
+            const labels = toAdd;
             const hasLabels = labels.length > 0;
             core.setOutput('has_labels', String(hasLabels));
             core.setOutput('labels', JSON.stringify(labels));
-            core.setOutput('pr_number', String(process.env.PR_NUMBER || ''));
+            core.setOutput('pr_number', String(prNumber));
             core.setOutput('dry_run', String(process.env.REQUESTED_DRY_RUN || 'true'));
             core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR || 'false'));
             core.setOutput('source_event', context.eventName);
-            console.log('Computed labels:', JSON.stringify({ hasLabels, labels, pr_number: process.env.PR_NUMBER, dry_run: process.env.REQUESTED_DRY_RUN, is_fork_pr: process.env.IS_FORK_PR, source_event: context.eventName }));
-            return { has_labels: hasLabels, labels: labels, pr_number: process.env.PR_NUMBER, dry_run: process.env.REQUESTED_DRY_RUN, is_fork_pr: process.env.IS_FORK_PR, source_event: context.eventName };
+            return { has_labels: hasLabels, labels, pr_number: String(prNumber), dry_run: process.env.REQUESTED_DRY_RUN, is_fork_pr: process.env.IS_FORK_PR, source_event: context.eventName };
 
       - name: Write labels artifact payload
         env:
