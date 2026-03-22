@@ -504,3 +504,14 @@ def test_topic_submit_execute_returns_failed_receipt_by_default(topic_id):
         receipt = tx.execute(client)
 
         assert receipt.status == ResponseCode.INVALID_SIGNATURE
+
+def test_topic_submit_message_raises_error_on_freeze(topic_id):
+    """Test transaction raises error on freeze when the transaction_id and node_id not set"""
+    tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_message("Hello Hiero")
+    )
+
+    with pytest.raises(ValueError):
+        tx.freeze()
