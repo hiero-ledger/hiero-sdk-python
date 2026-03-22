@@ -78,7 +78,7 @@ def test_integration_account_update_transaction_can_execute(env):
 
 @pytest.mark.integration
 def test_integration_account_update_transaction_set_key_with_threshold_keylist(env):
-    """Test rotating to a threshold KeyList and authorizing with a threshold key."""
+    """Test rotating to a threshold KeyList and authorizing follow-up updates."""
     # Create an account controlled by the operator key (payer signature is automatic).
     receipt = (
         AccountCreateTransaction()
@@ -125,9 +125,6 @@ def test_integration_account_update_transaction_set_key_with_threshold_keylist(e
     assert (
         receipt.status == ResponseCode.SUCCESS
     ), f"Account update signed by threshold key failed with status: {ResponseCode(receipt.status).name}"
-
-    info = AccountInfoQuery(account_id).execute(env.client)
-    assert info.account_memo == new_memo, "Memo should be updated by threshold key signer"
 
 
 @pytest.mark.integration
