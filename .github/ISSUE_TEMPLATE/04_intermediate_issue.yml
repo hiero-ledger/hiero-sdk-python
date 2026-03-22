@@ -236,7 +236,7 @@ body:
 
         **In your PR, include links to test evidence:** screenshots, terminal output, test issue/PRs, or script results.
     validations:
-      required: false
+      required: true
 
   - type: textarea
     id: quality_standards
@@ -303,7 +303,7 @@ body:
         |------|-------|
         | Claim this issue | Comment `/assign` below |
         | Sync with main | [Rebasing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md) |
-        | Open a PR and link this issue | [PR guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md) · [Linking guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/how_to_link_issues.md) |
+        | Open a PR and link this issue | [PR guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/11_submit_pull_request.md) · [Linking guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/workflow/how_to_link_issues.md) |
         | Resolve merge conflicts | [Merge conflicts guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md) |
         | Testing | [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md) |
     validations:
