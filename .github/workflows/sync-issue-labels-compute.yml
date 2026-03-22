@@ -23,6 +23,9 @@ permissions:
 
 jobs:
   compute-labels:
+    concurrency:
+      group: sync-issue-labels-compute-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+      cancel-in-progress: true
     runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden the runner
