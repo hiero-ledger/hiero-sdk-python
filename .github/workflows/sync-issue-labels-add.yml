@@ -32,7 +32,7 @@ jobs:
   add-labels:
     concurrency:
       group: sync-issue-labels-pr-${{ github.event.inputs.pr_number }}
-      cancel-in-progress: false
+      cancel-in-progress: true
     runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden the runner

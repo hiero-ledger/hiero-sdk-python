@@ -27,6 +27,10 @@ jobs:
       group: sync-issue-labels-compute-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
       cancel-in-progress: true
     runs-on: hl-sdk-py-lin-md
+    outputs:
+      pr_number: ${{ steps.compute.outputs.pr_number }}
+      dry_run: ${{ steps.compute.outputs.dry_run }}
+      is_fork_pr: ${{ steps.compute.outputs.is_fork_pr }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
@@ -59,14 +63,11 @@ jobs:
 
             function extractLinkedIssueNumbers(prBody, owner, repo) {
               const numbers = new Set();
-              const closingKeywords = /^(fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)\b/i;
+              const closingRefRegex = /(?:fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)\s+(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?#(\d+)\b/gi;
               const lines = String(prBody || "").split(/\r?\n/);
               for (const line of lines) {
-                const words = line.toLowerCase().split(/[^a-z]+/);
-                if (!words.some(w => closingKeywords.test(w))) continue;
-                const regex = /(?:^|[\s(,])(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?#(\d+)\b/g;
                 let m;
-                while ((m = regex.exec(line)) !== null) {
+                while ((m = closingRefRegex.exec(line)) !== null) {
                   const refOwner = (m[1] || "").toLowerCase();
                   const refRepo = (m[2] || "").toLowerCase();
                   if (refOwner && refRepo && (refOwner !== owner.toLowerCase() || refRepo !== repo.toLowerCase())) continue;
@@ -184,8 +185,12 @@ jobs:
           path: labels.json
           retention-days: 1
 
+  dispatch-add:
+    needs: compute-labels
+    if: ${{ needs.compute-labels.outputs.is_fork_pr != 'true' && secrets.GH_ACCESS_TOKEN != '' }}
+    runs-on: hl-sdk-py-lin-md
+    steps:
       - name: Trigger add workflow
-        if: ${{ steps.compute.outputs.is_fork_pr != 'true' && secrets.GH_ACCESS_TOKEN != '' }}
         uses: step-security/workflow-dispatch@acca1a315af3bf7f33dd116d3cb405cb83f5cbdc # v1.2.8
         with:
           workflow: .github/workflows/sync-issue-labels-add.yml
@@ -195,8 +200,8 @@ jobs:
           inputs: >-
             {
               "upstream_run_id":"${{ github.run_id }}",
-              "pr_number":"${{ steps.compute.outputs.pr_number }}",
-              "dry_run":"${{ steps.compute.outputs.dry_run }}",
-              "is_fork_pr":"${{ steps.compute.outputs.is_fork_pr }}"
+              "pr_number":"${{ needs.compute-labels.outputs.pr_number }}",
+              "dry_run":"${{ needs.compute-labels.outputs.dry_run }}",
+              "is_fork_pr":"${{ needs.compute-labels.outputs.is_fork_pr }}"
             }
 
