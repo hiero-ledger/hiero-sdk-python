@@ -385,9 +385,10 @@ def test_child_receipts_with_account_id(transaction_id):
         assert len(result.children) == 1
         child_receipt = result.children[0]
         
-        # Verify: child receipt has account_id accessible
+        # Verify: child receipt has account_id accessible and transaction_id is None
         assert child_receipt.account_id is not None
         assert child_receipt.account_id.num == 999
+        assert child_receipt.transaction_id is None
 
 
 def test_child_receipts_with_zero_accountnum(transaction_id):
@@ -434,6 +435,7 @@ def test_child_receipts_with_zero_accountnum(transaction_id):
         assert child_receipt.account_id.num == 0
         assert child_receipt.account_id.shard == 0
         assert child_receipt.account_id.realm == 0
+        assert child_receipt.transaction_id is None
 
 
 def test_duplicate_receipts_with_account_id(transaction_id):
@@ -470,4 +472,4 @@ def test_duplicate_receipts_with_account_id(transaction_id):
         assert duplicate_receipt.account_id is not None
         assert duplicate_receipt.account_id.num == 999
         # Duplicates retain parent transaction_id for context (unlike children which have None)
-        assert duplicate_receipt.transaction_id is not None
+        assert duplicate_receipt.transaction_id == transaction_id

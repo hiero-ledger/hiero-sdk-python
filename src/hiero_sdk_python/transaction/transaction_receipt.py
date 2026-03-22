@@ -245,13 +245,13 @@ class TransactionReceipt:
         return self._receipt_proto
 
     @classmethod
-    def _from_proto(cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: Optional[TransactionId]) -> "TransactionReceipt":
+    def _from_proto(cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: TransactionId | None) -> "TransactionReceipt":
         """
         Creates a TransactionReceipt instance from a protobuf TransactionReceipt object.
 
         Args:
             proto (transaction_receipt_pb2.TransactionReceipt): The protobuf TransactionReceipt object.
-            transaction_id (Optional[TransactionId]): The transaction ID associated with this receipt. Can be None for child receipts.
+            transaction_id (TransactionId | None): The transaction ID associated with this receipt. Can be None for child receipts.
         Returns:
             TransactionReceipt: A new instance of TransactionReceipt populated with data from the protobuf object.
         """
