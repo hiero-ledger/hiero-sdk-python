@@ -348,3 +348,44 @@ def test_transaction_receipt_query_should_raise_receipt_error(transaction_id):
             query.execute(client)
 
         assert e.value.status == ResponseCode.INVALID_SIGNATURE
+
+
+def test_child_receipts_with_account_id(transaction_id):
+    """Test that child receipts can have accountID populated from network response."""
+    child_account_id = basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=999)
+    
+    response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            ),
+            child_transaction_receipts=[
+                transaction_receipt_pb2.TransactionReceipt(
+                    status=ResponseCode.SUCCESS,
+                    accountID=child_account_id
+                ),
+            ],
+        )
+    )
+
+    response_sequences = [[response]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+            .set_include_children(True)
+        )
+
+        result = query.execute(client)
+
+        assert len(result.children) == 1
+        child_receipt = result.children[0]
+        
+        # Verify: child receipt has account_id accessible and transaction_id is None
+        assert child_receipt.account_id is not None
+        assert child_receipt.account_id.num == 999
+        assert child_receipt.transaction_id is None
