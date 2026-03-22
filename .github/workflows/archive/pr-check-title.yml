@@ -1,4 +1,4 @@
-name: 'PR Formatting'
+name: "PR Formatting"
 on:
   workflow_dispatch:
   pull_request_target:
@@ -24,7 +24,7 @@ concurrency:
 jobs:
   title-check:
     name: Title Check
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     if: ${{ !github.event.pull_request.base.repo.fork }}
     permissions:
       checks: write
