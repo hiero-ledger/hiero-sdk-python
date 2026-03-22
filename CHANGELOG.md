@@ -17,6 +17,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added TCK endpoint for the createAccount method
 
 ### Docs
+- Add Chocolatey as a prerequisite in the Windows setup guide (#1961)
 
 
 ### .github
