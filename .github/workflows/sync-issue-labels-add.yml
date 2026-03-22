@@ -59,7 +59,7 @@ jobs:
         run: |
           labels_file="artifacts/labels.json"
           if [ ! -f "$labels_file" ]; then
-            echo "No labels.json artifact found. Falling back to no-op outputs."
+            echo "::error::Labels artifact not found. Cross-workflow handoff is broken."
             echo "labels=[]" >> "$GITHUB_OUTPUT"
             echo "labels_count=0" >> "$GITHUB_OUTPUT"
             echo "labels_multiline=" >> "$GITHUB_OUTPUT"
@@ -67,7 +67,7 @@ jobs:
             echo "is_fork_pr=$INPUT_IS_FORK_PR" >> "$GITHUB_OUTPUT"
             echo "dry_run=$INPUT_DRY_RUN" >> "$GITHUB_OUTPUT"
             echo "source_event=workflow_dispatch" >> "$GITHUB_OUTPUT"
-            exit 0
+            exit 1
           fi
           labels=$(jq -c '.labels // []' "$labels_file")
           pr_number=$(jq -r '.pr_number // 0' "$labels_file")
