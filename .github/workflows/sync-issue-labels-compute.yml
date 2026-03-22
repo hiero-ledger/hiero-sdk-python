@@ -1,7 +1,7 @@
 name: Compute Linked Issue Labels
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, edited, reopened, synchronize, ready_for_review]
   workflow_dispatch:
     inputs:
@@ -32,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.event.pull_request.head.ref || 'main' }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.event.pull_request.base.sha }}
 
       - name: Compute linked issue labels
         id: compute
@@ -41,7 +41,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
           DRY_RUN: 'true'
           REQUESTED_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && format('{0}', github.event.inputs['dry-run-enabled']) || 'true' }}
-          IS_FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork || 'false' }}
+          IS_FORK_PR: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork || 'false' }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           result-encoding: json
@@ -89,6 +89,7 @@ jobs:
           retention-days: 1
 
       - name: Trigger add workflow
+        if: ${{ steps.compute.outputs.is_fork_pr != 'true' && secrets.GH_ACCESS_TOKEN != '' }}
         uses: step-security/workflow-dispatch@acca1a315af3bf7f33dd116d3cb405cb83f5cbdc # v1.2.8
         with:
           workflow: .github/workflows/sync-issue-labels-add.yml

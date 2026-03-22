@@ -1,3 +1,8 @@
+/**
+ * Resolves the execution context from environment variables and GitHub context.
+ * @param {object} context - GitHub Actions context object.
+ * @returns {{ prNumber: number, isDryRun: boolean, owner: string, repo: string }}
+ */
 function resolveExecutionContext(context) {
   const isDryRun = /^true$/i.test(process.env.DRY_RUN || "");
   const payloadPr = context && context.payload ? context.payload.pull_request : null;
@@ -5,12 +10,22 @@ function resolveExecutionContext(context) {
   return { prNumber, isDryRun, owner: context.repo.owner, repo: context.repo.repo };
 }
 
+/**
+ * Validates that a PR number was resolved.
+ * @param {number} prNumber - The PR number to validate.
+ * @throws {Error} If prNumber is falsy.
+ */
 function validatePrNumber(prNumber) {
   if (!prNumber) {
     throw new Error("PR number could not be determined.");
   }
 }
 
+/**
+ * Checks if a GitHub login belongs to a bot or dependabot.
+ * @param {string} login - The GitHub login to check.
+ * @returns {boolean} True if the login is a bot.
+ */
 function isBotAuthor(login = "") {
   return /\[bot\]$/i.test(login) || /dependabot/i.test(login);
 }
@@ -64,7 +79,16 @@ function hasClosingKeyword(text) {
   return false;
 }
 
+/**
+ * Extracts unique issue numbers from a PR body, filtering by same-repo references.
+ * Caps at MAX_LINKED_ISSUES to prevent API amplification.
+ * @param {string} prBody - The PR body text.
+ * @param {string} owner - Repository owner.
+ * @param {string} repo - Repository name.
+ * @returns {number[]} Array of linked issue numbers.
+ */
 function extractLinkedIssueNumbers(prBody, owner, repo) {
+  const MAX_LINKED_ISSUES = Number(process.env.MAX_LINKED_ISSUES || "20");
   const numbers = new Set();
   const lines = String(prBody || "").split(/\r?\n/);
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
@@ -77,7 +101,11 @@ function extractLinkedIssueNumbers(prBody, owner, repo) {
       numbers.add(issueNumbers[i]);
     }
   }
-  return Array.from(numbers);
+  const all = Array.from(numbers);
+  if (all.length > MAX_LINKED_ISSUES) {
+    console.log(`[sync] Limiting linked issue refs from ${all.length} to ${MAX_LINKED_ISSUES}.`);
+  }
+  return all.slice(0, MAX_LINKED_ISSUES);
 }
 
 function extractLabels(labelData) {
@@ -132,6 +160,12 @@ async function fetchIssueLabels(github, owner, repo, issueNumber) {
   }
 }
 
+/**
+ * Computes labels present in issueLabels but missing from existingLabels.
+ * @param {string[]} existingLabels - Labels already on the PR.
+ * @param {string[]} issueLabels - Labels from linked issues.
+ * @returns {string[]} Labels to add (deduplicated).
+ */
 function computeDelta(existingLabels, issueLabels) {
   const existing = new Set(existingLabels);
   const dedupedIssueLabels = Array.from(new Set(issueLabels));
@@ -145,6 +179,13 @@ function logResults(prNum, toAdd, existing) {
   console.log(`[sync] To add: ${toAdd.length ? toAdd.join(", ") : "(none)"}`);
 }
 
+/**
+ * Main entry point: syncs labels from linked issues to a PR.
+ * Skips bot-authored PRs and PRs with no linked issues.
+ * In dry-run mode, returns labels without applying them.
+ * @param {object} params - { github, context } from actions/github-script.
+ * @returns {Promise<{ labels: string[] }>} Labels that were (or would be) added.
+ */
 async function syncLabels({ github, context }) {
   const { prNumber, isDryRun, owner, repo } = resolveExecutionContext(context);
   validatePrNumber(prNumber);
