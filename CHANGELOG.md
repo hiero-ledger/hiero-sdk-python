@@ -15,6 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Tests
 - Added TCK endpoint for the createAccount method
+- Renamed `delegate_contract_id.py` to `delegate_contract_id_test.py` (#2004)
 
 ### Docs
 - Add Chocolatey as a prerequisite in the Windows setup guide (#1961)
