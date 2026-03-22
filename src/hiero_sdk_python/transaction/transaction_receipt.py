@@ -91,7 +91,10 @@ class TransactionReceipt:
         Returns:
             AccountId or None: The AccountId if present; otherwise, None.
         """
-        if self._receipt_proto.HasField("accountID") and self._receipt_proto.accountID.accountNum != 0:
+        if self._receipt_proto.HasField("accountID"):
+            # Return AccountId whenever the field is present in protobuf.
+            # Previously filtered accountNum==0, but EVM auto-account creation
+            # receipts may have accountNum=0 initially, so return them too.
             return AccountId._from_proto(self._receipt_proto.accountID)
         return None
 

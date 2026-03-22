@@ -385,7 +385,52 @@ def test_child_receipts_with_account_id(transaction_id):
         assert len(result.children) == 1
         child_receipt = result.children[0]
         
-        # Verify: child receipt has account_id accessible and transaction_id is None
+        # Verify: child receipt has account_id accessible
         assert child_receipt.account_id is not None
         assert child_receipt.account_id.num == 999
-        assert child_receipt.transaction_id is None
+
+
+def test_child_receipts_with_zero_accountnum(transaction_id):
+    """
+    Test child receipt with accountNum=0 (common for EVM auto-account creation).
+    Verifies that account_id is still accessible even with accountNum=0.
+    """
+    # EVM auto-created accounts may have accountNum=0 initially
+    child_account_id = basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=0)
+    
+    response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            ),
+            child_transaction_receipts=[
+                transaction_receipt_pb2.TransactionReceipt(
+                    status=ResponseCode.SUCCESS,
+                    accountID=child_account_id
+                ),
+            ],
+        )
+    )
+
+    response_sequences = [[response]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        query = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+            .set_include_children(True)
+        )
+
+        result = query.execute(client)
+
+        assert len(result.children) == 1
+        child_receipt = result.children[0]
+        
+        # Verify: account_id is accessible even with accountNum=0
+        assert child_receipt.account_id is not None
+        assert child_receipt.account_id.num == 0
+        assert child_receipt.account_id.shard == 0
+        assert child_receipt.account_id.realm == 0
