@@ -187,10 +187,11 @@ jobs:
 
   dispatch-add:
     needs: compute-labels
-    if: ${{ needs.compute-labels.outputs.is_fork_pr != 'true' && secrets.GH_ACCESS_TOKEN != '' }}
+    if: ${{ needs.compute-labels.outputs.is_fork_pr != 'true' }}
     runs-on: hl-sdk-py-lin-md
     steps:
       - name: Trigger add workflow
+        continue-on-error: true
         uses: step-security/workflow-dispatch@acca1a315af3bf7f33dd116d3cb405cb83f5cbdc # v1.2.8
         with:
           workflow: .github/workflows/sync-issue-labels-add.yml
