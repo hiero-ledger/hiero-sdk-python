@@ -1,5 +1,5 @@
 name: Advanced Issue Template
-description: Create a high-impact issue for experienced contributors with deep familiarity with the codebase
+description: Create a high-impact issue for experienced contributors who can reason about architecture, design trade-offs, and long-term implications
 title: "[Advanced]: "
 labels: ["advanced"]
 assignees: []
@@ -9,218 +9,267 @@ body:
     attributes:
       value: |
         ---
-        ## **Thanks for contributing!** 🚀
+        **For issue creators:** Advanced issues involve broad, sensitive changes where the solution is not fully defined and the problem may be imperfectly described. The contributor must be able to reason about architecture, evaluate trade-offs, and anticipate long-term implications — not simply implement a recipe.
 
-        We truly appreciate your interest in tackling an **Advanced issue**.
+        If the task has a clear, step-by-step path and can be solved by following existing patterns, it belongs in an Intermediate Issue.
 
-        This template is designed for work that requires **deep familiarity with the Hiero Python SDK**
-        and confidence making changes that may span multiple modules or affect core behavior.
+        **All links in this template must be absolute URLs** (starting with `https://`).
+        Relative links break when rendered in GitHub issues.
 
-        The goal is to create issues for contributors who:
-        - have strong familiarity with the Hiero Python SDK internals
-        - are comfortable reasoning about trade-offs and design decisions
-        - can work independently with minimal guidance
         ---
-
-  - type: textarea
-    id: intro
-    attributes:
-      label: 🧠 Advanced Contributors
-      description: Who is this issue intended for?
-      value: |
-        This issue is intended for contributors who are already very familiar with the
-        [Hiero Python SDK](https://hiero.org) codebase and its architectural patterns.
-
-        You should feel comfortable:
-        - navigating multiple modules across `src/`
-        - understanding and modifying core SDK abstractions
-        - reasoning about API design and backwards compatibility
-        - updating or extending tests, examples, and documentation as needed
-        - making changes that may affect public-facing behavior
-
-        New developers should start with
-        **Good First Issues** or **Intermediate Issues** first.
-    validations:
-      required: false
-
-  - type: markdown
-    attributes:
-      value: |
-        > [!WARNING]
-        > ### 🧭 What we consider an *Advanced Issue*
-        >
-        > This issue typically:
-        >
-        > - Requires **deep understanding of existing SDK design and behavior**
-        > - May touch **core abstractions**, shared utilities, or cross-cutting concerns
-        > - May involve **non-trivial refactors**, design changes, or behavior extensions
-        > - Has **medium to high risk** if implemented incorrectly
-        > - Requires careful consideration of **backwards compatibility**
-        > - May require updating **tests, examples, and documentation together**
-        >
-        > **What this issue is NOT:**
-        > - A simple bug fix
-        > - A narrowly scoped refactor
-        > - A task solvable by following existing patterns alone
-        >
-        > 📖 Helpful references:
-        > - `docs/sdk_developers/training`
-        > - `docs/sdk_developers/training/setup/project_structure.md`
-        > - `docs/sdk_developers/rebasing.md`
 
   - type: textarea
     id: problem
     attributes:
       label: 🐞 Problem Description
       description: |
-        Describe the problem in depth.
-
-        You may assume the reader:
-        - understands the overall SDK architecture
-        - can navigate and reason about multiple modules
-        - is comfortable reading and modifying core logic
-
-        Clearly explain:
-        - what the current behavior is
-        - why it is insufficient or incorrect
-        - which components or layers are involved
-        - any relevant historical or design context
+        DESCRIBE THE PROBLEM IN DEPTH.
+        ASSUME THE READER UNDERSTANDS THE SDK ARCHITECTURE AND CAN NAVIGATE MULTIPLE MODULES.
+        EXPLAIN: WHAT IS WRONG OR MISSING, WHICH COMPONENTS ARE INVOLVED, WHY IT MATTERS, AND ANY RELEVANT DESIGN CONTEXT.
+        INCLUDE RELEVANT FILE PATHS AND ABSOLUTE LINKS.
       value: |
-        Describe the problem here.
+        _Replace this with the problem description._
     validations:
       required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        <!-- Example for Problem (hidden in submission) -->
-        ## 🐞 Problem – Example
-
-        The current transaction execution pipeline tightly couples
-        receipt retrieval, record retrieval, and retry logic into a single
-        execution flow.
-
-        This coupling makes it difficult to:
-        - customize retry behavior
-        - extend execution semantics for scheduled or mirror-node-backed workflows
-        - test individual stages of transaction execution in isolation
-
-        Several downstream SDK features would benefit from a clearer separation
-        of concerns in this area.
-
-        Relevant areas:
-        - `src/hiero_sdk_python/transaction/`
-        - `src/hiero_sdk_python/execution/`
-        - `src/hiero_sdk_python/client/`
 
   - type: textarea
     id: solution
     attributes:
-      label: 💡 Proposed / Expected Solution
+      label: 💡 Proposed Solution
       description: |
-        Describe the intended direction or design.
-
-        This should include:
-        - the high-level approach
-        - any new abstractions or changes to existing ones
-        - constraints (e.g. backwards compatibility, performance, API stability)
-        - known alternatives and why they were rejected (if applicable)
-
-        A full design document is not required, but reasoning and intent should be clear.
+        DESCRIBE THE INTENDED DIRECTION OR DESIGN AT A HIGH LEVEL.
+        INCLUDE: THE APPROACH, ANY NEW OR CHANGED ABSTRACTIONS, CONSTRAINTS (BACKWARDS COMPATIBILITY, API STABILITY), AND KNOWN ALTERNATIVES WITH REASONS FOR REJECTION.
+        A FULL DESIGN DOC IS NOT REQUIRED, BUT REASONING AND INTENT MUST BE CLEAR.
       value: |
-        Describe the proposed solution here.
+        _Replace this with the proposed solution._
     validations:
       required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        <!-- Example for Solution (hidden in submission) -->
-        ## 💡 Proposed Solution – Example
-
-        Introduce a dedicated execution pipeline abstraction that separates:
-        - transaction submission
-        - receipt polling
-        - record retrieval
-        - retry and timeout logic
-
-        The new design should:
-        - preserve existing public APIs
-        - allow advanced users to override or extend execution behavior
-        - make individual stages independently testable
-
-        Existing transaction execution should be reimplemented
-        using the new pipeline internally.
 
   - type: textarea
     id: implementation
     attributes:
-      label: 🧠 Implementation & Design Notes
+      label: 🛠️ Implementation & Design Notes
       description: |
-        Provide detailed technical guidance.
-
-        This section is especially important for Advanced issues.
-
-        Consider including:
-        - specific modules or classes involved
-        - suggested refactoring strategy
-        - migration or deprecation concerns
-        - testing strategy
-        - performance or security considerations
+        PROVIDE DETAILED TECHNICAL GUIDANCE WHERE AVAILABLE.
+        CONSIDER: SPECIFIC MODULES AND CLASSES, REFACTORING STRATEGY, MIGRATION OR DEPRECATION CONCERNS, SECURITY CONSIDERATIONS, AND TESTING STRATEGY.
+        NOTE ANY AREAS WHERE THE SOLUTION IS INTENTIONALLY LEFT OPEN FOR THE CONTRIBUTOR TO RESEARCH AND DECIDE.
       value: |
-        Add detailed implementation notes here.
+        _Replace this with implementation notes._
     validations:
       required: false
 
-  - type: markdown
+  - type: textarea
+    id: advanced_contributors
     attributes:
+      label: 🧠 Advanced Contributors — Prerequisites & Expectations
+      description: |
+        PRE-FILLED. LEAVE AS-IS UNLESS YOU NEED TO ADD ISSUE-SPECIFIC REQUIREMENTS.
       value: |
-        <!-- Example for Implementation Notes (hidden in submission) -->
-        ## 🧠 Implementation Notes – Example
+        Advanced issues are the highest-risk work in this project. A poorly executed advanced PR can introduce architectural regressions, security vulnerabilities, breaking changes, or subtle bugs that are difficult to detect and expensive to fix.
 
-        Suggested approach:
+        > [!WARNING]
+        > **Advanced issues are not for contributors who are new to the codebase.**
+        > If you have not completed a significant body of intermediate work, please start there.
+        > [Intermediate Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue+state%3Aopen+label%3Aintermediate+no%3Aassignee)
 
-        - Introduce a new `ExecutionPipeline` abstraction under
-          `src/hiero_sdk_python/execution/`
-        - Refactor existing transaction execution logic to delegate
-          to this pipeline
-        - Ensure existing public APIs remain unchanged
-        - Add focused unit tests for each pipeline stage
-        - Update at least one example to demonstrate extensibility
+        ---
 
-        Care should be taken to avoid breaking timeout semantics
-        relied upon by existing users.
+        **🎯 Concrete prerequisites — you must meet these before claiming:**
+
+        - Completed **≥ 10 non-trivial intermediate issues** with merged PRs
+        - **≥ 3–4 months** of consistent, active contributions to this SDK
+        - Demonstrated ability to write **clear, maintainable, and secure Python** without relying on AI as a code generator
+
+        **🐍 Python proficiency — you must be comfortable with:**
+
+        - Classes, inheritance, and decorators
+        - Mutability, state management, and immutability patterns
+        - Structured error handling
+        - Handling diverse data types cleanly and safely
+
+        **🏗️ SDK architecture — you must understand:**
+
+        - **API Client Architecture:** HTTP/gRPC patterns; request → serialization → execution → response mapping; separation of public API vs internal transport logic
+        - **Execution Model:** Transaction lifecycle (freeze → sign → execute); query lifecycle and payment semantics; role of base classes (`_Executable`, `Transaction`, `Query`)
+        - **Protobuf Alignment:** Reading and interpreting protobuf definitions; using correct field names and types; implementing `_to_proto()` / `_from_proto()` correctly and completely
+        - **State & Immutability:** Why immutability is enforced; applying correct guards (`_require_not_frozen`, etc.)
+        - **Backward Compatibility:** Preserving method signatures, defaults, and return types; avoiding breaking changes unless explicitly approved
+
+        **🚫 Execution boundaries — you must NOT modify without explicit maintainer approval:**
+
+        - Retry logic
+        - Backoff logic
+        - Node selection
+        - gRPC deadlines
+
+        **⚙️ If your issue touches GitHub Actions / CI workflows, you must also understand:**
+
+        - Security fundamentals: permissions, secrets, fork safety
+        - Dependency integrity: pinning actions to commit SHAs
+        - Writing maintainable, readable workflow logic
+        - JavaScript-based workflow logic and GitHub APIs
+        - Testing workflows robustly across multiple scenarios and failure paths
+
+        ---
+
+        > [!TIP]
+        > **Not sure if you meet these requirements?**
+        > Some advanced issues are narrowly scoped — you may confidently assess that you have the relevant expertise even if you do not meet every criterion above. Read the issue carefully and use your judgment. If in doubt, comment and ask a maintainer before claiming.
+
+        ⏱️ **Typical time to complete: ~1 month / ~50 hours**
+        🔴 Completing an advanced issue in 1–3 days is a red flag. It will likely be rejected.
+
+        ---
+
+        🏁 **When this issue is complete, you will have:**
+
+        ✅ Researched the problem space deeply before writing any code
+        ✅ Proposed and validated an architectural approach with a maintainer
+        ✅ Delivered a secure, maintainable, well-tested implementation
+        ✅ Produced a PR that demonstrates architectural thinking, not just working code
+    validations:
+      required: false
 
   - type: textarea
-    id: acceptance-criteria
+    id: process
     attributes:
-      label: ✅ Acceptance Criteria
-      description: Define what "done" means for this issue
+      label: 📅 Timeline & Review Process
+      description: |
+        PRE-FILLED. LEAVE AS-IS.
       value: |
-        To merge this issue, the pull request must:
+        Advanced issues are not sprint tasks. Most of the time should be spent thinking and reviewing — not coding.
 
-        - [ ] Fully address the problem and design goals described above
-        - [ ] Maintain backwards compatibility unless explicitly approved otherwise
-        - [ ] Follow existing architectural and coding conventions
-        - [ ] Include comprehensive tests covering new and existing behavior
-        - [ ] Update relevant examples and documentation
-        - [ ] Pass all CI checks
-        - [ ] Include a valid changelog entry
-        - [ ] be a DCO and GPG key signed as `git commit -S -s -m "chore: my change"` with a GPG key set up
+        **Suggested timeline:**
+
+        | Week | Focus |
+        |------|-------|
+        | Week 1 | Deep research: understand the affected modules, study related SDKs, design your approach |
+        | Week 2 | Iterative implementation with continuous testing |
+        | Week 3 | Quality review: maintainability, security, edge cases, implications |
+        | Week 4 | PR submitted; expect multiple rounds of substantive review |
+
+        **Review process:**
+
+        Advanced PRs go through a different review process than beginner or intermediate work:
+
+        1. **Before writing any code** — comment on the issue with your proposed architectural approach. Explain what you plan to do and why. Ask for maintainer feedback. This step is not optional.
+        2. **Once the PR is created** — expect several rounds of feedback focused on design implications, edge cases, and long-term consequences, not just correctness.
+        3. **What "several rounds" means** — this does not mean submitting incomplete or below-quality work. It means the architectural decisions are being refined collaboratively. Your initial submission must already be production-quality.
+
+        A maintainer is available to review your architectural plan and flag risk areas before you begin implementation. Use this.
+    validations:
+      required: false
+
+  - type: textarea
+    id: quality_standards
+    attributes:
+      label: 🛡️ Quality & Review Standards
+      description: |
+        PRE-FILLED. LEAVE AS-IS.
+      value: |
+        Advanced PRs are held to the highest standard in this project. The bar is not "it works" — it is "it is safe, maintainable, architecturally sound, and production-ready."
+
+        **Breaking changes**
+        - Advanced issues should not introduce breaking changes. This is a low-risk expectation.
+        - If a breaking change is genuinely unavoidable, stop immediately and get explicit maintainer approval before implementing anything.
+        - Run the full unit test suite before submitting: `uv run pytest tests/unit/ -v`
+
+        **Security**
+        - Assume your change will be attacked. Consider injection risks, privilege escalation, secret exposure, and fork-safety issues for any workflow changes.
+        - If you are unsure whether a pattern is safe, ask — do not assume.
+
+        **Maintainability**
+        - Prefer clarity over cleverness. Future contributors must be able to understand and extend your work without reverse-engineering your intent.
+        - Your code should fit naturally into existing patterns. If it requires a long explanation to justify, reconsider the approach.
+
+        **AI usage**
+        - Do not use AI as a code generator for advanced issues. The risk is too high: AI-generated code in sensitive areas can introduce hallucinated logic, incorrect protobuf field usage, and security flaws that are difficult to detect in review.
+        - Use AI to help you understand files and how they connect — not to write the implementation.
+        - Every line of code you submit must reflect your own understanding. If you cannot explain a line, remove it.
+
+        **PR packaging**
+        - Your PR description must explain the architectural decision you made, why you chose it over alternatives, and what trade-offs or open questions remain.
+        - Self-review your diff line by line before requesting review.
+        - Clean git history — no rebase artifacts, merge commits, or unrelated files.
+        - CHANGELOG entry under `[Unreleased]`.
+        - All CI checks must pass before requesting review.
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: ✅ Done Checklist
+      description: |
+        EDIT OR ADD CRITERIA SPECIFIC TO THIS ISSUE. THE DEFAULTS COVER STANDARD REQUIREMENTS.
+      value: |
+        Before opening your PR, confirm:
+
+        - [ ] I shared my architectural approach in a comment on this issue and received maintainer feedback before coding
+        - [ ] My implementation fully addresses the problem and design goals described above
+        - [ ] I have not introduced breaking changes (or received explicit approval if unavoidable)
+        - [ ] I verified naming, types, and patterns against [protobuf definitions](https://github.com/hashgraph/hedera-protobufs/tree/main/services) and similar SDK classes
+        - [ ] I have written thorough tests covering new behavior, edge cases, and error handling — not AI-generated tests
+        - [ ] I did not modify files unrelated to this issue
+        - [ ] My commits are signed: `git commit -S -s -m "chore: description"`
+        - [ ] I added a CHANGELOG.md entry under `[Unreleased]`
+        - [ ] All CI checks pass
+        - [ ] My PR description explains my architectural decision, the alternatives I considered, and any open questions
+        - [ ] I self-reviewed my PR diff line by line before requesting review
     validations:
       required: true
 
   - type: textarea
-    id: additional-info
+    id: resources
     attributes:
-      label: 📚 Additional Context, Links, or Prior Art
+      label: 📚 Resources
       description: |
-        Add any references that may help:
-        - design docs
-        - prior discussions
-        - related issues or PRs
-        - external references
+        ADD ISSUE-SPECIFIC RESOURCES BELOW. THE DEFAULTS POINT TO KEY ARCHITECTURAL REFERENCES.
       value: |
-        Optional.
+        **SDK architecture & internals:**
+        - [Project structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
+        - [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
+        - [Browse closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced) — study what was accepted and why
+
+        **Protobuf:**
+        - [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services) — source of truth for field names, types, and ordering
+        - [Protobuf language guide](https://protobuf.dev/programming-guides/proto3/)
+
+        **Comparable SDKs — study how others solved similar problems:**
+        - [Hedera Java SDK](https://github.com/hashgraph/hedera-sdk-java)
+        - [Hedera JavaScript SDK](https://github.com/hashgraph/hedera-sdk-js)
+        - [Hedera Go SDK](https://github.com/hashgraph/hedera-sdk-go)
+
+        **Testing:**
+        - [Testing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/testing.md)
+        - [unittest.mock](https://docs.python.org/3/library/unittest.mock.html)
+
+        **Workflow-specific (if applicable):**
+        - [GitHub Actions security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
+        - [Keeping actions pinned to commit SHAs](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions)
+    validations:
+      required: false
+
+  - type: textarea
+    id: stuck
+    attributes:
+      label: 🆘 Stuck?
+      description: |
+        PRE-FILLED GUIDANCE. LEAVE AS-IS.
+      value: |
+        At the advanced level, you are expected to work independently through most blockers:
+
+        - **Study related areas** — read the modules adjacent to the one you are changing
+        - **Compare to other SDKs** — the Java, JavaScript, and Go SDKs often reveal the intended design
+        - **Read the code, not just the docs** — the source is the most reliable specification
+
+        If you are genuinely blocked on an architectural decision — not an implementation detail — comment on the issue and describe what you have tried. A maintainer will respond.
+
+        You can also join [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) (Wednesdays, 2pm UTC) for live discussion with a maintainer. Screen sharing is welcome for complex architectural questions.
+
+        Ask on [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) in #hiero-python-sdk for quick questions.
+
+        > [!CAUTION]
+        > Do not open a PR to ask for help solving the issue. Advanced PRs should be complete and production-quality when submitted. An incomplete or draft PR to solicit implementation guidance is not appropriate at this level.
     validations:
       required: false
