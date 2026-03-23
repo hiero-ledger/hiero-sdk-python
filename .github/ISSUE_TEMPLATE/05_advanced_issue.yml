@@ -8,19 +8,54 @@ body:
   - type: markdown
     attributes:
       value: |
-        Advanced issues are for work where the solution is not fully defined and the problem may be imperfectly described.
-        Expected: architectural reasoning, trade-off analysis, and awareness of long-term impact.
+        ---
+        **For issue creators:** Advanced issues involve changes where the solution is not fully defined and the problem may be imperfectly described.
         Changes at this level may affect multiple modules, public APIs, or core system behavior.
+        The contributor is expected to define the approach — not follow step-by-step instructions.
 
         If the task follows existing patterns, use an [Intermediate Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues/new/choose) instead.
-        Before claiming, share your proposed approach as a comment and wait for maintainer feedback.
-        See [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) for expectations on timeline, review process, and quality bar.
+
+        **All links in this template must be absolute URLs** (starting with `https://`).
+        Relative links break when rendered in GitHub issues.
+
+        ---
+
+  - type: textarea
+    id: advanced_contributors
+    attributes:
+      label: 🧠 Advanced Contributors
+      description: |
+        PRE-FILLED. LEAVE AS-IS UNLESS YOU NEED TO ADD ISSUE-SPECIFIC PREREQUISITES.
+      value: |
+        This issue is intended for contributors with prior experience in this SDK and demonstrated familiarity with its architecture.
+
+        > [!TIP]
+        > **Before writing any code:** post your proposed architectural approach as a comment and wait for maintainer feedback.
+        > Discuss design decisions, alternatives, and known risks before implementation begins.
+        > See [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) for full expectations on timeline, review process, and quality bar.
+
+        ---
+
+        🏁 **When this issue is complete, you will have:**
+
+        ✅ Validated a design approach with a maintainer before coding
+        ✅ Reasoned through trade-offs, risks, and cross-module implications
+        ✅ Delivered a maintainable implementation that fits naturally into the SDK
+        ✅ Produced a PR that demonstrates architectural ownership, not just working code
+    validations:
+      required: false
 
   - type: textarea
     id: problem
     attributes:
       label: 🐞 Problem Description
-      description: What is broken, missing, or insufficient? Which modules are affected and why does it matter? Include relevant file paths and links.
+      description: |
+        DESCRIBE THE PROBLEM IN DEPTH.
+        ASSUME THE READER UNDERSTANDS THE FULL SDK ARCHITECTURE.
+        EXPLAIN: WHAT IS WRONG OR MISSING, WHICH MODULES AND ABSTRACTIONS ARE INVOLVED, WHY IT MATTERS, AND ANY RELEVANT DESIGN CONTEXT.
+        INCLUDE RELEVANT FILE PATHS AND ABSOLUTE LINKS.
+      value: |
+        _Replace this with the problem description._
     validations:
       required: true
 
@@ -28,7 +63,12 @@ body:
     id: solution
     attributes:
       label: 💡 Proposed Solution
-      description: High-level design direction. Cover the intended approach, any new or changed abstractions, backwards-compatibility constraints, and alternatives considered with reasons for rejection.
+      description: |
+        DESCRIBE THE INTENDED DESIGN DIRECTION AT A HIGH LEVEL.
+        INCLUDE: THE APPROACH, NEW OR CHANGED ABSTRACTIONS, BACKWARD-COMPATIBILITY CONSTRAINTS, KNOWN ALTERNATIVES, AND REASONS FOR REJECTION.
+        REASONING AND INTENT MUST BE CLEAR. A FULL DESIGN DOC IS NOT REQUIRED.
+      value: |
+        _Replace this with the proposed solution._
     validations:
       required: true
 
@@ -36,7 +76,24 @@ body:
     id: non_goals
     attributes:
       label: 🚧 Non-Goals
-      description: What is explicitly out of scope? Define boundaries to prevent scope creep.
+      description: |
+        WHAT IS EXPLICITLY OUT OF SCOPE FOR THIS ISSUE?
+        DEFINE CLEAR BOUNDARIES TO PREVENT SCOPE CREEP AND SET REVIEWER EXPECTATIONS.
+      value: |
+        _Replace this with what this issue does not address._
+    validations:
+      required: false
+
+  - type: textarea
+    id: research
+    attributes:
+      label: 🔍 Background Research
+      description: |
+        POINT THE CONTRIBUTOR TOWARD RELEVANT MODULES, PRIOR ART, PROTOBUF DEFINITIONS, OR PATTERNS TO STUDY.
+        THIS IS THE FOUNDATION FOR ARCHITECTURAL DECISION-MAKING — NOT IMPLEMENTATION GUIDANCE.
+        AT LEAST ONE OF "BACKGROUND RESEARCH" OR "IMPLEMENTATION NOTES" SHOULD BE PROVIDED.
+      value: |
+        _Replace this with research pointers._
     validations:
       required: false
 
@@ -44,7 +101,38 @@ body:
     id: implementation
     attributes:
       label: 🛠️ Implementation Notes
-      description: Optional. Specific modules, refactoring strategy, deprecation concerns, security considerations, or open design decisions left for the contributor to resolve.
+      description: |
+        PROVIDE HIGH-LEVEL TECHNICAL DIRECTION WHERE AVAILABLE.
+        INCLUDE: AFFECTED MODULES, REFACTORING STRATEGY, DEPRECATION OR MIGRATION CONCERNS, SECURITY CONSIDERATIONS.
+        LEAVE AREAS INTENTIONALLY OPEN WHERE THE CONTRIBUTOR IS EXPECTED TO RESEARCH AND DECIDE.
+        DO NOT REPEAT THE PROPOSED SOLUTION — FOCUS ON TECHNICAL CONSIDERATIONS AND CONSTRAINTS.
+      value: |
+        _Replace this with implementation notes._
+    validations:
+      required: false
+
+  - type: textarea
+    id: quality_standards
+    attributes:
+      label: 🛡️ Quality & Review Standards
+      description: |
+        PRE-FILLED. LEAVE AS-IS.
+      value: |
+        The bar for advanced PRs is not "it works" — it is "safe, maintainable, architecturally sound, and production-ready."
+
+        **Backward compatibility**
+        - Must not introduce breaking changes without explicit maintainer approval obtained before implementation.
+
+        **Security and correctness**
+        - Consider injection risks, privilege escalation, and secret exposure for any workflow changes.
+        - All submitted code must be personally understood and explainable. Unvalidated generated output is not acceptable.
+
+        **Maintainability**
+        - Prefer clarity over cleverness. If an approach requires a long justification, reconsider it.
+
+        **PR packaging**
+        - PR description must cover: decision made, alternatives considered, trade-offs, risks, and open questions.
+        - Self-review the full diff before requesting review.
     validations:
       required: false
 
@@ -52,19 +140,20 @@ body:
     id: acceptance
     attributes:
       label: ✅ Done Checklist
-      description: Edit or extend for this issue. Remove items that do not apply.
+      description: |
+        EDIT OR ADD CRITERIA SPECIFIC TO THIS ISSUE. THE DEFAULTS COVER STANDARD REQUIREMENTS.
       value: |
-        - [ ] Architectural approach reviewed by a maintainer before implementation began
-        - [ ] Implementation fully addresses the problem and design goals above
-        - [ ] No breaking changes — or explicit maintainer approval obtained
+        Before opening your PR, confirm:
+
+        - [ ] Considered system-wide impact — affected modules, APIs, performance, or behavioral changes
+        - [ ] Architectural approach shared as a comment and reviewed by a maintainer before implementation began
+        - [ ] Implementation fully addresses the problem and design goals described above
+        - [ ] No breaking changes introduced — or explicit maintainer approval obtained before implementation
         - [ ] Naming, types, and field ordering verified against [Hedera protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
         - [ ] All submitted code is personally understood — no unvalidated generated output
         - [ ] No files modified outside the scope of this issue
-        - [ ] Commits signed: `git commit -S -s -m "type: description"`
-        - [ ] CHANGELOG.md updated under `[Unreleased]`
-        - [ ] All CI checks pass
         - [ ] PR description covers: decision made, alternatives considered, trade-offs, risks, and open questions
-        - [ ] PR diff self-reviewed before requesting review
+        - [ ] PR diff self-reviewed line by line before requesting review
     validations:
       required: true
 
@@ -72,12 +161,37 @@ body:
     id: resources
     attributes:
       label: 📚 Resources
-      description: Add issue-specific references. Remove defaults that do not apply.
+      description: |
+        ADD ISSUE-SPECIFIC RESOURCES BELOW. THE DEFAULTS POINT TO KEY ARCHITECTURAL REFERENCES.
       value: |
+        **This codebase:**
         - [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
         - [Project structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
-        - [Hedera protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
         - [Closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced)
+
+        **Protobuf:**
+        - [Hedera protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
+        - [Protobuf language guide](https://protobuf.dev/programming-guides/proto3/)
+
+        **Comparable SDKs:**
         - [Java SDK](https://github.com/hiero-ledger/hiero-sdk-java) · [JavaScript SDK](https://github.com/hiero-ledger/hiero-sdk-js) · [Go SDK](https://github.com/hiero-ledger/hiero-sdk-go)
+
+        **CI / workflows (if applicable):**
+        - [Hiero Solo Action](https://github.com/marketplace/actions/hiero-solo-action) · [GitHub Actions security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
+    validations:
+      required: false
+
+  - type: textarea
+    id: stuck
+    attributes:
+      label: 🆘 Stuck?
+      description: |
+        PRE-FILLED. LEAVE AS-IS.
+      value: |
+        If blocked on an architectural decision, comment on this issue with what you have explored. A maintainer will respond.
+
+        - For design reference, study comparable SDKs: [Java](https://github.com/hiero-ledger/hiero-sdk-java) · [JavaScript](https://github.com/hiero-ledger/hiero-sdk-js) · [Go](https://github.com/hiero-ledger/hiero-sdk-go)
+        - [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) (Wednesdays, 2pm UTC) — screen sharing welcome
+        - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) — #hiero-python-sdk
     validations:
       required: false
