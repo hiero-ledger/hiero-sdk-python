@@ -8,35 +8,21 @@ uv run examples/account/account_update_transaction.py
 python examples/account/account_update_transaction.py
 """
 import datetime
-import os
 import sys
 
-from dotenv import load_dotenv
-
-from hiero_sdk_python import AccountId, Client, Duration, Hbar, Network, PrivateKey
+from hiero_sdk_python import Client, Duration, Hbar, PrivateKey
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
-from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 
-load_dotenv()
 
-network_name = os.getenv("NETWORK", "testnet").lower()
-
-
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
@@ -130,48 +116,6 @@ def account_update():
     print("\nAccount info after update:")
     # Query the account info again
     query_account_info(client, account_id)
-
-    # Rotate from a single key to a threshold KeyList (1 of 2).
-    threshold_key_1 = PrivateKey.generate_ed25519()
-    threshold_key_2 = PrivateKey.generate_ed25519()
-    threshold_key = KeyList(
-        [threshold_key_1.public_key(), threshold_key_2.public_key()], threshold=1
-    )
-
-    key_list_receipt = (
-        AccountUpdateTransaction()
-        .set_account_id(account_id)
-        .set_key(threshold_key)
-        .freeze_with(client)
-        .sign(new_private_key)  # Sign with current key
-        .sign(threshold_key_1)  # One signature satisfies threshold=1
-        .execute(client)
-    )
-
-    if key_list_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"KeyList rotation failed with status: {ResponseCode(key_list_receipt.status).name}"
-        )
-        sys.exit(1)
-
-    # Prove the new account key is active by signing with the second threshold key.
-    memo_receipt = (
-        AccountUpdateTransaction()
-        .set_account_id(account_id)
-        .set_account_memo("Updated account memo with threshold key")
-        .freeze_with(client)
-        .sign(threshold_key_2)
-        .execute(client)
-    )
-
-    if memo_receipt.status != ResponseCode.SUCCESS:
-        print(
-            "Memo update with threshold key failed with status: "
-            f"{ResponseCode(memo_receipt.status).name}"
-        )
-        sys.exit(1)
-
-    print("\nThreshold KeyList rotation and follow-up update succeeded.")
 
 
 if __name__ == "__main__":
