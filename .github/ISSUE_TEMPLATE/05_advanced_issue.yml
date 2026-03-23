@@ -1,5 +1,5 @@
 name: Advanced Issue Template
-description: Create a high-impact issue for experienced contributors who can reason about architecture, design trade-offs, and long-term implications
+description: Architecture-level changes requiring design reasoning, cross-module awareness, and trade-off analysis
 title: "[Advanced]: "
 labels: ["advanced"]
 assignees: []
@@ -8,27 +8,19 @@ body:
   - type: markdown
     attributes:
       value: |
-        ---
-        **For issue creators:** Advanced issues involve broad, sensitive changes where the solution is not fully defined and the problem may be imperfectly described. The contributor must be able to reason about architecture, evaluate trade-offs, and anticipate long-term implications — not simply implement a recipe.
+        Advanced issues are for work where the solution is not fully defined and the problem may be imperfectly described.
+        Expected: architectural reasoning, trade-off analysis, and awareness of long-term impact.
+        Changes at this level may affect multiple modules, public APIs, or core system behavior.
 
-        If the task has a clear, step-by-step path and can be solved by following existing patterns, it belongs in an Intermediate Issue.
-
-        **All links in this template must be absolute URLs** (starting with `https://`).
-        Relative links break when rendered in GitHub issues.
-
-        ---
+        If the task follows existing patterns, use an [Intermediate Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues/new/choose) instead.
+        Before claiming, share your proposed approach as a comment and wait for maintainer feedback.
+        See [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) for expectations on timeline, review process, and quality bar.
 
   - type: textarea
     id: problem
     attributes:
       label: 🐞 Problem Description
-      description: |
-        DESCRIBE THE PROBLEM IN DEPTH.
-        ASSUME THE READER UNDERSTANDS THE SDK ARCHITECTURE AND CAN NAVIGATE MULTIPLE MODULES.
-        EXPLAIN: WHAT IS WRONG OR MISSING, WHICH COMPONENTS ARE INVOLVED, WHY IT MATTERS, AND ANY RELEVANT DESIGN CONTEXT.
-        INCLUDE RELEVANT FILE PATHS AND ABSOLUTE LINKS.
-      value: |
-        _Replace this with the problem description._
+      description: What is broken, missing, or insufficient? Which modules are affected and why does it matter? Include relevant file paths and links.
     validations:
       required: true
 
@@ -36,163 +28,23 @@ body:
     id: solution
     attributes:
       label: 💡 Proposed Solution
-      description: |
-        DESCRIBE THE INTENDED DIRECTION OR DESIGN AT A HIGH LEVEL.
-        INCLUDE: THE APPROACH, ANY NEW OR CHANGED ABSTRACTIONS, CONSTRAINTS (BACKWARDS COMPATIBILITY, API STABILITY), AND KNOWN ALTERNATIVES WITH REASONS FOR REJECTION.
-        A FULL DESIGN DOC IS NOT REQUIRED, BUT REASONING AND INTENT MUST BE CLEAR.
-      value: |
-        _Replace this with the proposed solution._
+      description: High-level design direction. Cover the intended approach, any new or changed abstractions, backwards-compatibility constraints, and alternatives considered with reasons for rejection.
     validations:
       required: true
 
   - type: textarea
+    id: non_goals
+    attributes:
+      label: 🚧 Non-Goals
+      description: What is explicitly out of scope? Define boundaries to prevent scope creep.
+    validations:
+      required: false
+
+  - type: textarea
     id: implementation
     attributes:
-      label: 🛠️ Implementation & Design Notes
-      description: |
-        PROVIDE DETAILED TECHNICAL GUIDANCE WHERE AVAILABLE.
-        CONSIDER: SPECIFIC MODULES AND CLASSES, REFACTORING STRATEGY, MIGRATION OR DEPRECATION CONCERNS, AND SECURITY CONSIDERATIONS.
-        NOTE ANY AREAS WHERE THE SOLUTION IS INTENTIONALLY LEFT OPEN FOR THE CONTRIBUTOR TO RESEARCH AND DECIDE.
-      value: |
-        _Replace this with implementation notes._
-    validations:
-      required: false
-
-  - type: textarea
-    id: advanced_contributors
-    attributes:
-      label: 🧠 Advanced Contributors — Prerequisites & Expectations
-      description: |
-        PRE-FILLED. LEAVE AS-IS UNLESS YOU NEED TO ADD ISSUE-SPECIFIC REQUIREMENTS.
-      value: |
-        Advanced issues are the highest-risk work in this project. A poorly executed advanced PR can introduce architectural regressions, security vulnerabilities, breaking changes, or subtle bugs that are difficult to detect and expensive to fix.
-
-        > [!WARNING]
-        > **Advanced issues are not for contributors who are new to the codebase.**
-        > If you have not completed a significant body of intermediate work, please start there.
-        > [Intermediate Issues](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue+state%3Aopen+label%3Aintermediate+no%3Aassignee)
-
-        ---
-
-        **🎯 Concrete prerequisites — you must meet these before claiming:**
-
-        - Completed **≥ 10 non-trivial intermediate issues** with merged PRs in this repository
-        - **≥ 3–4 months** of consistent, active contributions to this SDK
-        - Able to write clear, maintainable Python **without** relying on AI as a code generator
-        - Your local environment is fully configured: `uv`, Pylance, `mypy`, and `generate_proto.py` all working
-
-        **🐍 Python proficiency — demonstrated in your prior contributions:**
-
-        - Classes, inheritance, decorators, and `@property`
-        - Mutability and state management — knowing when to copy vs. mutate
-        - Structured error handling using the project's `exceptions.py` patterns
-        - Full type annotation coverage consistent with `mypy.ini` and the [types guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md)
-
-        **🏗️ SDK architecture — you must have hands-on familiarity with:**
-
-        - **Module layout:** how `src/hiero_sdk_python/` is divided — `account/`, `tokens/`, `consensus/`, `contract/`, `file/`, `schedule/`, `query/`, `transaction/`, `client/`, `nodes/`, `utils/` — and when a change crosses module boundaries
-        - **Base class hierarchy:** the role of `Transaction` and `Query` base classes in `transaction/` and `query/`; how all concrete types inherit from them; what you must and must not override
-        - **Transaction lifecycle:** `freeze()` → sign → `execute(client)` → receipt; what `_require_not_frozen()` guards and why it exists
-        - **Protobuf layer:** `src/hiero_sdk_python/hapi/` is auto-generated by `generate_proto.py` — never edited directly; `_to_proto()` and `_from_proto()` are the boundary between SDK objects and the network wire format; field names, types, and ordering must match [Hedera protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services) exactly
-        - **gRPC transport:** how `channels.py` and `client/` manage connections; request serialization and response mapping; payment semantics for queries
-        - **Backward compatibility:** method signatures, default values, and return types are public API — changing them silently is a breaking change
-
-        **🚫 Execution internals — do NOT modify without explicit maintainer approval:**
-
-        - Retry logic and backoff
-        - Node selection and rotation
-        - gRPC deadline and timeout handling
-
-        **⚙️ If your issue touches `.github/` workflows, you must also understand:**
-
-        - Fork safety and `pull_request_target` risks
-        - Secrets and permission scoping in Actions
-        - Pinning third-party actions to full commit SHAs
-        - The [Hiero Solo Action](https://github.com/marketplace/actions/hiero-solo-action) used for integration testing in CI
-
-        ---
-
-        > [!TIP]
-        > **Not sure if all of this applies to your issue?**
-        > Advanced issues vary in scope. Read the problem description carefully and identify which areas your change actually touches. If the issue is narrowly scoped to one module and you have deep experience there, the full list above may not all apply. When in doubt, comment and ask a maintainer before claiming.
-
-        ⏱️ **Typical time to complete: ~1 month / ~50 hours**
-        🔴 Completing an advanced issue in 1–3 days is a red flag. It will likely be rejected.
-
-        ---
-
-        🏁 **When this issue is complete, you will have:**
-
-        ✅ Researched the problem space deeply before writing any code
-        ✅ Proposed and validated an architectural approach with a maintainer
-        ✅ Delivered a secure, maintainable implementation that fits naturally into the SDK
-        ✅ Produced a PR that demonstrates architectural thinking, not just working code
-    validations:
-      required: false
-
-  - type: textarea
-    id: process
-    attributes:
-      label: 📅 Timeline & Review Process
-      description: |
-        PRE-FILLED. LEAVE AS-IS.
-      value: |
-        Advanced issues are not sprint tasks. Most of the time should be spent thinking and reviewing — not coding.
-
-        **Suggested timeline:**
-
-        | Week | Focus |
-        |------|-------|
-        | Week 1 | Deep research: understand the affected modules, study related SDKs, design your approach |
-        | Week 2 | Iterative implementation with continuous testing |
-        | Week 3 | Quality review: maintainability, security, edge cases, implications |
-        | Week 4 | PR submitted; expect multiple rounds of substantive review |
-
-        **Review process:**
-
-        Advanced PRs go through a different review process than beginner or intermediate work:
-
-        1. **Before writing any code** — comment on the issue with your proposed architectural approach. Explain what you plan to do and why. Ask for maintainer feedback. This step is not optional.
-        2. **Once the PR is created** — expect several rounds of feedback focused on design implications, edge cases, and long-term consequences, not just correctness.
-        3. **What "several rounds" means** — this does not mean submitting incomplete or below-quality work. It means the architectural decisions are being refined collaboratively. Your initial submission must already be production-quality.
-
-        A maintainer is available to review your architectural plan and flag risk areas before you begin implementation. Use this.
-    validations:
-      required: false
-
-  - type: textarea
-    id: quality_standards
-    attributes:
-      label: 🛡️ Quality & Review Standards
-      description: |
-        PRE-FILLED. LEAVE AS-IS.
-      value: |
-        Advanced PRs are held to the highest standard in this project. The bar is not "it works" — it is "it is safe, maintainable, architecturally sound, and production-ready."
-
-        **Breaking changes**
-        - Advanced issues should not introduce breaking changes. This is a low-risk expectation.
-        - If a breaking change is genuinely unavoidable, stop immediately and get explicit maintainer approval before implementing anything.
-        - Run the full unit test suite before submitting: `uv run pytest tests/unit/ -v`
-
-        **Security**
-        - Assume your change will be attacked. Consider injection risks, privilege escalation, secret exposure, and fork-safety issues for any workflow changes.
-        - If you are unsure whether a pattern is safe, ask — do not assume.
-
-        **Maintainability**
-        - Prefer clarity over cleverness. Future contributors must be able to understand and extend your work without reverse-engineering your intent.
-        - Your code should fit naturally into existing patterns. If it requires a long explanation to justify, reconsider the approach.
-
-        **AI usage**
-        - Do not use AI as a code generator for advanced issues. The risk is too high: AI-generated code in sensitive areas can introduce hallucinated logic, incorrect protobuf field usage, and security flaws that are difficult to detect in review.
-        - Use AI to help you understand files and how they connect — not to write the implementation.
-        - Every line of code you submit must reflect your own understanding. If you cannot explain a line, remove it.
-
-        **PR packaging**
-        - Your PR description must explain the architectural decision you made, why you chose it over alternatives, and what trade-offs or open questions remain.
-        - Self-review your diff line by line before requesting review.
-        - Clean git history — no rebase artifacts, merge commits, or unrelated files.
-        - CHANGELOG entry under `[Unreleased]`.
-        - All CI checks must pass before requesting review.
+      label: 🛠️ Implementation Notes
+      description: Optional. Specific modules, refactoring strategy, deprecation concerns, security considerations, or open design decisions left for the contributor to resolve.
     validations:
       required: false
 
@@ -200,21 +52,19 @@ body:
     id: acceptance
     attributes:
       label: ✅ Done Checklist
-      description: |
-        EDIT OR ADD CRITERIA SPECIFIC TO THIS ISSUE. THE DEFAULTS COVER STANDARD REQUIREMENTS.
+      description: Edit or extend for this issue. Remove items that do not apply.
       value: |
-        Before opening your PR, confirm:
-
-        - [ ] I shared my architectural approach in a comment on this issue and received maintainer feedback before coding
-        - [ ] My implementation fully addresses the problem and design goals described above
-        - [ ] I have not introduced breaking changes (or received explicit approval if unavoidable)
-        - [ ] I verified naming, types, and patterns against [protobuf definitions](https://github.com/hashgraph/hedera-protobufs/tree/main/services) and similar SDK classes
-        - [ ] I did not modify files unrelated to this issue
-        - [ ] My commits are signed: `git commit -S -s -m "chore: description"`
-        - [ ] I added a CHANGELOG.md entry under `[Unreleased]`
+        - [ ] Architectural approach reviewed by a maintainer before implementation began
+        - [ ] Implementation fully addresses the problem and design goals above
+        - [ ] No breaking changes — or explicit maintainer approval obtained
+        - [ ] Naming, types, and field ordering verified against [Hedera protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
+        - [ ] All submitted code is personally understood — no unvalidated generated output
+        - [ ] No files modified outside the scope of this issue
+        - [ ] Commits signed: `git commit -S -s -m "type: description"`
+        - [ ] CHANGELOG.md updated under `[Unreleased]`
         - [ ] All CI checks pass
-        - [ ] My PR description explains my architectural decision, the alternatives I considered, and any open questions
-        - [ ] I self-reviewed my PR diff line by line before requesting review
+        - [ ] PR description covers: decision made, alternatives considered, trade-offs, risks, and open questions
+        - [ ] PR diff self-reviewed before requesting review
     validations:
       required: true
 
@@ -222,49 +72,12 @@ body:
     id: resources
     attributes:
       label: 📚 Resources
-      description: |
-        ADD ISSUE-SPECIFIC RESOURCES BELOW. THE DEFAULTS POINT TO KEY ARCHITECTURAL REFERENCES.
+      description: Add issue-specific references. Remove defaults that do not apply.
       value: |
-        **SDK architecture & internals:**
-        - [Project structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
         - [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
-        - [Browse closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced) — study what was accepted and why
-
-        **Protobuf:**
-        - [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services) — source of truth for field names, types, and ordering
-        - [Protobuf language guide](https://protobuf.dev/programming-guides/proto3/)
-
-        **Comparable SDKs — study how others solved similar problems:**
-        - [Hedera Java SDK](https://github.com/hashgraph/hedera-sdk-java)
-        - [Hedera JavaScript SDK](https://github.com/hashgraph/hedera-sdk-js)
-        - [Hedera Go SDK](https://github.com/hashgraph/hedera-sdk-go)
-
-        **Workflow-specific (if applicable):**
-        - [GitHub Actions security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
-        - [Keeping actions pinned to commit SHAs](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions)
-    validations:
-      required: false
-
-  - type: textarea
-    id: stuck
-    attributes:
-      label: 🆘 Stuck?
-      description: |
-        PRE-FILLED GUIDANCE. LEAVE AS-IS.
-      value: |
-        At the advanced level, you are expected to work independently through most blockers:
-
-        - **Study related areas** — read the modules adjacent to the one you are changing
-        - **Compare to other SDKs** — the Java, JavaScript, and Go SDKs often reveal the intended design
-        - **Read the code, not just the docs** — the source is the most reliable specification
-
-        If you are genuinely blocked on an architectural decision — not an implementation detail — comment on the issue and describe what you have tried. A maintainer will respond.
-
-        You can also join [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) (Wednesdays, 2pm UTC) for live discussion with a maintainer. Screen sharing is welcome for complex architectural questions.
-
-        Ask on [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) in #hiero-python-sdk for quick questions.
-
-        > [!CAUTION]
-        > Do not open a PR to ask for help solving the issue. Advanced PRs should be complete and production-quality when submitted. An incomplete or draft PR to solicit implementation guidance is not appropriate at this level.
+        - [Project structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
+        - [Hedera protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
+        - [Closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced)
+        - [Java SDK](https://github.com/hiero-ledger/hiero-sdk-java) · [JavaScript SDK](https://github.com/hiero-ledger/hiero-sdk-js) · [Go SDK](https://github.com/hiero-ledger/hiero-sdk-go)
     validations:
       required: false
