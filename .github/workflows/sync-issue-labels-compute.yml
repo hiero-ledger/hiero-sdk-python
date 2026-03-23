@@ -26,7 +26,7 @@ jobs:
     concurrency:
       group: sync-issue-labels-compute-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
       cancel-in-progress: true
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ubuntu-latest
     outputs:
       pr_number: ${{ steps.compute.outputs.pr_number }}
       dry_run: ${{ steps.compute.outputs.dry_run }}
@@ -188,7 +188,7 @@ jobs:
   dispatch-add:
     needs: compute-labels
     if: ${{ needs.compute-labels.outputs.is_fork_pr != 'true' }}
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ubuntu-latest
     steps:
       - name: Trigger add workflow
         continue-on-error: true
