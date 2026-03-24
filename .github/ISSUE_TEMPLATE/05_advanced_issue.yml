@@ -141,6 +141,21 @@ body:
       required: true
 
   - type: textarea
+    id: stuck
+    attributes:
+      label: 🆘 Stuck?
+      description: |
+        PRE-FILLED. LEAVE AS-IS.
+      value: |
+        If blocked on an architectural decision, comment on this issue with what you have explored. A maintainer will respond.
+
+        - For design reference, study comparable SDKs: [Java](https://github.com/hiero-ledger/hiero-sdk-java) · [JavaScript](https://github.com/hiero-ledger/hiero-sdk-js) · [Go](https://github.com/hiero-ledger/hiero-sdk-go)
+        - [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) (Wednesdays, 2pm UTC) — screen sharing welcome
+        - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) — #hiero-python-sdk
+    validations:
+      required: false
+
+  - type: textarea
     id: resources
     attributes:
       label: 📚 Resources
@@ -161,20 +176,5 @@ body:
 
         **CI / workflows (if applicable):**
         - [Hiero Solo Action](https://github.com/marketplace/actions/hiero-solo-action) · [GitHub Actions security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
-    validations:
-      required: false
-
-  - type: textarea
-    id: stuck
-    attributes:
-      label: 🆘 Stuck?
-      description: |
-        PRE-FILLED. LEAVE AS-IS.
-      value: |
-        If blocked on an architectural decision, comment on this issue with what you have explored. A maintainer will respond.
-
-        - For design reference, study comparable SDKs: [Java](https://github.com/hiero-ledger/hiero-sdk-java) · [JavaScript](https://github.com/hiero-ledger/hiero-sdk-js) · [Go](https://github.com/hiero-ledger/hiero-sdk-go)
-        - [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) (Wednesdays, 2pm UTC) — screen sharing welcome
-        - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) — #hiero-python-sdk
     validations:
       required: false
