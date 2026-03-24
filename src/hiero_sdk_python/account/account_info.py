@@ -9,7 +9,7 @@ from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.staking_info import StakingInfo
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.crypto_get_info_pb2 import CryptoGetInfoResponse
 from hiero_sdk_python.hbar import Hbar
@@ -27,7 +27,7 @@ class AccountInfo:
         contract_account_id (Optional[str]): The contract account ID.
         is_deleted (Optional[bool]): Whether the account has been deleted.
         proxy_received (Optional[Hbar]): The total number of tinybars proxy staked to this account.
-        key (Optional[PublicKey]): The key for this account.
+        key (Optional[Key]): The key for this account.
         balance (Optional[Hbar]): The current balance of account in hbar.
         receiver_signature_required (Optional[bool]): If true, this account's key must sign
             any transaction depositing into this account.
@@ -46,7 +46,7 @@ class AccountInfo:
     contract_account_id: Optional[str] = None
     is_deleted: Optional[bool] = None
     proxy_received: Optional[Hbar] = None
-    key: Optional[PublicKey] = None
+    key: Optional[Key] = None
     balance: Optional[Hbar] = None
     receiver_signature_required: Optional[bool] = None
     expiration_time: Optional[Timestamp] = None
@@ -81,7 +81,7 @@ class AccountInfo:
             contract_account_id=proto.contractAccountID,
             is_deleted=proto.deleted,
             proxy_received=Hbar.from_tinybars(proto.proxyReceived),
-            key=PublicKey._from_proto(proto.key) if proto.key else None,
+            key=Key.from_proto_key(proto.key) if proto.key else None,
             balance=Hbar.from_tinybars(proto.balance),
             receiver_signature_required=proto.receiverSigRequired,
             expiration_time=(
