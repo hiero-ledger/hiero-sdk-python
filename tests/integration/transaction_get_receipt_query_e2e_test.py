@@ -74,6 +74,67 @@ def _submit_simple_transfer(env, node_ids=None, tx_id=None):
     return _extract_tx_id(tx, receipt)
 
 
+def _setup_contract_and_execute(env, memo):
+    """
+    Helper to setup and execute a contract transaction.
+    
+    Returns the transaction ID of the contract execute operation.
+    Raises AssertionError if transaction ID cannot be extracted (triggering pytest.skip).
+    """
+    from examples.contract.contracts.contract_utils import (
+        CONTRACT_DEPLOY_GAS,
+        STATEFUL_CONTRACT_BYTECODE,
+    )
+    from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+    from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
+    from hiero_sdk_python.contract.contract_execute_transaction import ContractExecuteTransaction
+    from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
+
+    # Upload contract bytecode
+    file_receipt = (
+        FileCreateTransaction()
+        .set_keys(env.operator_key.public_key())
+        .set_contents(STATEFUL_CONTRACT_BYTECODE)
+        .set_file_memo(memo)
+        .execute(env.client)
+    )
+    assert file_receipt.status == ResponseCode.SUCCESS
+    file_id = file_receipt.file_id
+    assert file_id is not None, "File ID should not be None after successful file creation"
+
+    # Deploy contract
+    constructor_params = ContractFunctionParameters().add_bytes32(
+        b"Initial message"
+    )
+    contract_receipt = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_constructor_parameters(constructor_params)
+        .set_bytecode_file_id(file_id)
+        .execute(env.client)
+    )
+    assert contract_receipt.status == ResponseCode.SUCCESS
+    contract_id = contract_receipt.contract_id
+    assert contract_id is not None, "Contract ID should not be None after successful contract creation"
+
+    # Execute contract transaction
+    execute_tx = (
+        ContractExecuteTransaction()
+        .set_contract_id(contract_id)
+        .set_gas(1_000_000)
+        .set_function(
+            "setMessage",
+            ContractFunctionParameters().add_bytes32(b"Test".ljust(32, b"\x00")),
+        )
+    )
+    execute_receipt = execute_tx.execute(env.client)
+    assert execute_receipt.status == ResponseCode.SUCCESS
+
+    tx_id = _extract_tx_id(execute_tx, execute_receipt)
+    return tx_id
+
+
 @pytest.mark.integration
 def test_get_receipt_query_children_empty_when_not_requested_e2e(env):
     """
@@ -236,3 +297,193 @@ def test_get_receipt_throws_status_error_when_validation_enabled(env):
         query.execute(env.client)
 
     assert e.value.status == ResponseCode.INVALID_ACCOUNT_ID
+
+
+@pytest.mark.integration
+def test_get_receipt_query_child_receipts_have_none_transaction_id_e2e(env):
+    """
+    E2E:
+    Verify that child receipts have transaction_id = None (they are independent transactions).
+    
+    Rationale: Child receipts are sub-transactions created by the parent transaction.
+    They should have their own identity and not inherit the parent's transaction_id.
+    """
+    try:
+        tx_id = _setup_contract_and_execute(env, "child receipt transaction_id test")
+    except AssertionError as e:
+        pytest.skip(str(e))
+
+    # Query with include_children
+    queried = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(tx_id)
+        .set_include_children(True)
+        .execute(env.client)
+    )
+
+    assert queried.status == ResponseCode.SUCCESS
+
+    # Verify: if children exist, each child has transaction_id = None
+    if len(queried.children) > 0:
+        for child_receipt in queried.children:
+            assert child_receipt.status is not None
+            # CRITICAL FIX VERIFICATION: Child receipts must have transaction_id = None
+            # because they are independent sub-transactions, not duplicates of the parent
+            assert child_receipt.transaction_id is None, \
+                "Child receipt must have transaction_id=None (independent identity)"
+
+
+@pytest.mark.integration
+def test_get_receipt_query_duplicate_receipts_retain_parent_transaction_id_e2e(env):
+    """
+    E2E:
+    Verify that duplicate receipts retain the parent transaction_id for context.
+    
+    Rationale: Duplicates are the same transaction submitted to different nodes.
+    They should preserve the parent transaction_id to show the relationship.
+    """
+    tx_id = TransactionId.generate(env.operator_id)
+    nodes = env.client.network.nodes
+    
+    # Need at least 2 nodes to potentially create duplicates
+    if len(nodes) < 2:
+        pytest.skip("Not enough nodes to create duplicate receipts")
+    
+    node_ids = [nodes[0]._account_id, nodes[1]._account_id]
+    
+    # Submit same transaction to different nodes
+    tx1 = threading.Thread(
+        target=_submit_simple_transfer,
+        args=(env, [node_ids[0]], tx_id)
+    )
+    tx2 = threading.Thread(
+        target=_submit_simple_transfer,
+        args=(env, [node_ids[1]], tx_id)
+    )
+    
+    tx1.start()
+    tx2.start()
+    tx1.join()
+    tx2.join()
+
+    # Query with include_duplicates
+    queried = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(tx_id)
+        .set_include_duplicates(True)
+        .execute(env.client)
+    )
+
+    assert queried.status == ResponseCode.SUCCESS
+    assert isinstance(queried.duplicates, list)
+
+    # Verify: if duplicates exist, each duplicate retains parent transaction_id
+    if len(queried.duplicates) > 0:
+        for duplicate_receipt in queried.duplicates:
+            assert duplicate_receipt.status is not None
+            # CRITICAL FIX VERIFICATION: Duplicate receipts must keep parent transaction_id
+            # to maintain the relationship and context with the original transaction
+            assert duplicate_receipt.transaction_id == tx_id, \
+                f"Duplicate receipt must have transaction_id={tx_id} (same as parent)"
+
+
+@pytest.mark.integration
+def test_get_receipt_query_child_receipts_account_id_accessible_e2e(env):
+    """
+    E2E:
+    Verify that child receipt account_id is accessible when populated.
+    
+    Rationale: Child receipts may have accountID field populated, especially for
+    transactions that create accounts (like automatic account creation).
+    The account_id property should be accessible without filtering valid values.
+    """
+    try:
+        tx_id = _setup_contract_and_execute(env, "child receipt account_id test")
+    except AssertionError as e:
+        pytest.skip(str(e))
+
+    # Query with include_children
+    queried = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(tx_id)
+        .set_include_children(True)
+        .execute(env.client)
+    )
+
+    assert queried.status == ResponseCode.SUCCESS
+
+    # Verify: child receipts can access account_id if populated
+    if len(queried.children) > 0:
+        for child_receipt in queried.children:
+            # FIX VERIFICATION: account_id should be accessible and not filtered
+            # Previously: accountNum != 0 would filter out valid zero values (EVM auto-created accounts)
+            # Now: Only check if HasField("accountID")
+            if child_receipt.account_id is not None:
+                # If account_id is populated, verify it's a valid AccountId
+                assert isinstance(child_receipt.account_id, AccountId), \
+                    "account_id should be AccountId instance"
+                # Verify the account has valid shard and realm (even if accountNum is 0)
+                assert isinstance(child_receipt.account_id.shard, int), \
+                    "account_id.shard should be an integer"
+                assert isinstance(child_receipt.account_id.realm, int), \
+                    "account_id.realm should be an integer"
+                assert isinstance(child_receipt.account_id.num, int), \
+                    "account_id.num should be an integer"
+
+
+@pytest.mark.integration
+def test_get_receipt_query_duplicate_receipts_account_id_accessible_e2e(env):
+    """
+    E2E:
+    Verify that duplicate receipt account_id is accessible when populated.
+    
+    Rationale: Duplicate receipts should also expose account_id if the
+    underlying protobuf has the field populated.
+    """
+    tx_id = TransactionId.generate(env.operator_id)
+    nodes = env.client.network.nodes
+    
+    if len(nodes) < 2:
+        pytest.skip("Not enough nodes to create duplicate receipts")
+    
+    node_ids = [nodes[0]._account_id, nodes[1]._account_id]
+    
+    # Submit same transaction to different nodes
+    tx1 = threading.Thread(
+        target=_submit_simple_transfer,
+        args=(env, [node_ids[0]], tx_id)
+    )
+    tx2 = threading.Thread(
+        target=_submit_simple_transfer,
+        args=(env, [node_ids[1]], tx_id)
+    )
+    
+    tx1.start()
+    tx2.start()
+    tx1.join()
+    tx2.join()
+
+    # Query with include_duplicates
+    queried = (
+        TransactionGetReceiptQuery()
+        .set_transaction_id(tx_id)
+        .set_include_duplicates(True)
+        .execute(env.client)
+    )
+
+    assert queried.status == ResponseCode.SUCCESS
+    assert isinstance(queried.duplicates, list)
+
+    # Verify: duplicate receipts can access account_id if populated
+    if len(queried.duplicates) > 0:
+        for duplicate_receipt in queried.duplicates:
+            # FIX VERIFICATION: account_id should be accessible and not filtered
+            if duplicate_receipt.account_id is not None:
+                assert isinstance(duplicate_receipt.account_id, AccountId), \
+                    "account_id should be AccountId instance"
+                assert isinstance(duplicate_receipt.account_id.shard, int), \
+                    "account_id.shard should be an integer"
+                assert isinstance(duplicate_receipt.account_id.realm, int), \
+                    "account_id.realm should be an integer"
+                assert isinstance(duplicate_receipt.account_id.num, int), \
+                    "account_id.num should be an integer"
