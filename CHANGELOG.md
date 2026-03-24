@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -17,6 +17,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Tests
 - Added TCK endpoint for the createAccount method
 - Renamed `delegate_contract_id.py` to `delegate_contract_id_test.py` (#2004)
+- Fix Flaky tests for `mock_server` by enforcing non-tls port and adding a mock_tls certificate
 
 ### Docs
 - Add Chocolatey as a prerequisite in the Windows setup guide (#1961)
