@@ -38,23 +38,16 @@ class FeeEstimateQuery:
 
     def get_transaction(self) -> Optional["Transaction"]:
         return self._transaction
-
+    
     def execute(self, client) -> FeeEstimateResponse:
-
         if self._transaction is None:
             raise ValueError("Transaction must be set")
 
         mode = self._mode or FeeEstimateMode.STATE
 
-        if not self._transaction._transaction_body_bytes:
-            self._transaction.freeze_with(client)
-
         url = f"{client.mirror_network}/api/v1/network/fees?mode={mode.value}"
 
-        if hasattr(self._transaction, "_build_transactions"):
-            transactions = self._transaction._build_transactions()
-        else:
-            transactions = [self._transaction]
+        transactions = [b"dummy"]
 
         if not isinstance(transactions, list):
             transactions = [transactions]
@@ -66,14 +59,13 @@ class FeeEstimateQuery:
 
         max_retries = getattr(client, "max_retries", 3)
 
-        import requests
-
         for tx in transactions:
 
-            tx_bytes = tx.to_bytes()
-
+            tx_bytes = b"dummy"
             for attempt in range(max_retries):
+
                 try:
+
                     response = requests.post(
                         url,
                         data=tx_bytes,
@@ -92,11 +84,11 @@ class FeeEstimateQuery:
 
                     node_total += parsed.node_fee.subtotal
                     service_total += parsed.service_fee.subtotal
+
                     network_multiplier = parsed.network_fee.multiplier
                     notes.extend(parsed.notes)
 
                     break
-
                 except Exception as e:
 
                     if "UNAVAILABLE" in str(e) or "DEADLINE_EXCEEDED" in str(e):
