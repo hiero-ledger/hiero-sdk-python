@@ -444,7 +444,7 @@ def test_get_receipt_query_child_receipt_account_id_from_auto_account_creation_e
     # Create AccountId with EVM address to trigger auto-account creation
     # Using a valid EVM address format (20 bytes)
     evm_address = bytes.fromhex("1234567890abcdef1234567890abcdef12345678")
-    receiver = AccountId.from_evm_address(evm_address)
+    receiver = AccountId.from_evm_address(evm_address.hex(), 0, 0)
     
     # Transfer to trigger auto-account creation (may produce child receipt with accountID)
     tx = (
