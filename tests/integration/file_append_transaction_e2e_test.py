@@ -314,12 +314,13 @@ def test_file_append_chuck_transaction_can_execute_with_manual_freeze(env):
         .set_file_id(file_id)
         .set_chunk_size(1024)
         .set_contents(content)
-        .freeze_with(env.client)
+        .set_transaction_id(TransactionId.generate(env.client.operator_account_id))
+        .set_node_account_id(AccountId(0,0,3))
+        .freeze()
     )
 
-    # tx.sign(env.client.operator_private_key)
+    tx.sign(env.client.operator_private_key)
 
-    print(tx.get_required_chunks())
     receipt = tx.execute(env.client)
     
     assert receipt.status == ResponseCode.SUCCESS

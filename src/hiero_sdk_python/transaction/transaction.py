@@ -402,7 +402,7 @@ class Transaction(_Executable):
 
         return any(sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair)
 
-    def build_transaction_body(self) -> transaction_pb2.Transaction:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Abstract method to build the transaction body.
 

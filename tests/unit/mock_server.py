@@ -180,6 +180,10 @@ def mock_hedera_servers(response_sequences):
             node._close()
 
         client = Client(network)
+
+        for node in client.network.nodes:
+            node._address = node._address._to_insecure()
+
         client.logger.set_level(LogLevel.DISABLED)
         # Set the operator
         key = PrivateKey.generate()
