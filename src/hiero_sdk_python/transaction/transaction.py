@@ -242,7 +242,7 @@ class Transaction(_Executable):
         """
         return self.freeze_with(None)
 
-    def freeze_with(self, client):
+    def freeze_with(self, client: "Client"):
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
 
@@ -260,19 +260,26 @@ class Transaction(_Executable):
 
         
         # Check transaction_id and node id to be set when using freeze()
-        if client is None:
-            if self.transaction_id is None:
+        if self.transaction_id is None:
+            if client is not None:
+                operator_account_id = client.operator_account_id
+                if operator_account_id is not None:
+                    self.transaction_id = client.generate_transaction_id()
+                else:
+                    raise ValueError(
+                        "Client must have an operator_account or transactionId must be set."
+                    )
+            else:
                 raise ValueError(
                     "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
                 )
-        
-            if self.node_account_id is None and len(self.node_account_ids) == 0:
+
+
+        if self.node_account_id is None and len(self.node_account_ids) == 0:
+            if client is None:
                 raise ValueError(
                     "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
                 )
-
-        if self.transaction_id is None:
-            self.transaction_id = client.generate_transaction_id()
 
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
