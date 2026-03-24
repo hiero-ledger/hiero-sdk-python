@@ -35,31 +35,6 @@ body:
       required: true
 
   - type: textarea
-    id: solution
-    attributes:
-      label: 💡 Proposed Solution
-      description: |
-        DESCRIBE THE INTENDED DESIGN DIRECTION AT A HIGH LEVEL.
-        INCLUDE: THE APPROACH, NEW OR CHANGED ABSTRACTIONS, BACKWARD-COMPATIBILITY CONSTRAINTS, KNOWN ALTERNATIVES, AND REASONS FOR REJECTION.
-        REASONING AND INTENT MUST BE CLEAR. A FULL DESIGN DOC IS NOT REQUIRED.
-      value: |
-        _Replace this with the proposed solution._
-    validations:
-      required: true
-
-  - type: textarea
-    id: non_goals
-    attributes:
-      label: 🚧 Non-Goals
-      description: |
-        WHAT IS EXPLICITLY OUT OF SCOPE FOR THIS ISSUE?
-        DEFINE CLEAR BOUNDARIES TO PREVENT SCOPE CREEP AND SET REVIEWER EXPECTATIONS.
-      value: |
-        _Replace this with what this issue does not address._
-    validations:
-      required: false
-
-  - type: textarea
     id: research
     attributes:
       label: 🔍 Background Research
@@ -114,6 +89,10 @@ body:
         - 🔴 Completing an advanced issue in 1–3 days is a **red flag** and will likely be rejected
         - **Mandatory:** Post your proposed architectural approach as a comment and wait for explicit maintainer approval **before writing any code.** PRs that arrive without prior design discussion will be sent back.
 
+        > [!TIP]
+        > **Not sure if all of this applies to your issue?**
+        > Advanced issues vary in scope. Read the problem description carefully and identify which areas your change actually touches. If the issue is narrowly scoped to one module and you have deep experience there, the full list above may not all apply. When in doubt, comment and ask a maintainer before claiming.
+
         If you do not meet these requirements, start with a [Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue+state%3Aopen+label%3A%22good+first+issue%22).
 
         See [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) for full expectations on timeline, review process, and quality bar.
@@ -129,19 +108,11 @@ body:
       value: |
         The bar for advanced PRs is not "it works" — it is "safe, maintainable, architecturally sound, and production-ready."
 
-        **Backward compatibility**
-        - Must not introduce breaking changes without explicit maintainer approval obtained before implementation.
+        All submitted code must be personally understood and explainable line by line.
+        Submitting AI-generated code without full comprehension and validation is grounds for **immediate rejection**.
 
-        **Security and correctness**
-        - Consider injection risks, privilege escalation, and secret exposure for any workflow changes.
-        - All submitted code must be personally understood and explainable line by line. Submitting AI-generated code without full comprehension and validation is grounds for **immediate rejection**.
-
-        **Maintainability**
-        - Prefer clarity over cleverness. If an approach requires a long justification, reconsider it.
-
-        **PR packaging**
-        - PR description must cover: decision made, alternatives considered, trade-offs, risks, and open questions.
-        - Self-review the full diff before requesting review.
+        Prefer clarity over cleverness. If an approach requires a long justification, reconsider it.
+        PR description must cover: decision made, alternatives considered, trade-offs, risks, and open questions.
     validations:
       required: false
 
@@ -161,6 +132,9 @@ body:
         - [ ] Naming, types, and field ordering verified against [Hedera protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
         - [ ] All submitted code is personally understood — no unvalidated generated output
         - [ ] No files modified outside the scope of this issue
+        - [ ] Commits signed: `git commit -S -s -m "type: description"`
+        - [ ] CHANGELOG.md updated under `[Unreleased]`
+        - [ ] All CI checks pass
         - [ ] PR description covers: decision made, alternatives considered, trade-offs, risks, and open questions
         - [ ] PR diff self-reviewed line by line before requesting review
     validations:
