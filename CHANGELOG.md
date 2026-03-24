@@ -24,6 +24,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- chore: update several ubuntu runners to hl-sdk-py-lin-md (#1480)
 - Refactored intermediate issue template with quality standards, testing requirements, breaking change awareness, and protobuf verification guidance to reduce review burden and improve PR quality (#1892)
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
 - chore: update spam list #1988

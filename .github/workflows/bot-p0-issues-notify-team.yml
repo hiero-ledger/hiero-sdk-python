@@ -1,18 +1,17 @@
 # This workflow warns the team about P0 issues immediately when they are created.
 name: P0 Issue Alert
 on:
-
   issues:
-    types: 
+    types:
       - labeled
 
 permissions:
   issues: write
   contents: read
 
-jobs: 
+jobs:
   p0_notify_team:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     # Only run for issues labeled with 'p0' (case-insensitive)
     if: >
       (github.event_name == 'issues' && (
@@ -20,7 +19,7 @@ jobs:
       )
 
     steps:
-      - name:  Harden the runner
+      - name: Harden the runner
         uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
         with:
           egress-policy: audit
@@ -29,7 +28,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
 
       - name: Notify team of P0 issues
-        env: 
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
         with:
