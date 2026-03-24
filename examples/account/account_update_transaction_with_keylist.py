@@ -79,21 +79,22 @@ def account_update_with_keylist():
     # Query the account info
     query_account_info(client, account_id)
 
-    # Rotate from a single key to a threshold KeyList (1 of 2).
+    # Rotate from a single key to a threshold KeyList (2 of 2).
     threshold_key_1 = PrivateKey.generate_ed25519()
     threshold_key_2 = PrivateKey.generate_ed25519()
     threshold_key = KeyList(
-        [threshold_key_1.public_key(), threshold_key_2.public_key()], threshold=1
+        [threshold_key_1.public_key(), threshold_key_2.public_key()], threshold=2
     )
 
-    print("\nRotating account key to a 1-of-2 threshold KeyList...")
+    print("\nRotating account key to a 2-of-2 threshold KeyList...")
     key_list_receipt = (
         AccountUpdateTransaction()
         .set_account_id(account_id)
         .set_key(threshold_key)
         .freeze_with(client)
         .sign(current_private_key)  # Sign with current key
-        .sign(threshold_key_1)  # One signature satisfies threshold=1
+        .sign(threshold_key_1)  # First signature for threshold=2
+        .sign(threshold_key_2)  # Second signature for threshold=2
         .execute(client)
     )
 
@@ -106,13 +107,14 @@ def account_update_with_keylist():
     print("\nAccount info after KeyList update:")
     query_account_info(client, account_id)
 
-    # Prove the new account key is active by signing with the second threshold key.
-    print("\nProving the new account key by updating the memo using the second threshold key...")
+    # Prove the new account key is active by signing with both threshold keys.
+    print("\nProving the new account key by updating the memo using both threshold keys...")
     memo_receipt = (
         AccountUpdateTransaction()
         .set_account_id(account_id)
         .set_account_memo("Updated account memo with threshold key")
         .freeze_with(client)
+        .sign(threshold_key_1)
         .sign(threshold_key_2)
         .execute(client)
     )

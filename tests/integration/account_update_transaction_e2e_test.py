@@ -93,11 +93,11 @@ def test_integration_account_update_transaction_set_key_with_threshold_keylist(e
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
 
-    # Build a 1-of-2 threshold KeyList and rotate the account key to it.
+    # Build a 2-of-2 threshold KeyList and rotate the account key to it.
     key_1_private = PrivateKey.generate_ed25519()
     key_2_private = PrivateKey.generate_ed25519()
     threshold_key = KeyList(
-        [key_1_private.public_key(), key_2_private.public_key()], threshold=1
+        [key_1_private.public_key(), key_2_private.public_key()], threshold=2
     )
 
     receipt = (
@@ -106,25 +106,27 @@ def test_integration_account_update_transaction_set_key_with_threshold_keylist(e
         .set_key(threshold_key)
         .freeze_with(env.client)
         .sign(key_1_private)
+        .sign(key_2_private)
         .execute(env.client)
     )
     assert (
         receipt.status == ResponseCode.SUCCESS
     ), f"Account key rotation to KeyList failed with status: {ResponseCode(receipt.status).name}"
 
-    # Verify a follow-up update can be authorized with the second threshold key.
+    # Verify a follow-up update can be authorized with both threshold keys.
     new_memo = "Updated using threshold KeyList"
     receipt = (
         AccountUpdateTransaction()
         .set_account_id(account_id)
         .set_account_memo(new_memo)
         .freeze_with(env.client)
+        .sign(key_1_private)
         .sign(key_2_private)
         .execute(env.client)
     )
     assert (
         receipt.status == ResponseCode.SUCCESS
-    ), f"Account update signed by threshold key failed with status: {ResponseCode(receipt.status).name}"
+    ), f"Account update signed by threshold keys failed with status: {ResponseCode(receipt.status).name}"
 
 
 @pytest.mark.integration
