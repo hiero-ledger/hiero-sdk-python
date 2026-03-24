@@ -419,10 +419,12 @@ class TopicMessageSubmitTransaction(Transaction):
         sizes = []
 
         original_index = self._current_index
+        original_transaction_id = self.transaction_id
         for transaction_id in self._transaction_ids:
             self.transaction_id = transaction_id
             sizes.append(self.body_size)
         
         self._current_index = original_index
+        self.transaction_id = original_transaction_id
         return sizes
        
