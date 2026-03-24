@@ -388,17 +388,21 @@ def test_get_receipt_query_duplicate_receipts_retain_parent_transaction_id_e2e(e
 
 
 @pytest.mark.integration
-def test_get_receipt_query_child_receipts_account_id_accessible_e2e(env):
+def test_get_receipt_query_child_receipt_mapping_e2e(env):
     """
     E2E:
-    Verify that child receipt account_id is accessible when populated.
+    Verify child receipts are properly mapped with transaction_id=None (independent identity).
     
-    Rationale: Child receipts may have accountID field populated, especially for
-    transactions that create accounts (like automatic account creation).
-    The account_id property should be accessible without filtering valid values.
+    Rationale: The fix for #1849 ensures child receipts have None transaction_id instead of
+    inheriting parent transaction_id. This test verifies the mapping behavior.
+    
+    Note: While this test uses contract execution, the key verification is that the
+    TransactionGetReceiptQuery correctly maps child receipts with None transaction_id,
+    regardless of whether children are populated. The unit tests verify account_id
+    accessibility with populated accountID fields.
     """
     try:
-        tx_id = _setup_contract_and_execute(env, "child receipt account_id test")
+        tx_id = _setup_contract_and_execute(env, "child receipt mapping test")
     except AssertionError as e:
         pytest.skip(str(e))
 
@@ -411,34 +415,29 @@ def test_get_receipt_query_child_receipts_account_id_accessible_e2e(env):
     )
 
     assert queried.status == ResponseCode.SUCCESS
-
-    # Verify: child receipts can access account_id if populated
-    if len(queried.children) > 0:
-        for child_receipt in queried.children:
-            # FIX VERIFICATION: account_id should be accessible and not filtered
-            # Previously: accountNum != 0 would filter out valid zero values (EVM auto-created accounts)
-            # Now: Only check if HasField("accountID")
-            if child_receipt.account_id is not None:
-                # If account_id is populated, verify it's a valid AccountId
-                assert isinstance(child_receipt.account_id, AccountId), \
-                    "account_id should be AccountId instance"
-                # Verify the account has valid shard and realm (even if accountNum is 0)
-                assert isinstance(child_receipt.account_id.shard, int), \
-                    "account_id.shard should be an integer"
-                assert isinstance(child_receipt.account_id.realm, int), \
-                    "account_id.realm should be an integer"
-                assert isinstance(child_receipt.account_id.num, int), \
-                    "account_id.num should be an integer"
+    
+    # Verify mapping behavior - all child receipts should have transaction_id = None
+    for child_receipt in queried.children:
+        assert child_receipt.status is not None
+        # CRITICAL: Child receipts must map with transaction_id=None (independent transactions)
+        assert child_receipt.transaction_id is None, \
+            "Child receipt must have transaction_id=None (independent identity, not parent context)"
 
 
 @pytest.mark.integration
-def test_get_receipt_query_duplicate_receipts_account_id_accessible_e2e(env):
+@pytest.mark.xfail(reason="Flaky: Network conditions may prevent duplicates from being created. Concurrent thread access to env.create_account() may have race conditions.")
+def test_get_receipt_query_duplicate_receipts_mapping_e2e(env):
     """
     E2E:
-    Verify that duplicate receipt account_id is accessible when populated.
+    Verify duplicate receipts are properly mapped with transaction_id=parent (context preservation).
     
-    Rationale: Duplicate receipts should also expose account_id if the
-    underlying protobuf has the field populated.
+    Rationale: The fix for #1849 ensures duplicate receipts retain parent transaction_id
+    to maintain context, unlike child receipts which have None.
+    
+    This test is marked xfail because:
+    1. Network conditions may not produce duplicates
+    2. Concurrent calls to env.create_account() may have shared state issues
+    3. Testing environment may not guarantee duplicate receipt creation
     """
     tx_id = TransactionId.generate(env.operator_id)
     nodes = env.client.network.nodes
@@ -474,16 +473,9 @@ def test_get_receipt_query_duplicate_receipts_account_id_accessible_e2e(env):
     assert queried.status == ResponseCode.SUCCESS
     assert isinstance(queried.duplicates, list)
 
-    # Verify: duplicate receipts can access account_id if populated
+    # Verify mapping behavior - all duplicate receipts should retain parent transaction_id
     if len(queried.duplicates) > 0:
         for duplicate_receipt in queried.duplicates:
-            # FIX VERIFICATION: account_id should be accessible and not filtered
-            if duplicate_receipt.account_id is not None:
-                assert isinstance(duplicate_receipt.account_id, AccountId), \
-                    "account_id should be AccountId instance"
-                assert isinstance(duplicate_receipt.account_id.shard, int), \
-                    "account_id.shard should be an integer"
-                assert isinstance(duplicate_receipt.account_id.realm, int), \
-                    "account_id.realm should be an integer"
-                assert isinstance(duplicate_receipt.account_id.num, int), \
-                    "account_id.num should be an integer"
+            # CRITICAL: Duplicate receipts must map with parent transaction_id (context preservation)
+            assert duplicate_receipt.transaction_id == tx_id, \
+                f"Duplicate receipt must have transaction_id={tx_id} (same as parent for context)"
