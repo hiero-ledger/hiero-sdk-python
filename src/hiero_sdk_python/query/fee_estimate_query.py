@@ -19,7 +19,7 @@ class FeeEstimateQuery:
         self._transaction: Optional["Transaction"] = None
 
     def set_mode(self, mode: FeeEstimateMode) -> "FeeEstimateQuery":
-        self._mode = mode
+        self._mode = mode 
         return self
 
     def get_mode(self) -> Optional[FeeEstimateMode]:
