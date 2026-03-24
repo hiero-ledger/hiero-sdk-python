@@ -27,7 +27,7 @@ permissions:
 jobs:
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -87,7 +87,7 @@ jobs:
 
   integration-tests:
     name: Integration Tests (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     timeout-minutes: 20
     needs:
       - unit-tests
@@ -162,7 +162,7 @@ jobs:
 
   test-summary:
     name: Test Results Summary
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     needs:
       - unit-tests
       - integration-tests
