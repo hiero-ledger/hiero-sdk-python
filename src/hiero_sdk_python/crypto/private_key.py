@@ -5,13 +5,15 @@ from typing import Optional, Union
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519, ec
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.crypto_utils import keccak256
 
 _LEGACY_ECDSA_PRIVATE_KEY_PREFIX = "3030020100300706052b8104000a04220420"
 
 
-class PrivateKey:
+class PrivateKey(Key):
     """
     Represents a private key that can be either Ed25519 or ECDSA (secp256k1).
     Can load from raw 32-byte seeds/scalars or DER-encoded keys.
@@ -470,6 +472,15 @@ class PrivateKey:
         except Exception as exc:
             raise ValueError(f"Failed to derive ECDSA private key: {exc}") from exc
     
+    def to_proto_key(self) -> basic_types_pb2.Key:
+        """
+        Convert the instance of PrivateKey to the protobuf object of Key.
+        
+        Returns:
+            basic_types_pb2.Key: The protobuf object of Key.
+        """
+        return self.public_key().to_proto_key()
+    
     def __eq__(self, other: object) -> bool:
         """
         Compare two PrivateKey objects for equality.
@@ -486,3 +497,4 @@ class PrivateKey:
     def __hash__(self) -> int:
         """Returns the hash value for the private key."""
         return hash((self.is_ed25519(), self.to_bytes_raw()))
+    

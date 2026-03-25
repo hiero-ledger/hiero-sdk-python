@@ -2,6 +2,7 @@ import pytest
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -368,3 +369,18 @@ def test_proto_excludes_alias_when_not_set(env):
     assert not tx_body.cryptoCreateAccount.alias
     # Key must still be present
     assert tx_body.cryptoCreateAccount.key == account_public_key._to_proto()
+
+
+def test_create_account_with_negative_initial_balance(env):
+    """Test create_account_transaction raise precheck-error for negative initial balance"""
+    public_key = PrivateKey.generate_ed25519().public_key()
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(public_key)
+        .set_initial_balance(-1)   
+    )
+
+    with pytest.raises(PrecheckError) as e:
+        tx.execute(env.client)
+    
+    assert e.value.status == ResponseCode.INVALID_INITIAL_BALANCE

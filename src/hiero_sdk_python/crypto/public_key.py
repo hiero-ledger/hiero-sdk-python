@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.crypto.evm_address import EvmAddress
-from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.crypto_utils import keccak256
 
@@ -19,7 +19,7 @@ def _warn_ed25519_ambiguity(caller_name: str) -> None:
         stacklevel=3
     )
 
-class PublicKey:
+class PublicKey(Key):
     """
     Represents a public key.
     Supports multiple key formats: raw bytes, DER-encoded keys,
@@ -307,7 +307,7 @@ class PublicKey:
     #
 
     @classmethod
-    def _from_proto(cls, proto: Key) -> "PublicKey":
+    def _from_proto(cls, proto: basic_types_pb2.Key) -> "PublicKey":
         """
         Load a public key from a protobuf Key message.
         """
@@ -342,6 +342,15 @@ class PublicKey:
         if self.is_ed25519():
             return basic_types_pb2.Key(ed25519=pub_bytes)
         return basic_types_pb2.Key(ECDSA_secp256k1=pub_bytes)
+    
+    def to_proto_key(self) -> basic_types_pb2.Key:
+        """
+        Convert the instance of PublicKey to the protobuf object of Key.
+        
+        Returns:
+            basic_types_pb2.Key: The protobuf object of Key.
+        """
+        return self._to_proto()
 
     #
     # ---------------------------------

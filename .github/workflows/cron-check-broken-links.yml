@@ -2,11 +2,11 @@ name: Cron – Check Broken Markdown Links
 
 on:
   schedule:
-    - cron: '0 0 1 * *'
+    - cron: "0 0 1 * *"
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Run without creating issues? (true/false)'
+        description: "Run without creating issues? (true/false)"
         required: true
         default: true
         type: boolean
@@ -17,10 +17,10 @@ permissions:
 
 jobs:
   cron-check-broken-links:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden runner (audit outbound calls)
-        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
         with:
           egress-policy: audit
 
@@ -30,7 +30,7 @@ jobs:
       - name: Check Markdown links (Lychee)
         id: lychee
         uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
-        continue-on-error: true 
+        continue-on-error: true
         with:
           args: --verbose --no-progress './**/*.md'
           fail: true

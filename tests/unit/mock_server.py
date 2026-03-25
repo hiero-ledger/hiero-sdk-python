@@ -130,7 +130,13 @@ def _find_free_port():
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(("", 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return s.getsockname()[1]
+        port = s.getsockname()[1]
+
+        # If we get the tls port 50212 port skip it
+        if port in [50212]:
+            return port + 1 
+        
+        return port 
 
 
 class RealRpcError(grpc.RpcError):
@@ -167,7 +173,8 @@ def mock_hedera_servers(response_sequences):
         for i, server in enumerate(servers):
             node = _Node(AccountId(0, 0, 3 + i), server.address, None)
 
-            # force insecure transport
+            # force insecure transport and mock cert even if we get the tls-port
+            node._set_root_certificates(b"mock-tls-cert-for-unit-tests")
             node._apply_transport_security(False)
             node._set_verify_certificates(False)
 

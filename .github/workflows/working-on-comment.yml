@@ -17,7 +17,7 @@ permissions:
 jobs:
   working-command:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/working'))
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     permissions:
       issues: write
       contents: read
@@ -26,7 +26,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
         with:
           egress-policy: audit
 

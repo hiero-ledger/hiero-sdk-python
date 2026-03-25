@@ -544,3 +544,32 @@ def test_set_key_with_alias_then_without_alias_overrides_alias():
     tx.set_key_without_alias(account_private_key)
 
     assert tx.alias is None
+
+def test_set_stack_node_id_reset_stake_account_id():
+    """Test set_node_id reset stake_account_id if stake account id is set."""
+    tx = (
+        AccountCreateTransaction()
+        .set_staked_account_id(AccountId(0,0,1))
+    )
+
+    assert tx.staked_account_id == AccountId(0,0,1)
+    assert tx.staked_node_id == None
+
+    tx.set_staked_node_id(1)
+
+    assert tx.staked_node_id == 1
+    assert tx.staked_account_id is None
+
+def test_set_stake_account_id_reset_stake_node_id():
+    """Test set_account_id reset stake_node_id if node id is set."""
+    tx = (
+        AccountCreateTransaction()
+        .set_staked_node_id(1)
+    )
+    
+    assert tx.staked_node_id == 1
+    assert tx.staked_account_id is None
+    
+    tx.set_staked_account_id(AccountId(0,0,1))
+    assert tx.staked_account_id == AccountId(0,0,1)
+    assert tx.staked_node_id is None

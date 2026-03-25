@@ -1,5 +1,5 @@
 name: PythonBot - Workflow Failure Notifier
-on:  
+on:
   workflow_dispatch:
   workflow_run:
     workflows:
@@ -18,10 +18,10 @@ concurrency:
 jobs:
   notify-pr:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
         with:
           egress-policy: audit
 
@@ -34,11 +34,11 @@ jobs:
           HEAD_BRANCH=$(gh run view ${{ github.event.workflow_run.id }} \
             --repo ${{ github.repository }} \
             --json headBranch --jq '.headBranch')
-          
+
           # Find the PR number for this branch (only open PRs)
           PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --state open --head "$HEAD_BRANCH" --json number --jq '.[0].number')
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-      
+
       - name: Comment on PR
         if: env.PR_NUMBER != ''
         env:

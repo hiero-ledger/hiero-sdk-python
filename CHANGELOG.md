@@ -7,20 +7,28 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
+- Updated `AccountUpdateTransaction.set_key()` to accept generic `Key` objects (including `KeyList` and threshold keys), rather than strictly requiring a `PublicKey`.
 - Fix the TransactionGetReceiptQuery to raise ReceiptStatusError for the non-retryable and non success receipt status
 - Refactor `AccountInfo` to use the existing `StakingInfo` wrapper class instead of flattened staking fields. Access is now via `info.staking_info.staked_account_id`, `info.staking_info.staked_node_id`, and `info.staking_info.decline_reward`. The old flat accessors (`info.staked_account_id`, `info.staked_node_id`, `info.decline_staking_reward`) are still available as deprecated properties and will emit a `DeprecationWarning`. (#1366)
-
+- Added abstract `Key` supper class to handle various proto Keys.
 
 ### Examples
 
 ### Tests
-
+- Added TCK endpoint for the createAccount method
+- Renamed `delegate_contract_id.py` to `delegate_contract_id_test.py` (#2004)
+- Fix Flaky tests for `mock_server` by enforcing non-tls port and adding a mock_tls certificate
 
 ### Docs
+- Add Chocolatey as a prerequisite in the Windows setup guide (#1961)
 
 
 ### .github
+- chore: update several ubuntu runners to hl-sdk-py-lin-md (#1480)
+- Refactored intermediate issue template with quality standards, testing requirements, breaking change awareness, and protobuf verification guidance to reduce review burden and improve PR quality (#1892)
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
+- chore: update spam list #1988
+- chore: Update `bot-advanced-check.yml`, `bot-gfi-assign-on-comment.yml`, `bot-intermediate-assignment.yml`, `bot-linked-issue-enforcer.yml`, `unassign-on-comment.yml`, `working-on-comment.yml` workflow runner configuration
 
 
 
