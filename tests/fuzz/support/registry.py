@@ -246,8 +246,8 @@ def _build_invalid_identifier_strategies() -> dict[str, SearchStrategy[Any]]:
     }
 
 
-def _build_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
-    """Build valid and invalid private/public key strategies from canonical encoded samples."""
+def _build_private_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
+    """Build the private key strategies from the canonical valid sample encodings."""
 
     private_key_valid_string = st.one_of(
         with_optional_0x(
@@ -279,6 +279,17 @@ def _build_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStra
         st.binary(min_size=33, max_size=96),
         st.binary(min_size=32, max_size=64).map(lambda data: b"\x30" + data),
     )
+
+    return {
+        "private_key_valid_string": private_key_valid_string,
+        "private_key_valid_bytes": private_key_valid_bytes,
+        "private_key_invalid_string": private_key_invalid_string,
+        "private_key_invalid_bytes": private_key_invalid_bytes,
+    }
+
+
+def _build_public_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
+    """Build the public key strategies from the canonical valid sample encodings."""
 
     public_key_valid_string = st.one_of(
         with_optional_0x(
@@ -323,15 +334,20 @@ def _build_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStra
     )
 
     return {
-        "private_key_valid_string": private_key_valid_string,
-        "private_key_valid_bytes": private_key_valid_bytes,
-        "private_key_invalid_string": private_key_invalid_string,
-        "private_key_invalid_bytes": private_key_invalid_bytes,
         "public_key_valid_string": public_key_valid_string,
         "public_key_valid_bytes": public_key_valid_bytes,
         "public_key_invalid_string": public_key_invalid_string,
         "public_key_invalid_bytes": public_key_invalid_bytes,
     }
+
+
+def _build_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
+    """Build the complete private and public key strategy registry entries."""
+
+    strategies: dict[str, SearchStrategy[Any]] = {}
+    strategies.update(_build_private_key_strategies(key_samples))
+    strategies.update(_build_public_key_strategies(key_samples))
+    return strategies
 
 
 def _build_hbar_strategies() -> dict[str, SearchStrategy[Any]]:
