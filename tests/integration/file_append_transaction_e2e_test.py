@@ -292,7 +292,7 @@ def test_integration_file_append_transaction_method_chaining(env):
     assert append_receipt.status == ResponseCode.SUCCESS 
 
 @pytest.mark.integration
-def test_file_append_chuck_transaction_can_execute_with_manual_freeze(env):
+def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
     """Test file append transaction can execute  with manual freeze."""
     create_receipt = (
         FileCreateTransaction()
@@ -307,7 +307,7 @@ def test_file_append_chuck_transaction_can_execute_with_manual_freeze(env):
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
     assert file_contents == b""
 
-    content = "A" * (4000) # content with (1024 * 14) bytes ie 14 chunks
+    content = "A" * (4000) # content with (4000/1024) bytes ie approx 4 chunks
 
     tx = (
         FileAppendTransaction()

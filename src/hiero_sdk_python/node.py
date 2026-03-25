@@ -126,6 +126,8 @@ class _Node:
             if self._root_certificates:
                 # Use the certificate that is provided
                 self._node_pem_cert = self._root_certificates
+                print("node cert ", self._node_pem_cert)
+            
             else:
                 # Fetch pem_cert for the node
                 self._node_pem_cert = self._fetch_server_certificate_pem()

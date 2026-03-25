@@ -220,7 +220,28 @@ class Transaction(_Executable):
 
         signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes, sigMap=sig_map)
 
-        return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
+
+        return transaction_pb2.Transaction(
+            signedTransactionBytes=signed_transaction.SerializeToString()
+        )
+    
+    def _resolve_transaction_id(self, client: "Client"):
+        if self.transaction_id is not None:
+            return
+        
+        if client is not None:
+            operator_account_id = client.operator_account_id
+            if operator_account_id is not None:
+                self.transaction_id = client.generate_transaction_id()
+            else:
+                raise ValueError(
+                    "Client must have an operator_account or transactionId must be set."
+                )
+        else:
+            raise ValueError(
+                "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
+            )
+
 
     def freeze(self):
         """
@@ -260,19 +281,7 @@ class Transaction(_Executable):
 
         
         # Check transaction_id and node id to be set when using freeze()
-        if self.transaction_id is None:
-            if client is not None:
-                operator_account_id = client.operator_account_id
-                if operator_account_id is not None:
-                    self.transaction_id = client.generate_transaction_id()
-                else:
-                    raise ValueError(
-                        "Client must have an operator_account or transactionId must be set."
-                    )
-            else:
-                raise ValueError(
-                    "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
-                )
+        self._resolve_transaction_id(client)
 
 
         if self.node_account_id is None and len(self.node_account_ids) == 0:

@@ -253,13 +253,7 @@ class TopicMessageSubmitTransaction(Transaction):
         if self._transaction_body_bytes:
             return self
 
-        if self.transaction_id is None:
-            if client is None:
-                raise ValueError(
-                    "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
-                )
-
-            self.transaction_id = client.generate_transaction_id()
+        self._resolve_transaction_id(client)
 
         if not self._transaction_ids:
             base_timestamp = self.transaction_id.valid_start

@@ -295,6 +295,9 @@ class FileAppendTransaction(Transaction):
 
             self.transaction_id = client.generate_transaction_id()
 
+        
+        self._resolve_transaction_id(client)
+
         # Generate transaction IDs for all chunks
         if not self._transaction_ids:
             base_timestamp = self.transaction_id.valid_start
