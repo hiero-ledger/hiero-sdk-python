@@ -1,6 +1,6 @@
 import string
 from decimal import Decimal
-from typing import Any
+from typing import Any, NamedTuple
 
 import pytest
 from eth_abi.exceptions import EncodingTypeError, ValueOutOfBounds
@@ -27,12 +27,74 @@ MAX_I64 = 2**63 - 1
 MIN_I64 = -(2**63)
 
 
-def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
-    """Build the shared named strategies used across the fuzz suite."""
-    shard = st.integers(min_value=0, max_value=4096)
-    realm = st.integers(min_value=0, max_value=4096)
-    entity_num = st.integers(min_value=0, max_value=MAX_I64)
-    checksum = st.text(alphabet=string.ascii_lowercase, min_size=5, max_size=5)
+class _IdentifierPrimitives(NamedTuple):
+    """Shared scalar strategies reused by the identifier-related builders."""
+
+    shard: SearchStrategy[int]
+    realm: SearchStrategy[int]
+    entity_num: SearchStrategy[int]
+    checksum: SearchStrategy[str]
+
+
+class _KeySampleValues(NamedTuple):
+    """Precomputed valid key encodings reused across identifier and key strategies."""
+
+    ed_private_raw: str
+    ecdsa_private_raw: str
+    ed_private_der: str
+    ecdsa_private_der: str
+    ed_public_raw: str
+    ecdsa_public_compressed: str
+    ecdsa_public_uncompressed: str
+    ed_public_der: str
+    ecdsa_public_der: str
+    ed25519_alias_hex: str
+    ecdsa_alias_hex: str
+    evm_hex: str
+
+
+def _build_identifier_primitives() -> _IdentifierPrimitives:
+    """Build the shared scalar strategies used to compose Hedera-style identifiers."""
+
+    return _IdentifierPrimitives(
+        shard=st.integers(min_value=0, max_value=4096),
+        realm=st.integers(min_value=0, max_value=4096),
+        entity_num=st.integers(min_value=0, max_value=MAX_I64),
+        checksum=st.text(alphabet=string.ascii_lowercase, min_size=5, max_size=5),
+    )
+
+
+def _build_key_sample_values() -> _KeySampleValues:
+    """Build canonical valid key samples once so all dependent strategies stay consistent."""
+
+    ed_private_raw = "01" * 32
+    ecdsa_private_raw = "00" * 31 + "01"
+
+    ed_private_key = PrivateKey.from_string_ed25519(ed_private_raw)
+    ecdsa_private_key = PrivateKey.from_string_ecdsa(ecdsa_private_raw)
+    ed_public_key = ed_private_key.public_key()
+    ecdsa_public_key = ecdsa_private_key.public_key()
+
+    return _KeySampleValues(
+        ed_private_raw=ed_private_raw,
+        ecdsa_private_raw=ecdsa_private_raw,
+        ed_private_der=ed_private_key.to_bytes_der().hex(),
+        ecdsa_private_der=ecdsa_private_key.to_bytes_der().hex(),
+        ed_public_raw=ed_public_key.to_bytes_raw().hex(),
+        ecdsa_public_compressed=ecdsa_public_key.to_bytes_ecdsa().hex(),
+        ecdsa_public_uncompressed=ecdsa_public_key.to_bytes_ecdsa(compressed=False).hex(),
+        ed_public_der=ed_public_key.to_bytes_der().hex(),
+        ecdsa_public_der=ecdsa_public_key.to_bytes_der().hex(),
+        ed25519_alias_hex=ed_public_key.to_bytes_raw().hex(),
+        ecdsa_alias_hex=ecdsa_public_key.to_bytes_ecdsa().hex(),
+        evm_hex="abcdef0123456789abcdef0123456789abcdef01",
+    )
+
+
+def _build_entity_id_strategies(
+    primitives: _IdentifierPrimitives,
+) -> dict[str, SearchStrategy[Any]]:
+    """Build valid dotted and checksum entity ID strategies with the current numeric bounds."""
 
     entity_id_valid_dotted = st.builds(
         lambda shard_value, realm_value, num_value: EntityIdCase(
@@ -41,9 +103,9 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
             realm=realm_value,
             value=num_value,
         ),
-        shard,
-        realm,
-        entity_num,
+        primitives.shard,
+        primitives.realm,
+        primitives.entity_num,
     )
     entity_id_valid_checksum = st.builds(
         lambda base, checksum_value: EntityIdCase(
@@ -54,16 +116,23 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
             checksum=checksum_value,
         ),
         entity_id_valid_dotted,
-        checksum,
+        primitives.checksum,
     )
 
-    ed25519_alias_hex = st.just(
-        PrivateKey.from_string_ed25519("01" * 32).public_key().to_bytes_raw().hex()
-    )
-    ecdsa_alias_hex = st.just(
-        PrivateKey.from_string_ecdsa("00" * 31 + "01").public_key().to_bytes_ecdsa().hex()
-    )
-    evm_hex = st.just("abcdef0123456789abcdef0123456789abcdef01")
+    return {
+        "entity_id_valid_dotted": entity_id_valid_dotted,
+        "entity_id_valid_checksum": entity_id_valid_checksum,
+    }
+
+
+def _build_alias_identifier_strategies(
+    primitives: _IdentifierPrimitives, key_samples: _KeySampleValues
+) -> dict[str, SearchStrategy[Any]]:
+    """Build valid account and contract alias strategies using canonical alias and EVM samples."""
+
+    ed25519_alias_hex = st.just(key_samples.ed25519_alias_hex)
+    ecdsa_alias_hex = st.just(key_samples.ecdsa_alias_hex)
+    evm_hex = st.just(key_samples.evm_hex)
 
     account_id_valid_alias = st.builds(
         lambda shard_value, realm_value, alias_hex: AccountIdAliasCase(
@@ -72,13 +141,15 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
             realm=realm_value,
             alias_hex=alias_hex,
         ),
-        shard,
-        realm,
+        primitives.shard,
+        primitives.realm,
         st.one_of(ed25519_alias_hex, ecdsa_alias_hex),
     )
     account_id_valid_evm = st.one_of(
         evm_hex.map(lambda value: AccountIdAliasCase(text=value, shard=0, realm=0, evm_hex=value)),
-        evm_hex.map(lambda value: AccountIdAliasCase(text=f"0x{value}", shard=0, realm=0, evm_hex=value)),
+        evm_hex.map(
+            lambda value: AccountIdAliasCase(text=f"0x{value}", shard=0, realm=0, evm_hex=value)
+        ),
         st.builds(
             lambda shard_value, realm_value, value: AccountIdAliasCase(
                 text=f"{shard_value}.{realm_value}.{value}",
@@ -86,8 +157,8 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
                 realm=realm_value,
                 evm_hex=value,
             ),
-            shard,
-            realm,
+            primitives.shard,
+            primitives.realm,
             evm_hex,
         ),
     )
@@ -98,10 +169,20 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
             realm=realm_value,
             evm_hex=value,
         ),
-        shard,
-        realm,
+        primitives.shard,
+        primitives.realm,
         evm_hex,
     )
+
+    return {
+        "account_id_valid_alias": account_id_valid_alias,
+        "account_id_valid_evm": account_id_valid_evm,
+        "contract_id_valid_evm": contract_id_valid_evm,
+    }
+
+
+def _build_invalid_identifier_strategies() -> dict[str, SearchStrategy[Any]]:
+    """Build malformed identifier strategies while preserving existing invalid-string coverage."""
 
     invalid_entity_strings = st.one_of(
         st.sampled_from(
@@ -157,28 +238,27 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
     )
     entity_id_invalid_type = st.sampled_from([None, 123, True, {}, []])
 
-    ed_private_raw = "01" * 32
-    ecdsa_private_raw = "00" * 31 + "01"
-    ed_private_der = PrivateKey.from_string_ed25519(ed_private_raw).to_bytes_der().hex()
-    ecdsa_private_der = PrivateKey.from_string_ecdsa(ecdsa_private_raw).to_bytes_der().hex()
-    ed_public_raw = PrivateKey.from_string_ed25519(ed_private_raw).public_key().to_bytes_raw().hex()
-    ecdsa_public_compressed = (
-        PrivateKey.from_string_ecdsa(ecdsa_private_raw).public_key().to_bytes_ecdsa().hex()
-    )
-    ecdsa_public_uncompressed = (
-        PrivateKey.from_string_ecdsa(ecdsa_private_raw).public_key().to_bytes_ecdsa(compressed=False).hex()
-    )
-    ed_public_der = PrivateKey.from_string_ed25519(ed_private_raw).public_key().to_bytes_der().hex()
-    ecdsa_public_der = PrivateKey.from_string_ecdsa(ecdsa_private_raw).public_key().to_bytes_der().hex()
+    return {
+        "account_id_invalid_string": invalid_account_strings,
+        "token_id_invalid_string": invalid_token_strings,
+        "contract_id_invalid_string": invalid_contract_strings,
+        "entity_id_invalid_type": entity_id_invalid_type,
+    }
+
+
+def _build_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
+    """Build valid and invalid private/public key strategies from canonical encoded samples."""
 
     private_key_valid_string = st.one_of(
-        with_optional_0x(st.sampled_from([ed_private_raw, ed_private_der])),
+        with_optional_0x(
+            st.sampled_from([key_samples.ed_private_raw, key_samples.ed_private_der])
+        ),
     )
     private_key_valid_bytes = st.sampled_from(
         [
-            bytes.fromhex(ed_private_raw),
-            bytes.fromhex(ed_private_der),
-            bytes.fromhex(ecdsa_private_der),
+            bytes.fromhex(key_samples.ed_private_raw),
+            bytes.fromhex(key_samples.ed_private_der),
+            bytes.fromhex(key_samples.ecdsa_private_der),
         ]
     )
     private_key_invalid_string = st.one_of(
@@ -204,22 +284,22 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
         with_optional_0x(
             st.sampled_from(
                 [
-                    ed_public_raw,
-                    ecdsa_public_compressed,
-                    ecdsa_public_uncompressed,
-                    ed_public_der,
-                    ecdsa_public_der,
+                    key_samples.ed_public_raw,
+                    key_samples.ecdsa_public_compressed,
+                    key_samples.ecdsa_public_uncompressed,
+                    key_samples.ed_public_der,
+                    key_samples.ecdsa_public_der,
                 ]
             )
         ),
     )
     public_key_valid_bytes = st.sampled_from(
         [
-            bytes.fromhex(ed_public_raw),
-            bytes.fromhex(ecdsa_public_compressed),
-            bytes.fromhex(ecdsa_public_uncompressed),
-            bytes.fromhex(ed_public_der),
-            bytes.fromhex(ecdsa_public_der),
+            bytes.fromhex(key_samples.ed_public_raw),
+            bytes.fromhex(key_samples.ecdsa_public_compressed),
+            bytes.fromhex(key_samples.ecdsa_public_uncompressed),
+            bytes.fromhex(key_samples.ed_public_der),
+            bytes.fromhex(key_samples.ecdsa_public_der),
         ]
     )
     public_key_invalid_string = st.one_of(
@@ -241,6 +321,21 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
         st.binary(min_size=34, max_size=64),
         st.binary(min_size=32, max_size=64).map(lambda data: b"\x30" + data),
     )
+
+    return {
+        "private_key_valid_string": private_key_valid_string,
+        "private_key_valid_bytes": private_key_valid_bytes,
+        "private_key_invalid_string": private_key_invalid_string,
+        "private_key_invalid_bytes": private_key_invalid_bytes,
+        "public_key_valid_string": public_key_valid_string,
+        "public_key_valid_bytes": public_key_valid_bytes,
+        "public_key_invalid_string": public_key_invalid_string,
+        "public_key_invalid_bytes": public_key_invalid_bytes,
+    }
+
+
+def _build_hbar_strategies() -> dict[str, SearchStrategy[Any]]:
+    """Build Hbar parsing and constructor strategies, including intentional invalid edge cases."""
 
     hbar_valid_tinybars = st.integers(min_value=-(10**12), max_value=10**12)
     hbar_valid_string = st.one_of(
@@ -285,6 +380,19 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
     ).filter(lambda value: value != value.to_integral_value())
     hbar_invalid_constructor_type = st.sampled_from(["1", None, True, object()])
 
+    return {
+        "hbar_valid_string": hbar_valid_string,
+        "hbar_invalid_string": hbar_invalid_string,
+        "hbar_valid_constructor": hbar_valid_constructor,
+        "hbar_invalid_nonfinite_float": hbar_invalid_nonfinite_float,
+        "fractional_tinybar_amount": fractional_tinybar_amount,
+        "hbar_invalid_constructor_type": hbar_invalid_constructor_type,
+    }
+
+
+def _build_transaction_byte_strategies() -> dict[str, SearchStrategy[Any]]:
+    """Build valid and intentionally broken transaction byte payload strategies."""
+
     unsigned_tx_bytes, signed_tx_bytes = build_valid_transaction_bytes()
     tx_valid_bytes = st.sampled_from([unsigned_tx_bytes, signed_tx_bytes])
     tx_invalid_empty = st.just(b"")
@@ -306,6 +414,18 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
             signed_tx_bytes + b"\x00",
         ]
     )
+
+    return {
+        "tx_valid_bytes": tx_valid_bytes,
+        "tx_invalid_empty": tx_invalid_empty,
+        "tx_invalid_random": tx_invalid_random,
+        "tx_invalid_truncated": tx_invalid_truncated,
+        "tx_invalid_corrupted": tx_invalid_corrupted,
+    }
+
+
+def _build_contract_value_strategies() -> dict[str, SearchStrategy[Any]]:
+    """Build valid and invalid contract parameter cases without changing ABI edge coverage."""
 
     valid_contract_value = st.one_of(
         st.booleans().map(lambda value: ContractValueCase("add_bool", value)),
@@ -372,45 +492,35 @@ def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
     )
 
     return {
-        "entity_id_valid_dotted": entity_id_valid_dotted,
-        "entity_id_valid_checksum": entity_id_valid_checksum,
-        "account_id_valid_alias": account_id_valid_alias,
-        "account_id_valid_evm": account_id_valid_evm,
-        "contract_id_valid_evm": contract_id_valid_evm,
-        "account_id_invalid_string": invalid_account_strings,
-        "token_id_invalid_string": invalid_token_strings,
-        "contract_id_invalid_string": invalid_contract_strings,
-        "entity_id_invalid_type": entity_id_invalid_type,
-        "private_key_valid_string": private_key_valid_string,
-        "private_key_valid_bytes": private_key_valid_bytes,
-        "private_key_invalid_string": private_key_invalid_string,
-        "private_key_invalid_bytes": private_key_invalid_bytes,
-        "public_key_valid_string": public_key_valid_string,
-        "public_key_valid_bytes": public_key_valid_bytes,
-        "public_key_invalid_string": public_key_invalid_string,
-        "public_key_invalid_bytes": public_key_invalid_bytes,
-        "hbar_valid_string": hbar_valid_string,
-        "hbar_invalid_string": hbar_invalid_string,
-        "hbar_valid_constructor": hbar_valid_constructor,
-        "hbar_invalid_nonfinite_float": hbar_invalid_nonfinite_float,
-        "fractional_tinybar_amount": fractional_tinybar_amount,
-        "hbar_invalid_constructor_type": hbar_invalid_constructor_type,
-        "tx_valid_bytes": tx_valid_bytes,
-        "tx_invalid_empty": tx_invalid_empty,
-        "tx_invalid_random": tx_invalid_random,
-        "tx_invalid_truncated": tx_invalid_truncated,
-        "tx_invalid_corrupted": tx_invalid_corrupted,
         "contract_value_valid": valid_contract_value,
         "contract_value_invalid": invalid_contract_value,
         "contract_function_name": contract_function_name,
     }
 
 
+def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
+    """Assemble all domain-specific strategy groups into the shared fuzz registry."""
+
+    primitives = _build_identifier_primitives()
+    key_samples = _build_key_sample_values()
+
+    registry: dict[str, SearchStrategy[Any]] = {}
+    registry.update(_build_entity_id_strategies(primitives))
+    registry.update(_build_alias_identifier_strategies(primitives, key_samples))
+    registry.update(_build_invalid_identifier_strategies())
+    registry.update(_build_key_strategies(key_samples))
+    registry.update(_build_hbar_strategies())
+    registry.update(_build_transaction_byte_strategies())
+    registry.update(_build_contract_value_strategies())
+    return registry
+
+
 FUZZ_STRATEGIES = build_strategy_registry()
 
 
 def get_strategy(name: str) -> SearchStrategy[Any]:
-    """Return a named fuzz strategy."""
+    """Return the named fuzz strategy from the shared registry or raise a helpful KeyError."""
+
     try:
         return FUZZ_STRATEGIES[name]
     except KeyError as exc:
@@ -421,10 +531,12 @@ def get_strategy(name: str) -> SearchStrategy[Any]:
 @pytest.fixture(name="fuzz_strategies")
 def fuzz_strategies_fixture() -> dict[str, SearchStrategy[Any]]:
     """Provide the shared fuzz strategy registry."""
+
     return FUZZ_STRATEGIES
 
 
 @pytest.fixture(name="get_strategy")
 def get_strategy_fixture() -> Any:
     """Provide the named strategy accessor."""
+
     return get_strategy
