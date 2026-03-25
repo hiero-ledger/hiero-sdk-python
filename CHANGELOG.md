@@ -6,6 +6,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+- Add `__repr__` method to `TokenId` class for cleaner debugging output (#1653)
+
 ### Src
 - Updated `AccountUpdateTransaction.set_key()` to accept generic `Key` objects (including `KeyList` and threshold keys), rather than strictly requiring a `PublicKey`.
 - Fix the TransactionGetReceiptQuery to raise ReceiptStatusError for the non-retryable and non success receipt status
