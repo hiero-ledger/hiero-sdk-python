@@ -10,3 +10,10 @@ engines:
       - "B101"
     exclude_paths:
       - tests/**
+  pylint:
+    enabled: true
+    rules:
+      assert_used:
+        skips:
+          - "*_test.py"
+          - "*test_*.py"
