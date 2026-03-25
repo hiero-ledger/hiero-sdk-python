@@ -241,7 +241,13 @@ class Transaction(_Executable):
             raise ValueError(
                 "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
             )
-
+        
+    def _resolve_node_ids(self, client: "Client"):
+        if self.node_account_id is None and len(self.node_account_ids) == 0:
+            if client is None:
+                raise ValueError(
+                    "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
+                )
 
     def freeze(self):
         """
@@ -284,12 +290,8 @@ class Transaction(_Executable):
         self._resolve_transaction_id(client)
 
 
-        if self.node_account_id is None and len(self.node_account_ids) == 0:
-            if client is None:
-                raise ValueError(
-                    "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
-                )
-
+        self._resolve_node_ids(client)
+        
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
