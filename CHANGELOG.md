@@ -11,7 +11,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix the TransactionGetReceiptQuery to raise ReceiptStatusError for the non-retryable and non success receipt status
 - Refactor `AccountInfo` to use the existing `StakingInfo` wrapper class instead of flattened staking fields. Access is now via `info.staking_info.staked_account_id`, `info.staking_info.staked_node_id`, and `info.staking_info.decline_reward`. The old flat accessors (`info.staked_account_id`, `info.staked_node_id`, `info.decline_staking_reward`) are still available as deprecated properties and will emit a `DeprecationWarning`. (#1366)
 - Added abstract `Key` supper class to handle various proto Keys.
-- chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md
 ### Examples
 
 ### Tests
@@ -29,6 +28,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
 - chore: update spam list #1988
 - chore: Update `bot-advanced-check.yml`, `bot-gfi-assign-on-comment.yml`, `bot-intermediate-assignment.yml`, `bot-linked-issue-enforcer.yml`, `unassign-on-comment.yml`, `working-on-comment.yml` workflow runner configuration
+- chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md
 
 
 
