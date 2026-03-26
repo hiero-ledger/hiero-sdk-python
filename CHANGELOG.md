@@ -6,6 +6,23 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Src
+- 
+
+### Tests
+
+
+### Examples
+
+
+### Docs
+
+
+### .github
+
+
+## [0.2.3] - 2026-03-26
+
 ### Added
 - Add `__repr__` method to `TokenId` class for cleaner debugging output (#1653)
 
