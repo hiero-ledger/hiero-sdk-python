@@ -4,12 +4,12 @@ import hashlib
 from typing import Literal, Optional, overload, Union 
 
 from typing import TYPE_CHECKING
+import math
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-<<<<<<< HEAD
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     transaction_pb2,
@@ -57,11 +57,7 @@ class Transaction(_Executable):
         super().__init__()
 
         self.transaction_id = None
-<<<<<<< HEAD
         self.transaction_fee: TransactionFee | None = None
-=======
-        self.transaction_fee: int | None = None
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
         self.transaction_valid_duration = 120
         self.generate_record = False
         self.memo = ""
@@ -77,17 +73,10 @@ class Transaction(_Executable):
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
-<<<<<<< HEAD
-        # changed from int: 2_000_000 to Hbar: 2
-        self._default_transaction_fee = Hbar(2)
-        self.operator_account_id = None
-        self.batch_key: Optional[Key] = None
-=======
         # changed from int: 2_000_000 to Hbar: 0.02
         self._default_transaction_fee = Hbar(0.02)
         self.operator_account_id = None
         self.batch_key: Key | None = None
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
     def _make_request(self):
         """
@@ -101,11 +90,7 @@ class Transaction(_Executable):
         """
         return self._to_proto()
 
-<<<<<<< HEAD
-    def _map_response(self, response, node_id, proto_request):
-=======
     def _map_response(self, response, node_id, proto_request):  # noqa: ARG002
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
         """
         Implements the Executable._map_response method to create a TransactionResponse.
 
@@ -213,7 +198,6 @@ class Transaction(_Executable):
             public_key_bytes = private_key.public_key().to_bytes_raw()
 
             if private_key.is_ed25519():
-<<<<<<< HEAD
                 sig_pair = basic_types_pb2.SignaturePair(
                     pubKeyPrefix=public_key_bytes, ed25519=signature
                 )
@@ -221,11 +205,6 @@ class Transaction(_Executable):
                 sig_pair = basic_types_pb2.SignaturePair(
                     pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature
                 )
-=======
-                sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ed25519=signature)
-            else:
-                sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature)
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
             # We initialize the signature map for this body_bytes if it doesn't exist yet
             self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap())
@@ -259,13 +238,9 @@ class Transaction(_Executable):
         if sig_map is None:
             sig_map = basic_types_pb2.SignatureMap()
 
-<<<<<<< HEAD
         signed_transaction = transaction_contents_pb2.SignedTransaction(
             bodyBytes=body_bytes, sigMap=sig_map
         )
-=======
-        signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes, sigMap=sig_map)
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
         return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
@@ -311,13 +286,9 @@ class Transaction(_Executable):
         # Build the transaction body for the single node
         for node_account_id in self.node_account_ids:
             self.node_account_id = node_account_id
-<<<<<<< HEAD
             self._transaction_body_bytes[node_account_id] = (
                 self.build_transaction_body().SerializeToString()
             )
-=======
-            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
         return self
 
@@ -340,15 +311,12 @@ class Transaction(_Executable):
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
 
-<<<<<<< HEAD
         if self.transaction_fee is None:
             if client.default_max_transaction_fee is not None:
                 self.transaction_fee = client.default_max_transaction_fee
             else:
                 self.transaction_fee = self._default_transaction_fee
 
-=======
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
@@ -356,13 +324,9 @@ class Transaction(_Executable):
         if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
             self.node_account_id = AccountId(0, 0, 0)
-<<<<<<< HEAD
             self._transaction_body_bytes[AccountId(0, 0, 0)] = (
                 self.build_transaction_body().SerializeToString()
             )
-=======
-            self._transaction_body_bytes[AccountId(0, 0, 0)] = self.build_transaction_body().SerializeToString()
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
             return self
 
         # Single node
@@ -398,11 +362,7 @@ class Transaction(_Executable):
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
         validate_status: bool = False,
-<<<<<<< HEAD
     ) -> "TransactionReceipt": ...
-=======
-    ) -> TransactionReceipt: ...
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
     @overload
     def execute(
@@ -411,19 +371,11 @@ class Transaction(_Executable):
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
         validate_status: bool = False,
-<<<<<<< HEAD
     ) -> "TransactionResponse": ...
 
     def execute(
         self,
         client: "Client",
-=======
-    ) -> TransactionResponse: ...
-
-    def execute(
-        self,
-        client: Client,
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
         validate_status: bool = False,
@@ -473,13 +425,9 @@ class Transaction(_Executable):
         response.transaction_id = self.transaction_id
 
         if wait_for_receipt:
-<<<<<<< HEAD
             return response.get_receipt(
                 client, timeout=timeout, validate_status=validate_status
             )
-=======
-            return response.get_receipt(client, timeout=timeout, validate_status=validate_status)
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
         return response
 
@@ -495,25 +443,14 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-<<<<<<< HEAD
         sig_map = self._signature_map.get(
             self._transaction_body_bytes.get(self.node_account_id)
         )
-=======
-        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self.node_account_id))
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
         if sig_map is None:
             return False
 
-<<<<<<< HEAD
-        for sig_pair in sig_map.sigPair:
-            if sig_pair.pubKeyPrefix == public_key_bytes:
-                return True
-        return False
-=======
         return any(sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair)
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
     def build_transaction_body(self):
         """
@@ -964,13 +901,9 @@ class Transaction(_Executable):
             module = __import__(module_path, fromlist=[class_name])
             return getattr(module, class_name)
         except (ImportError, AttributeError) as e:
-<<<<<<< HEAD
             raise ValueError(
                 f"Failed to import transaction class for type '{transaction_type}': {e}"
             )
-=======
-            raise ValueError(f"Failed to import transaction class for type '{transaction_type}': {e}") from e
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
 
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):

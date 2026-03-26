@@ -22,8 +22,6 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
-from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 
 pytestmark = pytest.mark.unit
@@ -612,7 +610,6 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
     assert isinstance(signed_bytes, bytes)
 
 
-<<<<<<< HEAD
 @pytest.mark.parametrize("value", [0, 1, 100_000_000, Hbar(1)])
 def test_set_transaction_fee(value):
     """set_transaction_fee() stores valid integer and hbar fees."""
@@ -629,6 +626,7 @@ def test_set_transaction_fee(value):
     [
         "hello from Anto :D",
         1.5,
+        Hbar(1),
         [100_000_000],
         {"transaction_fee": 100_000_000},
     ],
@@ -688,8 +686,7 @@ def test_freeze_with_uses_transaction_default_fee_when_client_default_is_unset(
     assert transaction.transaction_fee == transaction._default_transaction_fee
     assert transaction.transaction_fee == Hbar(2)
 
-=======
->>>>>>> 59485de (feat:  Ruff formating and pre-commit ci for the codebase (#2082))
+
 def test_transaction_freeze_with_node_ids(mock_client):
     """
     Test freeze_with() correctly initializes transaction bytes using provided node_account_id(s).
