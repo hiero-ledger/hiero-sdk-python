@@ -21,6 +21,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Added TCK endpoint for the createAccount method
 - Renamed `delegate_contract_id.py` to `delegate_contract_id_test.py` (#2004)
 - Fix Flaky tests for `mock_server` by enforcing non-tls port and adding a mock_tls certificate
+- Implement basic fuzz testing [#1872](https://github.com/hiero-ledger/hiero-sdk-python/issues/1872)
+
 
 ### Docs
 - Add Chocolatey as a prerequisite in the Windows setup guide (#1961)
@@ -120,8 +122,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs(setup): specify unit tests for local setup verification. (#1856)
 - docs: Clarify issues need to be assigned in template files. (#1884)
 - doc: Fix testnet link in README.md. (#1879)
-
-
 
 ### Tests
 - Format `tests/unit/endpoint_test.py` using black. (`#1792`)
