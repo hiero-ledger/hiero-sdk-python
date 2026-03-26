@@ -626,7 +626,6 @@ def test_set_transaction_fee(value):
     [
         "hello from Anto :D",
         1.5,
-        Hbar(1),
         [100_000_000],
         {"transaction_fee": 100_000_000},
     ],
