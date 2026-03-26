@@ -1,4 +1,4 @@
-name: 'PR Changelog Check'
+name: "PR Changelog Check"
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   changelog-check:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
@@ -22,7 +22,7 @@ jobs:
 
       - name: Run local changelog check
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x .github/scripts/pr-check-changelog.sh
           bash .github/scripts/pr-check-changelog.sh

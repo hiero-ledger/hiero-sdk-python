@@ -63,7 +63,7 @@ permissions:
 jobs:
   gfi-assign:
     if: github.event.issue.pull_request == null
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     
     concurrency:
       group: gfi-assign-${{ github.event.issue.number }}
@@ -100,7 +100,7 @@ permissions:
 
 jobs:
   changelog-check:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     
     steps:
       - name: Checkout repository

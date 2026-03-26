@@ -4,23 +4,22 @@ name: PR Inactivity Reminder Bot
 
 on:
   schedule:
-    - cron: '0 11 * * *'
+    - cron: "0 11 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
         description: 'If true, do not post comments (dry run). Accepts "true" or "false". Default true for manual runs.'
         required: false
-        default: 'true'
+        default: "true"
 
 permissions:
   pull-requests: write
   issues: write
   contents: read
 
-
 jobs:
   remind_inactive_prs:
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     env:
       DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
 
@@ -30,7 +29,7 @@ jobs:
         with:
           egress-policy: audit
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: Remind authors of inactive PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
