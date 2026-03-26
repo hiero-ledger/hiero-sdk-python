@@ -634,7 +634,7 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
     assert isinstance(signed_bytes, bytes)
 
 
-@pytest.mark.parametrize("value", [0, 1, 100_000_000])
+@pytest.mark.parametrize("value", [0, 1, 100_000_000, Hbar(1)])
 def test_set_transaction_fee(value):
     """set_transaction_fee() stores valid integer fees."""
     transaction = TransferTransaction()
@@ -650,7 +650,6 @@ def test_set_transaction_fee(value):
     [
         "hello from Anto :D",
         1.5,
-        Hbar(1),
         [100_000_000],
         {"transaction_fee": 100_000_000},
     ],
@@ -661,19 +660,19 @@ def test_set_transaction_fee_invalid_type(value):
 
     with pytest.raises(
         TypeError,
-        match="transaction_fee must be int",
+        match=f"transaction_fee must be an int or Hbar, got {type(value).__name__}",
     ):
         transaction.set_transaction_fee(value)
 
 
-@pytest.mark.parametrize("value", [-1, -100_000_000])
+@pytest.mark.parametrize("value", [-1, -100_000_000, Hbar(-1)])
 def test_set_transaction_fee_invalid_value(value):
     """set_transaction_fee() rejects negative fees."""
     transaction = TransferTransaction()
 
     with pytest.raises(
         ValueError,
-        match="transaction_fee must be a finite value >= 0",
+        match="transaction_fee must be >= 0",
     ):
         transaction.set_transaction_fee(value)
 

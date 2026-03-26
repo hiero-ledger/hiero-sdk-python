@@ -73,7 +73,7 @@ class Client:
 
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
-        self.default_max_transaction_fee: Hbar = None
+        self.default_max_transaction_fee: Hbar | None = None
 
     @classmethod
     def from_env(cls, network: Optional[NetworkName] = None) -> "Client":

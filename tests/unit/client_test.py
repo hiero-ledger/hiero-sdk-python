@@ -459,11 +459,15 @@ def test_set_max_backoff_less_than_min_backoff():
 def test_set_default_max_transaction_fee():
     """Test that set_default_max_transaction_fee updates default value of default_max_transaction_fee."""
     client = Client.for_testnet()
-    assert client.default_max_transaction_fee == None  # default default_max_transaction_fee == None
+    assert client.default_max_transaction_fee is None  # default default_max_transaction_fee == None
 
     setted_default_max_transaction_fee = Hbar(2)
     client.set_default_max_transaction_fee(setted_default_max_transaction_fee)
     assert client.default_max_transaction_fee == setted_default_max_transaction_fee
+
+    returned = client.set_default_max_transaction_fee(Hbar(1))
+
+    assert returned is client
 
     client.close()
 

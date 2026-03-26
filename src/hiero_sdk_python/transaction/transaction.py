@@ -1,6 +1,6 @@
 import hashlib
 import math
-from typing import Literal, Optional, overload
+from typing import Literal, Optional, overload, Union 
 
 from typing import TYPE_CHECKING
 
@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     )
     from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
+TransactionFee = Union[int, Hbar]
 
 class Transaction(_Executable):
     """
@@ -57,7 +58,7 @@ class Transaction(_Executable):
         super().__init__()
 
         self.transaction_id = None
-        self.transaction_fee: int | None = None
+        self.transaction_fee: TransactionFee | None = None
         self.transaction_valid_duration = 120
         self.generate_record = False
         self.memo = ""
@@ -658,12 +659,12 @@ class Transaction(_Executable):
         self.transaction_id = transaction_id
         return self
 
-    def set_transaction_fee(self, transaction_fee) -> "Transaction":
+    def set_transaction_fee(self, transaction_fee: TransactionFee) -> "Transaction":
         """
         Sets the transaction fee for the transaction
 
         Args:
-            transaction_fee: The transaction fee to set.
+            transaction_fee (TransactionFee): The transaction fee to set.
 
         Returns:
             Transaction: The current transaction instance for method chaining.
@@ -673,13 +674,18 @@ class Transaction(_Executable):
         """
         self._require_not_frozen()
 
-        if not isinstance(transaction_fee, int):
+        if not isinstance(transaction_fee, TransactionFee):
             raise TypeError(
-                "transaction_fee must be int, got {type(transaction_fee).__name__}"
+                f"transaction_fee must be an int or Hbar, got {type(transaction_fee).__name__}"
             )
 
-        if transaction_fee < 0 or not math.isfinite(transaction_fee):
-            raise ValueError("transaction_fee must be a finite value >= 0")
+        if isinstance(transaction_fee, int):
+            if transaction_fee < 0:
+                raise ValueError("transaction_fee must be >= 0")
+
+        if isinstance(transaction_fee, Hbar):
+            if transaction_fee < Hbar(0):
+                raise ValueError("transaction_fee must be >= 0")
 
         self.transaction_fee = transaction_fee
         return self
