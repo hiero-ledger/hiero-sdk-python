@@ -168,7 +168,8 @@ body:
         - [Closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced)
 
         **Protobuf:**
-        - [Hedera protobufs](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
+        - [hedera-protobufs](https://github.com/hashgraph/hedera-protobufs) — mirror service definitions
+        - [hiero-consensus-node](https://github.com/hiero-ledger/hiero-consensus-node) — services, platform, fee, sdk, block, streams
         - [Protobuf language guide](https://protobuf.dev/programming-guides/proto3/)
 
         **Comparable SDKs:**
