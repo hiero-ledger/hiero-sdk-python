@@ -1,7 +1,7 @@
-name: Publish to PyPI
+name: Publish to PyPI Test
 
 on:
-  pull-request:
+  pull_request:
 
 permissions:
   contents: read
@@ -28,7 +28,7 @@ jobs:
         run: pip install --upgrade pip
 
       - name: Install build, pdm-backend, and grpcio-tools
-        run: pip install build pdm-backend "grpcio-tools==1.68.1"
+        run: pip install build pdm-backend "grpcio-tools==1.76.0"
 
       - name: Generate Protobuf
         run: python generate_proto.py
