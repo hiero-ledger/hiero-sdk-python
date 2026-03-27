@@ -39,10 +39,7 @@ body:
       label: 🔍 Background Research
       description: |
         POINT THE CONTRIBUTOR TOWARD RELEVANT MODULES, PRIOR ART, PROTOBUF DEFINITIONS, OR PATTERNS TO STUDY.
-        THIS IS THE FOUNDATION FOR ARCHITECTURAL DECISION-MAKING — NOT IMPLEMENTATION GUIDANCE.
-        AT LEAST ONE OF "BACKGROUND RESEARCH" OR "IMPLEMENTATION NOTES" SHOULD BE PROVIDED.
-      value: |
-        _Replace this with research pointers._
+      placeholder: "Add links to similar code, relevant HIPs, or Protobuf definitions to study..."
     validations:
       required: false
 
@@ -51,20 +48,16 @@ body:
     attributes:
       label: 🛠️ Implementation Notes
       description: |
-        PROVIDE HIGH-LEVEL TECHNICAL DIRECTION WHERE AVAILABLE.
-        INCLUDE: AFFECTED MODULES, REFACTORING STRATEGY, DEPRECATION OR MIGRATION CONCERNS, SECURITY CONSIDERATIONS.
-        LEAVE AREAS INTENTIONALLY OPEN WHERE THE CONTRIBUTOR IS EXPECTED TO RESEARCH AND DECIDE.
-        DO NOT REPEAT THE PROPOSED SOLUTION — FOCUS ON TECHNICAL CONSIDERATIONS AND CONSTRAINTS.
-      value: |
+        PROVIDE HIGH-LEVEL TECHNICAL DIRECTION.
+        
         ### Technical domains involved in this issue:
-        - [ ] **API Client Architecture** (request → serialization → execution → response mapping)
-        - [ ] **Backward Compatibility** (preserving method signatures, defaults, and return types)
-        - [ ] **Execution Model** (transaction lifecycle, query payment semantics, base class behaviour)
-        - [ ] **Protobuf Alignment** (reading `.proto` files, `_to_proto()` / `_from_proto()` correctness)
-        - [ ] **State & Immutability** (correct usage of guards like `_require_not_frozen`)
-        - [ ] **Execution Boundaries** (retry logic, backoff, node selection, gRPC deadlines — do NOT modify without maintainer approval)
-
-        _Replace this with specific implementation notes._
+        - **API Client Architecture** (request → serialization → execution → response mapping)
+        - **Backward Compatibility** (preserving method signatures, defaults, and return types)
+        - **Execution Model** (transaction lifecycle, query payment semantics, base class behaviour)
+        - **Protobuf Alignment** (reading `.proto` files, `_to_proto()` / `_from_proto()` correctness)
+        - **State & Immutability** (correct usage of guards like `_require_not_frozen`)
+        - **Execution Boundaries** (retry logic, backoff, node selection, gRPC deadlines)
+      placeholder: "Detail the refactoring strategy, migration concerns, or security considerations here..."
     validations:
       required: false
 
