@@ -29,8 +29,7 @@ body:
         ASSUME THE READER UNDERSTANDS THE FULL SDK ARCHITECTURE.
         EXPLAIN: WHAT IS WRONG OR MISSING, WHICH MODULES AND ABSTRACTIONS ARE INVOLVED, WHY IT MATTERS, AND ANY RELEVANT DESIGN CONTEXT.
         INCLUDE RELEVANT FILE PATHS AND ABSOLUTE LINKS.
-      value: |
-        _Replace this with the problem description._
+      placeholder: "Describe the current limitation or architectural risk here..."
     validations:
       required: true
 
@@ -167,10 +166,10 @@ body:
         - [Project structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
         - [Closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced)
 
-        **Protobuf:**
-        - [hedera-protobufs](https://github.com/hashgraph/hedera-protobufs) — mirror service definitions
-        - [hiero-consensus-node](https://github.com/hiero-ledger/hiero-consensus-node) — services, platform, fee, sdk, block, streams
-        - [Protobuf language guide](https://protobuf.dev/programming-guides/proto3/)
+        **Protobuf Sources (Pinned to v0.72.0-rc.2):**
+        - [Mirror Node Protobufs](https://github.com/hashgraph/hedera-protobufs/tree/v0.72.0-rc.2/services)
+        - [Consensus Node Protobufs](https://github.com/hiero-ledger/hiero-consensus-node/tree/v0.72.0-rc.2/services)
+        - [Protobuf Language Guide](https://protobuf.dev/programming-guides/proto3/)
 
         **Comparable SDKs:**
         - [Java SDK](https://github.com/hiero-ledger/hiero-sdk-java) · [JavaScript SDK](https://github.com/hiero-ledger/hiero-sdk-js) · [Go SDK](https://github.com/hiero-ledger/hiero-sdk-go)
