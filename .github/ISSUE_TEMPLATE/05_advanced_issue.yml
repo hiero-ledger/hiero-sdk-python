@@ -91,44 +91,34 @@ body:
     validations:
       required: false
 
-  - type: textarea
-    id: quality_standards
+  - type: markdown
     attributes:
-      label: 🛡️ Quality & Review Standards
-      description: |
-        PRE-FILLED. LEAVE AS-IS.
       value: |
-        The bar for advanced PRs is not "it works" — it is "safe, maintainable, architecturally sound, and production-ready."
+        ## 🛡️ Quality & Review Standards
+        The bar for advanced PRs is not "it works" — it is **"safe, maintainable, architecturally sound, and production-ready."**
 
-        All submitted code must be personally understood and explainable line by line.
-        Submitting AI-generated code without full comprehension and validation is grounds for **immediate rejection**.
+        ### 📦 PR Packaging Requirements
+        To satisfy the high-impact nature of advanced work, the final Pull Request must include:
+        - **Verified Signatures:** All commits must be signed (-S) and pass DCO (-s).
+        - **Changelog:** A descriptive entry must be added under `[Unreleased]`.
+        - **Testing Evidence:** PR descriptions must link to terminal logs and screenshots of local/simulation runs.
+        - **Ownership:** Every line of code must be explainable. Submitting unvalidated AI-generated code is grounds for **immediate rejection**.
 
-        Prefer clarity over cleverness. If an approach requires a long justification, reconsider it.
-        PR description must cover: decision made, alternatives considered, trade-offs, risks, and open questions.
-    validations:
-      required: false
+        > [!TIP]
+        > **Design over Cleverness:** Prefer clarity over cleverness. If an approach requires a long justification, reconsider the design.
 
   - type: checkboxes
     id: acceptance
     attributes:
-      label: ✅ Done Checklist
+      label: ✅ Issue Definition Checklist
       description: |
-        Advanced issues require strict adherence to project standards. 
-        You must manually verify each of these criteria before submission.
+        Maintainers: Before submitting this issue, manually verify that the following scoping requirements are met.
       options:
         - label: "I have considered the system-wide impact on affected modules, APIs, and performance."
           required: true
-        - label: "The architectural approach has been shared as a comment and reviewed by a maintainer."
+        - label: "The architectural risk or bottleneck has been clearly identified in the problem description."
           required: true
-        - label: "I have verified naming, types, and field ordering against pinned Protobufs (v0.72.0-rc.2)."
-          required: true
-        - label: "No breaking changes are introduced without explicit prior maintainer approval."
-          required: true
-        - label: "All submitted code is personally understood and explainable (no unvalidated AI output)."
-          required: true
-        - label: "My commits are signed (-S), pass DCO (-s), and follow conventional commit titles."
-          required: true
-        - label: "I have updated CHANGELOG.md and self-reviewed the full PR diff line-by-line."
+        - label: "I have verified that this task requires 'Advanced' level reasoning and cannot be solved by simple patterns."
           required: true
   - type: textarea
     id: stuck
