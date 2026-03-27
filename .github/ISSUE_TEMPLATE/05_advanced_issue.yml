@@ -121,9 +121,9 @@ body:
       options:
         - label: "I have considered the system-wide impact on affected modules, APIs, and performance."
           required: true
-        - label: "The architectural risk or bottleneck has been clearly identified in the description."
+        - label: "The architectural risk or bottleneck has been clearly identified in the problem description."
           required: true
-        - label: "I have verified that this task requires 'Advanced' level reasoning."
+        - label: "This issue impacts at least one advanced surface: public API behavior, protobuf mapping, execution model, or cross-module architecture."
           required: true
 
   - type: textarea
