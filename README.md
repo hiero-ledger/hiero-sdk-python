@@ -140,7 +140,9 @@ We welcome contributions! Whether you're:
 **Start here:** [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
 
 ---
+## Contribution
 
+Added by Zunaira 
 ## License
 
 This project is licensed under the [Apache License 2.0](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/LICENSE).
