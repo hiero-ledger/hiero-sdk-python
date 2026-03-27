@@ -91,10 +91,13 @@ body:
     validations:
       required: false
 
-  - type: markdown
+  - type: textarea
+    id: quality_standards
     attributes:
+      label: 🛡️ Quality & Review Standards
+      description: |
+        PRE-FILLED. LEAVE AS-IS.
       value: |
-        ## 🛡️ Quality & Review Standards
         The bar for advanced PRs is not "it works" — it is **"safe, maintainable, architecturally sound, and production-ready."**
 
         ### 📦 PR Packaging Requirements
@@ -106,6 +109,8 @@ body:
 
         > [!TIP]
         > **Design over Cleverness:** Prefer clarity over cleverness. If an approach requires a long justification, reconsider the design.
+    validations:
+      required: false
 
   - type: checkboxes
     id: acceptance
@@ -116,10 +121,11 @@ body:
       options:
         - label: "I have considered the system-wide impact on affected modules, APIs, and performance."
           required: true
-        - label: "The architectural risk or bottleneck has been clearly identified in the problem description."
+        - label: "The architectural risk or bottleneck has been clearly identified in the description."
           required: true
-        - label: "I have verified that this task requires 'Advanced' level reasoning and cannot be solved by simple patterns."
+        - label: "I have verified that this task requires 'Advanced' level reasoning."
           required: true
+
   - type: textarea
     id: stuck
     attributes:
