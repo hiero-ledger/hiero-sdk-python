@@ -7,13 +7,16 @@ Utility functions and type definitions for working with cryptographic keys.
 
 from __future__ import annotations
 
+from typing import Union
+
+from hiero_sdk_python.crypto.key import Key as SdkKey
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 
 # Type alias for keys that can be either PrivateKey or PublicKey
-Key = PrivateKey | PublicKey
+Key = Union[PrivateKey, PublicKey, SdkKey]
 
 
 def key_to_proto(key: Key | None) -> basic_types_pb2.Key | None:
@@ -34,7 +37,7 @@ def key_to_proto(key: Key | None) -> basic_types_pb2.Key | None:
     Raises:
         TypeError: If the provided key is not a PrivateKey, PublicKey, or None.
     """
-    if not key:
+    if key is None:
         return None
 
     # If it's a PrivateKey, get the public key first, then convert to proto
@@ -45,5 +48,8 @@ def key_to_proto(key: Key | None) -> basic_types_pb2.Key | None:
     if isinstance(key, PublicKey):
         return key._to_proto()
 
-    # Safety net: This will fail if a non-key is passed
-    raise TypeError("Key must be of type PrivateKey or PublicKey")
+    # Any other SDK Key implementation (e.g., KeyList / ThresholdKey wrapper)
+    if isinstance(key, SdkKey):
+        return key.to_proto_key()
+
+    raise TypeError("Key must be of type PrivateKey or PublicKey, or another SDK Key implementation")
