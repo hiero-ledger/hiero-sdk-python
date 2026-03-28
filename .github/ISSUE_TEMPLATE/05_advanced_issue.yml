@@ -20,6 +20,9 @@ body:
         - **Consistency:** **≥ 3–4 months** of active, human-led contributions to this SDK.
         - **Expertise:** Deep architectural understanding of `_Executable`, `Transaction`, and `Query` base classes.
 
+        > [!NOTE]
+        > **Workflow Exception:** For issues focused on **GitHub Actions / Workflows**, the Python-specific thresholds above may be waived if the contributor demonstrates expert-level proficiency in CI/CD security and automation.
+
         ### ⚠️ AI Usage Policy
         Using AI to generate code for Advanced issues is **strictly forbidden**. AI may be used only to help explain file relationships. Submitting AI-mined code or unvalidated generated output is grounds for **immediate rejection**.
 
