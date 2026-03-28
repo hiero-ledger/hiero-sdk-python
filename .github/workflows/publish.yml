@@ -27,12 +27,14 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.14'
 
       - name: Upgrade pip
         run: pip install --upgrade pip
 
       - name: Install build, pdm-backend, and grpcio-tools
-        run: pip install build pdm-backend "grpcio-tools==1.68.1"
+        run: pip install build pdm-backend "grpcio-tools>=1.76.0"
 
       - name: Generate Protobuf
         run: python generate_proto.py
