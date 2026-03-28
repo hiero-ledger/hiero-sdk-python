@@ -19,7 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
-
+- Refactored the Advanced Issue Template to V2 with stricter prerequisites and a focus on architectural design (#2016).
 
 ## [0.2.3] - 2026-03-26
 
