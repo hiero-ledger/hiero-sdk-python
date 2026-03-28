@@ -1,93 +1,56 @@
 name: Advanced Issue Template
-description: Architecture-level changes requiring design reasoning, cross-module awareness, and trade-off analysis
+description: For expert contributors tackling architectural, multi-module, or core-logic changes.
 title: "[Advanced]: "
 labels: ["advanced"]
 assignees: []
 
 body:
-  - type: markdown
+  - type: textarea
+    id: advanced_contributors
     attributes:
+      label: 🧠 Advanced Contributors — Prerequisites & Expectations
+      description: |
+        PRE-FILLED. DO NOT CLAIM THIS ISSUE UNLESS YOU MEET THESE GUIDELINES.
       value: |
-        ---
-        **For issue creators:** Advanced issues involve changes where the solution is not fully defined and the problem may be imperfectly described.
-        Changes at this level may affect multiple modules, public APIs, or core system behavior.
-        The contributor is expected to define the approach — not follow step-by-step instructions.
+        > [!CAUTION]
+        > **Advanced issues are the highest-risk work in this project. We will reject PRs that do not meet these standards.**
 
-        If you are not yet ready for this level, start with a [Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue+state%3Aopen+label%3A%22good+first+issue%22) instead.
+        ### 🏁 Concrete Prerequisites
+        - **Proven History:** Successfully completed **≥ 10 non-trivial intermediate issues** in this repo.
+        - **Consistency:** **≥ 3–4 months** of active, human-led contributions to this SDK.
+        - **Expertise:** Deep architectural understanding of `_Executable`, `Transaction`, and `Query` base classes.
 
-        **All links in this template must be absolute URLs** (starting with `https://`).
-        Relative links break when rendered in GitHub issues.
+        ### ⚠️ AI Usage Policy
+        Using AI to generate code for Advanced issues is **strictly forbidden**. AI may be used only to help explain file relationships. Submitting AI-mined code or unvalidated generated output is grounds for **immediate rejection**.
 
-        ---
+        ### ⏱️ Timeline & Workflow
+        - **Typical time:** ~1 month / ~50 hours.
+        - 🔴 Completing an advanced issue in 1–3 days is a **red flag** and will likely be rejected.
+        - **Mandatory:** Post your proposed architectural approach as a comment and wait for explicit maintainer approval **before writing any code.**
+    validations:
+      required: false
 
   - type: textarea
     id: problem
     attributes:
       label: 🐞 Problem Description
-      description: |
-        DESCRIBE THE PROBLEM IN DEPTH.
-        ASSUME THE READER UNDERSTANDS THE FULL SDK ARCHITECTURE.
-        EXPLAIN: WHAT IS WRONG OR MISSING, WHICH MODULES AND ABSTRACTIONS ARE INVOLVED, WHY IT MATTERS, AND ANY RELEVANT DESIGN CONTEXT.
-        INCLUDE RELEVANT FILE PATHS AND ABSOLUTE LINKS.
       placeholder: "Describe the current limitation or architectural risk here..."
     validations:
       required: true
 
   - type: textarea
-    id: research
-    attributes:
-      label: 🔍 Background Research
-      description: |
-        POINT THE CONTRIBUTOR TOWARD RELEVANT MODULES, PRIOR ART, PROTOBUF DEFINITIONS, OR PATTERNS TO STUDY.
-      placeholder: "Add links to similar code, relevant HIPs, or Protobuf definitions to study..."
-    validations:
-      required: false
-
-  - type: textarea
     id: implementation
     attributes:
       label: 🛠️ Implementation Notes
-      description: |
-        PROVIDE HIGH-LEVEL TECHNICAL DIRECTION.
-        
-        ### Technical domains involved in this issue:
-        - **API Client Architecture** (request → serialization → execution → response mapping)
-        - **Backward Compatibility** (preserving method signatures, defaults, and return types)
-        - **Execution Model** (transaction lifecycle, query payment semantics, base class behaviour)
-        - **Protobuf Alignment** (reading `.proto` files, `_to_proto()` / `_from_proto()` correctness)
-        - **State & Immutability** (correct usage of guards like `_require_not_frozen`)
-        - **Execution Boundaries** (retry logic, backoff, node selection, gRPC deadlines)
-      placeholder: "Detail the refactoring strategy, migration concerns, or security considerations here..."
-    validations:
-      required: false
-
-  - type: textarea
-    id: advanced_contributors
-    attributes:
-      label: 🧠 Advanced Contributors
-      description: |
-        PRE-FILLED. LEAVE AS-IS UNLESS YOU NEED TO ADD ISSUE-SPECIFIC PREREQUISITES.
       value: |
-        > [!CAUTION]
-        > **Advanced issues carry high risk. PRs that do not meet these concrete standards will be rejected.**
+        ### Technical domains involved in this issue:
+        - [ ] **API Client Architecture** (request → serialization → execution → response mapping)
+        - [ ] **Backward Compatibility** (preserving method signatures, defaults, and return types)
+        - [ ] **Protobuf Alignment** (reading `.proto` files, `_to_proto()` / `_from_proto()` correctness)
+        - [ ] **State & Immutability** (correct usage of guards like `_require_not_frozen`)
+        - [ ] **Execution Boundaries** (retry logic, backoff, node selection, gRPC deadlines)
 
-        ### 🏁 Concrete Prerequisites
-        - **Proven history:** ≥ 10 merged non-trivial intermediate contributions to this repository
-        - **Consistency:** ≥ 3–4 months of consistent, active, human-led contributions to this SDK
-        - **Expertise:** Deep architectural understanding of `_Executable`, `Transaction`, and `Query` base classes
-
-        ### ⏱️ Timeline & Workflow
-        - Typical time to complete: ~1 month / ~50 hours
-        - 🔴 Completing an advanced issue in 1–3 days is a **red flag** and will likely be rejected
-        - **Mandatory:** Post your proposed architectural approach as a comment and wait for explicit maintainer approval **before writing any code.** PRs that arrive without prior design discussion will be sent back.
-
-        > [!TIP]
-        > **Not sure if all of this applies to your issue?**
-        > Advanced issues vary in scope. Read the problem description carefully and identify which areas your change actually touches. If the issue is narrowly scoped to one module and you have deep experience there, the full list above may not all apply. When in doubt, comment and ask a maintainer before claiming.
-
-        If you do not meet these requirements, start with a [Good First Issue](https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue+state%3Aopen+label%3A%22good+first+issue%22).
-
-        See [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md) for full expectations on timeline, review process, and quality bar.
+        _Replace this with specific implementation notes._
     validations:
       required: false
 
@@ -95,73 +58,47 @@ body:
     id: quality_standards
     attributes:
       label: 🛡️ Quality & Review Standards
-      description: |
-        PRE-FILLED. LEAVE AS-IS.
       value: |
-        The bar for advanced PRs is not "it works" — it is **"safe, maintainable, architecturally sound, and production-ready."**
+        The bar for advanced PRs is **"safe, maintainable, architecturally sound, and production-ready."**
 
-        ### 📦 PR Packaging Requirements
-        To satisfy the high-impact nature of advanced work, the final Pull Request must include:
-        - **Verified Signatures:** All commits must be signed (-S) and pass DCO (-s).
-        - **Changelog:** A descriptive entry must be added under `[Unreleased]`.
-        - **Testing Evidence:** PR descriptions must link to terminal logs and screenshots of local/simulation runs.
-        - **Ownership:** Every line of code must be explainable. Submitting unvalidated AI-generated code is grounds for **immediate rejection**.
-
-        > [!TIP]
-        > **Design over Cleverness:** Prefer clarity over cleverness. If an approach requires a long justification, reconsider the design.
+        ### 🚀 Defining "Production Ready"
+        1. **Architectural Fit:** The solution must fit naturally into the existing SDK abstractions. Avoid "hacks" or isolated logic that bypasses the core execution model.
+        2. **Security & Correctness:** Evaluate all logic for injection risks, state corruption, or thread-safety issues. Every line of code must be manually verified.
+        3. **Maintainability:** Code must be clear enough for any other maintainer to debug without your assistance. Prefer standard patterns over "clever" one-liners.
+        4. **Backward Compatibility:** Public API signatures must be preserved. If a breaking change is required, it must be explicitly managed through a deprecation cycle.
     validations:
       required: false
 
   - type: checkboxes
     id: acceptance
     attributes:
-      label: ✅ Issue Definition Checklist
+      label: ✅ PR Quality Checklist
       description: |
-        Maintainers: Before submitting this issue, manually verify that the following scoping requirements are met.
+        The contributor must manually verify each of these criteria in their Pull Request.
       options:
-        - label: "I have considered the system-wide impact on affected modules, APIs, and performance."
+        - label: "I understand the system-wide impact of these changes on affected modules and performance."
           required: true
-        - label: "The architectural risk or bottleneck has been clearly identified in the problem description."
+        - label: "The system design fits with current Hiero SDK architectural approaches."
           required: true
-        - label: "This issue impacts at least one advanced surface: public API behavior, protobuf mapping, execution model, or cross-module architecture."
+        - label: "I have tested my changes extensively against both local and network environments."
           required: true
-
-  - type: textarea
-    id: stuck
-    attributes:
-      label: 🆘 Stuck?
-      description: |
-        PRE-FILLED. LEAVE AS-IS.
-      value: |
-        If blocked on an architectural decision, comment on this issue with what you have explored. A maintainer will respond.
-
-        - For design reference, study comparable SDKs: [Java](https://github.com/hiero-ledger/hiero-sdk-java) · [JavaScript](https://github.com/hiero-ledger/hiero-sdk-js) · [Go](https://github.com/hiero-ledger/hiero-sdk-go)
-        - [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) (Wednesdays, 2pm UTC) — screen sharing welcome
-        - [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md) — #hiero-python-sdk
-    validations:
-      required: false
+        - label: "I have verified naming, types, and field ordering against pinned Protobufs (v0.72.0-rc.2)."
+          required: true
+        - label: "Every line of code is personally understood and explainable (no unvalidated AI code)."
+          required: true
 
   - type: textarea
     id: resources
     attributes:
-      label: 📚 Resources
-      description: |
-        ADD ISSUE-SPECIFIC RESOURCES BELOW. THE DEFAULTS POINT TO KEY ARCHITECTURAL REFERENCES.
+      label: 📚 Resources & Support
       value: |
-        **This codebase:**
-        - [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
-        - [Project structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
-        - [Closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced)
+        **Project References:**
+        - [SDK Project Structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
+        - [Transaction Lifecycle](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/transaction_lifecycle.md)
+        - [Hedera Protobufs (v0.72.0-rc.2)](https://github.com/hashgraph/hedera-protobufs/tree/v0.72.0-rc.2/services)
 
-        **Protobuf Sources (Pinned to v0.72.0-rc.2):**
-        - [Mirror Node Protobufs](https://github.com/hashgraph/hedera-protobufs/tree/v0.72.0-rc.2/services)
-        - [Consensus Node Protobufs](https://github.com/hiero-ledger/hiero-consensus-node/tree/v0.72.0-rc.2/services)
-        - [Protobuf Language Guide](https://protobuf.dev/programming-guides/proto3/)
-
-        **Comparable SDKs:**
-        - [Java SDK](https://github.com/hiero-ledger/hiero-sdk-java) · [JavaScript SDK](https://github.com/hiero-ledger/hiero-sdk-js) · [Go SDK](https://github.com/hiero-ledger/hiero-sdk-go)
-
-        **CI / workflows (if applicable):**
-        - [Hiero Solo Action](https://github.com/marketplace/actions/hiero-solo-action) · [GitHub Actions security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
+        **🆘 Stuck?**
+        - [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) (Wednesdays, 2pm UTC)
+        - [Discord #hiero-python-sdk](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
     validations:
       required: false
