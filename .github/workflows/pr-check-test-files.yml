@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   check-test-files:
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ (github.repository_owner != 'hiero-ledger') && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
