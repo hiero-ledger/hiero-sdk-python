@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   check-test-files:
+    # No fork check needed: push-only workflow; fork pushes have different repository_owner
     runs-on: ${{ (github.repository_owner != 'hiero-ledger') && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
 
     steps:
