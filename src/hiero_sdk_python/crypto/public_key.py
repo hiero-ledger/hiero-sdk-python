@@ -439,6 +439,12 @@ class PublicKey(Key):
         Hex-encoded DER form of the public key.
         """
         return self.to_bytes_der().hex()
+    
+    def to_string_der_ecdsa_compressed(self) -> str:
+        """
+        Returns DER SPKI hex for ECDSA secp256k1 using a compressed SEC1 point.
+        """
+        return self.to_bytes_der_ecdsa_compressed().hex()
 
     def to_string_raw(self) -> str:
         """
