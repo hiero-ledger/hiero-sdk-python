@@ -88,13 +88,15 @@ class TransactionReceipt:
         """
         Retrieves the AccountId associated with the transaction receipt, if available.
 
+        Unlike other ID properties (token_id, file_id, etc.), this returns the AccountId
+        even when accountNum is 0. This is intentional to support EVM auto-account creation
+        scenarios where the protobuf may contain an AccountID with num=0 to identify the
+        newly created account before it's fully initialized on-chain.
+
         Returns:
-            AccountId or None: The AccountId if present; otherwise, None.
+            AccountId or None: The AccountId if present (including num=0); otherwise, None.
         """
         if self._receipt_proto.HasField("accountID"):
-            # Return AccountId whenever the field is present in protobuf.
-            # Previously filtered accountNum==0, but EVM auto-account creation
-            # receipts may have accountNum=0 initially, so return them too.
             return AccountId._from_proto(self._receipt_proto.accountID)
         return None
 

@@ -473,3 +473,30 @@ def test_duplicate_receipts_with_account_id(transaction_id):
         assert duplicate_receipt.account_id.num == 999
         # Duplicates retain parent transaction_id for context (unlike children which have None)
         assert duplicate_receipt.transaction_id == transaction_id
+
+
+def test_account_id_returns_none_when_not_set(transaction_id):
+    """Test that account_id returns None when accountID is not set in the protobuf."""
+    response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+                # Note: accountID is NOT set
+            ),
+            child_transaction_receipts=[],
+        )
+    )
+
+    with mock_hedera_servers([[response]]) as client:
+        result = (
+            TransactionGetReceiptQuery()
+            .set_transaction_id(transaction_id)
+            .set_include_children(True)
+            .execute(client)
+        )
+
+        # Verify: account_id is None when accountID is not set in protobuf
+        assert result.account_id is None
