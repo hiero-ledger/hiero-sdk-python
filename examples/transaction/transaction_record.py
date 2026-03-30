@@ -1,5 +1,5 @@
 """
-Simple example: Exploring TransactionRecord fields
+Simple example: Exploring TransactionRecord fields.
 
 This example creates a mock TransactionRecord with sample data and prints all fields
 in a readable format.
@@ -15,6 +15,8 @@ from collections import defaultdict
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.hapi.services import transaction_receipt_pb2
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.assessed_custom_fee import AssessedCustomFee
@@ -24,8 +26,6 @@ from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_record import TransactionRecord
 
-from hiero_sdk_python.hapi.services import transaction_receipt_pb2
-from hiero_sdk_python.response_code import ResponseCode
 
 def create_mock_record():
     """Create a mock TransactionRecord with sample values for all fields."""
@@ -149,6 +149,7 @@ def print_all_fields(record):
     _print_new_fields(record)
     
 def main():
+    """Run the TransactionRecord example."""
     print("Creating mock TransactionRecord...\n")
     record = create_mock_record()
     print_all_fields(record)

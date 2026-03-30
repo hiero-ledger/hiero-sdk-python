@@ -1,4 +1,6 @@
 """
+Module for the TransactionRecord class.
+
 This module implements the TransactionRecord class which represents a complete record
 of a transaction executed on the Hiero network. It serves as a comprehensive data
 structure that captures all aspects of a transaction's execution and its effects.
@@ -16,28 +18,29 @@ The module provides functionality to:
 
 """
 
+from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.hapi.services import transaction_record_pb2
+from hiero_sdk_python.schedule.schedule_id import ScheduleId
+from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.assessed_custom_fee import AssessedCustomFee
 from hiero_sdk_python.tokens.token_airdrop_pending_record import PendingAirdropRecord
+from hiero_sdk_python.tokens.token_association import TokenAssociation
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.schedule.schedule_id import ScheduleId
-from hiero_sdk_python.tokens.assessed_custom_fee import AssessedCustomFee
-from hiero_sdk_python.tokens.token_association import TokenAssociation
 
 
 @dataclass
 class TransactionRecord:
     """
     Represents a record of a completed transaction on the Hiero network.
+    
     This class combines detailed information about the a transaction including the
     transaction ID, receipt, token and NFT transfers, fees & other
     metadata such as pseudo-random number generation(PRNG) results and 
@@ -80,33 +83,33 @@ class TransactionRecord:
                                                           Result of a contract creation transaction (if applicable)                                           
     """
 
-    transaction_id: Optional[TransactionId] = None
-    transaction_hash: Optional[bytes] = None
-    transaction_memo: Optional[str] = None
-    transaction_fee: Optional[int] = None
-    receipt: Optional[TransactionReceipt] = None
-    call_result: Optional[ContractFunctionResult] = None
+    transaction_id: TransactionId | None = None
+    transaction_hash: bytes | None = None
+    transaction_memo: str | None = None
+    transaction_fee: int | None = None
+    receipt: TransactionReceipt | None = None
+    call_result: ContractFunctionResult | None = None
 
     token_transfers: defaultdict[TokenId, defaultdict[AccountId, int]] = field(default_factory=lambda: defaultdict(lambda: defaultdict(int)))
     nft_transfers: defaultdict[TokenId, list[TokenNftTransfer]] = field(default_factory=lambda: defaultdict(list[TokenNftTransfer]))
     transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
     new_pending_airdrops: list[PendingAirdropRecord] = field(default_factory=list)
 
-    prng_number: Optional[int] = None
-    prng_bytes: Optional[bytes] = None
-    duplicates: list['TransactionRecord'] = field(default_factory=list)
-    children: list['TransactionRecord'] = field(default_factory=list)
+    prng_number: int | None = None
+    prng_bytes: bytes | None = None
+    duplicates: list[TransactionRecord] = field(default_factory=list)
+    children: list[TransactionRecord] = field(default_factory=list)
     
-    consensus_timestamp: Optional[Timestamp] = None
-    schedule_ref: Optional[ScheduleId] = None
+    consensus_timestamp: Timestamp | None = None
+    schedule_ref: ScheduleId | None = None
     assessed_custom_fees: list[AssessedCustomFee] = field(default_factory=list)
     automatic_token_associations: list[TokenAssociation] = field(default_factory=list)
-    parent_consensus_timestamp: Optional[Timestamp] = None
-    alias: Optional[bytes] = None
-    ethereum_hash: Optional[bytes] = None
+    parent_consensus_timestamp: Timestamp | None = None
+    alias: bytes | None = None
+    ethereum_hash: bytes | None = None
     paid_staking_rewards: list[tuple[AccountId, int]] = field(default_factory=list)
-    evm_address: Optional[bytes] = None
-    contract_create_result: Optional[ContractFunctionResult] = None
+    evm_address: bytes | None = None
+    contract_create_result: ContractFunctionResult | None = None
 
     def __repr__(self) -> str:
         """Returns a human-readable string representation of the TransactionRecord.
@@ -158,10 +161,10 @@ class TransactionRecord:
     def _from_proto(
         cls,
         proto: transaction_record_pb2.TransactionRecord,
-        transaction_id: Optional[TransactionId] = None,
-        duplicates: Optional[list['TransactionRecord']] = None,
-        children: Optional[list['TransactionRecord']] = None,
-    ) -> 'TransactionRecord':
+        transaction_id: TransactionId | None = None,
+        duplicates: list[TransactionRecord] | None = None,
+        children: list[TransactionRecord] | None = None,
+    ) -> TransactionRecord:
         """Creates a TransactionRecord instance from a protobuf transaction record.
 
         This method performs complex data aggregation from the protobuf message,
@@ -200,7 +203,14 @@ class TransactionRecord:
         token_transfers, nft_transfers = cls._parse_token_transfers(proto)
         transfers = cls._parse_hbar_transfers(proto)
         new_pending_airdrops = cls._parse_pending_airdrops(proto)
-        call_result = cls._parse_contract_call_result(proto)
+        call_result = None
+        contract_create_result = None
+
+        body_case = proto.WhichOneof("body")
+        if body_case == "contractCallResult":
+            call_result = ContractFunctionResult._from_proto(proto.contractCallResult)
+        elif body_case == "contractCreateResult":
+            contract_create_result = ContractFunctionResult._from_proto(proto.contractCreateResult)
 
         consensus_timestamp = (
             Timestamp._from_protobuf(proto.consensusTimestamp)
@@ -272,7 +282,7 @@ class TransactionRecord:
     @staticmethod
     def _resolve_transaction_id(
         proto: transaction_record_pb2.TransactionRecord,
-        transaction_id: Optional[TransactionId],
+        transaction_id: TransactionId | None,
     ) -> TransactionId:
         """Resolves the transaction ID from proto or raises error if not available."""
         if proto.HasField("transactionID"):
@@ -330,7 +340,7 @@ class TransactionRecord:
     @staticmethod
     def _parse_contract_call_result(
         proto: transaction_record_pb2.TransactionRecord,
-    ) -> Optional[ContractFunctionResult]:
+    ) -> ContractFunctionResult | None:
         """Parses contract call result from proto if present."""
         if proto.HasField("contractCallResult"):
             return ContractFunctionResult._from_proto(proto.contractCallResult)
@@ -382,11 +392,12 @@ class TransactionRecord:
             memo=self.transaction_memo,
             transactionFee=self.transaction_fee,
             receipt=self.receipt._to_proto() if self.receipt else None,
-            contractCallResult=(
-                self.call_result._to_proto() if self.call_result else None
-            ),
         )
         
+        if self.call_result is not None:
+            record_proto.contractCallResult.CopyFrom(self.call_result._to_proto())
+        elif self.contract_create_result is not None:
+            record_proto.contractCreateResult.CopyFrom(self.contract_create_result._to_proto())
         if self.prng_number is not None:
                 record_proto.prng_number = self.prng_number
         if self.prng_bytes is not None:
@@ -451,4 +462,3 @@ class TransactionRecord:
             record_proto.contractCreateResult.CopyFrom(self.contract_create_result._to_proto())
 
         return record_proto
-

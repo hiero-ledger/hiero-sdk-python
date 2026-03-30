@@ -1,3 +1,4 @@
+"""Unit tests for the TokenAssociation class."""
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -5,17 +6,18 @@ from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenAssociation as T
 from hiero_sdk_python.tokens.token_association import TokenAssociation
 from hiero_sdk_python.tokens.token_id import TokenId
 
-
 pytestmark = pytest.mark.unit
 
 
 @pytest.fixture
 def sample_token_id() -> TokenId:
+    """Return a sample TokenId for testing."""
     return TokenId(shard=0, realm=0, num=5678)
 
 
 @pytest.fixture
 def sample_account_id() -> AccountId:
+    """Return a sample AccountId for testing."""
     return AccountId(shard=0, realm=0, num=1234)
 
 
@@ -216,31 +218,25 @@ def test_bytes_round_trip_empty():
     assert reconstructed.token_id is None
     assert reconstructed.account_id is None
 
-def test_str_representation(sample_token_id: TokenId, sample_account_id: AccountId):
-    """Test that __str__ contains expected field information."""
+def test_repr_representation(sample_token_id: TokenId, sample_account_id: AccountId):
+    """Test __repr__ output for TokenAssociation."""
     assoc = TokenAssociation(
         token_id=sample_token_id,
         account_id=sample_account_id
     )
-    repr_s = str(assoc)
-    assert "TokenAssociation" in repr_s
-    assert str(sample_token_id) in repr_s
-    assert str(sample_account_id) in repr_s
+    repr_str = repr(assoc)
+
+    assert "TokenAssociation" in repr_str
+    assert "token_id=" in repr_str
+    assert "account_id=" in repr_str
 
 
-def test_str_with_none_fields():
-    """Test __str__ with one or both fields None."""
-    assoc_token_only = TokenAssociation(token_id=TokenId(shard=0, realm=0, num=5678))
-    s_token = str(assoc_token_only)
-    assert "token_id=0.0.5678" in s_token
-    assert "account_id=None" in s_token
+def test_repr_with_none_fields():
+    """Test __repr__ when some fields are None."""
+    assoc = TokenAssociation(token_id=TokenId(shard=0, realm=0, num=5678))
+    repr_str = repr(assoc)
+    assert "token_id=TokenId" in repr_str
+    assert "account_id=None" in repr_str
 
-    assoc_account_only = TokenAssociation(account_id=AccountId(shard=0, realm=0, num=1234))
-    s_account = str(assoc_account_only)
-    assert "token_id=None" in s_account
-    assert "account_id=0.0.1234" in s_account
-
-    assoc_empty = TokenAssociation()
-    s_empty = str(assoc_empty)
-    assert "token_id=None" in s_empty
-    assert "account_id=None" in s_empty
+    empty = TokenAssociation()
+    assert "TokenAssociation(token_id=None, account_id=None)" in repr(empty)

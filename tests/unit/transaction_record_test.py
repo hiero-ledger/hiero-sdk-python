@@ -1,24 +1,28 @@
-from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
-from hiero_sdk_python.tokens.token_airdrop_pending_record import PendingAirdropRecord
-import pytest
+"""Unit tests for the TransactionRecord class functionality."""
+
 from collections import defaultdict
+
+import pytest
+
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
-from hiero_sdk_python.transaction.transaction_record import TransactionRecord
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.hapi.services import (
-    transaction_record_pb2,
-    transaction_receipt_pb2,
-)
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.hapi.services import (
+    transaction_receipt_pb2,
+    transaction_record_pb2,
+)
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.assessed_custom_fee import AssessedCustomFee
+from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
+from hiero_sdk_python.tokens.token_airdrop_pending_record import PendingAirdropRecord
 from hiero_sdk_python.tokens.token_association import TokenAssociation
-from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
+from hiero_sdk_python.transaction.transaction_id import TransactionId  # noqa: F401
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.transaction.transaction_record import TransactionRecord
 
 pytestmark = pytest.mark.unit
 
@@ -79,7 +83,7 @@ def transaction_record(transaction_id):
 @pytest.fixture
 def proto_transaction_record(transaction_id):
     """Create a mock transaction record protobuf."""
-    proto = transaction_record_pb2.TransactionRecord(
+    return transaction_record_pb2.TransactionRecord(
         transactionHash=b'\x01\x02\x03\x04' * 12,
         memo="Test transaction memo",
         transactionFee=100000,
@@ -87,10 +91,9 @@ def proto_transaction_record(transaction_id):
         transactionID=transaction_id._to_proto(),
         prng_number=100,
     )
-    return proto
 
 def test_transaction_record_initialization(transaction_record, transaction_id):
-    """Test the initialization of the TransactionRecord class"""
+    """Test the initialization of the TransactionRecord class."""
     assert transaction_record.transaction_id == transaction_id
     assert transaction_record.transaction_hash == b'\x01\x02\x03\x04' * 12
     assert transaction_record.transaction_memo == "Test transaction memo"
@@ -103,7 +106,7 @@ def test_transaction_record_initialization(transaction_record, transaction_id):
 
 
 def test_transaction_record_default_initialization():
-    """Test the default initialization of the TransactionRecord class"""
+    """Test the default initialization of the TransactionRecord class."""
     record = TransactionRecord()
     assert record.transaction_id is None
     assert record.transaction_hash is None
@@ -134,7 +137,7 @@ def test_transaction_record_default_initialization():
     assert record.contract_create_result is None
 
 def test_from_proto(proto_transaction_record, transaction_id):
-    """Test the from_proto method of the TransactionRecord class"""
+    """Test the from_proto method of the TransactionRecord class."""
     record = TransactionRecord._from_proto(proto_transaction_record, transaction_id)
 
     assert record.transaction_id == transaction_id
@@ -158,7 +161,7 @@ def test_from_proto(proto_transaction_record, transaction_id):
     assert record.contract_create_result is None
 
 def test_from_proto_with_transfers(transaction_id):
-    """Test from_proto with HBAR transfers"""
+    """Test from_proto with HBAR transfers."""
     proto = transaction_record_pb2.TransactionRecord()
     transfer = proto.transferList.accountAmounts.add()
     transfer.accountID.CopyFrom(AccountId(0, 0, 200)._to_proto())
@@ -168,7 +171,7 @@ def test_from_proto_with_transfers(transaction_id):
     assert record.transfers[AccountId(0, 0, 200)] == 1000
 
 def test_from_proto_with_token_transfers(transaction_id):
-    """Test from_proto with token transfers"""
+    """Test from_proto with token transfers."""
     proto = transaction_record_pb2.TransactionRecord()
     token_list = proto.tokenTransferLists.add()
     token_list.token.CopyFrom(TokenId(0, 0, 300)._to_proto())
@@ -181,7 +184,7 @@ def test_from_proto_with_token_transfers(transaction_id):
     assert record.token_transfers[TokenId(0, 0, 300)][AccountId(0, 0, 200)] == 500
 
 def test_from_proto_with_nft_transfers(transaction_id):
-    """Test from_proto with NFT transfers"""
+    """Test from_proto with NFT transfers."""
     proto = transaction_record_pb2.TransactionRecord()
     token_list = proto.tokenTransferLists.add()
     token_list.token.CopyFrom(TokenId(0, 0, 300)._to_proto())
@@ -198,10 +201,10 @@ def test_from_proto_with_nft_transfers(transaction_id):
     assert transfer.sender_id == AccountId(0, 0, 100)
     assert transfer.receiver_id == AccountId(0, 0, 200)
     assert transfer.serial_number == 1
-    assert transfer.is_approved == False
+    assert transfer.is_approved is False
 
 def test_from_proto_with_new_pending_airdrops(transaction_id):
-    """Test from_proto with Pending Airdrops"""
+    """Test from_proto with Pending Airdrops."""
     sender = AccountId(0,0,100)
     receiver = AccountId(0,0,200)
     token_id = TokenId(0,0,1)
@@ -221,7 +224,7 @@ def test_from_proto_with_new_pending_airdrops(transaction_id):
 
 
 def test_from_proto_with_prng_number(transaction_id):
-    """Test from_proto with prng_number set"""
+    """Test from_proto with prng_number set."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.prng_number = 42
 
@@ -231,7 +234,7 @@ def test_from_proto_with_prng_number(transaction_id):
 
 
 def test_from_proto_with_prng_bytes(transaction_id):
-    """Test from_proto with prng_bytes set"""
+    """Test from_proto with prng_bytes set."""
     proto = transaction_record_pb2.TransactionRecord()
     proto.prng_bytes = b"123"
 
@@ -369,7 +372,7 @@ def test_from_proto_with_contract_create_result(transaction_id):
     assert record.contract_create_result.contract_call_result == b"Created!"
 
 def test_to_proto(transaction_record, transaction_id):
-    """Test the to_proto method of the TransactionRecord class"""
+    """Test the to_proto method of the TransactionRecord class."""
     proto = transaction_record._to_proto()
 
     assert proto.transactionHash == b'\x01\x02\x03\x04' * 12
@@ -381,7 +384,7 @@ def test_to_proto(transaction_record, transaction_id):
     assert proto.prng_bytes == b""
 
 def test_proto_conversion(transaction_record):
-    """Test converting TransactionRecord to proto and back preserves data"""
+    """Test converting TransactionRecord to proto and back preserves data."""
     proto = transaction_record._to_proto()
     converted = TransactionRecord._from_proto(proto, transaction_record.transaction_id)
 
@@ -394,7 +397,7 @@ def test_proto_conversion(transaction_record):
     assert converted.prng_bytes is None
 
 def test_proto_conversion_with_transfers(transaction_id):
-    """Test proto conversion preserves transfer data"""
+    """Test proto conversion preserves transfer data."""
     record = TransactionRecord()
     record.transfers = defaultdict(int)
     record.transfers[AccountId(0, 0, 100)] = -1000
@@ -407,7 +410,7 @@ def test_proto_conversion_with_transfers(transaction_id):
     assert converted.transfers[AccountId(0, 0, 200)] == 1000
 
 def test_proto_conversion_with_token_transfers(transaction_id):
-    """Test proto conversion preserves token transfer data"""
+    """Test proto conversion preserves token transfer data."""
     record = TransactionRecord()
     token_id = TokenId(0, 0, 300)
     record.token_transfers = defaultdict(lambda: defaultdict(int))
@@ -421,7 +424,7 @@ def test_proto_conversion_with_token_transfers(transaction_id):
     assert converted.token_transfers[token_id][AccountId(0, 0, 200)] == 500
 
 def test_proto_conversion_with_nft_transfers(transaction_id):
-    """Test proto conversion preserves NFT transfer data"""
+    """Test proto conversion preserves NFT transfer data."""
     record = TransactionRecord()
     token_id = TokenId(0, 0, 300)
     nft_transfer = TokenNftTransfer(
@@ -442,10 +445,10 @@ def test_proto_conversion_with_nft_transfers(transaction_id):
     assert transfer.sender_id == AccountId(0, 0, 100)
     assert transfer.receiver_id == AccountId(0, 0, 200)
     assert transfer.serial_number == 1
-    assert transfer.is_approved == False
+    assert not transfer.is_approved
 
 def test_proto_conversion_with_new_pending_airdrops(transaction_id):
-    """Test proto conversion preserves PendingAirdropsRecord"""
+    """Test proto conversion preserves PendingAirdropsRecord."""
     sender = AccountId(0,0,100)
     receiver = AccountId(0,0,200)
     token_id = TokenId(0,0,1)
@@ -742,7 +745,7 @@ def test_from_proto_raises_when_no_transaction_id_available():
 
 
 def test_transaction_record_children_not_shared_between_instances():
-    """children not shared between two different instances"""
+    """Children not shared between two different instances."""
     r1 = TransactionRecord()
     r2 = TransactionRecord()
 
@@ -752,6 +755,7 @@ def test_transaction_record_children_not_shared_between_instances():
     assert len(r2.children) == 0
 
 def test_round_trip_consensus_timestamp(transaction_id):
+    """Test consensus timestamp survives protobuf round-trip."""
     ts = Timestamp(1234567890, 500000000)
     original = TransactionRecord(consensus_timestamp=ts)
     proto = original._to_proto()
@@ -760,6 +764,7 @@ def test_round_trip_consensus_timestamp(transaction_id):
 
 
 def test_round_trip_schedule_ref(transaction_id):
+    """Test schedule reference survives protobuf round-trip."""
     sched = ScheduleId(0, 0, 9999)
     original = TransactionRecord(schedule_ref=sched)
     proto = original._to_proto()
@@ -768,6 +773,7 @@ def test_round_trip_schedule_ref(transaction_id):
 
 
 def test_round_trip_assessed_custom_fees(transaction_id):
+    """Test custom fees survive protobuf round-trip."""
     fee = AssessedCustomFee(
         amount=500000000,
         fee_collector_account_id=AccountId(0, 0, 98)
@@ -780,6 +786,7 @@ def test_round_trip_assessed_custom_fees(transaction_id):
 
 
 def test_round_trip_automatic_token_associations(transaction_id):
+    """Test token associations survive protobuf round-trip."""
     assoc = TokenAssociation(
         token_id=TokenId(0, 0, 5678),
         account_id=AccountId(0, 0, 1234)
@@ -792,6 +799,7 @@ def test_round_trip_automatic_token_associations(transaction_id):
 
 
 def test_round_trip_parent_consensus_timestamp(transaction_id):
+    """Test parent timestamp survives protobuf round-trip."""
     ts = Timestamp(9876543210, 0)
     original = TransactionRecord(parent_consensus_timestamp=ts)
     proto = original._to_proto()
@@ -800,6 +808,7 @@ def test_round_trip_parent_consensus_timestamp(transaction_id):
 
 
 def test_round_trip_alias(transaction_id):
+    """Test alias bytes survive protobuf round-trip."""
     original = TransactionRecord(alias=b'\x12\x34')
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
@@ -807,6 +816,7 @@ def test_round_trip_alias(transaction_id):
 
 
 def test_round_trip_ethereum_hash(transaction_id):
+    """Test ethereum hash survives protobuf round-trip."""
     original = TransactionRecord(ethereum_hash=b'\xab' * 32)
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
@@ -814,6 +824,7 @@ def test_round_trip_ethereum_hash(transaction_id):
 
 
 def test_round_trip_paid_staking_rewards(transaction_id):
+    """Test staking rewards survive protobuf round-trip."""
     rewards = [(AccountId(0, 0, 456), 1000000)]
     original = TransactionRecord(paid_staking_rewards=rewards)
     proto = original._to_proto()
@@ -822,6 +833,7 @@ def test_round_trip_paid_staking_rewards(transaction_id):
 
 
 def test_round_trip_evm_address(transaction_id):
+    """Test EVM address survives protobuf round-trip."""
     original = TransactionRecord(evm_address=b'\x12' * 20)
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
@@ -829,6 +841,7 @@ def test_round_trip_evm_address(transaction_id):
 
 
 def test_round_trip_contract_create_result(transaction_id):
+    """Test contract creation result survives round-trip."""
     result = ContractFunctionResult(
         contract_id=ContractId(0, 0, 789),
         contract_call_result=b"Created!"
