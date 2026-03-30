@@ -19,7 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
-
+- chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md (#2021)
 
 ## [0.2.3] - 2026-03-26
 
@@ -52,7 +52,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
 - chore: update spam list #1988
 - chore: Update `bot-advanced-check.yml`, `bot-gfi-assign-on-comment.yml`, `bot-intermediate-assignment.yml`, `bot-linked-issue-enforcer.yml`, `unassign-on-comment.yml`, `working-on-comment.yml` workflow runner configuration
-- chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md (#2021)
 - Fix build failing in `publish.yml`
 
 
