@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
 from tck.util.param_utils import (
     parse_common_transaction_params,
     parse_session_id,
@@ -40,3 +40,12 @@ class CreateAccountParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class GetAccountInfoParams(BaseParams):
+    accountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> "GetAccountInfoParams":
+        return cls(accountId=params.get("accountId"), sessionId=parse_session_id(params))
