@@ -340,7 +340,7 @@ def test_integration_account_update_transaction_with_only_account_id(env):
 
 @pytest.mark.integration
 def test_integration_account_update_transaction_with_max_automatic_token_associations(
-    env,
+    env
 ):
     """Test updating max_automatic_token_associations and verifying it persists."""
     # Create initial account

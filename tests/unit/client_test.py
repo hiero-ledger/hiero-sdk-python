@@ -498,7 +498,7 @@ def test_set_invalid_value_default_max_transaction_fee():
     """Test that set invalid value with set_max_transaction fee."""
     client = Client.for_testnet()
 
-    with pytest.raises(ValueError, match=f"default_max_transaction_fee must be >= 0"):
+    with pytest.raises(ValueError, match="default_max_transaction_fee must be >= 0"):
         client.set_default_max_transaction_fee(Hbar(-1))
 
 
