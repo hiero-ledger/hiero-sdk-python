@@ -6,6 +6,26 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Src
+- 
+
+### Tests
+- Refactor `mock_server` setup for network level TLS handling and added thread safety
+
+
+### Examples
+
+
+### Docs
+
+
+### .github
+- chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md (#2021)
+- Refactored the Advanced Issue Template to V2 with stricter prerequisites and a focus on architectural design (#2016).
+- Refactored the Advanced Issue Template to ensure PR-level quality checklists do not block maintainers during issue creation (#2036)
+
+## [0.2.3] - 2026-03-26
+
 ### Added
 - Add `__repr__` method to `TokenId` class for cleaner debugging output (#1653)
 - Add global `set_default_max_transaction_fee()` to Client. ([#2000](https://github.com/hiero-ledger/hiero-sdk-python/issues/2000))
@@ -15,13 +35,14 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix the TransactionGetReceiptQuery to raise ReceiptStatusError for the non-retryable and non success receipt status
 - Refactor `AccountInfo` to use the existing `StakingInfo` wrapper class instead of flattened staking fields. Access is now via `info.staking_info.staked_account_id`, `info.staking_info.staked_node_id`, and `info.staking_info.decline_reward`. The old flat accessors (`info.staked_account_id`, `info.staked_node_id`, `info.decline_staking_reward`) are still available as deprecated properties and will emit a `DeprecationWarning`. (#1366)
 - Added abstract `Key` supper class to handle various proto Keys.
-
 ### Examples
 
 ### Tests
 - Added TCK endpoint for the createAccount method
 - Renamed `delegate_contract_id.py` to `delegate_contract_id_test.py` (#2004)
 - Fix Flaky tests for `mock_server` by enforcing non-tls port and adding a mock_tls certificate
+- Implement basic fuzz testing [#1872](https://github.com/hiero-ledger/hiero-sdk-python/issues/1872)
+
 
 ### Docs
 - Add Chocolatey as a prerequisite in the Windows setup guide (#1961)
@@ -33,6 +54,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
 - chore: update spam list #1988
 - chore: Update `bot-advanced-check.yml`, `bot-gfi-assign-on-comment.yml`, `bot-intermediate-assignment.yml`, `bot-linked-issue-enforcer.yml`, `unassign-on-comment.yml`, `working-on-comment.yml` workflow runner configuration
+- Fix build failing in `publish.yml`
 
 
 
@@ -121,8 +143,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - docs(setup): specify unit tests for local setup verification. (#1856)
 - docs: Clarify issues need to be assigned in template files. (#1884)
 - doc: Fix testnet link in README.md. (#1879)
-
-
 
 ### Tests
 - Format `tests/unit/endpoint_test.py` using black. (`#1792`)

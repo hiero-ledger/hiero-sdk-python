@@ -1,4 +1,5 @@
 import grpc
+import threading
 from concurrent import futures
 from contextlib import contextmanager
 from hiero_sdk_python.client.network import Network
@@ -6,8 +7,6 @@ from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.client.network import _Node
-import socket
-from contextlib import closing
 from hiero_sdk_python.hapi.services import (
     crypto_service_pb2_grpc,
     token_service_pb2_grpc,
@@ -32,14 +31,15 @@ class MockServer:
             responses (list): List of response objects to return in sequence
         """
         self.responses = responses
+        self._lock = threading.Lock()
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        self.port = _find_free_port()
+       
+        self.port = self.server.add_insecure_port('[::]:0')
         self.address = f"localhost:{self.port}"
 
         self._register_services()
 
         # Start the server
-        self.server.add_insecure_port(self.address)
         self.server.start()
 
     def _register_services(self):
@@ -95,6 +95,7 @@ class MockServer:
             A mock servicer object
         """
         responses = self.responses
+        lock = self._lock;
 
         class MockServicer(servicer_class):
             def __getattribute__(self, name):
@@ -103,12 +104,11 @@ class MockServer:
                     return super().__getattribute__(name)
 
                 def method_wrapper(request, context):
-                    nonlocal responses
-                    if not responses:
-                        # If no more responses are available, return None
-                        return None
+                    with lock:
+                        if not responses:
+                            return None
 
-                    response = responses.pop(0)
+                        response = responses.pop(0)
 
                     if isinstance(response, RealRpcError):
                         # Abort with custom error
@@ -122,21 +122,11 @@ class MockServer:
 
     def close(self):
         """Stop the server."""
-        self.server.stop(0)
+        shutdown_event = self.server.stop(0)
+        success = shutdown_event.wait(timeout=2.0)
 
-
-def _find_free_port():
-    """Find a free port on localhost."""
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(("", 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        port = s.getsockname()[1]
-
-        # If we get the tls port 50212 port skip it
-        if port in [50212]:
-            return port + 1 
-        
-        return port 
+        if not success:
+            pass
 
 
 class RealRpcError(grpc.RpcError):
@@ -172,16 +162,20 @@ def mock_hedera_servers(response_sequences):
         nodes = []
         for i, server in enumerate(servers):
             node = _Node(AccountId(0, 0, 3 + i), server.address, None)
-
-            # force insecure transport and mock cert even if we get the tls-port
-            node._set_root_certificates(b"mock-tls-cert-for-unit-tests")
-            node._apply_transport_security(False)
-            node._set_verify_certificates(False)
-
             nodes.append(node)
 
         # Create network and client
         network = Network(nodes=nodes)
+        network.set_transport_security(False)
+        network.set_verify_certificates(False)
+        client = Client(network)
+
+        # Force non-tls for channel
+        for node in client.network.nodes:
+            node._address._is_transport_security = lambda: False
+            node._set_verify_certificates(False)
+            node._close()
+
         client = Client(network)
         client.logger.set_level(LogLevel.DISABLED)
         # Set the operator
