@@ -30,7 +30,7 @@ jobs:
       - name: Upgrade pip
         run: pip install --upgrade pip
 
-      - name: Install build dependencies
+      - name: Install build, pdm-backend, and grpcio-tools
         run: pip install build pdm-backend "grpcio-tools>=1.76.0"
 
       - name: Generate Protobuf
