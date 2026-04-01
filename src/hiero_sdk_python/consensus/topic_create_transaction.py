@@ -195,7 +195,10 @@ class TopicCreateTransaction(Transaction):
         on `_to_proto_key` continue to work after centralizing the logic in
         `hiero_sdk_python.utils.key_utils.key_to_proto`.
         """
-        return key_to_proto(key)
+        try:
+            return key_to_proto(key)
+        except TypeError as exc:
+            raise TypeError("Key must be of type PrivateKey or PublicKey") from exc
 
     def _build_proto_body(self) -> consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody:
         """
