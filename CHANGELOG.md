@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- 
+- Add global `set_default_max_transaction_fee()` to Client. ([#2000](https://github.com/hiero-ledger/hiero-sdk-python/issues/2000))
 
 ### Tests
 - Refactor `mock_server` setup for network level TLS handling and added thread safety
@@ -28,7 +28,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 - Add `__repr__` method to `TokenId` class for cleaner debugging output (#1653)
-- Add global `set_default_max_transaction_fee()` to Client. ([#2000](https://github.com/hiero-ledger/hiero-sdk-python/issues/2000))
 
 ### Src
 - Updated `AccountUpdateTransaction.set_key()` to accept generic `Key` objects (including `KeyList` and threshold keys), rather than strictly requiring a `PublicKey`.

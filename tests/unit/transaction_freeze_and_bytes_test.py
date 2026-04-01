@@ -636,7 +636,7 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
 
 @pytest.mark.parametrize("value", [0, 1, 100_000_000, Hbar(1)])
 def test_set_transaction_fee(value):
-    """set_transaction_fee() stores valid integer fees."""
+    """set_transaction_fee() stores valid integer and hbar fees."""
     transaction = TransferTransaction()
 
     returned = transaction.set_transaction_fee(value)
