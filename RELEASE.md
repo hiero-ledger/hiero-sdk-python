@@ -22,28 +22,28 @@ MAJOR.MINOR.PATCH
 2. **Update the Changelog**  
    Move your entries from the **[Unreleased]** section in `CHANGELOG.md` to a new version heading with today’s date (e.g., `## [0.2.0] - 2025-02-20`).
 
-3. **Create a Release Branch**  
-   - `release-v0.2.0` or similar (e.g., `release-v0.2.0-beta.1` for beta versions).
-
-4. **Run Tests**  
+3. **Run Tests**  
    - Ensure all tests pass locally (run `pytest`).
    - Confirm CI passes (integration tests, etc.).
 
-5. **Merge into `main`**  
-   - Create a Pull Request from `release-vX.X.X` into `main`.
-   - Wait for code review, ensure everything is green.
+4. **Merge the Release Changes**  
+   - Open a Pull Request to `main` with the version and changelog updates.
+   - Wait for code review and ensure the required checks pass.
 
-6. **Tag the Release**  
-   Once merged, create a git tag with the new version:
+5. **Tag the Release**  
+   Once the release changes are merged, create and push a git tag that matches the publish workflow trigger (`v*.*.*`):
    ```bash
    git tag -a v0.2.0 -m "Release 0.2.0"
    git push origin v0.2.0
    ```
+   - Pre-releases can use a suffix after the semantic version, for example `v0.2.0-beta.1`.
 
-7. **Monitor the Publish Workflow**
-   - Wait for the `Publish to PyPI` workflow triggered by the tag to complete successfully.
-   - Confirm the GitHub release for the tag contains the wheel, source distribution, and matching `.sigstore.json` bundles.
+6. **Monitor the Publish Workflow**
+   - The `.github/workflows/publish.yml` workflow runs automatically when the tag is pushed.
+   - The workflow builds the source distribution and wheel, generates protobufs before packaging, signs the release artifacts with Sigstore, publishes the package to PyPI, and creates or updates the GitHub release.
+   - If the tag contains `-`, the GitHub release is marked as a pre-release.
 
-8. **Verify Published Artifacts**
+7. **Verify Published Artifacts**
    - Confirm the new version is available on PyPI.
-   - If release provenance needs to be audited, use the attached Sigstore bundles from the GitHub release.
+   - Confirm the GitHub release contains the wheel, source distribution, and matching `.sigstore.json` bundles.
+   - If release provenance needs to be audited, use the Sigstore verification materials attached to the GitHub release.
