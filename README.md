@@ -1,5 +1,6 @@
 # Hiero SDK in Python
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/fdb0c570a31b4249bc7f5402f2488cc4)](https://app.codacy.com/gh/hiero-ledger/hiero-sdk-python?utm_source=github.com&utm_medium=referral&utm_content=hiero-ledger/hiero-sdk-python&utm_campaign=Badge_Grade)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-python/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-sdk-python)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
 [![License](https://img.shields.io/badge/license-apache2-blue.svg)](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/LICENSE)
