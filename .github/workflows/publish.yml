@@ -9,13 +9,10 @@ permissions:
   contents: read
 
 jobs:
-  build-and-publish:
+  build:
+    name: Build distributions
     runs-on: hl-sdk-py-lin-md
-    environment:
-      name: pypi
-      url: https://pypi.org/p/hiero-sdk-python
-    permissions:
-      id-token: write
+
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
@@ -28,12 +25,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: '3.14'
+          python-version: "3.14"
 
       - name: Upgrade pip
         run: pip install --upgrade pip
 
-      - name: Install build, pdm-backend, and grpcio-tools
+      - name: Install build dependencies
         run: pip install build pdm-backend "grpcio-tools>=1.76.0"
 
       - name: Generate Protobuf
@@ -42,5 +39,56 @@ jobs:
       - name: Build wheel and sdist
         run: python -m build
 
+      - name: Upload distributions
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: dist
+          path: dist/*
+          if-no-files-found: error
+
+  publish-and-sign:
+    name: Publish and sign release artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/hiero-sdk-python
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Download distributions
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: dist
+          path: dist
+
+      - name: Sign release distributions with Sigstore
+        uses: sigstore/gh-action-sigstore-python@04cffa1d795717b140764e8b640de88853c92acc # v3.3.0
+        with:
+          inputs: |
+            dist/*.whl
+            dist/*.tar.gz
+          verify: true
+          verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/publish.yml@refs/tags/${{ github.ref_name }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
+
+      - name: Upload signed assets to GitHub Release
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.3.3
+        with:
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/*.sigstore.json
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}

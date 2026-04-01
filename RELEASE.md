@@ -38,3 +38,12 @@ MAJOR.MINOR.PATCH
    ```bash
    git tag -a v0.2.0 -m "Release 0.2.0"
    git push origin v0.2.0
+   ```
+
+7. **Monitor the Publish Workflow**
+   - Wait for the `Publish to PyPI` workflow triggered by the tag to complete successfully.
+   - Confirm the GitHub release for the tag contains the wheel, source distribution, and matching `.sigstore.json` bundles.
+
+8. **Verify Published Artifacts**
+   - Confirm the new version is available on PyPI.
+   - If release provenance needs to be audited, use the attached Sigstore bundles from the GitHub release.
