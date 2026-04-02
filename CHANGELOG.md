@@ -29,7 +29,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
 - chore: update spam list #1988
 - chore: Update `bot-advanced-check.yml`, `bot-gfi-assign-on-comment.yml`, `bot-intermediate-assignment.yml`, `bot-linked-issue-enforcer.yml`, `unassign-on-comment.yml`, `working-on-comment.yml` workflow runner configuration
-- chore: Added check for the discussion label in the inactivity bot (`#1583`)
+- chore: Added check for the discussion label in the inactivity bot (#1583)
 
 
 ## [0.2.2] - 2026-03-17
