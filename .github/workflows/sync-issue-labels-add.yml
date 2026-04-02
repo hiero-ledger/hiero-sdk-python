@@ -72,7 +72,7 @@ jobs:
           labels=$(jq -c '.labels // []' "$labels_file")
           pr_number=$(jq -r '.pr_number // 0' "$labels_file")
           is_fork_pr=$(jq -r '.is_fork_pr // false' "$labels_file")
-          dry_run=$(jq -r '.dry_run // false' "$labels_file")
+          dry_run=$(jq -r '.dry_run // "true"' "$labels_file")
           source_event=$(jq -r '.source_event // ""' "$labels_file")
           labels_multiline=$(jq -r '.labels // [] | .[]' "$labels_file")
           labels_count=$(echo "$labels" | jq 'length')
@@ -101,8 +101,25 @@ jobs:
           PR_NUMBER: ${{ steps.read.outputs.pr_number }}
           LABELS: ${{ steps.read.outputs.labels }}
 
+      - name: Determine if labels should be applied
+        id: should_apply
+        run: |
+          if [ "${{ steps.read.outputs.is_fork_pr }}" = "true" ]; then
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+            echo "reason=fork PR" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.validate.outputs.valid_payload }}" != "true" ]; then
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+            echo "reason=invalid payload" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.read.outputs.source_event }}" = "workflow_dispatch" ] && [ "${{ steps.read.outputs.dry_run }}" = "true" ]; then
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+            echo "reason=dry run" >> "$GITHUB_OUTPUT"
+          else
+            echo "apply=true" >> "$GITHUB_OUTPUT"
+            echo "reason=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Add labels to PR
-        if: ${{ steps.read.outputs.is_fork_pr != 'true' && (steps.read.outputs.source_event != 'workflow_dispatch' || steps.read.outputs.dry_run != 'true') && steps.read.outputs.pr_number != '0' && steps.read.outputs.labels_count != '0' && steps.validate.outputs.valid_payload == 'true' }}
+        if: ${{ steps.should_apply.outputs.apply == 'true' }}
         uses: actions-ecosystem/action-add-labels@1a9c3715c0037e96b97bb38cb4c4b56a1f1d4871 # main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
