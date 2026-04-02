@@ -1,226 +1,104 @@
 name: Advanced Issue Template
-description: Create a high-impact issue for experienced contributors with deep familiarity with the codebase
+description: For expert contributors tackling architectural, multi-module, or core-logic changes.
 title: "[Advanced]: "
 labels: ["advanced"]
 assignees: []
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ---
-        ## **Thanks for contributing!** 🚀
-
-        We truly appreciate your interest in tackling an **Advanced issue**.
-
-        This template is designed for work that requires **deep familiarity with the Hiero Python SDK**
-        and confidence making changes that may span multiple modules or affect core behavior.
-
-        The goal is to create issues for contributors who:
-        - have strong familiarity with the Hiero Python SDK internals
-        - are comfortable reasoning about trade-offs and design decisions
-        - can work independently with minimal guidance
-        ---
-
   - type: textarea
-    id: intro
+    id: advanced_contributors
     attributes:
-      label: 🧠 Advanced Contributors
-      description: Who is this issue intended for?
+      label: 🧠 Advanced Contributors — Prerequisites & Expectations
+      description: |
+        REQUIRED: Contributors must meet these thresholds before claiming.
       value: |
-        This issue is intended for contributors who are already very familiar with the
-        [Hiero Python SDK](https://hiero.org) codebase and its architectural patterns.
+        > [!CAUTION]
+        > **Advanced issues are the highest-risk work in this project. We will reject PRs that do not meet these standards.**
 
-        You should feel comfortable:
-        - navigating multiple modules across `src/`
-        - understanding and modifying core SDK abstractions
-        - reasoning about API design and backwards compatibility
-        - updating or extending tests, examples, and documentation as needed
-        - making changes that may affect public-facing behavior
+        ### 🏁 Concrete Prerequisites
+        - **Proven History:** Successfully completed **≥ 10 non-trivial intermediate issues** in this repo.
+        - **Consistency:** **≥ 3–4 months** of active, human-led contributions to this SDK.
+        - **Expertise:** Deep architectural understanding of `_Executable`, `Transaction`, and `Query` base classes.
+        - **Advanced Python:** Demonstrated proficiency with complex patterns (e.g., async concurrency, decorators, or state management) used in the core SDK.
 
-        New developers should start with
-        **Good First Issues** or **Intermediate Issues** first.
+        > [!NOTE]
+        > **Workflow Exception:** For issues focused on **GitHub Actions / Workflows**, the Python-specific thresholds above may be waived if the contributor demonstrates expert-level proficiency in CI/CD security and automation.
+
+        ### ⚠️ AI Usage Policy
+        Using AI to generate code for Advanced issues is **strictly forbidden**. AI may be used only to help explain file relationships. Submitting AI-mined code or unvalidated generated output is grounds for **immediate rejection**.
+
+        ### ⏱️ Timeline & Workflow
+        - **Typical time:** ~1 month / ~50 hours.
+        - 🔴 Completing an advanced issue in 1–3 days is a **red flag** and will likely be rejected.
+        - **Mandatory:** Post your proposed architectural approach as a comment and wait for explicit maintainer approval **before writing any code.**
     validations:
       required: false
-
-  - type: markdown
-    attributes:
-      value: |
-        > [!WARNING]
-        > ### 🧭 What we consider an *Advanced Issue*
-        >
-        > This issue typically:
-        >
-        > - Requires **deep understanding of existing SDK design and behavior**
-        > - May touch **core abstractions**, shared utilities, or cross-cutting concerns
-        > - May involve **non-trivial refactors**, design changes, or behavior extensions
-        > - Has **medium to high risk** if implemented incorrectly
-        > - Requires careful consideration of **backwards compatibility**
-        > - May require updating **tests, examples, and documentation together**
-        >
-        > **What this issue is NOT:**
-        > - A simple bug fix
-        > - A narrowly scoped refactor
-        > - A task solvable by following existing patterns alone
-        >
-        > 📖 Helpful references:
-        > - `docs/sdk_developers/training`
-        > - `docs/sdk_developers/training/setup/project_structure.md`
-        > - `docs/sdk_developers/rebasing.md`
 
   - type: textarea
     id: problem
     attributes:
       label: 🐞 Problem Description
-      description: |
-        Describe the problem in depth.
-
-        You may assume the reader:
-        - understands the overall SDK architecture
-        - can navigate and reason about multiple modules
-        - is comfortable reading and modifying core logic
-
-        Clearly explain:
-        - what the current behavior is
-        - why it is insufficient or incorrect
-        - which components or layers are involved
-        - any relevant historical or design context
-      value: |
-        Describe the problem here.
+      placeholder: "Describe the current limitation or architectural risk here..."
     validations:
       required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        <!-- Example for Problem (hidden in submission) -->
-        ## 🐞 Problem – Example
-
-        The current transaction execution pipeline tightly couples
-        receipt retrieval, record retrieval, and retry logic into a single
-        execution flow.
-
-        This coupling makes it difficult to:
-        - customize retry behavior
-        - extend execution semantics for scheduled or mirror-node-backed workflows
-        - test individual stages of transaction execution in isolation
-
-        Several downstream SDK features would benefit from a clearer separation
-        of concerns in this area.
-
-        Relevant areas:
-        - `src/hiero_sdk_python/transaction/`
-        - `src/hiero_sdk_python/execution/`
-        - `src/hiero_sdk_python/client/`
-
-  - type: textarea
-    id: solution
-    attributes:
-      label: 💡 Proposed / Expected Solution
-      description: |
-        Describe the intended direction or design.
-
-        This should include:
-        - the high-level approach
-        - any new abstractions or changes to existing ones
-        - constraints (e.g. backwards compatibility, performance, API stability)
-        - known alternatives and why they were rejected (if applicable)
-
-        A full design document is not required, but reasoning and intent should be clear.
-      value: |
-        Describe the proposed solution here.
-    validations:
-      required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        <!-- Example for Solution (hidden in submission) -->
-        ## 💡 Proposed Solution – Example
-
-        Introduce a dedicated execution pipeline abstraction that separates:
-        - transaction submission
-        - receipt polling
-        - record retrieval
-        - retry and timeout logic
-
-        The new design should:
-        - preserve existing public APIs
-        - allow advanced users to override or extend execution behavior
-        - make individual stages independently testable
-
-        Existing transaction execution should be reimplemented
-        using the new pipeline internally.
 
   - type: textarea
     id: implementation
     attributes:
-      label: 🧠 Implementation & Design Notes
-      description: |
-        Provide detailed technical guidance.
-
-        This section is especially important for Advanced issues.
-
-        Consider including:
-        - specific modules or classes involved
-        - suggested refactoring strategy
-        - migration or deprecation concerns
-        - testing strategy
-        - performance or security considerations
+      label: 🛠️ Implementation Notes
       value: |
-        Add detailed implementation notes here.
+        ### Technical domains involved in this issue:
+        - [ ] **API Client Architecture** (request → serialization → execution → response mapping)
+        - [ ] **Backward Compatibility** (preserving method signatures, defaults, and return types)
+        - [ ] **Protobuf Alignment** (reading `.proto` files, `_to_proto()` / `_from_proto()` correctness)
+        - [ ] **State & Immutability** (correct usage of guards like `_require_not_frozen`)
+        - [ ] **Execution Boundaries** (retry logic, backoff, node selection, gRPC deadlines)
+
+        _Replace this with specific implementation notes._
     validations:
       required: false
 
-  - type: markdown
-    attributes:
-      value: |
-        <!-- Example for Implementation Notes (hidden in submission) -->
-        ## 🧠 Implementation Notes – Example
-
-        Suggested approach:
-
-        - Introduce a new `ExecutionPipeline` abstraction under
-          `src/hiero_sdk_python/execution/`
-        - Refactor existing transaction execution logic to delegate
-          to this pipeline
-        - Ensure existing public APIs remain unchanged
-        - Add focused unit tests for each pipeline stage
-        - Update at least one example to demonstrate extensibility
-
-        Care should be taken to avoid breaking timeout semantics
-        relied upon by existing users.
-
   - type: textarea
-    id: acceptance-criteria
+    id: quality_standards
     attributes:
-      label: ✅ Acceptance Criteria
-      description: Define what "done" means for this issue
+      label: 🛡️ Quality & Review Standards
       value: |
-        To merge this issue, the pull request must:
+        The bar for advanced PRs is **"safe, maintainable, architecturally sound, and production-ready."**
 
-        - [ ] Fully address the problem and design goals described above
-        - [ ] Maintain backwards compatibility unless explicitly approved otherwise
-        - [ ] Follow existing architectural and coding conventions
-        - [ ] Include comprehensive tests covering new and existing behavior
-        - [ ] Update relevant examples and documentation
-        - [ ] Pass all CI checks
-        - [ ] Include a valid changelog entry
-        - [ ] be a DCO and GPG key signed as `git commit -S -s -m "chore: my change"` with a GPG key set up
+        ### 🚀 Defining "Production Ready"
+        1. **Architectural Fit:** The solution must fit naturally into the existing SDK abstractions. Avoid "hacks" or isolated logic that bypasses the core execution model.
+        2. **Security & Correctness:** Evaluate all logic for injection risks, state corruption, or thread-safety issues. Every line of code must be manually verified.
+        3. **Maintainability:** Code must be clear enough for any other maintainer to debug without your assistance. Prefer standard patterns over "clever" one-liners.
+        4. **Backward Compatibility:** Public API signatures must be preserved. If a breaking change is required, it must be explicitly managed through a deprecation cycle.
     validations:
-      required: true
+      required: false
 
   - type: textarea
-    id: additional-info
+    id: acceptance
     attributes:
-      label: 📚 Additional Context, Links, or Prior Art
+      label: ✅ PR Quality Checklist
       description: |
-        Add any references that may help:
-        - design docs
-        - prior discussions
-        - related issues or PRs
-        - external references
+        PRE-FILLED. These are the standards the contributor must meet before opening a PR.
       value: |
-        Optional.
+        Before opening your PR, the contributor must confirm:
+        - [ ] I understand the system-wide impact of these changes on affected modules and performance.
+        - [ ] The system design fits with current Hiero SDK architectural approaches.
+        - [ ] I have tested my changes extensively against both local and network environments.
+        - [ ] I have verified naming, types, and field ordering against pinned Protobufs (v0.72.0-rc.2).
+        - [ ] Every line of code is personally understood and explainable (no unvalidated AI code).
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: 📚 Resources & Support
+      value: |
+        **Project References:**
+        - [SDK Project Structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
+        - [Transaction Lifecycle](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/transaction_lifecycle.md)
+        - [Hedera Protobufs (v0.72.0-rc.2)](https://github.com/hashgraph/hedera-protobufs/tree/v0.72.0-rc.2/services)
+
+        **🆘 Stuck?**
+        - [Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338) (Wednesdays, 2pm UTC)
+        - [Discord #hiero-python-sdk](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)
     validations:
       required: false

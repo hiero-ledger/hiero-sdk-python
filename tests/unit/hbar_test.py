@@ -39,6 +39,13 @@ def test_constructor_non_finite_amount_value(invalid_amount):
         Hbar(invalid_amount)
 
 
+@pytest.mark.parametrize("invalid_amount", [Decimal("Infinity"), Decimal("NaN")])
+def test_constructor_non_finite_decimal_amount_value(invalid_amount):
+    """Test creation raises errors for non-finite Decimal amounts."""
+    with pytest.raises(ValueError, match="Hbar amount must be finite"):
+        Hbar(invalid_amount)
+
+
 def test_constructor_with_tinybar_unit():
     """Test creation with unit set to HbarUnit.TINYBAR."""
     hbar1 = Hbar(50, unit=HbarUnit.TINYBAR)
@@ -83,6 +90,12 @@ def test_constructor_fractional_tinybar():
         Hbar(0.1, unit=HbarUnit.TINYBAR)
 
 
+def test_constructor_fractional_non_tinybar_amount():
+    """Test creation rejects values that do not map to an integral tinybar amount."""
+    with pytest.raises(ValueError, match="Fractional tinybar value not allowed"):
+        Hbar(Decimal("0.000000001"), unit=HbarUnit.HBAR)
+
+
 def test_constructor_invalid_type():
     """Test creation of Hbar with invalid type."""
     with pytest.raises(
@@ -100,6 +113,22 @@ def test_from_string():
     assert Hbar.from_string("-1.5 mℏ").to_tinybars() == -150_000
     assert Hbar.from_string("+3").to_tinybars() == 300_000_000
     assert Hbar.from_string("-3").to_tinybars() == -300_000_000
+
+
+def test_to_tinybars_preserves_large_integer_values():
+    """to_tinybars() should not lose precision for integers above float-safe range."""
+    tinybars = 9_007_199_254_740_993  # 2^53 + 1
+    hbar = Hbar.from_tinybars(tinybars)
+
+    assert hbar.to_tinybars() == tinybars
+
+
+def test_from_string_preserves_large_integer_hbar_values():
+    """Parsing large whole hbar values should preserve the exact tinybar amount."""
+    hbar_amount = "90071992.54740993"
+    expected_tinybars = 9_007_199_254_740_993
+
+    assert Hbar.from_string(hbar_amount).to_tinybars() == expected_tinybars
 
 
 @pytest.mark.parametrize(
