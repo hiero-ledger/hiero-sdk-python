@@ -67,6 +67,7 @@ GH_MOCK_DIR="${GH_MOCK_DIR:-/tmp/gh_mock_data}"
 # Parse command
 if [[ "$1" == "api" ]]; then
   # Handle API calls
+  # Accept production flags like --paginate and -H, but treat fixtures as single-page responses.
   endpoint=""
   for arg in "$@"; do
     if [[ "$arg" =~ ^repos/ ]] || [[ "$arg" =~ ^issues/ ]]; then
@@ -74,12 +75,37 @@ if [[ "$1" == "api" ]]; then
       break
     fi
   done
+
+  jq_filter=""
+  if [[ "$*" == *"--jq"* ]]; then
+    args=("$@")
+    for i in "${!args[@]}"; do
+      if [[ "${args[i]}" == "--jq" ]]; then
+        next=$((i + 1))
+        if (( next < ${#args[@]} )); then
+          jq_filter="${args[next]}"
+        fi
+        break
+      elif [[ "${args[i]}" == --jq=* ]]; then
+        jq_filter="${args[i]#--jq=}"
+        break
+      fi
+    done
+  fi
   
   # Return mock data based on endpoint
   if [[ -f "$GH_MOCK_DIR/${endpoint//\//_}.json" ]]; then
-    cat "$GH_MOCK_DIR/${endpoint//\//_}.json"
+    if [[ -n "$jq_filter" ]]; then
+      cat "$GH_MOCK_DIR/${endpoint//\//_}.json" | jq -r "$jq_filter" 2>/dev/null || echo ""
+    else
+      cat "$GH_MOCK_DIR/${endpoint//\//_}.json"
+    fi
   else
-    echo "[]"
+    if [[ -n "$jq_filter" ]]; then
+      echo "[]" | jq -r "$jq_filter" 2>/dev/null || echo ""
+    else
+      echo "[]"
+    fi
   fi
   
 elif [[ "$1" == "pr" && "$2" == "view" ]]; then
@@ -88,10 +114,37 @@ elif [[ "$1" == "pr" && "$2" == "view" ]]; then
   
   # Check if asking for state
   if [[ "$*" == *"--json state"* ]]; then
-    if [[ -f "$GH_MOCK_DIR/pr_${pr_num}_state.json" ]]; then
-      cat "$GH_MOCK_DIR/pr_${pr_num}_state.json"
+    if [[ "$*" == *"--jq"* ]]; then
+      jq_filter=""
+      args=("$@")
+      for i in "${!args[@]}"; do
+        if [[ "${args[i]}" == "--jq" ]]; then
+          next=$((i + 1))
+          if (( next < ${#args[@]} )); then
+            jq_filter="${args[next]}"
+          fi
+          break
+        elif [[ "${args[i]}" == --jq=* ]]; then
+          jq_filter="${args[i]#--jq=}"
+          break
+        fi
+      done
+
+      if [[ -f "$GH_MOCK_DIR/pr_${pr_num}_state.json" ]]; then
+        if [[ -n "$jq_filter" ]]; then
+          cat "$GH_MOCK_DIR/pr_${pr_num}_state.json" | jq -r "$jq_filter" 2>/dev/null || echo ""
+        else
+          cat "$GH_MOCK_DIR/pr_${pr_num}_state.json"
+        fi
+      else
+        echo '{"state":"OPEN"}'
+      fi
     else
-      echo '{"state":"OPEN"}'
+      if [[ -f "$GH_MOCK_DIR/pr_${pr_num}_state.json" ]]; then
+        cat "$GH_MOCK_DIR/pr_${pr_num}_state.json"
+      else
+        echo '{"state":"OPEN"}'
+      fi
     fi
   # Check if asking for labels
   elif [[ "$*" == *"--json labels"* ]]; then
@@ -171,7 +224,7 @@ elif [[ "$1" == "issue" && "$2" == "edit" ]]; then
         break
       fi
     done  
-    fi
+  fi
   echo "Issue edited"
   
 elif [[ "$1" == "auth" && "$2" == "status" ]]; then
@@ -233,6 +286,26 @@ EOF
 EOF
 }
 
+setup_labeled_pr_with_linked_issue() {
+  local issue_num="$1"
+  local pr_num="$2"
+  local assignee="$3"
+  local label_name="$4"
+
+  setup_issue_with_linked_pr "$issue_num" "$pr_num" "$assignee"
+
+  echo '{"state":"OPEN"}' > "$GH_MOCK_DIR/pr_${pr_num}_state.json"
+  cat > "$GH_MOCK_DIR/pr_${pr_num}_labels.json" << EOF
+{"labels":[{"name":"$label_name"}]}
+EOF
+
+  local old_date
+  old_date=$(date -u -v-25d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "25 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  cat > "$GH_MOCK_DIR/repos_${TEST_REPO//\//_}_pulls_${pr_num}_commits.json" << EOF
+[{"commit":{"committer":{"date":"$old_date"}}}]
+EOF
+}
+
 # Setup mock data for a PR with discussion label
 setup_pr_with_discussion_label() {
   local pr_num="$1"
@@ -244,7 +317,8 @@ setup_pr_with_discussion_label() {
 EOF
   
   # Mock stale commits (21+ days old)
-  local old_date=$(date -u -v-25d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "25 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  local old_date
+  old_date=$(date -u -v-25d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "25 days ago" +"%Y-%m-%dT%H:%M:%SZ")
   cat > "$GH_MOCK_DIR/repos_${TEST_REPO//\//_}_pulls_${pr_num}_commits.json" << EOF
 [{"commit":{"committer":{"date":"$old_date"}}}]
 EOF
@@ -260,7 +334,8 @@ setup_stale_pr_without_discussion() {
   echo '{"labels":[{"name":"bug"}]}' > "$GH_MOCK_DIR/pr_${pr_num}_labels.json"
   
   # Mock stale commits
-  local old_date=$(date -u -v-25d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "25 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  local old_date
+  old_date=$(date -u -v-25d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "25 days ago" +"%Y-%m-%dT%H:%M:%SZ")
   cat > "$GH_MOCK_DIR/repos_${TEST_REPO//\//_}_pulls_${pr_num}_commits.json" << EOF
 [{"commit":{"committer":{"date":"$old_date"}}}]
 EOF
@@ -276,7 +351,8 @@ setup_active_pr() {
   echo '{"labels":[{"name":"feature"}]}' > "$GH_MOCK_DIR/pr_${pr_num}_labels.json"
   
   # Mock recent commits
-  local recent_date=$(date -u -v-5d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "5 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  local recent_date
+  recent_date=$(date -u -v-5d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "5 days ago" +"%Y-%m-%dT%H:%M:%SZ")
   cat > "$GH_MOCK_DIR/repos_${TEST_REPO//\//_}_pulls_${pr_num}_commits.json" << EOF
 [{"commit":{"committer":{"date":"$recent_date"}}}]
 EOF
@@ -334,9 +410,13 @@ test_stale_pr_without_discussion_closed() {
   echo "Test 2: Stale PR without 'discussion' label should be closed"
   echo "=============================================================="
   
+  local issue_num="2000"
+  local pr_num="200"
+  local assignee="alice"
+
+  setup_issue_with_linked_pr "$issue_num" "$pr_num" "$assignee"
   setup_stale_pr_without_discussion "200"
   
-  local pr_num="200"
   local HAS_DISCUSSION_LABEL
   HAS_DISCUSSION_LABEL=$(gh pr view "$pr_num" --repo "$TEST_REPO" --json labels --jq '.labels[].name' 2>/dev/null | grep -i '^discussion$' || echo "")
   
@@ -344,6 +424,21 @@ test_stale_pr_without_discussion_closed() {
     print_result "PR without discussion label detected" "PASS"
   else
     print_result "PR without discussion label detected" "FAIL" "Discussion label incorrectly detected"
+  fi
+
+  local output
+  output=$(REPO="$TEST_REPO" DAYS=21 DRY_RUN=0 bash "$BOT_SCRIPT" 2>&1 || true)
+
+  if [[ -n "$output" ]]; then
+    print_result "script executed for stale PR without discussion label" "PASS"
+  else
+    print_result "script executed for stale PR without discussion label" "FAIL" "Bot output was unexpectedly empty"
+  fi
+
+  if [[ -f "$GH_MOCK_DIR/actions.log" ]] && grep -q "CLOSED_PR_$pr_num" "$GH_MOCK_DIR/actions.log" 2>/dev/null; then
+    print_result "script closed stale PR without discussion label" "PASS"
+  else
+    print_result "script closed stale PR without discussion label" "FAIL" "Expected CLOSED_PR_$pr_num in actions.log"
   fi
 }
 
@@ -403,7 +498,7 @@ test_active_pr_not_closed() {
   
   local pr_num="500"
   local COMMITS_JSON
-  COMMITS_JSON=$(gh api "repos/$TEST_REPO/pulls/$pr_num/commits" 2>/dev/null || echo "[]")
+  COMMITS_JSON=$(gh api "repos/$TEST_REPO/pulls/$pr_num/commits" --paginate 2>/dev/null || echo "[]")
   
   if echo "$COMMITS_JSON" | jq -e 'length > 0' >/dev/null 2>&1; then
     print_result "Active PR has commit data" "PASS"
@@ -462,25 +557,37 @@ EOF
   fi
 }
 
-# Test 8: Case insensitivity check
+# Test 8: Case-insensitive discussion label handling
 test_case_insensitivity() {
   echo ""
   echo "Test 8: Label matching is case-insensitive"
   echo "==========================================="
   
-  # Create PR with "Discussion" (capital D)
-  echo '{"state":"OPEN"}' > "$GH_MOCK_DIR/pr_800_state.json"
-  echo '{"labels":[{"name":"Discussion"}]}' > "$GH_MOCK_DIR/pr_800_labels.json"
-  
+  local issue_num="8000"
   local pr_num="800"
-  local normalized_name
-  # Test passing a jq filter that normalizes case
-  normalized_name=$(gh pr view "$pr_num" --repo "$TEST_REPO" --json labels --jq '.labels[0].name | ascii_downcase' 2>/dev/null || echo "")
-  
-  if [[ "$normalized_name" == "discussion" ]]; then
-    print_result "Mock executes ascii_downcase filter" "PASS"
+  local assignee="bob"
+
+  setup_labeled_pr_with_linked_issue "$issue_num" "$pr_num" "$assignee" "Discussion"
+
+  local output
+  output=$(REPO="$TEST_REPO" DAYS=21 DRY_RUN=0 bash "$BOT_SCRIPT" 2>&1 || true)
+
+  if [[ -n "$output" ]]; then
+    print_result "script executed for case-insensitive label" "PASS"
   else
-    print_result "Mock executes ascii_downcase filter" "FAIL" "Expected 'discussion', got '$normalized_name'"
+    print_result "script executed for case-insensitive label" "FAIL" "Bot output was unexpectedly empty"
+  fi
+
+  if [[ ! -f "$GH_MOCK_DIR/actions.log" ]] || ! grep -q "CLOSED_PR_$pr_num" "$GH_MOCK_DIR/actions.log" 2>/dev/null; then
+    print_result "bot did NOT close PR with 'Discussion' label" "PASS"
+  else
+    print_result "bot did NOT close PR with 'Discussion' label" "FAIL" "PR was incorrectly closed"
+  fi
+
+  if [[ ! -f "$GH_MOCK_DIR/actions.log" ]] || ! grep -q "UNASSIGNED_${assignee}_FROM_${issue_num}" "$GH_MOCK_DIR/actions.log" 2>/dev/null; then
+    print_result "bot did NOT unassign issue for 'Discussion' label" "PASS"
+  else
+    print_result "bot did NOT unassign issue for 'Discussion' label" "FAIL" "Assignee was incorrectly removed"
   fi
 }
 
