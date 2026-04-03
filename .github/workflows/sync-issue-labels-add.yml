@@ -91,7 +91,7 @@ jobs:
       - name: Validate labels payload
         id: validate
         run: |
-          if [ "$PR_NUMBER" = "0" ] || [ -z "$LABELS" ]; then
+          if [ "$PR_NUMBER" = "0" ] || [ "$(echo "$LABELS" | jq -r '. | length')" = "0" ]; then
             echo "Invalid payload: pr_number=$PR_NUMBER or labels empty. Skipping label addition."
             echo "valid_payload=false" >> "$GITHUB_OUTPUT"
           else

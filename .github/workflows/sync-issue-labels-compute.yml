@@ -191,7 +191,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger add workflow
-        continue-on-error: true
         uses: step-security/workflow-dispatch@acca1a315af3bf7f33dd116d3cb405cb83f5cbdc # v1.2.8
         with:
           workflow: .github/workflows/sync-issue-labels-add.yml
