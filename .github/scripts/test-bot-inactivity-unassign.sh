@@ -417,7 +417,7 @@ test_stale_pr_without_discussion_closed() {
   local assignee="alice"
 
   setup_issue_with_linked_pr "$issue_num" "$pr_num" "$assignee"
-  setup_stale_pr_without_discussion "200"
+  setup_stale_pr_without_discussion "$pr_num"
   
   local HAS_DISCUSSION_LABEL
   HAS_DISCUSSION_LABEL=$(gh pr view "$pr_num" --repo "$TEST_REPO" --json labels --jq '.labels[].name' 2>/dev/null | grep -i '^discussion$' || echo "")
@@ -429,18 +429,22 @@ test_stale_pr_without_discussion_closed() {
   fi
 
   local output
-  output=$(REPO="$TEST_REPO" DAYS=21 DRY_RUN=0 bash "$BOT_SCRIPT" 2>&1 || true)
-
-  if [[ -n "$output" ]]; then
+  if output=$(REPO="$TEST_REPO" DAYS=21 DRY_RUN=0 bash "$BOT_SCRIPT" 2>&1); then
     print_result "script executed for stale PR without discussion label" "PASS"
   else
-    print_result "script executed for stale PR without discussion label" "FAIL" "Bot output was unexpectedly empty"
+    print_result "script executed for stale PR without discussion label" "FAIL" "Bot exited non-zero: $output"
   fi
 
   if [[ -f "$GH_MOCK_DIR/actions.log" ]] && grep -q "CLOSED_PR_$pr_num" "$GH_MOCK_DIR/actions.log" 2>/dev/null; then
     print_result "script closed stale PR without discussion label" "PASS"
   else
     print_result "script closed stale PR without discussion label" "FAIL" "Expected CLOSED_PR_$pr_num in actions.log"
+  fi
+
+  if [[ -f "$GH_MOCK_DIR/actions.log" ]] && grep -q "UNASSIGNED_${assignee}_FROM_${issue_num}" "$GH_MOCK_DIR/actions.log" 2>/dev/null; then
+    print_result "script unassigned user for stale PR without discussion label" "PASS"
+  else
+    print_result "script unassigned user for stale PR without discussion label" "FAIL" "Expected UNASSIGNED_${assignee}_FROM_${issue_num} in actions.log"
   fi
 }
 
@@ -572,12 +576,16 @@ test_case_insensitivity() {
   setup_labeled_pr_with_linked_issue "$issue_num" "$pr_num" "$assignee" "Discussion"
 
   local output
-  output=$(REPO="$TEST_REPO" DAYS=21 DRY_RUN=0 bash "$BOT_SCRIPT" 2>&1 || true)
-
-  if [[ -n "$output" ]]; then
+  if output=$(REPO="$TEST_REPO" DAYS=21 DRY_RUN=0 bash "$BOT_SCRIPT" 2>&1); then
     print_result "script executed for case-insensitive label" "PASS"
   else
-    print_result "script executed for case-insensitive label" "FAIL" "Bot output was unexpectedly empty"
+    print_result "script executed for case-insensitive label" "FAIL" "Bot exited non-zero: $output"
+  fi
+
+  if grep -Eq "\\[SKIP\\].*discussion" <<<"$output"; then
+    print_result "case-insensitive discussion skip log emitted" "PASS"
+  else
+    print_result "case-insensitive discussion skip log emitted" "FAIL" "Expected discussion-label skip log"
   fi
 
   if [[ ! -f "$GH_MOCK_DIR/actions.log" ]] || ! grep -q "CLOSED_PR_$pr_num" "$GH_MOCK_DIR/actions.log" 2>/dev/null; then
