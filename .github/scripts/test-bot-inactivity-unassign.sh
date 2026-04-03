@@ -60,6 +60,7 @@ print_result() {
 create_gh_mock() {
   cat > "$TEMP_DIR/mocks/gh" << 'MOCK_END'
 #!/usr/bin/env bash
+set -euo pipefail
 # Mock gh CLI for testing
 
 GH_MOCK_DIR="${GH_MOCK_DIR:-/tmp/gh_mock_data}"
@@ -383,20 +384,21 @@ test_pr_with_discussion_label_not_closed() {
   setup_pr_with_discussion_label "$pr_num"
 
   local output
-  output=$(REPO="$TEST_REPO" DAYS=21 DRY_RUN=0 bash "$BOT_SCRIPT" 2>&1 || true)
-
-  if [[ -n "$output" ]]; then
+  if output=$(REPO="$TEST_REPO" DAYS=21 DRY_RUN=0 bash "$BOT_SCRIPT" 2>&1); then
     print_result "script executed with mocked data" "PASS"
   else
-    print_result "script executed with mocked data" "FAIL" "Bot output was unexpectedly empty"
+    print_result "script executed with mocked data" "FAIL" "Bot exited non-zero: $output"
   fi
-
+  if grep -Eq "\\[SKIP\\].*discussion" <<<"$output"; then
+    print_result "discussion-label skip log emitted" "PASS"
+  else
+    print_result "discussion-label skip log emitted" "FAIL" "Expected discussion-label skip log"
+  fi
   if [[ ! -f "$GH_MOCK_DIR/actions.log" ]] || ! grep -q "CLOSED_PR_$pr_num" "$GH_MOCK_DIR/actions.log" 2>/dev/null; then
     print_result "script did NOT close PR with discussion label" "PASS"
   else
     print_result "script did NOT close PR with discussion label" "FAIL" "PR was incorrectly closed"
   fi
-
   if [[ ! -f "$GH_MOCK_DIR/actions.log" ]] || ! grep -q "UNASSIGNED_${assignee}_FROM_${issue_num}" "$GH_MOCK_DIR/actions.log" 2>/dev/null; then
     print_result "script did NOT unassign issue for discussion PR" "PASS"
   else
