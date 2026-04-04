@@ -3,10 +3,14 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows:
-      - "PR Formatting"
-      - "PR Changelog Check"
-      - "Hiero Solo Integration & Unit Tests"
-      - "Run Examples"
+      - "Primary PR Check – Broken Markdown Links"
+      - "Primary PR Check - Changelog Validation"
+      - "Primary PR Check - Code-coverage"
+      - "Primary PR Check - Test Files Naming"
+      - "Secondary PR Check - Examples"
+      - "Secondary PR Check - TCK Unit Test"
+      - "Secondary PR Check - Hiero Solo Integration & Unit Tests"
+      - "Secondary PR Check - Dependency Compatibility"
     types:
       - completed
 permissions:
@@ -46,6 +50,7 @@ jobs:
         run: |
           REPO="${{ github.repository }}"
           COMMENT=$(cat <<EOF
+          <!-- workflow-failure-bot -->
           Hi, this is WorkflowBot. 
           Your pull request cannot be merged as it is not passing all our workflow checks. 
           Please click on each check to review the logs and resolve issues so all checks pass.
@@ -61,7 +66,7 @@ jobs:
           EOF
           )
           EXISTING_COMMENT=$(gh pr view "$PR_NUMBER" --repo "$REPO" --comments \
-            --json comments --jq ".comments[] | select(.body == \"${COMMENT//\"/\\\"}\") | .id")
+            --json comments --jq '.comments[] | select(.body | contains("<!-- workflow-failure-bot -->")) | .id')
 
           if [ -z "$EXISTING_COMMENT" ]; then
             gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$COMMENT"
