@@ -1,0 +1,26 @@
+name: Primary PR Check - Changelog Validation
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  changelog-check:
+    runs-on: ${{ (github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'hiero-ledger') && 'hl-sdk-py-lin-md' || 'ubuntu-latest' }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0 # Fetch full history to ensure we have the complete changelog context
+
+      - name: Run local changelog check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/pr-check-primary-changelog.js
