@@ -1,6 +1,10 @@
-name: PR Check – Broken Markdown Links
+name: Primary PR Check – Broken Markdown Links
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
   pull_request:
     paths:
       - "**/*.md"
@@ -8,9 +12,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: pr-markdown-links-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   pr-check-broken-links:
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ (github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'hiero-ledger') && 'hl-sdk-py-lin-md' || 'ubuntu-latest' }}
 
     steps:
       - name: Harden runner (audit outbound calls)
