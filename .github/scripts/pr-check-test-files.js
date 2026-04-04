@@ -11,7 +11,7 @@ const IGNORED = ["tests/fuzz/support"];
 const EXCEPTIONS = ["conftest.py", "__init__.py", "init.py", "mock_server.py", "utils.py"];
 
 // Collect naming errors to report at the end
-const name_errors = [];
+const nameErrors = [];
 
 // Use "git ls-files" to get all tracked files in the repository
 const output = execSync("git ls-files", { encoding: "utf-8" });
@@ -41,9 +41,9 @@ for (const file of files) {
 
   // Enforce naming rule on files 
   if (!name.endsWith("_test.py")) {
-    console.error(`Name invalid test file: ${file}`);
+    console.error(`Invalid test file name: ${file}`);
     console.error(`::error file=${file}::Must end with '_test.py'`);
-    name_errors.push(file);
+    nameErrors.push(file);
   }
 }
 
@@ -53,12 +53,12 @@ const summaryPath = process.env.GITHUB_STEP_SUMMARY;
 if (summaryPath) {
   let summary = `## 🧪 Test File Naming Check\n\n`;
 
-  if (name_errors.length === 0) {
+  if (nameErrors.length === 0) {
     summary += `✅ All test files are correctly named\n`;
   } else {
     // Counts and lists all the incorrectly named test files
-    summary += `❌ Found ${name_errors.length} incorrectly named test files:\n\n`;
-    name_errors.forEach(f => {
+    summary += `❌ Found ${nameErrors.length} incorrectly named test files:\n\n`;
+    nameErrors.forEach(f => {
       summary += `- \`${f}\`\n`;
     });
   }
@@ -67,6 +67,6 @@ if (summaryPath) {
 }
 
 // Fail job if needed
-if (name_errors.length > 0) {
+if (nameErrors.length > 0) {
   process.exit(1);
 }
