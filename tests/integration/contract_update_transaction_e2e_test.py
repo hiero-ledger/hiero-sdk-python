@@ -40,7 +40,7 @@ def test_integration_contract_update_transaction_can_execute(env):
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
-    current_time = datetime.datetime.now(datetime.UTC)
+    current_time = datetime.datetime.now(datetime.timezone.utc)
     future_expiration = Timestamp.from_date(current_time + datetime.timedelta(days=92))
     updated_memo = "[e2e::ContractUpdateTransaction]"
     updated_duration = Duration(7948800)

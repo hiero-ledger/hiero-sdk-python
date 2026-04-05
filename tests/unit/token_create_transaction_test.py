@@ -1011,7 +1011,7 @@ def test_token_create_with_expiration_time_overrides_auto_renew(mock_account_ids
     """Test set_expiration_time set the autoRenewPeriod to None"""
     treasury_account, _, node_account_id, *_ = mock_account_ids
     expiration_time = Timestamp.from_date(
-        datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
+        datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
     )
 
     params = TokenParams(

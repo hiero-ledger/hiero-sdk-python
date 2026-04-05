@@ -9,7 +9,7 @@ topic state.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, datetime
 
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
@@ -128,7 +128,7 @@ class TopicInfo:
         """
         exp_dt: str | None = None
         if self.expiration_time and hasattr(self.expiration_time, "seconds"):
-            utc_dt = datetime.fromtimestamp(self.expiration_time.seconds, tz=UTC)
+            utc_dt = datetime.fromtimestamp(self.expiration_time.seconds, tz=timezone.utc)
             exp_dt = utc_dt.strftime("%Y-%m-%d %H:%M:%S")
 
         running_hash_str: str | None = f"0x{self.running_hash.hex()}" if self.running_hash else "None"

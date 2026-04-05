@@ -7,7 +7,7 @@ python examples/query/topic_message_query.py
 """
 import sys
 import time
-from datetime import UTC, datetime
+from datetime import timezone, datetime
 
 from hiero_sdk_python import (
     Client,
@@ -70,7 +70,7 @@ def query_topic_messages():
 
     query = TopicMessageQuery(
         topic_id=topic_id,
-        start_time=datetime.now(UTC),
+        start_time=datetime.now(timezone.utc),
         limit=0,
         chunking_enabled=True,
     )

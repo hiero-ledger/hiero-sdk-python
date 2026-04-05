@@ -28,7 +28,7 @@ def new_token_data():
         "metadata": b"Test metadata",
         "auto_renew_period": Duration(7776000),
         "expiration_time": Timestamp.from_date(
-            datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
+            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
         )
     }
 

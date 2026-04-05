@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
 
@@ -74,7 +74,7 @@ class Timestamp:
         Returns:
             datetime: A `datetime` instance.
         """
-        return datetime.fromtimestamp(self.seconds, tz=UTC) + timedelta(microseconds=self.nanos // 1000)
+        return datetime.fromtimestamp(self.seconds, tz=timezone.utc) + timedelta(microseconds=self.nanos // 1000)
 
     def plus_nanos(self, nanos: int) -> Timestamp:
         """

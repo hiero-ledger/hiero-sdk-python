@@ -97,10 +97,11 @@ select = [
     "RSE",  # exception correctness
 ]
 ignore = [
-    "D",    # docstrings
+    "D",        # docstrings
     "D212",     # disable "summary on same line"
     "E501",     # line length -> formatter
     "B008",     # function calls in argument defaults 
+    "UP017",    # stop converting timezone.utc to datetime.timezone.utc
 ]
 
 [tool.ruff.format]
