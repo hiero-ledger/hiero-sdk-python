@@ -9,7 +9,7 @@ topic state.
 
 from __future__ import annotations
 
-from datetime import timezone, datetime
+from datetime import datetime, timezone
 
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
