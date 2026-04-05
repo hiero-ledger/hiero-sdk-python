@@ -24,9 +24,9 @@ def test_integration_account_record_query_can_execute(env):
         .add_hbar_transfer(env.operator_id, -Hbar(1).to_tinybars())
         .execute(env.client)
     )
-    assert (
-        transfer_receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    assert transfer_receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    )
 
     # Query operator account records
     records = AccountRecordsQuery().set_account_id(env.operator_id).execute(env.client)
@@ -55,9 +55,9 @@ def test_integration_account_record_query_get_cost(env):
         .execute(env.client)
     )
 
-    assert (
-        transfer_receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    assert transfer_receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    )
 
     records_query = AccountRecordsQuery().set_account_id(account.id)
 
@@ -80,9 +80,9 @@ def test_integration_account_record_query_insufficient_payment(env):
         .execute(env.client)
     )
 
-    assert (
-        transfer_receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    assert transfer_receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    )
 
     records_query = AccountRecordsQuery().set_account_id(env.operator_id)
 

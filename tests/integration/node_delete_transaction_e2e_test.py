@@ -32,8 +32,7 @@ def test_node_delete_transaction_can_execute():
 
     # Account 0.0.2 is a special admin account with privileges for network management operations.
     original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e7"
-        "2057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
     )
     client.set_operator(AccountId(0, 0, 2), original_operator_key)
 
@@ -44,9 +43,7 @@ def test_node_delete_transaction_can_execute():
     endpoint1 = Endpoint(domain_name="test.com", port=1234)
     grpc_proxy_endpoint = Endpoint(domain_name="testWeb.com", port=12345)
 
-    valid_gossip_cert = bytes.fromhex(
-        GOSSIP_CERTIFICATE
-    )  # DER encoded x509 certificate
+    valid_gossip_cert = bytes.fromhex(GOSSIP_CERTIFICATE)  # DER encoded x509 certificate
 
     admin_key = PrivateKey.generate_ed25519()
 
@@ -65,20 +62,12 @@ def test_node_delete_transaction_can_execute():
         .sign(admin_key)
         .execute(client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Node create failed with status {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, f"Node create failed with status {ResponseCode(receipt.status).name}"
 
     assert receipt.node_id is not None, "Node ID should not be None"
 
-    receipt = (
-        NodeDeleteTransaction()
-        .set_node_id(receipt.node_id)
-        .execute(client)
-    )
+    receipt = NodeDeleteTransaction().set_node_id(receipt.node_id).execute(client)
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Node delete failed with status {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, f"Node delete failed with status {ResponseCode(receipt.status).name}"
 
     assert receipt.node_id is not None, "Node ID should not be None"

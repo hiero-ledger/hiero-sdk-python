@@ -26,9 +26,9 @@ def test_integration_file_update_transaction_can_execute(env):
         .sign(file_private_key)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -50,9 +50,9 @@ def test_integration_file_update_transaction_can_execute(env):
         .sign(file_private_key)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File update failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File update failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Query file info and check if everything is updated
     info = FileInfoQuery().set_file_id(file_id).execute(env.client)
@@ -73,8 +73,7 @@ def test_integration_file_update_transaction_fails_with_invalid_file_id(env):
 
     receipt = FileUpdateTransaction().set_file_id(file_id).execute(env.client)
     assert receipt.status == ResponseCode.INVALID_FILE_ID, (
-        f"File update should have failed with INVALID_FILE_ID status but got: "
-        f"{ResponseCode(receipt.status).name}"
+        f"File update should have failed with INVALID_FILE_ID status but got: {ResponseCode(receipt.status).name}"
     )
 
 
@@ -82,9 +81,9 @@ def test_integration_file_update_transaction_fails_with_invalid_file_id(env):
 def test_integration_file_update_transaction_cannot_update_immutable_file(env):
     """Test that the FileUpdateTransaction fails when updating an immutable file."""
     receipt = FileCreateTransaction().set_contents("Immutable file").execute(env.client)
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -100,8 +99,7 @@ def test_integration_file_update_transaction_cannot_update_immutable_file(env):
         .execute(env.client)
     )
     assert receipt.status == ResponseCode.UNAUTHORIZED, (
-        f"File update should have failed with UNAUTHORIZED status but got: "
-        f"{ResponseCode(receipt.status).name}"
+        f"File update should have failed with UNAUTHORIZED status but got: {ResponseCode(receipt.status).name}"
     )
 
 
@@ -118,21 +116,15 @@ def test_integration_file_update_transaction_fails_when_key_is_invalid(env):
         .sign(file_private_key)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
     # Update file contents
-    receipt = (
-        FileUpdateTransaction()
-        .set_file_id(file_id)
-        .set_contents("Update contents!")
-        .execute(env.client)
-    )
+    receipt = FileUpdateTransaction().set_file_id(file_id).set_contents("Update contents!").execute(env.client)
     assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
-        f"File update should have failed with INVALID_SIGNATURE status but got: "
-        f"{ResponseCode(receipt.status).name}"
+        f"File update should have failed with INVALID_SIGNATURE status but got: {ResponseCode(receipt.status).name}"
     )

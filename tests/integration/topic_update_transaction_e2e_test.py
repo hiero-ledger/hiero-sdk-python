@@ -13,37 +13,35 @@ from tests.integration.utils import IntegrationTestEnv
 @pytest.mark.integration
 def test_integration_topic_update_transaction_can_execute():
     env = IntegrationTestEnv()
-    
+
     try:
-        create_transaction = TopicCreateTransaction(
-            memo="Original memo",
-            admin_key=env.public_operator_key
-        )
-        
+        create_transaction = TopicCreateTransaction(memo="Original memo", admin_key=env.public_operator_key)
+
         create_transaction.freeze_with(env.client)
         create_receipt = create_transaction.execute(env.client)
-        assert create_receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode(create_receipt.status).name}"
-        
+        assert create_receipt.status == ResponseCode.SUCCESS, (
+            f"Topic creation failed with status: {ResponseCode(create_receipt.status).name}"
+        )
+
         topic_id = create_receipt.topic_id
-        
+
         info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
 
         assert info.memo == "Original memo"
         assert info.sequence_number == 0
         assert env.client.operator_private_key.public_key()._to_proto() == info.admin_key
 
-        update_transaction = TopicUpdateTransaction(
-            topic_id=topic_id,
-            memo="Updated memo"
-        )
-        
+        update_transaction = TopicUpdateTransaction(topic_id=topic_id, memo="Updated memo")
+
         update_transaction.freeze_with(env.client)
         update_receipt = update_transaction.execute(env.client)
-        
-        assert update_receipt.status == ResponseCode.SUCCESS, f"Topic update failed with status: {ResponseCode(update_receipt.status).name}"
-        
+
+        assert update_receipt.status == ResponseCode.SUCCESS, (
+            f"Topic update failed with status: {ResponseCode(update_receipt.status).name}"
+        )
+
         info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
-        
+
         assert info.memo == "Updated memo"
         assert info.sequence_number == 0
         assert env.client.operator_private_key.public_key()._to_proto() == info.admin_key
@@ -51,9 +49,11 @@ def test_integration_topic_update_transaction_can_execute():
         transaction = TopicDeleteTransaction(topic_id=topic_id)
         transaction.freeze_with(env.client)
         receipt = transaction.execute(env.client)
-        assert receipt.status == ResponseCode.SUCCESS, f"Topic deletion failed with status: {ResponseCode(receipt.status).name}"
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Topic deletion failed with status: {ResponseCode(receipt.status).name}"
+        )
     finally:
-        env.close() 
+        env.close()
 
 
 @pytest.mark.integration
@@ -61,7 +61,9 @@ def test_integration_topic_update_transaction_clear_custom_fees():
     env = IntegrationTestEnv()
 
     try:
-        custom_fee = CustomFixedFee().set_amount_in_tinybars(1).set_fee_collector_account_id(env.client.operator_account_id)
+        custom_fee = (
+            CustomFixedFee().set_amount_in_tinybars(1).set_fee_collector_account_id(env.client.operator_account_id)
+        )
 
         create_transaction = (
             TopicCreateTransaction()
@@ -71,7 +73,9 @@ def test_integration_topic_update_transaction_clear_custom_fees():
         )
 
         create_receipt = create_transaction.execute(env.client)
-        assert create_receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode(create_receipt.status).name}"
+        assert create_receipt.status == ResponseCode.SUCCESS, (
+            f"Topic creation failed with status: {ResponseCode(create_receipt.status).name}"
+        )
 
         topic_id = create_receipt.topic_id
 
@@ -79,18 +83,17 @@ def test_integration_topic_update_transaction_clear_custom_fees():
         assert info is not None
         assert info.custom_fees[0] == custom_fee
 
-        update_transaction = (
-            TopicUpdateTransaction(topic_id=topic_id)
-            .clear_custom_fees()
-        )
+        update_transaction = TopicUpdateTransaction(topic_id=topic_id).clear_custom_fees()
 
         update_receipt = update_transaction.execute(env.client)
-        assert update_receipt.status == ResponseCode.SUCCESS, f"Topic update failed with status: {ResponseCode(update_receipt.status).name}"
+        assert update_receipt.status == ResponseCode.SUCCESS, (
+            f"Topic update failed with status: {ResponseCode(update_receipt.status).name}"
+        )
 
         info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
         assert info is not None
         assert len(info.custom_fees) == 0
-    
+
     finally:
         env.close()
 
@@ -109,21 +112,22 @@ def test_integration_topic_update_transaction_clear_fee_exempt_keys():
         )
 
         create_receipt = create_transaction.execute(env.client)
-        assert create_receipt.status == ResponseCode.SUCCESS, f"Topic creation failed with status: {ResponseCode(create_receipt.status).name}"
+        assert create_receipt.status == ResponseCode.SUCCESS, (
+            f"Topic creation failed with status: {ResponseCode(create_receipt.status).name}"
+        )
 
         topic_id = create_receipt.topic_id
 
         info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
         assert info is not None
         assert info.fee_exempt_keys[0].to_bytes_raw() == fee_exempt_key.public_key().to_bytes_raw()
-        
-        update_transaction = (
-            TopicUpdateTransaction(topic_id=topic_id)
-            .clear_fee_exempt_keys()
-        )
+
+        update_transaction = TopicUpdateTransaction(topic_id=topic_id).clear_fee_exempt_keys()
 
         update_receipt = update_transaction.execute(env.client)
-        assert update_receipt.status == ResponseCode.SUCCESS, f"Topic update failed with status: {ResponseCode(update_receipt.status).name}"
+        assert update_receipt.status == ResponseCode.SUCCESS, (
+            f"Topic update failed with status: {ResponseCode(update_receipt.status).name}"
+        )
 
         info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
         assert info is not None

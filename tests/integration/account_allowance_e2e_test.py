@@ -39,20 +39,16 @@ def _associate_token_with_account(env, account, token_id):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Token association failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token association failed with status: {ResponseCode(receipt.status).name}"
+    )
 
 
 def _mint_nft(env, token_id, metadata):
     """Helper function to mint NFT"""
-    receipt = (
-        TokenMintTransaction().set_token_id(token_id).set_metadata(metadata).execute(env.client)
-    )
+    receipt = TokenMintTransaction().set_token_id(token_id).set_metadata(metadata).execute(env.client)
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"NFT mint failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, f"NFT mint failed with status: {ResponseCode(receipt.status).name}"
     assert len(receipt.serial_numbers) > 0
 
     nft_ids = []
@@ -120,9 +116,9 @@ def test_integration_can_transfer_on_behalf_of_spender_with_allowance_approval(e
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     transaction_id = TransactionId.generate(spender_account.id)
     # Now transfer NFT on behalf of operator with allowance approval
@@ -139,9 +135,7 @@ def test_integration_can_transfer_on_behalf_of_spender_with_allowance_approval(e
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, f"Transfer failed with status: {ResponseCode(receipt.status).name}"
 
 
 @pytest.mark.integration
@@ -155,9 +149,9 @@ def test_integration_hbar_allowance(env):
         .execute(env.client)
     )  # Approve HBAR allowance for spender
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"HBAR allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"HBAR allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Set operator to spender account
     env.client.set_operator(spender_account.id, spender_account.key)
@@ -170,9 +164,9 @@ def test_integration_hbar_allowance(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"HBAR transfer failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"HBAR transfer failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Reset operator back to original
     env.client.set_operator(env.operator_id, env.operator_key)
@@ -183,9 +177,9 @@ def test_integration_hbar_allowance(env):
         .approve_hbar_allowance(env.operator_id, spender_account.id, Hbar(0))
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"HBAR allowance deletion failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"HBAR allowance deletion failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Set operator to spender account
     env.client.set_operator(spender_account.id, spender_account.key)
@@ -221,9 +215,9 @@ def test_integration_fungible_token_allowance(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Token allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     env.client.set_operator(spender_account.id, spender_account.key)  # Set operator to spender
 
@@ -235,9 +229,9 @@ def test_integration_fungible_token_allowance(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     env.client.set_operator(env.operator_id, env.operator_key)  # Reset operator
 
@@ -246,9 +240,9 @@ def test_integration_fungible_token_allowance(env):
         .approve_token_allowance(token_id, env.operator_id, spender_account.id, 0)
         .execute(env.client)
     )  # Delete allowance
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Token allowance deletion failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token allowance deletion failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Set operator to spender account
     env.client.set_operator(spender_account.id, spender_account.key)
@@ -287,18 +281,16 @@ def test_integration_cant_transfer_on_behalf_of_spender_after_removing_the_allow
         .approve_token_nft_allowance(nft2, env.operator_id, spender_account.id)
         .execute(env.client)
     )  # Approve allowance for both NFTs
-    assert (
-        approve_receipt.status == ResponseCode.SUCCESS
-    ), f"Allowance approval failed with status: {ResponseCode(approve_receipt.status).name}"
+    assert approve_receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance approval failed with status: {ResponseCode(approve_receipt.status).name}"
+    )
 
     delete_receipt = (
-        AccountAllowanceDeleteTransaction()
-        .delete_all_token_nft_allowances(nft2, env.operator_id)
-        .execute(env.client)
+        AccountAllowanceDeleteTransaction().delete_all_token_nft_allowances(nft2, env.operator_id).execute(env.client)
     )  # Delete allowance for nft2
-    assert (
-        delete_receipt.status == ResponseCode.SUCCESS
-    ), f"Allowance deletion failed with status: {ResponseCode(delete_receipt.status).name}"
+    assert delete_receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance deletion failed with status: {ResponseCode(delete_receipt.status).name}"
+    )
 
     # Transfer nft1 (should succeed - allowance still exists)
     transfer_receipt = (
@@ -309,9 +301,9 @@ def test_integration_cant_transfer_on_behalf_of_spender_after_removing_the_allow
         .sign(spender_account.key)
         .execute(env.client)
     )
-    assert (
-        transfer_receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    assert transfer_receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    )
 
     # Transfer nft2 (should fail - allowance was deleted)
     transfer_receipt2 = (
@@ -346,9 +338,9 @@ def test_integration_cant_remove_serial_allowance_when_all_serials_allowed(env):
         .approve_token_nft_allowance_all_serials(token_id, env.operator_id, spender_account.id)
         .execute(env.client)
     )  # Approve allowance for all serials
-    assert (
-        approve_receipt.status == ResponseCode.SUCCESS
-    ), f"Allowance approval failed with status: {ResponseCode(approve_receipt.status).name}"
+    assert approve_receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance approval failed with status: {ResponseCode(approve_receipt.status).name}"
+    )
 
     # Transfer nft1 (should succeed - all serials allowed)
     tx = TransferTransaction()
@@ -359,19 +351,17 @@ def test_integration_cant_remove_serial_allowance_when_all_serials_allowed(env):
         .sign(spender_account.key)
         .execute(env.client)
     )
-    assert (
-        transfer_receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    assert transfer_receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    )
 
     # Try to delete allowance for nft2 (should not affect the all-serial allowance)
     delete_receipt = (
-        AccountAllowanceDeleteTransaction()
-        .delete_all_token_nft_allowances(nft2, env.operator_id)
-        .execute(env.client)
+        AccountAllowanceDeleteTransaction().delete_all_token_nft_allowances(nft2, env.operator_id).execute(env.client)
     )
-    assert (
-        delete_receipt.status == ResponseCode.SUCCESS
-    ), f"Allowance deletion failed with status: {ResponseCode(delete_receipt.status).name}"
+    assert delete_receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance deletion failed with status: {ResponseCode(delete_receipt.status).name}"
+    )
 
     # Transfer nft2 (should still succeed - all serials allowance still active)
     tx = TransferTransaction()
@@ -382,9 +372,9 @@ def test_integration_cant_remove_serial_allowance_when_all_serials_allowed(env):
         .sign(spender_account.key)
         .execute(env.client)
     )
-    assert (
-        transfer_receipt2.status == ResponseCode.SUCCESS
-    ), f"Transfer failed with status: {ResponseCode(transfer_receipt2.status).name}"
+    assert transfer_receipt2.status == ResponseCode.SUCCESS, (
+        f"Transfer failed with status: {ResponseCode(transfer_receipt2.status).name}"
+    )
 
 
 @pytest.mark.integration
@@ -408,9 +398,9 @@ def test_integration_can_delegate_single_nft_after_all_serials_allowance(env):
         .approve_token_nft_allowance_all_serials(token_id, env.operator_id, spender_account.id)
         .execute(env.client)
     )  # Approve allowance for all serials to spender
-    assert (
-        approve_receipt.status == ResponseCode.SUCCESS
-    ), f"Allowance approval failed with status: {ResponseCode(approve_receipt.status).name}"
+    assert approve_receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance approval failed with status: {ResponseCode(approve_receipt.status).name}"
+    )
 
     env.client.set_operator(spender_account.id, spender_account.key)  # Set spender as operator
 
@@ -421,9 +411,9 @@ def test_integration_can_delegate_single_nft_after_all_serials_allowance(env):
         )
         .execute(env.client)
     )  # Approve delegation of nft1 to delegate spender
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Delegate allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Delegate allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     env.client.set_operator(delegate_spender_account.id, delegate_spender_account.key)
 
@@ -434,9 +424,9 @@ def test_integration_can_delegate_single_nft_after_all_serials_allowance(env):
         .add_approved_nft_transfer(nft1, env.operator_id, receiver_account.id)
         .execute(env.client)
     )
-    assert (
-        transfer_receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    assert transfer_receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    )
 
     # Transfer nft2 using delegate spender (should fail - no delegation for nft2)
     transfer_receipt2 = (
@@ -470,9 +460,9 @@ def test_integration_cannot_send_deleted_token_nft_serials(env):
         .approve_token_nft_allowance_all_serials(token_id, env.operator_id, spender_account.id)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Delete the allowance for all serials
     receipt = (
@@ -480,17 +470,15 @@ def test_integration_cannot_send_deleted_token_nft_serials(env):
         .delete_token_nft_allowance_all_serials(token_id, env.operator_id, spender_account.id)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Allowance deletion failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance deletion failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     env.client.set_operator(spender_account.id, spender_account.key)  # Set spender as operator
 
     # Try to transfer nft (should fail - allowance was deleted)
     transfer_receipt = (
-        TransferTransaction()
-        .add_approved_nft_transfer(nft, env.operator_id, receiver_account.id)
-        .execute(env.client)
+        TransferTransaction().add_approved_nft_transfer(nft, env.operator_id, receiver_account.id).execute(env.client)
     )
     assert transfer_receipt.status == ResponseCode.SPENDER_DOES_NOT_HAVE_ALLOWANCE, (
         f"Transfer should have failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE"

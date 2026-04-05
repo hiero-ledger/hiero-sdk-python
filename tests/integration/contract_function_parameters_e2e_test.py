@@ -31,9 +31,9 @@ def test_constructor_test_contract_parameters(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
@@ -68,9 +68,9 @@ def test_constructor_test_contract_parameters(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -147,9 +147,7 @@ def test_constructor_test_contract_parameter_variations(env):
             .execute(env.client)
         )
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), f"Contract creation failed for test case '{test_case['name']}'"
+        assert receipt.status == ResponseCode.SUCCESS, f"Contract creation failed for test case '{test_case['name']}'"
 
 
 @pytest.mark.integration
@@ -198,9 +196,7 @@ def test_constructor_test_contract_parameter_order_sensitivity(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), "Contract creation with correct parameter order failed"
+    assert receipt.status == ResponseCode.SUCCESS, "Contract creation with correct parameter order failed"
 
     # Try with incorrect order (should fail)
     # For example, swap string and bytes32

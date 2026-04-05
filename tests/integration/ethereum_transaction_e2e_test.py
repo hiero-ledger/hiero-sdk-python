@@ -33,9 +33,7 @@ def test_integration_ethereum_transaction_with_contract_execution(env):
     contract_id = _create_contract(env)
 
     message = b"Updated message bytes!"
-    call_data_bytes = (
-        ContractFunctionParameters("setMessage").add_bytes32(message).to_bytes()
-    )
+    call_data_bytes = ContractFunctionParameters("setMessage").add_bytes32(message).to_bytes()
 
     # Ethereum transaction fields
     chain_id_bytes = bytes.fromhex("012a")
@@ -59,12 +57,10 @@ def test_integration_ethereum_transaction_with_contract_execution(env):
         alias_private_key,
     )
 
-    receipt = (
-        EthereumTransaction().set_ethereum_data(transaction_data).execute(env.client)
+    receipt = EthereumTransaction().set_ethereum_data(transaction_data).execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
 
     info_query = (
         ContractCallQuery()
@@ -74,9 +70,7 @@ def test_integration_ethereum_transaction_with_contract_execution(env):
         .execute(env.client)
     )
 
-    assert (
-        info_query.get_bytes32(0).rstrip(b"\x00") == message
-    ), "Message should be updated"
+    assert info_query.get_bytes32(0).rstrip(b"\x00") == message, "Message should be updated"
 
 
 @pytest.mark.integration
@@ -110,21 +104,13 @@ def test_integration_ethereum_transaction_with_contract_call(env):
         alias_private_key,
     )
 
-    receipt = (
-        EthereumTransaction().set_ethereum_data(transaction_data).execute(env.client)
+    receipt = EthereumTransaction().set_ethereum_data(transaction_data).execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
 
-    record = (
-        TransactionRecordQuery()
-        .set_transaction_id(receipt.transaction_id)
-        .execute(env.client)
-    )
-    assert (
-        record.call_result.contract_call_result == b"Initial message from constructor"
-    )
+    record = TransactionRecordQuery().set_transaction_id(receipt.transaction_id).execute(env.client)
+    assert record.call_result.contract_call_result == b"Initial message from constructor"
 
 
 def test_integration_ethereum_transaction_jumbo_transaction(env):
@@ -159,12 +145,10 @@ def test_integration_ethereum_transaction_jumbo_transaction(env):
         alias_private_key,
     )
 
-    receipt = (
-        EthereumTransaction().set_ethereum_data(transaction_data).execute(env.client)
+    receipt = EthereumTransaction().set_ethereum_data(transaction_data).execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
 
 
 # pylint: disable=too-many-arguments, too-many-positional-arguments
@@ -239,9 +223,7 @@ def _create_alias_account(env) -> PrivateKey:
     """
     alias_private_key = PrivateKey.generate_ecdsa()
 
-    alias_account_id = AccountId(
-        shard=0, realm=0, num=0, alias_key=alias_private_key.public_key()
-    )
+    alias_account_id = AccountId(shard=0, realm=0, num=0, alias_key=alias_private_key.public_key())
 
     # Create a shallow account for the ECDSA key by transferring HBAR to the alias
     receipt = (
@@ -250,9 +232,9 @@ def _create_alias_account(env) -> PrivateKey:
         .add_hbar_transfer(alias_account_id, Hbar(5).to_tinybars())
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     return alias_private_key
 
@@ -272,9 +254,9 @@ def _create_contract(env) -> ContractId:
         .set_file_memo("file create with constructor params")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Create file failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Create file failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -291,9 +273,9 @@ def _create_contract(env) -> ContractId:
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"

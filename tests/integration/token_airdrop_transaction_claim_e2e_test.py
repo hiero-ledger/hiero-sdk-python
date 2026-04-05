@@ -1,4 +1,3 @@
-
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -20,6 +19,7 @@ pytestmark = pytest.mark.integration
 # --- Inline Helpers ---
 # ======================
 
+
 def set_receiver_signature_required(env, account_id: AccountId, account_key: PrivateKey, required: bool):
     receipt = (
         AccountUpdateTransaction()
@@ -30,6 +30,7 @@ def set_receiver_signature_required(env, account_id: AccountId, account_key: Pri
         .execute(env.client)
     )
     assert receipt.status == ResponseCode.SUCCESS, f"Account update failed: {receipt.status}"
+
 
 def associate_token(env, account_id: AccountId, account_key: PrivateKey, token_id: TokenId):
     receipt = (
@@ -42,25 +43,34 @@ def associate_token(env, account_id: AccountId, account_key: PrivateKey, token_i
     )
     assert receipt.status == ResponseCode.SUCCESS, f"Association failed: {receipt.status}"
 
+
 def submit_airdrop(env, receiver_id: AccountId, token_id: TokenId, amount=1):
-    tx = TokenAirdropTransaction(
-        token_transfers=[
-            TokenTransfer(token_id, env.operator_id, -amount),
-            TokenTransfer(token_id, receiver_id, amount),
-        ]
-    ).freeze_with(env.client).sign(env.operator_key).execute(env.client)
+    tx = (
+        TokenAirdropTransaction(
+            token_transfers=[
+                TokenTransfer(token_id, env.operator_id, -amount),
+                TokenTransfer(token_id, receiver_id, amount),
+            ]
+        )
+        .freeze_with(env.client)
+        .sign(env.operator_key)
+        .execute(env.client)
+    )
     assert tx.status == ResponseCode.SUCCESS, f"Airdrop failed: {tx.status}"
 
     record = TransactionRecordQuery(tx.transaction_id).execute(env.client)
     assert record is not None
     return record
 
+
 def has_immediate_credit(record, token_id: TokenId, account_id: AccountId, amount=1):
     token_map = record.token_transfers.get(token_id, {})
     return token_map.get(account_id, 0) == amount
 
+
 def has_new_pending(record):
     return bool(record.new_pending_airdrops)
+
 
 def extract_pending_ids(record) -> list[PendingAirdropId]:
     """
@@ -92,14 +102,17 @@ def extract_pending_ids(record) -> list[PendingAirdropId]:
 
     return sdk_ids
 
+
 def claim_pending(env, pending_ids, receiver_key):
     tx = TokenClaimAirdropTransaction().add_pending_airdrop_ids(pending_ids)
     tx.freeze_with(env.client).sign(receiver_key)
     return tx.execute(env.client)
 
+
 # ======================
 # --- Integration Tests ---
 # ======================
+
 
 def test_airdrop_becomes_pending_if_not_associated_no_sig_required(env):
     receiver = env.create_account(initial_hbar=2.0)
@@ -112,6 +125,7 @@ def test_airdrop_becomes_pending_if_not_associated_no_sig_required(env):
     assert has_new_pending(record)
     assert not has_immediate_credit(record, token_id, receiver.id)
 
+
 def test_immediate_airdrop_if_associated_and_no_sig_required(env):
     receiver = env.create_account(initial_hbar=2.0)
     token_id = create_fungible_token(env)
@@ -122,6 +136,7 @@ def test_immediate_airdrop_if_associated_and_no_sig_required(env):
     record = submit_airdrop(env, receiver.id, token_id)
     assert not has_new_pending(record)
     assert has_immediate_credit(record, token_id, receiver.id)
+
 
 def test_pending_airdrop_if_unassociated_and_no_sig_required(env):
     receiver = env.create_account(initial_hbar=2.0)
@@ -134,6 +149,7 @@ def test_pending_airdrop_if_unassociated_and_no_sig_required(env):
     # Can't auto claim because not associated
     assert not has_immediate_credit(record, token_id, receiver.id)
 
+
 def test_pending_airdrop_if_sig_required_even_if_associated(env):
     receiver = env.create_account(initial_hbar=2.0)
     token_id = create_fungible_token(env)
@@ -143,6 +159,7 @@ def test_pending_airdrop_if_sig_required_even_if_associated(env):
     record = submit_airdrop(env, receiver.id, token_id)
     assert has_new_pending(record)
     assert not has_immediate_credit(record, token_id, receiver.id)
+
 
 def test_claim_fungible_pending(env):
     receiver = env.create_account(initial_hbar=2.0)
@@ -155,6 +172,7 @@ def test_claim_fungible_pending(env):
 
     claim_record = TransactionRecordQuery(receipt.transaction_id).execute(env.client)
     assert has_immediate_credit(claim_record, token_id, receiver.id)
+
 
 def test_claim_multiple_pendings(env):
     receiver = env.create_account(initial_hbar=2.0)
@@ -177,18 +195,18 @@ def test_claim_multiple_pendings(env):
 
 
 def test_claim_fails_without_signature(env):
-   receiver = env.create_account(initial_hbar=2.0)
-   token_id = create_fungible_token(env)
+    receiver = env.create_account(initial_hbar=2.0)
+    token_id = create_fungible_token(env)
 
-   record = submit_airdrop(env, receiver.id, token_id)
-   ids = extract_pending_ids(record)
+    record = submit_airdrop(env, receiver.id, token_id)
+    ids = extract_pending_ids(record)
 
-   tx = TokenClaimAirdropTransaction().add_pending_airdrop_ids(ids).freeze_with(env.client)
-   # Execute without signing
-   receipt = tx.execute(env.client)
+    tx = TokenClaimAirdropTransaction().add_pending_airdrop_ids(ids).freeze_with(env.client)
+    # Execute without signing
+    receipt = tx.execute(env.client)
 
-   # The status should indicate failure
-   assert receipt.status != ResponseCode.SUCCESS
+    # The status should indicate failure
+    assert receipt.status != ResponseCode.SUCCESS
 
 
 def test_cannot_claim_duplicate_ids(env):
@@ -202,32 +220,34 @@ def test_cannot_claim_duplicate_ids(env):
     with pytest.raises(ValueError):
         tx.add_pending_airdrop_ids([pid, pid])
 
+
 def test_cannot_claim_same_pending_twice(env):
-   receiver = env.create_account(initial_hbar=2.0)
-   token_id = create_fungible_token(env)
+    receiver = env.create_account(initial_hbar=2.0)
+    token_id = create_fungible_token(env)
 
-   record = submit_airdrop(env, receiver.id, token_id)
-   ids = extract_pending_ids(record)
+    record = submit_airdrop(env, receiver.id, token_id)
+    ids = extract_pending_ids(record)
 
-   # First claim should succeed
-   first = claim_pending(env, ids, receiver.key)
-   assert ResponseCode(first.status) == ResponseCode.SUCCESS
+    # First claim should succeed
+    first = claim_pending(env, ids, receiver.key)
+    assert ResponseCode(first.status) == ResponseCode.SUCCESS
 
-   # Second claim should fail (already claimed)
-   second = claim_pending(env, ids, receiver.key)
-   assert ResponseCode(second.status) != ResponseCode.SUCCESS
+    # Second claim should fail (already claimed)
+    second = claim_pending(env, ids, receiver.key)
+    assert ResponseCode(second.status) != ResponseCode.SUCCESS
+
 
 def test_claim_max_ids(env):
     receiver = env.create_account(initial_hbar=2.0)
-    
+
     tokens = [create_fungible_token(env) for _ in range(TokenClaimAirdropTransaction.MAX_IDS)]
-    
+
     pending_ids = []
     for token_id in tokens:
         record = submit_airdrop(env, receiver.id, token_id)
         pending_ids.extend(extract_pending_ids(record))
-    
+
     assert len(pending_ids) == TokenClaimAirdropTransaction.MAX_IDS
-    
+
     receipt = claim_pending(env, pending_ids, receiver.key)
     assert ResponseCode(receipt.status) == ResponseCode.SUCCESS

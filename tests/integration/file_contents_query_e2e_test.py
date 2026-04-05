@@ -88,9 +88,7 @@ def test_integration_file_contents_query_insufficient_payment(env):
     file_contents = FileContentsQuery().set_file_id(file_id)
     file_contents.set_query_payment(Hbar.from_tinybars(1))  # Set very low query payment
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"):
         file_contents.execute(env.client)
 
 
@@ -100,7 +98,5 @@ def test_integration_file_contents_query_fails_with_invalid_file_id(env):
     # Create a file ID that doesn't exist on the network
     file_id = FileId(0, 0, 999999999)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INVALID_FILE_ID"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_FILE_ID"):
         FileContentsQuery(file_id).execute(env.client)

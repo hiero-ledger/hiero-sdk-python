@@ -41,15 +41,13 @@ def test_integration_schedule_info_query_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
 
-    schedule_info = (
-        ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
-    )
+    schedule_info = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
     assert schedule_info is not None
     assert schedule_info.ledger_id is not None
     assert schedule_info.schedule_id == receipt.schedule_id
@@ -61,13 +59,8 @@ def test_integration_schedule_info_query_can_execute(env):
     assert schedule_info.scheduled_transaction_id == receipt.scheduled_transaction_id
     assert schedule_info.scheduled_transaction_body == schedule_create_tx.schedulable_body
     assert len(schedule_info.signers) == 1
-    assert (
-        schedule_info.signers[0].to_bytes_raw() == account.key.public_key().to_bytes_raw()
-    )
-    assert (
-        schedule_info.admin_key.to_bytes_raw()
-        == env.operator_key.public_key().to_bytes_raw()
-    )
+    assert schedule_info.signers[0].to_bytes_raw() == account.key.public_key().to_bytes_raw()
+    assert schedule_info.admin_key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw()
 
 
 @pytest.mark.integration
@@ -90,9 +83,9 @@ def test_integration_schedule_info_query_get_cost(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id)
@@ -124,16 +117,14 @@ def test_integration_schedule_info_query_insufficient_payment(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"):
         schedule_info.set_query_payment(Hbar.from_tinybars(1)).execute(env.client)
 
 
@@ -143,7 +134,5 @@ def test_integration_schedule_info_query_fails_with_invalid_schedule_id(env):
     # Create a schedule ID that doesn't exist on the network
     schedule_id = ScheduleId(0, 0, 999999999)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INVALID_SCHEDULE_ID"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_SCHEDULE_ID"):
         ScheduleInfoQuery(schedule_id).execute(env.client)

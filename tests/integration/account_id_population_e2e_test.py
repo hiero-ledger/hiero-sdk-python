@@ -44,9 +44,7 @@ def test_populate_account_id_num(env, evm_address):
     )
 
     assert transfer_receipt is not None
-    assert (
-        len(transfer_receipt.children) > 0
-    ), "Expected child transaction for auto-account creation"
+    assert len(transfer_receipt.children) > 0, "Expected child transaction for auto-account creation"
 
     created_account_id = transfer_receipt.children[0].account_id
     assert created_account_id is not None, f"AccountId not found in child transaction: {transfer_receipt.children[0]}"
@@ -87,9 +85,7 @@ def test_populate_account_id_evm_address(env, evm_address):
     )
 
     assert transfer_receipt is not None
-    assert (
-        len(transfer_receipt.children) > 0
-    ), "Expected child transaction for auto-account creation"
+    assert len(transfer_receipt.children) > 0, "Expected child transaction for auto-account creation"
 
     created_account_id = transfer_receipt.children[0].account_id
     assert created_account_id is not None, f"AccountId not found in child transaction: {transfer_receipt.children[0]}"

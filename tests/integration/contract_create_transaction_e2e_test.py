@@ -30,9 +30,9 @@ def test_integration_contract_create_transaction_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -46,9 +46,9 @@ def test_integration_contract_create_transaction_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -64,9 +64,9 @@ def test_integration_contract_create_transaction_with_constructor(env):
         .set_file_memo("file create with constructor params")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -86,9 +86,9 @@ def test_integration_contract_create_transaction_with_constructor(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -107,9 +107,9 @@ def test_integration_contract_create_transaction_set_bytecode(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"

@@ -13,32 +13,29 @@ from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 
-#Mint NFT and return serial_number
+# Mint NFT and return serial_number
 def mint_nft(env: IntegrationTestEnv, nft_id):
-    token_mint_tx = TokenMintTransaction(
-        token_id=nft_id,
-        metadata=[b"NFT Token"]
-    )
+    token_mint_tx = TokenMintTransaction(token_id=nft_id, metadata=[b"NFT Token"])
     token_mint_tx.freeze_with(env.client)
     token_mint_receipt = token_mint_tx.execute(env.client)
     return token_mint_receipt.serial_numbers[0]
+
 
 # Perform token airdrop_tx and return list of pending_airdop_records
 def airdrop_tokens(env: IntegrationTestEnv, account_id, token_id, nft_id, serial_number):
     airdrop_tx = TokenAirdropTransaction(
         token_transfers=[
             TokenTransfer(token_id, env.client.operator_account_id, -1),
-            TokenTransfer(token_id, account_id, 1)
+            TokenTransfer(token_id, account_id, 1),
         ],
-        nft_transfers=[
-            TokenNftTransfer(nft_id, env.client.operator_account_id, account_id, serial_number)
-        ]
+        nft_transfers=[TokenNftTransfer(nft_id, env.client.operator_account_id, account_id, serial_number)],
     )
     airdrop_tx.freeze_with(env.client)
     airdrop_tx.sign(env.client.operator_private_key)
     airdrop_receipt = airdrop_tx.execute(env.client)
     airdrop_record = TransactionRecordQuery(airdrop_receipt.transaction_id).execute(env.client)
     return airdrop_record.new_pending_airdrops
+
 
 @pytest.mark.integration
 def test_integration_token_cancel_airdrop_transaction_can_execute():
@@ -48,11 +45,9 @@ def test_integration_token_cancel_airdrop_transaction_can_execute():
         new_account_private_key = PrivateKey.generate()
         new_account_public_key = new_account_private_key.public_key()
         initial_balance = Hbar(2)
-        
+
         account_transaction = AccountCreateTransaction(
-            key=new_account_public_key,
-            initial_balance=initial_balance,
-            memo="Recipient Account"
+            key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
         )
         account_transaction.freeze_with(env.client)
         account_receipt = account_transaction.execute(env.client)
@@ -80,6 +75,8 @@ def test_integration_token_cancel_airdrop_transaction_can_execute():
         cancel_airdrop_tx.sign(env.client.operator_private_key)
         cancel_airdrop_receipt = cancel_airdrop_tx.execute(env.client)
 
-        assert cancel_airdrop_receipt.status == ResponseCode.SUCCESS, f"Token airdrop failed with status: {ResponseCode(cancel_airdrop_receipt.status).name}"
+        assert cancel_airdrop_receipt.status == ResponseCode.SUCCESS, (
+            f"Token airdrop failed with status: {ResponseCode(cancel_airdrop_receipt.status).name}"
+        )
     finally:
         env.close()

@@ -32,9 +32,9 @@ def test_integration_contract_delete_transaction_can_transfer_balance_to_account
         .set_contract_memo("test contract delete transaction")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -43,24 +43,21 @@ def test_integration_contract_delete_transaction_can_transfer_balance_to_account
     account = env.create_account()
 
     receipt = (
-        ContractDeleteTransaction()
-        .set_contract_id(contract_id)
-        .set_transfer_account_id(account.id)
-        .execute(env.client)
+        ContractDeleteTransaction().set_contract_id(contract_id).set_transfer_account_id(account.id).execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Delete contract failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Delete contract failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_info = ContractInfoQuery(contract_id).execute(env.client)
     assert contract_info.is_deleted is True, "Contract should be deleted"
 
     account_info = AccountInfoQuery(account.id).execute(env.client)
     assert account_info.account_id == account.id, "Account ID should match"
-    assert (
-        account_info.balance.to_tinybars() == Hbar(2).to_tinybars()
-    ), f"Account balance should be 2 HBAR but got {account_info.balance.to_tinybars()}"
+    assert account_info.balance.to_tinybars() == Hbar(2).to_tinybars(), (
+        f"Account balance should be 2 HBAR but got {account_info.balance.to_tinybars()}"
+    )
 
 
 @pytest.mark.integration
@@ -75,9 +72,9 @@ def test_integration_contract_delete_transaction_can_transfer_balance_to_contrac
         .set_contract_memo("test contract delete transaction")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -91,9 +88,9 @@ def test_integration_contract_delete_transaction_can_transfer_balance_to_contrac
         .set_contract_memo("contract to transfer balance to")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     transfer_contract_id = receipt.contract_id
     assert transfer_contract_id is not None, "Contract ID should not be None"
@@ -104,20 +101,16 @@ def test_integration_contract_delete_transaction_can_transfer_balance_to_contrac
         .set_transfer_contract_id(transfer_contract_id)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract deletion failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract deletion failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_info = ContractInfoQuery(contract_id).execute(env.client)
     assert contract_info.is_deleted is True, "Contract should be deleted"
 
     transfer_contract_info = ContractInfoQuery(transfer_contract_id).execute(env.client)
-    assert (
-        transfer_contract_info.contract_id == transfer_contract_id
-    ), "Contract ID should match"
-    assert (
-        transfer_contract_info.balance == Hbar(2).to_tinybars()
-    ), "Contract balance should be 2 HBAR"
+    assert transfer_contract_info.contract_id == transfer_contract_id, "Contract ID should match"
+    assert transfer_contract_info.balance == Hbar(2).to_tinybars(), "Contract balance should be 2 HBAR"
 
 
 @pytest.mark.integration
@@ -132,9 +125,9 @@ def test_integration_contract_delete_transaction_fails_when_deleted_twice(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -146,9 +139,9 @@ def test_integration_contract_delete_transaction_fails_when_deleted_twice(env):
         .set_transfer_account_id(env.operator_id)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract deletion failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract deletion failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Try to delete again
     receipt = (
@@ -194,17 +187,15 @@ def test_integration_contract_delete_transaction_fails_with_obtainer_required(en
         .set_initial_balance(Hbar(1).to_tinybars())
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
     # Attempt to delete without setting transfer_account_id or transfer_contract_id
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: OBTAINER_REQUIRED"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: OBTAINER_REQUIRED"):
         ContractDeleteTransaction().set_contract_id(contract_id).execute(env.client)
 
 
@@ -221,9 +212,9 @@ def test_integration_contract_delete_transaction_fails_with_immutable_contract(e
         .set_initial_balance(Hbar(1).to_tinybars())
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -257,9 +248,9 @@ def test_integration_contract_delete_transaction_fails_with_invalid_signature(en
         .sign(admin_private_key)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"

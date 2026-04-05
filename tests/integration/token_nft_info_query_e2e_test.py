@@ -11,39 +11,39 @@ from tests.integration.utils import IntegrationTestEnv, create_nft_token
 @pytest.mark.integration
 def test_integration_token_nft_info_query_can_execute():
     env = IntegrationTestEnv()
-    
+
     try:
         token_id = create_nft_token(env)
-        
+
         metadata = b"Token A"
-        
-        mint = TokenMintTransaction(
-            token_id=token_id,
-            metadata=metadata
-        )
-        
+
+        mint = TokenMintTransaction(token_id=token_id, metadata=metadata)
+
         receipt = mint.execute(env.client)
-        
-        assert receipt.status == ResponseCode.SUCCESS, f"Token minting failed with status: {ResponseCode(receipt.status).name}"
+
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Token minting failed with status: {ResponseCode(receipt.status).name}"
+        )
         nft_id = NftId(token_id, receipt.serial_numbers[0])
-        
+
         info = TokenNftInfoQuery(nft_id).execute(env.client)
-        
+
         assert str(info.nft_id) == str(nft_id), "NFT ID mismatch"
         assert info.nft_id == nft_id, "NFT ID mismatch"
         assert info.metadata == metadata, "Metadata mismatch"
     finally:
         env.close()
-        
+
+
 @pytest.mark.integration
 def test_integration_token_nft_info_query_fail_nonexistent_nft():
     env = IntegrationTestEnv()
-    
+
     try:
         token_id = create_nft_token(env)
-        
+
         nft_id = NftId(token_id, 1)
-        
+
         with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_NFT_ID"):
             TokenNftInfoQuery(nft_id).execute(env.client)
     finally:

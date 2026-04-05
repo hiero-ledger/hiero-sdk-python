@@ -34,8 +34,7 @@ def test_node_create_transaction_can_execute():
     # The private key is intentionally public for local development.
     # Note: This setup only works on solo network and will not work on testnet/mainnet.
     original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e7"
-        "2057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
     )
     client.set_operator(AccountId(0, 0, 2), original_operator_key)
 
@@ -70,8 +69,6 @@ def test_node_create_transaction_can_execute():
         .execute(client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Node create failed with status {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, f"Node create failed with status {ResponseCode(receipt.status).name}"
 
     assert receipt.node_id is not None, "Node ID should not be None"

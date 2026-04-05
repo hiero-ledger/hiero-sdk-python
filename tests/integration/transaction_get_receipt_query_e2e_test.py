@@ -48,9 +48,7 @@ def _extract_tx_id(tx, receipt):
     if tx_ids:
         return tx_ids[0]
 
-    raise AssertionError(
-        "Unable to extract TransactionId from transaction or receipt."
-    )
+    raise AssertionError("Unable to extract TransactionId from transaction or receipt.")
 
 
 def _submit_simple_transfer(env, node_ids=None, tx_id=None):
@@ -82,11 +80,7 @@ def test_get_receipt_query_children_empty_when_not_requested_e2e(env):
     """
     tx_id = _submit_simple_transfer(env)
 
-    receipt = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(tx_id)
-        .execute(env.client)
-    )
+    receipt = TransactionGetReceiptQuery().set_transaction_id(tx_id).execute(env.client)
 
     assert receipt.status == ResponseCode.SUCCESS
     assert receipt.children == []
@@ -101,12 +95,7 @@ def test_get_receipt_query_children_list_when_requested_e2e(env):
     """
     tx_id = _submit_simple_transfer(env)
 
-    receipt = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(tx_id)
-        .set_include_children(True)
-        .execute(env.client)
-    )
+    receipt = TransactionGetReceiptQuery().set_transaction_id(tx_id).set_include_children(True).execute(env.client)
 
     assert receipt.status == ResponseCode.SUCCESS
     assert isinstance(receipt.children, list)
@@ -144,9 +133,7 @@ def test_get_receipt_query_children_with_contract_execute_e2e(env):
     assert file_id is not None
 
     # Deploy contract
-    constructor_params = ContractFunctionParameters().add_bytes32(
-        b"Initial message from constructor"
-    )
+    constructor_params = ContractFunctionParameters().add_bytes32(b"Initial message from constructor")
     contract_receipt = (
         ContractCreateTransaction()
         .set_admin_key(env.operator_key.public_key())
@@ -177,12 +164,7 @@ def test_get_receipt_query_children_with_contract_execute_e2e(env):
     except AssertionError as e:
         pytest.skip(str(e))
 
-    queried = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(tx_id)
-        .set_include_children(True)
-        .execute(env.client)
-    )
+    queried = TransactionGetReceiptQuery().set_transaction_id(tx_id).set_include_children(True).execute(env.client)
 
     assert queried.status == ResponseCode.SUCCESS
 
@@ -192,8 +174,11 @@ def test_get_receipt_query_children_with_contract_execute_e2e(env):
 
     assert isinstance(queried.children, list)
 
+
 @pytest.mark.integration
-@pytest.mark.xfail(reason="Flaky test due to network conditions causing no duplicates to be created. Python Virtual Threads compete too quickly.")
+@pytest.mark.xfail(
+    reason="Flaky test due to network conditions causing no duplicates to be created. Python Virtual Threads compete too quickly."
+)
 def test_get_receipt_query_include_duplicates_execute_e2e(env):
     """
     E2E:
@@ -212,31 +197,23 @@ def test_get_receipt_query_include_duplicates_execute_e2e(env):
     tx2.start()
     tx1.join()
     tx2.join()
-    queried = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(tx_id)
-        .set_include_duplicates(True)
-        .execute(env.client)
-    )
+    queried = TransactionGetReceiptQuery().set_transaction_id(tx_id).set_include_duplicates(True).execute(env.client)
 
     assert queried.status == ResponseCode.SUCCESS
     assert isinstance(queried.duplicates, list)
     assert len(queried.duplicates) == 1
 
+
 @pytest.mark.integration
 def test_get_receipt_returns_failed_status_receipt_if_validate_status_false(env):
     """Test receipt is returned despite failure when validate_status is False."""
-    tx = (
-        AccountDeleteTransaction()
-        .set_transfer_account_id(env.operator_id)
-        .set_account_id(AccountId(0, 0, 0))
-    )
+    tx = AccountDeleteTransaction().set_transfer_account_id(env.operator_id).set_account_id(AccountId(0, 0, 0))
     response = tx.execute(env.client, wait_for_receipt=False)
 
     query = (
         TransactionGetReceiptQuery()
         .set_transaction_id(response.transaction_id)
-        .set_validate_status(False) # Default value
+        .set_validate_status(False)  # Default value
     )
 
     receipt = query.execute(env.client)
@@ -248,20 +225,12 @@ def test_get_receipt_returns_failed_status_receipt_if_validate_status_false(env)
 @pytest.mark.integration
 def test_get_receipt_throws_status_error_when_validation_enabled(env):
     """Test error is raised for failures when validate_status is True."""
-    tx = (
-        AccountDeleteTransaction()
-        .set_transfer_account_id(env.operator_id)
-        .set_account_id(AccountId(1, 0, 0))
-    )
+    tx = AccountDeleteTransaction().set_transfer_account_id(env.operator_id).set_account_id(AccountId(1, 0, 0))
     response = tx.execute(env.client, wait_for_receipt=False)
 
-    query = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(response.transaction_id)
-        .set_validate_status(True)
-    )
+    query = TransactionGetReceiptQuery().set_transaction_id(response.transaction_id).set_validate_status(True)
 
     with pytest.raises(ReceiptStatusError) as e:
         query.execute(env.client)
-    
+
     assert e.value.status == ResponseCode.INVALID_ACCOUNT_ID

@@ -18,10 +18,10 @@ from tests.integration.utils import IntegrationTestEnv, create_fungible_token, c
 @pytest.mark.integration
 def test_integration_fungible_token_create_transaction_can_execute():
     env = IntegrationTestEnv()
-    
+
     try:
         token_id = create_fungible_token(env)
-        
+
         assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
     finally:
         env.close()
@@ -30,13 +30,14 @@ def test_integration_fungible_token_create_transaction_can_execute():
 @pytest.mark.integration
 def test_integration_nft_token_create_transaction_can_execute():
     env = IntegrationTestEnv()
-    
+
     try:
         token_id = create_nft_token(env)
-        
+
         assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
     finally:
         env.close()
+
 
 @pytest.mark.integration
 def test_fungible_token_create_sets_default_autorenew_values():
@@ -56,11 +57,12 @@ def test_fungible_token_create_sets_default_autorenew_values():
 
         token_id = receipt.token_id
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
-    
+
         assert token_info.auto_renew_period == Duration(7890000), "Token auto renew period mismatch"
         assert token_info.auto_renew_account == env.client.operator_account_id, "Token auto renew account mismatch"
     finally:
         env.close()
+
 
 @pytest.mark.integration
 def test_fungible_token_create_with_expiration_time():
@@ -74,24 +76,25 @@ def test_fungible_token_create_with_expiration_time():
             initial_supply=1,
             treasury_account_id=env.client.operator_account_id,
             expiration_time=expiration_time,
-            token_type=TokenType.FUNGIBLE_COMMON
+            token_type=TokenType.FUNGIBLE_COMMON,
         )
 
         receipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
         assert receipt.token_id is not None, "TokenID not found in receipt. Token may not have been created."
-    
+
         token_id = receipt.token_id
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
 
-        assert token_info.expiry.seconds == expiration_time.seconds, "Token expiry mismatch" 
+        assert token_info.expiry.seconds == expiration_time.seconds, "Token expiry mismatch"
         assert token_info.auto_renew_period == Duration(0)
     finally:
         env.close()
 
+
 @pytest.mark.integration
 def test_fungible_token_create_auto_assigns_account_if_autorenew_period_present():
     """
-    Test that if an auto_renew_period is set but auto_renew_account is not set 
+    Test that if an auto_renew_period is set but auto_renew_account is not set
     it get automatically assigns the client's operator account or transaction_id account_id.
     """
     env = IntegrationTestEnv()
@@ -106,16 +109,19 @@ def test_fungible_token_create_auto_assigns_account_if_autorenew_period_present(
         )
 
         receipt = TokenCreateTransaction(params).freeze_with(env.client).execute(env.client)
-        assert receipt.token_id is not None,"TokenID not found in receipt. Token may not have been created."
+        assert receipt.token_id is not None, "TokenID not found in receipt. Token may not have been created."
 
         token_id = receipt.token_id
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
-    
-        assert token_info.auto_renew_period == Duration(7890000), "Token auto renew period mismatch" # Defaut around ~90 days
+
+        assert token_info.auto_renew_period == Duration(7890000), (
+            "Token auto renew period mismatch"
+        )  # Defaut around ~90 days
         # Client operator account if no auto_renew_account set
         assert token_info.auto_renew_account == env.client.operator_account_id, "Token auto renew account missmatch"
     finally:
         env.close()
+
 
 @pytest.mark.integration
 def test_fungible_token_create_with_fee_schedule_key():
@@ -131,7 +137,7 @@ def test_fungible_token_create_with_fee_schedule_key():
             token_symbol="HFT",
             initial_supply=1,
             treasury_account_id=env.client.operator_account_id,
-            token_type=TokenType.FUNGIBLE_COMMON
+            token_type=TokenType.FUNGIBLE_COMMON,
         )
 
         receipt = (
@@ -144,8 +150,10 @@ def test_fungible_token_create_with_fee_schedule_key():
 
         token_id = receipt.token_id
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
-    
-        assert token_info.fee_schedule_key.to_string() == fee_schedule_key.public_key().to_string(), "Fee schedule key missmatch"
+
+        assert token_info.fee_schedule_key.to_string() == fee_schedule_key.public_key().to_string(), (
+            "Fee schedule key missmatch"
+        )
         assert len(token_info.custom_fees) == 0
 
         # Validate Fee schedule key
@@ -160,13 +168,14 @@ def test_fungible_token_create_with_fee_schedule_key():
 
         assert update_receipt.status == ResponseCode.SUCCESS
         token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
-    
+
         assert len(token_info.custom_fees) == 1
         assert token_info.custom_fees[0].amount == 1
         assert token_info.custom_fees[0].fee_collector_account_id == env.client.operator_account_id
 
     finally:
         env.close()
+
 
 @pytest.mark.integration
 def test_token_create_non_custodial_flow():
@@ -188,7 +197,7 @@ def test_token_create_non_custodial_flow():
         # =================================================================
         # STEP 1 & 2: OPERATOR (CLIENT) BUILDS THE TRANSACTION
         # =================================================================
-        
+
         tx = (
             TokenCreateTransaction()
             .set_token_name("NonCustodialToken")
@@ -205,36 +214,37 @@ def test_token_create_non_custodial_flow():
         # =================================================================
         # STEP 3: USER (SIGNER) SIGNS THE TRANSACTION
         # =================================================================
-        
+
         tx_from_bytes = Transaction.from_bytes(tx_bytes)
         tx_from_bytes.sign(user_private_key)
 
         # =================================================================
         # STEP 4: OPERATOR (CLIENT) EXECUTES THE SIGNED TX
         # =================================================================
-        
+
         receipt = tx_from_bytes.execute(client)
-        
+
         assert receipt is not None
         token_id = receipt.token_id
         assert token_id is not None
-        
+
         # PROOF: Query the new token and check if the admin key matches
         token_info = TokenInfoQuery(token_id=token_id).execute(client)
-        
+
         assert token_info.admin_key is not None
-        
+
         # This is the STRONG assertion:
         # Compare the bytes of the key from the network
         # with the bytes of the key we originally used.
         admin_key_bytes = token_info.admin_key.to_bytes_raw()
         public_key_bytes = user_public_key.to_bytes_raw()
-        
+
         assert admin_key_bytes == public_key_bytes
 
     finally:
         # Clean up the environment
         env.close()
+
 
 def test_fungible_token_create_with_metadata():
     """
@@ -256,12 +266,7 @@ def test_fungible_token_create_with_metadata():
         )
 
         # Build, freeze and execute the token creation transaction with metadata
-        receipt = (
-            TokenCreateTransaction(params)
-            .set_metadata(metadata)
-            .freeze_with(env.client)
-            .execute(env.client)
-        )
+        receipt = TokenCreateTransaction(params).set_metadata(metadata).freeze_with(env.client).execute(env.client)
 
         assert receipt.token_id is not None, "TokenID not found in receipt. Token may not have been created."
 

@@ -36,9 +36,7 @@ def test_populate_contract_id_num(env):
     file_id = file_receipt.file_id
     assert file_id is not None
 
-    constructor_params = ContractFunctionParameters().add_bytes32(
-        b"Initial message from constructor"
-    )
+    constructor_params = ContractFunctionParameters().add_bytes32(b"Initial message from constructor")
     contract_receipt = (
         ContractCreateTransaction()
         .set_admin_key(env.operator_key.public_key())

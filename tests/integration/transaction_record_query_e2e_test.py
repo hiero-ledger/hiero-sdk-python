@@ -18,19 +18,13 @@ from hiero_sdk_python.tokens.token_associate_transaction import (
 )
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils import (
-    IntegrationTestEnv,
-    create_fungible_token,
-    create_nft_token,
-)
+from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 
 def _submit_alias_auto_create_transfer(env: IntegrationTestEnv):
     """Submit a transfer to an EVM alias to trigger child auto-account creation."""
     alias_key = PrivateKey.generate_ecdsa()
-    alias_account_id = AccountId.from_evm_address(
-        alias_key.public_key().to_evm_address(), 0, 0
-    )
+    alias_account_id = AccountId.from_evm_address(alias_key.public_key().to_evm_address(), 0, 0)
 
     transaction = (
         TransferTransaction()
@@ -66,16 +60,10 @@ def test_transaction_record_query_can_execute():
         record = TransactionRecordQuery(receipt.transaction_id).execute(env.client)
 
         # Verify transaction details
-        assert (
-            record.transaction_id == receipt.transaction_id
-        ), "Transaction ID should match the queried record"
+        assert record.transaction_id == receipt.transaction_id, "Transaction ID should match the queried record"
         assert record.transaction_fee > 0, "Transaction fee should be greater than zero"
-        assert (
-            record.transaction_memo == ""
-        ), "Transaction memo should be empty by default"
-        assert (
-            record.transaction_hash is not None
-        ), "Transaction hash should not be None"
+        assert record.transaction_memo == "", "Transaction memo should be empty by default"
+        assert record.transaction_hash is not None, "Transaction hash should not be None"
     finally:
         env.close()
 
@@ -129,15 +117,10 @@ def test_transaction_record_query_can_execute_nft_transfer():
         token_id = create_nft_token(env)
 
         # Mint NFTs
-        receipt = (
-            TokenMintTransaction()
-            .set_token_id(token_id)
-            .set_metadata([b"NFT 1", b"NFT 2"])
-            .execute(env.client)
+        receipt = TokenMintTransaction().set_token_id(token_id).set_metadata([b"NFT 1", b"NFT 2"]).execute(env.client)
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"NFT mint failed with status: {ResponseCode(receipt.status).name}"
         )
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), f"NFT mint failed with status: {ResponseCode(receipt.status).name}"
         serial_numbers = receipt.serial_numbers
 
         assert len(serial_numbers) == 2, "Expected two NFTs to be minted"
@@ -152,55 +135,37 @@ def test_transaction_record_query_can_execute_nft_transfer():
             .execute(env.client)
         )
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), f"Token association failed with status: {ResponseCode(receipt.status).name}"
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Token association failed with status: {ResponseCode(receipt.status).name}"
+        )
 
         # Transfer NFTs
         receipt = (
             TransferTransaction()
-            .add_nft_transfer(
-                NftId(token_id, serial_numbers[0]), env.operator_id, new_account.id
-            )
-            .add_nft_transfer(
-                NftId(token_id, serial_numbers[1]), env.operator_id, new_account.id
-            )
+            .add_nft_transfer(NftId(token_id, serial_numbers[0]), env.operator_id, new_account.id)
+            .add_nft_transfer(NftId(token_id, serial_numbers[1]), env.operator_id, new_account.id)
             .execute(env.client)
         )
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), f"NFT transfer failed with status: {ResponseCode(receipt.status).name}"
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"NFT transfer failed with status: {ResponseCode(receipt.status).name}"
+        )
 
         # Query the record
         record = TransactionRecordQuery(receipt.transaction_id).execute(env.client)
 
         # Verify NFT transfers
         assert len(record.nft_transfers) == 1
-        assert (
-            len(record.nft_transfers[token_id]) == 2
-        ), "Expected two NFT transfers in the record"
+        assert len(record.nft_transfers[token_id]) == 2, "Expected two NFT transfers in the record"
         for i, transfer in enumerate(record.nft_transfers[token_id]):
-            assert (
-                transfer.sender_id == env.operator_id
-            ), "Sender should be the operator account"
-            assert (
-                transfer.receiver_id == new_account.id
-            ), "Receiver should be the new account"
-            assert (
-                transfer.serial_number == serial_numbers[i]
-            ), "Serial number should match the minted NFT"
+            assert transfer.sender_id == env.operator_id, "Sender should be the operator account"
+            assert transfer.receiver_id == new_account.id, "Receiver should be the new account"
+            assert transfer.serial_number == serial_numbers[i], "Serial number should match the minted NFT"
 
         # Verify transaction details
-        assert (
-            record.transaction_id == receipt.transaction_id
-        ), "Transaction ID should match the queried record"
+        assert record.transaction_id == receipt.transaction_id, "Transaction ID should match the queried record"
         assert record.transaction_fee > 0, "Transaction fee should be greater than zero"
-        assert (
-            record.transaction_memo == ""
-        ), "Transaction memo should be empty by default"
-        assert (
-            record.transaction_hash is not None
-        ), "Transaction hash should not be None"
+        assert record.transaction_memo == "", "Transaction memo should be empty by default"
+        assert record.transaction_hash is not None, "Transaction hash should not be None"
     finally:
         env.close()
 
@@ -224,9 +189,9 @@ def test_transaction_record_query_can_execute_fungible_transfer():
             .sign(new_account.key)
             .execute(env.client)
         )
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), f"Token association failed with status: {ResponseCode(receipt.status).name}"
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Token association failed with status: {ResponseCode(receipt.status).name}"
+        )
 
         # Transfer tokens
         transfer_amount = 1000
@@ -236,33 +201,25 @@ def test_transaction_record_query_can_execute_fungible_transfer():
             .add_token_transfer(token_id, new_account.id, transfer_amount)
             .execute(env.client)
         )
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Token transfer failed with status: {ResponseCode(receipt.status).name}"
+        )
 
         # Query the record
         record = TransactionRecordQuery(receipt.transaction_id).execute(env.client)
 
         # Verify token transfers
         assert len(record.token_transfers) == 1
-        assert (
-            record.token_transfers[token_id][env.operator_id] == -transfer_amount
-        ), "Operator should have sent tokens"
-        assert (
-            record.token_transfers[token_id][new_account.id] == transfer_amount
-        ), "New account should have received tokens"
+        assert record.token_transfers[token_id][env.operator_id] == -transfer_amount, "Operator should have sent tokens"
+        assert record.token_transfers[token_id][new_account.id] == transfer_amount, (
+            "New account should have received tokens"
+        )
 
         # Verify transaction details
-        assert (
-            record.transaction_id == receipt.transaction_id
-        ), "Transaction ID should match the queried record"
+        assert record.transaction_id == receipt.transaction_id, "Transaction ID should match the queried record"
         assert record.transaction_fee > 0, "Transaction fee should be greater than zero"
-        assert (
-            record.transaction_memo == ""
-        ), "Transaction memo should be empty by default"
-        assert (
-            record.transaction_hash is not None
-        ), "Transaction hash should not be None"
+        assert record.transaction_memo == "", "Transaction memo should be empty by default"
+        assert record.transaction_hash is not None, "Transaction hash should not be None"
     finally:
         env.close()
 
@@ -317,18 +274,13 @@ def test_query_with_include_duplicates():
         # import time; time.sleep(1)  # if needed on slow networks
 
         # Step 3: Query with include_duplicates=True
-        record = (
-            TransactionRecordQuery()
-            .set_transaction_id(tx_id)
-            .set_include_duplicates(True)
-            .execute(env.client)
-        )
+        record = TransactionRecordQuery().set_transaction_id(tx_id).set_include_duplicates(True).execute(env.client)
 
         # Core assertions for the feature
         assert record.transaction_id == tx_id
-        assert (
-            len(record.duplicates) >= 2
-        ), f"Expected at least 2 duplicates after 3 submissions, got {len(record.duplicates)}"
+        assert len(record.duplicates) >= 2, (
+            f"Expected at least 2 duplicates after 3 submissions, got {len(record.duplicates)}"
+        )
 
         # Verify duplicates are TransactionRecord instances
         if record.duplicates:

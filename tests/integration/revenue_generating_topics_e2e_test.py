@@ -49,9 +49,9 @@ def _create_topic(env, exempt_key1, exempt_key2, custom_fee1, custom_fee2):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -132,9 +132,9 @@ def test_integration_revenue_generating_topic_can_update(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic update failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic update failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Query topic info again to validate updates
     updated_topic_info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
@@ -209,9 +209,9 @@ def test_integration_revenue_generating_topic_cannot_update_fee_schedule_key(env
     # Create a revenue generating topic without fee schedule key
     receipt = TopicCreateTransaction().set_admin_key(env.public_operator_key).execute(env.client)
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -240,9 +240,9 @@ def test_integration_revenue_generating_topic_cannot_update_custom_fees(env):
     # Create a revenue generating topic without fee schedule key
     receipt = TopicCreateTransaction().set_admin_key(env.public_operator_key).execute(env.client)
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -265,8 +265,7 @@ def test_integration_revenue_generating_topic_cannot_update_custom_fees(env):
     )
 
     assert receipt.status == ResponseCode.FEE_SCHEDULE_KEY_NOT_SET, (
-        f"Topic update should have failed with FEE_SCHEDULE_KEY_NOT_SET"
-        f"but got {ResponseCode(receipt.status).name}"
+        f"Topic update should have failed with FEE_SCHEDULE_KEY_NOT_SETbut got {ResponseCode(receipt.status).name}"
     )
 
 
@@ -290,9 +289,9 @@ def test_integration_revenue_generating_topic_can_charge_hbars_with_limit(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -319,9 +318,9 @@ def test_integration_revenue_generating_topic_can_charge_hbars_with_limit(env):
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     # Reset operator to original
     env.client.set_operator(env.operator_id, env.operator_key)
@@ -350,9 +349,9 @@ def test_integration_revenue_generating_topic_can_charge_hbars_without_limit(env
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -362,16 +361,14 @@ def test_integration_revenue_generating_topic_can_charge_hbars_without_limit(env
     # Submit a message to the revenue generating topic without custom fee limit
     env.client.set_operator(payer_account.id, payer_account.key)
 
-    message_transaction = (
-        TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
-    )
+    message_transaction = TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
 
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     # Reset operator to original
     env.client.set_operator(env.operator_id, env.operator_key)
@@ -397,9 +394,9 @@ def test_integration_revenue_generating_topic_can_charge_tokens_with_limit(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -412,9 +409,7 @@ def test_integration_revenue_generating_topic_can_charge_tokens_with_limit(env):
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(
-            CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(token_id)
-        )
+        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(token_id))
     )
 
     # Set operator to payer
@@ -430,17 +425,15 @@ def test_integration_revenue_generating_topic_can_charge_tokens_with_limit(env):
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     # Reset operator to original
     env.client.set_operator(env.operator_id, env.operator_key)
 
     # Verify the custom fee charged
-    account_balance = (
-        CryptoGetAccountBalanceQuery().set_account_id(payer_account.id).execute(env.client)
-    )
+    account_balance = CryptoGetAccountBalanceQuery().set_account_id(payer_account.id).execute(env.client)
     assert account_balance.token_balances.get(token_id) == 0
 
 
@@ -460,9 +453,9 @@ def test_integration_revenue_generating_topic_can_charge_tokens_without_limit(en
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -474,24 +467,20 @@ def test_integration_revenue_generating_topic_can_charge_tokens_without_limit(en
     # Set operator to payer
     env.client.set_operator(payer_account.id, payer_account.key)
 
-    message_transaction = (
-        TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
-    )
+    message_transaction = TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
 
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     # Reset operator to original
     env.client.set_operator(env.operator_id, env.operator_key)
 
     # Verify the custom fee charged
-    account_balance = (
-        CryptoGetAccountBalanceQuery().set_account_id(payer_account.id).execute(env.client)
-    )
+    account_balance = CryptoGetAccountBalanceQuery().set_account_id(payer_account.id).execute(env.client)
     assert account_balance.token_balances.get(token_id) == 0
 
 
@@ -518,9 +507,9 @@ def test_integration_revenue_generating_topic_does_not_charge_hbars_fee_exempt_k
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -532,25 +521,23 @@ def test_integration_revenue_generating_topic_does_not_charge_hbars_fee_exempt_k
         .set_initial_balance(Hbar(1))
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     payer_account = receipt.account_id
     assert payer_account is not None
 
     # Submit a message to the revenue generating topic without custom fee limit
     env.client.set_operator(payer_account, fee_exempt_key1)
 
-    message_transaction = (
-        TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
-    )
+    message_transaction = TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
 
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     # Reset operator to original
     env.client.set_operator(env.operator_id, env.operator_key)
@@ -582,9 +569,9 @@ def test_integration_revenue_generating_topic_does_not_charge_tokens_fee_exempt_
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -595,9 +582,9 @@ def test_integration_revenue_generating_topic_does_not_charge_tokens_fee_exempt_
         .set_initial_balance(Hbar(1))
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     payer_account = receipt.account_id
     assert payer_account is not None
 
@@ -605,23 +592,19 @@ def test_integration_revenue_generating_topic_does_not_charge_tokens_fee_exempt_
 
     env.client.set_operator(payer_account, fee_exempt_key1)
 
-    message_transaction = (
-        TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
-    )
+    message_transaction = TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
 
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     env.client.set_operator(env.operator_id, env.operator_key)
 
     # Verify the custom fee is not charged
-    account_balance = (
-        CryptoGetAccountBalanceQuery().set_account_id(payer_account).execute(env.client)
-    )
+    account_balance = CryptoGetAccountBalanceQuery().set_account_id(payer_account).execute(env.client)
     assert account_balance.token_balances.get(token_id) == 1
 
 
@@ -644,9 +627,9 @@ def test_integration_revenue_generating_topic_cannot_charge_hbars_with_lower_lim
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -657,9 +640,7 @@ def test_integration_revenue_generating_topic_cannot_charge_hbars_with_lower_lim
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(
-            CustomFixedFee().set_hbar_amount(Hbar.from_tinybars((hbar_amount // 2) - 1))
-        )
+        .add_custom_fee(CustomFixedFee().set_hbar_amount(Hbar.from_tinybars((hbar_amount // 2) - 1)))
     )
 
     # Submit a message to the revenue generating topic with custom fee limit
@@ -699,9 +680,9 @@ def test_integration_revenue_generating_topic_cannot_charge_tokens_with_lower_li
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -714,9 +695,7 @@ def test_integration_revenue_generating_topic_cannot_charge_tokens_with_lower_li
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(
-            CustomFixedFee().set_amount_in_tinybars(1).set_denominating_token_id(token_id)
-        )
+        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(1).set_denominating_token_id(token_id))
     )
 
     # Submit a message to the revenue generating topic with custom fee limit
@@ -757,9 +736,9 @@ def test_integration_scheduled_revenue_topic_cannot_charge_hbars_with_lower_limi
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -770,9 +749,7 @@ def test_integration_scheduled_revenue_topic_cannot_charge_hbars_with_lower_limi
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(
-            CustomFixedFee().set_hbar_amount(Hbar.from_tinybars((hbar_amount // 2) - 1))
-        )
+        .add_custom_fee(CustomFixedFee().set_hbar_amount(Hbar.from_tinybars((hbar_amount // 2) - 1)))
     )
 
     env.client.set_operator(payer_account.id, payer_account.key)  # Set operator to payer
@@ -788,9 +765,9 @@ def test_integration_scheduled_revenue_topic_cannot_charge_hbars_with_lower_limi
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submit failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submit failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     env.client.set_operator(env.operator_id, env.operator_key)  # Reset operator to original
 
@@ -798,8 +775,7 @@ def test_integration_scheduled_revenue_topic_cannot_charge_hbars_with_lower_limi
     account_info = AccountInfoQuery().set_account_id(payer_account.id).execute(env.client)
 
     assert account_info.balance.to_tinybars() > hbar_amount // 2, (
-        f"Expected balance to be greater than {hbar_amount // 2} tinybars, "
-        f"but got {account_info.balance.to_tinybars()}"
+        f"Expected balance to be greater than {hbar_amount // 2} tinybars, but got {account_info.balance.to_tinybars()}"
     )
 
 
@@ -821,9 +797,9 @@ def test_integration_revenue_generating_topic_cannot_execute_with_invalid_token_
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -837,9 +813,7 @@ def test_integration_revenue_generating_topic_cannot_execute_with_invalid_token_
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(
-            CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(invalid_token_id)
-        )
+        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(invalid_token_id))
     )
 
     # Set operator to payer
@@ -879,9 +853,9 @@ def test_integration_revenue_generating_topic_cannot_execute_with_duplicate_deno
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     topic_id = receipt.topic_id
     assert topic_id is not None
@@ -894,12 +868,8 @@ def test_integration_revenue_generating_topic_cannot_execute_with_duplicate_deno
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(
-            CustomFixedFee().set_amount_in_tinybars(1).set_denominating_token_id(token_id)
-        )
-        .add_custom_fee(
-            CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(token_id)
-        )
+        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(1).set_denominating_token_id(token_id))
+        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(token_id))
     )
 
     # Set operator to payer
@@ -937,16 +907,11 @@ def test_integration_revenue_generating_topic_does_not_charge_treasuries(env):
         ],
     )
 
-    receipt = (
-        TokenAssociateTransaction()
-        .set_account_id(env.operator_id)
-        .add_token_id(token_id)
-        .execute(env.client)
-    )
+    receipt = TokenAssociateTransaction().set_account_id(env.operator_id).add_token_id(token_id).execute(env.client)
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Token association failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token association failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     custom_fee = _create_custom_fee(env, token_id, 1)
 
@@ -958,28 +923,24 @@ def test_integration_revenue_generating_topic_does_not_charge_treasuries(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     topic_id = receipt.topic_id
     assert topic_id is not None
 
     env.client.set_operator(payer_account.id, payer_account.key)
 
-    message_transaction = (
-        TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
-    )
+    message_transaction = TopicMessageSubmitTransaction().set_message(MESSAGE).set_topic_id(topic_id)
 
     message_transaction.transaction_fee = Hbar(2).to_tinybars()
     message_receipt = message_transaction.execute(env.client)
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     env.client.set_operator(env.operator_id, env.operator_key)
 
-    account_balance = (
-        CryptoGetAccountBalanceQuery().set_account_id(payer_account.id).execute(env.client)
-    )
+    account_balance = CryptoGetAccountBalanceQuery().set_account_id(payer_account.id).execute(env.client)
     assert account_balance.token_balances.get(token_id) == 1

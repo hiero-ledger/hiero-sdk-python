@@ -23,9 +23,7 @@ def _create_test_contract(env: IntegrationTestEnv) -> ContractId:
     )
 
     if ResponseCode(receipt.status) != ResponseCode.SUCCESS:
-        raise RuntimeError(
-            f"ContractCreateTransaction failed with status: {ResponseCode(receipt.status).name}"
-        )
+        raise RuntimeError(f"ContractCreateTransaction failed with status: {ResponseCode(receipt.status).name}")
 
     if receipt.contract_id is None:
         raise RuntimeError("ContractCreateTransaction succeeded but receipt.contract_id is None")

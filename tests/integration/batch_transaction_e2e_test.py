@@ -18,16 +18,13 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 
 def create_account_tx(key, client):
     """Helper transaction to create an account."""
-    account_receipt = (
-        AccountCreateTransaction()
-        .set_key_without_alias(key)
-        .set_initial_balance(1)
-        .execute(client)
-    ) 
+    account_receipt = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(1).execute(client)
 
     return account_receipt.account_id
 
+
 batch_key = PrivateKey.generate()
+
 
 def test_batch_transaction_can_execute(env):
     """Test can create and execute batch transaction."""
@@ -40,12 +37,7 @@ def test_batch_transaction_can_execute(env):
         .batchify(env.client, batch_key)
     )
 
-    batch_tx = (
-        BatchTransaction()
-        .add_inner_transaction(transfer_tx)
-        .freeze_with(env.client)
-        .sign(batch_key)
-    )
+    batch_tx = BatchTransaction().add_inner_transaction(transfer_tx).freeze_with(env.client).sign(batch_key)
 
     batch_receipt = batch_tx.execute(env.client)
 
@@ -53,13 +45,10 @@ def test_batch_transaction_can_execute(env):
 
     # Inner Transaction Receipt
     transfer_tx_id = batch_tx.get_inner_transaction_ids()[0]
-    transfer_tx_receipt = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(transfer_tx_id)
-        .execute(env.client)
-    )
+    transfer_tx_receipt = TransactionGetReceiptQuery().set_transaction_id(transfer_tx_id).execute(env.client)
 
     assert transfer_tx_receipt.status == ResponseCode.SUCCESS
+
 
 def test_batch_transaction_can_execute_from_bytes(env):
     """Test can create and execute batch transaction from bytes."""
@@ -72,12 +61,7 @@ def test_batch_transaction_can_execute_from_bytes(env):
         .batchify(env.client, batch_key)
     )
 
-    batch_tx = (
-        BatchTransaction()
-        .add_inner_transaction(transfer_tx)
-        .freeze_with(env.client)
-        .sign(batch_key)
-    )
+    batch_tx = BatchTransaction().add_inner_transaction(transfer_tx).freeze_with(env.client).sign(batch_key)
 
     # Convert to bytes
     batch_bytes = batch_tx.to_bytes()
@@ -89,18 +73,15 @@ def test_batch_transaction_can_execute_from_bytes(env):
 
     # Inner Transaction Receipt
     transfer_tx_id = batch_tx_from_bytes.get_inner_transaction_ids()[0]
-    transfer_tx_receipt = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(transfer_tx_id)
-        .execute(env.client)
-    )
+    transfer_tx_receipt = TransactionGetReceiptQuery().set_transaction_id(transfer_tx_id).execute(env.client)
 
     assert transfer_tx_receipt.status == ResponseCode.SUCCESS
+
 
 def test_batch_transaction_can_execute_large_batch(env):
     """Test can execute a large batch transaction"""
     batch_tx = BatchTransaction()
-    
+
     receiver_id = create_account_tx(PrivateKey.generate().public_key(), env.client)
 
     for _ in range(20):
@@ -119,26 +100,19 @@ def test_batch_transaction_can_execute_large_batch(env):
     batch_receipt = batch_tx.execute(env.client)
 
     assert batch_receipt.status == ResponseCode.SUCCESS
-    
+
     # Inner Transaction Receipt
     for tx_id in batch_tx.get_inner_transaction_ids():
-        transfer_tx_receipt = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(tx_id)
-            .execute(env.client)
-        )
-    
+        transfer_tx_receipt = TransactionGetReceiptQuery().set_transaction_id(tx_id).execute(env.client)
+
     assert transfer_tx_receipt.status == ResponseCode.SUCCESS
+
 
 def test_batch_transaction_without_inner_transactions(env):
     """Test batch transaction with empty inner transaction's list should raise an error."""
     with pytest.raises(ValueError, match="BatchTransaction requires at least one inner transaction."):
-        (
-            BatchTransaction()
-            .freeze_with(env.client)
-            .sign(batch_key)
-            .execute(env.client)
-        )
+        (BatchTransaction().freeze_with(env.client).sign(batch_key).execute(env.client))
+
 
 def test_batch_transaction_with_blacklisted_inner_transaction(env):
     """Test batch transaction with blacklisted inner transaction should raise an error."""
@@ -146,7 +120,7 @@ def test_batch_transaction_with_blacklisted_inner_transaction(env):
     freeze_tx = (
         FreezeTransaction()
         .set_file_id(FileId.from_string("4.5.6"))
-        .set_file_hash(bytes.fromhex('1723904587120938954702349857'))
+        .set_file_hash(bytes.fromhex("1723904587120938954702349857"))
         .set_start_time(Timestamp.generate())
         .set_freeze_type(FreezeType.FREEZE_ONLY)
         .batchify(env.client, batch_key)
@@ -169,20 +143,11 @@ def test_batch_transaction_with_blacklisted_inner_transaction(env):
         .batchify(env.client, batch_key)
     )
 
-    batch_tx = (
-        BatchTransaction()
-        .add_inner_transaction(account_tx)
-        .batchify(env.client, batch_key)
-    )
+    batch_tx = BatchTransaction().add_inner_transaction(account_tx).batchify(env.client, batch_key)
 
     with pytest.raises(ValueError, match="Transaction type BatchTransaction is not allowed in a batch transaction"):
-        (
-            BatchTransaction()
-            .add_inner_transaction(batch_tx)
-            .freeze_with(env.client)
-            .sign(batch_key)
-            .execute(env.client)
-        )
+        (BatchTransaction().add_inner_transaction(batch_tx).freeze_with(env.client).sign(batch_key).execute(env.client))
+
 
 def test_batch_transaction_with_invalid_batch_key(env):
     """Test invalid batch key set to inner transaction should raise error."""
@@ -196,16 +161,12 @@ def test_batch_transaction_with_invalid_batch_key(env):
         .batchify(env.client, invalid_batch_key)
     )
 
-    batch_tx = (
-        BatchTransaction()
-        .add_inner_transaction(transfer_tx)
-        .freeze_with(env.client)
-        .sign(batch_key)
-    )
+    batch_tx = BatchTransaction().add_inner_transaction(transfer_tx).freeze_with(env.client).sign(batch_key)
 
     batch_receipt = batch_tx.execute(env.client)
 
     assert batch_receipt.status == ResponseCode.INVALID_SIGNATURE
+
 
 def test_batch_transaction_can_execute_with_different_batch_key(env):
     """Test can execute batch transaction with different batch keys."""
@@ -254,12 +215,9 @@ def test_batch_transaction_can_execute_with_different_batch_key(env):
 
     # Inner Transaction Receipt
     for transfer_tx_id in batch_tx.get_inner_transaction_ids():
-        transfer_tx_receipt = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transfer_tx_id)
-            .execute(env.client)
-        )
+        transfer_tx_receipt = TransactionGetReceiptQuery().set_transaction_id(transfer_tx_id).execute(env.client)
         assert transfer_tx_receipt.status == ResponseCode.SUCCESS
+
 
 def test_execute_transaction_fail_when_batchified(env):
     """Test transaction should fail when batchified but not part of a batch."""
@@ -273,11 +231,10 @@ def test_execute_transaction_fail_when_batchified(env):
     with pytest.raises(ValueError, match="Cannot execute batchified transaction outside of BatchTransaction."):
         tx.execute(env.client)
 
+
 def test_successful_inner_transactions_should_incur_fees_even_though_one_fails(env):
     """Test successful inner transaction should incur fees even though one failed."""
-    initial_balance = (
-        AccountInfoQuery(account_id=env.operator_id).execute(env.client).balance
-    )
+    initial_balance = AccountInfoQuery(account_id=env.operator_id).execute(env.client).balance
 
     tx1 = (
         AccountCreateTransaction()
@@ -314,11 +271,10 @@ def test_successful_inner_transactions_should_incur_fees_even_though_one_fails(e
     batch_receipt = batch_tx.execute(env.client)
     assert batch_receipt.status == ResponseCode.INNER_TRANSACTION_FAILED
 
-    final_balance = (
-        AccountInfoQuery(account_id=env.operator_id).execute(env.client).balance
-    )
+    final_balance = AccountInfoQuery(account_id=env.operator_id).execute(env.client).balance
 
     assert initial_balance > final_balance
+
 
 def test_batch_transaction_with_inner_schedule_transaction(env):
     """Test batch_transaction with inner schedule transaction raise error."""
@@ -326,10 +282,7 @@ def test_batch_transaction_with_inner_schedule_transaction(env):
     receiver_id = create_account_tx(receiver_key.public_key(), env.client)
 
     schedule_create_tx = (
-        TransferTransaction()
-        .add_hbar_transfer(receiver_id, -1)
-        .add_hbar_transfer(env.operator_id, 1)
-        .schedule()
+        TransferTransaction().add_hbar_transfer(receiver_id, -1).add_hbar_transfer(env.operator_id, 1).schedule()
     )
 
     current_time = datetime.datetime.now()
@@ -346,12 +299,7 @@ def test_batch_transaction_with_inner_schedule_transaction(env):
         .sign(env.operator_key)
     )
 
-    batch_tx = (
-        BatchTransaction()
-        .add_inner_transaction(schedule_create_tx)
-        .freeze_with(env.client)
-        .sign(batch_key)
-    )
+    batch_tx = BatchTransaction().add_inner_transaction(schedule_create_tx).freeze_with(env.client).sign(batch_key)
 
     batch_receipt = batch_tx.execute(env.client)
     assert batch_receipt.status == ResponseCode.BATCH_TRANSACTION_IN_BLACKLIST
@@ -362,7 +310,7 @@ def test_batch_transaction_with_public_key_as_batch_key(env):
     # Generate a key pair - we'll use the PublicKey as batch_key
     batch_private_key = PrivateKey.generate()
     batch_public_key = batch_private_key.public_key()
-    
+
     receiver_id = create_account_tx(PrivateKey.generate().public_key(), env.client)
 
     # Use PublicKey in batchify
@@ -390,11 +338,7 @@ def test_batch_transaction_with_public_key_as_batch_key(env):
 
     # Inner Transaction Receipt
     transfer_tx_id = batch_tx.get_inner_transaction_ids()[0]
-    transfer_tx_receipt = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(transfer_tx_id)
-        .execute(env.client)
-    )
+    transfer_tx_receipt = TransactionGetReceiptQuery().set_transaction_id(transfer_tx_id).execute(env.client)
     assert transfer_tx_receipt.status == ResponseCode.SUCCESS
 
 
@@ -458,11 +402,7 @@ def test_batch_transaction_with_mixed_public_and_private_keys(env):
 
     # Verify all inner transactions succeeded
     for transfer_tx_id in batch_tx.get_inner_transaction_ids():
-        transfer_tx_receipt = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transfer_tx_id)
-            .execute(env.client)
-        )
+        transfer_tx_receipt = TransactionGetReceiptQuery().set_transaction_id(transfer_tx_id).execute(env.client)
         assert transfer_tx_receipt.status == ResponseCode.SUCCESS
 
 
@@ -471,7 +411,7 @@ def test_batch_transaction_set_batch_key_with_public_key(env):
     # Generate a key pair
     batch_private_key = PrivateKey.generate()
     batch_public_key = batch_private_key.public_key()
-    
+
     receiver_id = create_account_tx(PrivateKey.generate().public_key(), env.client)
 
     # Use set_batch_key with PublicKey instead of batchify
@@ -500,9 +440,5 @@ def test_batch_transaction_set_batch_key_with_public_key(env):
 
     # Inner Transaction Receipt
     transfer_tx_id = batch_tx.get_inner_transaction_ids()[0]
-    transfer_tx_receipt = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(transfer_tx_id)
-        .execute(env.client)
-    )
+    transfer_tx_receipt = TransactionGetReceiptQuery().set_transaction_id(transfer_tx_id).execute(env.client)
     assert transfer_tx_receipt.status == ResponseCode.SUCCESS

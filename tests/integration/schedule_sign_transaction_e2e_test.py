@@ -30,9 +30,9 @@ def test_integration_schedule_sign_transaction_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
     schedule_id = receipt.schedule_id
@@ -40,10 +40,7 @@ def test_integration_schedule_sign_transaction_can_execute(env):
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None
     assert schedule_info.schedule_id == schedule_id
-    assert (
-        schedule_info.admin_key.to_bytes_raw()
-        == env.operator_key.public_key().to_bytes_raw()
-    )
+    assert schedule_info.admin_key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw()
     assert not schedule_info.signers
     assert schedule_info.executed_at is None  # Check it is not executed
     assert schedule_info.deleted_at is None
@@ -56,18 +53,15 @@ def test_integration_schedule_sign_transaction_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule sign transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule sign transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None
     assert schedule_info.schedule_id == schedule_id
     assert len(schedule_info.signers) == 1
-    assert (
-        schedule_info.signers[0].to_bytes_raw()
-        == account.key.public_key().to_bytes_raw()
-    )
+    assert schedule_info.signers[0].to_bytes_raw() == account.key.public_key().to_bytes_raw()
     assert schedule_info.executed_at is not None  # Check it executed
     assert schedule_info.deleted_at is None
 
@@ -88,9 +82,9 @@ def test_integration_schedule_sign_transaction_can_execute_multiple_signers(env)
         .set_schedule_memo("test schedule sign transaction")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
     schedule_id = receipt.schedule_id
@@ -109,18 +103,18 @@ def test_integration_schedule_sign_transaction_can_execute_multiple_signers(env)
         .sign(payer_account.key)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule sign transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule sign transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None
     assert schedule_info.schedule_id == schedule_id
     assert len(schedule_info.signers) == 2
-    
+
     signers = [s.to_bytes_raw() for s in schedule_info.signers]
     assert account.key.public_key().to_bytes_raw() in signers
-    
+
     assert schedule_info.executed_at is not None
 
 
@@ -136,9 +130,9 @@ def test_integration_schedule_sign_transaction_add_signer_later(env):
         .set_schedule_memo("test schedule sign transaction")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
@@ -148,10 +142,7 @@ def test_integration_schedule_sign_transaction_add_signer_later(env):
     assert schedule_info is not None
     assert schedule_info.schedule_id == schedule_id
     assert len(schedule_info.signers) == 1
-    assert (
-        schedule_info.signers[0].to_bytes_raw()
-        == env.operator_key.public_key().to_bytes_raw()
-    )
+    assert schedule_info.signers[0].to_bytes_raw() == env.operator_key.public_key().to_bytes_raw()
     assert schedule_info.executed_at is None
 
     receipt = (
@@ -161,9 +152,9 @@ def test_integration_schedule_sign_transaction_add_signer_later(env):
         .sign(account.key)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule sign transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule sign transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None
@@ -193,6 +184,7 @@ def test_integration_schedule_sign_transaction_fails_invalid_schedule_id(env):
         f"{ResponseCode(receipt.status).name}"
     )
 
+
 def test_integration_schedule_sign_transaction_fails_with_already_executed(env):
     """Test that ScheduleSignTransaction fails when the schedule has already been executed."""
     account = env.create_account()
@@ -211,9 +203,9 @@ def test_integration_schedule_sign_transaction_fails_with_already_executed(env):
         .sign(account.key)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     receipt = (
         ScheduleSignTransaction()

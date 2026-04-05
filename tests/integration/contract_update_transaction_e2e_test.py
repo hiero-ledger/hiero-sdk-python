@@ -33,9 +33,9 @@ def test_integration_contract_update_transaction_can_execute(env):
         .set_contract_memo("[e2e::ContractCreateTransaction]")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -54,28 +54,20 @@ def test_integration_contract_update_transaction_can_execute(env):
         .set_expiration_time(future_expiration)
         .execute(env.client)
     )
-    assert (
-        update_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
+    assert update_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
+    )
 
     info = ContractInfoQuery().set_contract_id(contract_id).execute(env.client)
     assert info.contract_id == contract_id, "Contract ID should be updated"
-    assert (
-        info.admin_key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw()
-    ), "Admin key should be unchanged"
+    assert info.admin_key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw(), (
+        "Admin key should be unchanged"
+    )
     assert info.contract_memo == updated_memo, "Contract memo should be updated"
-    assert (
-        info.auto_renew_account_id == env.operator_id
-    ), "Auto renew account ID should be updated"
-    assert (
-        info.auto_renew_period == updated_duration
-    ), "Auto renew period should be updated"
-    assert (
-        info.max_automatic_token_associations == 10
-    ), "Max automatic token associations should be updated"
-    assert (
-        info.expiration_time.seconds == future_expiration.seconds
-    ), "Expiration time should be updated"
+    assert info.auto_renew_account_id == env.operator_id, "Auto renew account ID should be updated"
+    assert info.auto_renew_period == updated_duration, "Auto renew period should be updated"
+    assert info.max_automatic_token_associations == 10, "Max automatic token associations should be updated"
+    assert info.expiration_time.seconds == future_expiration.seconds, "Expiration time should be updated"
 
 
 @pytest.mark.integration
@@ -83,13 +75,10 @@ def test_integration_contract_update_transaction_fails_with_invalid_contract_id(
     """Test that contract update fails when contract ID is invalid."""
     contract_id = ContractId(0, 0, 999999999)
 
-    receipt = (
-        ContractUpdateTransaction().set_contract_id(contract_id).execute(env.client)
-    )
+    receipt = ContractUpdateTransaction().set_contract_id(contract_id).execute(env.client)
 
     assert receipt.status == ResponseCode.INVALID_CONTRACT_ID, (
-        f"Contract update should fail when contract ID is invalid, "
-        f"but got status: {ResponseCode(receipt.status).name}"
+        f"Contract update should fail when contract ID is invalid, but got status: {ResponseCode(receipt.status).name}"
     )
 
 
@@ -107,9 +96,9 @@ def test_integration_contract_update_transaction_with_admin_key(env):
         .set_contract_memo("[e2e::ContractCreateTransaction]")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -122,20 +111,16 @@ def test_integration_contract_update_transaction_with_admin_key(env):
         .sign(new_admin_key)
         .execute(env.client)
     )
-    assert (
-        update_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
+    assert update_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
+    )
 
     contract_info = ContractInfoQuery().set_contract_id(contract_id).execute(env.client)
-    assert (
-        contract_info.admin_key.to_string() == new_admin_key.public_key().to_string()
-    ), "Admin key should be updated"
-    assert (
-        contract_info.contract_memo == "[e2e::ContractCreateTransaction]"
-    ), "Auto renew account ID should be unchanged"
-    assert (
-        contract_info.max_automatic_token_associations == 10
-    ), "Max automatic token associations should be unchanged"
+    assert contract_info.admin_key.to_string() == new_admin_key.public_key().to_string(), "Admin key should be updated"
+    assert contract_info.contract_memo == "[e2e::ContractCreateTransaction]", (
+        "Auto renew account ID should be unchanged"
+    )
+    assert contract_info.max_automatic_token_associations == 10, "Max automatic token associations should be unchanged"
 
 
 @pytest.mark.integration
@@ -150,9 +135,9 @@ def test_integration_contract_update_transaction_invalid_auto_renew_period(env):
         .set_contract_memo("[e2e::ContractCreateTransaction]")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -187,9 +172,9 @@ def test_integration_contract_update_transaction_fails_with_invalid_signature(en
         .set_contract_memo("[e2e::ContractCreateTransaction]")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"

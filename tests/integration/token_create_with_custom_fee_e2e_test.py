@@ -34,9 +34,7 @@ def test_token_create_with_custom_fee_e2e():
         keys = TokenKeys(admin_key=env.operator_key, supply_key=env.operator_key)
 
         transaction = (
-            TokenCreateTransaction(token_params=token_params, keys=keys)
-            .freeze_with(env.client)
-            .sign(env.operator_key)
+            TokenCreateTransaction(token_params=token_params, keys=keys).freeze_with(env.client).sign(env.operator_key)
         )
 
         receipt = transaction.execute(env.client)
