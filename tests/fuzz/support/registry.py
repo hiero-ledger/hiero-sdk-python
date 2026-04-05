@@ -142,9 +142,7 @@ def _build_alias_identifier_strategies(
     )
     account_id_valid_evm = st.one_of(
         evm_hex.map(lambda value: AccountIdAliasCase(text=value, shard=0, realm=0, evm_hex=value)),
-        evm_hex.map(
-            lambda value: AccountIdAliasCase(text=f"0x{value}", shard=0, realm=0, evm_hex=value)
-        ),
+        evm_hex.map(lambda value: AccountIdAliasCase(text=f"0x{value}", shard=0, realm=0, evm_hex=value)),
         st.builds(
             lambda shard_value, realm_value, value: AccountIdAliasCase(
                 text=f"{shard_value}.{realm_value}.{value}",
@@ -243,9 +241,7 @@ def _build_invalid_identifier_strategies() -> dict[str, SearchStrategy[Any]]:
 def _build_private_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
     """Build the private key strategies from the canonical valid sample encodings."""
     private_key_valid_string = st.one_of(
-        with_optional_0x(
-            st.sampled_from([key_samples.ed_private_raw, key_samples.ed_private_der])
-        ),
+        with_optional_0x(st.sampled_from([key_samples.ed_private_raw, key_samples.ed_private_der])),
     )
     private_key_valid_bytes = st.sampled_from(
         [
@@ -433,32 +429,18 @@ def _build_contract_value_strategies() -> dict[str, SearchStrategy[Any]]:
     """Build valid and invalid contract parameter cases without changing ABI edge coverage."""
     valid_contract_value = st.one_of(
         st.booleans().map(lambda value: ContractValueCase("add_bool", value)),
-        st.integers(min_value=-(2**31), max_value=2**31 - 1).map(
-            lambda value: ContractValueCase("add_int32", value)
-        ),
-        st.integers(min_value=0, max_value=2**32 - 1).map(
-            lambda value: ContractValueCase("add_uint32", value)
-        ),
-        st.integers(min_value=MIN_I64, max_value=MAX_I64).map(
-            lambda value: ContractValueCase("add_int64", value)
-        ),
-        st.integers(min_value=0, max_value=2**64 - 1).map(
-            lambda value: ContractValueCase("add_uint64", value)
-        ),
+        st.integers(min_value=-(2**31), max_value=2**31 - 1).map(lambda value: ContractValueCase("add_int32", value)),
+        st.integers(min_value=0, max_value=2**32 - 1).map(lambda value: ContractValueCase("add_uint32", value)),
+        st.integers(min_value=MIN_I64, max_value=MAX_I64).map(lambda value: ContractValueCase("add_int64", value)),
+        st.integers(min_value=0, max_value=2**64 - 1).map(lambda value: ContractValueCase("add_uint64", value)),
         st.integers(min_value=-(2**255), max_value=2**255 - 1).map(
             lambda value: ContractValueCase("add_int256", value)
         ),
-        st.integers(min_value=0, max_value=2**256 - 1).map(
-            lambda value: ContractValueCase("add_uint256", value)
-        ),
+        st.integers(min_value=0, max_value=2**256 - 1).map(lambda value: ContractValueCase("add_uint256", value)),
         st.text(min_size=0, max_size=32).map(lambda value: ContractValueCase("add_string", value)),
         st.binary(min_size=0, max_size=64).map(lambda value: ContractValueCase("add_bytes", value)),
-        st.binary(min_size=0, max_size=32).map(
-            lambda value: ContractValueCase("add_bytes32", value)
-        ),
-        st.binary(min_size=20, max_size=20).map(
-            lambda value: ContractValueCase("add_address", value)
-        ),
+        st.binary(min_size=0, max_size=32).map(lambda value: ContractValueCase("add_bytes32", value)),
+        st.binary(min_size=20, max_size=20).map(lambda value: ContractValueCase("add_address", value)),
         with_optional_0x(sized_hex(20)).map(lambda value: ContractValueCase("add_address", value)),
         st.lists(st.integers(min_value=-(2**31), max_value=2**31 - 1), min_size=0, max_size=6).map(
             lambda value: ContractValueCase("add_int32_array", value)

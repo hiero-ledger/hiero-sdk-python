@@ -210,7 +210,7 @@ def create_token_with_metadata():
     try_update_metadata_without_key(client, operator_key, token_a)
 
     token_b, metadata_key = create_token_with_metadata_key(client, metadata_key, operator_id, operator_key)
-    update_metadata_with_key(client, token_b, metadata_key, operator_key)
+    update_metadata_with_key(client, token_b, metadata_key)
 
     demonstrate_metadata_length_validation(client, operator_key, operator_id)
 

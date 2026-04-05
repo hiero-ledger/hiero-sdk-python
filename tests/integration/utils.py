@@ -32,14 +32,6 @@ T = TypeVar("T")
 load_dotenv(override=True)
 
 
-@fixture
-def env():
-    """Integration test environment with client/operator set up."""
-    e = IntegrationTestEnv()
-    yield e
-    e.close()
-
-
 @dataclass
 class Account:
     id: AccountId

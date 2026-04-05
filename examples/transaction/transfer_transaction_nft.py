@@ -175,7 +175,7 @@ def main():
     client, operator_id, operator_key = setup_client()
     account_id, new_account_private_key = create_test_account(client)
     token_id = create_nft(client, operator_id, operator_key)
-    nft_id = mint_nft(client, token_id, operator_key)
+    nft_id = mint_nft(client, token_id)
     associate_nft(client, account_id, token_id, new_account_private_key)
 
     # Transfer the NFT to the new account

@@ -1,7 +1,7 @@
 import os
 from collections import defaultdict
 
-EXCLUDE_DIRS = ['hapi', '__pycache__']
+EXCLUDE_DIRS = ["hapi", "__pycache__"]
 
 
 # -----------------------------
@@ -16,7 +16,7 @@ def tokenize_filename(path):
 def longest_shared_prefix_tokens(a, b):
     """Return longest shared prefix between two token lists."""
     prefix = []
-    for x, y in zip(a, b):
+    for x, y in zip(a, b, strict=True):
         if x == y:
             prefix.append(x)
         else:
@@ -67,7 +67,6 @@ def list_files(base_path, exclude_dirs=None):
     return all_files
 
 
-
 # -----------------------------
 # Matching helpers
 # -----------------------------
@@ -81,7 +80,7 @@ def match_exact_folder(norm_ex, folder_ex, src_map, unmatched_src_set):
 
 
 def match_by_filename_only(norm_ex, src_map, unmatched_src_set):
-    for (src_folder, src_norm), src_list in src_map.items():
+    for (_, src_norm), src_list in src_map.items():
         if src_norm == norm_ex:
             for src_file in src_list:
                 unmatched_src_set.discard(src_file)

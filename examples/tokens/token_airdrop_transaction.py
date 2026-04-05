@@ -499,7 +499,6 @@ def token_airdrop():
         client,
         operator_id,
         recipient_id,
-        token_id,
         nft_id,
         serial_number,
         balances_before,
