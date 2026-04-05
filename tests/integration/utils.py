@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import TypeVar
 
 from dotenv import load_dotenv
-from pytest import fixture
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
