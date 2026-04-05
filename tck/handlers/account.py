@@ -24,9 +24,7 @@ def _build_create_account_transaction(params: CreateAccountParams) -> AccountCre
         transaction.set_receiver_signature_required(params.receiverSignatureRequired)
 
     if params.maxAutoTokenAssociations is not None:
-        transaction.set_max_automatic_token_associations(
-            params.maxAutoTokenAssociations
-        )
+        transaction.set_max_automatic_token_associations(params.maxAutoTokenAssociations)
 
     if params.stakedAccountId is not None:
         transaction.set_staked_account_id(AccountId.from_string(params.stakedAccountId))

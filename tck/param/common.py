@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -32,13 +34,9 @@ class CommonTransactionParams:
         """Apply commonTransactionParams to a given transaction."""
         if self.transactionId is not None:
             try:
-                transaction.set_transaction_id(
-                    TransactionId.from_string(self.transactionId)
-                )
-            except:
-                transaction.set_transaction_id(
-                    TransactionId.generate(AccountId.from_string(self.transactionId))
-                )
+                transaction.set_transaction_id(TransactionId.from_string(self.transactionId))
+            except Exception:
+                transaction.set_transaction_id(TransactionId.generate(AccountId.from_string(self.transactionId)))
 
         # TODO add a max_transaction_fee sdk missing func
 

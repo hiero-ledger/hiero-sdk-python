@@ -40,20 +40,18 @@ def dispatch(method_name: str, params: Any) -> Any:
     handler = get_handler(method_name)
 
     if handler is None:
-        raise JsonRpcError.method_not_found_error(
-            message=f"Method not found: {method_name}"
-        )
+        raise JsonRpcError.method_not_found_error(message=f"Method not found: {method_name}")
 
     try:
         signature = inspect.signature(handler)
         parameters = list(signature.parameters.values())
         param_type = parameters[0].annotation
-        
+
         try:
             params = param_type.parse_json_params(params)
         except (TypeError, ValueError) as e:
             raise JsonRpcError.invalid_params_error(data=str(e)) from e
-        
+
         result = handler(params)
 
         return parse_result(result)
@@ -64,9 +62,7 @@ def dispatch(method_name: str, params: Any) -> Any:
         raise JsonRpcError.internal_error(data=str(e)) from e
 
 
-def safe_dispatch(
-    method_name: str, params: Any, request_id: str | int | None
-) -> Any | dict[str, Any]:
+def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -> Any | dict[str, Any]:
     """Safely dispatch the request and handle exceptions."""
     try:
         return dispatch(method_name, params)

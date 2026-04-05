@@ -95,27 +95,21 @@ def parse_json_rpc_request(request_in: Any) -> dict[str, Any] | JsonRpcError:
     }
 
 
-def build_json_rpc_success_response(
-    result: Any, request_id: str | int | None
-) -> dict[str, Any]:
+def build_json_rpc_success_response(result: Any, request_id: str | int | None) -> dict[str, Any]:
     """Build a JSON-RPC 2.0 success response."""
-    response = {
+    return {
         "jsonrpc": "2.0",
         "id": request_id,
         "result": result,
     }
-    return response
 
 
-def build_json_rpc_error_response(
-    error: JsonRpcError, request_id: str | int | None
-) -> dict[str, Any]:
+def build_json_rpc_error_response(error: JsonRpcError, request_id: str | int | None) -> dict[str, Any]:
     """Build a JSON-RPC 2.0 error response."""
     error_obj = error.to_dict()
 
-    response = {
+    return {
         "jsonrpc": "2.0",
         "id": request_id,
         "error": error_obj,
     }
-    return response

@@ -16,9 +16,7 @@ def parse_common_transaction_params(params: dict):
     if common_params is None:
         return None
 
-    return CommonTransactionParams.parse_json_params(
-        params.get("commonTransactionParams")
-    )
+    return CommonTransactionParams.parse_json_params(params.get("commonTransactionParams"))
 
 
 def to_int(value) -> int | None:

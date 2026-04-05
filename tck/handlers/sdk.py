@@ -15,9 +15,7 @@ def setup_handler(params: SetupParams) -> SetupResponse:
     if params.nodeIp and params.nodeAccountId and params.mirrorNetworkIp:
         client = Client()
         client.network = Network(
-            nodes=[
-                _Node(AccountId.from_string(params.nodeAccountId), params.nodeIp, None)
-            ],
+            nodes=[_Node(AccountId.from_string(params.nodeAccountId), params.nodeIp, None)],
             mirror_address=params.mirrorNetworkIp,
         )
         client.set_operator(operator_account_id, operator_private_key)
