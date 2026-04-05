@@ -10,7 +10,7 @@ coverage:
         target: 92%
         threshold: 2%
 
-ignore: 
+ignore:
 - "tck/**"
 
 comment:

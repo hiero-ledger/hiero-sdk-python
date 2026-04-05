@@ -70,13 +70,13 @@ Search in extensions:
 ms-python.pylint
 
 #### Once downloaded, point to a Python interpreter.
-Run ⇧⌘P → Python: Select Interpreter and pick the venv or interpreter you’re using. 
+Run ⇧⌘P → Python: Select Interpreter and pick the venv or interpreter you’re using.
 Be sure to point to the correct path or add the correct path.
 
 For example, if you're using a venv/virtualenv
 source .venv/bin/activate
 pip install pylint
-Check /location, it should not be: 
+Check /location, it should not be:
 Location: /Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages
 It should be more like:
 Location: /Users/../../hedera_sdk_python/.venv/lib/python3.10/site-packages

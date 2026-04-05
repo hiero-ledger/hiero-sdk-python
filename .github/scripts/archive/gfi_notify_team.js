@@ -10,10 +10,10 @@ ${TEAM_ALIAS}
 
 ${message}
 
-Repository: ${owner}/${repo}  
+Repository: ${owner}/${repo}
 Issue: #${issue.number} - ${issue.title || '(no title)'}
 
-Best Regards,  
+Best Regards,
 Python SDK team`;
 
   try {

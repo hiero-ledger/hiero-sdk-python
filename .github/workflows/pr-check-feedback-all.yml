@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows:
-      - "Primary PR Check – Broken Markdown Links"
+      - "Primary PR Check - Broken Markdown Links"
       - "Primary PR Check - Code-coverage"
       - "Primary PR Check - Test Files Naming"
       - "Secondary PR Check - Examples"

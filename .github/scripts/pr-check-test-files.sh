@@ -4,24 +4,24 @@ set -euo pipefail
 # ======================================================================================================================================================
 # @file: pr-check-test-files.sh
 #
-# @Description A CI check written in bash that enforces the '_test.py' suffix to ensure Pytest can automatically discover 
-#               new or renamed test files in a Pull Request. 
-# 
-# @logic: 
-# 1. Identifies files as (A) Added, (R) Renamed, or (C) Copied using 'git diff' to check 
-#    relevant filename ($file1 for added files, $file2 for renamed/copied files). 
+# @Description A CI check written in bash that enforces the '_test.py' suffix to ensure Pytest can automatically discover
+#               new or renamed test files in a Pull Request.
+#
+# @logic:
+# 1. Identifies files as (A) Added, (R) Renamed, or (C) Copied using 'git diff' to check
+#    relevant filename ($file1 for added files, $file2 for renamed/copied files).
 # 2. Validates paths against allowed test directories (unit/integration).
 # 3. Excludes specific utility (ex., conftest.py, utils.py) and non-Python files.
 # 4. Parses tab-separated Git output via IFS=$'\t' to ensure robust filename handling.
 # 5. Routes files using case statement based on git status
 #
 # @types:
-# - String: Used for file paths and git status codes. 
+# - String: Used for file paths and git status codes.
 # - Array: Used for 'TEST_DIRS', 'EXCEPTION_NAMES', and accumulating errors.
 #
 # @Parameters:
 # - None: This script does not accept CLI arguments. It derives the input from the current Git state compared against origin/main.
-#  
+#
 # @Dependencies:
 # - Git: (for diff)
 # - Bash: (runs the script)

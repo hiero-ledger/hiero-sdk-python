@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
 
 """Manages custom royalty fees for Non-Fungible Token (NFT) transactions.
 
-This module defines the CustomRoyaltyFee class, which allows a percentage-based 
+This module defines the CustomRoyaltyFee class, which allows a percentage-based
 fee (with an optional fixed fee fallback) to be collected upon NFT transfer.
 """
 

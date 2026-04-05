@@ -85,7 +85,7 @@ line-length = 120
 target-version = "py310"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [ 
+"tests/**/*.py" = [
     "S101",    # use of assert
     "ANN201",  # return types
     "PLR2004", # magic numbers
@@ -115,7 +115,7 @@ ignore = [
     "D",        # docstrings
     "D212",     # disable "summary on same line"
     "E501",     # line length -> formatter
-    "B008",     # function calls in argument defaults 
+    "B008",     # function calls in argument defaults
     "UP017",    # stop converting timezone.utc to datetime.timezone.utc
 ]
 

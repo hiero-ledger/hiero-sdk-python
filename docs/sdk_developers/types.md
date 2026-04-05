@@ -5,12 +5,12 @@ This guide provides an overview of Python’s built-in types, explains how and w
 
 ## Table of Contents
 
-- [What are Types in Python?](#what-are-types-in-python)  
-- [What are Type Hints?](#what-are-type-hints)  
-- [Why Type Hint?](#why-type-hint)  
-- [Typing Using the `typing` Module](#typing-using-the-typing-module)  
-- [Custom Types](#custom-types)  
-- [Installing and Using MyPy](#installing-and-using-mypy)  
+- [What are Types in Python?](#what-are-types-in-python)
+- [What are Type Hints?](#what-are-type-hints)
+- [Why Type Hint?](#why-type-hint)
+- [Typing Using the `typing` Module](#typing-using-the-typing-module)
+- [Custom Types](#custom-types)
+- [Installing and Using MyPy](#installing-and-using-mypy)
 - [Configuring MyPy](#configuring-mypy)
 
 ## What are Types in Python?
@@ -29,24 +29,24 @@ Python code can be written using various built-in types that define their behavi
   - `str`: immutable sequences of characters (e.g. `"hello"`)
 
 - **Binary**
-  - `bytes`: immutable byte sequences  
-  - `bytearray`: mutable byte sequences  
+  - `bytes`: immutable byte sequences
+  - `bytearray`: mutable byte sequences
   - `memoryview`: a view on another binary object
 
 - **Sequences**
-  - `list[T]`: mutable, ordered collections (e.g. `list[int]`)  
-  - `tuple[T1, T2, …]`: immutable ordered collections (e.g. `tuple[int, str]`)  
+  - `list[T]`: mutable, ordered collections (e.g. `list[int]`)
+  - `tuple[T1, T2, …]`: immutable ordered collections (e.g. `tuple[int, str]`)
   - `range`: immutable sequences of integers, typically used in loops
 
 - **Mappings**
   - `dict[K, V]`: mutable key→value stores (e.g. `dict[str, float]`)
 
 - **Sets**
-  - `set[T]`: mutable, unordered unique items  
+  - `set[T]`: mutable, unordered unique items
   - `frozenset[T]`: immutable sets of unique items
 
 - **None**
-  - `None`: the singleton “no value” object (its type is `NoneType`).  
+  - `None`: the singleton “no value” object (its type is `NoneType`).
     > _Note: `print()` always returns `None`. Functions return `None` unless an explicit `return` is provided._
 
 ---
@@ -111,10 +111,10 @@ Correct type handling is necessary for the proper functioning of code.
 
 Proper type hinting enables developers to:
 
-- **Understand** the intended data structures and interfaces  
-- **Maintain** and navigate the codebase more easily  
-- **Refactor** with confidence, catching mismatches early  
-- **Extend** the code and documentation without introducing errors  
+- **Understand** the intended data structures and interfaces
+- **Maintain** and navigate the codebase more easily
+- **Refactor** with confidence, catching mismatches early
+- **Extend** the code and documentation without introducing errors
 
 Additionally, type hints unlock the use of static analysis tools (like MyPy), allowing you to catch type-related bugs before runtime and ship more robust code.
 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
 Use MyPy to help check for correct typing in your code and its imports. You can adopt type hints gradually without impacting runtime. MyPy will not:
 
-- Prevent or change the running of your code  
+- Prevent or change the running of your code
 
 This makes MyPy safe to introduce at your own pace.
 
@@ -259,5 +259,5 @@ implicit_optional = True
 allow_untyped_calls = True
 ```
 
-For a full list of flags and options, see the MyPy command-line reference:  
+For a full list of flags and options, see the MyPy command-line reference:
 [MyPy command-line reference](https://mypy.readthedocs.io/en/stable/command_line.html#command-line)

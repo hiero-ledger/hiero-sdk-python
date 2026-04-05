@@ -8,7 +8,7 @@ Your credentials stored at .env are required to run transactions on Hedera testn
 We use both, for example:
 
 ```python
-# Import dotenv and os 
+# Import dotenv and os
 from dotenv import load_dotenv
 from os import getenv
 
@@ -24,4 +24,3 @@ print(f"Congratulations! We loaded your operator ID: {operator_id_string}.")
 print("Your operator key was loaded successfully (not printed for security).")
 
 ```
-
