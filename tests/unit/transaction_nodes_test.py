@@ -7,6 +7,7 @@ class DummyTransaction(Transaction):
     Minimal subclass of Transaction for testing.
     Transaction is abstract (requires build methods), so we stub them out.
     """
+
     def __init__(self):
         super().__init__()
 

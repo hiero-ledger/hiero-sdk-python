@@ -139,16 +139,12 @@ def test_prng_transaction_can_execute():
     ok_response = transaction_response_pb2.TransactionResponse()
     ok_response.nodeTransactionPrecheckCode = ResponseCode.OK
 
-    mock_receipt_proto = transaction_receipt_pb2.TransactionReceipt(
-        status=ResponseCode.SUCCESS
-    )
+    mock_receipt_proto = transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS)
 
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -162,6 +158,4 @@ def test_prng_transaction_can_execute():
 
         receipt = transaction.execute(client)
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"

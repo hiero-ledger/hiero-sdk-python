@@ -19,7 +19,7 @@ def test_default_initialization():
     assert file_id.shard == 0
     assert file_id.realm == 0
     assert file_id.file == 0
-    assert file_id.checksum == None
+    assert file_id.checksum is None
 
 
 def test_custom_initialization():
@@ -29,7 +29,7 @@ def test_custom_initialization():
     assert file_id.shard == 1
     assert file_id.realm == 2
     assert file_id.file == 3
-    assert file_id.checksum == None
+    assert file_id.checksum is None
 
 
 def test_str_representation():
@@ -65,7 +65,7 @@ def test_from_string_valid():
     assert file_id.shard == 1
     assert file_id.realm == 2
     assert file_id.file == 3
-    assert file_id.checksum == None
+    assert file_id.checksum is None
 
 
 def test_from_string_with_spaces():
@@ -75,7 +75,7 @@ def test_from_string_with_spaces():
     assert file_id.shard == 1
     assert file_id.realm == 2
     assert file_id.file == 3
-    assert file_id.checksum == None
+    assert file_id.checksum is None
 
 
 def test_from_string_zeros():
@@ -85,7 +85,7 @@ def test_from_string_zeros():
     assert file_id.shard == 0
     assert file_id.realm == 0
     assert file_id.file == 0
-    assert file_id.checksum == None
+    assert file_id.checksum is None
 
 
 def test_from_string_large_numbers():
@@ -95,7 +95,7 @@ def test_from_string_large_numbers():
     assert file_id.shard == 999
     assert file_id.realm == 888
     assert file_id.file == 777
-    assert file_id.checksum == None
+    assert file_id.checksum is None
 
 
 def test_from_string_with_checksum():

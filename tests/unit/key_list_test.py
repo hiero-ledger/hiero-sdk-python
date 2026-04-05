@@ -188,9 +188,7 @@ def test_from_proto_threshold():
 
     proto_key = kl.to_proto_key()
 
-    loaded = KeyList.from_proto(
-        proto_key.thresholdKey.keys, threshold=proto_key.thresholdKey.threshold
-    )
+    loaded = KeyList.from_proto(proto_key.thresholdKey.keys, threshold=proto_key.thresholdKey.threshold)
 
     assert loaded.threshold == 2
     assert len(loaded.keys) == 3

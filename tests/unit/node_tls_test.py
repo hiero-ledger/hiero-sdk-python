@@ -18,13 +18,8 @@ pytestmark = pytest.mark.unit
 def mock_address_book():
     """Create a mock address book with certificate hash."""
     cert_hash = b"test_cert_hash_12345"
-    endpoint = Endpoint(
-        address=b"node.example.com", port=50212, domain_name="node.example.com"
-    )
-    address_book = NodeAddress(
-        account_id=AccountId(0, 0, 3), cert_hash=cert_hash, addresses=[endpoint]
-    )
-    return address_book
+    endpoint = Endpoint(address=b"node.example.com", port=50212, domain_name="node.example.com")
+    return NodeAddress(account_id=AccountId(0, 0, 3), cert_hash=cert_hash, addresses=[endpoint])
 
 
 @pytest.fixture
@@ -32,10 +27,7 @@ def mock_address_book_no_domain():
     """Create a mock address book without domain name."""
     cert_hash = b"test_cert_hash_12345"
     endpoint = Endpoint(address=b"127.0.0.1", port=50212, domain_name=None)
-    address_book = NodeAddress(
-        account_id=AccountId(0, 0, 3), cert_hash=cert_hash, addresses=[endpoint]
-    )
-    return address_book
+    return NodeAddress(account_id=AccountId(0, 0, 3), cert_hash=cert_hash, addresses=[endpoint])
 
 
 @pytest.fixture
@@ -125,12 +117,8 @@ def test_node_set_verify_certificates_idempotent(mock_node_with_address_book):
 
 def test_node_build_channel_options_with_hostname_not_override():
     """Test channel options include hostname override when domain differs from address."""
-    endpoint = Endpoint(
-        address=b"127.0.0.1", port=50212, domain_name="node.example.com"
-    )
-    address_book = NodeAddress(
-        account_id=AccountId(0, 0, 3), cert_hash=b"hash", addresses=[endpoint]
-    )
+    endpoint = Endpoint(address=b"127.0.0.1", port=50212, domain_name="node.example.com")
+    address_book = NodeAddress(account_id=AccountId(0, 0, 3), cert_hash=b"hash", addresses=[endpoint])
     node = _Node(AccountId(0, 0, 3), "127.0.0.1:50212", address_book)
 
     options = node._build_channel_options()
@@ -140,12 +128,8 @@ def test_node_build_channel_options_with_hostname_not_override():
 
 def test_node_build_channel_options_no_override_when_same():
     """Test channel options don't include override when hostname matches address."""
-    endpoint = Endpoint(
-        address=b"node.example.com", port=50212, domain_name="node.example.com"
-    )
-    address_book = NodeAddress(
-        account_id=AccountId(0, 0, 3), cert_hash=b"hash", addresses=[endpoint]
-    )
+    endpoint = Endpoint(address=b"node.example.com", port=50212, domain_name="node.example.com")
+    address_book = NodeAddress(account_id=AccountId(0, 0, 3), cert_hash=b"hash", addresses=[endpoint])
     node = _Node(AccountId(0, 0, 3), "node.example.com:50212", address_book)
 
     options = node._build_channel_options()
@@ -175,18 +159,14 @@ def test_node_build_channel_options_override_localhost_without_address_book(
 
 @patch("socket.create_connection")
 @patch("ssl.create_default_context")
-def test_node_fetch_server_certificate_pem(
-    mock_ssl_context, mock_socket_conn, mock_node_with_address_book
-):
+def test_node_fetch_server_certificate_pem(mock_ssl_context, mock_socket_conn, mock_node_with_address_book):
     """Test fetching server certificate in PEM format."""
     node = mock_node_with_address_book
 
     # Mock SSL context and socket
     mock_context = MagicMock()
     mock_ssl_context.return_value = mock_context
-    mock_context.wrap_socket.return_value.__enter__.return_value.getpeercert.return_value = (
-        b"DER_CERT"
-    )
+    mock_context.wrap_socket.return_value.__enter__.return_value.getpeercert.return_value = b"DER_CERT"
 
     mock_sock = MagicMock()
     mock_socket_conn.return_value.__enter__.return_value = mock_sock
@@ -255,16 +235,12 @@ def test_node_validate_tls_certificate_no_address_book():
 
 @patch("grpc.secure_channel")
 @patch("grpc.insecure_channel")
-def test_node_get_channel_secure(
-    mock_insecure, mock_secure, mock_node_with_address_book
-):
+def test_node_get_channel_secure(mock_insecure, mock_secure, mock_node_with_address_book):
     """Test channel creation for secure connection."""
     node = mock_node_with_address_book
     node._address = node._address._to_secure()  # Ensure TLS is enabled
 
-    with patch.object(
-        node, "_fetch_server_certificate_pem", return_value=b"dummy-cert"
-    ):
+    with patch.object(node, "_fetch_server_certificate_pem", return_value=b"dummy-cert"):
         mock_channel = Mock()
         mock_secure.return_value = mock_channel
 
@@ -280,9 +256,7 @@ def test_node_get_channel_secure(
 
 @patch("grpc.secure_channel")
 @patch("grpc.insecure_channel")
-def test_node_get_channel_insecure(
-    mock_insecure, mock_secure, mock_node_without_address_book
-):
+def test_node_get_channel_insecure(mock_insecure, mock_secure, mock_node_without_address_book):
     """Test channel creation for insecure connection."""
     node = mock_node_without_address_book
 
@@ -298,16 +272,12 @@ def test_node_get_channel_insecure(
 
 @patch("grpc.secure_channel")
 @patch("grpc.insecure_channel")
-def test_node_get_channel_reuses_existing(
-    mock_insecure, mock_secure, mock_node_with_address_book
-):
+def test_node_get_channel_reuses_existing(mock_insecure, mock_secure, mock_node_with_address_book):  # noqa: ARG001
     """Test that channel is reused when already created."""
     node = mock_node_with_address_book
     node._verify_certificates = False
 
-    with patch.object(
-        node, "_fetch_server_certificate_pem", return_value=b"dummy-cert"
-    ):
+    with patch.object(node, "_fetch_server_certificate_pem", return_value=b"dummy-cert"):
         mock_channel = Mock()
         mock_secure.return_value = mock_channel
 
@@ -337,7 +307,6 @@ def test_node_set_root_certificates_closes_channel(mock_node_with_address_book):
         patch("grpc.secure_channel") as mock_secure,
         patch.object(node, "_fetch_server_certificate_pem", return_value=b"dummy-cert"),
     ):
-
         mock_channel = Mock()
         mock_secure.return_value = mock_channel
         node._get_channel()
@@ -360,9 +329,7 @@ def test_secure_connect_raise_error_if_no_certificate_is_available(
 
 
 @patch("grpc.secure_channel")
-def test_node_get_channel_with_root_certificates(
-    mock_secure, mock_node_with_address_book
-):
+def test_node_get_channel_with_root_certificates(mock_secure, mock_node_with_address_book):
     """Test secure channel uses provided root certificates."""
     node = mock_node_with_address_book
     node._address = node._address._to_secure()

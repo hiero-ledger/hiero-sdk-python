@@ -43,7 +43,7 @@ def test_from_proto_all_types():
 def test_from_proto_invalid_value():
     """Test _from_proto method with invalid proto value returns UNKNOWN_FREEZE_TYPE."""
     mock_proto = MagicMock()
-    mock_proto.__eq__ = lambda self, other: False
+    mock_proto.__eq__ = lambda _self, _other: False
 
     result = FreezeType._from_proto(mock_proto)
     assert result == FreezeType.UNKNOWN_FREEZE_TYPE

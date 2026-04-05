@@ -84,9 +84,7 @@ def test_from_proto_port_mapping(input_port, expected_port):
 
     # Verify all fields are mapped correctly (not just port)
     assert endpoint.get_address() == b"127.0.1.1", "Address must be mapped from proto"
-    assert (
-        endpoint.get_domain_name() == "redpanda.com"
-    ), "Domain name must be mapped from proto"
+    assert endpoint.get_domain_name() == "redpanda.com", "Domain name must be mapped from proto"
 
     # Protect against breaking changes - PRIORITY 1
     assert isinstance(endpoint, Endpoint), "Must return Endpoint instance"

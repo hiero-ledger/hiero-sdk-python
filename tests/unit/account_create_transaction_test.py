@@ -35,12 +35,9 @@ def generate_transaction_id(account_id_proto):
     timestamp_seconds = int(current_time)
     timestamp_nanos = int((current_time - timestamp_seconds) * 1e9)
 
-    tx_timestamp = timestamp_pb2.Timestamp(
-        seconds=timestamp_seconds, nanos=timestamp_nanos
-    )
+    tx_timestamp = timestamp_pb2.Timestamp(seconds=timestamp_seconds, nanos=timestamp_nanos)
 
-    tx_id = TransactionId(valid_start=tx_timestamp, account_id=account_id_proto)
-    return tx_id
+    return TransactionId(valid_start=tx_timestamp, account_id=account_id_proto)
 
 
 # This test uses fixture mock_account_ids as parameter
@@ -127,23 +124,15 @@ def test_account_create_transaction_sign(mock_account_ids, mock_client):
     account_tx.sign(mock_client.operator_private_key)
     body_bytes = account_tx._transaction_body_bytes[node_account_id]
 
-    assert (
-        body_bytes in account_tx._signature_map
-    ), "Body bytes should be a key in the signature map dictionary"
-    assert (
-        len(account_tx._signature_map[body_bytes].sigPair) == 1
-    ), "Transaction should have exactly one signature"
+    assert body_bytes in account_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
+    assert len(account_tx._signature_map[body_bytes].sigPair) == 1, "Transaction should have exactly one signature"
 
     # Add second signiture
     account_tx.sign(operator_private_key)
     body_bytes = account_tx._transaction_body_bytes[node_account_id]
 
-    assert (
-        body_bytes in account_tx._signature_map
-    ), "Body bytes should be a key in the signature map dictionary"
-    assert (
-        len(account_tx._signature_map[body_bytes].sigPair) == 2
-    ), "Transaction should have exactly two signatures"
+    assert body_bytes in account_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
+    assert len(account_tx._signature_map[body_bytes].sigPair) == 2, "Transaction should have exactly two signatures"
 
 
 def test_account_create_transaction():
@@ -164,9 +153,7 @@ def test_account_create_transaction():
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -177,7 +164,6 @@ def test_account_create_transaction():
 
     # Use the context manager to set up and tear down the mock environment
     with mock_hedera_servers(response_sequences) as client, patch("time.sleep"):
-
         # Create the transaction
         new_key = PrivateKey.generate()
         transaction = (
@@ -190,12 +176,8 @@ def test_account_create_transaction():
         receipt = transaction.execute(client)
 
         # Verify the results
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
-        assert (
-            receipt.account_id.num == 1234
-        ), "Should have created account with ID 1234"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+        assert receipt.account_id.num == 1234, "Should have created account with ID 1234"
 
 
 def test_sign_account_create_without_freezing_raises_error(mock_account_ids):
@@ -301,9 +283,7 @@ def test_create_account_transaction_set_key_with_alias(mock_account_ids):
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
-    assert (
-        tx_body.cryptoCreateAccount.alias == public_key.to_evm_address().address_bytes
-    )
+    assert tx_body.cryptoCreateAccount.alias == public_key.to_evm_address().address_bytes
 
 
 def test_create_account_transaction_set_key_with_seperate_key_for_alias(
@@ -346,11 +326,7 @@ def test_create_account_transaction_with_set_alias(mock_account_ids):
     public_key = PrivateKey.generate().public_key()
     evm_address = PrivateKey.generate_ecdsa().public_key().to_evm_address()
 
-    tx = (
-        AccountCreateTransaction()
-        .set_key_without_alias(public_key)
-        .set_alias(evm_address)
-    )
+    tx = AccountCreateTransaction().set_key_without_alias(public_key).set_alias(evm_address)
 
     assert tx.key == public_key
     assert tx.alias == evm_address
@@ -364,9 +340,7 @@ def test_create_account_transaction_with_set_alias(mock_account_ids):
 
 
 @pytest.mark.parametrize("with_prefix", [False, True])
-def test_create_account_transaction_with_set_alias_from_string(
-    mock_account_ids, with_prefix
-):
+def test_create_account_transaction_with_set_alias_from_string(mock_account_ids, with_prefix):
     """Test account creation transaction using alias from string (with and without '0x' prefix)."""
     operator_id, node_id = mock_account_ids
     public_key = PrivateKey.generate().public_key()
@@ -375,11 +349,7 @@ def test_create_account_transaction_with_set_alias_from_string(
     evm_string = evm_address.to_string()
     alias_str = "0x" + evm_string if with_prefix else evm_string
 
-    tx = (
-        AccountCreateTransaction()
-        .set_key_without_alias(public_key)
-        .set_alias(alias_str)
-    )
+    tx = AccountCreateTransaction().set_key_without_alias(public_key).set_alias(alias_str)
 
     assert tx.key == public_key
     assert tx.alias == evm_address
@@ -462,9 +432,7 @@ def test_create_account_transaction_set_key_with_alias_private_keys(mock_account
     alias_public_key = alias_private_key.public_key()
     expected_evm_address = alias_public_key.to_evm_address()
 
-    tx = AccountCreateTransaction().set_key_with_alias(
-        account_private_key, alias_private_key
-    )
+    tx = AccountCreateTransaction().set_key_with_alias(account_private_key, alias_private_key)
 
     assert tx.key == account_private_key
     assert tx.alias == expected_evm_address
@@ -511,7 +479,6 @@ def test_set_key_without_alias_then_with_alias_overrides_alias():
     """set_key_with_alias should ovveride set_key_without_alias"""
     # Account key(ECDSA)
     account_private_key = PrivateKey.generate_ecdsa()
-    account_public_key = account_private_key.public_key()
 
     # Alias key (ECDSA)
     alias_private_key = PrivateKey.generate_ecdsa()
@@ -531,16 +498,13 @@ def test_set_key_with_alias_then_without_alias_overrides_alias():
     """set_key_without_alias should ovveride set_key_with_alias"""
     # Account key(ECDSA)
     account_private_key = PrivateKey.generate_ecdsa()
-    account_public_key = account_private_key.public_key()
 
     # Alias key (ECDSA)
     alias_private_key = PrivateKey.generate_ecdsa()
     alias_public_key = alias_private_key.public_key()
     expected_evm_address = alias_public_key.to_evm_address()
 
-    tx = AccountCreateTransaction().set_key_with_alias(
-        account_private_key, alias_private_key
-    )
+    tx = AccountCreateTransaction().set_key_with_alias(account_private_key, alias_private_key)
 
     assert tx.alias == expected_evm_address
 
@@ -548,31 +512,27 @@ def test_set_key_with_alias_then_without_alias_overrides_alias():
 
     assert tx.alias is None
 
+
 def test_set_stack_node_id_reset_stake_account_id():
     """Test set_node_id reset stake_account_id if stake account id is set."""
-    tx = (
-        AccountCreateTransaction()
-        .set_staked_account_id(AccountId(0,0,1))
-    )
+    tx = AccountCreateTransaction().set_staked_account_id(AccountId(0, 0, 1))
 
-    assert tx.staked_account_id == AccountId(0,0,1)
-    assert tx.staked_node_id == None
+    assert tx.staked_account_id == AccountId(0, 0, 1)
+    assert tx.staked_node_id is None
 
     tx.set_staked_node_id(1)
 
     assert tx.staked_node_id == 1
     assert tx.staked_account_id is None
 
+
 def test_set_stake_account_id_reset_stake_node_id():
     """Test set_account_id reset stake_node_id if node id is set."""
-    tx = (
-        AccountCreateTransaction()
-        .set_staked_node_id(1)
-    )
-    
+    tx = AccountCreateTransaction().set_staked_node_id(1)
+
     assert tx.staked_node_id == 1
     assert tx.staked_account_id is None
-    
-    tx.set_staked_account_id(AccountId(0,0,1))
-    assert tx.staked_account_id == AccountId(0,0,1)
+
+    tx.set_staked_account_id(AccountId(0, 0, 1))
+    assert tx.staked_account_id == AccountId(0, 0, 1)
     assert tx.staked_node_id is None

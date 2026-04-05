@@ -21,20 +21,14 @@ pytestmark = pytest.mark.unit
 
 def test_execute_waits_for_receipt_receipt():
     """Test execute return TransactionReceipt when wait_for_receipt is True (default)."""
-    ok_response = transaction_response_pb2.TransactionResponse(
-        nodeTransactionPrecheckCode=ResponseCode.OK
-    )
+    ok_response = transaction_response_pb2.TransactionResponse(nodeTransactionPrecheckCode=ResponseCode.OK)
 
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=transaction_receipt_pb2.TransactionReceipt(
                 status=ResponseCode.SUCCESS,
-                accountID=basic_types_pb2.AccountID(
-                    shardNum=0, realmNum=0, accountNum=1234
-                ),
+                accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=1234),
             ),
         )
     )
@@ -42,11 +36,7 @@ def test_execute_waits_for_receipt_receipt():
     response_sequence = [[ok_response, receipt_response]]
 
     with mock_hedera_servers(response_sequence) as client:
-        tx = (
-            AccountCreateTransaction()
-            .set_initial_balance(1)
-            .set_key_without_alias(PrivateKey.generate())
-        )
+        tx = AccountCreateTransaction().set_initial_balance(1).set_key_without_alias(PrivateKey.generate())
 
         # Default value of wait_for_receipt = True
         receipt = tx.execute(client, wait_for_receipt=True)
@@ -57,20 +47,14 @@ def test_execute_waits_for_receipt_receipt():
 
 def test_execute_without_wait_returns_transaction_response():
     """Test execute return TransactionResponse when wait_for_receipt is False."""
-    ok_response = transaction_response_pb2.TransactionResponse(
-        nodeTransactionPrecheckCode=ResponseCode.OK
-    )
+    ok_response = transaction_response_pb2.TransactionResponse(nodeTransactionPrecheckCode=ResponseCode.OK)
 
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=transaction_receipt_pb2.TransactionReceipt(
                 status=ResponseCode.SUCCESS,
-                accountID=basic_types_pb2.AccountID(
-                    shardNum=0, realmNum=0, accountNum=1234
-                ),
+                accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=1234),
             ),
         )
     )
@@ -78,11 +62,7 @@ def test_execute_without_wait_returns_transaction_response():
     response_sequence = [[ok_response, receipt_response]]
 
     with mock_hedera_servers(response_sequence) as client:
-        tx = (
-            AccountCreateTransaction()
-            .set_initial_balance(1)
-            .set_key_without_alias(PrivateKey.generate())
-        )
+        tx = AccountCreateTransaction().set_initial_balance(1).set_key_without_alias(PrivateKey.generate())
 
         # Explicitly pass wait_for_receipt=False to get TransactionResponse
         response = tx.execute(client, wait_for_receipt=False)
@@ -92,62 +72,44 @@ def test_execute_without_wait_returns_transaction_response():
         assert response.node_id == tx.node_account_id
         assert response.validate_status is True
 
+
 def test_execute_raises_error_when_validation_enabled_and_transaction_fails():
     """Test execute raises error for failing transactions when validate_status is True."""
-    ok_response = transaction_response_pb2.TransactionResponse(
-        nodeTransactionPrecheckCode=ResponseCode.OK
-    )
+    ok_response = transaction_response_pb2.TransactionResponse(nodeTransactionPrecheckCode=ResponseCode.OK)
 
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.INVALID_SIGNATURE
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.INVALID_SIGNATURE),
         )
     )
 
     response_sequence = [[ok_response, receipt_response]]
 
     with mock_hedera_servers(response_sequence) as client:
-        tx = (
-            AccountCreateTransaction()
-            .set_initial_balance(1)
-            .set_key_without_alias(PrivateKey.generate())
-        )
+        tx = AccountCreateTransaction().set_initial_balance(1).set_key_without_alias(PrivateKey.generate())
 
         with pytest.raises(ReceiptStatusError) as e:
             tx.execute(client, validate_status=True)
 
         assert e.value.status == ResponseCode.INVALID_SIGNATURE
 
+
 def test_execute_returns_receipt_without_error_when_validation_disabled():
     """Test execute returns a receipt normally on failure when validate_status is False."""
-    ok_response = transaction_response_pb2.TransactionResponse(
-        nodeTransactionPrecheckCode=ResponseCode.OK
-    )
+    ok_response = transaction_response_pb2.TransactionResponse(nodeTransactionPrecheckCode=ResponseCode.OK)
 
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.INVALID_SIGNATURE
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.INVALID_SIGNATURE),
         )
     )
 
     response_sequence = [[ok_response, receipt_response]]
 
     with mock_hedera_servers(response_sequence) as client:
-        tx = (
-            AccountCreateTransaction()
-            .set_initial_balance(1)
-            .set_key_without_alias(PrivateKey.generate())
-        )
+        tx = AccountCreateTransaction().set_initial_balance(1).set_key_without_alias(PrivateKey.generate())
 
         receipt = tx.execute(client)
 

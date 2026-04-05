@@ -27,12 +27,8 @@ def test_transaction_get_receipt_query(transaction_id):
     """Test basic functionality of TransactionGetReceiptQuery with a mocked client."""
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
         )
     )
 
@@ -55,25 +51,17 @@ def test_receipt_query_retry_on_receipt_not_found(transaction_id):
     # First response has RECEIPT_NOT_FOUND, second has SUCCESS
     not_found_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.RECEIPT_NOT_FOUND
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.RECEIPT_NOT_FOUND),
         )
     )
 
     success_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=transaction_receipt_pb2.TransactionReceipt(
                 status=ResponseCode.SUCCESS,
-                accountID=basic_types_pb2.AccountID(
-                    shardNum=0, realmNum=0, accountNum=1234
-                ),
+                accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=1234),
             ),
         )
     )
@@ -107,12 +95,8 @@ def test_receipt_query_receipt_status_error(transaction_id):
     # Create a response with a receipt status error
     error_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.UNKNOWN
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.UNKNOWN
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.UNKNOWN),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.UNKNOWN),
         )
     )
 
@@ -143,11 +127,7 @@ def test_transaction_get_receipt_query_sets_include_child_receipts_in_request(
     """
     Test that _make_request() sets include_child_receipts correctly in the protobuf query.
     """
-    query = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(transaction_id)
-        .set_include_children(True)
-    )
+    query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True)
 
     request = query._make_request()
 
@@ -164,17 +144,11 @@ def test_transaction_get_receipt_query_returns_child_receipts_when_requested(
     """
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             child_transaction_receipts=[
                 transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
-                transaction_receipt_pb2.TransactionReceipt(
-                    status=ResponseCode.FAIL_INVALID
-                ),
+                transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.FAIL_INVALID),
             ],
         )
     )
@@ -182,11 +156,7 @@ def test_transaction_get_receipt_query_returns_child_receipts_when_requested(
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_children(True)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True)
 
         result = query.execute(client)
 
@@ -207,12 +177,8 @@ def test_transaction_get_receipt_query_children_empty_when_not_requested(
     """
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             child_transaction_receipts=[
                 transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             ],
@@ -236,12 +202,8 @@ def test_transaction_get_receipt_query_include_children_with_no_children(
     """Testing that nothing explode if no children ar passed"""
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             # no child_transaction_receipts
         )
     )
@@ -249,11 +211,7 @@ def test_transaction_get_receipt_query_include_children_with_no_children(
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_children(True)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True)
         result = query.execute(client)
 
         assert result.status == ResponseCode.SUCCESS
@@ -269,17 +227,11 @@ def test_transaction_get_receipt_query_returns_duplicate_receipts_when_requested
     """
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             duplicateTransactionReceipts=[
                 transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
-                transaction_receipt_pb2.TransactionReceipt(
-                    status=ResponseCode.FAIL_INVALID
-                ),
+                transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.FAIL_INVALID),
             ],
         )
     )
@@ -287,11 +239,7 @@ def test_transaction_get_receipt_query_returns_duplicate_receipts_when_requested
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_duplicates(True)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_duplicates(True)
 
         result = query.execute(client)
 
@@ -300,10 +248,7 @@ def test_transaction_get_receipt_query_returns_duplicate_receipts_when_requested
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 2
         for idx, duplicate in enumerate(result.duplicates):
-            assert (
-                duplicate._to_proto()
-                == response.transactionGetReceipt.duplicateTransactionReceipts[idx]
-            )
+            assert duplicate._to_proto() == response.transactionGetReceipt.duplicateTransactionReceipts[idx]
 
 
 def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_requested(
@@ -315,23 +260,15 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_req
     """
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
         ),
     )
 
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_duplicates(True)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_duplicates(True)
 
         result = query.execute(client)
 
@@ -350,17 +287,11 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_not
     """
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             duplicateTransactionReceipts=[
                 transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
-                transaction_receipt_pb2.TransactionReceipt(
-                    status=ResponseCode.FAIL_INVALID
-                ),
+                transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.FAIL_INVALID),
             ],
         ),
     )
@@ -376,30 +307,23 @@ def test_transaction_get_receipt_query_returns_empty_duplicate_receipts_when_not
         assert result.status == ResponseCode.SUCCESS
         assert len(result.duplicates) == 0
 
+
 def test_transaction_receipt_query_should_not_raise_receipt_error(transaction_id):
     """Test receipt query should not raise error if the status is non success and non retryable when validate_status is false."""
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.INVALID_SIGNATURE
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.INVALID_SIGNATURE),
         )
     )
 
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_validate_status(False)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_validate_status(False)
 
         receipt = query.execute(client)
-        
+
         assert receipt.status == ResponseCode.INVALID_SIGNATURE
 
 
@@ -407,25 +331,17 @@ def test_transaction_receipt_query_should_raise_receipt_error(transaction_id):
     """Test receipt query should raise error if the status is non success and non retryable when validate_status is true."""
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.INVALID_SIGNATURE
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.INVALID_SIGNATURE),
         )
     )
 
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_validate_status(True)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_validate_status(True)
 
         with pytest.raises(ReceiptStatusError) as e:
             query.execute(client)
-        
+
         assert e.value.status == ResponseCode.INVALID_SIGNATURE

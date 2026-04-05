@@ -133,6 +133,7 @@ def test_parse_and_format_without_checksum():
 
     assert formatted == original
 
+
 def test_to_solidity_address_valid():
     shard, realm, num = 0, 0, 1001
     result = to_solidity_address(shard, realm, num)
@@ -144,13 +145,16 @@ def test_to_solidity_address_valid():
     assert len(result) == 40  # exactly 20 bytes
     assert result.islower()
 
+
 def test_to_solidity_address_zero_values():
     assert to_solidity_address(0, 0, 0) == ("00" * 20)
+
 
 def test_to_solidity_address_out_of_range():
     shard, realm, num = 2**31, 0, 0
     with pytest.raises(ValueError, match="shard out of 32-bit range"):
         to_solidity_address(shard, realm, num)
+
 
 def test_perform_query_to_mirror_node_success():
     """Test successful mirror node response without requests_mock."""
@@ -161,6 +165,7 @@ def test_perform_query_to_mirror_node_success():
     with patch("hiero_sdk_python.utils.entity_id_helper.requests.get", return_value=mock_response):
         result = perform_query_to_mirror_node("http://mirror-node/accounts/123")
         assert result == {"account": "0.0.777"}
+
 
 def test_perform_query_to_mirror_node_failure():
     """Test mirror node failure handling."""
@@ -178,19 +183,24 @@ def test_perform_query_to_mirror_node_http_error():
     mock_response = MagicMock()
     mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP fail")
 
-    with patch("hiero_sdk_python.utils.entity_id_helper.requests.get", return_value=mock_response):
-        with pytest.raises(RuntimeError, match="Mirror node request failed"):
-            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+    with (
+        patch("hiero_sdk_python.utils.entity_id_helper.requests.get", return_value=mock_response),
+        pytest.raises(RuntimeError, match="Mirror node request failed"),
+    ):
+        perform_query_to_mirror_node("http://mirror-node/accounts/123")
 
 
 def test_perform_query_to_mirror_node_connection_error():
     """
     Test that perform_query_to_mirror_node raises a RuntimeError when requests.get raises a ConnectionError.
     """
-    with patch(
-        "hiero_sdk_python.utils.entity_id_helper.requests.get",
-        side_effect=requests.exceptions.ConnectionError("Connection fail")
-    ), pytest.raises(RuntimeError, match="Mirror node request failed"):
+    with (
+        patch(
+            "hiero_sdk_python.utils.entity_id_helper.requests.get",
+            side_effect=requests.exceptions.ConnectionError("Connection fail"),
+        ),
+        pytest.raises(RuntimeError, match="Mirror node request failed"),
+    ):
         perform_query_to_mirror_node("http://mirror-node/accounts/123")
 
 
@@ -198,16 +208,20 @@ def test_perform_query_to_mirror_node_timeout():
     """
     Test that perform_query_to_mirror_node raises a RuntimeError when requests.get raises a Timeout exception.
     """
-    with patch(
-        "hiero_sdk_python.utils.entity_id_helper.requests.get",
-        side_effect=requests.exceptions.Timeout("Timeout")
-    ), pytest.raises(RuntimeError, match="Mirror node request timed out"):
+    with (
+        patch(
+            "hiero_sdk_python.utils.entity_id_helper.requests.get", side_effect=requests.exceptions.Timeout("Timeout")
+        ),
+        pytest.raises(RuntimeError, match="Mirror node request timed out"),
+    ):
         perform_query_to_mirror_node("http://mirror-node/accounts/123")
+
 
 def test_perform_query_to_mirror_node_invalid_url_none():
     """Test url must be a non-empty string (None case)."""
     with pytest.raises(ValueError, match="url must be a non-empty string"):
         perform_query_to_mirror_node(None)
+
 
 def test_perform_query_to_mirror_node_invalid_url_empty():
     """Test url must be a non-empty string (empty string case)."""

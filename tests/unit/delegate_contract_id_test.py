@@ -229,9 +229,7 @@ def test_equality():
 def test_evm_address_initialization():
     """Test DelegateContractId initialization with EVM address."""
     evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
-    contract_id = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address
-    )
+    contract_id = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address)
 
     assert contract_id.shard == 1
     assert contract_id.realm == 2
@@ -242,9 +240,7 @@ def test_evm_address_initialization():
 def test_evm_address_to_proto():
     """Test converting DelegateContractId with EVM address to protobuf format."""
     evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
-    contract_id = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address
-    )
+    contract_id = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address)
     proto = contract_id._to_proto()
 
     assert isinstance(proto, basic_types_pb2.ContractID)
@@ -271,15 +267,9 @@ def test_evm_address_equality():
     evm_address1 = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
     evm_address2 = bytes.fromhex("1234567890abcdef1234567890abcdef12345678")
 
-    contract_id1 = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address1
-    )
-    contract_id2 = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address1
-    )
-    contract_id3 = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address2
-    )
+    contract_id1 = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address1)
+    contract_id2 = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address1)
+    contract_id3 = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address2)
     contract_id4 = DelegateContractId(shard=1, realm=2, contract=3, evm_address=None)
 
     # Same EVM address should be equal
@@ -297,15 +287,9 @@ def test_evm_address_hash():
     evm_address1 = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
     evm_address2 = bytes.fromhex("1234567890abcdef1234567890abcdef12345678")
 
-    contract_id1 = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address1
-    )
-    contract_id2 = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address1
-    )
-    contract_id3 = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address2
-    )
+    contract_id1 = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address1)
+    contract_id2 = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address1)
+    contract_id3 = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address2)
 
     # Same EVM address should have same hash
     assert hash(contract_id1) == hash(contract_id2)
@@ -318,23 +302,17 @@ def test_to_evm_address():
     """Test DelegateContractId.to_evm_address() for both explicit and computed EVM addresses."""
     # Explicit EVM address
     evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
-    contract_id = DelegateContractId(
-        shard=1, realm=2, contract=3, evm_address=evm_address
-    )
+    contract_id = DelegateContractId(shard=1, realm=2, contract=3, evm_address=evm_address)
     assert contract_id.to_evm_address() == evm_address.hex()
 
     # Computed EVM address (no explicit evm_address)
     contract_id = DelegateContractId(shard=1, realm=2, contract=3)
-    expected_bytes = struct.pack(
-        ">iqq", contract_id.shard, contract_id.realm, contract_id.contract
-    )
+    expected_bytes = struct.pack(">iqq", contract_id.shard, contract_id.realm, contract_id.contract)
     assert contract_id.to_evm_address() == expected_bytes.hex()
 
     # Default values
     contract_id = DelegateContractId()
-    expected_bytes = struct.pack(
-        ">iqq", contract_id.shard, contract_id.realm, contract_id.contract
-    )
+    expected_bytes = struct.pack(">iqq", contract_id.shard, contract_id.realm, contract_id.contract)
     assert contract_id.to_evm_address() == expected_bytes.hex()
 
 
@@ -346,9 +324,7 @@ def test_str_representation_with_checksum(client):
 
 def test_str_representation_checksum_with_evm_address(client):
     """Should raise error on to_string_with_checksum is called when evm_address is set"""
-    contract_id = DelegateContractId.from_string(
-        "0.0.abcdef0123456789abcdef0123456789abcdef01"
-    )
+    contract_id = DelegateContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
 
     with pytest.raises(
         ValueError,
@@ -373,9 +349,7 @@ def test_validate_checksum_failure(client):
 
 def test_str_representation_with_evm_address():
     """Should return str representing with evm_address"""
-    contract_id = DelegateContractId.from_string(
-        "0.0.abcdef0123456789abcdef0123456789abcdef01"
-    )
+    contract_id = DelegateContractId.from_string("0.0.abcdef0123456789abcdef0123456789abcdef01")
     assert contract_id.__str__() == "0.0.abcdef0123456789abcdef0123456789abcdef01"
 
 
@@ -464,20 +438,14 @@ def test_from_evm_address_invalid_evm_address_type(invalid_address):
 )
 def test_from_evm_address_invalid_shard_type(invalid_shard):
     """Test from_evm_address raise error for invalid shard types."""
-    with pytest.raises(
-        TypeError, match=f"shard must be int, got {type(invalid_shard).__name__}"
-    ):
-        DelegateContractId.from_evm_address(
-            invalid_shard, 0, "abcdef0123456789abcdef0123456789abcdef01"
-        )
+    with pytest.raises(TypeError, match=f"shard must be int, got {type(invalid_shard).__name__}"):
+        DelegateContractId.from_evm_address(invalid_shard, 0, "abcdef0123456789abcdef0123456789abcdef01")
 
 
 def test_from_evm_address_negative_shard_value():
     """Test from_evm_address raise error for negative shard values."""
     with pytest.raises(ValueError, match="shard must be a non-negative integer"):
-        DelegateContractId.from_evm_address(
-            -1, 0, "abcdef0123456789abcdef0123456789abcdef01"
-        )
+        DelegateContractId.from_evm_address(-1, 0, "abcdef0123456789abcdef0123456789abcdef01")
 
 
 @pytest.mark.parametrize(
@@ -486,20 +454,14 @@ def test_from_evm_address_negative_shard_value():
 )
 def test_from_evm_address_invalid_realm_type(invalid_realm):
     """Test from_evm_address raise error for invalid realm types."""
-    with pytest.raises(
-        TypeError, match=f"realm must be int, got {type(invalid_realm).__name__}"
-    ):
-        DelegateContractId.from_evm_address(
-            0, invalid_realm, "abcdef0123456789abcdef0123456789abcdef01"
-        )
+    with pytest.raises(TypeError, match=f"realm must be int, got {type(invalid_realm).__name__}"):
+        DelegateContractId.from_evm_address(0, invalid_realm, "abcdef0123456789abcdef0123456789abcdef01")
 
 
 def test_from_evm_address_negative_realm_value():
     """Test from_evm_address raise error for negative realm values."""
     with pytest.raises(ValueError, match="realm must be a non-negative integer"):
-        DelegateContractId.from_evm_address(
-            0, -1, "abcdef0123456789abcdef0123456789abcdef01"
-        )
+        DelegateContractId.from_evm_address(0, -1, "abcdef0123456789abcdef0123456789abcdef01")
 
 
 def test_from_bytes_success():
@@ -545,12 +507,15 @@ def test_populate_contract_num_invalid_response(client):
     evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
     contract_id = DelegateContractId(shard=0, realm=0, evm_address=evm_address)
 
-    with patch(
-        "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
-        return_value={"contract_id": "invalid.account.format"},
-    ), pytest.raises(
-        ValueError,
-        match="Invalid contract_id format received: invalid.account.format",
+    with (
+        patch(
+            "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
+            return_value={"contract_id": "invalid.account.format"},
+        ),
+        pytest.raises(
+            ValueError,
+            match="Invalid contract_id format received: invalid.account.format",
+        ),
     ):
         contract_id.populate_contract_num(client)
 
@@ -560,24 +525,24 @@ def test_populate_contract_num_query_fails(client):
     evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
     contract_id = DelegateContractId(shard=0, realm=0, evm_address=evm_address)
 
-    with patch(
-        "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
-        side_effect=RuntimeError("mirror node query error"),
-    ):
-        with pytest.raises(
+    with (
+        patch(
+            "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
+            side_effect=RuntimeError("mirror node query error"),
+        ),
+        pytest.raises(
             RuntimeError,
             match="Failed to populate contract num from mirror node for evm_address abcdef0123456789abcdef0123456789abcdef01",
-        ):
-            contract_id.populate_contract_num(client)
+        ),
+    ):
+        contract_id.populate_contract_num(client)
 
 
 def test_populate_contract_num_without_evm_address(client):
     """Should raise error when populate_contract_num is called without evm_address."""
     contract_id = DelegateContractId(shard=0, realm=0, contract=1)
 
-    with pytest.raises(
-        ValueError, match="evm_address is required to populate the contract number"
-    ):
+    with pytest.raises(ValueError, match="evm_address is required to populate the contract number"):
         contract_id.populate_contract_num(client)
 
 
@@ -586,11 +551,12 @@ def test_populate_contract_num_invalid_mirror_response(client):
     evm_address = bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
     contract_id = DelegateContractId(shard=0, realm=0, evm_address=evm_address)
 
-    with patch(
-        "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
-        return_value={},
-    ), pytest.raises(
-        ValueError, match="Mirror node response missing 'contract_id'"
+    with (
+        patch(
+            "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
+            return_value={},
+        ),
+        pytest.raises(ValueError, match="Mirror node response missing 'contract_id'"),
     ):
         contract_id.populate_contract_num(client)
 

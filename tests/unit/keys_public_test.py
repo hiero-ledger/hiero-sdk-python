@@ -1,4 +1,3 @@
-
 import pytest
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
@@ -333,14 +332,10 @@ def test_from_string_ed25519(ed25519_keypair):
     and that round-trip hex output matches the input.
     """
     _, pub = ed25519_keypair
-    raw = pub.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-    )
+    raw = pub.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
     hex_str = raw.hex()
 
-    with pytest.warns(
-        UserWarning, match="cannot distinguish Ed25519 private seeds from public keys"
-    ):
+    with pytest.warns(UserWarning, match="cannot distinguish Ed25519 private seeds from public keys"):
         pubk = PublicKey.from_string_ed25519(hex_str)
     assert pubk.is_ed25519()
     assert pubk.to_string_ed25519() == hex_str
@@ -441,9 +436,7 @@ def test_from_string_catch_all_ed25519(ed25519_keypair):
     Ensures warning and correct detection.
     """
     _, pub = ed25519_keypair
-    raw = pub.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-    )
+    raw = pub.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
     hex_str = raw.hex()
 
     with pytest.warns(UserWarning, match="from_string.*cannot distinguish"):
@@ -701,16 +694,14 @@ def test_equality_algorithm_mismatch(ed25519_keypair, ecdsa_keypair):
     assert hash(ed_key) != hash(ec_key)
 
 
-@pytest.mark.parametrize(
-    "other",
-    [None, 1, 1.0, "key", object(), PrivateKey(ed25519.Ed25519PrivateKey.generate())]
-)
+@pytest.mark.parametrize("other", [None, 1, 1.0, "key", object(), PrivateKey(ed25519.Ed25519PrivateKey.generate())])
 def test_equality_with_non_publickey_returns_false(ed25519_keypair, other):
     """Equality comparison with a non-PublicKey type should return False."""
     _, pub = ed25519_keypair
     key = PublicKey(pub)
 
     assert (key == other) is False
+
 
 def test_to_proto_key_ecd25519():
     """Test to_proto_key properly convert ed25519 to Key protobuf."""
@@ -721,6 +712,7 @@ def test_to_proto_key_ecd25519():
     assert proto_key.ed25519 is not None
     assert proto_key.ed25519 == pub_key.to_bytes_raw()
 
+
 def test_to_proto_key_ecdsa():
     """Test to_proto_key properly convert ecdsa to Key protobuf."""
     pub_key = PrivateKey.generate_ecdsa().public_key()
@@ -730,10 +722,8 @@ def test_to_proto_key_ecdsa():
     assert proto_key.ECDSA_secp256k1 is not None
     assert proto_key.ECDSA_secp256k1 == pub_key.to_bytes_raw()
 
-@pytest.mark.parametrize(
-    "key",
-    [PrivateKey.generate_ed25519(), PrivateKey.generate_ecdsa()]
-)
+
+@pytest.mark.parametrize("key", [PrivateKey.generate_ed25519(), PrivateKey.generate_ecdsa()])
 def test_protobuf_roundtrip(key):
     """Test protobuf roundtrip properly convert to Key protobuf and vice versa."""
     pub_key = key.public_key()
@@ -745,4 +735,3 @@ def test_protobuf_roundtrip(key):
     assert loaded.is_ed25519() == pub_key.is_ed25519()
     assert loaded.is_ecdsa() == pub_key.is_ecdsa()
     assert loaded.to_bytes_raw() == pub_key.to_bytes_raw()
-

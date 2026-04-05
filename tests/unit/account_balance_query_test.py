@@ -37,9 +37,7 @@ def test_execute_account_balance_query():
                 responseType=ResponseType.ANSWER_ONLY,
                 cost=0,
             ),
-            accountID=basic_types_pb2.AccountID(
-                shardNum=0, realmNum=0, accountNum=1800
-            ),
+            accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=1800),
             balance=2000,
         )
     )
@@ -50,9 +48,7 @@ def test_execute_account_balance_query():
     with mock_hedera_servers(response_sequences) as client:
         # Create the query and verify no exceptions are raised
         try:
-            CryptoGetAccountBalanceQuery().set_account_id(
-                AccountId(0, 0, 1800)
-            ).execute(client)
+            CryptoGetAccountBalanceQuery().set_account_id(AccountId(0, 0, 1800)).execute(client)
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
 
@@ -114,11 +110,7 @@ def test_set_contract_id_method_chaining_resets_account_id(mock_account_ids):
     account_id_sender, *_ = mock_account_ids
     contract_id = ContractId(0, 0, 1234)
 
-    query = (
-        CryptoGetAccountBalanceQuery()
-        .set_account_id(account_id_sender)
-        .set_contract_id(contract_id)
-    )
+    query = CryptoGetAccountBalanceQuery().set_account_id(account_id_sender).set_contract_id(contract_id)
 
     assert query.contract_id == contract_id
     assert query.account_id is None
@@ -131,9 +123,7 @@ def test_last_wins_when_both_account_id_and_contract_id_are_set(
     account_id_sender, *_ = mock_account_ids
     contract_id = ContractId(0, 0, 1234)
 
-    query = CryptoGetAccountBalanceQuery(
-        account_id=account_id_sender, contract_id=contract_id
-    )
+    query = CryptoGetAccountBalanceQuery(account_id=account_id_sender, contract_id=contract_id)
 
     assert query.contract_id == contract_id
     assert query.account_id is None

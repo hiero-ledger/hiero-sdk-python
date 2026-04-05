@@ -14,20 +14,14 @@ pytestmark = pytest.mark.unit
 def mock_address_book():
     """Create a mock address book with certificate hash."""
     cert_hash = b"test_cert_hash_12345"
-    endpoint = Endpoint(
-        address=b"node.example.com", port=50211, domain_name="node.example.com"
-    )
-    address_book = NodeAddress(
-        account_id=AccountId(0, 0, 3), cert_hash=cert_hash, addresses=[endpoint]
-    )
-    return address_book
+    endpoint = Endpoint(address=b"node.example.com", port=50211, domain_name="node.example.com")
+    return NodeAddress(account_id=AccountId(0, 0, 3), cert_hash=cert_hash, addresses=[endpoint])
 
 
 @pytest.fixture
 def node(mock_address_book):
     """Create a node with deterministic value for unit tests."""
-    node = _Node(AccountId(0, 0, 3), "127.0.0.1:50211", mock_address_book)
-    return node
+    return _Node(AccountId(0, 0, 3), "127.0.0.1:50211", mock_address_book)
 
 
 # Test is_healthy
@@ -85,4 +79,3 @@ def test_decrease_backoff_floors_at_min(node):
 
     node._decrease_backoff()
     assert node._current_backoff == node._min_backoff
-

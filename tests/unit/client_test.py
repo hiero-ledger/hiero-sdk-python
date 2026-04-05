@@ -73,20 +73,24 @@ def test_from_env_missing_operator_id_raises_error():
     """Test that from_env raises ValueError when OPERATOR_ID is missing."""
     dummy_key = PrivateKey.generate_ed25519().to_string_der()
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, {"OPERATOR_KEY": dummy_key}, clear=True):
-            with pytest.raises(ValueError) as exc_info:
-                Client.from_env()
-            assert "OPERATOR_ID" in str(exc_info.value)
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, {"OPERATOR_KEY": dummy_key}, clear=True),
+        pytest.raises(ValueError) as exc_info,
+    ):
+        Client.from_env()
+    assert "OPERATOR_ID" in str(exc_info.value)
 
 
 def test_from_env_missing_operator_key_raises_error():
     """Test that from_env raises ValueError when OPERATOR_KEY is missing."""
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, {"OPERATOR_ID": "0.0.1234"}, clear=True):
-            with pytest.raises(ValueError) as exc_info:
-                Client.from_env()
-            assert "OPERATOR_KEY" in str(exc_info.value)
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, {"OPERATOR_ID": "0.0.1234"}, clear=True),
+        pytest.raises(ValueError) as exc_info,
+    ):
+        Client.from_env()
+    assert "OPERATOR_KEY" in str(exc_info.value)
 
 
 def test_from_env_with_valid_credentials():
@@ -164,9 +168,12 @@ def test_from_env_with_invalid_network_name():
         "OPERATOR_KEY": test_key.to_string_der(),
     }
 
-    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
-        with pytest.raises(ValueError, match="Invalid network name"):
-            Client.from_env(network="mars_network")
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, env_vars, clear=True),
+        pytest.raises(ValueError, match="Invalid network name"),
+    ):
+        Client.from_env(network="mars_network")
 
 
 def test_from_env_with_malformed_operator_id():
@@ -177,9 +184,12 @@ def test_from_env_with_malformed_operator_id():
         "OPERATOR_KEY": test_key.to_string_der(),
     }
 
-    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
-        with pytest.raises(ValueError, match="Invalid account ID"):
-            Client.from_env()
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, env_vars, clear=True),
+        pytest.raises(ValueError, match="Invalid account ID"),
+    ):
+        Client.from_env()
 
 
 def test_from_env_with_malformed_operator_key():
@@ -189,9 +199,12 @@ def test_from_env_with_malformed_operator_key():
         "OPERATOR_KEY": "not-a-valid-key",
     }
 
-    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
-        with pytest.raises(ValueError):
-            Client.from_env()
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, env_vars, clear=True),
+        pytest.raises(ValueError),
+    ):
+        Client.from_env()
 
 
 @pytest.mark.parametrize(
@@ -213,9 +226,7 @@ def test_set_default_max_query_payment_valid_param(valid_amount, expected):
     assert client.default_max_query_payment == expected
 
 
-@pytest.mark.parametrize(
-    "negative_amount", [-1, -0.1, Decimal("-0.1"), Decimal("-1"), Hbar(-1)]
-)
+@pytest.mark.parametrize("negative_amount", [-1, -0.1, Decimal("-0.1"), Decimal("-1"), Hbar(-1)])
 def test_set_default_max_query_payment_negative_value(negative_amount):
     """Test set_default_max_query_payment for negative amount values."""
     client = Client.for_testnet()
@@ -231,10 +242,7 @@ def test_set_default_max_query_payment_invalid_param(invalid_amount):
 
     with pytest.raises(
         TypeError,
-        match=(
-            "max_query_payment must be int, float, Decimal, or Hbar, "
-            f"got {type(invalid_amount).__name__}"
-        ),
+        match=(f"max_query_payment must be int, float, Decimal, or Hbar, got {type(invalid_amount).__name__}"),
     ):
         client.set_default_max_query_payment(invalid_amount)
 
@@ -307,16 +315,12 @@ def test_set_grpc_deadline_with_invalid_type(invalid_grpc_deadline):
         client.set_grpc_deadline(invalid_grpc_deadline)
 
 
-@pytest.mark.parametrize(
-    "invalid_grpc_deadline", [0, -10, 0.0, -2.3, float("inf"), float("nan")]
-)
+@pytest.mark.parametrize("invalid_grpc_deadline", [0, -10, 0.0, -2.3, float("inf"), float("nan")])
 def test_set_grpc_deadline_with_invalid_value(invalid_grpc_deadline):
     """Test that set_grpc_deadline raises ValueError for non-positive values."""
     client = Client.for_testnet()
 
-    with pytest.raises(
-        ValueError, match="grpc_deadline must be a finite value greater than 0"
-    ):
+    with pytest.raises(ValueError, match="grpc_deadline must be a finite value greater than 0"):
         client.set_grpc_deadline(invalid_grpc_deadline)
 
 
@@ -345,16 +349,12 @@ def test_set_request_timeout_with_invalid_type(invalid_request_timeout):
         client.set_request_timeout(invalid_request_timeout)
 
 
-@pytest.mark.parametrize(
-    "invalid_request_timeout", [0, -10, 0.0, -2.3, float("inf"), float("nan")]
-)
+@pytest.mark.parametrize("invalid_request_timeout", [0, -10, 0.0, -2.3, float("inf"), float("nan")])
 def test_set_request_timeout_with_invalid_value(invalid_request_timeout):
     """Test that set_request_timeout raises ValueError for non-positive values."""
     client = Client.for_testnet()
 
-    with pytest.raises(
-        ValueError, match="request_timeout must be a finite value greater than 0"
-    ):
+    with pytest.raises(ValueError, match="request_timeout must be a finite value greater than 0"):
         client.set_request_timeout(invalid_request_timeout)
 
 
@@ -383,9 +383,7 @@ def test_set_min_backoff_with_invalid_type(invalid_min_backoff):
         client.set_min_backoff(invalid_min_backoff)
 
 
-@pytest.mark.parametrize(
-    "invalid_min_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")]
-)
+@pytest.mark.parametrize("invalid_min_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")])
 def test_set_min_backoff_with_invalid_value(invalid_min_backoff):
     """Test that set_min_backoff raises ValueError for invalid values."""
     client = Client.for_testnet()
@@ -428,9 +426,7 @@ def test_set_max_backoff_with_invalid_type(invalid_max_backoff):
         client.set_max_backoff(invalid_max_backoff)
 
 
-@pytest.mark.parametrize(
-    "invalid_max_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")]
-)
+@pytest.mark.parametrize("invalid_max_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")])
 def test_set_max_backoff_with_invalid_value(invalid_max_backoff):
     """Test that set_max_backoff raises ValueError for invalid values."""
     client = Client.for_testnet()
@@ -462,6 +458,7 @@ def test_update_network_refreshes_nodes_and_returns_self():
 
     client.close()
 
+
 def test_warning_when_grpc_deadline_exceeds_request_timeout():
     """Warn when grpc_deadline is greater than request_timeout."""
     client = Client.for_testnet()
@@ -491,7 +488,7 @@ def test_generate_transaction_id_requires_operator_set():
     client.close()
 
 
-def test_generate_transaction_id_returns_transaction_id(monkeypatch):
+def test_generate_transaction_id_returns_transaction_id():
     """Test that generate_transaction_id returns a TransactionId object when operator is set."""
     client = Client.for_testnet()
     client.operator_account_id = AccountId(0, 0, 1234)

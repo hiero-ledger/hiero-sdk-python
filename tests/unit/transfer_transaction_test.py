@@ -26,8 +26,7 @@ def test_constructor_with_parameters(mock_account_ids):
         token_id_2: {account_id_sender: -25, account_id_recipient: 25},
     }
 
-    nft_transfers = {token_id_1: [
-        (account_id_sender, account_id_recipient, 1, True)]}
+    nft_transfers = {token_id_1: [(account_id_sender, account_id_recipient, 1, True)]}
 
     # Initialize with parameters
     transfer_tx = TransferTransaction(
@@ -36,21 +35,16 @@ def test_constructor_with_parameters(mock_account_ids):
 
     # Verify all transfers were added correctly
     # Check HBAR transfers
-    hbar_amounts = {
-        transfer.account_id: transfer.amount for transfer in transfer_tx.hbar_transfers}
+    hbar_amounts = {transfer.account_id: transfer.amount for transfer in transfer_tx.hbar_transfers}
     assert hbar_amounts[account_id_sender] == -1000
     assert hbar_amounts[account_id_recipient] == 1000
 
     # Check token transfers
-    token_amounts_1 = {
-        transfer.account_id: transfer.amount for transfer in transfer_tx.token_transfers[token_id_1]
-    }
+    token_amounts_1 = {transfer.account_id: transfer.amount for transfer in transfer_tx.token_transfers[token_id_1]}
     assert token_amounts_1[account_id_sender] == -50
     assert token_amounts_1[account_id_recipient] == 50
 
-    token_amounts_2 = {
-        transfer.account_id: transfer.amount for transfer in transfer_tx.token_transfers[token_id_2]
-    }
+    token_amounts_2 = {transfer.account_id: transfer.amount for transfer in transfer_tx.token_transfers[token_id_2]}
     assert token_amounts_2[account_id_sender] == -25
     assert token_amounts_2[account_id_recipient] == 25
 
@@ -78,9 +72,7 @@ def test_add_token_transfer(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_recipient, 100)
 
     # Find the transfers for each account
-    sender_transfer = next(
-        t for t in transfer_tx.token_transfers[token_id_1] if t.account_id == account_id_sender
-    )
+    sender_transfer = next(t for t in transfer_tx.token_transfers[token_id_1] if t.account_id == account_id_sender)
     recipient_transfer = next(
         t for t in transfer_tx.token_transfers[token_id_1] if t.account_id == account_id_recipient
     )
@@ -98,12 +90,8 @@ def test_add_hbar_transfer(mock_account_ids):
     transfer_tx.add_hbar_transfer(account_id_recipient, 500)
 
     # Find the transfers for each account
-    sender_transfer = next(
-        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender
-    )
-    recipient_transfer = next(
-        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_recipient
-    )
+    sender_transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender)
+    recipient_transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_recipient)
 
     assert sender_transfer.amount == -500
     assert recipient_transfer.amount == 500
@@ -114,9 +102,7 @@ def test_add_nft_transfer(mock_account_ids):
     account_id_sender, account_id_recipient, _, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 0), account_id_sender, account_id_recipient, True
-    )
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 0), account_id_sender, account_id_recipient, True)
 
     assert transfer_tx.nft_transfers[token_id_1][0].sender_id == account_id_sender
     assert transfer_tx.nft_transfers[token_id_1][0].receiver_id == account_id_recipient
@@ -137,8 +123,7 @@ def test_add_invalid_transfer(mock_account_ids):
         transfer_tx.add_token_transfer(12345, mock_account_ids[0], -100)
 
     with pytest.raises(TypeError):
-        transfer_tx.add_nft_transfer(
-            12345, mock_account_ids[0], mock_account_ids[1], True)
+        transfer_tx.add_nft_transfer(12345, mock_account_ids[0], mock_account_ids[1], True)
 
 
 def test_hbar_accumulation(mock_account_ids):
@@ -169,8 +154,7 @@ def test_token_accumulation(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_2, 50)
 
     # Verify accumulation
-    amounts = {
-        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
     assert amounts[account_id_1] == 300  # 100 + 200
     assert amounts[account_id_2] == 50
     assert len(transfer_tx.token_transfers[token_id_1]) == 2
@@ -209,8 +193,7 @@ def test_token_negative_amounts(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_2, -100)
 
     # Verify subtraction
-    amounts = {
-        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
     assert amounts[account_id_1] == 800  # 1000 - 200
     assert amounts[account_id_2] == 400  # 500 - 100
 
@@ -231,8 +214,7 @@ def test_zero_to_positive_transfers(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_1, -200)
     transfer_tx.add_token_transfer(token_id_1, account_id_1, 500)
 
-    token_amounts = {
-        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    token_amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
     assert token_amounts[account_id_1] == 300
 
 
@@ -244,16 +226,12 @@ def test_multiple_tokens_same_account(mock_account_ids):
     # Add different amounts for different tokens to the same account
     transfer_tx.add_token_transfer(token_id_1, account_id_1, 100)
     transfer_tx.add_token_transfer(token_id_2, account_id_1, 200)
-    transfer_tx.add_token_transfer(
-        token_id_1, account_id_1, 50)  # Accumulate token1
-    transfer_tx.add_token_transfer(
-        token_id_2, account_id_1, -50)  # Subtract from token2
+    transfer_tx.add_token_transfer(token_id_1, account_id_1, 50)  # Accumulate token1
+    transfer_tx.add_token_transfer(token_id_2, account_id_1, -50)  # Subtract from token2
 
     # Verify each token maintains separate balance
-    token1_amounts = {
-        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
-    token2_amounts = {
-        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_2]}
+    token1_amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    token2_amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_2]}
 
     assert token1_amounts[account_id_1] == 150  # 100 + 50
     assert token2_amounts[account_id_1] == 150  # 200 - 50
@@ -286,8 +264,7 @@ def test_edge_case_amounts(mock_account_ids):
     transfer_tx.add_token_transfer(token_id_1, account_id_1, 1)
     transfer_tx.add_token_transfer(token_id_1, account_id_1, 1)
 
-    token1_amounts = {
-        t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
+    token1_amounts = {t.account_id: t.amount for t in transfer_tx.token_transfers[token_id_1]}
     assert token1_amounts[account_id_1] == 2
 
 
@@ -311,12 +288,8 @@ def test_multiple_nft_transfers(mock_account_ids):
     transfer_tx = TransferTransaction()
 
     # Add multiple NFT transfers for the same token
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 1), account_id_sender, account_id_recipient, False
-    )
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 2), account_id_sender, account_id_recipient, True
-    )
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient, False)
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 2), account_id_sender, account_id_recipient, True)
 
     # Verify all transfers were added correctly
     assert len(transfer_tx.nft_transfers[token_id_1]) == 2
@@ -342,8 +315,7 @@ def test_frozen_transaction(mock_account_ids, mock_client):
         transfer_tx.add_token_transfer(token_id_1, account_id_sender, -100)
 
     with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
-        transfer_tx.add_nft_transfer(
-            NftId(token_id_1, 1), account_id_sender, account_id_recipient)
+        transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
 
 
 def test_build_transaction_body(mock_account_ids):
@@ -356,8 +328,7 @@ def test_build_transaction_body(mock_account_ids):
     transfer_tx.add_hbar_transfer(account_id_recipient, 500)
     transfer_tx.add_token_transfer(token_id_1, account_id_sender, -100)
     transfer_tx.add_token_transfer(token_id_1, account_id_recipient, 100)
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 1), account_id_sender, account_id_recipient)
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
 
     # Set required fields for building transaction
     transfer_tx.node_account_id = node_account_id
@@ -416,8 +387,7 @@ def test_build_scheduled_body(mock_account_ids):
     transfer_tx.add_hbar_transfer(account_id_recipient, 500)
     transfer_tx.add_token_transfer(token_id_1, account_id_sender, -100)
     transfer_tx.add_token_transfer(token_id_1, account_id_recipient, 100)
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 1), account_id_sender, account_id_recipient)
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
 
     # Build the scheduled body
     result = transfer_tx.build_scheduled_body()
@@ -469,8 +439,7 @@ def test_approved_token_transfer_with_decimals(mock_account_ids):
     transfer_tx = TransferTransaction()
 
     # Add approved token transfer with decimals
-    transfer_tx.add_approved_token_transfer_with_decimals(
-        token_id_1, account_id_1, 1000, 6)
+    transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 1000, 6)
 
     # Verify the transfer was added correctly
     transfer = transfer_tx.token_transfers[token_id_1][0]
@@ -500,8 +469,7 @@ def test_approved_token_transfer_accumulation(mock_account_ids):
     assert transfer_2.expected_decimals is None
 
     # Add approved transfer with decimals for account_1 (accumulates)
-    transfer_tx.add_approved_token_transfer_with_decimals(
-        token_id_1, account_id_1, 200, 8)
+    transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 200, 8)
 
     # Verify accumulation
     transfer_1 = transfer_tx.token_transfers[token_id_1][0]
@@ -521,14 +489,11 @@ def test_approved_token_transfer_validation(mock_account_ids):
 
     # Test invalid expected_decimals type
     with pytest.raises(TypeError, match="expected_decimals must be an integer"):
-        transfer_tx.add_approved_token_transfer_with_decimals(
-            token_id_1, account_id_1, 1000, "invalid"
-        )
+        transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 1000, "invalid")
 
     # Test zero amount
     with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
-        transfer_tx.add_approved_token_transfer_with_decimals(
-            token_id_1, account_id_1, 0, 6)
+        transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 0, 6)
 
 
 def test_add_hbar_transfer_with_hbar_object(mock_account_ids):
@@ -539,12 +504,8 @@ def test_add_hbar_transfer_with_hbar_object(mock_account_ids):
     transfer_tx.add_hbar_transfer(account_id_sender, Hbar(-500))
     transfer_tx.add_hbar_transfer(account_id_recipient, Hbar(500))
 
-    sender_transfer = next(
-        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender
-    )
-    recipient_transfer = next(
-        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_recipient
-    )
+    sender_transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender)
+    recipient_transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_recipient)
 
     assert sender_transfer.amount == -50_000_000_000
     assert recipient_transfer.amount == 50_000_000_000
@@ -555,17 +516,11 @@ def test_add_hbar_transfer_with_hbar_tinybars(mock_account_ids):
     account_id_sender, account_id_recipient, _, _, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_hbar_transfer(
-        account_id_sender, Hbar(-500, HbarUnit.TINYBAR))
-    transfer_tx.add_hbar_transfer(
-        account_id_recipient, Hbar(500, HbarUnit.TINYBAR))
+    transfer_tx.add_hbar_transfer(account_id_sender, Hbar(-500, HbarUnit.TINYBAR))
+    transfer_tx.add_hbar_transfer(account_id_recipient, Hbar(500, HbarUnit.TINYBAR))
 
-    sender_transfer = next(
-        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender
-    )
-    recipient_transfer = next(
-        t for t in transfer_tx.hbar_transfers if t.account_id == account_id_recipient
-    )
+    sender_transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_sender)
+    recipient_transfer = next(t for t in transfer_tx.hbar_transfers if t.account_id == account_id_recipient)
 
     assert sender_transfer.amount == -500
     assert recipient_transfer.amount == 500
@@ -639,10 +594,8 @@ def test_token_transfer_with_expected_decimals_building(mock_account_ids):
     account_id_1, account_id_2, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_token_transfer_with_decimals(
-        token_id_1, account_id_1, -100, 8)
-    transfer_tx.add_token_transfer_with_decimals(
-        token_id_1, account_id_2, 100, 8)
+    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_1, -100, 8)
+    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_2, 100, 8)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_1
 
@@ -667,12 +620,8 @@ def test_nft_transfer_with_approval_building(mock_account_ids):
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 1), account_id_sender, account_id_recipient, False
-    )
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 2), account_id_sender, account_id_recipient, True
-    )
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient, False)
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 2), account_id_sender, account_id_recipient, True)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_sender
 
@@ -696,9 +645,7 @@ def test_nft_transfer_reconstruction_from_protobuf(mock_account_ids):
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 5), account_id_sender, account_id_recipient, True
-    )
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 5), account_id_sender, account_id_recipient, True)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_sender
 
@@ -721,9 +668,7 @@ def test_nft_transfers_unapproved_reconstruction(mock_account_ids):
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 10), account_id_sender, account_id_recipient, False
-    )
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 10), account_id_sender, account_id_recipient, False)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_sender
 
@@ -742,12 +687,8 @@ def test_token_transfer_with_expected_decimals_reconstruction(mock_account_ids):
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_token_transfer_with_decimals(
-        token_id_1, account_id_sender, -100, 6
-    )
-    transfer_tx.add_token_transfer_with_decimals(
-        token_id_1, account_id_recipient, 100, 6
-    )
+    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_sender, -100, 6)
+    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_recipient, 100, 6)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_sender
 
@@ -772,15 +713,9 @@ def test_combined_transfers_reconstruction(mock_account_ids):
 
     transfer_tx.add_hbar_transfer(account_id_sender, -1000)
     transfer_tx.add_hbar_transfer(account_id_recipient, 1000)
-    transfer_tx.add_token_transfer_with_decimals(
-        token_id_1, account_id_sender, -50, 8
-    )
-    transfer_tx.add_token_transfer_with_decimals(
-        token_id_1, account_id_recipient, 50, 8
-    )
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 1), account_id_sender, account_id_recipient, True
-    )
+    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_sender, -50, 8)
+    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_recipient, 50, 8)
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient, True)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_sender
 
@@ -805,12 +740,8 @@ def test_expected_decimals_field_preservation(mock_account_ids):
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_token_transfer_with_decimals(
-        token_id_1, account_id_sender, -200, 8
-    )
-    transfer_tx.add_token_transfer_with_decimals(
-        token_id_1, account_id_recipient, 200, 8
-    )
+    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_sender, -200, 8)
+    transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_recipient, 200, 8)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_sender
 
@@ -830,9 +761,7 @@ def test_nft_transfer_fields_preservation(mock_account_ids):
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 42), account_id_sender, account_id_recipient, True
-    )
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 42), account_id_sender, account_id_recipient, True)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_sender
 
@@ -857,15 +786,9 @@ def test_multiple_nft_transfers_all_fields(mock_account_ids):
     account_id_sender, account_id_recipient, node_account_id, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 100), account_id_sender, account_id_recipient, True
-    )
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 101), account_id_sender, account_id_recipient, False
-    )
-    transfer_tx.add_nft_transfer(
-        NftId(token_id_1, 102), account_id_sender, account_id_recipient, True
-    )
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 100), account_id_sender, account_id_recipient, True)
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 101), account_id_sender, account_id_recipient, False)
+    transfer_tx.add_nft_transfer(NftId(token_id_1, 102), account_id_sender, account_id_recipient, True)
     transfer_tx.node_account_id = node_account_id
     transfer_tx.operator_account_id = account_id_sender
 
@@ -877,8 +800,7 @@ def test_multiple_nft_transfers_all_fields(mock_account_ids):
     nft_transfers = reconstructed.nft_transfers[token_id_1]
     assert len(nft_transfers) == 3
 
-    serial_to_approval = {
-        nft.serial_number: nft.is_approved for nft in nft_transfers}
+    serial_to_approval = {nft.serial_number: nft.is_approved for nft in nft_transfers}
     assert serial_to_approval[100] is True
     assert serial_to_approval[101] is False
     assert serial_to_approval[102] is True

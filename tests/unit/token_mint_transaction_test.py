@@ -22,12 +22,9 @@ def generate_transaction_id(account_id_proto):
     timestamp_seconds = int(current_time)
     timestamp_nanos = int((current_time - timestamp_seconds) * 1e9)
 
-    tx_timestamp = timestamp_pb2.Timestamp(
-        seconds=timestamp_seconds, nanos=timestamp_nanos
-    )
+    tx_timestamp = timestamp_pb2.Timestamp(seconds=timestamp_seconds, nanos=timestamp_nanos)
 
-    tx_id = TransactionId(valid_start=tx_timestamp, account_id=account_id_proto)
-    return tx_id
+    return TransactionId(valid_start=tx_timestamp, account_id=account_id_proto)
 
 
 # This test uses fixture mock_account_ids as parameter
@@ -67,9 +64,7 @@ def test_build_transaction_body_fungible(mock_account_ids, amount):
     assert transaction_body.tokenMint.token.realmNum == 1
     assert transaction_body.tokenMint.token.tokenNum == 1
     assert transaction_body.tokenMint.amount == amount
-    assert (
-        len(transaction_body.tokenMint.metadata) == 0
-    )  # No metadata for fungible tokens
+    assert len(transaction_body.tokenMint.metadata) == 0  # No metadata for fungible tokens
 
 
 # This test uses fixtures (mock_account_ids, metadata) as parameters
@@ -131,9 +126,7 @@ def test_build_nft_transaction_body_invalid_metadata_type(mock_account_ids):
     mint_tx = TokenMintTransaction()
     mint_tx.set_token_id(token_id)
     mint_tx.set_metadata(metadata)
-    with pytest.raises(
-        ValueError, match="Metadata must be a list of byte arrays for NFTs."
-    ):
+    with pytest.raises(ValueError, match="Metadata must be a list of byte arrays for NFTs."):
         mint_tx.build_transaction_body()
 
 
@@ -151,9 +144,7 @@ def test_build_nft_transaction_body_empty_metadata(mock_account_ids):
 
 
 # This test uses fixtures (mock_account_ids, amount, metadata) as parameters
-def test_build_transaction_body_both_amount_and_metadata(
-    mock_account_ids, amount, metadata
-):
+def test_build_transaction_body_both_amount_and_metadata(mock_account_ids, amount, metadata):
     """Test that setting both amount and metadata raises a ValueError."""
     payer_account, _, node_account_id, token_id, _ = mock_account_ids
 

@@ -80,23 +80,12 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, delete_p
 
     # When both transfer_account_id and transfer_contract_id are set,
     # the protobuf only will only set transferAccountID
-    assert (
-        transaction_body.contractDeleteInstance.contractID
-        == delete_params["contract_id"]._to_proto()
-    )
-    assert (
-        transaction_body.contractDeleteInstance.transferAccountID
-        == delete_params["transfer_account_id"]._to_proto()
-    )
-    assert (
-        transaction_body.contractDeleteInstance.permanent_removal
-        == delete_params["permanent_removal"]
-    )
+    assert transaction_body.contractDeleteInstance.contractID == delete_params["contract_id"]._to_proto()
+    assert transaction_body.contractDeleteInstance.transferAccountID == delete_params["transfer_account_id"]._to_proto()
+    assert transaction_body.contractDeleteInstance.permanent_removal == delete_params["permanent_removal"]
 
 
-def test_build_transaction_body_with_required_params_only(
-    mock_account_ids, contract_id
-):
+def test_build_transaction_body_with_required_params_only(mock_account_ids, contract_id):
     """Test building transaction body with only required parameters."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
@@ -114,9 +103,7 @@ def test_build_transaction_body_with_required_params_only(
     assert transaction_body.contractDeleteInstance.permanent_removal is False
 
 
-def test_build_transaction_body_with_transfer_contract_id_only(
-    mock_account_ids, delete_params
-):
+def test_build_transaction_body_with_transfer_contract_id_only(mock_account_ids, delete_params):
     """Test building transaction body with transfer_contract_id only."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
@@ -130,21 +117,15 @@ def test_build_transaction_body_with_transfer_contract_id_only(
 
     transaction_body = delete_tx.build_transaction_body()
 
+    assert transaction_body.contractDeleteInstance.contractID == delete_params["contract_id"]._to_proto()
     assert (
-        transaction_body.contractDeleteInstance.contractID
-        == delete_params["contract_id"]._to_proto()
-    )
-    assert (
-        transaction_body.contractDeleteInstance.transferContractID
-        == delete_params["transfer_contract_id"]._to_proto()
+        transaction_body.contractDeleteInstance.transferContractID == delete_params["transfer_contract_id"]._to_proto()
     )
     assert not transaction_body.contractDeleteInstance.HasField("transferAccountID")
     assert transaction_body.contractDeleteInstance.permanent_removal is False
 
 
-def test_build_transaction_body_with_transfer_account_id_only(
-    mock_account_ids, delete_params
-):
+def test_build_transaction_body_with_transfer_account_id_only(mock_account_ids, delete_params):
     """Test building transaction body with transfer_account_id only."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
@@ -158,21 +139,13 @@ def test_build_transaction_body_with_transfer_account_id_only(
 
     transaction_body = delete_tx.build_transaction_body()
 
-    assert (
-        transaction_body.contractDeleteInstance.contractID
-        == delete_params["contract_id"]._to_proto()
-    )
+    assert transaction_body.contractDeleteInstance.contractID == delete_params["contract_id"]._to_proto()
     assert not transaction_body.contractDeleteInstance.HasField("transferContractID")
-    assert (
-        transaction_body.contractDeleteInstance.transferAccountID
-        == delete_params["transfer_account_id"]._to_proto()
-    )
+    assert transaction_body.contractDeleteInstance.transferAccountID == delete_params["transfer_account_id"]._to_proto()
     assert transaction_body.contractDeleteInstance.permanent_removal is False
 
 
-def test_build_transaction_body_with_permanent_removal_only(
-    mock_account_ids, delete_params
-):
+def test_build_transaction_body_with_permanent_removal_only(mock_account_ids, delete_params):
     """Test building transaction body with permanent_removal only."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
@@ -186,16 +159,10 @@ def test_build_transaction_body_with_permanent_removal_only(
 
     transaction_body = delete_tx.build_transaction_body()
 
-    assert (
-        transaction_body.contractDeleteInstance.contractID
-        == delete_params["contract_id"]._to_proto()
-    )
+    assert transaction_body.contractDeleteInstance.contractID == delete_params["contract_id"]._to_proto()
     assert not transaction_body.contractDeleteInstance.HasField("transferContractID")
     assert not transaction_body.contractDeleteInstance.HasField("transferAccountID")
-    assert (
-        transaction_body.contractDeleteInstance.permanent_removal
-        == delete_params["permanent_removal"]
-    )
+    assert transaction_body.contractDeleteInstance.permanent_removal == delete_params["permanent_removal"]
 
 
 def test_build_transaction_body_missing_contract_id():
@@ -288,9 +255,7 @@ def test_method_chaining_partial_setters(delete_params):
     """Test method chaining with only some setters."""
     delete_tx = ContractDeleteTransaction()
 
-    result = delete_tx.set_contract_id(
-        delete_params["contract_id"]
-    ).set_permanent_removal(True)
+    result = delete_tx.set_contract_id(delete_params["contract_id"]).set_permanent_removal(True)
 
     assert result is delete_tx
     assert delete_tx.contract_id == delete_params["contract_id"]
@@ -312,9 +277,7 @@ def test_set_methods_require_not_frozen(mock_client, delete_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(delete_tx, method_name)(value)
 
 

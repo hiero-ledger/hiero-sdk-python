@@ -8,7 +8,7 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def client(mock_client):
-    mock_client.network.ledger_id = bytes.fromhex("00") # mainnet ledger id
+    mock_client.network.ledger_id = bytes.fromhex("00")  # mainnet ledger id
     return mock_client
 
 
@@ -65,29 +65,29 @@ def test_from_string_valid_with_checksum():
     assert schedule_id.schedule == 3
     assert schedule_id.checksum == "abcde"
 
+
 @pytest.mark.parametrize(
-    'invalid_id', 
+    "invalid_id",
     [
-        '1.2',  # Too few parts
-        '1.2.3.4',  # Too many parts
-        'a.b.c',  # Non-numeric parts
-        '',  # Empty string
-        '1.a.3',  # Partial numeric
+        "1.2",  # Too few parts
+        "1.2.3.4",  # Too many parts
+        "a.b.c",  # Non-numeric parts
+        "",  # Empty string
+        "1.a.3",  # Partial numeric
         123,
         None,
-        '0.0.-1',
-        'abc.def.ghi',
-        '0.0.1-ad',
-        '0.0.1-addefgh',
-        '0.0.1 - abcde',
-        ' 0.0.100 '
-    ]
+        "0.0.-1",
+        "abc.def.ghi",
+        "0.0.1-ad",
+        "0.0.1-addefgh",
+        "0.0.1 - abcde",
+        " 0.0.100 ",
+    ],
 )
 def test_from_string_invalid_formats(invalid_id):
     """Test creating ScheduleId from various invalid string formats."""
     with pytest.raises(
-        ValueError, 
-        match=f"Invalid schedule ID string '{invalid_id}'. Expected format 'shard.realm.schedule'"
+        ValueError, match=f"Invalid schedule ID string '{invalid_id}'. Expected format 'shard.realm.schedule'"
     ):
         ScheduleId.from_string(invalid_id)
 

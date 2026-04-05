@@ -14,35 +14,39 @@ from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
 
+
 # This test uses fixture token_id as parameter
 def test_constructor(token_id):
     """Test initialization of TokenInfoQuery."""
     query = TokenInfoQuery()
     assert query.token_id is None
-    
+
     query = TokenInfoQuery(token_id)
     assert query.token_id == token_id
+
 
 # This test uses fixture mock_client as parameter
 def test_execute_fails_with_missing_token_id(mock_client):
     """Test request creation with missing Token ID."""
     query = TokenInfoQuery()
-    
+
     with pytest.raises(ValueError, match="Token ID must be set before making the request."):
         query.execute(mock_client)
+
 
 def test_get_method():
     """Test retrieving the gRPC method for the query."""
     query = TokenInfoQuery()
-    
+
     mock_channel = Mock()
     mock_token_stub = Mock()
     mock_channel.token = mock_token_stub
-    
+
     method = query._get_method(mock_channel)
-    
+
     assert method.transaction is None
     assert method.query == mock_token_stub.getTokenInfo
+
 
 # This test uses fixture (mock_account_ids, private_key) as parameter
 def test_token_info_query_execute(mock_account_ids, private_key):
@@ -68,47 +72,41 @@ def test_token_info_query_execute(mock_account_ids, private_key):
         response_pb2.Response(
             tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
                 header=response_header_pb2.ResponseHeader(
-                    nodeTransactionPrecheckCode=ResponseCode.OK,
-                    responseType=ResponseType.COST_ANSWER,
-                    cost=2
+                    nodeTransactionPrecheckCode=ResponseCode.OK, responseType=ResponseType.COST_ANSWER, cost=2
                 )
             )
         ),
         response_pb2.Response(
             tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
                 header=response_header_pb2.ResponseHeader(
-                    nodeTransactionPrecheckCode=ResponseCode.OK,
-                    responseType=ResponseType.COST_ANSWER,
-                    cost=2
+                    nodeTransactionPrecheckCode=ResponseCode.OK, responseType=ResponseType.COST_ANSWER, cost=2
                 )
             )
         ),
         response_pb2.Response(
             tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
                 header=response_header_pb2.ResponseHeader(
-                    nodeTransactionPrecheckCode=ResponseCode.OK,
-                    responseType=ResponseType.ANSWER_ONLY,
-                    cost=2
+                    nodeTransactionPrecheckCode=ResponseCode.OK, responseType=ResponseType.ANSWER_ONLY, cost=2
                 ),
-                tokenInfo=token_info_response
+                tokenInfo=token_info_response,
             )
-        )
+        ),
     ]
-    
+
     response_sequences = [responses]
-    
+
     with mock_hedera_servers(response_sequences) as client:
         query = TokenInfoQuery(token_id)
-        
+
         try:
             # Get the cost of executing the query - should be 2 tinybars based on the mock response
             cost = query.get_cost(client)
             assert cost.to_tinybars() == 2
-            
+
             result = query.execute(client)
         except Exception as e:
             pytest.fail(f"Unexpected exception raised: {e}")
-        
+
         assert result.token_id == token_id
         assert result.name == "Test Token"
         assert result.symbol == "TEST"
@@ -122,5 +120,5 @@ def test_token_info_query_execute(mock_account_ids, private_key):
         assert result.admin_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
         assert result.kyc_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
         assert result.wipe_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
-        assert result.supply_key == None
-        assert result.freeze_key == None
+        assert result.supply_key is None
+        assert result.freeze_key is None

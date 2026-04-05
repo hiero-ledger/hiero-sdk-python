@@ -49,7 +49,7 @@ def amount():
 @pytest.fixture
 def metadata():
     """Fixture to provide mock metadata for NFTs."""
-    return [b'a']
+    return [b"a"]
 
 
 @pytest.fixture

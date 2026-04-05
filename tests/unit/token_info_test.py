@@ -15,6 +15,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 
 pytestmark = pytest.mark.unit
 
+
 @pytest.fixture
 def token_info():
     return TokenInfo(
@@ -29,12 +30,13 @@ def token_info():
         token_type=TokenType.FUNGIBLE_COMMON,
         max_supply=10000000,
         ledger_id=b"ledger123",
-        metadata=b"Test metadata"
+        metadata=b"Test metadata",
     )
+
 
 @pytest.fixture
 def proto_token_info():
-    proto = proto_TokenInfo(
+    return proto_TokenInfo(
         tokenId=TokenId(0, 0, 100)._to_proto(),
         name="TestToken",
         symbol="TST",
@@ -47,9 +49,9 @@ def proto_token_info():
         maxSupply=10000000,
         ledger_id=b"ledger123",
         supplyType=SupplyType.FINITE.value,
-        metadata=b"Test metadata"
+        metadata=b"Test metadata",
     )
-    return proto
+
 
 def test_token_info_initialization(token_info):
     assert token_info.token_id == TokenId(0, 0, 100)
@@ -79,10 +81,12 @@ def test_token_info_initialization(token_info):
     assert token_info.expiry is None
     assert token_info.pause_key is None
 
+
 def test_token_info_is_immutable(token_info):
     """TokenInfo deve essere immutabile (dataclass frozen)."""
     with pytest.raises(FrozenInstanceError):
         token_info.name = "Changed"
+
 
 def test_from_proto(proto_token_info):
     public_key = PrivateKey.generate_ed25519().public_key()
@@ -129,6 +133,7 @@ def test_from_proto(proto_token_info):
     assert token_info.pause_key.to_bytes_raw() == public_key.to_bytes_raw()
     assert token_info.pause_status == TokenPauseStatus.PAUSED
     assert token_info.supply_type == SupplyType.INFINITE
+
 
 def test_to_proto(token_info):
     public_key = PrivateKey.generate_ed25519().public_key()
@@ -179,6 +184,7 @@ def test_to_proto(token_info):
     assert proto.expiry == Timestamp(1625097600, 0)._to_protobuf()
     assert proto.pause_key.ed25519 == public_key.to_bytes_raw()
     assert proto.pause_status == TokenPauseStatus.PAUSED
+
 
 def test_str_representation(token_info):
     expected = (

@@ -124,9 +124,7 @@ def test_custom_fractional_fee():
     )
 
     proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomFractionalFee._from_proto(
-        proto
-    )  # Changed from CustomFee._from_protobuf
+    new_fee = CustomFractionalFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomFractionalFee)
     assert new_fee.numerator == 1
@@ -152,9 +150,7 @@ def test_custom_royalty_fee():
     )
 
     proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomRoyaltyFee._from_proto(
-        proto
-    )  # Changed from CustomFee._from_protobuf
+    new_fee = CustomRoyaltyFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomRoyaltyFee)
     assert new_fee.numerator == 5
@@ -214,9 +210,7 @@ def test_custom_royalty_fee():
         ),
     ],
 )
-def test_custom_royalty_fee_str(
-    custom_royalty_fee: CustomRoyaltyFee, expected_str: str
-):
+def test_custom_royalty_fee_str(custom_royalty_fee: CustomRoyaltyFee, expected_str: str):
     """Test the string representation of CustomRoyaltyFee."""
     fee_str = str(custom_royalty_fee)
     assert fee_str == expected_str
@@ -273,7 +267,7 @@ def test_custom_fee_validate_checksums():
 
 def test_custom_fee_from_proto_unrecognized():
     class FakeProto:
-        def WhichOneof(self, name):
+        def WhichOneof(self, _name):
             return "unknown_fee"
 
     with pytest.raises(ValueError):

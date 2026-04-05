@@ -13,11 +13,14 @@ from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
 
+
 def _make_fungible_pending(sender: AccountId, receiver: AccountId, num: int) -> PendingAirdropId:
     return PendingAirdropId(sender, receiver, TokenId(0, 0, num), None)
 
+
 def _make_nft_pending(sender: AccountId, receiver: AccountId, num: int, serial: int) -> PendingAirdropId:
     return PendingAirdropId(sender, receiver, None, NftId(TokenId(0, 0, num), serial))
+
 
 def test_add_pending_airdrop_id():
     """Test adding one pending fungible airdrop id using chaining method"""
@@ -35,6 +38,7 @@ def test_add_pending_airdrop_id():
     assert len(ids) == 1
     assert ids[0] == pending_airdrop_fungible_1
 
+
 def test_add_pending_airdrop_id_nft():
     """Test adding one pending NFT airdrop id using chaining method"""
     sender = AccountId(0, 0, 2001)
@@ -51,13 +55,14 @@ def test_add_pending_airdrop_id_nft():
     assert len(ids) == 1
     assert ids[0] == pending_airdrop_nft_1
 
+
 def test_add_pending_airdrop_ids_mixed_fungible_and_nft():
     """Claim one fungible and one NFT pending airdrop in a single transaction."""
     sender = AccountId(0, 0, 3001)
     receiver = AccountId(0, 0, 3002)
 
-    fungible = _make_fungible_pending(sender, receiver, 3000)   # token num=3000
-    nft = _make_nft_pending(sender, receiver, 4000, 1)          # token num=4000, serial=1
+    fungible = _make_fungible_pending(sender, receiver, 3000)  # token num=3000
+    nft = _make_nft_pending(sender, receiver, 4000, 1)  # token num=4000, serial=1
 
     tx_claim = TokenClaimAirdropTransaction()
     tx_claim.add_pending_airdrop_id(fungible).add_pending_airdrop_id(nft)
@@ -69,6 +74,7 @@ def test_add_pending_airdrop_ids_mixed_fungible_and_nft():
     # Order should be preserved: [fungible, nft]
     assert ids[0] == fungible
     assert ids[1] == nft
+
 
 def test_add_pending_airdrop_ids_multiple_mixed_dynamic():
     """Test adding several fungible + NFT pending airdrop IDs built dynamically."""
@@ -89,19 +95,20 @@ def test_add_pending_airdrop_ids_multiple_mixed_dynamic():
     ids = tx_claim.get_pending_airdrop_ids()
     assert ids == pending_ids
 
+
 def test_cannot_exceed_max_airdrops():
     """Tests that 10 airdrops is fine but anything more not"""
     sender = AccountId(0, 0, 8001)
     receiver = AccountId(0, 0, 8002)
     tx = TokenClaimAirdropTransaction()
 
-    items = [PendingAirdropId(sender, receiver, TokenId(0, 0, 8000 + i), None)
-             for i in range(tx.MAX_IDS)]
+    items = [PendingAirdropId(sender, receiver, TokenId(0, 0, 8000 + i), None) for i in range(tx.MAX_IDS)]
     tx.add_pending_airdrop_ids(items)
     assert len(tx.get_pending_airdrop_ids()) == tx.MAX_IDS
 
     with pytest.raises(ValueError):
-        tx.add_pending_airdrop_id(PendingAirdropId(sender, receiver, TokenId(0, 0, 9999), None)) #This would be 11
+        tx.add_pending_airdrop_id(PendingAirdropId(sender, receiver, TokenId(0, 0, 9999), None))  # This would be 11
+
 
 def test_add_batch_overflow_is_atomic():
     sender_account = AccountId(0, 0, 9001)
@@ -127,6 +134,7 @@ def test_add_batch_overflow_is_atomic():
 
     assert after_ids == before_ids
 
+
 def test_min_ids_enforced_on_build_hits_validation():
     """Tests that at least one airdrop is required to claim"""
     transaction_claim = TokenClaimAirdropTransaction()
@@ -135,6 +143,7 @@ def test_min_ids_enforced_on_build_hits_validation():
 
     with pytest.raises(ValueError):
         transaction_claim.build_transaction_body()
+
 
 def test_rejects_duplicate_fungible():
     sender = AccountId(0, 0, 8101)
@@ -152,6 +161,7 @@ def test_rejects_duplicate_fungible():
     ids = tx.get_pending_airdrop_ids()
     assert ids == [f1]
 
+
 def test_rejects_duplicate_nft():
     sender = AccountId(0, 0, 8201)
     receiver = AccountId(0, 0, 8202)
@@ -168,6 +178,7 @@ def test_rejects_duplicate_nft():
     ids = tx.get_pending_airdrop_ids()
     assert ids == [n1]
 
+
 def test_build_transaction_body_populates_proto():
     sender = AccountId(0, 0, 8401)
     receiver = AccountId(0, 0, 8402)
@@ -175,14 +186,10 @@ def test_build_transaction_body_populates_proto():
     fungible_airdrop = PendingAirdropId(sender, receiver, TokenId(0, 0, 8400), None)
     nft_airdrop = PendingAirdropId(sender, receiver, None, NftId(TokenId(0, 0, 8405), 3))
 
-    tx_claim = TokenClaimAirdropTransaction().add_pending_airdrop_ids(
-        [fungible_airdrop, nft_airdrop]
-    )
+    tx_claim = TokenClaimAirdropTransaction().add_pending_airdrop_ids([fungible_airdrop, nft_airdrop])
 
     # Satisfy base preconditions: set transaction_id and node_account_id
-    tx_claim.transaction_id = TransactionId(
-        sender, timestamp_pb2.Timestamp(seconds=1, nanos=0)
-    )
+    tx_claim.transaction_id = TransactionId(sender, timestamp_pb2.Timestamp(seconds=1, nanos=0))
     tx_claim.node_account_id = AccountId(0, 0, 3)  # dummy node account
 
     body: transaction_pb2.TransactionBody = tx_claim.build_transaction_body()
@@ -194,6 +201,7 @@ def test_build_transaction_body_populates_proto():
     expected = [a._to_proto().SerializeToString() for a in [fungible_airdrop, nft_airdrop]]
     actual = [a.SerializeToString() for a in claim.pending_airdrops]
     assert actual == expected
+
 
 def test_from_proto_round_trip():
     sender_account = AccountId(0, 0, 9041)
@@ -207,6 +215,7 @@ def test_from_proto_round_trip():
     rebuilt = TokenClaimAirdropTransaction._from_proto(proto_body)  # pylint: disable=protected-access
     assert rebuilt.get_pending_airdrop_ids() == original_ids
 
+
 def test_get_pending_airdrop_ids_returns_copy():
     sender_account = AccountId(0, 0, 9021)
     receiver_account = AccountId(0, 0, 9022)
@@ -218,6 +227,7 @@ def test_get_pending_airdrop_ids_returns_copy():
 
     assert transaction_claim.get_pending_airdrop_ids() == [airdrop_id]  # unchanged
 
+
 def test_order_preserved_across_batched_adds():
     sender_account = AccountId(0, 0, 9031)
     receiver_account = AccountId(0, 0, 9032)
@@ -228,9 +238,12 @@ def test_order_preserved_across_batched_adds():
     id_d = PendingAirdropId(sender_account, receiver_account, None, NftId(TokenId(0, 0, 9035), 2))
 
     transaction_claim = TokenClaimAirdropTransaction()
-    transaction_claim.add_pending_airdrop_ids([id_a, id_b]).add_pending_airdrop_ids([id_c]).add_pending_airdrop_ids([id_d])
+    transaction_claim.add_pending_airdrop_ids([id_a, id_b]).add_pending_airdrop_ids([id_c]).add_pending_airdrop_ids(
+        [id_d]
+    )
 
     assert transaction_claim.get_pending_airdrop_ids() == [id_a, id_b, id_c, id_d]
+
 
 def test_add_empty_list_is_noop():
     sender_account = AccountId(0, 0, 9071)
@@ -242,15 +255,19 @@ def test_add_empty_list_is_noop():
 
     assert transaction_claim.get_pending_airdrop_ids() == [first_id]
 
+
 def test_from_proto_rejects_too_many():
     sender_account = AccountId(0, 0, 9051)
     receiver_account = AccountId(0, 0, 9052)
-    too_many = [PendingAirdropId(sender_account, receiver_account, TokenId(0, 0, 9050 + i), None)
-                for i in range(TokenClaimAirdropTransaction.MAX_IDS + 1)]
+    too_many = [
+        PendingAirdropId(sender_account, receiver_account, TokenId(0, 0, 9050 + i), None)
+        for i in range(TokenClaimAirdropTransaction.MAX_IDS + 1)
+    ]
     body = TokenClaimAirdropTransactionBody(pending_airdrops=[x._to_proto() for x in too_many])
 
     with pytest.raises(ValueError):
         TokenClaimAirdropTransaction._from_proto(body)  # pylint: disable=protected-access
+
 
 def test_from_proto_rejects_duplicates():
     sender_account = AccountId(0, 0, 9061)
@@ -260,6 +277,7 @@ def test_from_proto_rejects_duplicates():
 
     with pytest.raises(ValueError):
         TokenClaimAirdropTransaction._from_proto(body)  # pylint: disable=protected-access
+
 
 def test_reject_pending_airdrop_with_both_token_and_nft():
     """A PendingAirdropId must not have both token_id and nft_id at the same time"""
@@ -273,6 +291,7 @@ def test_reject_pending_airdrop_with_both_token_and_nft():
     with pytest.raises(ValueError, match="Exactly one of 'token_id' or 'nft_id' must be required."):
         PendingAirdropId(sender, receiver, token_id, nft_id)
 
+
 def test_from_proto_with_invalid_pending_airdrop():
     """_from_proto should raise if proto contains a PendingAirdropId with neither token_id nor nft_id"""
     sender = AccountId(0, 0, 9111)
@@ -282,11 +301,12 @@ def test_from_proto_with_invalid_pending_airdrop():
     with pytest.raises(ValueError):
         PendingAirdropId(sender, receiver, token_id=None, nft_id=None)
 
+
 def test_str_and_repr():
     sender = AccountId(0, 0, 1)
     receiver = AccountId(0, 0, 2)
     tx = TokenClaimAirdropTransaction()
     assert str(tx) == "No pending airdrops in this transaction."
-    tx.add_pending_airdrop_id(PendingAirdropId(sender, receiver, TokenId(0,0,10), None))
+    tx.add_pending_airdrop_id(PendingAirdropId(sender, receiver, TokenId(0, 0, 10), None))
     assert "Pending Airdrops to claim:" in str(tx)
     assert repr(tx).startswith("TokenClaimAirdropTransaction(")

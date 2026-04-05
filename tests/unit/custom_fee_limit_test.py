@@ -56,7 +56,7 @@ def proto_custom_fee_limit(custom_fixed_fee):
     """Fixture for a proto CustomFeeLimit object"""
     from hiero_sdk_python.hapi.services.custom_fees_pb2 import FixedFee
 
-    proto = CustomFeeLimitProto(
+    return CustomFeeLimitProto(
         account_id=AccountId(0, 0, 100)._to_proto(),
         fees=[
             FixedFee(
@@ -69,7 +69,6 @@ def proto_custom_fee_limit(custom_fixed_fee):
             )
         ],
     )
-    return proto
 
 
 def test_custom_fee_limit_initialization(custom_fee_limit):
@@ -78,9 +77,7 @@ def test_custom_fee_limit_initialization(custom_fee_limit):
     assert len(custom_fee_limit.custom_fees) == 1
     assert custom_fee_limit.custom_fees[0].amount == 1000
     assert custom_fee_limit.custom_fees[0].denominating_token_id == TokenId(0, 0, 500)
-    assert custom_fee_limit.custom_fees[0].fee_collector_account_id == AccountId(
-        0, 0, 600
-    )
+    assert custom_fee_limit.custom_fees[0].fee_collector_account_id == AccountId(0, 0, 600)
 
 
 def test_custom_fee_limit_default_initialization():
@@ -200,9 +197,7 @@ def test_from_proto_without_payer_id():
             FixedFee(
                 amount=custom_fee.amount,
                 denominating_token_id=(
-                    custom_fee.denominating_token_id._to_proto()
-                    if custom_fee.denominating_token_id
-                    else None
+                    custom_fee.denominating_token_id._to_proto() if custom_fee.denominating_token_id else None
                 ),
             )
         ],
@@ -272,10 +267,7 @@ def test_proto_conversion_full_object(custom_fee_limit):
     assert converted.payer_id == custom_fee_limit.payer_id
     assert len(converted.custom_fees) == len(custom_fee_limit.custom_fees)
     assert converted.custom_fees[0].amount == custom_fee_limit.custom_fees[0].amount
-    assert (
-        converted.custom_fees[0].denominating_token_id
-        == custom_fee_limit.custom_fees[0].denominating_token_id
-    )
+    assert converted.custom_fees[0].denominating_token_id == custom_fee_limit.custom_fees[0].denominating_token_id
     # fee_collector_account_id is not preserved
     assert converted.custom_fees[0].fee_collector_account_id is None
 
@@ -320,11 +312,7 @@ def test_method_chaining():
         fee_collector_account_id=AccountId(0, 0, 1000),
     )
 
-    result = (
-        custom_fee_limit.set_payer_id(payer_id)
-        .add_custom_fee(custom_fee)
-        .set_custom_fees([custom_fee])
-    )
+    result = custom_fee_limit.set_payer_id(payer_id).add_custom_fee(custom_fee).set_custom_fees([custom_fee])
 
     assert result is custom_fee_limit
     assert custom_fee_limit.payer_id == payer_id

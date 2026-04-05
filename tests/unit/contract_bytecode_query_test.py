@@ -60,9 +60,7 @@ def test_execute_fails_with_missing_contract_id(mock_client):
     """Test request creation with missing Contract ID."""
     query = ContractBytecodeQuery()
 
-    with pytest.raises(
-        ValueError, match="Contract ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
         query.execute(mock_client)
 
 
@@ -84,9 +82,7 @@ def test_make_request_with_missing_contract_id():
     """Test _make_request raises ValueError when contract ID is missing."""
     query = ContractBytecodeQuery()
 
-    with pytest.raises(
-        ValueError, match="Contract ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
         query._make_request()
 
 

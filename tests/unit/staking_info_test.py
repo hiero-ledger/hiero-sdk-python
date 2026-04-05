@@ -184,9 +184,7 @@ def test_proto_round_trip_with_account(staking_info_with_account):
     assert restored.stake_period_start == staking_info_with_account.stake_period_start
     assert restored.pending_reward == staking_info_with_account.pending_reward
     assert restored.staked_to_me == staking_info_with_account.staked_to_me
-    assert str(restored.staked_account_id) == str(
-        staking_info_with_account.staked_account_id
-    )
+    assert str(restored.staked_account_id) == str(staking_info_with_account.staked_account_id)
     assert restored.staked_node_id is None
 
 
@@ -211,9 +209,7 @@ def test_from_bytes_deserializes(staking_info_with_account):
     assert restored.stake_period_start == staking_info_with_account.stake_period_start
     assert restored.pending_reward == staking_info_with_account.pending_reward
     assert restored.staked_to_me == staking_info_with_account.staked_to_me
-    assert str(restored.staked_account_id) == str(
-        staking_info_with_account.staked_account_id
-    )
+    assert str(restored.staked_account_id) == str(staking_info_with_account.staked_account_id)
     assert restored.staked_node_id is None
 
 

@@ -99,22 +99,14 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, node_par
     assert node_create.account_id == node_params["account_id"]._to_proto()
     assert node_create.description == node_params["description"]
     assert len(node_create.gossip_endpoint) == 1
-    assert (
-        node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
-    )
+    assert node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
     assert len(node_create.service_endpoint) == 1
-    assert (
-        node_create.service_endpoint[0]
-        == node_params["service_endpoints"][0]._to_proto()
-    )
+    assert node_create.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
     assert node_create.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert node_create.grpc_certificate_hash == node_params["grpc_certificate_hash"]
     assert node_create.admin_key == node_params["admin_key"]._to_proto()
     assert node_create.decline_reward == node_params["decline_reward"]
-    assert (
-        node_create.grpc_proxy_endpoint
-        == node_params["grpc_web_proxy_endpoint"]._to_proto()
-    )
+    assert node_create.grpc_proxy_endpoint == node_params["grpc_web_proxy_endpoint"]._to_proto()
 
 
 def test_build_scheduled_body(node_params):
@@ -135,22 +127,14 @@ def test_build_scheduled_body(node_params):
     assert node_create.account_id == node_params["account_id"]._to_proto()
     assert node_create.description == node_params["description"]
     assert len(node_create.gossip_endpoint) == 1
-    assert (
-        node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
-    )
+    assert node_create.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
     assert len(node_create.service_endpoint) == 1
-    assert (
-        node_create.service_endpoint[0]
-        == node_params["service_endpoints"][0]._to_proto()
-    )
+    assert node_create.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
     assert node_create.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert node_create.grpc_certificate_hash == node_params["grpc_certificate_hash"]
     assert node_create.admin_key == node_params["admin_key"]._to_proto()
     assert node_create.decline_reward == node_params["decline_reward"]
-    assert (
-        node_create.grpc_proxy_endpoint
-        == node_params["grpc_web_proxy_endpoint"]._to_proto()
-    )
+    assert node_create.grpc_proxy_endpoint == node_params["grpc_web_proxy_endpoint"]._to_proto()
 
 
 def test_set_account_id(node_params):
@@ -289,9 +273,7 @@ def test_set_methods_require_not_frozen(mock_client, node_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(node_tx, method_name)(value)
 
 

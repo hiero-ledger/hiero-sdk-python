@@ -117,9 +117,7 @@ def test_str_representation_with_checksum(client, account_id_100):
     assert account_id_100.to_string_with_checksum(client) == "0.0.100-hhghj"
 
 
-def test_str_representation_with_checksum_if_alias_key_present(
-    client, account_id_100, alias_key
-):
+def test_str_representation_with_checksum_if_alias_key_present(client, account_id_100, alias_key):
     """AccountId with aliasKey should raise ValueError on to_string_with_checksum"""
     account_id = account_id_100
     account_id.alias_key = alias_key
@@ -236,9 +234,7 @@ def test_from_string_with_checksum():
     assert account_id.checksum == "abcde"
 
 
-@pytest.mark.parametrize(
-    "alias_fixture", ["alias_key", "alias_key_ecdsa", "evm_address"]
-)
+@pytest.mark.parametrize("alias_fixture", ["alias_key", "alias_key_ecdsa", "evm_address"])
 def test_from_string_with_alias(request, alias_fixture):
     """Test create AccountId from string with different alias."""
     alias = request.getfixturevalue(alias_fixture)
@@ -561,7 +557,7 @@ def test_equality_different_types(account_id_100):
     """Test AccountId equality with different types."""
     assert account_id_100 != "1.2.3"
     assert account_id_100 != 123
-    assert account_id_100 != None
+    assert account_id_100 is not None
 
 
 def test_hash(account_id_100, account_id_101):
@@ -704,9 +700,7 @@ def test_populate_account_num(evm_address):
 
     response = {"account": "0.0.100"}
 
-    with patch(
-        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node"
-    ) as mock_query:
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
         mock_query.return_value = response
         new_account_id = account_id.populate_account_num(mock_client)
 
@@ -723,9 +717,7 @@ def test_populate_account_num_missing_account(evm_address):
     mock_client = MagicMock()
     mock_client.network.get_mirror_rest_url.return_value = "http://mirror_node_rest_url"
 
-    with patch(
-        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node"
-    ) as mock_query:
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
         mock_query.return_value = {}
         with pytest.raises(ValueError, match="Mirror node response missing 'account'"):
             account_id.populate_account_num(mock_client)
@@ -740,13 +732,9 @@ def test_populate_account_num_invalid_account_format(evm_address):
     # account value cannot be split into a valid int
     response = {"account": "invalid.account.format"}
 
-    with patch(
-        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node"
-    ) as mock_query:
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
         mock_query.return_value = response
-        with pytest.raises(
-            ValueError, match="Invalid account format received: invalid.account.format"
-        ):
+        with pytest.raises(ValueError, match="Invalid account format received: invalid.account.format"):
             account_id.populate_account_num(mock_client)
 
 
@@ -755,9 +743,7 @@ def test_populate_account_num_missing_evm_address():
     account_id = AccountId.from_string("0.0.100")
     mock_client = MagicMock()
 
-    with pytest.raises(
-        ValueError, match="Account evm_address is required before populating num"
-    ):
+    with pytest.raises(ValueError, match="Account evm_address is required before populating num"):
         account_id.populate_account_num(mock_client)
 
 
@@ -769,12 +755,15 @@ def test_populate_account_num_mirror_node_failure():
     mock_client = MagicMock()
     mock_client.network.get_mirror_rest_url.return_value = "http://mirror-node"
 
-    with patch(
-        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node",
-        side_effect=RuntimeError("mirror node query error"),
-    ), pytest.raises(
-        RuntimeError,
-        match="Failed to populate account number from mirror node for evm_address",
+    with (
+        patch(
+            "hiero_sdk_python.account.account_id.perform_query_to_mirror_node",
+            side_effect=RuntimeError("mirror node query error"),
+        ),
+        pytest.raises(
+            RuntimeError,
+            match="Failed to populate account number from mirror node for evm_address",
+        ),
     ):
         account_id.populate_account_num(mock_client)
 
@@ -788,13 +777,11 @@ def test_populate_account_evm_address(evm_address):
 
     response = {"evm_address": evm_address.to_string()}
 
-    with patch(
-        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node"
-    ) as mock_query:
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
         mock_query.return_value = response
         new_account_id = account_id.populate_evm_address(mock_client)
 
-    assert account_id.evm_address == None
+    assert account_id.evm_address is None
     assert new_account_id.evm_address == evm_address
 
 
@@ -807,13 +794,9 @@ def test_populate_evm_address_response_missing_evm_address():
     mock_client = MagicMock()
     mock_client.network.get_mirror_rest_url.return_value = "http://mirror_node_rest_url"
 
-    with patch(
-        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node"
-    ) as mock_query:
+    with patch("hiero_sdk_python.account.account_id.perform_query_to_mirror_node") as mock_query:
         mock_query.return_value = {}
-        with pytest.raises(
-            ValueError, match="Mirror node response missing 'evm_address'"
-        ):
+        with pytest.raises(ValueError, match="Mirror node response missing 'evm_address'"):
             account_id.populate_evm_address(mock_client)
 
 
@@ -822,9 +805,7 @@ def test_populate_evm_address_missing_num(evm_address):
     account_id = AccountId.from_evm_address(evm_address, 0, 0)  # num == 0
     mock_client = MagicMock()
 
-    with pytest.raises(
-        ValueError, match="Account number is required before populating evm_address"
-    ):
+    with pytest.raises(ValueError, match="Account number is required before populating evm_address"):
         account_id.populate_evm_address(mock_client)
 
 
@@ -835,12 +816,15 @@ def test_populate_evm_address_mirror_node_failure():
     mock_client = MagicMock()
     mock_client.network.get_mirror_rest_url.return_value = "http://mirror-node"
 
-    with patch(
-        "hiero_sdk_python.account.account_id.perform_query_to_mirror_node",
-        side_effect=RuntimeError("mirror node query error"),
-    ), pytest.raises(
-        RuntimeError,
-        match="Failed to populate evm_address from mirror node for account 123",
+    with (
+        patch(
+            "hiero_sdk_python.account.account_id.perform_query_to_mirror_node",
+            side_effect=RuntimeError("mirror node query error"),
+        ),
+        pytest.raises(
+            RuntimeError,
+            match="Failed to populate evm_address from mirror node for account 123",
+        ),
     ):
         account_id.populate_evm_address(mock_client)
 
@@ -851,9 +835,7 @@ def test_populate_evm_address_requires_account_num():
 
     mock_client = MagicMock()
 
-    with pytest.raises(
-        ValueError, match="Account number is required before populating evm_address"
-    ):
+    with pytest.raises(ValueError, match="Account number is required before populating evm_address"):
         account_id.populate_evm_address(mock_client)
 
 

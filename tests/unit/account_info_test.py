@@ -163,11 +163,11 @@ def test_to_proto(account_info):
     assert proto.tokenRelationships == []
     assert proto.memo == "Test account memo"
     assert proto.ownedNfts == 5
-    assert proto.HasField('staking_info')
+    assert proto.HasField("staking_info")
     assert proto.staking_info.decline_reward is True
     assert proto.staking_info.pending_reward == 500
     assert proto.staking_info.staked_to_me == 1000
-    assert proto.staking_info.HasField('staked_account_id')
+    assert proto.staking_info.HasField("staked_account_id")
     assert proto.staking_info.staked_account_id == AccountId(0, 0, 200)._to_proto()
 
 
@@ -197,27 +197,14 @@ def test_proto_conversion(account_info):
     converted_account_info = AccountInfo._from_proto(proto)
 
     assert converted_account_info.account_id == account_info.account_id
-    assert (
-        converted_account_info.contract_account_id == account_info.contract_account_id
-    )
+    assert converted_account_info.contract_account_id == account_info.contract_account_id
     assert converted_account_info.is_deleted == account_info.is_deleted
-    assert (
-        converted_account_info.proxy_received.to_tinybars()
-        == account_info.proxy_received.to_tinybars()
-    )
-    assert (
-        converted_account_info.balance.to_tinybars()
-        == account_info.balance.to_tinybars()
-    )
-    assert (
-        converted_account_info.receiver_signature_required
-        == account_info.receiver_signature_required
-    )
+    assert converted_account_info.proxy_received.to_tinybars() == account_info.proxy_received.to_tinybars()
+    assert converted_account_info.balance.to_tinybars() == account_info.balance.to_tinybars()
+    assert converted_account_info.receiver_signature_required == account_info.receiver_signature_required
     assert converted_account_info.expiration_time == account_info.expiration_time
     assert converted_account_info.auto_renew_period == account_info.auto_renew_period
-    assert (
-        converted_account_info.token_relationships == account_info.token_relationships
-    )
+    assert converted_account_info.token_relationships == account_info.token_relationships
     assert converted_account_info.account_memo == account_info.account_memo
     assert converted_account_info.owned_nfts == account_info.owned_nfts
     assert converted_account_info.staking_info == account_info.staking_info
@@ -270,6 +257,7 @@ def test_str_and_repr(account_info):
 # Deprecated flat property tests on AccountInfo
 # ---------------------------------------------------------------------------
 
+
 class TestDeprecatedProperties:
     """Ensure the deprecated flat staking properties still work with warnings."""
 
@@ -282,6 +270,7 @@ class TestDeprecatedProperties:
 
     def test_staked_account_id_deprecated(self):
         import warnings
+
         info = self._make_info()
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -293,6 +282,7 @@ class TestDeprecatedProperties:
 
     def test_staked_node_id_deprecated(self):
         import warnings
+
         info = self._make_info()
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -302,6 +292,7 @@ class TestDeprecatedProperties:
 
     def test_decline_staking_reward_deprecated(self):
         import warnings
+
         info = self._make_info()
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -311,6 +302,7 @@ class TestDeprecatedProperties:
 
     def test_deprecated_properties_return_none_without_staking_info(self):
         import warnings
+
         info = AccountInfo()
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
@@ -320,6 +312,7 @@ class TestDeprecatedProperties:
 
     def test_staked_account_id_setter(self):
         import warnings
+
         info = AccountInfo()
         new_id = AccountId(0, 0, 50)
         with warnings.catch_warnings(record=True) as w:
@@ -331,6 +324,7 @@ class TestDeprecatedProperties:
 
     def test_staked_node_id_setter(self):
         import warnings
+
         info = AccountInfo()
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -341,6 +335,7 @@ class TestDeprecatedProperties:
 
     def test_decline_staking_reward_setter(self):
         import warnings
+
         info = AccountInfo()
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -351,6 +346,7 @@ class TestDeprecatedProperties:
 
     def test_setters_preserve_other_staking_fields(self):
         import warnings
+
         si = StakingInfo(
             pending_reward=Hbar.from_tinybars(100),
             staked_to_me=Hbar.from_tinybars(200),
@@ -392,4 +388,3 @@ class TestDeprecatedProperties:
             info = AccountInfo(decline_staking_reward=True)
         assert info.staking_info.decline_reward is True
         assert any(issubclass(x.category, DeprecationWarning) for x in w)
-

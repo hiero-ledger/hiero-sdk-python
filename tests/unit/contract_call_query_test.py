@@ -60,9 +60,7 @@ def test_setters_combined():
     max_result_size = 1024
     sender_account = AccountId(0, 0, 1)
     function_params_only = ContractFunctionParameters().add_string("test_param")
-    function_params_with_name = ContractFunctionParameters("testFunction").add_string(
-        "test_param"
-    )
+    function_params_with_name = ContractFunctionParameters("testFunction").add_string("test_param")
 
     query = (
         ContractCallQuery()
@@ -89,19 +87,14 @@ def test_setters_combined():
 
     # Test set_function with default parameters
     query.set_function("testFunction")
-    assert (
-        query.function_parameters
-        == ContractFunctionParameters("testFunction").to_bytes()
-    )
+    assert query.function_parameters == ContractFunctionParameters("testFunction").to_bytes()
 
 
 def test_execute_fails_with_missing_contract_id(mock_client):
     """Test request creation with missing Contract ID."""
     query = ContractCallQuery()
 
-    with pytest.raises(
-        ValueError, match="Contract ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
         query.execute(mock_client)
 
 

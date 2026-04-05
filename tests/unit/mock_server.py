@@ -34,8 +34,8 @@ class MockServer:
         self.responses = responses
         self._lock = threading.Lock()
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-       
-        self.port = self.server.add_insecure_port('[::]:0')
+
+        self.port = self.server.add_insecure_port("[::]:0")
         self.address = f"localhost:{self.port}"
 
         self._register_services()
@@ -104,7 +104,7 @@ class MockServer:
                 if name in ("_next_response", "__class__"):
                     return super().__getattribute__(name)
 
-                def method_wrapper(request, context):
+                def method_wrapper(_, context):
                     with lock:
                         if not responses:
                             return None

@@ -39,7 +39,7 @@ def proto_nft_allowance():
     spender_account_id = AccountId(0, 0, 300)
     delegating_spender = AccountId(0, 0, 400)
 
-    proto = NftAllowanceProto(
+    return NftAllowanceProto(
         tokenId=token_id._to_proto(),
         owner=owner_account_id._to_proto(),
         spender=spender_account_id._to_proto(),
@@ -47,7 +47,6 @@ def proto_nft_allowance():
         approved_for_all=BoolValue(value=True),
         delegating_spender=delegating_spender._to_proto(),
     )
-    return proto
 
 
 @pytest.fixture
@@ -56,12 +55,11 @@ def proto_nft_remove_allowance():
     token_id = TokenId(0, 0, 100)
     owner_account_id = AccountId(0, 0, 200)
 
-    proto = NftRemoveAllowanceProto(
+    return NftRemoveAllowanceProto(
         token_id=token_id._to_proto(),
         owner=owner_account_id._to_proto(),
         serial_numbers=[1, 2, 3],
     )
-    return proto
 
 
 def test_token_nft_allowance_initialization(token_nft_allowance):

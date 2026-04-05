@@ -141,9 +141,7 @@ def test_set_methods_require_not_frozen(mock_client, file_id):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(file_tx, method_name)(value)
 
 
@@ -300,9 +298,7 @@ def test_file_update_transaction_can_execute(file_id):
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -325,9 +321,7 @@ def test_file_update_transaction_can_execute(file_id):
 
         receipt = transaction.execute(client)
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
 
 
 def test_get_method():

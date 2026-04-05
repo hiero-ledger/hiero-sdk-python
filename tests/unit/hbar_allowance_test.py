@@ -29,12 +29,11 @@ def proto_hbar_allowance():
     owner_account_id = AccountId(0, 0, 200)
     spender_account_id = AccountId(0, 0, 300)
 
-    proto = CryptoAllowanceProto(
+    return CryptoAllowanceProto(
         owner=owner_account_id._to_proto(),
         spender=spender_account_id._to_proto(),
         amount=1000,
     )
-    return proto
 
 
 def test_hbar_allowance_initialization(hbar_allowance):
@@ -287,9 +286,7 @@ def test_from_proto_field_helper():
 
     # Test with empty field (should not happen in this proto, but testing the method)
     proto_empty = CryptoAllowanceProto(amount=1000)
-    result = HbarAllowance._from_proto_field(
-        proto_empty, "owner", AccountId._from_proto
-    )
+    result = HbarAllowance._from_proto_field(proto_empty, "owner", AccountId._from_proto)
     assert result is None
 
 
@@ -365,7 +362,5 @@ def test_string_representation_conditional_formatting():
     allowance_amount = HbarAllowance(amount=1000)
     str_amount = str(allowance_amount)
     assert (
-        "amount=1000" in str_amount
-        and "owner_account_id" not in str_amount
-        and "spender_account_id" not in str_amount
+        "amount=1000" in str_amount and "owner_account_id" not in str_amount and "spender_account_id" not in str_amount
     )

@@ -32,7 +32,7 @@ def file_info():
 def proto_file_info():
     """Fixture for a proto FileInfo object"""
     public_key = PrivateKey.generate_ed25519().public_key()
-    proto = FileGetInfoResponse.FileInfo(
+    return FileGetInfoResponse.FileInfo(
         fileID=FileId(0, 0, 100)._to_proto(),
         size=1024,
         expirationTime=Timestamp(1625097600, 0)._to_protobuf(),
@@ -41,7 +41,6 @@ def proto_file_info():
         memo="Test file memo",
         ledger_id=b"test_ledger_id",
     )
-    return proto
 
 
 def test_file_info_initialization(file_info):

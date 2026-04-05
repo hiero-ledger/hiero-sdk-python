@@ -37,9 +37,7 @@ def test_constructor_with_parameters():
     contents = b"Test file content"
     file_memo = "Test memo"
 
-    file_tx = FileCreateTransaction(
-        keys=key_list, contents=contents, file_memo=file_memo
-    )
+    file_tx = FileCreateTransaction(keys=key_list, contents=contents, file_memo=file_memo)
 
     assert file_tx.keys == key_list
     assert file_tx.contents == contents
@@ -55,9 +53,7 @@ def test_constructor_default_expiration_time():
     with patch("time.time", return_value=fixed_time):
         file_tx = FileCreateTransaction()
 
-        expected_expiration = Timestamp(
-            fixed_time + FileCreateTransaction.DEFAULT_EXPIRY_SECONDS, 0
-        )
+        expected_expiration = Timestamp(fixed_time + FileCreateTransaction.DEFAULT_EXPIRY_SECONDS, 0)
         assert file_tx.expiration_time == expected_expiration
 
 
@@ -79,9 +75,7 @@ def test_build_transaction_body(mock_account_ids):
     public_key = private_key.public_key()
     key_list = [public_key]
 
-    file_tx = FileCreateTransaction(
-        keys=key_list, contents=b"Test content", file_memo="Test memo"
-    )
+    file_tx = FileCreateTransaction(keys=key_list, contents=b"Test content", file_memo="Test memo")
 
     # Set operator and node account IDs needed for building transaction body
     file_tx.operator_account_id = operator_id
@@ -190,9 +184,7 @@ def test_set_methods_require_not_frozen(mock_client):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(file_tx, method_name)(value)
 
 
@@ -211,9 +203,7 @@ def test_file_create_transaction_can_execute():
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -234,9 +224,7 @@ def test_file_create_transaction_can_execute():
 
         receipt = transaction.execute(client)
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
         assert receipt.file_id.file == 5678
 
 
@@ -263,9 +251,7 @@ def test_file_create_transaction_from_proto():
     assert isinstance(from_proto.keys[0], PublicKey)
 
     # Deserialize empty protobuf
-    from_proto = FileCreateTransaction()._from_proto(
-        file_create_pb2.FileCreateTransactionBody()
-    )
+    from_proto = FileCreateTransaction()._from_proto(file_create_pb2.FileCreateTransactionBody())
 
     # Verify empty protobuf deserializes to empty/default values
     assert from_proto.contents == b""

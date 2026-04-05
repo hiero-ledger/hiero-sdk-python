@@ -32,8 +32,7 @@ def query():
 @pytest.fixture
 def query_requires_payment():
     """Fixture for a query that requires payment"""
-    query = TokenInfoQuery()
-    return query
+    return TokenInfoQuery()
 
 
 def test_query_initialization(query):
@@ -94,9 +93,7 @@ def test_before_execute_payment_required(query_requires_payment, mock_client):
 def test_request_header_no_fields_set(query):
     """Test combinations with no fields set"""
     header = query._make_request_header()
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present when no fields are set"
+    assert not header.HasField("payment"), "Payment field should not be present when no fields are set"
 
 
 def test_request_header_payment_set(query, mock_client):
@@ -104,16 +101,12 @@ def test_request_header_payment_set(query, mock_client):
     # Test with only query payment set
     query.payment_amount = Hbar(1)
     header = query._make_request_header()
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present when only query payment is set"
+    assert not header.HasField("payment"), "Payment field should not be present when only query payment is set"
 
     # Test with query payment and operator set
     query.operator = mock_client.operator
     header = query._make_request_header()
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present when only operator and payment are set"
+    assert not header.HasField("payment"), "Payment field should not be present when only operator and payment are set"
 
 
 def test_request_header_node_account_set(query, mock_client):
@@ -122,16 +115,14 @@ def test_request_header_node_account_set(query, mock_client):
     query.node_account_id = mock_client.network.current_node._account_id
 
     header = query._make_request_header()
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present when only node account is set"
+    assert not header.HasField("payment"), "Payment field should not be present when only node account is set"
 
     # Test with node account and query payment set
     query.payment_amount = Hbar(1)
     header = query._make_request_header()
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present when only node account and payment are set"
+    assert not header.HasField("payment"), (
+        "Payment field should not be present when only node account and payment are set"
+    )
 
 
 def test_request_header_operator_set(query, mock_client):
@@ -140,17 +131,15 @@ def test_request_header_operator_set(query, mock_client):
     query.operator = mock_client.operator
 
     header = query._make_request_header()
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present when only operator is set"
+    assert not header.HasField("payment"), "Payment field should not be present when only operator is set"
 
     # Test with operator and node account set
     query.node_account_id = mock_client.network.current_node._account_id
 
     header = query._make_request_header()
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present when only operator and node account are set"
+    assert not header.HasField("payment"), (
+        "Payment field should not be present when only operator and node account are set"
+    )
 
 
 def test_request_header_payment_zero(query, mock_client):
@@ -162,26 +151,22 @@ def test_request_header_payment_zero(query, mock_client):
     # Test with payment amount set to 0 Hbar
     query.payment_amount = Hbar(0)
     header = query._make_request_header()
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present when payment is set to 0"
+    assert not header.HasField("payment"), "Payment field should not be present when payment is set to 0"
 
 
 def test_make_request_header_with_payment(query_requires_payment, mock_client):
     """Test making request header with payment transaction for queries that require payment"""
     query_requires_payment.operator = mock_client.operator
-    query_requires_payment.node_account_id = (
-        mock_client.network.current_node._account_id
-    )
+    query_requires_payment.node_account_id = mock_client.network.current_node._account_id
     query_requires_payment.set_query_payment(Hbar(1))
 
     header = query_requires_payment._make_request_header()
 
     assert isinstance(header, query_header_pb2.QueryHeader)
     assert header.responseType == query_header_pb2.ResponseType.ANSWER_ONLY
-    assert header.HasField(
-        "payment"
-    ), "Payment field should be present when payment is set for queries that require payment"
+    assert header.HasField("payment"), (
+        "Payment field should be present when payment is set for queries that require payment"
+    )
 
 
 def test_request_header_excludes_payment_for_free_query(query, mock_client):
@@ -196,9 +181,7 @@ def test_request_header_excludes_payment_for_free_query(query, mock_client):
 
     assert isinstance(header, query_header_pb2.QueryHeader)
     assert header.responseType == query_header_pb2.ResponseType.ANSWER_ONLY
-    assert not header.HasField(
-        "payment"
-    ), "Payment field should not be present for queries that don't require payment"
+    assert not header.HasField("payment"), "Payment field should not be present for queries that don't require payment"
 
 
 def test_should_retry_retryable_statuses(query):
@@ -213,9 +196,7 @@ def test_should_retry_retryable_statuses(query):
     for status in retryable_statuses:
         response = response_pb2.Response(
             cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
-                header=response_header_pb2.ResponseHeader(
-                    nodeTransactionPrecheckCode=status
-                )
+                header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=status)
             )
         )
 
@@ -227,9 +208,7 @@ def test_should_retry_ok_status(query):
     """Test that OK status finishes execution"""
     response = response_pb2.Response(
         cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            )
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK)
         )
     )
 
@@ -241,9 +220,7 @@ def test_should_retry_error_status(query):
     """Test that non-retryable error status triggers error state"""
     response = response_pb2.Response(
         cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.INVALID_TRANSACTION
-            )
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.INVALID_TRANSACTION)
         )
     )
 
@@ -319,9 +296,7 @@ def test_set_max_query_payment_valid_param(query, valid_amount, expected):
     assert query.max_query_payment == expected
 
 
-@pytest.mark.parametrize(
-    "negative_amount", [-1, -0.1, Decimal("-0.1"), Decimal("-1"), Hbar(-1), Hbar(-0.2)]
-)
+@pytest.mark.parametrize("negative_amount", [-1, -0.1, Decimal("-0.1"), Decimal("-1"), Hbar(-1), Hbar(-0.2)])
 def test_set_max_query_payment_negative_value(query, negative_amount):
     """Test set_max_query_payment for negative amount values."""
     with pytest.raises(ValueError, match="max_query_payment must be non-negative"):
@@ -333,10 +308,7 @@ def test_set_max_query_payment_invalid_param(query, invalid_amount):
     """Test that set_max_query_payment raise error for invalid param."""
     with pytest.raises(
         TypeError,
-        match=(
-            "max_query_payment must be int, float, Decimal, or Hbar, "
-            f"got {type(invalid_amount).__name__}"
-        ),
+        match=(f"max_query_payment must be int, float, Decimal, or Hbar, got {type(invalid_amount).__name__}"),
     ):
         query.set_max_query_payment(invalid_amount)
 
@@ -348,9 +320,7 @@ def test_set_max_query_payment_non_finite_value(query, invalid_amount):
         query.set_max_query_payment(invalid_amount)
 
 
-def test_set_max_payment_override_client_max_payment(
-    query_requires_payment, mock_client
-):
+def test_set_max_payment_override_client_max_payment(query_requires_payment, mock_client):
     """
     Test that a query can override the Client's default_max_query_payment
     """
@@ -372,9 +342,7 @@ def test_set_max_payment_override_client_max_payment(
     assert query_requires_payment.payment_amount == Hbar(2)
 
 
-def test_set_max_payment_override_client_max_payment_and_error(
-    query_requires_payment, mock_client
-):
+def test_set_max_payment_override_client_max_payment_and_error(query_requires_payment, mock_client):
     """
     Test that a query can override the Client's default_max_query_payment
     and that execution fails if the query cost exceeds the query-specific max.
@@ -422,9 +390,7 @@ def test_payment_query_use_client_max_payment(query_requires_payment, mock_clien
     assert query_requires_payment.payment_amount == Hbar(2)
 
 
-def test_payment_query_use_client_max_payment_and_error(
-    query_requires_payment, mock_client
-):
+def test_payment_query_use_client_max_payment_and_error(query_requires_payment, mock_client):
     """
     Test that execution fails if cost > client default max when query doesn't override.
     """

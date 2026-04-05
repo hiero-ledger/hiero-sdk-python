@@ -141,10 +141,7 @@ def test_from_string_der_ed25519():
 
     This example DER was built using a known Ed25519 seed (all '01').
     """
-    der_hex = (
-        "302e020100300506032b657004220420"
-        "0101010101010101010101010101010101010101010101010101010101010101"
-    )
+    der_hex = "302e020100300506032b6570042204200101010101010101010101010101010101010101010101010101010101010101"
     priv = PrivateKey.from_string_der(der_hex)
     assert priv.is_ed25519()
 
@@ -321,7 +318,7 @@ def test_from_bytes_ambiguity_prefers_ecdsa_when_ed25519_fails(monkeypatch):
     ecdsa_scalar_one = (1).to_bytes(32, "big")
 
     # 2) Force the Ed25519 loader to always return None
-    monkeypatch.setattr(PrivateKey, "_try_load_ed25519", staticmethod(lambda b: None))
+    monkeypatch.setattr(PrivateKey, "_try_load_ed25519", staticmethod(lambda _b: None))
 
     # 3) Now from_bytes should skip Ed25519 and succeed with ECDSA
     with warnings.catch_warnings(record=True) as w:
@@ -361,10 +358,7 @@ def test_from_bytes_warning_message():
 def test_raw_roundtrip_idempotent(key_type):
     priv1 = PrivateKey.generate(key_type)
     raw = priv1.to_bytes_raw()
-    if key_type == "ed25519":
-        priv2 = PrivateKey.from_bytes_ed25519(raw)
-    else:
-        priv2 = PrivateKey.from_bytes_ecdsa(raw)
+    priv2 = PrivateKey.from_bytes_ed25519(raw) if key_type == "ed25519" else PrivateKey.from_bytes_ecdsa(raw)
     assert priv2.to_bytes_raw() == raw
 
 
@@ -488,7 +482,7 @@ def test_equality_ed25519_different_keys():
 
 def test_equality_ecdsa_same_key():
     """Two PrivateKey objects wrapping the same ECDSA key must be equal."""
-    pr_key =  ec.generate_private_key(ec.SECP256K1())
+    pr_key = ec.generate_private_key(ec.SECP256K1())
 
     k1 = PrivateKey(pr_key)
     k2 = PrivateKey(pr_key)
@@ -508,6 +502,7 @@ def test_equality_ecdsa_different_keys():
     assert k1 != k2
     assert hash(k1) != hash(k2)
 
+
 def test_equality_algorithm_mismatch():
     """Private keys of different algorithms must never be equal."""
     ed_pr = ed25519.Ed25519PrivateKey.generate()
@@ -521,8 +516,7 @@ def test_equality_algorithm_mismatch():
 
 
 @pytest.mark.parametrize(
-    "other",
-    [None, 1, 1.0, "key", object(), PublicKey(ed25519.Ed25519PrivateKey.generate().public_key())]
+    "other", [None, 1, 1.0, "key", object(), PublicKey(ed25519.Ed25519PrivateKey.generate().public_key())]
 )
 def test_equality_with_non_privatekey_returns_false(other):
     """Equality comparison with a non-PrivateKey type should return False."""
@@ -554,6 +548,7 @@ def test_to_proto_key_ecd25519():
     assert proto_key.ed25519 is not None
     assert proto_key.ed25519 == pr_key.public_key().to_bytes_raw()
 
+
 def test_to_proto_key_ecdsa():
     """Test to_proto_key properly convert ecdsa to Key protobuf."""
     pr_key = PrivateKey.generate_ecdsa()
@@ -563,16 +558,14 @@ def test_to_proto_key_ecdsa():
     assert proto_key.ECDSA_secp256k1 is not None
     assert proto_key.ECDSA_secp256k1 == pr_key.public_key().to_bytes_raw()
 
-@pytest.mark.parametrize(
-    "key",
-    [PrivateKey.generate_ed25519(), PrivateKey.generate_ecdsa()]
-)
+
+@pytest.mark.parametrize("key", [PrivateKey.generate_ed25519(), PrivateKey.generate_ecdsa()])
 def test_protobuf_roundtrip(key):
     """Test protobuf roundtrip properly convert to Key protobuf and vice versa."""
     proto = key.to_proto_key()
-    
+
     pub_key = key.public_key()
-    loaded = Key.from_proto_key(proto) # Returns public key
+    loaded = Key.from_proto_key(proto)  # Returns public key
 
     assert isinstance(loaded, PublicKey)
     assert loaded.is_ed25519() == pub_key.is_ed25519()

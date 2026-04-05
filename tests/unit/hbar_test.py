@@ -27,9 +27,7 @@ def test_constructor():
 @pytest.mark.parametrize("invalid_amount", ["1", True, False, {}, object])
 def test_constructor_invalid_amount_type(invalid_amount):
     """Test creation with invalid type raise errors."""
-    with pytest.raises(
-        TypeError, match="Amount must be of type int, float, or Decimal"
-    ):
+    with pytest.raises(TypeError, match="Amount must be of type int, float, or Decimal"):
         Hbar(invalid_amount)
 
 
@@ -99,9 +97,7 @@ def test_constructor_fractional_non_tinybar_amount():
 
 def test_constructor_invalid_type():
     """Test creation of Hbar with invalid type."""
-    with pytest.raises(
-        TypeError, match="Amount must be of type int, float, or Decimal"
-    ):
+    with pytest.raises(TypeError, match="Amount must be of type int, float, or Decimal"):
         Hbar("10")
 
 
@@ -151,9 +147,7 @@ def test_from_string_preserves_large_integer_hbar_values():
 )
 def test_from_string_invalid(invalid_str):
     """Test creation of HBAR from invalid string"""
-    with pytest.raises(
-        ValueError, match=re.escape(f"Invalid Hbar format: '{invalid_str}'")
-    ):
+    with pytest.raises(ValueError, match=re.escape(f"Invalid Hbar format: '{invalid_str}'")):
         Hbar.from_string(invalid_str)
 
 
@@ -330,9 +324,7 @@ def test_hash_consistency_for_equal_values():
     assert d[h1] == "value2"
 
 
-@pytest.mark.parametrize(
-    "invalid_tinybars", ["1", 0.1, Decimal("0.1"), True, False, object, {}]
-)
+@pytest.mark.parametrize("invalid_tinybars", ["1", 0.1, Decimal("0.1"), True, False, object, {}])
 def test_from_tinybars_invalid_type_param(invalid_tinybars):
     """Test from_tinybar method raises error if the type is not int."""
     with pytest.raises(TypeError, match=re.escape("tinybars must be an int.")):

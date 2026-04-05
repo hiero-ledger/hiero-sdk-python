@@ -203,9 +203,7 @@ def test_set_methods_require_not_frozen(mock_client, freeze_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(freeze_tx, method_name)(value)
 
 

@@ -20,7 +20,7 @@ def mock_network_nodes(monkeypatch):
         _Node(AccountId(0, 0, 5), "127.0.0.1:50212", NodeAddress()),
     ]
 
-    def fake_fetch_nodes(self):
+    def fake_fetch_nodes(_self):
         return fake_nodes
 
     monkeypatch.setattr(Network, "_fetch_nodes_from_mirror_node", fake_fetch_nodes)
@@ -341,9 +341,7 @@ def test_get_node_by_account_id():
 
     network._healthy_nodes = [node]
 
-    with patch(
-        "hiero_sdk_python.client.network.Network._readmit_nodes"
-    ) as mock_readmit:
+    with patch("hiero_sdk_python.client.network.Network._readmit_nodes") as mock_readmit:
         result = network._get_node(AccountId(0, 0, 3))
 
     assert mock_readmit.call_count == 1

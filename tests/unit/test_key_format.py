@@ -9,6 +9,7 @@ from hiero_sdk_python.utils.key_utils import key_to_proto
 
 pytestmark = pytest.mark.unit
 
+
 def test_format_key_ed25519():
     """Test formatting an Ed25519 key."""
     private_key = PrivateKey.generate_ed25519()
@@ -21,11 +22,13 @@ def test_format_key_ed25519():
 
     assert formatted == expected
 
+
 def test_format_key_none():
     """Test formatting a None key."""
     formatted = format_key(None)
 
-    assert formatted == "None" 
+    assert formatted == "None"
+
 
 def test_format_key_threshold_key():
     """Test formatting a ThresholdKey."""
@@ -36,6 +39,7 @@ def test_format_key_threshold_key():
 
     assert formatted == "thresholdKey(...)"
 
+
 def test_format_key_contract_id():
     """Test formatting a ContractID key."""
     key = basic_types_pb2.Key()
@@ -43,12 +47,13 @@ def test_format_key_contract_id():
     key.contractID.realmNum = 0
     key.contractID.contractNum = 5678
 
-    expected_inner = str(key.contractID) 
+    expected_inner = str(key.contractID)
     expected = f"contractID({expected_inner})"
 
     formatted = format_key(key)
 
     assert formatted == expected
+
 
 def test_format_key_keylist():
     """Test formatting a KeyList."""
@@ -58,6 +63,7 @@ def test_format_key_keylist():
     formatted = format_key(key)
 
     assert formatted == "keyList(...)"
+
 
 def test_format_key_unknown():
     """Test formatting an unknown key type."""

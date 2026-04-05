@@ -256,6 +256,7 @@ def test_repr_and_str(topic_info):
     assert "expiration_time=2021-07-01 00:00:00" in repr_output
     assert "auto_renew_period=7776000" in repr_output
 
+
 def test_str_formatting(topic_info):
     """Test the string formatting of the TopicInfo class."""
     str_output = str(topic_info)
@@ -266,13 +267,14 @@ def test_str_formatting(topic_info):
     assert "sequence_number=42" in str_output
     assert "expiration_time=2021-07-01 00:00:00" in str_output
     assert "admin_key=ed25519(" in str_output
-    assert "submit_key=ed25519(" in str_output 
+    assert "submit_key=ed25519(" in str_output
     assert "auto_renew_period=7776000" in str_output
     assert "auto_renew_account=AccountId(shard=0, realm=0, account=100)" in str_output
     assert "ledger_id=0x090a0b0c" in str_output
     assert "fee_schedule_key=ed25519(" in str_output
     assert "fee_exempt_keys=['ed25519(" in str_output
     assert "custom_fees=[" in str_output
+
 
 def test_str_with_none_values():
     """Test the string formatting of the TopicInfo class with None values."""
@@ -306,4 +308,3 @@ def test_str_with_none_values():
     assert "fee_schedule_key=None" in str_output
     assert "fee_exempt_keys=[]" in str_output
     assert "custom_fees=[]" in str_output
-
