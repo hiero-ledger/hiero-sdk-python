@@ -20,6 +20,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- chore: Added check for the discussion label in the inactivity bot (#1583)
 - chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md (#2021)
 - Refactored the Advanced Issue Template to V2 with stricter prerequisites and a focus on architectural design (#2016).
 - Refactored the Advanced Issue Template to ensure PR-level quality checklists do not block maintainers during issue creation (#2036)
@@ -54,7 +55,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
 - chore: update spam list #1988
 - chore: Update `bot-advanced-check.yml`, `bot-gfi-assign-on-comment.yml`, `bot-intermediate-assignment.yml`, `bot-linked-issue-enforcer.yml`, `unassign-on-comment.yml`, `working-on-comment.yml` workflow runner configuration
-- chore: Added check for the discussion label in the inactivity bot (#1583)
 - Fix build failing in `publish.yml`
 
 
