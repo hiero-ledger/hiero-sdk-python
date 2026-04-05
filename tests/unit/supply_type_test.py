@@ -1,4 +1,5 @@
 import pytest
+
 from hiero_sdk_python.tokens.supply_type import SupplyType
 
 pytestmark = pytest.mark.unit

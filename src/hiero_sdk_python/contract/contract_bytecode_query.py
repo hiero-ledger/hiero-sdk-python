@@ -1,9 +1,8 @@
-"""
-Query to get the bytecode of a contract on the network.
-"""
+"""Query to get the bytecode of a contract on the network."""
+
+from __future__ import annotations
 
 import traceback
-from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -28,24 +27,22 @@ class ContractBytecodeQuery(Query):
     of a contract on the network.
     """
 
-    def __init__(self, contract_id: Optional[ContractId] = None) -> None:
+    def __init__(self, contract_id: ContractId | None = None) -> None:
         """
         Initializes a new ContractBytecodeQuery instance with an optional contract_id.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract to query.
+            contract_id (ContractId, optional): The ID of the contract to query.
         """
         super().__init__()
-        self.contract_id: Optional[ContractId] = contract_id
+        self.contract_id: ContractId | None = contract_id
 
-    def set_contract_id(
-        self, contract_id: Optional[ContractId]
-    ) -> "ContractBytecodeQuery":
+    def set_contract_id(self, contract_id: ContractId | None) -> ContractBytecodeQuery:
         """
         Sets the ID of the contract to query.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract.
+            contract_id (ContractId): The ID of the contract.
 
         Returns:
             ContractBytecodeQuery: Returns self for method chaining.
@@ -73,11 +70,9 @@ class ContractBytecodeQuery(Query):
 
             query_header = self._make_request_header()
 
-            contract_bytecode_query = (
-                contract_get_bytecode_pb2.ContractGetBytecodeQuery(
-                    header=query_header,
-                    contractID=self.contract_id._to_proto(),
-                )
+            contract_bytecode_query = contract_get_bytecode_pb2.ContractGetBytecodeQuery(
+                header=query_header,
+                contractID=self.contract_id._to_proto(),
             )
 
             query = query_pb2.Query()
@@ -102,11 +97,9 @@ class ContractBytecodeQuery(Query):
         Returns:
             _Method: The method wrapper containing the query function
         """
-        return _Method(
-            transaction_func=None, query_func=channel.smart_contract.ContractGetBytecode
-        )
+        return _Method(transaction_func=None, query_func=channel.smart_contract.ContractGetBytecode)
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> bytes:
+    def execute(self, client: Client, timeout: int | float | None = None) -> bytes:
         """
         Executes the contract bytecode query.
 
@@ -118,7 +111,7 @@ class ContractBytecodeQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional ): The total execution timeout (in seconds) for this execution.
 
         Returns:
             bytes: The bytecode of the contract from the network
@@ -133,9 +126,7 @@ class ContractBytecodeQuery(Query):
 
         return response.contractGetBytecodeResponse.bytecode
 
-    def _get_query_response(
-        self, response: response_pb2.Response
-    ) -> ContractGetBytecodeResponse:
+    def _get_query_response(self, response: response_pb2.Response) -> ContractGetBytecodeResponse:
         """
         Extracts the contract bytecode response from the full response.
 

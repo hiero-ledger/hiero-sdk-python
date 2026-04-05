@@ -1,33 +1,31 @@
 """Test cases for the Hiero SDK TCK handlers registry and dispatch functionality."""
 
-import pytest
-from unittest.mock import MagicMock
 from dataclasses import dataclass
+from unittest.mock import MagicMock
+
+import pytest
 
 from hiero_sdk_python.exceptions import (
+    MaxAttemptsError,
     PrecheckError,
     ReceiptStatusError,
-    MaxAttemptsError,
 )
-
-from tck.handlers.registry import (
-    rpc_method,
-    get_handler,
-    get_all_handlers,
-    dispatch,
-    safe_dispatch,
-    parse_result,
-)
-
 from tck.errors import (
-    JsonRpcError,
-    METHOD_NOT_FOUND,
-    INTERNAL_ERROR,
     HIERO_ERROR,
+    INTERNAL_ERROR,
     INVALID_PARAMS,
+    METHOD_NOT_FOUND,
+    JsonRpcError,
 )
-
 from tck.handlers import registry
+from tck.handlers.registry import (
+    dispatch,
+    get_all_handlers,
+    get_handler,
+    parse_result,
+    rpc_method,
+    safe_dispatch,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -145,7 +143,6 @@ class TestDispatch:
 
     def test_dispatch_unknown_method(self):
         """Unknown method should raise METHOD_NOT_FOUND."""
-
         with pytest.raises(JsonRpcError) as excinfo:
             dispatch("missing", DummyParams())
 
@@ -269,7 +266,6 @@ class TestParseResult:
 
     def test_parse_result_dataclass(self):
         """Dataclass should convert to dict."""
-
         result = DummyResult(value=10, other="other")
 
         parsed = parse_result(result)
@@ -278,7 +274,6 @@ class TestParseResult:
 
     def test_parse_result_dataclass_ignore_none(self):
         """Dataclass should convert to dict without None values."""
-
         result = DummyResult(value=10, other=None)
 
         parsed = parse_result(result)

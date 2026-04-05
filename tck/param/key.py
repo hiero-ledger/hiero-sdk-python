@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 from tck.util.key_utils import KeyType
 
@@ -9,10 +8,10 @@ class KeyGenerationParams:
     type: KeyType = None
     fromKey: str | None = None
     threshold: int | None = None
-    keys: List["KeyGenerationParams"] | None = None
+    keys: list[KeyGenerationParams] | None = None
 
     @classmethod
-    def parse_json_params(cls, params: dict) -> "KeyGenerationParams":
+    def parse_json_params(cls, params: dict) -> KeyGenerationParams:
         key_list = params.get("keys") or []
 
         return cls(

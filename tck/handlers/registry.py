@@ -1,14 +1,17 @@
 """Build a flexible registry-based method routing system that can dispatch
-requests to handlers and transform exceptions into JSON-RPC errors."""
+requests to handlers and transform exceptions into JSON-RPC errors.
+"""
 
-from dataclasses import asdict
 import inspect
-from typing import Any, Dict, Optional, Union, Callable
+from collections.abc import Callable
+from dataclasses import asdict
+from typing import Any
+
 from tck.errors import JsonRpcError, handle_sdk_errors
 from tck.protocol import build_json_rpc_error_response
 
 # A global _HANDLERS dict to store method name -> handler function mappings
-_HANDLERS: Dict[str, Callable] = {}
+_HANDLERS: dict[str, Callable] = {}
 
 
 def rpc_method(method_name: str):
@@ -22,12 +25,12 @@ def rpc_method(method_name: str):
     return decorator
 
 
-def get_handler(method_name: str) -> Optional[Callable]:
+def get_handler(method_name: str) -> Callable | None:
     """Retrieve a handler by method name."""
     return _HANDLERS.get(method_name)
 
 
-def get_all_handlers() -> Dict[str, Callable]:
+def get_all_handlers() -> dict[str, Callable]:
     """Get all registered handlers."""
     return _HANDLERS.copy()
 
@@ -62,8 +65,8 @@ def dispatch(method_name: str, params: Any) -> Any:
 
 
 def safe_dispatch(
-    method_name: str, params: Any, request_id: Optional[Union[str, int]]
-) -> Union[Any, Dict[str, Any]]:
+    method_name: str, params: Any, request_id: str | int | None
+) -> Any | dict[str, Any]:
     """Safely dispatch the request and handle exceptions."""
     try:
         return dispatch(method_name, params)

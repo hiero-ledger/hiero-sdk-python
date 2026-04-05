@@ -23,10 +23,7 @@ Usage:
 
 import sys
 
-
-
 from hiero_sdk_python import Client
-
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -41,7 +38,6 @@ from hiero_sdk_python.response_code import ResponseCode
 # Import the bytecode for a basic smart contract (SimpleContract.sol) that can be deployed
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
-
 
 
 def setup_client() -> Client:

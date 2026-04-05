@@ -1,12 +1,13 @@
-import pytest
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
-from datetime import datetime, timezone
-from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
+
+import pytest
+
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
-from google.protobuf.timestamp_pb2 import Timestamp
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import timestamp_pb2 as hapi_timestamp_pb2
+from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
 
 pytestmark = pytest.mark.unit
 
@@ -39,7 +40,7 @@ def test_topic_message_query_subscription(mock_client, mock_topic_id, mock_subsc
     """
     Test subscribing to topic messages using TopicMessageQuery.
     """
-    query = TopicMessageQuery().set_topic_id(mock_topic_id).set_start_time(datetime.now(timezone.utc))
+    query = TopicMessageQuery().set_topic_id(mock_topic_id).set_start_time(datetime.now(UTC))
 
     with patch("hiero_sdk_python.query.topic_message_query.TopicMessageQuery.subscribe") as mock_subscribe:
         def side_effect(client, on_message, on_error):

@@ -17,7 +17,6 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_record import TransactionRecord
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
-from tests.integration.utils import env
 
 
 def create_transaction():

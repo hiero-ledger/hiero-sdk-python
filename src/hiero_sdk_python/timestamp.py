@@ -1,14 +1,14 @@
-from datetime import datetime, timedelta, timezone
+from __future__ import annotations
+
 import random
 import time
+from datetime import UTC, datetime, timedelta
 
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
 
 
 class Timestamp:
-    """
-    Represents a specific moment in time with nanosecond precision.
-    """
+    """Represents a specific moment in time with nanosecond precision."""
 
     MAX_NS = 1_000_000_000
 
@@ -24,7 +24,7 @@ class Timestamp:
         self.nanos = nanos
 
     @staticmethod
-    def generate(has_jitter=True) -> "Timestamp":
+    def generate(has_jitter=True) -> Timestamp:
         """
         Generate a `Timestamp` with optional jitter.
 
@@ -42,7 +42,7 @@ class Timestamp:
         return Timestamp(seconds, nanos)
 
     @staticmethod
-    def from_date(date) -> "Timestamp":
+    def from_date(date) -> Timestamp:
         """
         Create a `Timestamp` from a Python `datetime` object, timestamp, or string.
 
@@ -74,11 +74,9 @@ class Timestamp:
         Returns:
             datetime: A `datetime` instance.
         """
-        return datetime.fromtimestamp(self.seconds, tz=timezone.utc) + timedelta(
-            microseconds=self.nanos // 1000
-        )
+        return datetime.fromtimestamp(self.seconds, tz=UTC) + timedelta(microseconds=self.nanos // 1000)
 
-    def plus_nanos(self, nanos: int) -> "Timestamp":
+    def plus_nanos(self, nanos: int) -> Timestamp:
         """
         Add nanoseconds to the current `Timestamp`.
 
@@ -104,7 +102,7 @@ class Timestamp:
         return TimestampProto(seconds=self.seconds, nanos=self.nanos)
 
     @staticmethod
-    def _from_protobuf(pb_obj: TimestampProto) -> "Timestamp":
+    def _from_protobuf(pb_obj: TimestampProto) -> Timestamp:
         """
         Create a `Timestamp` from a protobuf object.
 
@@ -114,7 +112,6 @@ class Timestamp:
         Returns:
             Timestamp: A `Timestamp` instance.
         """
-
         return Timestamp(pb_obj.seconds, pb_obj.nanos)
 
     def __str__(self) -> str:
@@ -126,7 +123,7 @@ class Timestamp:
         """
         return f"{self.seconds}.{str(self.nanos).zfill(9)}"
 
-    def compare(self, other: "Timestamp") -> int:
+    def compare(self, other: Timestamp) -> int:
         """
         Compare the current `Timestamp` with another.
 

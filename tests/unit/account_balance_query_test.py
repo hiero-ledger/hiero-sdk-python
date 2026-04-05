@@ -3,6 +3,7 @@
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -14,8 +15,6 @@ from hiero_sdk_python.hapi.services.crypto_get_account_balance_pb2 import (
 from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.contract.contract_id import ContractId
-
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit

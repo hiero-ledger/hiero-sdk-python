@@ -1,20 +1,19 @@
-from __future__ import annotations 
-from typing import TYPE_CHECKING, Optional, Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from hiero_sdk_python.response_code import ResponseCode
 
 if TYPE_CHECKING:
-    from hiero_sdk_python import (
-        TransactionId,
-        TransactionReceipt
-    )
+    from hiero_sdk_python import TransactionId, TransactionReceipt
+
 
 class PrecheckError(Exception):
     """
     Exception thrown when a transaction fails its precheck validation.
-    
+
     This occurs before the transaction reaches consensus.
-    
+
     Attributes:
         status (ResponseCode): The precheck status code.
         transaction_id (TransactionId): The ID of the transaction that failed.
@@ -23,9 +22,9 @@ class PrecheckError(Exception):
 
     def __init__(
         self,
-        status: Union[ResponseCode, int],
-        transaction_id: Optional[TransactionId] = None,
-        message: Optional[str] = None,
+        status: ResponseCode | int,
+        transaction_id: TransactionId | None = None,
+        message: str | None = None,
     ) -> None:
         self.status = ResponseCode(status)
         self.transaction_id = transaction_id
@@ -57,7 +56,7 @@ class MaxAttemptsError(Exception):
         last_error (BaseException): The last error that occurred during the final attempt
     """
 
-    def __init__(self, message: str, node_id: str, last_error: Optional[BaseException] = None) -> None:
+    def __init__(self, message: str, node_id: str, last_error: BaseException | None = None) -> None:
         self.node_id = node_id
         self.last_error = last_error
 
@@ -79,25 +78,25 @@ class MaxAttemptsError(Exception):
 class ReceiptStatusError(Exception):
     """
     Exception raised when a transaction receipt contains an error status.
-    
+
     Attributes:
         status (ResponseCode): The error status code from the receipt
         transaction_id (TransactionId): The ID of the transaction that failed (Optional)
         transaction_receipt (TransactionReceipt): The receipt containing the error status
         message (str): The error message describing the failure
     """
-    
+
     def __init__(
-        self, 
-        status: Union[ResponseCode, int], 
-        transaction_id: Optional[TransactionId], 
-        transaction_receipt: TransactionReceipt, 
-        message: Optional[str] = None
+        self,
+        status: ResponseCode | int,
+        transaction_id: TransactionId | None,
+        transaction_receipt: TransactionReceipt,
+        message: str | None = None,
     ) -> None:
         self.status = ResponseCode(status)
         self.transaction_id = transaction_id
         self.transaction_receipt = transaction_receipt
-        
+
         # Build a default message if none provided
         if message is None:
             status_name = self.status.name
@@ -105,12 +104,12 @@ class ReceiptStatusError(Exception):
                 message = f"Receipt for transaction {transaction_id} contained error status: {status_name} ({int(self.status)})"
             else:
                 message = f"Receipt contained error status: {status_name} ({int(self.status)})"
-            
+
         self.message = message
         super().__init__(self.message)
-    
+
     def __str__(self) -> str:
         return self.message
-    
+
     def __repr__(self) -> str:
         return f"ReceiptStatusError(status={self.status}, transaction_id={self.transaction_id})"

@@ -18,7 +18,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env, wait_for_mirror_node
+from tests.integration.utils import wait_for_mirror_node
 
 
 @pytest.mark.integration

@@ -1,14 +1,15 @@
 """Unit tests for the JSON-RPC protocol handling in the TCK."""
 import json
+
 import pytest
 
+from tck.errors import INVALID_REQUEST, PARSE_ERROR, JsonRpcError
 from tck.protocol import (
-    parse_json_rpc_request,
     _extract_session_id,
-    build_json_rpc_success_response,
     build_json_rpc_error_response,
+    build_json_rpc_success_response,
+    parse_json_rpc_request,
 )
-from tck.errors import INVALID_REQUEST,PARSE_ERROR, JsonRpcError
 
 pytestmark = pytest.mark.unit
 

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Represents a file append transaction on the network.
 
@@ -13,56 +11,65 @@ Inherits from the base Transaction class and implements the required methods
 to build and execute a file append transaction.
 """
 
+from __future__ import annotations
+
 import math
-from typing import TYPE_CHECKING, Any, List, Literal, Optional, Union, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
+
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.hapi.services import file_append_pb2, timestamp_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 # Use TYPE_CHECKING to avoid circular import errors
 if TYPE_CHECKING:
+    from hiero_sdk_python.channels import _Channel
     from hiero_sdk_python.client import Client
     from hiero_sdk_python.crypto.private_key import PrivateKey
-    from hiero_sdk_python.channels import _Channel
     from hiero_sdk_python.executable import _Method
     from hiero_sdk_python.transaction.transaction import TransactionReceipt
     from hiero_sdk_python.transaction.transaction_response import TransactionResponse
-    
-    
+
+
 # pylint: disable=too-many-instance-attributes
 class FileAppendTransaction(Transaction):
     """
     Represents a file append transaction on the network.
-    
+
     This transaction appends data to an existing file on the network. If a file has multiple keys,
     all keys must sign to modify its contents.
-    
+
     The transaction supports chunking for large files, automatically breaking content into
     smaller chunks if the content exceeds the chunk size limit.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a file append transaction.
     """
-    def __init__(self, file_id: Optional[FileId] = None, contents: Optional[str | bytes] = None,
-                 max_chunks: Optional[int] = None, chunk_size: Optional[int] = None):
+
+    def __init__(
+        self,
+        file_id: FileId | None = None,
+        contents: str | bytes | None = None,
+        max_chunks: int | None = None,
+        chunk_size: int | None = None,
+    ):
         """
         Initializes a new FileAppendTransaction instance with the specified parameters.
 
         Args:
             file_id (Optional[FileId], optional): The ID of the file to append to.
-            contents (Optional[str | bytes], optional): The contents to append to the file.                 
+            contents (Optional[str | bytes], optional): The contents to append to the file.
             Strings will be automatically encoded as UTF-8 bytes.
             max_chunks (Optional[int], optional): Maximum number of chunks allowed. Defaults to 20.
             chunk_size (Optional[int], optional): Size of each chunk in bytes. Defaults to 4096.
         """
         super().__init__()
-        self.file_id: Optional[FileId] = file_id
-        self.contents: Optional[bytes] = self._encode_contents(contents)
+        self.file_id: FileId | None = file_id
+        self.contents: bytes | None = self._encode_contents(contents)
         self.max_chunks: int = max_chunks if max_chunks is not None else 20
         self.chunk_size: int = chunk_size if chunk_size is not None else 4096
         self._default_transaction_fee = Hbar(5).to_tinybars()
@@ -70,29 +77,29 @@ class FileAppendTransaction(Transaction):
         # Internal tracking for chunking
         self._current_chunk_index: int = 0
         self._total_chunks: int = self._calculate_total_chunks()
-        self._transaction_ids: List[TransactionId] = []
-        self._signing_keys: List["PrivateKey"] = []  # Use string annotation to avoid import issues
+        self._transaction_ids: list[TransactionId] = []
+        self._signing_keys: list[PrivateKey] = []  # Use string annotation to avoid import issues
 
-    def _encode_contents(self, contents: Optional[str | bytes]) -> Optional[bytes]:
+    def _encode_contents(self, contents: str | bytes | None) -> bytes | None:
         """
         Helper method to encode string contents to UTF-8 bytes.
-        
+
         Args:
             contents (Optional[str | bytes]): The contents to encode.
-            
+
         Returns:
             Optional[bytes]: The encoded contents or None if input is None.
         """
         if contents is None:
             return None
         if isinstance(contents, str):
-            return contents.encode('utf-8')
+            return contents.encode("utf-8")
         return contents
 
     def _calculate_total_chunks(self) -> int:
         """
         Calculates the total number of chunks needed for the current contents.
-        
+
         Returns:
             int: The total number of chunks needed.
         """
@@ -103,7 +110,7 @@ class FileAppendTransaction(Transaction):
     def get_required_chunks(self) -> int:
         """
         Gets the number of chunks required for the current contents.
-        
+
         Returns:
             int: The number of chunks required.
         """
@@ -123,12 +130,12 @@ class FileAppendTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_contents(self, contents: Optional[str | bytes]) -> FileAppendTransaction:
+    def set_contents(self, contents: str | bytes | None) -> FileAppendTransaction:
         """
         Sets the contents for this file append transaction.
 
         Args:
-            contents (Optional[str | bytes]): The contents to append to the file. 
+            contents (Optional[str | bytes]): The contents to append to the file.
                 Strings will be automatically encoded as UTF-8 bytes.
 
         Returns:
@@ -181,17 +188,16 @@ class FileAppendTransaction(Transaction):
         # Calculate the current chunk's content
         if self.file_id is None:
             raise ValueError("Missing required FileID")
-            
+
         if self.contents is None:
-            chunk_contents = b''
+            chunk_contents = b""
         else:
             start_index = self._current_chunk_index * self.chunk_size
             end_index = min(start_index + self.chunk_size, len(self.contents))
             chunk_contents = self.contents[start_index:end_index]
 
         return file_append_pb2.FileAppendTransactionBody(
-            fileID=self.file_id._to_proto() if self.file_id else None,
-            contents=chunk_contents
+            fileID=self.file_id._to_proto() if self.file_id else None, contents=chunk_contents
         )
 
     def build_transaction_body(self) -> Any:
@@ -218,7 +224,7 @@ class FileAppendTransaction(Transaction):
         schedulable_body.fileAppend.CopyFrom(file_append_body)
         return schedulable_body
 
-    def _get_method(self, channel: "_Channel") -> "_Method":
+    def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the file append transaction.
 
@@ -227,15 +233,13 @@ class FileAppendTransaction(Transaction):
 
         Args:
             channel (_Channel): The channel containing service stubs
-        
+
         Returns:
             _Method: An object containing the transaction function to append to a file.
         """
         from hiero_sdk_python.executable import _Method
-        return _Method(
-            transaction_func=channel.file.appendContent,
-            query_func=None
-        )
+
+        return _Method(transaction_func=channel.file.appendContent, query_func=None)
 
     def _from_proto(self, proto: file_append_pb2.FileAppendTransactionBody) -> FileAppendTransaction:
         """
@@ -247,7 +251,6 @@ class FileAppendTransaction(Transaction):
         Returns:
             FileAppendTransaction: This transaction instance.
         """
-
         self.file_id = FileId._from_proto(proto.fileID) if proto.fileID else None
         self.contents = proto.contents
         self._total_chunks = self._calculate_total_chunks()
@@ -256,7 +259,7 @@ class FileAppendTransaction(Transaction):
     def _validate_chunking(self) -> None:
         """
         Validates that the transaction doesn't exceed the maximum number of chunks.
-        
+
         Raises:
             ValueError: If the transaction exceeds the maximum number of chunks.
         """
@@ -266,11 +269,10 @@ class FileAppendTransaction(Transaction):
                 f"Required: {self.get_required_chunks()}"
             )
 
-
-    def freeze_with(self, client: "Client") -> FileAppendTransaction:
+    def freeze_with(self, client: Client) -> FileAppendTransaction:
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
-        
+
         For multi-chunk transactions, this method generates multiple transaction IDs
         with incremented timestamps based on the chunk interval.
 
@@ -283,7 +285,6 @@ class FileAppendTransaction(Transaction):
         if self._transaction_body_bytes:
             return self
 
-        
         if self.transaction_id is None:
             self.transaction_id = client.generate_transaction_id()
 
@@ -299,12 +300,10 @@ class FileAppendTransaction(Transaction):
                 # Subsequent chunks get incremented timestamps
                 # Add i nanoseconds to space out chunks
                 chunk_valid_start = timestamp_pb2.Timestamp(
-                    seconds=base_timestamp.seconds,
-                    nanos=base_timestamp.nanos + i
+                    seconds=base_timestamp.seconds, nanos=base_timestamp.nanos + i
                 )
                 chunk_transaction_id = TransactionId(
-                    account_id=self.transaction_id.account_id,
-                    valid_start=chunk_valid_start
+                    account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
                 )
             self._transaction_ids.append(chunk_transaction_id)
 
@@ -324,88 +323,84 @@ class FileAppendTransaction(Transaction):
     @overload
     def execute(
         self,
-        client: "Client",
+        client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
-        validate_status: bool = False
-    ) -> "TransactionReceipt":
-        ...
+        validate_status: bool = False,
+    ) -> TransactionReceipt: ...
 
     @overload
     def execute(
         self,
-        client: "Client",
+        client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
-        validate_status: bool = False
-    ) -> "TransactionResponse":
-        ...
+        validate_status: bool = False,
+    ) -> TransactionResponse: ...
 
     def execute(
         self,
-        client: "Client",
+        client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
-        validate_status: bool = False
-    ) -> "TransactionReceipt" | "TransactionResponse":
+        validate_status: bool = False,
+    ) -> TransactionReceipt | TransactionResponse:
         """
         Executes the file append transaction.
-        
+
         For multi-chunk transactions, this method will execute all chunks sequentially and return first response.
-        
+
         Args:
             client: The client to execute the transaction with.
             timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
             validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
-            
+
         Returns:
             TransactionReceipt: If wait_for_receipt is True (default)
             TransactionResponse: If wait_for_receipt is False
         """
         # Return the first response (as per JavaScript implementation)
         return self.execute_all(client, timeout, wait_for_receipt, validate_status)[0]
-        
-    @overload
-    def execute_all(
-        self,
-        client: "Client",
-        timeout: int | float | None = None,
-        wait_for_receipt: Literal[True] = True,
-        validate_status: bool = False
-    ) -> List["TransactionReceipt"]:
-        ...
 
     @overload
     def execute_all(
         self,
-        client: "Client",
+        client: Client,
         timeout: int | float | None = None,
-        wait_for_receipt: Literal[False] = False,
-        validate_status: bool = False
-    ) -> List["TransactionResponse"]:
-        ...
-    
+        wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False,
+    ) -> list[TransactionReceipt]: ...
+
+    @overload
     def execute_all(
         self,
-        client: "Client",
+        client: Client,
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False,
+    ) -> list[TransactionResponse]: ...
+
+    def execute_all(
+        self,
+        client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
-        validate_status: bool = False
-    ) -> List["TransactionReceipt"] | List["TransactionResponse"]:
+        validate_status: bool = False,
+    ) -> list[TransactionReceipt] | list[TransactionResponse]:
         """
         Executes the file append transaction.
-        
+
         This method will execute all chunks sequentially and return list of response for each chunked
-        
+
         Args:
             client: The client to execute the transaction with.
             timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
             validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
-            
+
         Returns:
             List[TransactionReceipt]: If wait_for_receipt is True (default)
             List[TransactionResponse]: If wait_for_receipt is False
@@ -443,12 +438,12 @@ class FileAppendTransaction(Transaction):
 
         return responses
 
-    def sign(self, private_key: "PrivateKey") -> FileAppendTransaction:
+    def sign(self, private_key: PrivateKey) -> FileAppendTransaction:
         """
         Signs the transaction using the provided private key.
-            
+
         For multi-chunk transactions, this stores the signing key for later use.
-        
+
         Args:
             private_key (PrivateKey): The private key to sign the transaction with.
 

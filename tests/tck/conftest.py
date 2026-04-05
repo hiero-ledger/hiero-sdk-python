@@ -1,6 +1,7 @@
 """Fixtures for JSON-RPC request tests."""
 import pytest
 
+
 @pytest.fixture
 def valid_jsonrpc_request():
     """Returns a valid JSON-RPC request."""

@@ -1,13 +1,14 @@
+from unittest.mock import MagicMock
+
 import pytest
 
-from unittest.mock import MagicMock
 from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountAmount, NftTransfer, TokenTransferList
-from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
-from hiero_sdk_python.tokens.nft_id import NftId
-from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
+from hiero_sdk_python.tokens.nft_id import NftId
+from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
 
 pytestmark = pytest.mark.unit
 
@@ -333,7 +334,7 @@ def test_from_proto_without_nft_transfers(mock_account_ids):
 
     airdrop_tx = TokenAirdropTransaction._from_proto(proto)
 
-    token_transfer = airdrop_tx.token_transfers[token_id];
+    token_transfer = airdrop_tx.token_transfers[token_id]
     assert token_transfer[0].token_id == token_id
     assert token_transfer[0].account_id == sender_id
     assert token_transfer[0].amount == -1

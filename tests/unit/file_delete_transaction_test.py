@@ -81,7 +81,6 @@ def test_sign_transaction(mock_client, file_id):
 
 def test_to_proto(mock_client, file_id):
     """Test converting the file delete transaction to protobuf format after signing."""
-
     delete_tx = FileDeleteTransaction(file_id=file_id)
 
     private_key = MagicMock()

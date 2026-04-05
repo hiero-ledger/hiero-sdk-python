@@ -7,17 +7,16 @@ from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTrans
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services import (
-    response_header_pb2, 
+    response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
     transaction_receipt_pb2,
-    transaction_response_pb2
+    transaction_response_pb2,
 )
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.response_code import ResponseCode
-
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from tests.unit.mock_server import mock_hedera_servers
 

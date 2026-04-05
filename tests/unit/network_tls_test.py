@@ -1,9 +1,10 @@
 """Unit tests for TLS configuration in Network and Client."""
 
 import pytest
+
+from src.hiero_sdk_python.account.account_id import AccountId
 from src.hiero_sdk_python.client.client import Client
 from src.hiero_sdk_python.client.network import Network
-from src.hiero_sdk_python.account.account_id import AccountId
 from src.hiero_sdk_python.node import _Node
 
 pytestmark = pytest.mark.unit
@@ -30,7 +31,6 @@ def test_network_tls_disabled_by_default_for_local_networks():
 def test_network_tls_disabled_by_default_for_custom_networks():
     """Test that TLS is disabled by default for custom networks."""
     # Provide nodes for custom network since it has no defaults
-    from src.hiero_sdk_python.node import _Node
 
     nodes = [_Node(AccountId(0, 0, 3), "127.0.0.1:50211", None)]
     network = Network("custom-network", nodes=nodes)
@@ -191,7 +191,6 @@ def test_network_get_mirror_rest_url_localhost():
 def test_network_get_mirror_rest_url_custom_port():
     """Test REST URL generation with custom port for network without MIRROR_NODE_URLS entry."""
     # Use a custom network that doesn't have MIRROR_NODE_URLS entry
-    from src.hiero_sdk_python.node import _Node
 
     nodes = [_Node(AccountId(0, 0, 3), "127.0.0.1:50211", None)]
     network = Network(

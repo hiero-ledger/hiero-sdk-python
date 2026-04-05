@@ -18,7 +18,6 @@ from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -39,7 +38,7 @@ def test_integration_contract_info_query_can_execute(env):
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
 
     params = ContractFunctionParameters().add_bytes32(message)
     auto_renew_period = Duration(seconds=5184000)  # 60 days in seconds
@@ -107,7 +106,7 @@ def test_integration_contract_info_query_get_cost(env):
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
 
     params = ContractFunctionParameters().add_bytes32(message)
 
@@ -155,7 +154,7 @@ def test_integration_contract_info_query_insufficient_payment(env):
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
 
     params = ContractFunctionParameters().add_bytes32(message)
 
@@ -214,7 +213,7 @@ def test_integration_contract_info_query_can_execute_without_admin_key(env):
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
 
     params = ContractFunctionParameters().add_bytes32(message)
 

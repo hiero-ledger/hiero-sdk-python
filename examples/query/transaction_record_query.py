@@ -67,7 +67,7 @@ def create_account_transaction(client):
     return new_account_id, new_account_key, transaction_id
 
 
-def create_fungible_token(client: "Client", account_id, account_private_key):
+def create_fungible_token(client: Client, account_id, account_private_key):
     """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()

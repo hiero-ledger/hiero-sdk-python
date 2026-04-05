@@ -1,10 +1,12 @@
 import datetime
+
 import pytest
 
-from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
@@ -12,10 +14,7 @@ from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTr
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
-from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
-from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
@@ -735,7 +734,7 @@ def test_integration_token_update_kyc_key_fungible_token():
             lambda tx: tx.freeze_with(env.client).sign(admin_key).sign(kyc_key)
         ])
         
-        recipient = env.create_account(1);
+        recipient = env.create_account(1)
         association_receipt = (
             TokenAssociateTransaction(account_id=recipient.id, token_ids=[token_id])
             .freeze_with(env.client)
@@ -787,7 +786,7 @@ def test_integration_token_update_kyc_key_nft():
             lambda tx: tx.freeze_with(env.client).sign(admin_key).sign(kyc_key)
         ])
         
-        recipient = env.create_account(1);
+        recipient = env.create_account(1)
         association_receipt = (
             TokenAssociateTransaction(account_id=recipient.id, token_ids=[token_id])
             .freeze_with(env.client)

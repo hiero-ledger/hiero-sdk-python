@@ -2,14 +2,14 @@
 Unit tests for Client methods (eg. from_env, for_testnet, for_mainnet, for_previewnet).
 """
 
-from decimal import Decimal
 import os
+from decimal import Decimal
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
 
+from hiero_sdk_python import AccountId, Client, PrivateKey
 from hiero_sdk_python.client import client as client_module
-
-from hiero_sdk_python import Client, AccountId, PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.node import _Node
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -99,12 +99,11 @@ def test_from_env_with_valid_credentials():
         "OPERATOR_KEY": test_key_str,
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            client = Client.from_env()
-            assert isinstance(client, Client)
-            assert client.operator_account_id == AccountId.from_string("0.0.1234")
-            client.close()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        client = Client.from_env()
+        assert isinstance(client, Client)
+        assert client.operator_account_id == AccountId.from_string("0.0.1234")
+        client.close()
 
 
 def test_from_env_with_explicit_network_parameter():
@@ -118,11 +117,10 @@ def test_from_env_with_explicit_network_parameter():
         "NETWORK": "testnet",
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            client = Client.from_env(network="mainnet")
-            assert client.network.network == "mainnet"
-            client.close()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        client = Client.from_env(network="mainnet")
+        assert client.network.network == "mainnet"
+        client.close()
 
 
 def test_from_env_defaults_to_testnet():
@@ -135,11 +133,10 @@ def test_from_env_defaults_to_testnet():
         "OPERATOR_KEY": test_key_str,
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            client = Client.from_env()
-            assert client.network.network == "testnet"
-            client.close()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        client = Client.from_env()
+        assert client.network.network == "testnet"
+        client.close()
 
 
 def test_from_env_uses_network_env_var():
@@ -153,11 +150,10 @@ def test_from_env_uses_network_env_var():
         "NETWORK": "previewnet",
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            client = Client.from_env()
-            assert client.network.network == "previewnet"
-            client.close()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        client = Client.from_env()
+        assert client.network.network == "previewnet"
+        client.close()
 
 
 def test_from_env_with_invalid_network_name():
@@ -168,10 +164,9 @@ def test_from_env_with_invalid_network_name():
         "OPERATOR_KEY": test_key.to_string_der(),
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            with pytest.raises(ValueError, match="Invalid network name"):
-                Client.from_env(network="mars_network")
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        with pytest.raises(ValueError, match="Invalid network name"):
+            Client.from_env(network="mars_network")
 
 
 def test_from_env_with_malformed_operator_id():
@@ -182,10 +177,9 @@ def test_from_env_with_malformed_operator_id():
         "OPERATOR_KEY": test_key.to_string_der(),
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            with pytest.raises(ValueError, match="Invalid account ID"):
-                Client.from_env()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        with pytest.raises(ValueError, match="Invalid account ID"):
+            Client.from_env()
 
 
 def test_from_env_with_malformed_operator_key():
@@ -195,10 +189,9 @@ def test_from_env_with_malformed_operator_key():
         "OPERATOR_KEY": "not-a-valid-key",
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            with pytest.raises(ValueError):
-                Client.from_env()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        with pytest.raises(ValueError):
+            Client.from_env()
 
 
 @pytest.mark.parametrize(

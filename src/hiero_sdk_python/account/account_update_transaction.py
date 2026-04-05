@@ -1,10 +1,9 @@
 # pylint: disable=too-many-instance-attributes
-"""
-AccountUpdateTransaction class, which is used to update an account on the network.
-"""
+"""AccountUpdateTransaction class, which is used to update an account on the network."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 
@@ -29,32 +28,32 @@ class AccountUpdateParams:
     Represents account attributes that can be updated.
 
     Attributes:
-        account_id (Optional[AccountId]): The account ID to update.
-        key (Optional[Key]): The new key for the account.
+        account_id (AccountId, optional): The account ID to update.
+        key (Key, optional): The new key for the account.
         auto_renew_period (Duration): The new auto-renew period.
-        account_memo (Optional[str]): The new memo for the account.
-        receiver_signature_required (Optional[bool]): Whether receiver signature is required.
-        expiration_time (Optional[Timestamp]): The new expiration time for the account.
-        max_automatic_token_associations (Optional[int]): The maximum number of tokens that
+        account_memo (str, optional): The new memo for the account.
+        receiver_signature_required (bool, optional): Whether receiver signature is required.
+        expiration_time (Timestamp, optional): The new expiration time for the account.
+        max_automatic_token_associations (int, optional): The maximum number of tokens that
             can be auto-associated with this account. Use -1 for unlimited, 0 for none.
-        staked_account_id (Optional[AccountId]): The account to which this account is staking
+        staked_account_id (AccountId, optional): The account to which this account is staking
             its balances. Mutually exclusive with staked_node_id.
-        staked_node_id (Optional[int]): The node ID to which this account is staking
+        staked_node_id (int, optional): The node ID to which this account is staking
             its balances. Mutually exclusive with staked_account_id.
-        decline_staking_reward (Optional[bool]): If true, the account declines receiving
+        decline_staking_reward (bool, optional): If true, the account declines receiving
             staking rewards.
     """
 
-    account_id: Optional[AccountId] = None
-    key: Optional[Key] = None
+    account_id: AccountId | None = None
+    key: Key | None = None
     auto_renew_period: Duration = AUTO_RENEW_PERIOD
-    account_memo: Optional[str] = None
-    receiver_signature_required: Optional[bool] = None
-    expiration_time: Optional[Timestamp] = None
-    max_automatic_token_associations: Optional[int] = None
-    staked_account_id: Optional[AccountId] = None
-    staked_node_id: Optional[int] = None
-    decline_staking_reward: Optional[bool] = None
+    account_memo: str | None = None
+    receiver_signature_required: bool | None = None
+    expiration_time: Timestamp | None = None
+    max_automatic_token_associations: int | None = None
+    staked_account_id: AccountId | None = None
+    staked_node_id: int | None = None
+    decline_staking_reward: bool | None = None
 
 
 class AccountUpdateTransaction(Transaction):
@@ -66,12 +65,12 @@ class AccountUpdateTransaction(Transaction):
     attribute remains unchanged. Only appropriate signers may update account state.
     """
 
-    def __init__(self, account_params: Optional[AccountUpdateParams] = None):
+    def __init__(self, account_params: AccountUpdateParams | None = None):
         """
         Initialize a new `AccountUpdateTransaction`.
 
         Args:
-            account_params (Optional[AccountUpdateParams]): Optional bag of parameters
+            account_params (AccountUpdateParams, optional): Optional bag of parameters
                 to pre-populate the transaction. You may also set fields via setters.
         """
         super().__init__()
@@ -87,7 +86,7 @@ class AccountUpdateTransaction(Transaction):
         self.staked_node_id = params.staked_node_id
         self.decline_staking_reward = params.decline_staking_reward
 
-    def set_account_id(self, account_id: Optional[AccountId]) -> "AccountUpdateTransaction":
+    def set_account_id(self, account_id: AccountId | None) -> AccountUpdateTransaction:
         """
         Sets the `AccountId` that will be updated.
 
@@ -101,7 +100,7 @@ class AccountUpdateTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def set_key(self, key: Optional[Key]) -> "AccountUpdateTransaction":
+    def set_key(self, key: Key | None) -> AccountUpdateTransaction:
         """
         Sets the new account key (Optional[Key]) for key rotation.
 
@@ -115,9 +114,7 @@ class AccountUpdateTransaction(Transaction):
         self.key = key
         return self
 
-    def set_auto_renew_period(
-        self, auto_renew_period: Optional[Duration]
-    ) -> "AccountUpdateTransaction":
+    def set_auto_renew_period(self, auto_renew_period: Duration | None) -> AccountUpdateTransaction:
         """
         Sets the auto-renew period for the account.
 
@@ -131,7 +128,7 @@ class AccountUpdateTransaction(Transaction):
         self.auto_renew_period = auto_renew_period
         return self
 
-    def set_account_memo(self, account_memo: Optional[str]) -> "AccountUpdateTransaction":
+    def set_account_memo(self, account_memo: str | None) -> AccountUpdateTransaction:
         """
         Sets the account memo (UTF-8, network enforced size limits apply).
 
@@ -145,9 +142,7 @@ class AccountUpdateTransaction(Transaction):
         self.account_memo = account_memo
         return self
 
-    def set_receiver_signature_required(
-        self, receiver_signature_required: Optional[bool]
-    ) -> "AccountUpdateTransaction":
+    def set_receiver_signature_required(self, receiver_signature_required: bool | None) -> AccountUpdateTransaction:
         """
         Sets whether the account requires receiver signatures for transfers.
 
@@ -161,9 +156,7 @@ class AccountUpdateTransaction(Transaction):
         self.receiver_signature_required = receiver_signature_required
         return self
 
-    def set_expiration_time(
-        self, expiration_time: Optional[Timestamp]
-    ) -> "AccountUpdateTransaction":
+    def set_expiration_time(self, expiration_time: Timestamp | None) -> AccountUpdateTransaction:
         """
         Sets the account expiration time.
 
@@ -178,8 +171,8 @@ class AccountUpdateTransaction(Transaction):
         return self
 
     def set_max_automatic_token_associations(
-        self, max_automatic_token_associations: Optional[int]
-    ) -> "AccountUpdateTransaction":
+        self, max_automatic_token_associations: int | None
+    ) -> AccountUpdateTransaction:
         """
         Sets the maximum number of tokens that can be auto-associated with this account.
 
@@ -196,15 +189,11 @@ class AccountUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         if max_automatic_token_associations is not None and max_automatic_token_associations < -1:
-            raise ValueError(
-                "max_automatic_token_associations must be -1 (unlimited) or a non-negative integer."
-            )
+            raise ValueError("max_automatic_token_associations must be -1 (unlimited) or a non-negative integer.")
         self.max_automatic_token_associations = max_automatic_token_associations
         return self
 
-    def set_staked_account_id(
-        self, staked_account_id: Optional[AccountId]
-    ) -> "AccountUpdateTransaction":
+    def set_staked_account_id(self, staked_account_id: AccountId | None) -> AccountUpdateTransaction:
         """
         Sets the account to which this account is staking its balances.
 
@@ -227,9 +216,7 @@ class AccountUpdateTransaction(Transaction):
         self.staked_node_id = None  # Clear the other field in the oneOf
         return self
 
-    def set_staked_node_id(
-        self, staked_node_id: Optional[int]
-    ) -> "AccountUpdateTransaction":
+    def set_staked_node_id(self, staked_node_id: int | None) -> AccountUpdateTransaction:
         """
         Sets the node ID to which this account is staking its balances.
 
@@ -251,7 +238,7 @@ class AccountUpdateTransaction(Transaction):
         self.staked_account_id = None  # Clear the other field in the oneOf
         return self
 
-    def clear_staked_account_id(self) -> "AccountUpdateTransaction":
+    def clear_staked_account_id(self) -> AccountUpdateTransaction:
         """
         Clears staking to an account by setting the sentinel AccountId (0.0.0).
 
@@ -263,7 +250,7 @@ class AccountUpdateTransaction(Transaction):
         self.staked_node_id = None
         return self
 
-    def clear_staked_node_id(self) -> "AccountUpdateTransaction":
+    def clear_staked_node_id(self) -> AccountUpdateTransaction:
         """
         Clears staking to a node by setting the sentinel node ID (-1).
 
@@ -275,9 +262,7 @@ class AccountUpdateTransaction(Transaction):
         self.staked_account_id = None
         return self
 
-    def set_decline_staking_reward(
-        self, decline_staking_reward: Optional[bool]
-    ) -> "AccountUpdateTransaction":
+    def set_decline_staking_reward(self, decline_staking_reward: bool | None) -> AccountUpdateTransaction:
         """
         Sets whether the account declines receiving staking rewards.
 
@@ -309,9 +294,7 @@ class AccountUpdateTransaction(Transaction):
             accountIDToUpdate=self.account_id._to_proto(),
             key=self.key.to_proto_key() if self.key else None,
             memo=StringValue(value=self.account_memo) if self.account_memo is not None else None,
-            autoRenewPeriod=(
-                self.auto_renew_period._to_proto() if self.auto_renew_period else None
-            ),
+            autoRenewPeriod=(self.auto_renew_period._to_proto() if self.auto_renew_period else None),
             expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
             receiverSigRequiredWrapper=(
                 BoolValue(value=self.receiver_signature_required)
@@ -324,9 +307,7 @@ class AccountUpdateTransaction(Transaction):
                 else None
             ),
             decline_reward=(
-                BoolValue(value=self.decline_staking_reward)
-                if self.decline_staking_reward is not None
-                else None
+                BoolValue(value=self.decline_staking_reward) if self.decline_staking_reward is not None else None
             ),
         )
 

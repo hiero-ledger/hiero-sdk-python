@@ -1,11 +1,9 @@
-"""
-Defines TokenFeeScheduleUpdateTransaction for updating custom fee schedules
-"""
+"""Defines TokenFeeScheduleUpdateTransaction for updating custom fee schedules."""
 
-from typing import TYPE_CHECKING, List, Optional
+from __future__ import annotations
 
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.tokens.token_id import TokenId
+from typing import TYPE_CHECKING
+
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import (
@@ -16,6 +14,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.custom_fee import CustomFee
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
 
 if TYPE_CHECKING:
     from hiero_sdk_python.client import Client
@@ -26,35 +26,31 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
 
     def __init__(
         self,
-        token_id: Optional[TokenId] = None,
-        custom_fees: Optional[List[CustomFee]] = None,
+        token_id: TokenId | None = None,
+        custom_fees: list[CustomFee] | None = None,
     ) -> None:
         """
         Initializes a new TokenFeeScheduleUpdateTransaction instance.
         Sets a default transaction fee.
         """
         super().__init__()
-        self._default_transaction_fee: int = 100_000_000 # 1 Hbar in tinybars
-        self.token_id: Optional[TokenId] = token_id
-        self.custom_fees: List[CustomFee] = custom_fees or []
+        self._default_transaction_fee: int = 100_000_000  # 1 Hbar in tinybars
+        self.token_id: TokenId | None = token_id
+        self.custom_fees: list[CustomFee] = custom_fees or []
 
-    def set_token_id(
-        self, token_id: TokenId
-    ) -> "TokenFeeScheduleUpdateTransaction":
+    def set_token_id(self, token_id: TokenId) -> TokenFeeScheduleUpdateTransaction:
         """Sets the token ID to update."""
         self._require_not_frozen()
         self.token_id = token_id
         return self
 
-    def set_custom_fees(
-        self, custom_fees: List[CustomFee]
-    ) -> "TokenFeeScheduleUpdateTransaction":
+    def set_custom_fees(self, custom_fees: list[CustomFee]) -> TokenFeeScheduleUpdateTransaction:
         """Sets the new custom fee schedule for the token."""
         self._require_not_frozen()
         self.custom_fees = custom_fees
         return self
 
-    def _validate_checksums(self, client: "Client") -> None:
+    def _validate_checksums(self, client: Client) -> None:
         """Validates checksums for token ID and account IDs within custom fees."""
         if self.token_id:
             self.token_id.validate_checksum(client)
@@ -78,9 +74,7 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """Builds and returns the protobuf transaction body."""
         token_fee_update_body = self._build_proto_body()
-        transaction_body: transaction_pb2.TransactionBody = (
-            self.build_base_transaction_body()
-        )
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.token_fee_schedule_update.CopyFrom(token_fee_update_body)
         return transaction_body
 

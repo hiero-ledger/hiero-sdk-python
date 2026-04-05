@@ -59,7 +59,7 @@ def create_test_account(client):
     return account_id, new_account_private_key
 
 
-def create_fungible_token(client: "Client", treasury_id, treasury_private_key):
+def create_fungible_token(client: Client, treasury_id, treasury_private_key):
     """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()

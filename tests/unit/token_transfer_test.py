@@ -1,6 +1,5 @@
 import pytest
 
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from hiero_sdk_python.tokens.token_transfer_list import TokenTransferList

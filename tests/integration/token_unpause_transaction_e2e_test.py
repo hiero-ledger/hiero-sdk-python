@@ -1,12 +1,13 @@
-from pytest import fixture
 import pytest
+from pytest import fixture
+
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
-from tests.integration.utils import env, create_fungible_token
+from tests.integration.utils import create_fungible_token
 
 pause_key = PrivateKey.generate()
 
@@ -88,7 +89,6 @@ def test_unpause_token_with_invalid_pasue_key(env, pausable_token):
 
 def test_unpause_token_when_token_id_not_set(env):
     """Test unpause transaction when token_id is not provided."""
-
     unpause_tx = TokenUnpauseTransaction()
     with pytest.raises(ValueError, match="Missing token ID"):
         unpause_tx.freeze_with(env.client)

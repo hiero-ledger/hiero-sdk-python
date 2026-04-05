@@ -1,14 +1,15 @@
+
 import pytest
-import warnings
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519
+from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
+
 from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.crypto_utils import keccak256
 
 pytestmark = pytest.mark.unit
@@ -318,9 +319,8 @@ def test_from_bytes_invalid():
     data = b"\x00"
 
     # Always warns about Ed25519 ambiguity, then fails in DER loader
-    with pytest.warns(UserWarning):
-        with pytest.raises(ValueError, match="Failed to load public key"):
-            PublicKey.from_bytes(data)
+    with pytest.warns(UserWarning), pytest.raises(ValueError, match="Failed to load public key"):
+        PublicKey.from_bytes(data)
 
 
 # ------------------------------------------------------------------------------

@@ -1,16 +1,17 @@
-from unittest.mock import MagicMock, patch
-import pytest
 import struct
+from unittest.mock import MagicMock, patch
+
+import pytest
 import requests
 
 from hiero_sdk_python.utils.entity_id_helper import (
-    parse_from_string,
+    format_to_string,
+    format_to_string_with_checksum,
     generate_checksum,
+    parse_from_string,
     perform_query_to_mirror_node,
     to_solidity_address,
     validate_checksum,
-    format_to_string,
-    format_to_string_with_checksum,
 )
 
 pytestmark = pytest.mark.unit
@@ -153,7 +154,6 @@ def test_to_solidity_address_out_of_range():
 
 def test_perform_query_to_mirror_node_success():
     """Test successful mirror node response without requests_mock."""
-    
     mock_response = MagicMock()
     mock_response.json.return_value = {"account": "0.0.777"}
     mock_response.raise_for_status.return_value = None
@@ -164,7 +164,6 @@ def test_perform_query_to_mirror_node_success():
 
 def test_perform_query_to_mirror_node_failure():
     """Test mirror node failure handling."""
-    
     with patch("hiero_sdk_python.utils.entity_id_helper.requests.get") as mock_get:
         mock_get.side_effect = requests.RequestException("boom")
 
@@ -191,9 +190,8 @@ def test_perform_query_to_mirror_node_connection_error():
     with patch(
         "hiero_sdk_python.utils.entity_id_helper.requests.get",
         side_effect=requests.exceptions.ConnectionError("Connection fail")
-    ):
-        with pytest.raises(RuntimeError, match="Mirror node request failed"):
-            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+    ), pytest.raises(RuntimeError, match="Mirror node request failed"):
+        perform_query_to_mirror_node("http://mirror-node/accounts/123")
 
 
 def test_perform_query_to_mirror_node_timeout():
@@ -203,9 +201,8 @@ def test_perform_query_to_mirror_node_timeout():
     with patch(
         "hiero_sdk_python.utils.entity_id_helper.requests.get",
         side_effect=requests.exceptions.Timeout("Timeout")
-    ):
-        with pytest.raises(RuntimeError, match="Mirror node request timed out"):
-            perform_query_to_mirror_node("http://mirror-node/accounts/123")
+    ), pytest.raises(RuntimeError, match="Mirror node request timed out"):
+        perform_query_to_mirror_node("http://mirror-node/accounts/123")
 
 def test_perform_query_to_mirror_node_invalid_url_none():
     """Test url must be a non-empty string (None case)."""

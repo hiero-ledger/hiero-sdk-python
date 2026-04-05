@@ -1,7 +1,9 @@
 """Unit tests for the client manager module."""
 from unittest.mock import MagicMock
+
 import pytest
-from tck.util.client_utils import store_client, get_client, remove_client, _CLIENTS
+
+from tck.util.client_utils import _CLIENTS, get_client, remove_client, store_client
 
 pytestmark = pytest.mark.unit
 

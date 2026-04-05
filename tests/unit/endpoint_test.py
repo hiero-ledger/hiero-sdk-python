@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from src.hiero_sdk_python.address_book.endpoint import Endpoint
 
 pytestmark = pytest.mark.unit
@@ -7,7 +9,6 @@ pytestmark = pytest.mark.unit
 
 def test_getter_setter():
     """Test for Endpoint constructor, getters, and setters with fluent interface."""
-
     endpoint = Endpoint(address=None, port=None, domain_name=None)
 
     # Test fluent interface (method chaining)
@@ -71,7 +72,6 @@ def test_from_proto_port_mapping(input_port, expected_port):
     - Port 0 or 50111 maps to 50211 (legacy/default behavior)
     - Other ports pass through unchanged
     """
-
     mock_proto = MagicMock()
     mock_proto.port = input_port
     mock_proto.ipAddressV4 = b"127.0.1.1"
@@ -121,8 +121,8 @@ def test_to_proto_with_none_values(field_to_none, attr_name, expected_default):
 
 def test_to_proto():
     """Verifies that an Endpoint instance can be correctly serialized back into
-    a Protobuf ServiceEndpoint object with all fields intact."""
-
+    a Protobuf ServiceEndpoint object with all fields intact.
+    """
     endpoint = Endpoint(address=b"127.0.1.1", port=77777, domain_name="redpanda.com")
     proto = endpoint._to_proto()
     assert proto.ipAddressV4 == b"127.0.1.1"
@@ -132,7 +132,6 @@ def test_to_proto():
 
 def test_str():
     """Tests the human-readable string representation of the Endpoint."""
-
     endpoint = Endpoint(address=b"127.0.1.1", port=77777, domain_name="redpanda.com")
     result = str(endpoint)
 

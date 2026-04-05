@@ -22,13 +22,13 @@ Features:
 Run: python generate_proto.py -vv or with trace logs: python generate_proto.py -vvv
 """
 import logging
+import re
 import shutil
 import tarfile
-from urllib.parse import urlparse
 import urllib.request
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlparse
 
 VERSION="v0.72.1"
 SOURCES = [
@@ -158,8 +158,8 @@ def patch_proto_imports(proto_root: Path):
 
 
 def run_protoc(proto_root: Path, output_root: Path) -> None:
-    from grpc_tools import protoc
     import grpc_tools
+    from grpc_tools import protoc
     google_include = str(Path(grpc_tools.__file__).parent / "_proto")
     all_protos = [p.as_posix() for p in proto_root.rglob("*.proto")]
 
@@ -221,12 +221,11 @@ def fix_line_import(line, pattern, dots):
             if len(module_parts) > 1 
             else f"from {dots} import {module_parts[0]} as {alias}"
         )
-    else:
-        return (
-            f"from {dots}{module_parts[0]} import {module_parts[1]}" 
-            if len(module_parts) > 1 
-            else f"from {dots} import {module_parts[0]}"
-        )
+    return (
+        f"from {dots}{module_parts[0]} import {module_parts[1]}" 
+        if len(module_parts) > 1 
+        else f"from {dots} import {module_parts[0]}"
+    )
 
 
 def main():

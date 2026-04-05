@@ -1,12 +1,14 @@
-import pytest
 from unittest.mock import MagicMock
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+
+import pytest
+
 from hiero_sdk_python.hapi.services import timestamp_pb2, token_associate_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
 

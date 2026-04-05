@@ -1,7 +1,8 @@
 """Tests for the TransactionGetReceiptQuery functionality."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import MaxAttemptsError, ReceiptStatusError
@@ -16,7 +17,6 @@ from hiero_sdk_python.query.transaction_get_receipt_query import (
     TransactionGetReceiptQuery,
 )
 from hiero_sdk_python.response_code import ResponseCode
-
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit

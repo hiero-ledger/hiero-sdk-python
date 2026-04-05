@@ -1,12 +1,12 @@
 import pytest
 
 from hiero_sdk_python.exceptions import PrecheckError
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from tests.integration.utils import IntegrationTestEnv, create_nft_token
-from hiero_sdk_python.tokens.nft_id import NftId
+
 
 @pytest.mark.integration
 def test_integration_token_nft_info_query_can_execute():
@@ -29,9 +29,9 @@ def test_integration_token_nft_info_query_can_execute():
         
         info = TokenNftInfoQuery(nft_id).execute(env.client)
         
-        assert str(info.nft_id) == str(nft_id), f"NFT ID mismatch"
-        assert info.nft_id == nft_id, f"NFT ID mismatch"
-        assert info.metadata == metadata, f"Metadata mismatch"
+        assert str(info.nft_id) == str(nft_id), "NFT ID mismatch"
+        assert info.nft_id == nft_id, "NFT ID mismatch"
+        assert info.metadata == metadata, "Metadata mismatch"
     finally:
         env.close()
         

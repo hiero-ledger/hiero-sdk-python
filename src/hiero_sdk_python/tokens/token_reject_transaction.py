@@ -1,42 +1,46 @@
 """
-hiero_sdk_python.tokens.token_reject_transaction.py
+hiero_sdk_python.tokens.token_reject_transaction.py.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines TokenRejectTransaction for rejecting fungible token and NFT transfers on
 the Hedera network via the Hedera Token Service (HTS) API.
 """
-from typing import Optional, List
-from hiero_sdk_python.hapi.services.token_reject_pb2 import (
-    TokenReference,
-    TokenRejectTransactionBody,
-)
+
+from __future__ import annotations
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.token_reject_pb2 import (
+    TokenReference,
+    TokenRejectTransactionBody,
+)
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
+
 
 class TokenRejectTransaction(Transaction):
     """
     Represents a token reject transaction on the Hedera network.
-    
+
     This transaction rejects a token transfer.
     Allows users to reject and return unwanted airdrops
     to the treasury account without incurring custom fees.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token reject transaction.
     """
+
     def __init__(
         self,
-        owner_id:  Optional[AccountId] = None,
-        token_ids: Optional[List[TokenId]] = None,
-        nft_ids:   Optional[List[NftId]] = None
+        owner_id: AccountId | None = None,
+        token_ids: list[TokenId] | None = None,
+        nft_ids: list[NftId] | None = None,
     ) -> None:
         """
         TokenRejectTransaction instance with optional owner_id, token_ids, and nft_ids.
@@ -47,23 +51,23 @@ class TokenRejectTransaction(Transaction):
             nft_ids (list[NftId], optional): The IDs of the non-fungible tokens (NFTs) to reject.
         """
         super().__init__()
-        self.owner_id:  Optional[AccountId] = owner_id
-        self.token_ids: List[TokenId] = token_ids if token_ids else []
-        self.nft_ids:   List[NftId] = nft_ids if nft_ids else []
+        self.owner_id: AccountId | None = owner_id
+        self.token_ids: list[TokenId] = token_ids if token_ids else []
+        self.nft_ids: list[NftId] = nft_ids if nft_ids else []
 
-    def set_owner_id(self, owner_id: AccountId) -> "TokenRejectTransaction":
+    def set_owner_id(self, owner_id: AccountId) -> TokenRejectTransaction:
         """Set the owner account ID for rejected tokens."""
         self._require_not_frozen()
         self.owner_id = owner_id
         return self
 
-    def set_token_ids(self, token_ids: List[TokenId]) -> "TokenRejectTransaction":
+    def set_token_ids(self, token_ids: list[TokenId]) -> TokenRejectTransaction:
         """Set the list of fungible token IDs to reject."""
         self._require_not_frozen()
         self.token_ids = token_ids
         return self
 
-    def set_nft_ids(self, nft_ids: List[NftId]) -> "TokenRejectTransaction":
+    def set_nft_ids(self, nft_ids: list[NftId]) -> TokenRejectTransaction:
         """Set the list of NFT IDs to reject."""
         self._require_not_frozen()
         self.nft_ids = nft_ids
@@ -72,21 +76,19 @@ class TokenRejectTransaction(Transaction):
     def _build_proto_body(self):
         """
         Returns the protobuf body for the token reject transaction.
-        
+
         Returns:
             TokenRejectTransactionBody: The protobuf body for this transaction.
         """
-        token_references: List[TokenReference] = []
-        for token_id in self.token_ids:
-            token_references.append(TokenReference(fungible_token=token_id._to_proto()))
-        for nft_id in self.nft_ids:
-            token_references.append(TokenReference(nft=nft_id._to_proto()))
+        token_references: list[TokenReference] = [
+            TokenReference(fungible_token=token_id._to_proto()) for token_id in self.token_ids
+        ]
 
+        token_references.extend(TokenReference(nft=nft_id._to_proto()) for nft_id in self.nft_ids)
         return TokenRejectTransactionBody(
-            owner=self.owner_id and self.owner_id._to_proto(),
-            rejections=token_references
+            owner=self.owner_id and self.owner_id._to_proto(), rejections=token_references
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token reject.
@@ -98,7 +100,7 @@ class TokenRejectTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenReject.CopyFrom(token_reject_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token reject transaction.
@@ -120,16 +122,13 @@ class TokenRejectTransaction(Transaction):
 
         Args:
             channel (_Channel): The channel containing service stubs
-        
+
         Returns:
             _Method: An object containing the transaction function to reject tokens.
         """
-        return _Method(
-            transaction_func=channel.token.rejectToken,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.token.rejectToken, query_func=None)
 
-    def _from_proto(self, proto: TokenRejectTransactionBody) -> "TokenRejectTransaction":
+    def _from_proto(self, proto: TokenRejectTransactionBody) -> TokenRejectTransaction:
         """
         Deserializes a TokenRejectTransactionBody from a protobuf object.
 
@@ -143,16 +142,10 @@ class TokenRejectTransaction(Transaction):
 
         # Extract fungible token IDs
         self.token_ids = [
-            TokenId._from_proto(entry.fungible_token)
-            for entry in proto.rejections
-            if entry.HasField("fungible_token")
+            TokenId._from_proto(entry.fungible_token) for entry in proto.rejections if entry.HasField("fungible_token")
         ]
 
         # Extract NFT IDs
-        self.nft_ids = [
-            NftId._from_proto(entry.nft)
-            for entry in proto.rejections
-            if entry.HasField("nft")
-        ]
+        self.nft_ids = [NftId._from_proto(entry.nft) for entry in proto.rejections if entry.HasField("nft")]
 
         return self

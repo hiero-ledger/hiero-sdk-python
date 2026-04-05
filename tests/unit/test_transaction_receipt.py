@@ -3,7 +3,6 @@ import pytest
 from hiero_sdk_python.hapi.services import transaction_receipt_pb2
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 
-
 pytestmark = pytest.mark.unit
 
 

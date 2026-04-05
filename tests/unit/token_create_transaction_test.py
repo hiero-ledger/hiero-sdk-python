@@ -13,38 +13,37 @@ Coverage includes:
 """
 
 import datetime
-import pytest
 from unittest.mock import MagicMock, patch
 
-from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.tokens.token_create_transaction import (
-    TokenCreateTransaction,
-    TokenParams,
-    TokenKeys,
-)
-from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.hapi.services import (
-    transaction_pb2,
-    transaction_pb2,
-    transaction_contents_pb2,
-    timestamp_pb2,
-)
-from hiero_sdk_python.transaction.transaction_id import TransactionId
+import pytest
+
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.hapi.services import basic_types_pb2
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    timestamp_pb2,
+    transaction_contents_pb2,
+    transaction_pb2,
+)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
-from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_create_transaction import (
+    TokenCreateTransaction,
+    TokenKeys,
+    TokenParams,
+)
+from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 pytestmark = pytest.mark.unit
 
@@ -1012,7 +1011,7 @@ def test_token_create_with_expiration_time_overrides_auto_renew(mock_account_ids
     """Test set_expiration_time set the autoRenewPeriod to None"""
     treasury_account, _, node_account_id, *_ = mock_account_ids
     expiration_time = Timestamp.from_date(
-        datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
+        datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
     )
 
     params = TokenParams(
@@ -1026,7 +1025,7 @@ def test_token_create_with_expiration_time_overrides_auto_renew(mock_account_ids
     assert tx._token_params.auto_renew_period == Duration(seconds=7890000)
     assert tx._token_params.expiration_time is None
     
-    tx.set_expiration_time(expiration_time);
+    tx.set_expiration_time(expiration_time)
     tx.transaction_id = generate_transaction_id(treasury_account)
     tx.node_account_id = node_account_id    
     body = tx.build_transaction_body()
@@ -1081,7 +1080,7 @@ def test_auto_renew_account_assignment_during_freeze_with_client(mock_account_id
     )
     frozen_tx2 = tx2.freeze_with(mock_client)
 
-    body2 = frozen_tx2.build_transaction_body();
+    body2 = frozen_tx2.build_transaction_body()
 
     assert body2.tokenCreation.autoRenewPeriod == Duration(7890000)._to_proto() # Default around 90 days
     assert body2.tokenCreation.autoRenewAccount == mock_client.operator_account_id._to_proto()
@@ -1094,7 +1093,7 @@ def test_auto_renew_account_assignment_during_freeze_with_client(mock_account_id
             treasury_account_id=treasury_account,
             initial_supply=1,
         )
-    );
+    )
     tx3.transaction_id = generate_transaction_id(treasury_account)
     frozen_tx3 = tx3.freeze_with(mock_client)
 

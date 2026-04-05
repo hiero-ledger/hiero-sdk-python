@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import re
 import struct
-import requests
+from typing import TYPE_CHECKING, Any
 
-from typing import TYPE_CHECKING, Any, Dict
+import requests
 
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
@@ -13,9 +15,10 @@ MULTIPLIER = 1000003
 P3 = 26**3
 P5 = 26**5
 
+
 def parse_from_string(address: str) -> tuple[str, str, str, str | None]:
     """
-    Parse an address string of the form: <shard>.<realm>.<num>[-<checksum>]
+    Parse an address string of the form: <shard>.<realm>.<num>[-<checksum>].
 
     Args:
         address: The entity ID string to parse.
@@ -38,7 +41,7 @@ def parse_from_string(address: str) -> tuple[str, str, str, str | None]:
 
 
 def generate_checksum(ledger_id: bytes, address: str) -> str:
-    """
+    r"""
     Compute the 5-character checksum for a Hiero entity ID string (HIP-15).
 
     Args:
@@ -88,9 +91,7 @@ def generate_checksum(ledger_id: bytes, address: str) -> str:
     return "".join(reversed(letter))
 
 
-def validate_checksum(
-    shard: int, realm: int, num: int, checksum: str | None, client: "Client"
-) -> None:
+def validate_checksum(shard: int, realm: int, num: int, checksum: str | None, client: Client) -> None:
     """
     Validate a Hiero entity ID checksum against the current client's ledger.
 
@@ -120,18 +121,12 @@ def validate_checksum(
 
 
 def format_to_string(shard: int, realm: int, num: int) -> str:
-    """
-    Convert an entity ID into its standard string representation.
-    """
+    """Convert an entity ID into its standard string representation."""
     return f"{shard}.{realm}.{num}"
 
 
-def format_to_string_with_checksum(
-    shard: int, realm: int, num: int, client: "Client"
-) -> str:
-    """
-    Convert an entity ID into its string representation with checksum.
-    """
+def format_to_string_with_checksum(shard: int, realm: int, num: int, client: Client) -> str:
+    """Convert an entity ID into its string representation with checksum."""
     ledger_id = client.network.ledger_id
     if not ledger_id:
         raise ValueError("Missing ledger ID in client")
@@ -140,7 +135,7 @@ def format_to_string_with_checksum(
     return f"{base_str}-{generate_checksum(ledger_id, format_to_string(shard, realm, num))}"
 
 
-def perform_query_to_mirror_node(url: str, timeout: float = 10) -> Dict[str, Any]:
+def perform_query_to_mirror_node(url: str, timeout: float = 10) -> dict[str, Any]:
     """Perform a GET request to the Hedera Mirror Node REST API."""
     if not isinstance(url, str) or not url:
         raise ValueError("url must be a non-empty string")

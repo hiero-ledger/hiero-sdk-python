@@ -1,9 +1,9 @@
 """
 Integration tests for the TopicMessageSubmitTransaction class.
 """
-from datetime import datetime, timedelta, timezone
 import time
-from typing import List
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
@@ -13,7 +13,6 @@ from hiero_sdk_python.consensus.topic_message_submit_transaction import (
 )
 from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env
 
 BIG_CONTENT = """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur aliquam augue sem, ut mattis dui laoreet a. Curabitur consequat est euismod, scelerisque metus et, tristique dui. Nulla commodo mauris ut faucibus ultricies. Quisque venenatis nisl nec augue tempus, at efficitur elit eleifend. Duis pharetra felis metus, sed dapibus urna vehicula id. Duis non venenatis turpis, sit amet ornare orci. Donec non interdum quam. Sed finibus nunc et risus finibus, non sagittis lorem cursus. Proin pellentesque tempor aliquam. Sed congue nisl in enim bibendum, condimentum vehicula nisi feugiat.
@@ -61,7 +60,7 @@ def test_topic_message_query_receives_messages(env):
 
     time.sleep(3)
 
-    messages: List[str] = []
+    messages: list[str] = []
 
     def get_message(m: TopicMessage):
         messages.append(m.contents.decode('utf-8'))
@@ -71,7 +70,7 @@ def test_topic_message_query_receives_messages(env):
 
     query = TopicMessageQuery(
         topic_id=topic_id,
-        start_time=datetime.now(timezone.utc),
+        start_time=datetime.now(UTC),
         limit=0
     )
 
@@ -112,7 +111,7 @@ def test_topic_message_query_receives_messages(env):
 def test_topic_message_query_limit(env):
     """Test topic message query stops after receiving limit messages."""
     topic_id = create_topic(env.client)
-    messages: List[str] = []
+    messages: list[str] = []
 
     def on_message(m: TopicMessage):
         messages.append(m.contents.decode("utf-8"))
@@ -121,7 +120,7 @@ def test_topic_message_query_limit(env):
 
     query = TopicMessageQuery(
         topic_id=topic_id,
-        start_time=datetime.now(timezone.utc),
+        start_time=datetime.now(UTC),
         limit=2
     )
 
@@ -155,7 +154,7 @@ def test_topic_message_query_limit(env):
 def test_topic_message_query_large_message_chunking(env):
     """Test that topic message query receives chunked message."""
     topic_id = create_topic(env.client)
-    messages: List[str] = []
+    messages: list[str] = []
     time.sleep(3)
 
     def get_message(m: TopicMessage):
@@ -166,7 +165,7 @@ def test_topic_message_query_large_message_chunking(env):
 
     query = TopicMessageQuery(
         topic_id=topic_id,
-        start_time=datetime.now(timezone.utc),
+        start_time=datetime.now(UTC),
         limit=0,
         chunking_enabled=True
     )

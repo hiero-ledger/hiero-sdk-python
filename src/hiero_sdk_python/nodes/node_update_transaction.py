@@ -1,9 +1,9 @@
-"""
-NodeUpdateTransaction class.
-"""
+"""NodeUpdateTransaction class."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, List, Optional
+from typing import Any
 
 from google.protobuf.wrappers_pb2 import BoolValue, BytesValue, StringValue
 
@@ -26,28 +26,28 @@ class NodeUpdateParams:
     Represents node attributes that can be set on update.
 
     Attributes:
-        node_id (Optional[int]): The node ID of the node.
-        account_id (Optional[AccountId]): The account ID of the node.
-        description (Optional[str]): The description of the node.
-        gossip_endpoints (List[Endpoint]): The gossip endpoints of the node.
-        service_endpoints (List[Endpoint]): The service endpoints of the node.
-        gossip_ca_certificate (Optional[bytes]): The gossip ca certificate of the node.
-        grpc_certificate_hash (Optional[bytes]): The grpc certificate hash of the node.
-        admin_key (Optional[PublicKey]): The admin key of the node.
-        decline_reward (Optional[bool]): The decline reward of the node.
-        grpc_web_proxy_endpoint (Optional[Endpoint]): The grpc web proxy endpoint of the node.
+        node_id (int, optional): The node ID of the node.
+        account_id (AccountId, optional): The account ID of the node.
+        description (str, optional): The description of the node.
+        gossip_endpoints (list[Endpoint]): The gossip endpoints of the node.
+        service_endpoints (list[Endpoint]): The service endpoints of the node.
+        gossip_ca_certificate (bytes, None): The gossip ca certificate of the node.
+        grpc_certificate_hash (bytes, None): The grpc certificate hash of the node.
+        admin_key (PublicKey, optional): The admin key of the node.
+        decline_reward (bool, optional): The decline reward of the node.
+        grpc_web_proxy_endpoint (Endpoint, optional): The grpc web proxy endpoint of the node.
     """
 
-    node_id: Optional[int] = None
-    account_id: Optional[AccountId] = None
-    description: Optional[str] = None
-    gossip_endpoints: List[Endpoint] = field(default_factory=list)
-    service_endpoints: List[Endpoint] = field(default_factory=list)
-    gossip_ca_certificate: Optional[bytes] = None
-    grpc_certificate_hash: Optional[bytes] = None
-    admin_key: Optional[PublicKey] = None
-    decline_reward: Optional[bool] = None
-    grpc_web_proxy_endpoint: Optional[Endpoint] = None
+    node_id: int | None = None
+    account_id: AccountId | None = None
+    description: str | None = None
+    gossip_endpoints: list[Endpoint] = field(default_factory=list)
+    service_endpoints: list[Endpoint] = field(default_factory=list)
+    gossip_ca_certificate: bytes | None = None
+    grpc_certificate_hash: bytes | None = None
+    admin_key: PublicKey | None = None
+    decline_reward: bool | None = None
+    grpc_web_proxy_endpoint: Endpoint | None = None
 
 
 class NodeUpdateTransaction(Transaction):
@@ -61,39 +61,33 @@ class NodeUpdateTransaction(Transaction):
     to build and execute a node update transaction.
     """
 
-    def __init__(self, node_update_params: Optional[NodeUpdateParams] = None):
+    def __init__(self, node_update_params: NodeUpdateParams | None = None):
         """
         Initializes a new NodeUpdateTransaction instance with the specified parameters.
 
         Args:
-            node_update_params (Optional[NodeUpdateParams]):
+            node_update_params (NodeUpdateParams, optional):
                 The parameters for the node update transaction.
         """
         super().__init__()
         node_update_params = node_update_params or NodeUpdateParams()
-        self.node_id: Optional[int] = node_update_params.node_id
-        self.account_id: Optional[AccountId] = node_update_params.account_id
-        self.description: Optional[str] = node_update_params.description
-        self.gossip_endpoints: List[Endpoint] = node_update_params.gossip_endpoints
-        self.service_endpoints: List[Endpoint] = node_update_params.service_endpoints
-        self.gossip_ca_certificate: Optional[bytes] = (
-            node_update_params.gossip_ca_certificate
-        )
-        self.grpc_certificate_hash: Optional[bytes] = (
-            node_update_params.grpc_certificate_hash
-        )
-        self.admin_key: Optional[PublicKey] = node_update_params.admin_key
-        self.decline_reward: Optional[bool] = node_update_params.decline_reward
-        self.grpc_web_proxy_endpoint: Optional[Endpoint] = (
-            node_update_params.grpc_web_proxy_endpoint
-        )
+        self.node_id: int | None = node_update_params.node_id
+        self.account_id: AccountId | None = node_update_params.account_id
+        self.description: str | None = node_update_params.description
+        self.gossip_endpoints: list[Endpoint] = node_update_params.gossip_endpoints
+        self.service_endpoints: list[Endpoint] = node_update_params.service_endpoints
+        self.gossip_ca_certificate: bytes | None = node_update_params.gossip_ca_certificate
+        self.grpc_certificate_hash: bytes | None = node_update_params.grpc_certificate_hash
+        self.admin_key: PublicKey | None = node_update_params.admin_key
+        self.decline_reward: bool | None = node_update_params.decline_reward
+        self.grpc_web_proxy_endpoint: Endpoint | None = node_update_params.grpc_web_proxy_endpoint
 
-    def set_node_id(self, node_id: Optional[int]) -> "NodeUpdateTransaction":
+    def set_node_id(self, node_id: int | None) -> NodeUpdateTransaction:
         """
         Sets the node id for this node update transaction.
 
         Args:
-            node_id (Optional[int]):
+            node_id (int):
                 The node id of the node.
 
         Returns:
@@ -103,7 +97,7 @@ class NodeUpdateTransaction(Transaction):
         self.node_id = node_id
         return self
 
-    def set_account_id(self, account_id: Optional[AccountId]) -> "NodeUpdateTransaction":
+    def set_account_id(self, account_id: AccountId | None) -> NodeUpdateTransaction:
         """
         Sets the account id for this node update transaction.
 
@@ -118,7 +112,7 @@ class NodeUpdateTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def set_description(self, description: Optional[str]) -> "NodeUpdateTransaction":
+    def set_description(self, description: str | None) -> NodeUpdateTransaction:
         """
         Sets the description for this node update transaction.
 
@@ -133,14 +127,12 @@ class NodeUpdateTransaction(Transaction):
         self.description = description
         return self
 
-    def set_gossip_endpoints(
-        self, gossip_endpoints: Optional[List[Endpoint]]
-    ) -> "NodeUpdateTransaction":
+    def set_gossip_endpoints(self, gossip_endpoints: list[Endpoint] | None) -> NodeUpdateTransaction:
         """
         Sets the gossip endpoints for this node update transaction.
 
         Args:
-            gossip_endpoints (List[Endpoint]):
+            gossip_endpoints (list[Endpoint]):
                 The gossip endpoints of the node.
 
         Returns:
@@ -150,14 +142,12 @@ class NodeUpdateTransaction(Transaction):
         self.gossip_endpoints = gossip_endpoints
         return self
 
-    def set_service_endpoints(
-        self, service_endpoints: Optional[List[Endpoint]]
-    ) -> "NodeUpdateTransaction":
+    def set_service_endpoints(self, service_endpoints: list[Endpoint] | None) -> NodeUpdateTransaction:
         """
         Sets the service endpoints for this node update transaction.
 
         Args:
-            service_endpoints (List[Endpoint]):
+            service_endpoints (list[Endpoint]):
                 The service endpoints of the node.
 
         Returns:
@@ -167,9 +157,7 @@ class NodeUpdateTransaction(Transaction):
         self.service_endpoints = service_endpoints
         return self
 
-    def set_gossip_ca_certificate(
-        self, gossip_ca_certificate: Optional[bytes]
-    ) -> "NodeUpdateTransaction":
+    def set_gossip_ca_certificate(self, gossip_ca_certificate: bytes | None) -> NodeUpdateTransaction:
         """
         Sets the gossip ca certificate for this node update transaction.
 
@@ -184,9 +172,7 @@ class NodeUpdateTransaction(Transaction):
         self.gossip_ca_certificate = gossip_ca_certificate
         return self
 
-    def set_grpc_certificate_hash(
-        self, grpc_certificate_hash: Optional[bytes]
-    ) -> "NodeUpdateTransaction":
+    def set_grpc_certificate_hash(self, grpc_certificate_hash: bytes | None) -> NodeUpdateTransaction:
         """
         Sets the grpc certificate hash for this node update transaction.
 
@@ -201,7 +187,7 @@ class NodeUpdateTransaction(Transaction):
         self.grpc_certificate_hash = grpc_certificate_hash
         return self
 
-    def set_admin_key(self, admin_key: Optional[PublicKey]) -> "NodeUpdateTransaction":
+    def set_admin_key(self, admin_key: PublicKey | None) -> NodeUpdateTransaction:
         """
         Sets the admin key for this node update transaction.
 
@@ -216,9 +202,7 @@ class NodeUpdateTransaction(Transaction):
         self.admin_key = admin_key
         return self
 
-    def set_decline_reward(
-        self, decline_reward: Optional[bool]
-    ) -> "NodeUpdateTransaction":
+    def set_decline_reward(self, decline_reward: bool | None) -> NodeUpdateTransaction:
         """
         Sets the decline reward for this node update transaction.
 
@@ -233,9 +217,7 @@ class NodeUpdateTransaction(Transaction):
         self.decline_reward = decline_reward
         return self
 
-    def set_grpc_web_proxy_endpoint(
-        self, grpc_web_proxy_endpoint: Optional[Endpoint]
-    ) -> "NodeUpdateTransaction":
+    def set_grpc_web_proxy_endpoint(self, grpc_web_proxy_endpoint: Endpoint | None) -> NodeUpdateTransaction:
         """
         Sets the grpc web proxy endpoint for this node update transaction.
 
@@ -250,12 +232,12 @@ class NodeUpdateTransaction(Transaction):
         self.grpc_web_proxy_endpoint = grpc_web_proxy_endpoint
         return self
 
-    def _convert_to_proto(self, obj: Optional[Any]) -> Any:
-        """Convert object to proto if it exists, otherwise return None"""
+    def _convert_to_proto(self, obj: Any | None) -> Any:
+        """Convert object to proto if it exists, otherwise return None."""
         return obj._to_proto() if obj else None
 
-    def _convert_to_proto_list(self, obj: Optional[List[Any]]) -> Any:
-        """Convert list of objects to proto if it exists, otherwise return empty list"""
+    def _convert_to_proto_list(self, obj: list[Any] | None) -> Any:
+        """Convert list of objects to proto if it exists, otherwise return empty list."""
         return [obj._to_proto() for obj in obj or []]
 
     def _build_proto_body(self) -> NodeUpdateTransactionBody:
@@ -268,29 +250,17 @@ class NodeUpdateTransaction(Transaction):
         return NodeUpdateTransactionBody(
             node_id=self.node_id,
             account_id=self._convert_to_proto(self.account_id),
-            description=(
-                StringValue(value=self.description)
-                if self.description is not None
-                else None
-            ),
+            description=(StringValue(value=self.description) if self.description is not None else None),
             gossip_endpoint=self._convert_to_proto_list(self.gossip_endpoints),
             service_endpoint=self._convert_to_proto_list(self.service_endpoints),
             gossip_ca_certificate=(
-                BytesValue(value=self.gossip_ca_certificate)
-                if self.gossip_ca_certificate is not None
-                else None
+                BytesValue(value=self.gossip_ca_certificate) if self.gossip_ca_certificate is not None else None
             ),
             grpc_certificate_hash=(
-                BytesValue(value=self.grpc_certificate_hash)
-                if self.grpc_certificate_hash is not None
-                else None
+                BytesValue(value=self.grpc_certificate_hash) if self.grpc_certificate_hash is not None else None
             ),
             admin_key=self._convert_to_proto(self.admin_key),
-            decline_reward=(
-                BoolValue(value=self.decline_reward)
-                if self.decline_reward is not None
-                else None
-            ),
+            decline_reward=(BoolValue(value=self.decline_reward) if self.decline_reward is not None else None),
             grpc_proxy_endpoint=self._convert_to_proto(self.grpc_web_proxy_endpoint),
         )
 

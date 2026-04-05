@@ -1,6 +1,5 @@
-import pytest
-from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.query.query import Query
 
 
 def test_set_single_node_account_id():

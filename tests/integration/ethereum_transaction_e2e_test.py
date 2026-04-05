@@ -23,7 +23,6 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -33,7 +32,7 @@ def test_integration_ethereum_transaction_with_contract_execution(env):
 
     contract_id = _create_contract(env)
 
-    message = "Updated message bytes!".encode("utf-8")
+    message = b"Updated message bytes!"
     call_data_bytes = (
         ContractFunctionParameters("setMessage").add_bytes32(message).to_bytes()
     )
@@ -196,7 +195,6 @@ def _get_call_data(
     Returns:
         Complete transaction bytes with signature
     """
-
     # Create the transaction list without signature components
     # EIP-1559 transaction format:
     # [chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList]
@@ -282,7 +280,7 @@ def _create_contract(env) -> ContractId:
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
     receipt = (
         ContractCreateTransaction()
         .set_admin_key(env.operator_key.public_key())

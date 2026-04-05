@@ -1,15 +1,12 @@
 import pytest
 
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+from examples.contract.contracts import SIMPLE_CONTRACT_BYTECODE
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
 from hiero_sdk_python.contract.contract_delete_transaction import ContractDeleteTransaction
+from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
 from tests.integration.utils import IntegrationTestEnv
-
-from examples.contract.contracts import SIMPLE_CONTRACT_BYTECODE
-
 
 pytestmark = pytest.mark.integration
 

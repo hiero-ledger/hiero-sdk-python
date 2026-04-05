@@ -1,7 +1,8 @@
 """Tests for the StakingInfo class."""
 
-import pytest
 from dataclasses import FrozenInstanceError
+
+import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (

@@ -1,16 +1,18 @@
 from __future__ import annotations
+
 import typing
 import warnings
-from hiero_sdk_python.tokens.custom_fee import CustomFee
+
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.tokens.custom_fee import CustomFee
 
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
     from hiero_sdk_python.hapi.services import custom_fees_pb2
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.hapi.services import custom_fees_pb2
+from hiero_sdk_python.tokens.token_id import TokenId
 
 """Manages custom fixed fees assessed during transactions on the Hedera network.
 
@@ -18,6 +20,7 @@ This module defines the CustomFixedFee class, allowing fees to be specified
 in HBAR or a specific fungible token. It provides methods for setting fee
 amounts, denominating tokens, and converting to/from protobuf formats.
 """
+
 
 class CustomFixedFee(CustomFee):
     """Represents a fixed fee assessed as part of a custom fee schedule.
@@ -40,8 +43,8 @@ class CustomFixedFee(CustomFee):
     def __init__(
         self,
         amount: int = 0,
-        denominating_token_id: typing.Optional["TokenId"] = None,
-        fee_collector_account_id: typing.Optional["AccountId"] = None,
+        denominating_token_id: TokenId | None = None,
+        fee_collector_account_id: AccountId | None = None,
         all_collectors_are_exempt: bool = False,
     ):
         """Initializes the CustomFixedFee.
@@ -62,18 +65,14 @@ class CustomFixedFee(CustomFee):
         super().__init__(fee_collector_account_id, all_collectors_are_exempt)
         self.amount = amount
         self.denominating_token_id = denominating_token_id
-        
+
     def __str__(self) -> str:
         """Return a user-friendly string representation of the CustomFixedFee.
 
         Displays all fields in insertion order with aligned formatting.
         TokenId and AccountId objects are displayed in Hedera notation (e.g., 0.0.123).
         """
-
-        fields = {
-            key.replace("_", " ").title(): value
-            for key, value in self.__dict__.items()
-        }
+        fields = {key.replace("_", " ").title(): value for key, value in self.__dict__.items()}
 
         if not fields:
             return f"{self.__class__.__name__}()"
@@ -86,11 +85,10 @@ class CustomFixedFee(CustomFee):
 
         return "\n".join(lines)
 
-
-    def set_amount_in_tinybars(self, amount: int) -> "CustomFixedFee":
+    def set_amount_in_tinybars(self, amount: int) -> CustomFixedFee:
         """Sets the fee amount in tinybars.
 
-        .. deprecated:: 
+        .. deprecated::
             Use :meth:`set_hbar_amount` with :meth:`Hbar.from_tinybars` instead.
             For example: ``set_hbar_amount(Hbar.from_tinybars(amount))``
 
@@ -106,13 +104,13 @@ class CustomFixedFee(CustomFee):
             "set_amount_in_tinybars() is deprecated and will be removed in a future release. "
             "Use set_hbar_amount(Hbar.from_tinybars(amount)) instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         self.denominating_token_id = None
         self.amount = amount
         return self
 
-    def set_hbar_amount(self, amount: Hbar) -> "CustomFixedFee":
+    def set_hbar_amount(self, amount: Hbar) -> CustomFixedFee:
         """Sets the fee amount using an Hbar object.
 
         Converts the Hbar amount to tinybars and clears any previously set
@@ -128,7 +126,7 @@ class CustomFixedFee(CustomFee):
         self.amount = amount.to_tinybars()
         return self
 
-    def set_denominating_token_id(self, token_id: typing.Optional["TokenId"]) -> "CustomFixedFee":
+    def set_denominating_token_id(self, token_id: TokenId | None) -> CustomFixedFee:
         """Sets the fungible token used to pay the fee.
 
         If set to None, the fee defaults to being paid in HBAR.
@@ -142,8 +140,8 @@ class CustomFixedFee(CustomFee):
         """
         self.denominating_token_id = token_id
         return self
-    
-    def set_denominating_token_to_same_token(self) -> "CustomFixedFee":
+
+    def set_denominating_token_to_same_token(self) -> CustomFixedFee:
         """Configures the fee to be paid in the same token the custom fee is attached to.
 
         This sets the denominating_token_id to the sentinel value 0.0.0.
@@ -152,11 +150,12 @@ class CustomFixedFee(CustomFee):
             CustomFixedFee: This CustomFixedFee instance for chaining.
         """
         from hiero_sdk_python.tokens.token_id import TokenId
+
         self.denominating_token_id = TokenId(0, 0, 0)
         return self
 
     @staticmethod
-    def _from_fixed_fee_proto(fixed_fee: "custom_fees_pb2.FixedFee") -> "CustomFixedFee":
+    def _from_fixed_fee_proto(fixed_fee: custom_fees_pb2.FixedFee) -> CustomFixedFee:
         """Creates a CustomFixedFee instance from a FixedFee protobuf object.
 
         Internal helper method.
@@ -168,15 +167,14 @@ class CustomFixedFee(CustomFee):
             CustomFixedFee: The corresponding CustomFixedFee object.
         """
         from hiero_sdk_python.tokens.token_id import TokenId
+
         fee = CustomFixedFee()
         fee.amount = fixed_fee.amount
         if fixed_fee.HasField("denominating_token_id"):
-            fee.denominating_token_id = TokenId._from_proto(
-                fixed_fee.denominating_token_id
-            )
+            fee.denominating_token_id = TokenId._from_proto(fixed_fee.denominating_token_id)
         return fee
 
-    def _to_proto(self) -> "custom_fees_pb2.CustomFee":
+    def _to_proto(self) -> custom_fees_pb2.CustomFee:
         """Converts this CustomFixedFee object to its protobuf representation.
 
         Builds the `FixedFee` part and integrates it with the common fields
@@ -207,7 +205,7 @@ class CustomFixedFee(CustomFee):
         cf.all_collectors_are_exempt = self.all_collectors_are_exempt
         return cf
 
-    def _to_topic_fee_proto(self) -> "custom_fees_pb2.FixedCustomFee":
+    def _to_topic_fee_proto(self) -> custom_fees_pb2.FixedCustomFee:
         """Converts this CustomFixedFee object to a FixedCustomFee protobuf object.
 
         Specifically used for fee schedules related to Hedera Consensus Service topics.
@@ -220,7 +218,7 @@ class CustomFixedFee(CustomFee):
                  (Note: Current implementation doesn't explicitly check amount >= 0).
         """
         from hiero_sdk_python.hapi.services import custom_fees_pb2
-        
+
         return custom_fees_pb2.FixedCustomFee(
             fixed_fee=custom_fees_pb2.FixedFee(
                 amount=self.amount,
@@ -231,7 +229,7 @@ class CustomFixedFee(CustomFee):
             fee_collector_account_id=self._get_fee_collector_account_id_protobuf(),
         )
 
-    def _validate_checksums(self, client: "Client") -> None:
+    def _validate_checksums(self, client: Client) -> None:
         """Validates checksums for configured account and token IDs.
 
         Ensures that the fee collector account ID and the denominating token ID
@@ -248,7 +246,7 @@ class CustomFixedFee(CustomFee):
             self.denominating_token_id.validate_checksum(client)
 
     @classmethod
-    def _from_proto(cls, proto_fee: custom_fees_pb2.CustomFee) -> "CustomFixedFee":
+    def _from_proto(cls, proto_fee: custom_fees_pb2.CustomFee) -> CustomFixedFee:
         """Creates a CustomFixedFee instance from a CustomFee protobuf object.
 
         Extracts the fixed fee details and common fee properties from the
@@ -264,27 +262,26 @@ class CustomFixedFee(CustomFee):
         Raises:
             ValueError: If the `fixed_fee` field is not set in the protobuf message.
         """
-        
         fixed_fee_proto = proto_fee.fixed_fee
-        
+
         denominating_token_id = None
         if fixed_fee_proto.HasField("denominating_token_id"):
             denominating_token_id = TokenId._from_proto(fixed_fee_proto.denominating_token_id)
-        
+
         fee_collector_account_id = None
         if proto_fee.HasField("fee_collector_account_id"):
             fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
-        
-        collectors_are_exempt = getattr(proto_fee, 'all_collectors_are_exempt', False)
-        
+
+        collectors_are_exempt = getattr(proto_fee, "all_collectors_are_exempt", False)
+
         return cls(
             amount=fixed_fee_proto.amount,
             denominating_token_id=denominating_token_id,
             fee_collector_account_id=fee_collector_account_id,
-            all_collectors_are_exempt=collectors_are_exempt
+            all_collectors_are_exempt=collectors_are_exempt,
         )
-        
-    def __eq__(self, other: "CustomFixedFee") -> bool:
+
+    def __eq__(self, other: CustomFixedFee) -> bool:
         """Compares this CustomFixedFee instance with another object for equality.
 
         Checks if the other object is also a CustomFixedFee and if all
@@ -297,4 +294,8 @@ class CustomFixedFee(CustomFee):
         Returns:
             bool: True if the objects are considered equal, False otherwise.
         """
-        return super().__eq__(other) and self.amount == other.amount and self.denominating_token_id == other.denominating_token_id
+        return (
+            super().__eq__(other)
+            and self.amount == other.amount
+            and self.denominating_token_id == other.denominating_token_id
+        )

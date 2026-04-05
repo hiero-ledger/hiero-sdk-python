@@ -8,7 +8,6 @@ from hypothesis import strategies as st
 from hypothesis.strategies import SearchStrategy
 
 from hiero_sdk_python import HbarUnit, PrivateKey
-
 from tests.fuzz.support.classes import (
     AccountIdAliasCase,
     ContractValueCase,
@@ -55,7 +54,6 @@ class _KeySampleValues(NamedTuple):
 
 def _build_identifier_primitives() -> _IdentifierPrimitives:
     """Build the shared scalar strategies used to compose Hedera-style identifiers."""
-
     return _IdentifierPrimitives(
         shard=st.integers(min_value=0, max_value=4096),
         realm=st.integers(min_value=0, max_value=4096),
@@ -66,7 +64,6 @@ def _build_identifier_primitives() -> _IdentifierPrimitives:
 
 def _build_key_sample_values() -> _KeySampleValues:
     """Build canonical valid key samples once so all dependent strategies stay consistent."""
-
     ed_private_raw = "01" * 32
     ecdsa_private_raw = "00" * 31 + "01"
 
@@ -95,7 +92,6 @@ def _build_entity_id_strategies(
     primitives: _IdentifierPrimitives,
 ) -> dict[str, SearchStrategy[Any]]:
     """Build valid dotted and checksum entity ID strategies with the current numeric bounds."""
-
     entity_id_valid_dotted = st.builds(
         lambda shard_value, realm_value, num_value: EntityIdCase(
             text=f"{shard_value}.{realm_value}.{num_value}",
@@ -129,7 +125,6 @@ def _build_alias_identifier_strategies(
     primitives: _IdentifierPrimitives, key_samples: _KeySampleValues
 ) -> dict[str, SearchStrategy[Any]]:
     """Build valid account and contract alias strategies using canonical alias and EVM samples."""
-
     ed25519_alias_hex = st.just(key_samples.ed25519_alias_hex)
     ecdsa_alias_hex = st.just(key_samples.ecdsa_alias_hex)
     evm_hex = st.just(key_samples.evm_hex)
@@ -183,7 +178,6 @@ def _build_alias_identifier_strategies(
 
 def _build_invalid_identifier_strategies() -> dict[str, SearchStrategy[Any]]:
     """Build malformed identifier strategies while preserving existing invalid-string coverage."""
-
     invalid_entity_strings = st.one_of(
         st.sampled_from(
             [
@@ -248,7 +242,6 @@ def _build_invalid_identifier_strategies() -> dict[str, SearchStrategy[Any]]:
 
 def _build_private_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
     """Build the private key strategies from the canonical valid sample encodings."""
-
     private_key_valid_string = st.one_of(
         with_optional_0x(
             st.sampled_from([key_samples.ed_private_raw, key_samples.ed_private_der])
@@ -290,7 +283,6 @@ def _build_private_key_strategies(key_samples: _KeySampleValues) -> dict[str, Se
 
 def _build_public_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
     """Build the public key strategies from the canonical valid sample encodings."""
-
     public_key_valid_string = st.one_of(
         with_optional_0x(
             st.sampled_from(
@@ -343,7 +335,6 @@ def _build_public_key_strategies(key_samples: _KeySampleValues) -> dict[str, Sea
 
 def _build_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStrategy[Any]]:
     """Build the complete private and public key strategy registry entries."""
-
     strategies: dict[str, SearchStrategy[Any]] = {}
     strategies.update(_build_private_key_strategies(key_samples))
     strategies.update(_build_public_key_strategies(key_samples))
@@ -352,7 +343,6 @@ def _build_key_strategies(key_samples: _KeySampleValues) -> dict[str, SearchStra
 
 def _build_hbar_strategies() -> dict[str, SearchStrategy[Any]]:
     """Build Hbar parsing and constructor strategies, including intentional invalid edge cases."""
-
     hbar_valid_tinybars = st.integers(min_value=-(10**12), max_value=10**12)
     hbar_valid_string = st.one_of(
         hbar_valid_tinybars.map(lambda tinybars: hbar_string_case(HbarUnit.HBAR, tinybars)),
@@ -408,7 +398,6 @@ def _build_hbar_strategies() -> dict[str, SearchStrategy[Any]]:
 
 def _build_transaction_byte_strategies() -> dict[str, SearchStrategy[Any]]:
     """Build valid and intentionally broken transaction byte payload strategies."""
-
     unsigned_tx_bytes, signed_tx_bytes = build_valid_transaction_bytes()
     tx_valid_bytes = st.sampled_from([unsigned_tx_bytes, signed_tx_bytes])
     tx_invalid_empty = st.just(b"")
@@ -442,7 +431,6 @@ def _build_transaction_byte_strategies() -> dict[str, SearchStrategy[Any]]:
 
 def _build_contract_value_strategies() -> dict[str, SearchStrategy[Any]]:
     """Build valid and invalid contract parameter cases without changing ABI edge coverage."""
-
     valid_contract_value = st.one_of(
         st.booleans().map(lambda value: ContractValueCase("add_bool", value)),
         st.integers(min_value=-(2**31), max_value=2**31 - 1).map(
@@ -516,7 +504,6 @@ def _build_contract_value_strategies() -> dict[str, SearchStrategy[Any]]:
 
 def build_strategy_registry() -> dict[str, SearchStrategy[Any]]:
     """Assemble all domain-specific strategy groups into the shared fuzz registry."""
-
     primitives = _build_identifier_primitives()
     key_samples = _build_key_sample_values()
 
@@ -536,7 +523,6 @@ FUZZ_STRATEGIES = build_strategy_registry()
 
 def get_strategy(name: str) -> SearchStrategy[Any]:
     """Return the named fuzz strategy from the shared registry or raise a helpful KeyError."""
-
     try:
         return FUZZ_STRATEGIES[name]
     except KeyError as exc:
@@ -547,12 +533,10 @@ def get_strategy(name: str) -> SearchStrategy[Any]:
 @pytest.fixture(name="fuzz_strategies")
 def fuzz_strategies_fixture() -> dict[str, SearchStrategy[Any]]:
     """Provide the shared fuzz strategy registry."""
-
     return FUZZ_STRATEGIES
 
 
 @pytest.fixture(name="get_strategy")
 def get_strategy_fixture() -> Any:
     """Provide the named strategy accessor."""
-
     return get_strategy

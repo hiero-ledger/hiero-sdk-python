@@ -7,11 +7,12 @@ ensure robust coverage of timestamp functionality.
 """
 
 import time
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from hiero_sdk_python.timestamp import Timestamp
+import pytest
+
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
+from hiero_sdk_python.timestamp import Timestamp
 
 pytestmark = pytest.mark.unit
 
@@ -49,7 +50,7 @@ def test_str_representation_zero_padded():
 @pytest.mark.parametrize(
     "value",
     [
-        datetime(1970, 1, 1, tzinfo=timezone.utc),
+        datetime(1970, 1, 1, tzinfo=UTC),
         int(time.time()),
         "1970-01-01T00:00:00+00:00",
     ],
@@ -62,7 +63,7 @@ def test_from_date_valid_inputs(value):
 
 def test_from_date_unix_epoch():
     """Test from_date with the Unix epoch (0 seconds)."""
-    dt = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    dt = datetime(1970, 1, 1, tzinfo=UTC)
     ts = Timestamp.from_date(dt)
     assert ts.seconds == 0
     assert ts.nanos == 0
@@ -70,7 +71,7 @@ def test_from_date_unix_epoch():
 
 def test_from_date_max_microseconds():
     """Test from_date with maximum microseconds to ensure nanos calculation is correct."""
-    dt = datetime(2020, 1, 1, 0, 0, 0, 999999, tzinfo=timezone.utc)
+    dt = datetime(2020, 1, 1, 0, 0, 0, 999999, tzinfo=UTC)
     ts = Timestamp.from_date(dt)
 
     expected = 999_999_000
@@ -92,7 +93,7 @@ def test_to_date_returns_utc_datetime():
     dt = ts.to_date()
 
     assert isinstance(dt, datetime)
-    assert dt.tzinfo == timezone.utc
+    assert dt.tzinfo == UTC
     assert dt.second == 10
     assert dt.microsecond == 500_000
 
@@ -106,7 +107,7 @@ def test_to_date_truncates_nanoseconds():
 
 def test_datetime_round_trip_preserves_microseconds():
     """Verify that datetime -> Timestamp -> datetime preserves microsecond precision."""
-    original = datetime.now(timezone.utc).replace(microsecond=654321)
+    original = datetime.now(UTC).replace(microsecond=654321)
     ts = Timestamp.from_date(original)
     result = ts.to_date()
     assert original.replace(microsecond=result.microsecond) == result

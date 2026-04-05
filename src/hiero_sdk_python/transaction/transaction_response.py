@@ -1,11 +1,13 @@
 """
-transaction_response.py
+transaction_response.py.
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Represents the response from a transaction submitted to the Hedera network.
 Provides methods to retrieve the receipt and access core transaction details.
 """
-from typing import Optional, Union
+
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -19,60 +21,54 @@ if TYPE_CHECKING:
 
 # pylint: disable=too-few-public-methods
 
+
 class TransactionResponse:
-    """
-    Represents the response from a transaction submitted to the network.
-    """
+    """Represents the response from a transaction submitted to the network."""
 
     def __init__(self) -> None:
-        """
-        Initialize a new TransactionResponse instance with default values.
-        """
+        """Initialize a new TransactionResponse instance with default values."""
         self.transaction_id: TransactionId = TransactionId()
         self.node_id: AccountId = AccountId()
-        self.hash: bytes = bytes()
+        self.hash: bytes = b""
         self.validate_status: bool = False
-        self.transaction: Optional["Transaction"] = None
-    
+        self.transaction: Transaction | None = None
+
     def get_receipt_query(self, validate_status: bool = False):
         """
         Create a receipt query for this transaction.
 
         Args:
-            validate_status (bool, Optional): The query should automatically validate the transaction status. (default False)
+            validate_status (bool, optional): The query should automatically validate the transaction status. (default False)
 
         Returns:
             TransactionGetReceiptQuery: A configured receipt query.
         """
         from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
+
         return (
             TransactionGetReceiptQuery()
             .set_transaction_id(self.transaction_id)
             .set_node_account_id(self.node_id)
             .set_validate_status(validate_status)
         )
-    
+
     def get_receipt(
-        self,
-        client: "Client",
-        timeout: Optional[Union[int, float]] = None,
-        validate_status: bool = False
-    ) -> "TransactionReceipt":
+        self, client: Client, timeout: int | float | None = None, validate_status: bool = False
+    ) -> TransactionReceipt:
         """
         Retrieves the receipt for this transaction from the network.
 
         Args:
             client (Client): The client instance to use for receipt retrieval.
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
-            validate_status (bool, Optional): The query should automatically validate the transaction status. (default False)
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
+            validate_status (bool, optional): The query should automatically validate the transaction status. (default False)
 
         Returns:
             TransactionReceipt: The receipt from the network, containing the status
                                and any entities created by the transaction
         """
-        receipt = self.get_receipt_query(validate_status=validate_status).execute(client, timeout)
-        return receipt
-    
+        return self.get_receipt_query(validate_status=validate_status).execute(client, timeout)
+
     def get_record_query(self):
         """
         Create a record query for this transaction.
@@ -81,13 +77,10 @@ class TransactionResponse:
             TransactionRecordQuery: A configured record query.
         """
         from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
-        return (
-            TransactionRecordQuery()
-            .set_transaction_id(self.transaction_id)
-            .set_node_account_ids([self.node_id])
-        )
-    
-    def get_record(self, client: "Client", timeout: Optional[Union[int, float]] = None) -> "TransactionRecord":
+
+        return TransactionRecordQuery().set_transaction_id(self.transaction_id).set_node_account_ids([self.node_id])
+
+    def get_record(self, client: Client, timeout: int | float | None = None) -> TransactionRecord:
         """
         Retrieve the transaction record from the network.
 
@@ -98,5 +91,4 @@ class TransactionResponse:
         Returns:
             TransactionRecord: The full transaction record.
         """
-        record = self.get_record_query().execute(client, timeout)
-        return record
+        return self.get_record_query().execute(client, timeout)

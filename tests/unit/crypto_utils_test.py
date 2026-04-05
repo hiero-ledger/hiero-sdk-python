@@ -1,7 +1,7 @@
 """Unit tests for crypto_utils module."""
 
-from cryptography.hazmat.primitives.asymmetric import ec
 import pytest
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from hiero_sdk_python.utils.crypto_utils import (
     compress_point_unchecked,

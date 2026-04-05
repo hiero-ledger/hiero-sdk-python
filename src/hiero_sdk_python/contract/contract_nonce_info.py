@@ -5,8 +5,9 @@ that is incremented with each transaction or contract creation, and is used to p
 attacks and ensure transaction uniqueness.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import contract_types_pb2
@@ -18,17 +19,15 @@ class ContractNonceInfo:
     Represents the nonce information for a specific contract.
 
     Attributes:
-        contract_id (Optional[ContractId]): The contract identifier.
+        contract_id (ContractId, optional): The contract identifier.
         nonce (int): The nonce value associated with the contract.
     """
 
-    contract_id: Optional[ContractId] = None
+    contract_id: ContractId | None = None
     nonce: int = 0
 
     @classmethod
-    def _from_proto(
-        cls, proto: contract_types_pb2.ContractNonceInfo
-    ) -> "ContractNonceInfo":
+    def _from_proto(cls, proto: contract_types_pb2.ContractNonceInfo) -> ContractNonceInfo:
         """
         Creates a ContractNonceInfo instance from its protobuf representation.
 
@@ -44,9 +43,7 @@ class ContractNonceInfo:
         if proto is None:
             raise ValueError("Contract nonce info proto is None")
 
-        return cls(
-            contract_id=ContractId._from_proto(proto.contract_id), nonce=proto.nonce
-        )
+        return cls(contract_id=ContractId._from_proto(proto.contract_id), nonce=proto.nonce)
 
     def _to_proto(self) -> contract_types_pb2.ContractNonceInfo:
         """
@@ -55,9 +52,7 @@ class ContractNonceInfo:
         Returns:
             contract_types_pb2.ContractNonceInfo: The protobuf object representing this instance.
         """
-        return contract_types_pb2.ContractNonceInfo(
-            contract_id=self.contract_id._to_proto(), nonce=self.nonce
-        )
+        return contract_types_pb2.ContractNonceInfo(contract_id=self.contract_id._to_proto(), nonce=self.nonce)
 
     def __repr__(self) -> str:
         """
@@ -69,12 +64,5 @@ class ContractNonceInfo:
         return self.__str__()
 
     def __str__(self) -> str:
-        """
-        Pretty-print the ContractNonceInfo.
-        """
-        return (
-            "ContractNonceInfo("
-            f"contract_id={self.contract_id}, "
-            f"nonce={self.nonce}"
-            ")"
-        )
+        """Pretty-print the ContractNonceInfo."""
+        return f"ContractNonceInfo(contract_id={self.contract_id}, nonce={self.nonce})"

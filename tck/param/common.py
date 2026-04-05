@@ -18,7 +18,7 @@ class CommonTransactionParams:
     signers: list[str] | None = None
 
     @classmethod
-    def parse_json_params(cls, params: dict) -> "CommonTransactionParams":
+    def parse_json_params(cls, params: dict) -> CommonTransactionParams:
         return cls(
             transactionId=params.get("transactionId"),
             maxTransactionFee=to_int(params.get("maxTransactionFee")),

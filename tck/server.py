@@ -1,9 +1,11 @@
 """TCK Server implementation using Flask."""
 
+import logging
 import os
 from dataclasses import dataclass, field
-import logging
+
 from flask import Flask, jsonify, request
+
 from tck.errors import JsonRpcError
 from tck.handlers import safe_dispatch
 from tck.protocol import (

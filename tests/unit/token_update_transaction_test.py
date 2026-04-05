@@ -1,19 +1,20 @@
 import datetime
+
 import pytest
 
+from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKeyValidation
-from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateKeys, TokenUpdateParams, TokenUpdateTransaction
-from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.crypto.public_key import PublicKey
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -27,7 +28,7 @@ def new_token_data():
         "metadata": b"Test metadata",
         "auto_renew_period": Duration(7776000),
         "expiration_time": Timestamp.from_date(
-            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
+            datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
         )
     }
 

@@ -1,10 +1,12 @@
-import pytest
-import grpc
-from unittest.mock import patch
 from itertools import chain, repeat
+from unittest.mock import patch
+
+import grpc
+import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from hiero_sdk_python.executable import (
@@ -22,7 +24,6 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
-from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import (
     TransactionGetReceiptQuery,

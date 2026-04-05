@@ -11,7 +11,7 @@ from hiero_sdk_python.query.transaction_get_receipt_query import (
     TransactionGetReceiptQuery,
 )
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils import env, wait_for_mirror_node
+from tests.integration.utils import wait_for_mirror_node
 
 
 @pytest.fixture

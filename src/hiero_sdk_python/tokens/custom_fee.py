@@ -11,6 +11,7 @@ Subclasses:
 """
 
 from __future__ import annotations
+
 import typing
 from abc import ABC, abstractmethod
 
@@ -32,13 +33,13 @@ class CustomFee(ABC):
 
     def __init__(
         self,
-        fee_collector_account_id: typing.Optional[AccountId] = None,
+        fee_collector_account_id: AccountId | None = None,
         all_collectors_are_exempt: bool = False,
     ):
         """Initializes a CustomFee instance.
 
         Args:
-            fee_collector_account_id (Optional[AccountId]): The account ID that collects
+            fee_collector_account_id (AccountId, optional): The account ID that collects
                 the fee. If None, no collector is specified.
             all_collectors_are_exempt (bool): If True, all collectors are exempt from this fee.
                 Defaults to False.
@@ -46,7 +47,7 @@ class CustomFee(ABC):
         self.fee_collector_account_id = fee_collector_account_id
         self.all_collectors_are_exempt = all_collectors_are_exempt
 
-    def set_fee_collector_account_id(self, account_id: AccountId) -> "CustomFee":
+    def set_fee_collector_account_id(self, account_id: AccountId) -> CustomFee:
         """Sets the fee collector account ID.
 
         Args:
@@ -58,7 +59,7 @@ class CustomFee(ABC):
         self.fee_collector_account_id = account_id
         return self
 
-    def set_all_collectors_are_exempt(self, exempt: bool) -> "CustomFee":
+    def set_all_collectors_are_exempt(self, exempt: bool) -> CustomFee:
         """Sets the exemption status for all collectors.
 
         Args:
@@ -71,7 +72,7 @@ class CustomFee(ABC):
         return self
 
     @staticmethod
-    def _from_proto(custom_fee: "CustomFeeProto") -> "CustomFee":  # Changed from _from_protobuf
+    def _from_proto(custom_fee: CustomFeeProto) -> CustomFee:  # Changed from _from_protobuf
         """Creates a CustomFee instance from a protobuf message.
 
         This factory method dynamically instantiates the appropriate subclass based on the
@@ -100,21 +101,17 @@ class CustomFee(ABC):
 
         raise ValueError(f"Unrecognized fee case: {fee_case}")
 
-    def _get_fee_collector_account_id_protobuf(self) -> typing.Optional[AccountID]:
+    def _get_fee_collector_account_id_protobuf(self) -> AccountID | None:
         """Retrieves the fee collector account ID in protobuf format.
 
         Returns:
-            Optional[AccountID]: The protobuf AccountID if the fee collector is set,
+            AccountID | None: The protobuf AccountID if the fee collector is set,
             otherwise None.
         """
-        return (
-            self.fee_collector_account_id._to_proto()
-            if self.fee_collector_account_id is not None
-            else None
-        )
+        return self.fee_collector_account_id._to_proto() if self.fee_collector_account_id is not None else None
 
     @abstractmethod
-    def _to_proto(self) -> "CustomFeeProto":  # Changed from _to_protobuf
+    def _to_proto(self) -> CustomFeeProto:  # Changed from _to_protobuf
         """Converts this CustomFee to its protobuf representation.
 
         Subclasses must implement this method to serialize their specific fee details.
@@ -147,5 +144,8 @@ class CustomFee(ABC):
         """
         if not isinstance(other, CustomFee):
             return NotImplemented
-        
-        return self.fee_collector_account_id == other.fee_collector_account_id and self.all_collectors_are_exempt == other.all_collectors_are_exempt
+
+        return (
+            self.fee_collector_account_id == other.fee_collector_account_id
+            and self.all_collectors_are_exempt == other.all_collectors_are_exempt
+        )

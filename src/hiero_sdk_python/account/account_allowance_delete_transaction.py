@@ -1,8 +1,6 @@
-"""
-AccountAllowanceDeleteTransaction class for deleting account allowances.
-"""
+"""AccountAllowanceDeleteTransaction class for deleting account allowances."""
 
-from typing import List, Optional
+from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -35,23 +33,23 @@ class AccountAllowanceDeleteTransaction(Transaction):
 
     def __init__(
         self,
-        nft_wipe: Optional[List[TokenNftAllowance]] = None,
+        nft_wipe: list[TokenNftAllowance] | None = None,
     ) -> None:
         """
         Initializes a new AccountAllowanceDeleteTransaction instance.
 
         Args:
-            nft_wipe (Optional[List[TokenNftAllowance]]): Initial NFT allowances to delete.
+            nft_wipe (list[TokenNftAllowance], optional): Initial NFT allowances to delete.
         """
         super().__init__()
-        self.nft_wipe: List[TokenNftAllowance] = list(nft_wipe) if nft_wipe is not None else []
+        self.nft_wipe: list[TokenNftAllowance] = list(nft_wipe) if nft_wipe is not None else []
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
     def delete_all_token_nft_allowances(
         self,
         nft_id: NftId,
         owner_account_id: AccountId,
-    ) -> "AccountAllowanceDeleteTransaction":
+    ) -> AccountAllowanceDeleteTransaction:
         """
         Deletes non-fungible token allowance/allowances to remove.
 
@@ -66,10 +64,7 @@ class AccountAllowanceDeleteTransaction(Transaction):
 
         # Check if there's already a wipe entry for this token and owner
         for wipe_entry in self.nft_wipe:
-            if (
-                wipe_entry.token_id == nft_id.token_id
-                and wipe_entry.owner_account_id == owner_account_id
-            ):
+            if wipe_entry.token_id == nft_id.token_id and wipe_entry.owner_account_id == owner_account_id:
                 # Add the serial number if it's not already present
                 if nft_id.serial_number not in wipe_entry.serial_numbers:
                     wipe_entry.serial_numbers.append(nft_id.serial_number)
@@ -93,11 +88,9 @@ class AccountAllowanceDeleteTransaction(Transaction):
         Returns:
             CryptoDeleteAllowanceTransactionBody: The protobuf body for this transaction.
         """
-        body = CryptoDeleteAllowanceTransactionBody(
+        return CryptoDeleteAllowanceTransactionBody(
             nftAllowances=[allowance._to_wipe_proto() for allowance in self.nft_wipe],
         )
-
-        return body
 
     def build_transaction_body(self):
         """

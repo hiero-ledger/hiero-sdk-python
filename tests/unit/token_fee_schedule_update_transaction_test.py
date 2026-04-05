@@ -1,13 +1,10 @@
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import (
     TokenFeeScheduleUpdateTransaction,
 )
-from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.account.account_id import AccountId
-
-from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 
 pytestmark = pytest.mark.unit
 

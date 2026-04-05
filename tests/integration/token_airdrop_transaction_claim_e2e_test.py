@@ -1,17 +1,18 @@
+
 import pytest
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
-from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
-from hiero_sdk_python.tokens.token_transfer import TokenTransfer
-from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
-from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransaction
+
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
-from tests.integration.utils import env, create_fungible_token, create_nft_token
-from typing import List
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransaction
+from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
+from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
+from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_transfer import TokenTransfer
+from tests.integration.utils import create_fungible_token
 
 pytestmark = pytest.mark.integration
 
@@ -61,12 +62,12 @@ def has_immediate_credit(record, token_id: TokenId, account_id: AccountId, amoun
 def has_new_pending(record):
     return bool(record.new_pending_airdrops)
 
-def extract_pending_ids(record) -> List[PendingAirdropId]:
+def extract_pending_ids(record) -> list[PendingAirdropId]:
     """
     Extract a list of SDK PendingAirdropId objects from a transaction record.
     Handles both protobuf objects and already instantiated SDK objects.
     """
-    sdk_ids: List[PendingAirdropId] = []
+    sdk_ids: list[PendingAirdropId] = []
 
     for item in record.new_pending_airdrops:
         if isinstance(item, PendingAirdropId):

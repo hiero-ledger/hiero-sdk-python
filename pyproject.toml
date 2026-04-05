@@ -81,11 +81,10 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py314"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
-    "D",    # docstrings
     "E",    # pycodestyle errors
     "F",    # pyflakes
     "I",    # import sorting
@@ -98,6 +97,7 @@ select = [
     "RSE",  # exception correctness
 ]
 ignore = [
+    "D",    # docstrings
     "D212",     # disable "summary on same line"
     "E501",     # line length -> formatter
     "B008",     # function calls in argument defaults 

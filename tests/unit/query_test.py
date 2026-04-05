@@ -1,21 +1,22 @@
-from decimal import Decimal
 import re
-import pytest
+from decimal import Decimal
 from unittest.mock import MagicMock
 
-from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
-from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.query.token_info_query import TokenInfoQuery
-from hiero_sdk_python.response_code import ResponseCode
+import pytest
+
 from hiero_sdk_python.executable import _ExecutionState
 from hiero_sdk_python.hapi.services import (
-    query_header_pb2,
-    response_pb2,
-    response_header_pb2,
     crypto_get_account_balance_pb2,
+    query_header_pb2,
+    response_header_pb2,
+    response_pb2,
     token_get_info_pb2,
 )
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+from hiero_sdk_python.query.query import Query
+from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -271,7 +272,6 @@ def test_get_cost_when_payment_required_and_set(query_requires_payment, mock_cli
 
 def test_get_cost_when_payment_required_and_not_set(query_requires_payment, token_id):
     """Test get_cost when payment is required and not set"""
-
     # Create mock response containing cost information (2 tinybars) for token info query
     response = response_pb2.Response(
         tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(

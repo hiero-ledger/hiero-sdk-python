@@ -3,6 +3,7 @@ Unit tests for the AccountId class.
 """
 
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -771,12 +772,11 @@ def test_populate_account_num_mirror_node_failure():
     with patch(
         "hiero_sdk_python.account.account_id.perform_query_to_mirror_node",
         side_effect=RuntimeError("mirror node query error"),
+    ), pytest.raises(
+        RuntimeError,
+        match="Failed to populate account number from mirror node for evm_address",
     ):
-        with pytest.raises(
-            RuntimeError,
-            match="Failed to populate account number from mirror node for evm_address",
-        ):
-            account_id.populate_account_num(mock_client)
+        account_id.populate_account_num(mock_client)
 
 
 def test_populate_account_evm_address(evm_address):
@@ -838,12 +838,11 @@ def test_populate_evm_address_mirror_node_failure():
     with patch(
         "hiero_sdk_python.account.account_id.perform_query_to_mirror_node",
         side_effect=RuntimeError("mirror node query error"),
+    ), pytest.raises(
+        RuntimeError,
+        match="Failed to populate evm_address from mirror node for account 123",
     ):
-        with pytest.raises(
-            RuntimeError,
-            match="Failed to populate evm_address from mirror node for account 123",
-        ):
-            account_id.populate_evm_address(mock_client)
+        account_id.populate_evm_address(mock_client)
 
 
 def test_populate_evm_address_requires_account_num():

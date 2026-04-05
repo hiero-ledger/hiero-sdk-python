@@ -60,7 +60,7 @@ def print_child_records(record):
     if not record.children:
         sys.exit(1)
 
-    print_transaction_record(record.children[0], f"Child record")
+    print_transaction_record(record.children[0], "Child record")
 
 
 def main():

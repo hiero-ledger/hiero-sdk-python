@@ -1,28 +1,31 @@
 import os
 import time
-from pytest import fixture
-from dotenv import load_dotenv
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional, TypeVar
+from typing import TypeVar
+
+from dotenv import load_dotenv
+from pytest import fixture
+
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_associate_transaction import (
+    TokenAssociateTransaction,
+)
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenKeys,
     TokenParams,
 )
-from hiero_sdk_python.tokens.token_associate_transaction import (
-    TokenAssociateTransaction,
-)
-from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from hiero_sdk_python.hbar import Hbar
 
 T = TypeVar("T")
 
@@ -53,8 +56,8 @@ class IntegrationTestEnv:
 
         network = Network(network=network_name)
         self.client = Client(network)
-        self.operator_id: Optional[AccountId] = None
-        self.operator_key: Optional[PrivateKey] = None
+        self.operator_id: AccountId | None = None
+        self.operator_key: PrivateKey | None = None
         operator_id = os.getenv("OPERATOR_ID")
         operator_key = os.getenv("OPERATOR_KEY")
         if operator_id and operator_key:

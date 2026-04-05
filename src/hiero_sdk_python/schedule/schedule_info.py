@@ -1,10 +1,11 @@
-"""
-ScheduleInfo class
-"""
+"""ScheduleInfo class."""
+
+from __future__ import annotations
 
 import datetime
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from typing import Any
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -26,40 +27,40 @@ class ScheduleInfo:
     Information about a scheduled transaction on the network.
 
     Attributes:
-        schedule_id (Optional[ScheduleId]): The unique identifier for the schedule.
-        creator_account_id (Optional[AccountId]): The account that created the schedule.
-        payer_account_id (Optional[AccountId]): The account responsible for paying
+        schedule_id (ScheduleId, optional): The unique identifier for the schedule.
+        creator_account_id (AccountId, optional): The account that created the schedule.
+        payer_account_id (AccountId, optional): The account responsible for paying
             for the scheduled transaction.
-        deleted_at (Optional[Timestamp]): The time at which the schedule was deleted.
-        executed_at (Optional[Timestamp]): The time at which the scheduled transaction was executed.
-        expiration_time (Optional[Timestamp]): The time at which the schedule will expire.
-        scheduled_transaction_id (Optional[TransactionId]):
+        deleted_at (Timestamp, optional): The time at which the schedule was deleted.
+        executed_at (Timestamp, optional): The time at which the scheduled transaction was executed.
+        expiration_time (Timestamp, optional): The time at which the schedule will expire.
+        scheduled_transaction_id (TransactionId, optional):
             The transaction ID of the scheduled transaction.
-        scheduled_transaction_body (Optional[SchedulableTransactionBody]):
+        scheduled_transaction_body (SchedulableTransactionBody, optional):
             The body of the scheduled transaction.
-        schedule_memo (Optional[str]): The memo associated with the schedule.
-        admin_key (Optional[PublicKey]): The key that can delete or update the schedule.
+        schedule_memo (str, optional): The memo associated with the schedule.
+        admin_key (PublicKey, optional): The key that can delete or update the schedule.
         signers (list[PublicKey]): The list of public keys that have signed the schedule.
-        ledger_id (Optional[bytes]): The ID of the ledger this schedule exists in.
-        wait_for_expiry (Optional[bool]): Whether the schedule is set to wait for expiry.
+        ledger_id (bytes, optional): The ID of the ledger this schedule exists in.
+        wait_for_expiry (bool, optional): Whether the schedule is set to wait for expiry.
     """
 
-    schedule_id: Optional[ScheduleId] = None
-    creator_account_id: Optional[AccountId] = None
-    payer_account_id: Optional[AccountId] = None
-    deleted_at: Optional[Timestamp] = None
-    executed_at: Optional[Timestamp] = None
-    expiration_time: Optional[Timestamp] = None
-    scheduled_transaction_id: Optional[TransactionId] = None
-    scheduled_transaction_body: Optional[SchedulableTransactionBody] = None
-    schedule_memo: Optional[str] = None
-    admin_key: Optional[PublicKey] = None
+    schedule_id: ScheduleId | None = None
+    creator_account_id: AccountId | None = None
+    payer_account_id: AccountId | None = None
+    deleted_at: Timestamp | None = None
+    executed_at: Timestamp | None = None
+    expiration_time: Timestamp | None = None
+    scheduled_transaction_id: TransactionId | None = None
+    scheduled_transaction_body: SchedulableTransactionBody | None = None
+    schedule_memo: str | None = None
+    admin_key: PublicKey | None = None
     signers: list[PublicKey] = field(default_factory=list)
-    ledger_id: Optional[bytes] = None
-    wait_for_expiry: Optional[bool] = None
+    ledger_id: bytes | None = None
+    wait_for_expiry: bool | None = None
 
     @classmethod
-    def _from_proto(cls, proto: ScheduleInfoProto) -> "ScheduleInfo":
+    def _from_proto(cls, proto: ScheduleInfoProto) -> ScheduleInfo:
         """
         Creates a ScheduleInfo instance from its protobuf representation.
 
@@ -74,28 +75,14 @@ class ScheduleInfo:
             raise ValueError("Schedule info proto is None")
 
         return cls(
-            schedule_id=(
-                cls._from_proto_field(proto, "scheduleID", ScheduleId._from_proto)
-            ),
-            creator_account_id=(
-                cls._from_proto_field(proto, "creatorAccountID", AccountId._from_proto)
-            ),
-            payer_account_id=(
-                cls._from_proto_field(proto, "payerAccountID", AccountId._from_proto)
-            ),
-            deleted_at=(
-                cls._from_proto_field(proto, "deletion_time", Timestamp._from_protobuf)
-            ),
-            executed_at=(
-                cls._from_proto_field(proto, "execution_time", Timestamp._from_protobuf)
-            ),
-            expiration_time=(
-                cls._from_proto_field(proto, "expirationTime", Timestamp._from_protobuf)
-            ),
+            schedule_id=(cls._from_proto_field(proto, "scheduleID", ScheduleId._from_proto)),
+            creator_account_id=(cls._from_proto_field(proto, "creatorAccountID", AccountId._from_proto)),
+            payer_account_id=(cls._from_proto_field(proto, "payerAccountID", AccountId._from_proto)),
+            deleted_at=(cls._from_proto_field(proto, "deletion_time", Timestamp._from_protobuf)),
+            executed_at=(cls._from_proto_field(proto, "execution_time", Timestamp._from_protobuf)),
+            expiration_time=(cls._from_proto_field(proto, "expirationTime", Timestamp._from_protobuf)),
             scheduled_transaction_id=(
-                cls._from_proto_field(
-                    proto, "scheduledTransactionID", TransactionId._from_proto
-                )
+                cls._from_proto_field(proto, "scheduledTransactionID", TransactionId._from_proto)
             ),
             scheduled_transaction_body=proto.scheduledTransactionBody,
             schedule_memo=proto.memo,
@@ -114,33 +101,16 @@ class ScheduleInfo:
         """
         return ScheduleInfoProto(
             scheduleID=self._convert_to_proto(self.schedule_id, ScheduleId._to_proto),
-            creatorAccountID=(
-                self._convert_to_proto(self.creator_account_id, AccountId._to_proto)
-            ),
-            payerAccountID=(
-                self._convert_to_proto(self.payer_account_id, AccountId._to_proto)
-            ),
+            creatorAccountID=(self._convert_to_proto(self.creator_account_id, AccountId._to_proto)),
+            payerAccountID=(self._convert_to_proto(self.payer_account_id, AccountId._to_proto)),
             deletion_time=self._convert_to_proto(self.deleted_at, Timestamp._to_protobuf),
-            execution_time=(
-                self._convert_to_proto(self.executed_at, Timestamp._to_protobuf)
-            ),
-            expirationTime=(
-                self._convert_to_proto(self.expiration_time, Timestamp._to_protobuf)
-            ),
-            scheduledTransactionID=(
-                self._convert_to_proto(
-                    self.scheduled_transaction_id, TransactionId._to_proto
-                )
-            ),
+            execution_time=(self._convert_to_proto(self.executed_at, Timestamp._to_protobuf)),
+            expirationTime=(self._convert_to_proto(self.expiration_time, Timestamp._to_protobuf)),
+            scheduledTransactionID=(self._convert_to_proto(self.scheduled_transaction_id, TransactionId._to_proto)),
             scheduledTransactionBody=self.scheduled_transaction_body,
             memo=self.schedule_memo,
             adminKey=self._convert_to_proto(self.admin_key, PublicKey._to_proto),
-            signers=KeyListProto(
-                keys=[
-                    self._convert_to_proto(key, PublicKey._to_proto)
-                    for key in self.signers or []
-                ]
-            ),
+            signers=KeyListProto(keys=[self._convert_to_proto(key, PublicKey._to_proto) for key in self.signers or []]),
             ledger_id=self.ledger_id,
             wait_for_expiry=self.wait_for_expiry,
         )
@@ -155,10 +125,7 @@ class ScheduleInfo:
         return self.__str__()
 
     def __str__(self) -> str:
-        """
-        Pretty-print the ScheduleInfo.
-        """
-
+        """Pretty-print the ScheduleInfo."""
         exp_dt = (
             datetime.datetime.fromtimestamp(self.expiration_time.seconds)
             if self.expiration_time and hasattr(self.expiration_time, "seconds")
@@ -170,9 +137,7 @@ class ScheduleInfo:
 
         # Format ledger_id as hex if it's bytes
         ledger_id_display = (
-            f"0x{self.ledger_id.hex()}"
-            if isinstance(self.ledger_id, (bytes, bytearray))
-            else self.ledger_id
+            f"0x{self.ledger_id.hex()}" if isinstance(self.ledger_id, (bytes, bytearray)) else self.ledger_id
         )
 
         return (
@@ -217,6 +182,6 @@ class ScheduleInfo:
         value = getattr(proto, field_name)
         return from_proto(value)
 
-    def _convert_to_proto(self, obj: Optional[Any], to_proto: Callable) -> Any:
-        """Convert object to proto if it exists, otherwise return None"""
+    def _convert_to_proto(self, obj: Any | None, to_proto: Callable) -> Any:
+        """Convert object to proto if it exists, otherwise return None."""
         return to_proto(obj) if obj else None

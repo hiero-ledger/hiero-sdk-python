@@ -3,11 +3,10 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from tests.integration.utils import env
+
 
 @pytest.mark.integration
 def test_transaction_executes_successfully(env):

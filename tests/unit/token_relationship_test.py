@@ -1,12 +1,12 @@
 import pytest
 
-from hiero_sdk_python.tokens.token_relationship import TokenRelationship
-from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
-from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenRelationship as TokenRelationshipProto
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenFreezeStatus as TokenFreezeStatusProto
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKycStatus as TokenKycStatusProto
+from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenRelationship as TokenRelationshipProto
+from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
+from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 
 pytestmark = pytest.mark.unit
 

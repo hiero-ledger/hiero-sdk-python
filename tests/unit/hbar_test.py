@@ -1,5 +1,6 @@
-from decimal import Decimal
 import re
+from decimal import Decimal
+
 import pytest
 
 from hiero_sdk_python.hbar import Hbar
@@ -214,7 +215,6 @@ def test_comparison():
 
 def test_factory_methods():
     """Test the convenient from_X factory methods."""
-
     # from_microbars
     # 1 microbar = 100 tinybars
     result = Hbar.from_microbars(1)

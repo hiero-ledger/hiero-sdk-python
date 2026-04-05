@@ -3,7 +3,6 @@ from eth_abi.exceptions import EncodingTypeError, ValueOutOfBounds
 from hypothesis import given
 
 from hiero_sdk_python import ContractFunctionParameters
-
 from tests.fuzz.conftest import ContractValueCase, InvalidContractValueCase, get_strategy
 
 pytestmark = pytest.mark.fuzz

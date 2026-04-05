@@ -1,8 +1,6 @@
-"""
-AccountDeleteTransaction class.
-"""
+"""AccountDeleteTransaction class."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -24,35 +22,35 @@ class AccountDeleteTransaction(Transaction):
     This transaction can be used to delete an existing account from the network.
 
     Args:
-        account_id (Optional[AccountId]): The ID of the account to delete.
-        transfer_account_id (Optional[AccountId]): The account ID to transfer
+        account_id (AccountId, optional): The ID of the account to delete.
+        transfer_account_id (AccountId, optional): The account ID to transfer
             remaining balance to.
     """
 
     def __init__(
         self,
-        account_id: Optional[AccountId] = None,
-        transfer_account_id: Optional[AccountId] = None,
+        account_id: AccountId | None = None,
+        transfer_account_id: AccountId | None = None,
     ):
         """
         Initializes a new AccountDeleteTransaction instance.
 
         Args:
-            account_id (Optional[AccountId]): The ID of the account to delete.
-            transfer_account_id (Optional[AccountId]): The account ID to transfer
+            account_id (AccountId, optional): The ID of the account to delete.
+            transfer_account_id (AccountId, optional): The account ID to transfer
                 remaining balance to.
         """
         super().__init__()
-        self.account_id: Optional[AccountId] = account_id
-        self.transfer_account_id: Optional[AccountId] = transfer_account_id
+        self.account_id: AccountId | None = account_id
+        self.transfer_account_id: AccountId | None = transfer_account_id
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
-    def set_account_id(self, account_id: Optional[AccountId]) -> "AccountDeleteTransaction":
+    def set_account_id(self, account_id: AccountId | None) -> AccountDeleteTransaction:
         """
         Sets the ID of the account to delete.
 
         Args:
-            account_id (Optional[AccountId]): The ID of the account to delete.
+            account_id (AccountId | None): The ID of the account to delete.
 
         Returns:
             AccountDeleteTransaction: This transaction instance.
@@ -61,9 +59,7 @@ class AccountDeleteTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def set_transfer_account_id(
-        self, transfer_account_id: Optional[AccountId]
-    ) -> "AccountDeleteTransaction":
+    def set_transfer_account_id(self, transfer_account_id: AccountId | None) -> AccountDeleteTransaction:
         """
         Sets the account ID to transfer the remaining balance to.
 
@@ -71,7 +67,7 @@ class AccountDeleteTransaction(Transaction):
         to another account. This method sets the target account for the balance transfer.
 
         Args:
-            transfer_account_id (Optional[AccountId]): The account ID to transfer
+            transfer_account_id (AccountId | None): The account ID to transfer
                 remaining balance to.
 
         Returns:
@@ -99,9 +95,7 @@ class AccountDeleteTransaction(Transaction):
 
         return CryptoDeleteTransactionBody(
             deleteAccountID=self.account_id._to_proto(),
-            transferAccountID=(
-                self.transfer_account_id._to_proto() if self.transfer_account_id else None
-            ),
+            transferAccountID=(self.transfer_account_id._to_proto() if self.transfer_account_id else None),
         )
 
     def build_transaction_body(self):

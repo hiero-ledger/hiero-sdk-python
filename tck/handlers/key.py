@@ -1,7 +1,6 @@
 from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
-from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
 from tck.param.key import KeyGenerationParams
@@ -108,13 +107,12 @@ def _handle_evm_address(
         if isinstance(key, PrivateKey):
             return str(key.public_key().to_evm_address())
 
-        elif isinstance(key, PublicKey):
+        if isinstance(key, PublicKey):
             return str(key.to_evm_address())
 
-        else:
-            raise JsonRpcError.invalid_params_error(
-                "invalid parameters: fromKey for evmAddress is not ECDSAsecp256k1."
-            )
+        raise JsonRpcError.invalid_params_error(
+            "invalid parameters: fromKey for evmAddress is not ECDSAsecp256k1."
+        )
 
     return str(PrivateKey.generate_ecdsa().public_key().to_evm_address())
 
@@ -127,16 +125,15 @@ def _process_key_recursively(
         KeyType.ECDSA_SECP256K1_PRIVATE_KEY,
     }:
         return _handle_private_key(params, response, is_list)
-    elif params.type in {
+    if params.type in {
         KeyType.ED25519_PUBLIC_KEY,
         KeyType.ECDSA_SECP256K1_PUBLIC_KEY,
     }:
         return _handle_public_key(params, response, is_list)
-    elif params.type in {KeyType.LIST_KEY, KeyType.THRESHOLD_KEY}:
+    if params.type in {KeyType.LIST_KEY, KeyType.THRESHOLD_KEY}:
         return _handle_key_list(params, response, is_list)
-    elif params.type == KeyType.EVM_ADDRESS_KEY:
+    if params.type == KeyType.EVM_ADDRESS_KEY:
         return _handle_evm_address(params, response, is_list)
-    else:
-        raise JsonRpcError.invalid_params_error(
-            "invalid request: key type not recognized."
-        )
+    raise JsonRpcError.invalid_params_error(
+        "invalid request: key type not recognized."
+    )

@@ -3,7 +3,6 @@
 import pytest
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 

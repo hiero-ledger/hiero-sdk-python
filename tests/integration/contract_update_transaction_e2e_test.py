@@ -19,7 +19,6 @@ from hiero_sdk_python.contract.contract_update_transaction import (
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
-from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -41,7 +40,7 @@ def test_integration_contract_update_transaction_can_execute(env):
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
-    current_time = datetime.datetime.now(datetime.timezone.utc)
+    current_time = datetime.datetime.now(datetime.UTC)
     future_expiration = Timestamp.from_date(current_time + datetime.timedelta(days=92))
     updated_memo = "[e2e::ContractUpdateTransaction]"
     updated_duration = Duration(7948800)

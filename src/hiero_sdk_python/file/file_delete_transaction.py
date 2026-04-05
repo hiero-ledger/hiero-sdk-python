@@ -1,8 +1,6 @@
-"""
-Transaction to delete a file on the network.
-"""
+"""Transaction to delete a file on the network."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -27,7 +25,7 @@ class FileDeleteTransaction(Transaction):
     to build and execute a file deletion transaction.
     """
 
-    def __init__(self, file_id: Optional[FileId] = None):
+    def __init__(self, file_id: FileId | None = None):
         """
         Initializes a new FileDeleteTransaction instance with optional file_id.
 
@@ -38,7 +36,7 @@ class FileDeleteTransaction(Transaction):
         self.file_id = file_id
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
-    def set_file_id(self, file_id: FileId) -> "FileDeleteTransaction":
+    def set_file_id(self, file_id: FileId) -> FileDeleteTransaction:
         """
         Sets the ID of the file to be deleted.
 

@@ -2,11 +2,12 @@ import pytest
 
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_type import TokenType
 from tests.integration.utils import IntegrationTestEnv, create_fungible_token
+
 
 @pytest.mark.integration
 def test_integration_token_info_query_can_execute():

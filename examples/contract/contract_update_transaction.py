@@ -119,7 +119,7 @@ def contract_update():
     print(f"Contract created successfully with ID: {contract_id}")
 
     # Calculate future expiration time (1 year from now)
-    current_time = datetime.datetime.now(datetime.timezone.utc)
+    current_time = datetime.datetime.now(datetime.UTC)
     future_expiration = Timestamp.from_date(current_time + datetime.timedelta(days=92))
     auto_renew_period = Duration(90 * 24 * 60 * 60)
 

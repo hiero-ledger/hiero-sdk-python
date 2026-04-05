@@ -90,7 +90,7 @@ def account_update():
     new_public_key = new_private_key.public_key()
 
     # Create a future expiration time (92 days from now)
-    current_time = datetime.datetime.now(datetime.timezone.utc)
+    current_time = datetime.datetime.now(datetime.UTC)
     future_expiration = Timestamp.from_date(current_time + datetime.timedelta(days=92))
     print(f"\nFuture expiration time: {future_expiration}")
 

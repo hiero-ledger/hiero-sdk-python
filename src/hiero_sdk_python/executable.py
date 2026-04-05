@@ -1,16 +1,19 @@
+from __future__ import annotations
+
 import math
 import re
 import time
-from typing import Callable, Optional, Any, TYPE_CHECKING, List, Union
-from abc import ABC, abstractmethod
-from enum import IntEnum
 import warnings
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from enum import IntEnum
+from typing import TYPE_CHECKING, Any
 
 import grpc
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import query_pb2, transaction_pb2
 from hiero_sdk_python.logger.logger import Logger
 from hiero_sdk_python.response_code import ResponseCode
@@ -34,8 +37,8 @@ class _Method:
 
     def __init__(
         self,
-        query_func: Optional[Callable[..., Any]] = None,
-        transaction_func: Optional[Callable[..., Any]] = None,
+        query_func: Callable[..., Any] | None = None,
+        transaction_func: Callable[..., Any] | None = None,
     ):
         """
         Initialize a Method instance with the appropriate callable functions.
@@ -76,24 +79,24 @@ class _Executable(ABC):
     """
 
     def __init__(self):
-        self._max_attempts: Optional[int] = None
-        self._max_backoff: Optional[float] = None
-        self._min_backoff: Optional[float] = None
-        self._grpc_deadline: Optional[float] = None
-        self._request_timeout: Optional[float] = None
+        self._max_attempts: int | None = None
+        self._max_backoff: float | None = None
+        self._min_backoff: float | None = None
+        self._grpc_deadline: float | None = None
+        self._request_timeout: float | None = None
 
-        self.node_account_id: Optional[AccountId] = None
-        self.node_account_ids: List[AccountId] = []
+        self.node_account_id: AccountId | None = None
+        self.node_account_ids: list[AccountId] = []
 
-        self._used_node_account_id: Optional[AccountId] = None
+        self._used_node_account_id: AccountId | None = None
         self._node_account_ids_index: int = 0
 
-    def set_node_account_ids(self, node_account_ids: List[AccountId]):
+    def set_node_account_ids(self, node_account_ids: list[AccountId]):
         """
         Explicitly set the node account IDs to execute against.
 
         Args:
-            node_account_ids (List[AccountId]): List of node account IDs
+            node_account_ids (list[AccountId]): List of node account IDs
 
         Returns:
             The current instance of the class for chaining.
@@ -125,9 +128,7 @@ class _Executable(ABC):
             The current instance of the class for chaining.
         """
         if isinstance(max_attempts, bool) or not isinstance(max_attempts, int):
-            raise TypeError(
-                f"max_attempts must be of type int, got {(type(max_attempts).__name__)}"
-            )
+            raise TypeError(f"max_attempts must be of type int, got {(type(max_attempts).__name__)}")
 
         if max_attempts <= 0:
             raise ValueError("max_attempts must be greater than 0")
@@ -135,23 +136,19 @@ class _Executable(ABC):
         self._max_attempts = max_attempts
         return self
 
-    def set_grpc_deadline(self, grpc_deadline: Union[int, float]):
+    def set_grpc_deadline(self, grpc_deadline: int | float):
         """
         Set the gRPC call deadline (per attempt).
 
         Args:
-            grpc_deadline (Union[int,float]): gRPC deadline in seconds.
+            grpc_deadline (int | float): gRPC deadline in seconds.
                 Must be greater than zero.
 
         Returns:
             The current instance of the class for chaining.
         """
-        if isinstance(grpc_deadline, bool) or not isinstance(
-            grpc_deadline, (float, int)
-        ):
-            raise TypeError(
-                f"grpc_deadline must be of type Union[int, float], got {type(grpc_deadline).__name__}"
-            )
+        if isinstance(grpc_deadline, bool) or not isinstance(grpc_deadline, (float, int)):
+            raise TypeError(f"grpc_deadline must be of type Union[int, float], got {type(grpc_deadline).__name__}")
 
         if not math.isfinite(grpc_deadline) or grpc_deadline <= 0:
             raise ValueError("grpc_deadline must be a finite value greater than 0")
@@ -161,12 +158,13 @@ class _Executable(ABC):
                 "grpc_deadline should be smaller than request_timeout. "
                 "This configuration may cause operations to fail unexpectedly.",
                 UserWarning,
+                stacklevel=2,
             )
 
         self._grpc_deadline = float(grpc_deadline)
         return self
 
-    def set_request_timeout(self, request_timeout: Union[int, float]):
+    def set_request_timeout(self, request_timeout: int | float):
         """
         Set the total execution timeout for this operation.
 
@@ -177,12 +175,8 @@ class _Executable(ABC):
         Returns:
             The current instance of the class for chaining.
         """
-        if isinstance(request_timeout, bool) or not isinstance(
-            request_timeout, (float, int)
-        ):
-            raise TypeError(
-                f"request_timeout must be of type Union[int, float], got {type(request_timeout).__name__}"
-            )
+        if isinstance(request_timeout, bool) or not isinstance(request_timeout, (float, int)):
+            raise TypeError(f"request_timeout must be of type Union[int, float], got {type(request_timeout).__name__}")
 
         if not math.isfinite(request_timeout) or request_timeout <= 0:
             raise ValueError("request_timeout must be a finite value greater than 0")
@@ -192,26 +186,25 @@ class _Executable(ABC):
                 "request_timeout should be larger than grpc_deadline. "
                 "This configuration may cause operations to fail unexpectedly.",
                 UserWarning,
+                stacklevel=2,
             )
 
         self._request_timeout = float(request_timeout)
         return self
 
-    def set_min_backoff(self, min_backoff: Union[int, float]):
+    def set_min_backoff(self, min_backoff: int | float):
         """
         Set the minimum backoff delay between retries.
 
         Args:
-            min_backoff ((Union[int,float]): Minimum backoff delay in seconds.
+            min_backoff (int | float): Minimum backoff delay in seconds.
                 Must be finite and non-negative.
 
         Returns:
             The current instance of the class for chaining.
         """
         if isinstance(min_backoff, bool) or not isinstance(min_backoff, (int, float)):
-            raise TypeError(
-                f"min_backoff must be of type int or float, got {(type(min_backoff).__name__)}"
-            )
+            raise TypeError(f"min_backoff must be of type int or float, got {(type(min_backoff).__name__)}")
 
         if not math.isfinite(min_backoff) or min_backoff < 0:
             raise ValueError("min_backoff must be a finite value >= 0")
@@ -222,21 +215,19 @@ class _Executable(ABC):
         self._min_backoff = float(min_backoff)
         return self
 
-    def set_max_backoff(self, max_backoff: Union[int, float]):
+    def set_max_backoff(self, max_backoff: int | float):
         """
         Set the maximum backoff delay between retries.
 
         Args:
-            max_backoff (Union[int,float]): Maximum backoff delay in seconds.
+            max_backoff (int | float): Maximum backoff delay in seconds.
                 Must be finite and greater than or equal to min_backoff.
 
         Returns:
             The current instance of the class for chaining.
         """
         if isinstance(max_backoff, bool) or not isinstance(max_backoff, (int, float)):
-            raise TypeError(
-                f"max_backoff must be of type int or float, got {(type(max_backoff).__name__)}"
-            )
+            raise TypeError(f"max_backoff must be of type int or float, got {(type(max_backoff).__name__)}")
 
         if not math.isfinite(max_backoff) or max_backoff < 0:
             raise ValueError("max_backoff must be a finite value >= 0")
@@ -247,7 +238,7 @@ class _Executable(ABC):
         self._max_backoff = float(max_backoff)
         return self
 
-    def _select_node_account_id(self) -> Optional[AccountId]:
+    def _select_node_account_id(self) -> AccountId | None:
         """
         Select the next node account ID from node_account_ids in a round-robin fashion.
 
@@ -256,9 +247,7 @@ class _Executable(ABC):
         """
         if self.node_account_ids:
             # Use modulo to cycle through the list
-            selected = self.node_account_ids[
-                self._node_account_ids_index % len(self.node_account_ids)
-            ]
+            selected = self.node_account_ids[self._node_account_ids_index % len(self.node_account_ids)]
             self._used_node_account_id = selected
             return selected
         return None
@@ -333,15 +322,11 @@ class _Executable(ABC):
         raise NotImplementedError("_map_response must be implemented by subclasses")
 
     def _get_request_id(self):
-        """
-        Format the request ID for the logger.
-        """
+        """Format the request ID for the logger."""
         return f"{self.__class__.__name__}:{time.time_ns()}"
 
-    def _resolve_execution_config(self, client: "Client", timeout: Optional[Union[int, float]]) -> None:
-        """
-        Resolve unset execution configuration from the Client defaults.
-        """
+    def _resolve_execution_config(self, client: Client, timeout: int | float | None) -> None:
+        """Resolve unset execution configuration from the Client defaults."""
         # Set request_timeout explicitly set via set_request_timeout()
         # If not set use timeout passed to execute()
         # Else clients default request_timeout
@@ -362,9 +347,7 @@ class _Executable(ABC):
 
         # nodes to which the executaion must be run against, if not provided used nodes from client
         if not self.node_account_ids:
-            self.node_account_ids = [
-                node._account_id for node in client.network._healthy_nodes
-            ]
+            self.node_account_ids = [node._account_id for node in client.network._healthy_nodes]
 
         if not self.node_account_ids:
             raise RuntimeError("No healthy nodes available for execution")
@@ -379,19 +362,16 @@ class _Executable(ABC):
                 grpc.StatusCode.DEADLINE_EXCEEDED,
                 grpc.StatusCode.UNAVAILABLE,
                 grpc.StatusCode.RESOURCE_EXHAUSTED,
-            ) or (
-                err.code() == grpc.StatusCode.INTERNAL
-                and bool(RST_STREAM.search(err.details()))
-            )
+            ) or (err.code() == grpc.StatusCode.INTERNAL and bool(RST_STREAM.search(err.details())))
 
         return True
 
     def _calculate_backoff(self, attempt: int):
-        """Calculate backoff for the given attempt, attempt start from 0"""
+        """Calculate backoff for the given attempt, attempt start from 0."""
         return min(self._max_backoff, self._min_backoff * (2 ** (attempt + 1)))
 
     def _handle_unhealthy_node(self, proto_request, attempt, logger, err) -> bool:
-        """Handle node switching and backoff for unhealthy node"""
+        """Handle node switching and backoff for unhealthy node."""
         # Check if the request is a transaction receipt or record because they are single node requests
         if _is_transaction_receipt_or_record_request(proto_request):
             _delay_for_attempt(
@@ -409,13 +389,13 @@ class _Executable(ABC):
         self._advance_node_index()
         return True
 
-    def _execute(self, client: "Client", timeout: Optional[Union[int, float]] = None):
+    def _execute(self, client: Client, timeout: int | float | None = None):
         """
         Execute a transaction or query with retry logic.
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
                 Precedence as follow:
                 1. Explicitly set via set_request_timeout()
                 2. Timeout passed to execute()
@@ -448,9 +428,7 @@ class _Executable(ABC):
             node = client.network._get_node(node_id)
 
             if node is None:
-                raise RuntimeError(
-                    f"No node found for node_account_id: {self.node_account_id}"
-                )
+                raise RuntimeError(f"No node found for node_account_id: {self.node_account_id}")
 
             # Store for logging and receipts
             self.node_account_id = node._account_id
@@ -458,7 +436,17 @@ class _Executable(ABC):
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
 
-            logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self.node_account_id, "attempt", attempt + 1, "maxAttempts", self._max_attempts,)
+            logger.trace(
+                "Executing",
+                "requestId",
+                self._get_request_id(),
+                "nodeAccountID",
+                self.node_account_id,
+                "attempt",
+                attempt + 1,
+                "maxAttempts",
+                self._max_attempts,
+            )
 
             # Get the appropriate gRPC method to call
             method = self._get_method(channel)
@@ -467,9 +455,7 @@ class _Executable(ABC):
             proto_request = self._make_request()
 
             if not node.is_healthy():
-                self._handle_unhealthy_node(
-                    proto_request, attempt, logger, err_persistant
-                )
+                self._handle_unhealthy_node(proto_request, attempt, logger, err_persistant)
                 continue
 
             # Execute the GRPC call
@@ -493,7 +479,17 @@ class _Executable(ABC):
 
             # Determine if we should retry based on the response
             execution_state = self._should_retry(response)
-            logger.trace(f"{self.__class__.__name__} status received", "nodeAccountID", self.node_account_id, "network", client.network.network, "state", execution_state.name, "txID", tx_id,)
+            logger.trace(
+                f"{self.__class__.__name__} status received",
+                "nodeAccountID",
+                self.node_account_id,
+                "network",
+                client.network.network,
+                "state",
+                execution_state.name,
+                "txID",
+                tx_id,
+            )
 
             # Handle the execution state
             match execution_state:
@@ -521,11 +517,15 @@ class _Executable(ABC):
                 case _ExecutionState.FINISHED:
                     # If the transaction completed successfully, map the response and return it
                     logger.trace(f"{self.__class__.__name__} finished execution")
-                    return self._map_response(
-                        response, self.node_account_id, proto_request
-                    )
+                    return self._map_response(response, self.node_account_id, proto_request)
 
-        logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant,)
+        logger.error(
+            "Exceeded maximum attempts for request",
+            "requestId",
+            self._get_request_id(),
+            "last exception being",
+            err_persistant,
+        )
         raise MaxAttemptsError(
             "Exceeded maximum attempts or request timeout",
             self.node_account_id,
@@ -534,14 +534,12 @@ class _Executable(ABC):
 
 
 def _is_transaction_receipt_or_record_request(
-    request: Union[transaction_pb2.Transaction, query_pb2.Query],
+    request: transaction_pb2.Transaction | query_pb2.Query,
 ) -> bool:
     if not isinstance(request, query_pb2.Query):
         return False
 
-    return request.HasField("transactionGetReceipt") or request.HasField(
-        "transactionGetRecord"
-    )
+    return request.HasField("transactionGetReceipt") or request.HasField("transactionGetRecord")
 
 
 def _delay_for_attempt(request_id: str, backoff: float, attempt: int, logger: Logger, error) -> None:
@@ -552,7 +550,17 @@ def _delay_for_attempt(request_id: str, backoff: float, attempt: int, logger: Lo
         attempt (int): The current attempt number (0-based)
         backoff (float): The current backoff period in seconds
     """
-    logger.trace("Retrying request attempt", "requestId", request_id, "delay", backoff, "attempt", attempt, "error", error,)
+    logger.trace(
+        "Retrying request attempt",
+        "requestId",
+        request_id,
+        "delay",
+        backoff,
+        "attempt",
+        attempt,
+        "error",
+        error,
+    )
     time.sleep(backoff)
 
 
@@ -573,6 +581,6 @@ def _execute_method(method, proto_request, timeout: float):
     """
     if method.transaction is not None:
         return method.transaction(proto_request, timeout=timeout)
-    elif method.query is not None:
+    if method.query is not None:
         return method.query(proto_request, timeout=timeout)
     raise Exception("No method to execute")

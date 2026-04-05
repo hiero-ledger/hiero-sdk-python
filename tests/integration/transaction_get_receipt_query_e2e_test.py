@@ -7,26 +7,25 @@ These tests validate the full SDK flow against a real Hedera network:
 - verify children behavior with and without include_children flag
 - verify duplicate transactions returned with include_duplicates flag
 
-NOTE:
+Note:
 The contract used in these tests (StatefulContract) does NOT deterministically
 produce child receipts, so we only assert API correctness and stability,
 not children count > 0.
 """
 
+import threading
+
+import pytest
+
 from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import ReceiptStatusError
-from hiero_sdk_python.transaction.transaction_id import TransactionId
-import pytest
-import threading
-
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-
-from tests.integration.utils import env
 
 
 def _extract_tx_id(tx, receipt):
@@ -127,10 +126,10 @@ def test_get_receipt_query_children_with_contract_execute_e2e(env):
         CONTRACT_DEPLOY_GAS,
         STATEFUL_CONTRACT_BYTECODE,
     )
-    from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
     from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
     from hiero_sdk_python.contract.contract_execute_transaction import ContractExecuteTransaction
     from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
+    from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 
     # Upload contract bytecode
     file_receipt = (

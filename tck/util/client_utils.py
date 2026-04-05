@@ -1,5 +1,6 @@
-from hiero_sdk_python import Client
 import threading
+
+from hiero_sdk_python import Client
 
 _CLIENTS: dict[str, Client] = {}
 _LOCK = threading.Lock()

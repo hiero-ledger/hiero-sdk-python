@@ -5,7 +5,6 @@ from hypothesis import given
 
 from hiero_sdk_python import AccountId, TokenId
 from hiero_sdk_python.contract.contract_id import ContractId
-
 from tests.fuzz.conftest import AccountIdAliasCase, EntityIdCase, get_strategy
 
 pytestmark = pytest.mark.fuzz

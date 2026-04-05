@@ -3,8 +3,9 @@ This module contains the ContractLogInfo class, which represents a log entry
 from a contract execution.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import contract_types_pb2
@@ -16,21 +17,19 @@ class ContractLogInfo:
     Represents a log entry from a contract execution.
 
     Attributes:
-        contract_id (Optional[ContractId]): The contract ID.
-        bloom (Optional[bytes]): The bloom filter.
-        topics (List[bytes]): The topics.
-        data (Optional[bytes]): The data.
+        contract_id (ContractId, optional): The contract ID.
+        bloom (bytes, optional): The bloom filter.
+        topics (list[bytes]): The topics.
+        data (bytes, optional): The data.
     """
 
-    contract_id: Optional[ContractId] = None
-    bloom: Optional[bytes] = None
-    topics: List[bytes] = field(default_factory=list)
-    data: Optional[bytes] = None
+    contract_id: ContractId | None = None
+    bloom: bytes | None = None
+    topics: list[bytes] = field(default_factory=list)
+    data: bytes | None = None
 
     @classmethod
-    def _from_proto(
-        cls, proto: contract_types_pb2.ContractLoginfo
-    ) -> "ContractLogInfo":
+    def _from_proto(cls, proto: contract_types_pb2.ContractLoginfo) -> ContractLogInfo:
         """
         Creates a ContractLogInfo instance from its protobuf representation.
 
@@ -47,9 +46,7 @@ class ContractLogInfo:
             raise ValueError("Contract log info proto is None")
 
         return cls(
-            contract_id=(
-                ContractId._from_proto(proto.contractID) if proto.contractID else None
-            ),
+            contract_id=(ContractId._from_proto(proto.contractID) if proto.contractID else None),
             bloom=proto.bloom,
             topics=proto.topic,
             data=proto.data,
@@ -79,9 +76,7 @@ class ContractLogInfo:
         return self.__str__()
 
     def __str__(self) -> str:
-        """
-        Pretty-print the ContractLogInfo.
-        """
+        """Pretty-print the ContractLogInfo."""
         topics_str = [topic.hex() for topic in self.topics] if self.topics else []
 
         return (

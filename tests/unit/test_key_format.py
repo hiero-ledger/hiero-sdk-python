@@ -4,8 +4,8 @@ import pytest
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
-from hiero_sdk_python.utils.key_utils import key_to_proto
 from hiero_sdk_python.utils.key_format import format_key
+from hiero_sdk_python.utils.key_utils import key_to_proto
 
 pytestmark = pytest.mark.unit
 
@@ -29,7 +29,6 @@ def test_format_key_none():
 
 def test_format_key_threshold_key():
     """Test formatting a ThresholdKey."""
-
     key = basic_types_pb2.Key()
     key.thresholdKey.threshold = 2
 
@@ -39,7 +38,6 @@ def test_format_key_threshold_key():
 
 def test_format_key_contract_id():
     """Test formatting a ContractID key."""
-
     key = basic_types_pb2.Key()
     key.contractID.shardNum = 0
     key.contractID.realmNum = 0
@@ -54,7 +52,6 @@ def test_format_key_contract_id():
 
 def test_format_key_keylist():
     """Test formatting a KeyList."""
-
     key = basic_types_pb2.Key()
     key.keyList.keys.add()
 

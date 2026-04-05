@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import typing
+
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.account.account_id import AccountId
-    from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
     from hiero_sdk_python.hapi.services import custom_fees_pb2
+    from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 
 """Manages custom royalty fees for Non-Fungible Token (NFT) transactions.
 
@@ -17,8 +19,8 @@ fee (with an optional fixed fee fallback) to be collected upon NFT transfer.
 class CustomRoyaltyFee(CustomFee):
     """Represents a custom royalty fee assessed during NFT transfers.
 
-    The royalty fee is defined by a fractional exchange value (numerator/denominator) 
-    and an optional fixed fee that applies if the NFT is exchanged for HBAR 
+    The royalty fee is defined by a fractional exchange value (numerator/denominator)
+    and an optional fixed fee that applies if the NFT is exchanged for HBAR
     or a token not specified in the fee schedule.
 
     Inherits common properties like fee_collector_account_id from CustomFee.
@@ -28,23 +30,23 @@ class CustomRoyaltyFee(CustomFee):
         self,
         numerator: int = 0,
         denominator: int = 1,
-        fallback_fee: typing.Optional["CustomFixedFee"] = None,
-        fee_collector_account_id: typing.Optional["AccountId"] = None,
+        fallback_fee: CustomFixedFee | None = None,
+        fee_collector_account_id: AccountId | None = None,
         all_collectors_are_exempt: bool = False,
     ):
         """Initializes the CustomRoyaltyFee.
 
         Args:
-            numerator (int): The numerator of the fraction defining the royalty amount. 
+            numerator (int): The numerator of the fraction defining the royalty amount.
                 Defaults to 0.
-            denominator (int): The denominator of the fraction defining the royalty 
+            denominator (int): The denominator of the fraction defining the royalty
                 amount. Defaults to 1.
-            fallback_fee (typing.Optional[CustomFixedFee]): The fixed fee to be 
-                collected if the exchange is not in the token's unit (e.g., if sold 
+            fallback_fee (typing.Optional[CustomFixedFee]): The fixed fee to be
+                collected if the exchange is not in the token's unit (e.g., if sold
                 for HBAR). Defaults to None.
-            fee_collector_account_id (typing.Optional[AccountId]): The account ID of 
+            fee_collector_account_id (typing.Optional[AccountId]): The account ID of
                 the fee collector. Inherited from CustomFee. Defaults to None.
-            all_collectors_are_exempt (bool): If true, all collectors for this fee 
+            all_collectors_are_exempt (bool): If true, all collectors for this fee
                 are exempt from custom fees. Inherited from CustomFee. Defaults to False.
         """
         super().__init__(fee_collector_account_id, all_collectors_are_exempt)
@@ -52,7 +54,7 @@ class CustomRoyaltyFee(CustomFee):
         self.denominator = denominator
         self.fallback_fee = fallback_fee
 
-    def set_numerator(self, numerator: int) -> "CustomRoyaltyFee":
+    def set_numerator(self, numerator: int) -> CustomRoyaltyFee:
         """Sets the numerator of the royalty fraction.
 
         Args:
@@ -64,7 +66,7 @@ class CustomRoyaltyFee(CustomFee):
         self.numerator = numerator
         return self
 
-    def set_denominator(self, denominator: int) -> "CustomRoyaltyFee":
+    def set_denominator(self, denominator: int) -> CustomRoyaltyFee:
         """Sets the denominator of the royalty fraction.
 
         Args:
@@ -76,11 +78,11 @@ class CustomRoyaltyFee(CustomFee):
         self.denominator = denominator
         return self
 
-    def set_fallback_fee(self, fallback_fee: typing.Optional["CustomFixedFee"]) -> "CustomRoyaltyFee":
+    def set_fallback_fee(self, fallback_fee: CustomFixedFee | None) -> CustomRoyaltyFee:
         """Sets the optional fixed fee that applies if the royalty is paid in HBAR.
 
         Args:
-            fallback_fee (typing.Optional[CustomFixedFee]): A CustomFixedFee object 
+            fallback_fee (typing.Optional[CustomFixedFee]): A CustomFixedFee object
                 to use as the fixed fallback fee, or None to remove it.
 
         Returns:
@@ -89,7 +91,7 @@ class CustomRoyaltyFee(CustomFee):
         self.fallback_fee = fallback_fee
         return self
 
-    def _to_proto(self) -> "custom_fees_pb2.CustomFee":
+    def _to_proto(self) -> custom_fees_pb2.CustomFee:
         """Converts this CustomRoyaltyFee object to its protobuf representation.
 
         Builds the RoyaltyFee message and integrates it with the common fields
@@ -116,16 +118,16 @@ class CustomRoyaltyFee(CustomFee):
                 fallback_fee=fallback_fee_proto,
             ),
         )
-    
+
     @classmethod
-    def _from_proto(cls, proto_fee) -> "CustomRoyaltyFee":
+    def _from_proto(cls, proto_fee) -> CustomRoyaltyFee:
         """Creates a CustomRoyaltyFee instance from a CustomFee protobuf message.
 
-        Extracts the royalty fee details, optional fallback fee, and common fee 
+        Extracts the royalty fee details, optional fallback fee, and common fee
         properties from the protobuf message.
 
         Args:
-            proto_fee: The protobuf CustomFee message. It is expected that the 
+            proto_fee: The protobuf CustomFee message. It is expected that the
                 `royalty_fee` field is set.
 
         Returns:
@@ -133,23 +135,23 @@ class CustomRoyaltyFee(CustomFee):
         """
         from hiero_sdk_python.account.account_id import AccountId
         from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-        
+
         royalty_fee_proto = proto_fee.royalty_fee
-        
+
         fallback_fee = None
         if royalty_fee_proto.HasField("fallback_fee"):
             fallback_fee = CustomFixedFee._from_fixed_fee_proto(royalty_fee_proto.fallback_fee)
-        
+
         fee_collector_account_id = None
         if proto_fee.HasField("fee_collector_account_id"):
             fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
-        
+
         return cls(
             numerator=royalty_fee_proto.exchange_value_fraction.numerator,
             denominator=royalty_fee_proto.exchange_value_fraction.denominator,
             fallback_fee=fallback_fee,
             fee_collector_account_id=fee_collector_account_id,
-            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
+            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt,
         )
 
     def __str__(self) -> str:
@@ -165,7 +167,7 @@ class CustomRoyaltyFee(CustomFee):
         fallback_fee_token_id = self.fallback_fee.denominating_token_id if self.fallback_fee else "None"
 
         lines = [
-            f"CustomRoyaltyFee:",
+            "CustomRoyaltyFee:",
             f"   Numerator = {self.numerator}",
             f"   Denominator = {self.denominator}",
             f"   Fallback Fee Amount = {fallback_fee_amount}",

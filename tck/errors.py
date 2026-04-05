@@ -1,7 +1,7 @@
 """Error code constants for the TCK server."""
 
-from functools import wraps
 import logging
+from functools import wraps
 
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError, ReceiptStatusError
 from hiero_sdk_python.response_code import ResponseCode
@@ -34,7 +34,7 @@ class JsonRpcError(Exception):
         return error
 
     @classmethod
-    def parse_error(cls, data=None, message: str = "Parse error") -> "JsonRpcError":
+    def parse_error(cls, data=None, message: str = "Parse error") -> JsonRpcError:
         """Create a Parse Error JSON-RPC error.
 
         Args:
@@ -46,7 +46,7 @@ class JsonRpcError(Exception):
     @classmethod
     def invalid_request_error(
         cls, data=None, message: str = "Invalid Request"
-    ) -> "JsonRpcError":
+    ) -> JsonRpcError:
         """Create an Invalid Request JSON-RPC error.
 
         Args:
@@ -58,7 +58,7 @@ class JsonRpcError(Exception):
     @classmethod
     def method_not_found_error(
         cls, data=None, message: str = "Method not found"
-    ) -> "JsonRpcError":
+    ) -> JsonRpcError:
         """Create a Method Not Found JSON-RPC error.
 
         Args:
@@ -70,7 +70,7 @@ class JsonRpcError(Exception):
     @classmethod
     def invalid_params_error(
         cls, data=None, message: str = "Invalid params"
-    ) -> "JsonRpcError":
+    ) -> JsonRpcError:
         """Create an Invalid Params JSON-RPC error.
 
         Args:
@@ -82,7 +82,7 @@ class JsonRpcError(Exception):
     @classmethod
     def internal_error(
         cls, data=None, message: str = "Internal error"
-    ) -> "JsonRpcError":
+    ) -> JsonRpcError:
         """Create an Internal Error JSON-RPC error.
 
         Args:
@@ -92,7 +92,7 @@ class JsonRpcError(Exception):
         return cls(INTERNAL_ERROR, message, data)
 
     @classmethod
-    def hiero_error(cls, data=None, message: str = "Hiero error") -> "JsonRpcError":
+    def hiero_error(cls, data=None, message: str = "Hiero error") -> JsonRpcError:
         """Create a Hiero-specific JSON-RPC error.
 
         Args:
@@ -127,7 +127,7 @@ def handle_sdk_errors(func):
                 message= str(e)
             )
 
-        except Exception as e:
+        except Exception:
             logger.exception("Unhandled error in RPC handler")
             raise JsonRpcError.internal_error(message="Internal error")
 

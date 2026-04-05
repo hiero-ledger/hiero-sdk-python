@@ -4,10 +4,10 @@ Unit tests for the DelegateContractId class.
 
 import struct
 from unittest.mock import patch
+
 import pytest
 
 from hiero_sdk_python.contract.delegate_contract_id import DelegateContractId
-from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
 pytestmark = pytest.mark.unit
@@ -548,12 +548,11 @@ def test_populate_contract_num_invalid_response(client):
     with patch(
         "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
         return_value={"contract_id": "invalid.account.format"},
+    ), pytest.raises(
+        ValueError,
+        match="Invalid contract_id format received: invalid.account.format",
     ):
-        with pytest.raises(
-            ValueError,
-            match="Invalid contract_id format received: invalid.account.format",
-        ):
-            contract_id.populate_contract_num(client)
+        contract_id.populate_contract_num(client)
 
 
 def test_populate_contract_num_query_fails(client):
@@ -590,11 +589,10 @@ def test_populate_contract_num_invalid_mirror_response(client):
     with patch(
         "hiero_sdk_python.contract.contract_id.perform_query_to_mirror_node",
         return_value={},
+    ), pytest.raises(
+        ValueError, match="Mirror node response missing 'contract_id'"
     ):
-        with pytest.raises(
-            ValueError, match="Mirror node response missing 'contract_id'"
-        ):
-            contract_id.populate_contract_num(client)
+        contract_id.populate_contract_num(client)
 
 
 def test_to_proto_key():

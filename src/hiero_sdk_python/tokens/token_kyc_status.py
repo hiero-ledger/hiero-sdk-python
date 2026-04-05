@@ -1,28 +1,34 @@
 """
-hiero_sdk_python.tokens.token_kyc_status.py
+hiero_sdk_python.tokens.token_kyc_status.py.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines TokenKycStatus enum to represent Know-Your-Customer (KYC) status:
 not applicable, granted, or revoked.
 """
+
+from __future__ import annotations
+
 from enum import Enum
 from typing import Any
+
 from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 class TokenKycStatus(Enum):
     """
     KYC (Know Your Customer) status indicator:
 
-      • KYC_NOT_APPLICABLE – not applicable  
-      • GRANTED           – KYC granted  
-      • REVOKED           – KYC revoked
+      • KYC_NOT_APPLICABLE - not applicable
+      • GRANTED            - KYC granted
+      • REVOKED            - KYC revoked
     """
+
     KYC_NOT_APPLICABLE = 0
     GRANTED = 1
     REVOKED = 2
 
     @staticmethod
-    def _from_proto(proto_obj: basic_types_pb2.TokenKycStatus) -> "TokenKycStatus":
+    def _from_proto(proto_obj: basic_types_pb2.TokenKycStatus) -> TokenKycStatus:
         """Converts a proto TokenKycStatus object to a TokenKycStatus enum."""
         if proto_obj == basic_types_pb2.TokenKycStatus.KycNotApplicable:
             return TokenKycStatus.KYC_NOT_APPLICABLE

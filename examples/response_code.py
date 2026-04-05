@@ -7,7 +7,7 @@ class TransactionReceipt:
         self.status = status_code
 
 
-def response_code(receipt: "TransactionReceipt"):
+def response_code(receipt: TransactionReceipt):
     status_code = ResponseCode(receipt.status)
     print(f"The response code is {status_code}")
 
@@ -19,7 +19,7 @@ def response_code(receipt: "TransactionReceipt"):
         print("❌ Transaction failed!")
 
 
-def response_name(receipt: "TransactionReceipt"):
+def response_name(receipt: TransactionReceipt):
     status_code = ResponseCode(receipt.status)
     status_name = status_code.name
     print(f"The response name is {status_name}")

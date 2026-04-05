@@ -9,7 +9,7 @@ class BaseParams:
     sessionId: str = None
 
     @classmethod
-    def parse_json_params(cls, params: dict) -> "BaseParams":
+    def parse_json_params(cls, params: dict) -> BaseParams:
         return cls(parse_session_id(params))
 
 

@@ -1,23 +1,21 @@
-import pytest
 from unittest.mock import MagicMock, Mock
 
+import pytest
 
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
 )
-from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
-from hiero_sdk_python.hapi.services.token_pause_pb2 import TokenPauseTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
-from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.transaction.transaction_id import TransactionId
-
+from hiero_sdk_python.hapi.services.token_pause_pb2 import TokenPauseTransactionBody
+from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
@@ -57,7 +55,6 @@ def test_build_transaction_body_nft(mock_account_ids, nft_id):
 # This test uses fixture (token_id, mock_client) as parameter
 def test__to_proto(token_id, mock_client):
     """Test converting the token pause transaction to protobuf format after signing."""
-    
     # Build the TokenPauseTransaction 
     pause_tx = (
         TokenPauseTransaction()
@@ -120,7 +117,6 @@ def test__get_method_points_to_pause_token():
 # This test uses fixture token_id as parameter
 def test_pause_transaction_can_execute(token_id):
     """Test that a pause transaction can be executed successfully."""
-
     # Create test transaction responses
     ok_response = TransactionResponseProto()
     ok_response.nodeTransactionPrecheckCode = ResponseCode.OK

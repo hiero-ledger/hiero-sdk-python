@@ -236,7 +236,7 @@ def test_integration_transfer_transaction_transfer_wrong_hbar_amount():
         transfer_transaction.add_hbar_transfer(account_id, 2)
 
         with pytest.raises(
-            PrecheckError, match=f"Transaction failed precheck with status: INVALID_ACCOUNT_AMOUNTS"
+            PrecheckError, match="Transaction failed precheck with status: INVALID_ACCOUNT_AMOUNTS"
         ):
             transfer_transaction.execute(env.client)
     finally:

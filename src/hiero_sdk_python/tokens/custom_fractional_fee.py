@@ -7,7 +7,9 @@ and the method used to assess the fee (inclusive or exclusive).
 """
 
 from __future__ import annotations
+
 import typing
+
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 
@@ -31,7 +33,7 @@ class CustomFractionalFee(CustomFee):
         min_amount: int = 0,
         max_amount: int = 0,
         assessment_method: FeeAssessmentMethod = FeeAssessmentMethod.INCLUSIVE,
-        fee_collector_account_id: typing.Optional["AccountId"] = None,
+        fee_collector_account_id: AccountId | None = None,
         all_collectors_are_exempt: bool = False,
     ):
         """Initialize a CustomFractionalFee instance.
@@ -54,13 +56,12 @@ class CustomFractionalFee(CustomFee):
 
     def __str__(self) -> str:
         """Return a string representation of the CustomFractionalFee."""
-        max_len = max(len(k.replace('_', ' ').title()) for k in self.__dict__)
+        max_len = max(len(k.replace("_", " ").title()) for k in self.__dict__)
         return f"{self.__class__.__name__}:\n" + "".join(
-            f"    {key.replace('_', ' ').title():<{max_len}} = {value}\n"
-            for key, value in self.__dict__.items()
-            )
+            f"    {key.replace('_', ' ').title():<{max_len}} = {value}\n" for key, value in self.__dict__.items()
+        )
 
-    def set_numerator(self, numerator: int) -> "CustomFractionalFee":
+    def set_numerator(self, numerator: int) -> CustomFractionalFee:
         """Set the numerator for the fractional fee.
 
         Args:
@@ -72,7 +73,7 @@ class CustomFractionalFee(CustomFee):
         self.numerator = numerator
         return self
 
-    def set_denominator(self, denominator: int) -> "CustomFractionalFee":
+    def set_denominator(self, denominator: int) -> CustomFractionalFee:
         """Set the denominator for the fractional fee.
 
         Args:
@@ -84,7 +85,7 @@ class CustomFractionalFee(CustomFee):
         self.denominator = denominator
         return self
 
-    def set_min_amount(self, min_amount: int) -> "CustomFractionalFee":
+    def set_min_amount(self, min_amount: int) -> CustomFractionalFee:
         """Set the minimum fee amount.
 
         Args:
@@ -96,7 +97,7 @@ class CustomFractionalFee(CustomFee):
         self.min_amount = min_amount
         return self
 
-    def set_max_amount(self, max_amount: int) -> "CustomFractionalFee":
+    def set_max_amount(self, max_amount: int) -> CustomFractionalFee:
         """Set the maximum fee amount.
 
         Args:
@@ -108,7 +109,7 @@ class CustomFractionalFee(CustomFee):
         self.max_amount = max_amount
         return self
 
-    def set_assessment_method(self, assessment_method: FeeAssessmentMethod) -> "CustomFractionalFee":
+    def set_assessment_method(self, assessment_method: FeeAssessmentMethod) -> CustomFractionalFee:
         """Set the assessment method for calculating the fee.
 
         Args:
@@ -121,7 +122,7 @@ class CustomFractionalFee(CustomFee):
         self.assessment_method = assessment_method
         return self
 
-    def _to_proto(self) -> "custom_fees_pb2.CustomFee":
+    def _to_proto(self) -> custom_fees_pb2.CustomFee:
         """Convert this CustomFractionalFee to its protobuf representation.
 
         Returns:
@@ -145,7 +146,7 @@ class CustomFractionalFee(CustomFee):
         )
 
     @classmethod
-    def _from_proto(cls, proto_fee) -> "CustomFractionalFee":
+    def _from_proto(cls, proto_fee) -> CustomFractionalFee:
         """Create a CustomFractionalFee object from a protobuf CustomFee message.
 
         Args:
@@ -155,7 +156,7 @@ class CustomFractionalFee(CustomFee):
             CustomFractionalFee: A new instance created from the protobuf data.
         """
         # Moved the import here to avoid a blank line issue
-        from hiero_sdk_python.account.account_id import AccountId 
+        from hiero_sdk_python.account.account_id import AccountId
 
         fractional_fee_proto = proto_fee.fractional_fee
 
